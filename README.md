@@ -64,3 +64,4 @@ Minimal **Next.js + Tailwind + Supabase** landing with a waitlist form.
 
 ## Soporte
 Este MVP está pensado para empezar **rápido y gratis**. Cualquier duda, revisa el README o pide ayuda en el chat.
+"chore: trigger redeploy" 
