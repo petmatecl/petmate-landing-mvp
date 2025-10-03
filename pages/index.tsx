@@ -15,7 +15,7 @@ export default function Home() {
     'Ñuñoa',
   ] as const;
 
-  // Fechas: hoy..+3 meses
+  // Fechas: hoy..+3 meses (para el <input type="date">)
   const todayStr = new Date().toISOString().split('T')[0];
   const maxDateObj = new Date();
   maxDateObj.setMonth(maxDateObj.getMonth() + 3);
@@ -26,19 +26,21 @@ export default function Home() {
     setLoading(true);
     setErr(null);
     setOk(false);
+
     const form = e.currentTarget;
 
-    // Construimos body respetando arrays (pet_types)
+    // Construimos body: forzamos string y armamos array para pet_types
     const fd = new FormData(form);
     const data: Record<string, any> = {};
-    for (const [k, v] of fd.entries()) {
-      if (k === 'pet_types') {
-        if (!Array.isArray(data[k])) data[k] = [];
-        data[k].push(v);
+    fd.forEach((value, key) => {
+      const val = typeof value === 'string' ? value : '';
+      if (key === 'pet_types') {
+        if (!Array.isArray(data.pet_types)) data.pet_types = [];
+        (data.pet_types as string[]).push(val);
       } else {
-        data[k] = v;
+        data[key] = val;
       }
-    }
+    });
 
     try {
       const res = await fetch('/api/join-waitlist', {
@@ -69,7 +71,7 @@ export default function Home() {
         <div className="mt-8 grid md:grid-cols-2 gap-6">
           {/* Formulario */}
           <form onSubmit={onSubmit} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 md:p-6 space-y-3">
-            {/* Nombre + Apellidos */}
+            {/* Nombre + Apellidos (obligatorios) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <label className="block">
                 <span className="sr-only">Nombre</span>
@@ -115,7 +117,7 @@ export default function Home() {
               />
             </label>
 
-            {/* Comuna */}
+            {/* Comuna (selector predeterminado) */}
             <label className="block">
               <span className="sr-only">Comuna</span>
               <select
