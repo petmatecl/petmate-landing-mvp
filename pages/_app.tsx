@@ -1,6 +1,8 @@
-import type { AppProps } from 'next/app';
-import '../styles/globals.css';
+// pages/_app.tsx
+import '@/styles/globals.css';
+import 'react-day-picker/dist/style.css';
 
-export default function MyApp({ Component, pageProps }: AppProps) {
+import type { AppProps } from 'next/app';
+export default function App({ Component, pageProps }: AppProps) {
   return <Component {...pageProps} />;
 }
