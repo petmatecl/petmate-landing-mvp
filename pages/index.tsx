@@ -1,11 +1,15 @@
 import { FormEvent, useMemo, useState } from 'react';
+import { DayPicker } from 'react-day-picker';
+import { isAfter, isBefore, addMonths, startOfDay } from 'date-fns';
+
+type RoleUI = 'necesita' | 'quiere';
 
 export default function Home() {
   // UI state
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [role, setRole] = useState<'necesita' | 'quiere'>('necesita');
+  const [role, setRole] = useState<RoleUI>('necesita');
 
   // Comunas piloto (sector oriente, sin Peñalolén)
   const COMUNAS_ORIENTE = [
@@ -17,15 +21,12 @@ export default function Home() {
     'Ñuñoa',
   ] as const;
 
-  // Fechas: hoy..+3 meses (rango)
-  const todayStr = new Date().toISOString().split('T')[0];
-  const maxDateStr = useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + 3);
-    return d.toISOString().split('T')[0];
-  }, []);
-  const [start, setStart] = useState<string>('');
-  const [end, setEnd] = useState<string>('');
+  // Rango permitido: hoy .. +3 meses
+  const today = startOfDay(new Date());
+  const maxDate = useMemo(() => startOfDay(addMonths(new Date(), 3)), []);
+
+  // Rango del viaje (calendario en un componente)
+  const [range, setRange] = useState<{ from?: Date; to?: Date }>({});
 
   // Mascotas
   const [dogOn, setDogOn] = useState(false);
@@ -39,19 +40,37 @@ export default function Home() {
 
     const form = e.currentTarget;
 
-    // Armamos body primario desde FormData
+    // Validaciones previas
+    if (role === 'necesita') {
+      if (!range.from || !range.to) {
+        setLoading(false);
+        setErr('Debes seleccionar fecha de inicio y fin del viaje');
+        return;
+      }
+      if (isAfter(range.from, range.to)) {
+        setLoading(false);
+        setErr('La fecha fin no puede ser anterior al inicio');
+        return;
+      }
+    }
+    // Al menos una mascota (si es necesita)
+    if (role === 'necesita' && !dogOn && !catOn) {
+      setLoading(false);
+      setErr('Selecciona al menos Perro o Gato');
+      return;
+    }
+
+    // Armamos body
     const fd = new FormData(form);
     const data: Record<string, any> = {};
     fd.forEach((value, key) => {
-      const val = typeof value === 'string' ? value : '';
-      data[key] = val;
+      data[key] = typeof value === 'string' ? value : '';
     });
 
-    // Campos derivados
     data.visible_role = role;
     if (role === 'necesita') {
-      data.travel_start = start;
-      data.travel_end = end;
+      data.travel_start = range.from?.toISOString().slice(0, 10) ?? '';
+      data.travel_end = range.to?.toISOString().slice(0, 10) ?? '';
     } else {
       data.travel_start = '';
       data.travel_end = '';
@@ -68,9 +87,9 @@ export default function Home() {
       if (!res.ok) throw new Error(await res.text());
       setOk(true);
       form.reset();
+      // Reset UI
       setRole('necesita');
-      setStart('');
-      setEnd('');
+      setRange({});
       setDogOn(false);
       setCatOn(false);
     } catch (e: any) {
@@ -80,12 +99,16 @@ export default function Home() {
     }
   }
 
-  const endMin = start || todayStr;
+  // Fechas deshabilitadas en el calendario
+  const disabledDays = [
+    (date: Date) => isBefore(date, today),
+    (date: Date) => isAfter(date, maxDate),
+  ];
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white">
-      {/* Header con logo */}
-      <header className="border-b border-zinc-800/70 bg-zinc-950/60 backdrop-blur">
+      {/* Header sticky */}
+      <header className="sticky top-0 z-50 border-b border-zinc-800/70 bg-zinc-950/70 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           <img src="/logo.svg" alt="PetMate logo" className="h-8 w-8" />
           <span className="text-lg font-semibold">PetMate</span>
@@ -134,13 +157,16 @@ export default function Home() {
               </label>
             </div>
 
-            {/* Email */}
+            {/* Email (con pattern) */}
             <label className="block">
               <span className="block text-sm mb-1 text-zinc-300">Email</span>
               <input
                 required
                 name="email"
                 type="email"
+                inputMode="email"
+                pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
+                title="Ingresa un correo válido (ej. nombre@dominio.com)"
                 className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
               />
             </label>
@@ -195,38 +221,32 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Rango de fechas (solo si “necesita”) */}
+            {/* Calendario de rango (solo si “necesita”) */}
             {role === 'necesita' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="block text-sm mb-1 text-zinc-300">Fecha inicio</span>
-                  <input
-                    required
-                    name="travel_start"
-                    type="date"
-                    min={todayStr}
-                    max={maxDateStr}
-                    value={start}
-                    onChange={(e) => {
-                      setStart(e.target.value);
-                      if (end && e.target.value && end < e.target.value) setEnd(e.target.value);
+              <div>
+                <span className="block text-sm mb-1 text-zinc-300">Fechas del viaje</span>
+                <div className="rounded-md border border-zinc-700 bg-zinc-800/40 p-2">
+                  <DayPicker
+                    mode="range"
+                    selected={range}
+                    onSelect={setRange}
+                    disabled={disabledDays}
+                    captionLayout="dropdown"
+                    fromMonth={today}
+                    toMonth={maxDate}
+                    fixedWeeks
+                    className="!text-white"
+                    styles={{
+                      caption_label: { color: 'white' },
+                      day: { color: 'white' },
+                      nav_button_next: { filter: 'invert(1)' },
+                      nav_button_previous: { filter: 'invert(1)' },
                     }}
-                    className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="block">
-                  <span className="block text-sm mb-1 text-zinc-300">Fecha fin</span>
-                  <input
-                    required
-                    name="travel_end"
-                    type="date"
-                    min={start || todayStr}
-                    max={maxDateStr}
-                    value={end}
-                    onChange={(e) => setEnd(e.target.value)}
-                    className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-                  />
-                </label>
+                </div>
+                <p className="mt-1 text-xs text-zinc-400">
+                  * Puedes elegir un rango dentro de los próximos 3 meses.
+                </p>
               </div>
             )}
 
@@ -249,7 +269,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mascotas con cantidad por especie */}
+            {/* Mascotas con cantidad por especie (obligatorio al menos una si “necesita”) */}
             <div className="space-y-2">
               <span className="block text-sm text-zinc-300">Mascotas</span>
 
@@ -272,6 +292,7 @@ export default function Home() {
                         name="dog_count"
                         type="number"
                         min={0}
+                        max={6}
                         defaultValue={1}
                         className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
                       />
@@ -297,6 +318,7 @@ export default function Home() {
                         name="cat_count"
                         type="number"
                         min={0}
+                        max={6}
                         defaultValue={1}
                         className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
                       />
@@ -304,6 +326,9 @@ export default function Home() {
                   )}
                 </div>
               </div>
+              {role === 'necesita' && (
+                <p className="text-xs text-zinc-400">* Selecciona al menos Perro o Gato.</p>
+              )}
             </div>
 
             {/* Botón + estados */}
@@ -322,17 +347,13 @@ export default function Home() {
             </p>
           </form>
 
-          {/* Lado derecho */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 md:p-6">
-            <h3 className="font-medium mb-2">¿Cómo funciona?</h3>
-            <ol className="list-decimal list-inside text-sm text-zinc-300 space-y-1">
-              <li>Publica tu viaje o postula como cuidador/a.</li>
-              <li>Charlas, verificas perfiles y confirmas la reserva.</li>
-              <li>Check-in en la casa (llaves / Chekky). Checkout.</li>
-            </ol>
-            <p className="mt-3 text-xs text-zinc-400">
-              Beta: Durante el MVP, PetMate se enfoca en comunas del sector oriente y con pagos resguardados.
-            </p>
+          {/* Panel derecho con imagen */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop"
+              alt="Persona en casa con su mascota"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </section>
