@@ -1,31 +1,21 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  --bg: #0b0c10;
-  --card: #121318;
-  --fg: #ffffff;
-  --muted: #a1a1aa;
-  --accent: #10b981;
+/* DayPicker en modo oscuro */
+.rdp-dark {
+  --rdp-accent-color: #10b981;         /* verde */
+  --rdp-background-color: rgba(39,39,42,.6);
+  color: #fff;
+}
+.rdp-dark .rdp-caption_label,
+.rdp-dark .rdp-day {
+  color: #fff;
+}
+.rdp-dark .rdp-nav_button {
+  filter: invert(1); /* iconos blancos */
+}
+.rdp-dark .rdp-day_disabled {
+  opacity: .35;
 }
 
-html, body, #__next {
-  height: 100%;
+/* Si algún día usas <input type="date">, deja el icono blanco */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
-
-body {
-  background: radial-gradient(1200px 800px at 10% 0%, #111827 0%, #0b0c10 40%, #000 100%);
-  color: var(--fg);
-}
-
-.btn {
-  @apply px-4 py-2 rounded-2xl font-medium shadow;
-  background: var(--accent);
-  color: #06281c;
-}
-
-.input {
-  @apply w-full rounded-xl bg-white/10 border border-white/10 px-3 py-2 text-white placeholder:text-white/50;
-}
-git push

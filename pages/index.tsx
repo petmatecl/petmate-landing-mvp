@@ -1,6 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { DayPicker } from 'react-day-picker';
-import { isAfter, isBefore, addMonths, startOfDay } from 'date-fns';
+import { DayPicker, DateRange } from 'react-day-picker';
+import { addMonths, isAfter, isBefore, startOfDay } from 'date-fns';
 
 type RoleUI = 'necesita' | 'quiere';
 
@@ -25,8 +25,8 @@ export default function Home() {
   const today = startOfDay(new Date());
   const maxDate = useMemo(() => startOfDay(addMonths(new Date(), 3)), []);
 
-  // Rango del viaje (calendario en un componente)
-  const [range, setRange] = useState<{ from?: Date; to?: Date }>({});
+  // Rango del viaje (un solo calendario)
+  const [range, setRange] = useState<DateRange | undefined>();
 
   // Mascotas
   const [dogOn, setDogOn] = useState(false);
@@ -42,7 +42,7 @@ export default function Home() {
 
     // Validaciones previas
     if (role === 'necesita') {
-      if (!range.from || !range.to) {
+      if (!range?.from || !range?.to) {
         setLoading(false);
         setErr('Debes seleccionar fecha de inicio y fin del viaje');
         return;
@@ -52,29 +52,27 @@ export default function Home() {
         setErr('La fecha fin no puede ser anterior al inicio');
         return;
       }
-    }
-    // Al menos una mascota (si es necesita)
-    if (role === 'necesita' && !dogOn && !catOn) {
-      setLoading(false);
-      setErr('Selecciona al menos Perro o Gato');
-      return;
+      if (!dogOn && !catOn) {
+        setLoading(false);
+        setErr('Selecciona al menos Perro o Gato');
+        return;
+      }
     }
 
     // Armamos body
     const fd = new FormData(form);
     const data: Record<string, any> = {};
-    fd.forEach((value, key) => {
-      data[key] = typeof value === 'string' ? value : '';
-    });
+    fd.forEach((value, key) => (data[key] = typeof value === 'string' ? value : ''));
 
     data.visible_role = role;
     if (role === 'necesita') {
-      data.travel_start = range.from?.toISOString().slice(0, 10) ?? '';
-      data.travel_end = range.to?.toISOString().slice(0, 10) ?? '';
+      data.travel_start = range?.from?.toISOString().slice(0, 10) ?? '';
+      data.travel_end = range?.to?.toISOString().slice(0, 10) ?? '';
     } else {
       data.travel_start = '';
       data.travel_end = '';
     }
+
     data.dog_count = dogOn ? Number(data.dog_count || 0) : 0;
     data.cat_count = catOn ? Number(data.cat_count || 0) : 0;
 
@@ -89,7 +87,7 @@ export default function Home() {
       form.reset();
       // Reset UI
       setRole('necesita');
-      setRange({});
+      setRange(undefined);
       setDogOn(false);
       setCatOn(false);
     } catch (e: any) {
@@ -99,7 +97,7 @@ export default function Home() {
     }
   }
 
-  // Fechas deshabilitadas en el calendario
+  // Fechas deshabilitadas (fuera de hoy..+3m)
   const disabledDays = [
     (date: Date) => isBefore(date, today),
     (date: Date) => isAfter(date, maxDate),
@@ -157,7 +155,7 @@ export default function Home() {
               </label>
             </div>
 
-            {/* Email (con pattern) */}
+            {/* Email (pattern) */}
             <label className="block">
               <span className="block text-sm mb-1 text-zinc-300">Email</span>
               <input
@@ -230,18 +228,11 @@ export default function Home() {
                     mode="range"
                     selected={range}
                     onSelect={setRange}
-                    disabled={disabledDays}
-                    captionLayout="dropdown"
                     fromMonth={today}
                     toMonth={maxDate}
-                    fixedWeeks
-                    className="!text-white"
-                    styles={{
-                      caption_label: { color: 'white' },
-                      day: { color: 'white' },
-                      nav_button_next: { filter: 'invert(1)' },
-                      nav_button_previous: { filter: 'invert(1)' },
-                    }}
+                    disabled={disabledDays}
+                    numberOfMonths={1}
+                    className="rdp-dark !text-white"
                   />
                 </div>
                 <p className="mt-1 text-xs text-zinc-400">
@@ -269,7 +260,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mascotas con cantidad por especie (obligatorio al menos una si “necesita”) */}
+            {/* Mascotas con cantidad por especie */}
             <div className="space-y-2">
               <span className="block text-sm text-zinc-300">Mascotas</span>
 
