@@ -1,19 +1,12 @@
 // pages/index.tsx
-import { useMemo, useRef, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { DayPicker, DateRange, Matcher } from 'react-day-picker';
-import {
-  addMonths,
-  isAfter,
-  isBefore,
-  startOfDay,
-} from 'date-fns';
+import { addMonths, startOfDay } from 'date-fns';
 
-type Mode = 'need' | 'be';                 // tabs
+type Mode = 'need' | 'be'; // tabs
 type RoleUI = 'necesita' | 'quiere';
 
-const EMAIL_RE =
-  /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 
 const COMUNAS_ORIENTE = [
   'Vitacura',
@@ -29,7 +22,7 @@ const TODAY = startOfDay(new Date());
 const MAX_MONTH = addMonths(TODAY, 3);
 
 export default function Home() {
-  // tabs (formularios)
+  // TAB (formularios)
   const [mode, setMode] = useState<Mode>('need');
 
   // email live validation
@@ -60,11 +53,9 @@ export default function Home() {
     mode === 'need' && (petsTotal < 1 || petsTotal > MAX_PETS);
 
   // disabled days del calendario (pasadas)
-  const disabledDays: Matcher[] = [
-    { before: TODAY },
-  ];
+  const disabledDays: Matcher[] = [{ before: TODAY }];
 
-  // cerrar calendario cuando ya hay ambas fechas
+  // calendario
   const onSelectRange = (next?: DateRange) => {
     setRange(next);
     const bothSelected = next?.from && next?.to;
@@ -85,7 +76,7 @@ export default function Home() {
     return '';
   }, [emailValid, mode, comuna, range, propType, petsError, petsTotal]);
 
-  // ENVÍO
+  // envío
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
@@ -100,7 +91,6 @@ export default function Home() {
       setLoading(true);
       const fd = new FormData(e.currentTarget);
 
-      // Campos base
       const body: Record<string, any> = {
         role: (mode === 'need' ? 'necesita' : 'quiere') satisfies RoleUI,
         nombre: fd.get('nombre'),
@@ -144,29 +134,35 @@ export default function Home() {
     }
   }
 
+  // clases de los tabs: full-width, grandes, selección muy evidente
+  const baseTab =
+    'w-full text-center font-bold tracking-wide transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400';
+  const selectedTab =
+    'bg-emerald-500 text-zinc-900 shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400';
+  const unselectedTab =
+    'bg-zinc-800/70 text-zinc-200 hover:bg-zinc-700';
+
   return (
     <div className="min-h-screen bg-zinc-900 text-zinc-100">
       {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-900/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500">
-              <span className="text-zinc-900 font-bold">PM</span>
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500">
+              <span className="text-zinc-900 font-extrabold">PM</span>
             </div>
             <span className="font-semibold tracking-wide">PetMate</span>
           </div>
-
-          {/* Botones auth: en móvil visibles como outline, en desktop normales */}
           <div className="flex items-center gap-2">
             <a
               href="#"
-              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-800"
+              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800"
             >
               Iniciar sesión
             </a>
             <a
               href="#"
-              className="hidden sm:inline rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-emerald-400"
+              className="hidden sm:inline rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-emerald-400"
             >
               Registrarse
             </a>
@@ -175,7 +171,7 @@ export default function Home() {
       </header>
 
       {/* Contenido */}
-      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-[1fr_380px]">
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-[1fr_420px]">
         <section className="space-y-6">
           <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl">
             Tu casa y tus mascotas, en buenas manos.
@@ -184,26 +180,29 @@ export default function Home() {
             Conecta con cuidadores verificados para tus viajes. Pagos protegidos y reseñas reales.
           </p>
 
-          {/* Tabs */}
-          <div className="inline-flex overflow-hidden rounded-lg border border-zinc-800">
-            <button
-              onClick={() => setMode('need')}
-              className={`px-4 py-2 text-sm ${
-                mode === 'need' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-zinc-400 hover:text-white'
-              }`}
-            >
-              Necesito un PetMate
-            </button>
-            <button
-              onClick={() => setMode('be')}
-              className={`px-4 py-2 text-sm ${
-                mode === 'be' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-zinc-400 hover:text-white'
-              }`}
-            >
-              Quiero ser PetMate
-            </button>
+          {/* TABS — full width */}
+          <div className="rounded-xl border border-zinc-800 p-1">
+            <div className="grid grid-cols-2 gap-1">
+              <button
+                type="button"
+                aria-pressed={mode === 'need'}
+                onClick={() => setMode('need')}
+                className={`${baseTab} ${mode === 'need' ? selectedTab : unselectedTab} rounded-lg py-3 text-base sm:py-4 sm:text-lg`}
+              >
+                Necesito un PetMate
+              </button>
+              <button
+                type="button"
+                aria-pressed={mode === 'be'}
+                onClick={() => setMode('be')}
+                className={`${baseTab} ${mode === 'be' ? selectedTab : unselectedTab} rounded-lg py-3 text-base sm:py-4 sm:text-lg`}
+              >
+                Quiero ser PetMate
+              </button>
+            </div>
           </div>
 
+          {/* FORM */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
             <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Base fields */}
@@ -254,9 +253,10 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Solo para quienes NECESITAN un petmate */}
+              {/* Solo para NEED */}
               {mode === 'need' && (
                 <>
+                  {/* Comuna */}
                   <div className="sm:col-span-1">
                     <label className="mb-1 block text-sm text-zinc-300">Comuna*</label>
                     <select
@@ -274,7 +274,7 @@ export default function Home() {
                     </select>
                   </div>
 
-                  {/* Tipo propiedad */}
+                  {/* Propiedad */}
                   <div className="sm:col-span-1">
                     <label className="mb-1 block text-sm text-zinc-300">Tipo de propiedad*</label>
                     <div className="flex gap-3">
@@ -300,7 +300,7 @@ export default function Home() {
                   </div>
 
                   {/* Mascotas */}
-                  <div className="sm:col-span-1">
+                  <div>
                     <label className="mb-1 block text-sm text-zinc-300">
                       Perros (0–{MAX_PETS})
                     </label>
@@ -309,11 +309,13 @@ export default function Home() {
                       min={0}
                       max={MAX_PETS}
                       value={dogs}
-                      onChange={(e) => setDogs(Math.max(0, Math.min(MAX_PETS, Number(e.target.value) || 0)))}
+                      onChange={(e) =>
+                        setDogs(Math.max(0, Math.min(MAX_PETS, Number(e.target.value) || 0)))
+                      }
                       className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
                     />
                   </div>
-                  <div className="sm:col-span-1">
+                  <div>
                     <label className="mb-1 block text-sm text-zinc-300">
                       Gatos (0–{MAX_PETS})
                     </label>
@@ -322,7 +324,9 @@ export default function Home() {
                       min={0}
                       max={MAX_PETS}
                       value={cats}
-                      onChange={(e) => setCats(Math.max(0, Math.min(MAX_PETS, Number(e.target.value) || 0)))}
+                      onChange={(e) =>
+                        setCats(Math.max(0, Math.min(MAX_PETS, Number(e.target.value) || 0)))
+                      }
                       className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
                     />
                     <p className="mt-1 text-xs text-zinc-400">
@@ -331,7 +335,7 @@ export default function Home() {
                   </div>
 
                   {/* Fechas */}
-                  <div className="sm:col-span-1">
+                  <div>
                     <label className="mb-1 block text-sm text-zinc-300">Inicio*</label>
                     <input
                       readOnly
@@ -341,7 +345,7 @@ export default function Home() {
                       className="w-full cursor-pointer rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
                     />
                   </div>
-                  <div className="sm:col-span-1 relative">
+                  <div className="relative">
                     <label className="mb-1 block text-sm text-zinc-300">Fin*</label>
                     <input
                       readOnly
@@ -386,7 +390,7 @@ export default function Home() {
               <div className="sm:col-span-2">
                 <button
                   disabled={loading}
-                  className="w-full rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-zinc-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                  className="w-full rounded-lg bg-emerald-500 px-4 py-3 font-semibold text-zinc-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
                 >
                   {loading ? 'Enviando…' : 'Enviar solicitud'}
                 </button>
@@ -395,14 +399,14 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Panel derecho: imagen */}
+        {/* Panel derecho — imagen de mascotas */}
         <aside className="hidden md:block">
           <div className="sticky top-20">
-            <div className="rounded-xl border border-zinc-800 p-1">
+            <div className="overflow-hidden rounded-xl border border-zinc-800 p-1">
               <img
-                src="https://images.unsplash.com/photo-1558944351-c5874d1d7730?q=80&w=1000&auto=format&fit=crop"
-                alt="Persona con su mascota en casa"
-                className="h-[420px] w-full rounded-lg object-cover"
+                src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop"
+                alt="Mascotas felices en casa"
+                className="h-[460px] w-full rounded-lg object-cover"
               />
             </div>
           </div>
