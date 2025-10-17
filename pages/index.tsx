@@ -3,7 +3,7 @@ import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { DayPicker, DateRange, Matcher } from 'react-day-picker';
 import { addMonths, startOfDay } from 'date-fns';
 
-type Mode = 'need' | 'be'; // tabs
+type Mode = 'need' | 'be';
 type RoleUI = 'necesita' | 'quiere';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
@@ -22,14 +22,13 @@ const TODAY = startOfDay(new Date());
 const MAX_MONTH = addMonths(TODAY, 3);
 
 export default function Home() {
-  // TAB (formularios)
   const [mode, setMode] = useState<Mode>('need');
 
   // email live validation
   const [email, setEmail] = useState('');
   const emailValid = EMAIL_RE.test(email);
 
-  // comuna (solo para NEED)
+  // comuna (solo NEED)
   const [comuna, setComuna] = useState<string>('');
 
   // property & pets (solo NEED)
@@ -49,13 +48,12 @@ export default function Home() {
 
   // totales y validaciones pets
   const petsTotal = dogs + cats;
-  const petsError =
-    mode === 'need' && (petsTotal < 1 || petsTotal > MAX_PETS);
+  const petsError = mode === 'need' && (petsTotal < 1 || petsTotal > MAX_PETS);
 
   // disabled days del calendario (pasadas)
   const disabledDays: Matcher[] = [{ before: TODAY }];
 
-  // calendario
+  // calendario: mantener abierto hasta seleccionar inicio+fin, o cerrar con X
   const onSelectRange = (next?: DateRange) => {
     setRange(next);
     const bothSelected = next?.from && next?.to;
@@ -76,7 +74,6 @@ export default function Home() {
     return '';
   }, [emailValid, mode, comuna, range, propType, petsError, petsTotal]);
 
-  // envío
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
@@ -134,7 +131,7 @@ export default function Home() {
     }
   }
 
-  // clases de los tabs: full-width, grandes, selección muy evidente
+  // Tabs estilos
   const baseTab =
     'w-full text-center font-bold tracking-wide transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400';
   const selectedTab =
@@ -180,7 +177,7 @@ export default function Home() {
             Conecta con cuidadores verificados para tus viajes. Pagos protegidos y reseñas reales.
           </p>
 
-          {/* TABS — full width */}
+          {/* TABS */}
           <div className="rounded-xl border border-zinc-800 p-1">
             <div className="grid grid-cols-2 gap-1">
               <button
@@ -355,22 +352,39 @@ export default function Home() {
                       className="w-full cursor-pointer rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
                     />
 
-                    {/* Popover calendario */}
+                    {/* Popover calendario con botón X */}
                     {calendarOpen && (
                       <div
                         ref={calendarRef}
-                        className="absolute right-0 top-full z-50 mt-2 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-xl"
+                        role="dialog"
+                        aria-label="Selector de fechas"
+                        className="absolute right-0 top-full z-50 mt-2 w-auto rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl"
                       >
-                        <DayPicker
-                          className="rdp-dark"
-                          mode="range"
-                          selected={range}
-                          onSelect={onSelectRange}
-                          fromMonth={TODAY}
-                          toMonth={MAX_MONTH}
-                          disabled={disabledDays}
-                          numberOfMonths={1}
-                        />
+                        <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
+                          <span className="text-sm text-zinc-300">
+                            Selecciona inicio y fin
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setCalendarOpen(null)}
+                            aria-label="Cerrar calendario"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="p-2">
+                          <DayPicker
+                            className="rdp-dark"
+                            mode="range"
+                            selected={range}
+                            onSelect={onSelectRange}
+                            fromMonth={TODAY}
+                            toMonth={MAX_MONTH}
+                            disabled={disabledDays}
+                            numberOfMonths={1}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -392,14 +406,14 @@ export default function Home() {
                   disabled={loading}
                   className="w-full rounded-lg bg-emerald-500 px-4 py-3 font-semibold text-zinc-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
                 >
-                  {loading ? 'Enviando…' : 'Enviar solicitud'}
+                  {loading ? 'Creando…' : 'Crear cuenta'}
                 </button>
               </div>
             </form>
           </div>
         </section>
 
-        {/* Panel derecho — imagen de mascotas */}
+        {/* Panel derecho — imagen */}
         <aside className="hidden md:block">
           <div className="sticky top-20">
             <div className="overflow-hidden rounded-xl border border-zinc-800 p-1">
