@@ -2,19 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Test visible para comprobar que el CSS carga en prod.
-   Si NO ves el fondo oscuro, globals.css NO está cargando. */
-html, body { background-color: #0a0a0a; }
-
-/* DayPicker dark theme */
-.rdp-dark {
-  --rdp-accent-color: #10b981;
-  --rdp-background-color: rgba(39,39,42,.6);
-  color: #fff;
+/* Opcional: afina DayPicker en modo oscuro/claro */
+.rdp-dark .rdp-day_selected:not([disabled]) {
+  background: #059669;
 }
-.rdp-dark .rdp-caption_label,
-.rdp-dark .rdp-day { color: #fff; }
-.rdp-dark .rdp-nav_button { filter: invert(1); }
-.rdp-dark .rdp-day_disabled { opacity: .35; }
-
-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+.rdp-dark .rdp-day_selected:not([disabled]):hover {
+  background: #047857;
+}
