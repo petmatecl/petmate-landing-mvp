@@ -1,21 +1,20 @@
-/* DayPicker en modo oscuro */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Test visible para comprobar que el CSS carga en prod.
+   Si NO ves el fondo oscuro, globals.css NO está cargando. */
+html, body { background-color: #0a0a0a; }
+
+/* DayPicker dark theme */
 .rdp-dark {
-  --rdp-accent-color: #10b981;         /* verde */
+  --rdp-accent-color: #10b981;
   --rdp-background-color: rgba(39,39,42,.6);
   color: #fff;
 }
 .rdp-dark .rdp-caption_label,
-.rdp-dark .rdp-day {
-  color: #fff;
-}
-.rdp-dark .rdp-nav_button {
-  filter: invert(1); /* iconos blancos */
-}
-.rdp-dark .rdp-day_disabled {
-  opacity: .35;
-}
+.rdp-dark .rdp-day { color: #fff; }
+.rdp-dark .rdp-nav_button { filter: invert(1); }
+.rdp-dark .rdp-day_disabled { opacity: .35; }
 
-/* Si algún día usas <input type="date">, deja el icono blanco */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-}
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
