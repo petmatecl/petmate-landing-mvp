@@ -1,353 +1,413 @@
-import { FormEvent, useMemo, useState } from 'react';
-import { DayPicker, DateRange } from 'react-day-picker';
-import { addMonths, isAfter, isBefore, startOfDay } from 'date-fns';
+// pages/index.tsx
+import { useMemo, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+import { DayPicker, DateRange, Matcher } from 'react-day-picker';
+import {
+  addMonths,
+  isAfter,
+  isBefore,
+  startOfDay,
+} from 'date-fns';
 
+type Mode = 'need' | 'be';                 // tabs
 type RoleUI = 'necesita' | 'quiere';
 
+const EMAIL_RE =
+  /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
+const COMUNAS_ORIENTE = [
+  'Vitacura',
+  'Las Condes',
+  'Lo Barnechea',
+  'Providencia',
+  'La Reina',
+  'Ñuñoa',
+] as const;
+
+const MAX_PETS = 10;
+const TODAY = startOfDay(new Date());
+const MAX_MONTH = addMonths(TODAY, 3);
+
 export default function Home() {
-  // UI state
-  const [loading, setLoading] = useState(false);
-  const [ok, setOk] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [role, setRole] = useState<RoleUI>('necesita');
+  // tabs (formularios)
+  const [mode, setMode] = useState<Mode>('need');
 
-  // Comunas piloto (sector oriente, sin Peñalolén)
-  const COMUNAS_ORIENTE = [
-    'Vitacura',
-    'Las Condes',
-    'Lo Barnechea',
-    'Providencia',
-    'La Reina',
-    'Ñuñoa',
-  ] as const;
+  // email live validation
+  const [email, setEmail] = useState('');
+  const emailValid = EMAIL_RE.test(email);
 
-  // Rango permitido: hoy .. +3 meses
-  const today = startOfDay(new Date());
-  const maxDate = useMemo(() => startOfDay(addMonths(new Date(), 3)), []);
+  // comuna (solo para NEED)
+  const [comuna, setComuna] = useState<string>('');
 
-  // Rango del viaje (un solo calendario)
+  // property & pets (solo NEED)
+  const [propType, setPropType] = useState<'casa' | 'departamento' | ''>('');
+  const [dogs, setDogs] = useState<number>(0);
+  const [cats, setCats] = useState<number>(0);
+
+  // rango de fechas (solo NEED)
   const [range, setRange] = useState<DateRange | undefined>();
+  const [calendarOpen, setCalendarOpen] = useState<null | 'start' | 'end'>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
 
-  // Mascotas
-  const [dogOn, setDogOn] = useState(false);
-  const [catOn, setCatOn] = useState(false);
+  // loading & feedback
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState(false);
 
+  // totales y validaciones pets
+  const petsTotal = dogs + cats;
+  const petsError =
+    mode === 'need' && (petsTotal < 1 || petsTotal > MAX_PETS);
+
+  // disabled days del calendario (pasadas)
+  const disabledDays: Matcher[] = [
+    { before: TODAY },
+  ];
+
+  // cerrar calendario cuando ya hay ambas fechas
+  const onSelectRange = (next?: DateRange) => {
+    setRange(next);
+    const bothSelected = next?.from && next?.to;
+    if (bothSelected) setCalendarOpen(null);
+  };
+
+  const minRequirementsError = useMemo(() => {
+    if (!emailValid) return 'Ingresa un correo válido.';
+    if (mode === 'need') {
+      if (!comuna) return 'Selecciona tu comuna.';
+      if (!range?.from || !range?.to) return 'Selecciona las fechas de inicio y fin.';
+      if (!propType) return 'Indica el tipo de propiedad.';
+      if (petsError) {
+        if (petsTotal < 1) return 'Debes indicar al menos 1 mascota.';
+        return `El máximo permitido es ${MAX_PETS} entre perros y gatos.`;
+      }
+    }
+    return '';
+  }, [emailValid, mode, comuna, range, propType, petsError, petsTotal]);
+
+  // ENVÍO
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
     setErr(null);
     setOk(false);
 
-    const form = e.currentTarget;
-
-    // Validaciones previas
-    if (role === 'necesita') {
-      if (!range?.from || !range?.to) {
-        setLoading(false);
-        setErr('Debes seleccionar fecha de inicio y fin del viaje');
-        return;
-      }
-      if (isAfter(range.from, range.to)) {
-        setLoading(false);
-        setErr('La fecha fin no puede ser anterior al inicio');
-        return;
-      }
-      if (!dogOn && !catOn) {
-        setLoading(false);
-        setErr('Selecciona al menos Perro o Gato');
-        return;
-      }
+    if (minRequirementsError) {
+      setErr(minRequirementsError);
+      return;
     }
-
-    // Armamos body
-    const fd = new FormData(form);
-    const data: Record<string, any> = {};
-    fd.forEach((value, key) => (data[key] = typeof value === 'string' ? value : ''));
-
-    data.visible_role = role;
-    if (role === 'necesita') {
-      data.travel_start = range?.from?.toISOString().slice(0, 10) ?? '';
-      data.travel_end = range?.to?.toISOString().slice(0, 10) ?? '';
-    } else {
-      data.travel_start = '';
-      data.travel_end = '';
-    }
-
-    data.dog_count = dogOn ? Number(data.dog_count || 0) : 0;
-    data.cat_count = catOn ? Number(data.cat_count || 0) : 0;
 
     try {
+      setLoading(true);
+      const fd = new FormData(e.currentTarget);
+
+      // Campos base
+      const body: Record<string, any> = {
+        role: (mode === 'need' ? 'necesita' : 'quiere') satisfies RoleUI,
+        nombre: fd.get('nombre'),
+        apellido_p: fd.get('apellido_p'),
+        apellido_m: fd.get('apellido_m'),
+        email,
+      };
+
+      if (mode === 'need') {
+        body.comuna = comuna;
+        body.propiedad = propType;
+        body.dogs = dogs;
+        body.cats = cats;
+        body.when_from = range?.from?.toISOString();
+        body.when_to = range?.to?.toISOString();
+      }
+
       const res = await fetch('/api/join-waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error(await res.text());
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || 'Error al enviar el formulario');
+      }
+
       setOk(true);
-      form.reset();
-      // Reset UI
-      setRole('necesita');
+      e.currentTarget.reset();
+      setEmail('');
+      setComuna('');
+      setPropType('');
+      setDogs(0);
+      setCats(0);
       setRange(undefined);
-      setDogOn(false);
-      setCatOn(false);
-    } catch (e: any) {
-      setErr(e.message || 'Error');
+    } catch (er: any) {
+      setErr(er.message || 'Error de servidor');
     } finally {
       setLoading(false);
     }
   }
 
-  // Fechas deshabilitadas (fuera de hoy..+3m)
-  const disabledDays = [
-    (date: Date) => isBefore(date, today),
-    (date: Date) => isAfter(date, maxDate),
-  ];
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white">
-      {/* Header sticky */}
-      <header className="sticky top-0 z-50 border-b border-zinc-800/70 bg-zinc-950/70 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <img src="/logo.svg" alt="PetMate logo" className="h-8 w-8" />
-          <span className="text-lg font-semibold">PetMate</span>
+    <div className="min-h-screen bg-zinc-900 text-zinc-100">
+      {/* Header */}
+      <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-900/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500">
+              <span className="text-zinc-900 font-bold">PM</span>
+            </div>
+            <span className="font-semibold tracking-wide">PetMate</span>
+          </div>
+
+          {/* Botones auth: en móvil visibles como outline, en desktop normales */}
+          <div className="flex items-center gap-2">
+            <a
+              href="#"
+              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-800"
+            >
+              Iniciar sesión
+            </a>
+            <a
+              href="#"
+              className="hidden sm:inline rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-emerald-400"
+            >
+              Registrarse
+            </a>
+          </div>
         </div>
       </header>
 
-      <section className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-3xl md:text-4xl font-semibold">
-          Tu casa y tus mascotas, en buenas manos.
-        </h1>
-        <p className="mt-2 text-zinc-300">
-          Conecta con cuidadores verificados para tus viajes. Pagos protegidos y reseñas reales.
-        </p>
+      {/* Contenido */}
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-[1fr_380px]">
+        <section className="space-y-6">
+          <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl">
+            Tu casa y tus mascotas, en buenas manos.
+          </h1>
+          <p className="text-zinc-300">
+            Conecta con cuidadores verificados para tus viajes. Pagos protegidos y reseñas reales.
+          </p>
 
-        <div className="mt-8 grid md:grid-cols-2 gap-6 items-start">
-          {/* Formulario */}
-          <form onSubmit={onSubmit} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 md:p-6 space-y-4">
-            {/* Nombre + apellidos */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <label className="block">
-                <span className="block text-sm mb-1 text-zinc-300">Nombre</span>
-                <input
-                  required
-                  name="name"
-                  type="text"
-                  className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-                />
-              </label>
-              <label className="block">
-                <span className="block text-sm mb-1 text-zinc-300">Apellido paterno</span>
-                <input
-                  required
-                  name="last_name_paternal"
-                  type="text"
-                  className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-                />
-              </label>
-              <label className="block">
-                <span className="block text-sm mb-1 text-zinc-300">Apellido materno</span>
-                <input
-                  required
-                  name="last_name_maternal"
-                  type="text"
-                  className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-                />
-              </label>
-            </div>
-
-            {/* Email (pattern) */}
-            <label className="block">
-              <span className="block text-sm mb-1 text-zinc-300">Email</span>
-              <input
-                required
-                name="email"
-                type="email"
-                inputMode="email"
-                pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
-                title="Ingresa un correo válido (ej. nombre@dominio.com)"
-                className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-              />
-            </label>
-
-            {/* Comuna */}
-            <label className="block">
-              <span className="block text-sm mb-1 text-zinc-300">Comuna</span>
-              <select
-                required
-                name="city"
-                defaultValue=""
-                className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-              >
-                <option value="" disabled>Selecciona tu comuna</option>
-                {COMUNAS_ORIENTE.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </label>
-
-            {/* Rol */}
-            <div>
-              <span className="block text-sm mb-1 text-zinc-300">¿Qué necesitas?</span>
-              <input type="hidden" name="visible_role" value={role} />
-              <div className="grid grid-cols-2 gap-2">
-                <label className="block">
-                  <input
-                    className="peer sr-only"
-                    type="radio"
-                    name="role_ui"
-                    value="necesita"
-                    checked={role === 'necesita'}
-                    onChange={() => setRole('necesita')}
-                  />
-                  <div className="w-full text-center rounded-md border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-sm peer-checked:bg-emerald-600 peer-checked:border-emerald-500">
-                    Necesito un Petmate
-                  </div>
-                </label>
-                <label className="block">
-                  <input
-                    className="peer sr-only"
-                    type="radio"
-                    name="role_ui"
-                    value="quiere"
-                    checked={role === 'quiere'}
-                    onChange={() => setRole('quiere')}
-                  />
-                  <div className="w-full text-center rounded-md border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-sm peer-checked:bg-emerald-600 peer-checked:border-emerald-500">
-                    Quiero ser PetMate
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {/* Calendario de rango (solo si “necesita”) */}
-            {role === 'necesita' && (
-              <div>
-                <span className="block text-sm mb-1 text-zinc-300">Fechas del viaje</span>
-                <div className="rounded-md border border-zinc-700 bg-zinc-800/40 p-2">
-                  <DayPicker
-                    mode="range"
-                    selected={range}
-                    onSelect={setRange}
-                    fromMonth={today}
-                    toMonth={maxDate}
-                    disabled={disabledDays}
-                    numberOfMonths={1}
-                    className="rdp-dark !text-white"
-                  />
-                </div>
-                <p className="mt-1 text-xs text-zinc-400">
-                  * Puedes elegir un rango dentro de los próximos 3 meses.
-                </p>
-              </div>
-            )}
-
-            {/* Tipo de propiedad */}
-            <div>
-              <span className="block text-sm mb-1 text-zinc-300">Tipo de propiedad</span>
-              <div className="grid grid-cols-2 gap-2">
-                <label className="block">
-                  <input className="peer sr-only" type="radio" name="property_type" value="casa" defaultChecked />
-                  <div className="w-full text-center rounded-md border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-sm peer-checked:bg-emerald-600 peer-checked:border-emerald-500">
-                    Casa
-                  </div>
-                </label>
-                <label className="block">
-                  <input className="peer sr-only" type="radio" name="property_type" value="departamento" />
-                  <div className="w-full text-center rounded-md border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-sm peer-checked:bg-emerald-600 peer-checked:border-emerald-500">
-                    Departamento
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {/* Mascotas con cantidad por especie */}
-            <div className="space-y-2">
-              <span className="block text-sm text-zinc-300">Mascotas</span>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {/* Perro */}
-                <div className="rounded-md border border-zinc-700 p-3">
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      className="accent-emerald-600"
-                      checked={dogOn}
-                      onChange={(e) => setDogOn(e.target.checked)}
-                    />
-                    <span className="text-sm">Perro</span>
-                  </label>
-                  {dogOn && (
-                    <div className="mt-2">
-                      <label className="block text-xs mb-1 text-zinc-400">Cantidad de perros</label>
-                      <input
-                        name="dog_count"
-                        type="number"
-                        min={0}
-                        max={6}
-                        defaultValue={1}
-                        className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Gato */}
-                <div className="rounded-md border border-zinc-700 p-3">
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      className="accent-emerald-600"
-                      checked={catOn}
-                      onChange={(e) => setCatOn(e.target.checked)}
-                    />
-                    <span className="text-sm">Gato</span>
-                  </label>
-                  {catOn && (
-                    <div className="mt-2">
-                      <label className="block text-xs mb-1 text-zinc-400">Cantidad de gatos</label>
-                      <input
-                        name="cat_count"
-                        type="number"
-                        min={0}
-                        max={6}
-                        defaultValue={1}
-                        className="w-full rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2 text-sm"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              {role === 'necesita' && (
-                <p className="text-xs text-zinc-400">* Selecciona al menos Perro o Gato.</p>
-              )}
-            </div>
-
-            {/* Botón + estados */}
+          {/* Tabs */}
+          <div className="inline-flex overflow-hidden rounded-lg border border-zinc-800">
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-emerald-600 hover:bg-emerald-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+              onClick={() => setMode('need')}
+              className={`px-4 py-2 text-sm ${
+                mode === 'need' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-zinc-400 hover:text-white'
+              }`}
             >
-              {loading ? 'Enviando...' : 'Enviar solicitud'}
+              Necesito un PetMate
             </button>
-            {ok && <p className="text-emerald-400 text-sm">¡Gracias! Te contactaremos pronto.</p>}
-            {err && <p className="text-red-400 text-sm">Error: {err}</p>}
-
-            <p className="mt-1 text-xs text-zinc-400">
-              * Piloto disponible solo en comunas del sector oriente de la RM.
-            </p>
-          </form>
-
-          {/* Panel derecho con imagen */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop"
-              alt="Persona en casa con su mascota"
-              className="w-full h-full object-cover"
-            />
+            <button
+              onClick={() => setMode('be')}
+              className={`px-4 py-2 text-sm ${
+                mode === 'be' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-zinc-400 hover:text-white'
+              }`}
+            >
+              Quiero ser PetMate
+            </button>
           </div>
-        </div>
-      </section>
-    </main>
+
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
+            <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Base fields */}
+              <div className="sm:col-span-1">
+                <label className="mb-1 block text-sm text-zinc-300">Nombre*</label>
+                <input
+                  name="nombre"
+                  required
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div className="sm:col-span-1">
+                <label className="mb-1 block text-sm text-zinc-300">Apellido paterno*</label>
+                <input
+                  name="apellido_p"
+                  required
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div className="sm:col-span-1">
+                <label className="mb-1 block text-sm text-zinc-300">Apellido materno*</label>
+                <input
+                  name="apellido_m"
+                  required
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="sm:col-span-1">
+                <label className="mb-1 block text-sm text-zinc-300">Email*</label>
+                <input
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full rounded-lg border px-3 py-2 outline-none ${
+                    email.length === 0
+                      ? 'border-zinc-700 bg-zinc-900 focus:border-emerald-500'
+                      : emailValid
+                      ? 'border-emerald-500 bg-zinc-900'
+                      : 'border-red-500 bg-zinc-900'
+                  }`}
+                  placeholder="tucorreo@dominio.com"
+                />
+                {email.length > 0 && !emailValid && (
+                  <p className="mt-1 text-xs text-red-400">
+                    El correo no cumple con el formato.
+                  </p>
+                )}
+              </div>
+
+              {/* Solo para quienes NECESITAN un petmate */}
+              {mode === 'need' && (
+                <>
+                  <div className="sm:col-span-1">
+                    <label className="mb-1 block text-sm text-zinc-300">Comuna*</label>
+                    <select
+                      value={comuna}
+                      onChange={(e) => setComuna(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                      required={mode === 'need'}
+                    >
+                      <option value="">Selecciona tu comuna</option>
+                      {COMUNAS_ORIENTE.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Tipo propiedad */}
+                  <div className="sm:col-span-1">
+                    <label className="mb-1 block text-sm text-zinc-300">Tipo de propiedad*</label>
+                    <div className="flex gap-3">
+                      <label className="inline-flex items-center gap-2 text-sm">
+                        <input
+                          type="radio"
+                          className="accent-emerald-500"
+                          checked={propType === 'casa'}
+                          onChange={() => setPropType('casa')}
+                        />
+                        Casa
+                      </label>
+                      <label className="inline-flex items-center gap-2 text-sm">
+                        <input
+                          type="radio"
+                          className="accent-emerald-500"
+                          checked={propType === 'departamento'}
+                          onChange={() => setPropType('departamento')}
+                        />
+                        Departamento
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Mascotas */}
+                  <div className="sm:col-span-1">
+                    <label className="mb-1 block text-sm text-zinc-300">
+                      Perros (0–{MAX_PETS})
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={MAX_PETS}
+                      value={dogs}
+                      onChange={(e) => setDogs(Math.max(0, Math.min(MAX_PETS, Number(e.target.value) || 0)))}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-1">
+                    <label className="mb-1 block text-sm text-zinc-300">
+                      Gatos (0–{MAX_PETS})
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={MAX_PETS}
+                      value={cats}
+                      onChange={(e) => setCats(Math.max(0, Math.min(MAX_PETS, Number(e.target.value) || 0)))}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                    />
+                    <p className="mt-1 text-xs text-zinc-400">
+                      Máximo total {MAX_PETS}. Actual: {petsTotal}
+                    </p>
+                  </div>
+
+                  {/* Fechas */}
+                  <div className="sm:col-span-1">
+                    <label className="mb-1 block text-sm text-zinc-300">Inicio*</label>
+                    <input
+                      readOnly
+                      onClick={() => setCalendarOpen('start')}
+                      value={range?.from ? new Date(range.from).toLocaleDateString() : ''}
+                      placeholder="Selecciona fecha de inicio"
+                      className="w-full cursor-pointer rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-1 relative">
+                    <label className="mb-1 block text-sm text-zinc-300">Fin*</label>
+                    <input
+                      readOnly
+                      onClick={() => setCalendarOpen('end')}
+                      value={range?.to ? new Date(range.to).toLocaleDateString() : ''}
+                      placeholder="Selecciona fecha de término"
+                      className="w-full cursor-pointer rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
+                    />
+
+                    {/* Popover calendario */}
+                    {calendarOpen && (
+                      <div
+                        ref={calendarRef}
+                        className="absolute right-0 top-full z-50 mt-2 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-xl"
+                      >
+                        <DayPicker
+                          className="rdp-dark"
+                          mode="range"
+                          selected={range}
+                          onSelect={onSelectRange}
+                          fromMonth={TODAY}
+                          toMonth={MAX_MONTH}
+                          disabled={disabledDays}
+                          numberOfMonths={1}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Mensajes */}
+              <div className="sm:col-span-2">
+                {err && <p className="text-sm text-red-400">{err}</p>}
+                {ok && (
+                  <p className="text-sm text-emerald-400">
+                    ¡Gracias! Recibimos tu solicitud.
+                  </p>
+                )}
+              </div>
+
+              <div className="sm:col-span-2">
+                <button
+                  disabled={loading}
+                  className="w-full rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-zinc-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                >
+                  {loading ? 'Enviando…' : 'Enviar solicitud'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        {/* Panel derecho: imagen */}
+        <aside className="hidden md:block">
+          <div className="sticky top-20">
+            <div className="rounded-xl border border-zinc-800 p-1">
+              <img
+                src="https://images.unsplash.com/photo-1558944351-c5874d1d7730?q=80&w=1000&auto=format&fit=crop"
+                alt="Persona con su mascota en casa"
+                className="h-[420px] w-full rounded-lg object-cover"
+              />
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
   );
 }
