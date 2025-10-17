@@ -1,7 +1,8 @@
 // pages/index.tsx
 import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { DayPicker, DateRange, Matcher } from 'react-day-picker';
-import { addMonths, startOfDay } from 'date-fns';
+import { addMonths, differenceInCalendarDays, startOfDay } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 type Mode = 'need' | 'be';
 type RoleUI = 'necesita' | 'quiere';
@@ -18,6 +19,8 @@ const COMUNAS_ORIENTE = [
 ] as const;
 
 const MAX_PETS = 10;
+const MIN_DIAS = 5;
+
 const TODAY = startOfDay(new Date());
 const MAX_MONTH = addMonths(TODAY, 3);
 
@@ -53,11 +56,23 @@ export default function Home() {
   // disabled days del calendario (pasadas)
   const disabledDays: Matcher[] = [{ before: TODAY }];
 
-  // calendario: mantener abierto hasta seleccionar inicio+fin, o cerrar con X
   const onSelectRange = (next?: DateRange) => {
+    setErr(null);
     setRange(next);
+
     const bothSelected = next?.from && next?.to;
-    if (bothSelected) setCalendarOpen(null);
+    if (bothSelected) {
+      const dias = differenceInCalendarDays(
+        startOfDay(next!.to!),
+        startOfDay(next!.from!)
+      );
+      if (dias < MIN_DIAS) {
+        setErr(`La solicitud debe ser por al menos ${MIN_DIAS} días.`);
+        // Mantener calendario abierto hasta que el usuario seleccione un rango válido
+        return;
+      }
+      setCalendarOpen(null);
+    }
   };
 
   const minRequirementsError = useMemo(() => {
@@ -65,6 +80,11 @@ export default function Home() {
     if (mode === 'need') {
       if (!comuna) return 'Selecciona tu comuna.';
       if (!range?.from || !range?.to) return 'Selecciona las fechas de inicio y fin.';
+      const dias = differenceInCalendarDays(
+        startOfDay(range!.to!),
+        startOfDay(range!.from!)
+      );
+      if (dias < MIN_DIAS) return `La solicitud debe ser por al menos ${MIN_DIAS} días.`;
       if (!propType) return 'Indica el tipo de propiedad.';
       if (petsError) {
         if (petsTotal < 1) return 'Debes indicar al menos 1 mascota.';
@@ -105,6 +125,7 @@ export default function Home() {
         body.when_to = range?.to?.toISOString();
       }
 
+      // Envío al endpoint de waitlist (puedes cambiar luego por signup)
       const res = await fetch('/api/join-waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -152,13 +173,13 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2">
             <a
-              href="#"
+              href="/login"
               className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800"
             >
               Iniciar sesión
             </a>
             <a
-              href="#"
+              href="/register"
               className="hidden sm:inline rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-emerald-400"
             >
               Registrarse
@@ -337,7 +358,7 @@ export default function Home() {
                     <input
                       readOnly
                       onClick={() => setCalendarOpen('start')}
-                      value={range?.from ? new Date(range.from).toLocaleDateString() : ''}
+                      value={range?.from ? new Date(range.from).toLocaleDateString('es-CL') : ''}
                       placeholder="Selecciona fecha de inicio"
                       className="w-full cursor-pointer rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
                     />
@@ -347,7 +368,7 @@ export default function Home() {
                     <input
                       readOnly
                       onClick={() => setCalendarOpen('end')}
-                      value={range?.to ? new Date(range.to).toLocaleDateString() : ''}
+                      value={range?.to ? new Date(range.to).toLocaleDateString('es-CL') : ''}
                       placeholder="Selecciona fecha de término"
                       className="w-full cursor-pointer rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-emerald-500"
                     />
@@ -362,7 +383,7 @@ export default function Home() {
                       >
                         <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
                           <span className="text-sm text-zinc-300">
-                            Selecciona inicio y fin
+                            Selecciona inicio y fin (mínimo {MIN_DIAS} días)
                           </span>
                           <button
                             type="button"
@@ -383,6 +404,7 @@ export default function Home() {
                             toMonth={MAX_MONTH}
                             disabled={disabledDays}
                             numberOfMonths={1}
+                            locale={es}
                           />
                         </div>
                       </div>
@@ -426,6 +448,42 @@ export default function Home() {
           </div>
         </aside>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-zinc-800 bg-zinc-900">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-3">
+          <div>
+            <h3 className="mb-2 font-semibold">Quiénes somos</h3>
+            <p className="text-sm text-zinc-400">
+              PetMate conecta dueños con cuidadores verificados para que tus mascotas y tu hogar
+              queden en buenas manos.
+            </p>
+          </div>
+          <div>
+            <h3 className="mb-2 font-semibold">Cómo funciona</h3>
+            <ul className="space-y-1 text-sm text-zinc-400">
+              <li>1) Crea tu cuenta</li>
+              <li>2) Publica o postula (dueño / petmate)</li>
+              <li>3) Coordina y paga seguro</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="mb-2 font-semibold">Síguenos</h3>
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300"
+            >
+              {/* simple ícono con emoji, puedes reemplazar por SVG */}
+              <span>📷</span> Instagram
+            </a>
+          </div>
+        </div>
+        <div className="border-t border-zinc-800 py-4 text-center text-xs text-zinc-500">
+          © {new Date().getFullYear()} PetMate. Todos los derechos reservados.
+        </div>
+      </footer>
     </div>
   );
 }
