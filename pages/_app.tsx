@@ -1,4 +1,3 @@
-// pages/_app.tsx
 import '../styles/globals.css';
 import 'react-day-picker/dist/style.css';
 import type { AppProps } from 'next/app';
