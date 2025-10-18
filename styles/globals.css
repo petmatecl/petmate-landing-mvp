@@ -1,22 +1,51 @@
-/* React Day Picker - colores de selección */
-.rdp-day_selected,
-.rdp-day_selected:focus-visible,
-.rdp-day_selected:hover {
-  background-color: #ff385c !important; /* brand-500 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globales suaves */
+html, body {
+  @apply bg-white text-zinc-800 antialiased;
+}
+
+/* Contenedor base */
+.container {
+  @apply max-w-6xl mx-auto px-4;
+}
+
+/* Botones */
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium;
+}
+.btn-primary {
+  @apply bg-brand-500 text-white hover:bg-brand-600 transition;
+}
+.btn-light {
+  @apply bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50 transition;
+}
+
+/* Tarjetas/selectores */
+.card {
+  @apply bg-white rounded-xl shadow-card border border-zinc-100;
+}
+
+/* Header pegajoso */
+.header {
+  @apply sticky top-0 z-40 w-full bg-white/90 backdrop-blur border-b border-zinc-100;
+}
+
+/* Footer */
+.footer-link {
+  @apply text-zinc-600 hover:text-zinc-900 transition;
+}
+
+/* DayPicker overrides (color selección fechas) */
+.rdp-day_selected, .rdp-day_selected:focus-visible, .rdp-day_selected:hover {
+  background: theme('colors.brand.500') !important;
   color: white !important;
 }
-
-.rdp-day_range_start,
-.rdp-day_range_end {
-  background-color: #ff385c !important;
-  color: white !important;
+.rdp-range_start, .rdp-range_end {
+  background: theme('colors.brand.600') !important;
 }
-
-.rdp-day_range_middle {
-  background-color: #ffe4e8 !important; /* brand-100 */
-  color: #7a1529 !important;
-}
-
-.rdp-button:focus-visible:not([disabled]) {
-  outline: 2px solid #fb7185; /* brand-400 */
+.rdp-range_middle {
+  background: theme('colors.brand.200') !important;
 }

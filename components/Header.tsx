@@ -1,39 +1,37 @@
 // components/Header.tsx
-import Link from 'next/link'
-import { useState } from 'react'
+import Link from 'next/link';
+import Image from 'next/image';
+import { useState } from 'react';
 
 export default function Header() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-zinc-200">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="inline-block h-6 w-6 rounded bg-emerald-600" />
-          PetMate
+    <header className="header">
+      <div className="container flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.svg" alt="PetMate" width={28} height={28} />
+          <span className="font-semibold text-lg">PetMate</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm">
-          <Link href="/signup" className="hover:underline">Registrarse</Link>
-          <Link href="/signin" className="hover:underline">Iniciar sesión</Link>
+        <nav className="hidden md:flex items-center gap-3">
+          <Link href="/solicitud" className="btn btn-light">Registrarse</Link>
+          <Link href="/login" className="btn btn-primary">Iniciar sesión</Link>
         </nav>
 
-        <button
-          onClick={() => setOpen(s => !s)}
-          className="md:hidden h-9 w-9 rounded-lg border flex items-center justify-center"
-          aria-label="Abrir menú"
-        >
+        <button className="md:hidden btn btn-light" onClick={() => setOpen(!open)} aria-label="Menu">
           ☰
         </button>
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-zinc-200 px-4 py-3 space-y-3">
-          <Link href="/signup" className="block">Registrarse</Link>
-          <Link href="/signin" className="block">Iniciar sesión</Link>
-          <Link href="/" className="block">¿Cómo funciona?</Link>
+        <div className="md:hidden border-t border-zinc-100">
+          <div className="container py-3 flex flex-col gap-2">
+            <Link href="/solicitud" className="btn btn-light">Registrarse</Link>
+            <Link href="/login" className="btn btn-primary">Iniciar sesión</Link>
+          </div>
         </div>
       )}
     </header>
-  )
+  );
 }
