@@ -1,31 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Base clara y tipografía */
-@layer base {
-  html, body, #__next { height: 100%; }
-  body {
-    @apply bg-neutral-50 text-neutral-900 antialiased;
-  }
+/* React Day Picker - colores de selección */
+.rdp-day_selected,
+.rdp-day_selected:focus-visible,
+.rdp-day_selected:hover {
+  background-color: #ff385c !important; /* brand-500 */
+  color: white !important;
 }
 
-/* Utilidades que usaremos ya en el tema claro */
-@layer components {
-  .card { @apply rounded-xl border border-neutral-200 bg-white shadow-sm; }
+.rdp-day_range_start,
+.rdp-day_range_end {
+  background-color: #ff385c !important;
+  color: white !important;
+}
 
-  .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-rose-500 px-4 py-2
-           text-white font-medium shadow-sm hover:bg-rose-600
-           focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2
-           disabled:opacity-60;
-  }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg bg-white px-4 py-2
-           text-neutral-700 border border-neutral-200 hover:bg-neutral-50 shadow-sm;
-  }
+.rdp-day_range_middle {
+  background-color: #ffe4e8 !important; /* brand-100 */
+  color: #7a1529 !important;
+}
 
-  .tab { @apply w-full py-3 text-center font-medium rounded-lg; }
-  .tab-active   { @apply bg-white text-neutral-900 border border-neutral-200 shadow-sm; }
-  .tab-inactive { @apply bg-neutral-100 text-neutral-600 hover:text-neutral-800; }
+.rdp-button:focus-visible:not([disabled]) {
+  outline: 2px solid #fb7185; /* brand-400 */
 }
