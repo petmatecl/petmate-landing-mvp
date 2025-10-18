@@ -8,12 +8,12 @@ import Footer from '../components/Footer';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <>
+    <div className="min-h-dvh flex flex-col bg-gray-50">
       <Header />
-      <main className="min-h-[70vh]">
+      <main className="flex-1">
         <Component {...pageProps} />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

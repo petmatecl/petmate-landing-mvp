@@ -1,41 +1,38 @@
-/* styles/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ====== Ajustes de base (look más claro y legible) ====== */
-@layer base {
-  html, body, #__next {
-    @apply h-full bg-slate-50 text-slate-900;
-  }
-
-  /* Inputs/Select/Textarea globales: bordes y focus visibles */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="tel"],
-  select,
-  textarea {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5
-           text-slate-900 placeholder-slate-400 shadow-sm outline-none
-           focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/30;
-  }
-
-  /* Botones por defecto más notorios */
-  button {
-    @apply rounded-lg bg-emerald-600 px-4 py-2 text-white font-semibold hover:bg-emerald-700;
-  }
+/* Campos de formulario con borde visible y foco accesible */
+.form-input {
+  @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm
+    placeholder:text-gray-400 shadow-sm
+    focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500;
 }
 
-/* ====== Componentes reutilizables ====== */
-@layer components {
-  .card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
-  }
-  .tab {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-center
-           font-semibold text-slate-700 hover:bg-slate-50 data-[active=true]:bg-emerald-600
-           data-[active=true]:text-white data-[active=true]:border-emerald-600;
-  }
+/* Tarjeta / caja con fondo blanco y borde sutil */
+.card {
+  @apply rounded-xl border border-gray-200 bg-white shadow-sm;
+}
+
+/* Botón primario */
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-white
+    hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed;
+}
+
+/* Botón secundario */
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-md border px-4 py-2
+    hover:bg-gray-50;
+}
+
+/* Tabs */
+.tab {
+  @apply w-full rounded-md px-4 py-3 text-center font-medium border;
+}
+.tab-active {
+  @apply bg-emerald-600 text-white border-emerald-600;
+}
+.tab-inactive {
+  @apply bg-white text-gray-700 border-gray-300 hover:bg-gray-50;
 }

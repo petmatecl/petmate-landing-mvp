@@ -1,337 +1,241 @@
 // pages/solicitud.tsx
-import { FormEvent, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 import { DayPicker, DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { addDays, differenceInCalendarDays, isAfter } from 'date-fns';
 
-type RolUI = 'necesita' | 'quiere';
-type Propiedad = 'casa' | 'departamento';
+type Mode = 'owner' | 'sitter';
 
-const COMUNAS_ORIENTE = [
-  'Vitacura',
-  'Las Condes',
-  'Lo Barnechea',
-  'Providencia',
-  'La Reina',
-  'Ñuñoa',
-] as const;
+export default function Solicitud() {
+  const router = useRouter();
+  const initialMode: Mode =
+    (router.query.mode as Mode) === 'sitter' ? 'sitter' : 'owner';
 
-export default function SolicitudPage() {
-  const [rol, setRol] = useState<RolUI>('necesita');
+  const [mode, setMode] = useState<Mode>(initialMode);
+
+  // Campos comunes
   const [nombre, setNombre] = useState('');
-  const [paterno, setPaterno] = useState('');
-  const [materno, setMaterno] = useState('');
+  const [apPat, setApPat] = useState('');
+  const [apMat, setApMat] = useState('');
   const [email, setEmail] = useState('');
-  const [comuna, setComuna] = useState<string>('');
-  const [propiedad, setPropiedad] = useState<Propiedad>('casa');
 
+  // Campos sólo para "owner" (necesito PetMate)
+  const [comuna, setComuna] = useState('');
+  const [propiedad, setPropiedad] = useState<'casa' | 'departamento' | null>(null);
   const [dogs, setDogs] = useState(0);
   const [cats, setCats] = useState(0);
-
   const [range, setRange] = useState<DateRange | undefined>();
-  const [openCal, setOpenCal] = useState(false);
 
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [ok, setOk] = useState<string | null>(null);
+  // Reglas
+  const maxPets = 10;
+  const minStart = useMemo(() => addDays(new Date(), 5), []);
+  const disabledDays = { before: minStart };
 
-  /* --- Validación email en línea --- */
-  const emailValid = useMemo(() => {
-    if (!email) return null; // sin mensaje inicial
-    // patrón básico con dominio simple
-    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-  }, [email]);
+  // Límite combinado perros + gatos
+  const canIncDog = dogs + cats < maxPets;
+  const canIncCat = dogs + cats < maxPets;
+  const decDog = () => setDogs((n) => Math.max(0, n - 1));
+  const incDog = () => canIncDog && setDogs((n) => n + 1);
+  const decCat = () => setCats((n) => Math.max(0, n - 1));
+  const incCat = () => canIncCat && setCats((n) => n + 1);
 
-  /* --- Calendario: mínimo 5 días de anticipación --- */
-  const fromDate = useMemo(() => addDays(new Date(), 5), []);
-  // el rango puede ser mismo día (inicio=fin) ⇒ solo 1 día
-  const disabledDays = [{ before: fromDate }];
+  // Si llegan ?mode=... por URL
+  useEffect(() => {
+    if (router.query.mode === 'sitter') setMode('sitter');
+    if (router.query.mode === 'owner') setMode('owner');
+  }, [router.query.mode]);
 
-  /* --- sumatoria mascotas --- */
-  const totalPets = dogs + cats;
-  const canAddDog = totalPets < 10;
-  const canAddCat = totalPets < 10;
+  // Fechas legibles
+  const selectedSummary = useMemo(() => {
+    if (!range?.from || !range?.to) return '';
+    const days = differenceInCalendarDays(range.to, range.from) + 1;
+    return `${range.from.toLocaleDateString()} – ${range.to.toLocaleDateString()} (${days} día${days > 1 ? 's' : ''})`;
+  }, [range]);
 
-  function incDog() { if (canAddDog) setDogs(dogs + 1); }
-  function decDog() { setDogs(Math.max(0, dogs - 1)); }
-  function incCat() { if (canAddCat) setCats(cats + 1); }
-  function decCat() { setCats(Math.max(0, cats - 1)); }
+  // Validación simple email
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  /* --- Handler submit --- */
-  async function onSubmit(e: FormEvent) {
+  // Asegura que to >= from y permite 1 día
+  const onSelectRange = (r: DateRange | undefined) => {
+    if (!r?.from) return setRange(undefined);
+    if (r.to && isAfter(r.from, r.to)) {
+      setRange({ from: r.to, to: r.from });
+    } else {
+      setRange(r);
+    }
+  };
+
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErr(null); setOk(null);
-
-    // Reglas mínimas
-    if (!nombre || !paterno || !materno) {
-      setErr('Nombre y apellidos son obligatorios.');
-      return;
-    }
-    if (!emailValid) {
-      setErr('Revisa el formato de tu email.');
-      return;
-    }
-    if (rol === 'necesita' && !comuna) {
-      setErr('Selecciona tu comuna.');
-      return;
-    }
-    if (rol === 'necesita' && (!range?.from || !range?.to)) {
-      setErr('Selecciona fecha inicio y fin.');
-      return;
-    }
-    if (totalPets < 1) {
-      setErr('Debes indicar al menos 1 mascota (perro o gato).');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const body = {
-        rol,
-        nombre,
-        paterno,
-        materno,
-        email,
-        comuna: rol === 'necesita' ? comuna : null,
-        propiedad,
-        dogs,
-        cats,
-        fecha_inicio: range?.from ?? null,
-        fecha_fin: range?.to ?? range?.from ?? null, // si solo eligió inicio, igual lo guardamos
-      };
-
-      const res = await fetch('/api/join-waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      setOk('¡Gracias! Te contactaremos pronto.');
-    } catch (error: any) {
-      setErr(error?.message ?? 'Error de servidor');
-    } finally {
-      setLoading(false);
-    }
-  }
+    // Aquí podrías llamar a /api/join-waitlist
+    alert('¡Solicitud enviada! (demo)');
+  };
 
   return (
-    <div className="container my-10">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <h1 className="sr-only">Solicitud</h1>
+
       {/* TABS */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button
-          className={`btn ${rol === 'necesita' ? 'btn-primary' : 'btn-light'} w-full h-12`}
-          onClick={() => setRol('necesita')}
+          className={`tab ${mode === 'owner' ? 'tab-active' : 'tab-inactive'}`}
+          onClick={() => setMode('owner')}
+          type="button"
         >
           Necesito un PetMate
         </button>
         <button
-          className={`btn ${rol === 'quiere' ? 'btn-primary' : 'btn-light'} w-full h-12`}
-          onClick={() => setRol('quiere')}
+          className={`tab ${mode === 'sitter' ? 'tab-active' : 'tab-inactive'}`}
+          onClick={() => setMode('sitter')}
+          type="button"
         >
           Quiero ser PetMate
         </button>
       </div>
 
-      {/* FORM */}
-      <form onSubmit={onSubmit} className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Columna izquierda (inputs) */}
-        <div className="md:col-span-2 space-y-5">
-          {/* Nombre y apellidos */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-3">
+        {/* Columna principal */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="block text-sm font-medium mb-1">Nombre *</label>
-              <input
-                className="w-full rounded-lg border-zinc-200 focus:border-brand-500 focus:ring-brand-500"
-                value={nombre} onChange={(e) => setNombre(e.target.value)}
-              />
+              <input className="form-input" value={nombre} onChange={(e) => setNombre(e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Apellido Paterno *</label>
-              <input
-                className="w-full rounded-lg border-zinc-200 focus:border-brand-500 focus:ring-brand-500"
-                value={paterno} onChange={(e) => setPaterno(e.target.value)}
-              />
+              <input className="form-input" value={apPat} onChange={(e) => setApPat(e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Apellido Materno *</label>
-              <input
-                className="w-full rounded-lg border-zinc-200 focus:border-brand-500 focus:ring-brand-500"
-                value={materno} onChange={(e) => setMaterno(e.target.value)}
-              />
+              <input className="form-input" value={apMat} onChange={(e) => setApMat(e.target.value)} />
             </div>
           </div>
 
-          {/* Email con validación */}
           <div>
             <label className="block text-sm font-medium mb-1">Email *</label>
             <input
-              type="email"
-              className={`w-full rounded-lg border ${
-                emailValid === false ? 'border-red-500' : 'border-zinc-200'
-              } focus:border-brand-500 focus:ring-brand-500`}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              className={`form-input ${email && !emailOk ? 'ring-2 ring-red-500 border-red-500' : ''}`}
               placeholder="tunombre@dominio.cl"
+              value={email}
+              onChange={(e) => (e.target.value = e.target.value.trimStart(), setEmail(e.target.value))}
             />
-            {emailValid === false && (
-              <p className="text-xs text-red-600 mt-1">El email no cumple con el formato.</p>
+            {email && !emailOk && (
+              <p className="mt-1 text-xs text-red-600">Ingresa un email válido (ej: nombre@dominio.cl)</p>
             )}
           </div>
 
-          {/* Comuna (solo si necesita un PetMate) */}
-          {rol === 'necesita' && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Comuna *</label>
-              <select
-                className="w-full rounded-lg border-zinc-200 focus:border-brand-500 focus:ring-brand-500"
-                value={comuna} onChange={(e) => setComuna(e.target.value)}
-              >
-                <option value="">Selecciona tu comuna</option>
-                {COMUNAS_ORIENTE.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Tipo de propiedad (tarjetas con icono) */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Tipo de propiedad *</label>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setPropiedad('casa')}
-                className={`card p-5 flex items-center justify-center gap-3 ${
-                  propiedad === 'casa' ? 'ring-2 ring-brand-500' : ''
-                }`}
-              >
-                {/* Icono casa */}
-                <svg width="22" height="22" viewBox="0 0 24 24" className="text-brand-600" fill="currentColor">
-                  <path d="M12 3l8 7h-2v8h-4v-5H10v5H6v-8H4l8-7z" />
-                </svg>
-                Casa
-              </button>
-              <button
-                type="button"
-                onClick={() => setPropiedad('departamento')}
-                className={`card p-5 flex items-center justify-center gap-3 ${
-                  propiedad === 'departamento' ? 'ring-2 ring-brand-500' : ''
-                }`}
-              >
-                {/* Icono departamento */}
-                <svg width="22" height="22" viewBox="0 0 24 24" className="text-brand-600" fill="currentColor">
-                  <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm3 2h3v3H8V7zm0 5h3v3H8v-3zm5-5h3v3h-3V7zm0 5h3v3h-3v-3z" />
-                </svg>
-                Departamento
-              </button>
-            </div>
-          </div>
-
-          {/* Calendario: fechas (solo despliega si “necesita”) */}
-          {rol === 'necesita' && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Fechas del viaje</label>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input
-                  readOnly
-                  placeholder="Inicio"
-                  value={range?.from ? format(range.from, 'dd/MM/yyyy') : ''}
-                  onClick={() => setOpenCal(true)}
-                  className="rounded-lg border-zinc-200 focus:border-brand-500 focus:ring-brand-500 cursor-pointer"
-                />
-                <input
-                  readOnly
-                  placeholder="Fin"
-                  value={range?.to ? format(range.to, 'dd/MM/yyyy') : ''}
-                  onClick={() => setOpenCal(true)}
-                  className="rounded-lg border-zinc-200 focus:border-brand-500 focus:ring-brand-500 cursor-pointer"
-                />
-                <button type="button" className="btn btn-light" onClick={() => { setRange(undefined); }}>
-                  Limpiar
-                </button>
+          {/* Controles SOLO para quien necesita PetMate */}
+          {mode === 'owner' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1">Comuna *</label>
+                <select className="form-input" value={comuna} onChange={(e) => setComuna(e.target.value)}>
+                  <option value="">Selecciona tu comuna</option>
+                  {['Vitacura','Las Condes','Lo Barnechea','Providencia','La Reina','Ñuñoa'].map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
 
-              {openCal && (
-                <div className="relative mt-3">
-                  {/* Panel flotante de calendario */}
-                  <div className="card p-4 inline-block">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="text-sm text-zinc-600">Selecciona inicio y fin (mín. 5 días desde hoy)</div>
-                      <button className="btn btn-light py-1" onClick={() => setOpenCal(false)}>✕</button>
-                    </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Fechas del viaje *</label>
+                <div className="card p-3">
+                  <DayPicker
+                    mode="range"
+                    selected={range}
+                    onSelect={onSelectRange}
+                    numberOfMonths={2}
+                    locale={es}
+                    disabled={disabledDays}
+                    styles={{
+                      caption: { color: '#065f46' },
+                      daySelected: { background: '#10b981', color: 'white' },
+                      range_middle: { background: '#a7f3d0' },
+                    }}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-gray-600">
+                  Anticipación mínima: <strong>5 días</strong>. Estadías pueden ser de <strong>1 día</strong> o más.
+                  {selectedSummary && <span className="ml-2">Seleccionado: {selectedSummary}</span>}
+                </p>
+              </div>
 
-                    <DayPicker
-                      mode="range"
-                      selected={range}
-                      onSelect={setRange}
-                      fromDate={fromDate}
-                      disabled={disabledDays}
-                      numberOfMonths={2}
-                      locale={es}
-                    />
+              <div>
+                <label className="block text-sm font-medium mb-2">Tipo de propiedad *</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    className={`card p-6 text-center ${propiedad==='casa' ? 'ring-2 ring-emerald-500 border-emerald-500' : ''}`}
+                    onClick={() => setPropiedad('casa')}
+                  >
+                    <div className="text-2xl mb-2">🏠</div>
+                    Casa
+                  </button>
+                  <button
+                    type="button"
+                    className={`card p-6 text-center ${propiedad==='departamento' ? 'ring-2 ring-emerald-500 border-emerald-500' : ''}`}
+                    onClick={() => setPropiedad('departamento')}
+                  >
+                    <div className="text-2xl mb-2">🏢</div>
+                    Departamento
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="card p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Perros</div>
+                      <div className="text-xs text-gray-500">Máx. {maxPets} entre perros + gatos</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={decDog} className="btn-secondary w-8" aria-label="menos">–</button>
+                      <span className="w-6 text-center">{dogs}</span>
+                      <button type="button" onClick={incDog} disabled={!canIncDog} className="btn-secondary w-8" aria-label="más">+</button>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="card p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Gatos</div>
+                      <div className="text-xs text-gray-500">Máx. {maxPets} entre perros + gatos</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={decCat} className="btn-secondary w-8" aria-label="menos">–</button>
+                      <span className="w-6 text-center">{cats}</span>
+                      <button type="button" onClick={incCat} disabled={!canIncCat} className="btn-secondary w-8" aria-label="más">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
-          {/* Contadores tipo Airbnb */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Counter label="Perros" value={dogs} onDec={decDog} onInc={incDog} canInc={canAddDog} />
-            <Counter label="Gatos" value={cats} onDec={decCat} onInc={incCat} canInc={canAddCat} />
-          </div>
-
-          {/* Mensajes */}
-          {err && <p className="text-sm text-red-600">{err}</p>}
-          {ok && <p className="text-sm text-green-600">{ok}</p>}
-
-          {/* Submit */}
           <div className="pt-2">
-            <button className="btn btn-primary" disabled={loading}>
-              {loading ? 'Enviando…' : 'Crear cuenta / Registrar'}
+            <button className="btn-primary" type="submit">
+              Crear cuenta / Registrarse
             </button>
           </div>
         </div>
 
-        {/* Columna derecha (imagen) */}
-        <aside className="hidden md:block">
-          <div className="card h-full p-0 overflow-hidden">
+        {/* Imagen lateral (decorativa) */}
+        <aside className="hidden lg:block">
+          <div className="card h-full p-4 flex items-center justify-center">
             <img
-              src="/hero.jpg"
+              src="/hero-pet.svg"
               alt="Persona en casa con su mascota"
-              className="w-full h-full object-cover"
+              className="w-full max-w-sm"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src =
+                  'https://images.unsplash.com/photo-1558944351-dae1b4d12bf2?auto=format&fit=crop&w=700&q=60';
+              }}
             />
           </div>
         </aside>
       </form>
-    </div>
-  );
-}
-
-/* ---------- Subcomponente Counter ---------- */
-function Counter({
-  label, value, onInc, onDec, canInc = true,
-}: { label: string; value: number; onInc: () => void; onDec: () => void; canInc?: boolean; }) {
-  return (
-    <div className="card p-4 flex items-center justify-between">
-      <div>
-        <div className="font-medium">{label}</div>
-        <div className="text-xs text-zinc-500">Máx. 10 en total entre perros + gatos</div>
-      </div>
-      <div className="flex items-center gap-3">
-        <button type="button" className="btn btn-light w-8 h-8" onClick={onDec} aria-label={`Quitar ${label}`}>−</button>
-        <div className="w-6 text-center">{value}</div>
-        <button
-          type="button"
-          className="btn btn-light w-8 h-8 disabled:opacity-40"
-          onClick={onInc}
-          disabled={!canInc}
-          aria-label={`Agregar ${label}`}
-        >
-          +
-        </button>
-      </div>
     </div>
   );
 }

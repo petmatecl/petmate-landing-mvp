@@ -3,36 +3,56 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-100 mt-16">
-      <div className="container py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <footer className="mt-16 border-t bg-white">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 grid gap-8 md:grid-cols-4">
         <div>
-          <h5 className="font-semibold mb-2">PetMate</h5>
-          <p className="text-sm text-zinc-600">Tu casa y tus mascotas, en buenas manos.</p>
+          <div className="flex items-center gap-2 font-semibold text-emerald-700">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-emerald-600 text-white">🐾</span>
+            <span>PetMate</span>
+          </div>
+          <p className="mt-2 text-sm text-gray-600">
+            Tu casa y tus mascotas, en buenas manos.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Link className="footer-link" href="/#quienes-somos">Quiénes somos</Link>
-          <Link className="footer-link" href="/#como-funciona">Cómo funciona</Link>
-          <Link className="footer-link" href="/#beneficios">Beneficios</Link>
+        <div>
+          <h3 className="font-medium">Explorar</h3>
+          <ul className="mt-2 space-y-1 text-sm">
+            <li><Link href="/#como-funciona" className="hover:underline">Cómo funciona</Link></li>
+            <li><Link href="/#beneficios" className="hover:underline">Beneficios</Link></li>
+            <li><Link href="/#seguridad" className="hover:underline">Seguridad</Link></li>
+          </ul>
         </div>
 
-        <div className="flex items-center gap-3">
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Instagram"
-            className="footer-link text-xl"
-            title="Instagram"
-          >
-            {/* simple icono IG */}
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7 2C4.239 2 2 4.239 2 7v10c0 2.761 2.239 5 5 5h10c2.761 0 5-2.239 5-5V7c0-2.761-2.239-5-5-5H7zm0 2h10c1.654 0 3 1.346 3 3v10c0 1.654-1.346 3-3 3H7c-1.654 0-3-1.346-3-3V7c0-1.654 1.346-3 3-3zm11 2a1 1 0 100 2 1 1 0 000-2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6z" />
-            </svg>
-          </a>
+        <div>
+          <h3 className="font-medium">Compañía</h3>
+          <ul className="mt-2 space-y-1 text-sm">
+            <li><Link href="/#quienes-somos" className="hover:underline">Quiénes somos</Link></li>
+            <li><Link href="/solicitud" className="hover:underline">Registrarse</Link></li>
+            <li><Link href="/login" className="hover:underline">Iniciar sesión</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="font-medium">Redes</h3>
+          <ul className="mt-2 space-y-1 text-sm">
+            <li>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 hover:underline"
+              >
+                <span className="text-xl">📷</span> Instagram
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
-      <div className="text-center text-xs text-zinc-500 pb-6">© {new Date().getFullYear()} PetMate</div>
+
+      <div className="border-t py-6 text-center text-xs text-gray-500">
+        © {new Date().getFullYear()} PetMate.
+      </div>
     </footer>
   );
 }
