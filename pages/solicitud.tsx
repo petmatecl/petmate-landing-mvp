@@ -142,18 +142,25 @@ export default function Solicitud() {
                 <label className="block text-sm font-medium mb-2">Fechas del viaje *</label>
                 <div className="card p-3">
                   <DayPicker
-                    mode="range"
-                    selected={range}
-                    onSelect={onSelectRange}
-                    numberOfMonths={2}
-                    locale={es}
-                    disabled={disabledDays}
-                    styles={{
-                      caption: { color: '#065f46' },
-                      daySelected: { background: '#10b981', color: 'white' },
-                      range_middle: { background: '#a7f3d0' },
-                    }}
-                  />
+  mode="range"
+  selected={range}
+  onSelect={onSelectRange}
+  numberOfMonths={2}
+  locale={es}
+  disabled={disabledDays}
+  /* Estructura/partes del calendario */
+  styles={{
+    caption: { color: '#065f46' }, // título del mes
+  }}
+  /* Colores para los modificadores (selección y rango) */
+  modifiersStyles={{
+    selected: { backgroundColor: '#10b981', color: 'white' }, // día seleccionado
+    range_start: { backgroundColor: '#34d399', color: 'white' },
+    range_middle: { backgroundColor: '#a7f3d0' },
+    range_end: { backgroundColor: '#34d399', color: 'white' },
+  }}
+/>
+
                 </div>
                 <p className="mt-2 text-sm text-gray-600">
                   Anticipación mínima: <strong>5 días</strong>. Estadías pueden ser de <strong>1 día</strong> o más.
