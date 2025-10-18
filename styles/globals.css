@@ -1,51 +1,41 @@
+/* styles/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Estilos globales suaves */
-html, body {
-  @apply bg-white text-zinc-800 antialiased;
+/* ====== Ajustes de base (look más claro y legible) ====== */
+@layer base {
+  html, body, #__next {
+    @apply h-full bg-slate-50 text-slate-900;
+  }
+
+  /* Inputs/Select/Textarea globales: bordes y focus visibles */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  select,
+  textarea {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5
+           text-slate-900 placeholder-slate-400 shadow-sm outline-none
+           focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/30;
+  }
+
+  /* Botones por defecto más notorios */
+  button {
+    @apply rounded-lg bg-emerald-600 px-4 py-2 text-white font-semibold hover:bg-emerald-700;
+  }
 }
 
-/* Contenedor base */
-.container {
-  @apply max-w-6xl mx-auto px-4;
-}
-
-/* Botones */
-.btn {
-  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium;
-}
-.btn-primary {
-  @apply bg-brand-500 text-white hover:bg-brand-600 transition;
-}
-.btn-light {
-  @apply bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50 transition;
-}
-
-/* Tarjetas/selectores */
-.card {
-  @apply bg-white rounded-xl shadow-card border border-zinc-100;
-}
-
-/* Header pegajoso */
-.header {
-  @apply sticky top-0 z-40 w-full bg-white/90 backdrop-blur border-b border-zinc-100;
-}
-
-/* Footer */
-.footer-link {
-  @apply text-zinc-600 hover:text-zinc-900 transition;
-}
-
-/* DayPicker overrides (color selección fechas) */
-.rdp-day_selected, .rdp-day_selected:focus-visible, .rdp-day_selected:hover {
-  background: theme('colors.brand.500') !important;
-  color: white !important;
-}
-.rdp-range_start, .rdp-range_end {
-  background: theme('colors.brand.600') !important;
-}
-.rdp-range_middle {
-  background: theme('colors.brand.200') !important;
+/* ====== Componentes reutilizables ====== */
+@layer components {
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  }
+  .tab {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-center
+           font-semibold text-slate-700 hover:bg-slate-50 data-[active=true]:bg-emerald-600
+           data-[active=true]:text-white data-[active=true]:border-emerald-600;
+  }
 }
