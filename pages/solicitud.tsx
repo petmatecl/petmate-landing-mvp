@@ -1,248 +1,341 @@
-// pages/solicitud.tsx
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/router';
-import { DayPicker, DateRange } from 'react-day-picker';
-import { es } from 'date-fns/locale';
-import { addDays, differenceInCalendarDays, isAfter } from 'date-fns';
+import React from 'react'
+import Head from 'next/head'
 
-type Mode = 'owner' | 'sitter';
+// Utilidad: formatear fecha dd/mm/yyyy
+function fmt(d?: Date | null) {
+  if (!d) return ''
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
 
-export default function Solicitud() {
-  const router = useRouter();
-  const initialMode: Mode =
-    (router.query.mode as Mode) === 'sitter' ? 'sitter' : 'owner';
+function addMonths(d: Date, n: number) {
+  const x = new Date(d)
+  x.setMonth(d.getMonth() + n)
+  x.setDate(1)
+  return x
+}
 
-  const [mode, setMode] = useState<Mode>(initialMode);
+// Genera la matriz del mes (6 filas x 7 días)
+function buildMonthMatrix(viewDate: Date) {
+  const year = viewDate.getFullYear()
+  const month = viewDate.getMonth()
+  const first = new Date(year, month, 1)
+  const startDay = (first.getDay() + 6) % 7 // Lunes=0
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-  // Campos comunes
-  const [nombre, setNombre] = useState('');
-  const [apPat, setApPat] = useState('');
-  const [apMat, setApMat] = useState('');
-  const [email, setEmail] = useState('');
+  const cells: { date: Date; inMonth: boolean }[] = []
 
-  // Campos sólo para "owner" (necesito PetMate)
-  const [comuna, setComuna] = useState('');
-  const [propiedad, setPropiedad] = useState<'casa' | 'departamento' | null>(null);
-  const [dogs, setDogs] = useState(0);
-  const [cats, setCats] = useState(0);
-  const [range, setRange] = useState<DateRange | undefined>();
+  // Días previos para completar la primera semana
+  for (let i = 0; i < startDay; i++) {
+    const d = new Date(year, month, -i)
+    cells.unshift({ date: d, inMonth: false })
+  }
+  // Días del mes
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ date: new Date(year, month, d), inMonth: true })
+  }
+  // Completa hasta 6 semanas
+  while (cells.length % 7 !== 0) {
+    const last = cells[cells.length - 1].date
+    const next = new Date(last)
+    next.setDate(last.getDate() + 1)
+    cells.push({ date: next, inMonth: false })
+  }
+  while (cells.length < 42) {
+    const last = cells[cells.length - 1].date
+    const next = new Date(last)
+    next.setDate(last.getDate() + 1)
+    cells.push({ date: next, inMonth: false })
+  }
+  return cells
+}
 
-  // Reglas
-  const maxPets = 10;
-  const minStart = useMemo(() => addDays(new Date(), 5), []);
-  const disabledDays = { before: minStart };
+// Iconos mono (SVG inline)
+const IconHouse = (props: any) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
+    <path d="M3 10.5 12 3l9 7.5"/>
+    <path d="M5 10v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9"/>
+    <rect x="10" y="14" width="4" height="7" rx="1"/>
+  </svg>
+)
+const IconBuilding = (props: any) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
+    <rect x="4" y="3" width="16" height="18" rx="2"/>
+    <path d="M4 8h16M8 12h2M14 12h2M8 16h2M14 16h2"/>
+  </svg>
+)
+const IconPaw = (props: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden fill="currentColor" {...props}>
+    <circle cx="7" cy="7" r="2.6"/>
+    <circle cx="17" cy="7" r="2.6"/>
+    <circle cx="5.5" cy="12.5" r="2.2"/>
+    <circle cx="18.5" cy="12.5" r="2.2"/>
+    <path d="M12 11c-3.5 0-6 2.5-6 4.8 0 2 1.7 3.2 6 3.2s6-1.2 6-3.2C18 13.5 15.5 11 12 11z"/>
+  </svg>
+)
+const IconCat = (props: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
+    <path d="M4 20c0-6 4-9 8-9s8 3 8 9"/>
+    <path d="M8 8V4l3 2 1-2 4 3v1"/>
+    <circle cx="10" cy="12" r=".8"/>
+    <circle cx="14" cy="12" r=".8"/>
+  </svg>
+)
 
-  // Límite combinado perros + gatos
-  const canIncDog = dogs + cats < maxPets;
-  const canIncCat = dogs + cats < maxPets;
-  const decDog = () => setDogs((n) => Math.max(0, n - 1));
-  const incDog = () => canIncDog && setDogs((n) => n + 1);
-  const decCat = () => setCats((n) => Math.max(0, n - 1));
-  const incCat = () => canIncCat && setCats((n) => n + 1);
+export default function SolicitudPage() {
+  // Estados de rango
+  const [startDate, setStartDate] = React.useState<Date | null>(null)
+  const [endDate, setEndDate] = React.useState<Date | null>(null)
+  const [rangeError, setRangeError] = React.useState<string | null>(null)
 
-  // Si llegan ?mode=... por URL
-  useEffect(() => {
-    if (router.query.mode === 'sitter') setMode('sitter');
-    if (router.query.mode === 'owner') setMode('owner');
-  }, [router.query.mode]);
+  // Calendario emergente (dos meses)
+  const [calendarOpen, setCalendarOpen] = React.useState(false)
+  const [activeField, setActiveField] = React.useState<'start' | 'end'>('start')
+  const [leftMonth, setLeftMonth] = React.useState(() => {
+    const t = new Date()
+    return new Date(t.getFullYear(), t.getMonth(), 1)
+  })
+  const rightMonth = React.useMemo(() => addMonths(leftMonth, 1), [leftMonth])
 
-  // Fechas legibles
-  const selectedSummary = useMemo(() => {
-    if (!range?.from || !range?.to) return '';
-    const days = differenceInCalendarDays(range.to, range.from) + 1;
-    return `${range.from.toLocaleDateString()} – ${range.to.toLocaleDateString()} (${days} día${days > 1 ? 's' : ''})`;
-  }, [range]);
+  const minDate = React.useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
 
-  // Validación simple email
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const leftCells = React.useMemo(() => buildMonthMatrix(leftMonth), [leftMonth])
+  const rightCells = React.useMemo(() => buildMonthMatrix(rightMonth), [rightMonth])
+  const isSameDay = (a?: Date | null, b?: Date | null) => !!a && !!b && a.toDateString() === b.toDateString()
+  const isBetween = (d: Date) => (startDate && endDate ? d >= startDate && d <= endDate : false)
 
-  // Asegura que to >= from y permite 1 día
-  const onSelectRange = (r: DateRange | undefined) => {
-    if (!r?.from) return setRange(undefined);
-    if (r.to && isAfter(r.from, r.to)) {
-      setRange({ from: r.to, to: r.from });
-    } else {
-      setRange(r);
+  function openFor(field: 'start' | 'end') {
+    setActiveField(field)
+    setRangeError(null)
+    setCalendarOpen(true)
+  }
+
+  function selectDay(d: Date) {
+    if (d < minDate) return
+    setRangeError(null)
+
+    if (activeField === 'start') {
+      setStartDate(d)
+      if (endDate && endDate < d) setEndDate(null)
+      setActiveField('end')
+      return
     }
-  };
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aquí podrías llamar a /api/join-waitlist
-    alert('¡Solicitud enviada! (demo)');
-  };
+    // activeField === 'end'
+    if (startDate && d < startDate) {
+      setRangeError('La fecha de fin no puede ser menor que la de inicio.')
+      return
+    }
+    if (!startDate) {
+      // Si no hay inicio y el usuario abre el fin primero, forzamos a elegir inicio
+      setRangeError('Primero selecciona la fecha de inicio.')
+      setActiveField('start')
+      return
+    }
+    setEndDate(d)
+    setCalendarOpen(false)
+  }
+
+  function monthAdd(n: number) {
+    setLeftMonth(addMonths(leftMonth, n))
+  }
+
+  function clearDates() {
+    setStartDate(null); setEndDate(null); setRangeError(null); setActiveField('start')
+  }
+
+  function Month({ labelDate, cells }: { labelDate: Date; cells: { date: Date; inMonth: boolean }[] }) {
+    return (
+      <div className="month">
+        <div className="monthLabel">{labelDate.toLocaleString('es', { month: 'long', year: 'numeric' })}</div>
+        <div className="weekRow head">
+          {['LU','MA','MI','JU','VI','SÁ','DO'].map((d) => (
+            <div key={d} className="cell head">{d}</div>
+          ))}
+        </div>
+        <div className="grid">
+          {cells.map(({ date, inMonth }, i) => {
+            const disabled = date < minDate || !inMonth
+            const isStart = isSameDay(date, startDate)
+            const isEnd = isSameDay(date, endDate)
+            const inRange = isBetween(date)
+            return (
+              <button
+                key={i}
+                className={[
+                  'cell',
+                  inMonth ? '' : 'muted',
+                  disabled ? 'disabled' : '',
+                  isStart ? 'start' : '',
+                  isEnd ? 'end' : '',
+                  inRange ? 'inrange' : '',
+                ].join(' ')}
+                onClick={() => !disabled && selectDay(new Date(date))}
+                disabled={disabled}
+              >
+                {date.getDate()}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="sr-only">Solicitud</h1>
+    <>
+      <Head><title>Solicitud — PetMate</title></Head>
 
-      {/* TABS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <button
-          className={`tab ${mode === 'owner' ? 'tab-active' : 'tab-inactive'}`}
-          onClick={() => setMode('owner')}
-          type="button"
-        >
-          Necesito un PetMate
-        </button>
-        <button
-          className={`tab ${mode === 'sitter' ? 'tab-active' : 'tab-inactive'}`}
-          onClick={() => setMode('sitter')}
-          type="button"
-        >
-          Quiero ser PetMate
-        </button>
-      </div>
+      <main className="page">
+        <h1 className="h1">Solicitud</h1>
 
-      <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-3">
-        {/* Columna principal */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">Nombre *</label>
-              <input className="form-input" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+        {/* Rango de fechas */}
+        <section className="card">
+          <h2 className="h2">Fechas del viaje</h2>
+          <div className="dateRow">
+            <div className="field">
+              <label>Inicio</label>
+              <input
+                readOnly
+                value={fmt(startDate)}
+                placeholder="dd/mm/aaaa"
+                onClick={() => openFor('start')}
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Apellido Paterno *</label>
-              <input className="form-input" value={apPat} onChange={(e) => setApPat(e.target.value)} />
+            <div className="field">
+              <label>Fin</label>
+              <input
+                readOnly
+                value={fmt(endDate)}
+                placeholder="dd/mm/aaaa"
+                onClick={() => openFor('end')}
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Apellido Materno *</label>
-              <input className="form-input" value={apMat} onChange={(e) => setApMat(e.target.value)} />
-            </div>
+            <button className="btnGhost" onClick={clearDates}>Limpiar</button>
           </div>
+          {rangeError && <p className="error" role="alert">{rangeError}</p>}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Email *</label>
-            <input
-              className={`form-input ${email && !emailOk ? 'ring-2 ring-red-500 border-red-500' : ''}`}
-              placeholder="tunombre@dominio.cl"
-              value={email}
-              onChange={(e) => (e.target.value = e.target.value.trimStart(), setEmail(e.target.value))}
-            />
-            {email && !emailOk && (
-              <p className="mt-1 text-xs text-red-600">Ingresa un email válido (ej: nombre@dominio.cl)</p>
-            )}
-          </div>
+          {calendarOpen && (
+            <div className="overlay" role="dialog" aria-modal>
+              <div className="cal">
+                <button className="close" aria-label="Cerrar" onClick={() => setCalendarOpen(false)}>×</button>
 
-          {/* Controles SOLO para quien necesita PetMate */}
-          {mode === 'owner' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-1">Comuna *</label>
-                <select className="form-input" value={comuna} onChange={(e) => setComuna(e.target.value)}>
-                  <option value="">Selecciona tu comuna</option>
-                  {['Vitacura','Las Condes','Lo Barnechea','Providencia','La Reina','Ñuñoa'].map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Fechas del viaje *</label>
-                <div className="card p-3">
-                  <DayPicker
-  mode="range"
-  selected={range}
-  onSelect={onSelectRange}
-  numberOfMonths={2}
-  locale={es}
-  disabled={disabledDays}
-  /* Estructura/partes del calendario */
-  styles={{
-    caption: { color: '#065f46' }, // título del mes
-  }}
-  /* Colores para los modificadores (selección y rango) */
-  modifiersStyles={{
-    selected: { backgroundColor: '#10b981', color: 'white' }, // día seleccionado
-    range_start: { backgroundColor: '#34d399', color: 'white' },
-    range_middle: { backgroundColor: '#a7f3d0' },
-    range_end: { backgroundColor: '#34d399', color: 'white' },
-  }}
-/>
-
-                </div>
-                <p className="mt-2 text-sm text-gray-600">
-                  Anticipación mínima: <strong>5 días</strong>. Estadías pueden ser de <strong>1 día</strong> o más.
-                  {selectedSummary && <span className="ml-2">Seleccionado: {selectedSummary}</span>}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Tipo de propiedad *</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    className={`card p-6 text-center ${propiedad==='casa' ? 'ring-2 ring-emerald-500 border-emerald-500' : ''}`}
-                    onClick={() => setPropiedad('casa')}
-                  >
-                    <div className="text-2xl mb-2">🏠</div>
-                    Casa
-                  </button>
-                  <button
-                    type="button"
-                    className={`card p-6 text-center ${propiedad==='departamento' ? 'ring-2 ring-emerald-500 border-emerald-500' : ''}`}
-                    onClick={() => setPropiedad('departamento')}
-                  >
-                    <div className="text-2xl mb-2">🏢</div>
-                    Departamento
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="card p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">Perros</div>
-                      <div className="text-xs text-gray-500">Máx. {maxPets} entre perros + gatos</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button type="button" onClick={decDog} className="btn-secondary w-8" aria-label="menos">–</button>
-                      <span className="w-6 text-center">{dogs}</span>
-                      <button type="button" onClick={incDog} disabled={!canIncDog} className="btn-secondary w-8" aria-label="más">+</button>
-                    </div>
+                <div className="calHead">
+                  <button className="nav" onClick={() => monthAdd(-1)}>‹</button>
+                  <div className="monthRange">
+                    <strong>{leftMonth.toLocaleString('es', { month: 'long', year: 'numeric' })}</strong>
+                    <span className="dash">—</span>
+                    <strong>{rightMonth.toLocaleString('es', { month: 'long', year: 'numeric' })}</strong>
                   </div>
+                  <button className="nav" onClick={() => monthAdd(1)}>›</button>
                 </div>
-                <div className="card p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">Gatos</div>
-                      <div className="text-xs text-gray-500">Máx. {maxPets} entre perros + gatos</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button type="button" onClick={decCat} className="btn-secondary w-8" aria-label="menos">–</button>
-                      <span className="w-6 text-center">{cats}</span>
-                      <button type="button" onClick={incCat} disabled={!canIncCat} className="btn-secondary w-8" aria-label="más">+</button>
-                    </div>
-                  </div>
+
+                <div className="months">
+                  <Month labelDate={leftMonth} cells={leftCells} />
+                  <Month labelDate={rightMonth} cells={rightCells} />
+                </div>
+
+                <div className="legend">
+                  <span className="dot start"/> Inicio
+                  <span className="sep"/>
+                  <span className="dot end"/> Fin
                 </div>
               </div>
-            </>
+            </div>
           )}
+        </section>
 
-          <div className="pt-2">
-            <button className="btn-primary" type="submit">
-              Crear cuenta / Registrarse
-            </button>
+        {/* Tipo de propiedad */}
+        <section className="card">
+          <h2 className="h2">Tipo de propiedad</h2>
+          <div className="options">
+            <label className="opt">
+              <input type="radio" name="property" defaultChecked />
+              <span className="ico"><IconHouse/></span>
+              <span>Casa</span>
+            </label>
+            <label className="opt">
+              <input type="radio" name="property" />
+              <span className="ico"><IconBuilding/></span>
+              <span>Departamento</span>
+            </label>
           </div>
+        </section>
+
+        {/* Mascotas */}
+        <section className="card">
+          <h2 className="h2">Mascotas</h2>
+          <div className="options">
+            <label className="opt">
+              <input type="checkbox" name="dogs" />
+              <span className="ico"><IconPaw/></span>
+              <span>Perros</span>
+            </label>
+            <label className="opt">
+              <input type="checkbox" name="cats" />
+              <span className="ico"><IconCat/></span>
+              <span>Gatos</span>
+            </label>
+          </div>
+        </section>
+
+        <div className="actions">
+          <button className="btnPrimary">Continuar</button>
         </div>
+      </main>
 
-        {/* Imagen lateral (decorativa) */}
-        <aside className="hidden lg:block">
-          <div className="card h-full p-4 flex items-center justify-center">
-            <img
-              src="/hero-pet.svg"
-              alt="Persona en casa con su mascota"
-              className="w-full max-w-sm"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1558944351-dae1b4d12bf2?auto=format&fit=crop&w=700&q=60';
-              }}
-            />
-          </div>
-        </aside>
-      </form>
-    </div>
-  );
+      <style jsx>{`
+        :global(body){background:#fff}
+        .page{max-width:1040px;margin:0 auto;padding:24px 16px}
+        .h1{font-size:1.8rem;margin:0 0 12px;}
+        .h2{font-size:1.2rem;margin:0 0 12px}
+        .card{border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin:16px 0;background:#fff}
+
+        .dateRow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+        .field{display:grid;gap:6px}
+        label{font-weight:600}
+        input{height:42px;padding:0 12px;border:1px solid #e5e7eb;border-radius:8px;width:220px}
+        input:focus{outline:none;border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08)}
+        .btnGhost{height:42px;padding:0 14px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
+        .error{color:#b91c1c;margin-top:8px}
+
+        .overlay{position:fixed;inset:0;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;z-index:50}
+        .cal{position:relative;width:min(820px,95vw);background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 12px 30px rgba(0,0,0,.15);padding:12px}
+        .close{position:absolute;top:8px;right:10px;border:none;background:transparent;font-size:28px;line-height:1;cursor:pointer}
+        .calHead{display:flex;align-items:center;justify-content:space-between;padding:6px 0 10px}
+        .nav{width:36px;height:36px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
+        .monthRange{display:flex;align-items:center;gap:10px;text-transform:capitalize;font-weight:700}
+        .dash{opacity:.5}
+        .months{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+        .monthLabel{font-weight:700;text-transform:capitalize;margin-bottom:6px}
+        .weekRow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+        .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+        .cell{height:40px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .cell.head{border:none;background:transparent;font-weight:700;color:#6b7280}
+        .cell.muted{color:#9ca3af;background:#fafafa}
+        .cell.disabled{opacity:.45;cursor:not-allowed}
+        .cell.start,.cell.end{background:#111827;color:#fff;border-color:#111827}
+        .cell.inrange{background:#e5e7eb}
+        .legend{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:8px;color:#6b7280}
+        .dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:4px}
+        .dot.start{background:#111827}
+        .dot.end{background:#111827}
+
+        .options{display:flex;gap:16px;flex-wrap:wrap}
+        .opt{display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;cursor:pointer}
+        .opt input{margin-right:2px;width:16px;height:16px}
+        .ico{display:inline-flex;color:#111827}
+
+        .actions{display:flex;justify-content:flex-end;margin-top:12px}
+        .btnPrimary{height:44px;padding:0 18px;border-radius:10px;font-weight:700;background:#111827;color:#fff;border:none;cursor:pointer}
+      `}</style>
+    </>
+  )
 }
