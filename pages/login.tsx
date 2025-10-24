@@ -54,8 +54,7 @@ export default function LoginPage() {
 
     try {
       setLoading(true)
-      // TODO: Conectar a tu auth real (NextAuth/Supabase/API)
-      await new Promise((r) => setTimeout(r, 300))
+      await new Promise((r) => setTimeout(r, 300)) // TODO: conecta auth real
       router.push(role === 'client' ? '/cliente' : '/petmate')
     } catch (err: any) {
       setError(err.message || 'No se pudo iniciar sesión')
@@ -68,7 +67,7 @@ export default function LoginPage() {
     <>
       <Head><title>Iniciar sesión — PetMate</title></Head>
 
-      <main className="page">
+      <main className="pmLogin page">
         <div className="wrap">
           {/* Tabs */}
           <div className="tabs" role="tablist" aria-label="Selecciona tipo de cuenta">
@@ -138,10 +137,12 @@ export default function LoginPage() {
 
               {error && <p className="error" role="alert">{error}</p>}
 
-              {/* Botón bien visible */}
-              <button type="submit" className="btnPrimary" disabled={loading}>
-                {loading ? 'Ingresando…' : 'Iniciar sesión'}
-              </button>
+              {/* Botón forzado visible */}
+              <div className="btnRow">
+                <button type="submit" className="btnPrimary" disabled={loading}>
+                  {loading ? 'Ingresando…' : 'Iniciar sesión'}
+                </button>
+              </div>
 
               {/* Links */}
               <div className="links">
@@ -190,12 +191,22 @@ export default function LoginPage() {
         }
         .rightIconBtn:hover { background:#f3f4f6; }
 
-        /* Botón principal (consistente con registro) */
-        .btnPrimary {
-          display:block; width:100%; height:46px; margin-top:6px;
-          border:none; border-radius:10px; background:var(--brand); color:#fff; font-weight:800; cursor:pointer;
+        /* Botón principal (con especificidad y !important para ganar a estilos globales) */
+        .btnRow { display:block; }
+        .pmLogin .card .form .btnPrimary {
+          display:block !important;
+          visibility:visible !important;
+          width:100% !important;
+          height:48px !important;
+          margin-top:6px !important;
+          border:none !important;
+          border-radius:10px !important;
+          background:var(--brand) !important;
+          color:#fff !important;
+          font-weight:800 !important;
+          cursor:pointer !important;
         }
-        .btnPrimary:disabled { opacity:.75; cursor:default; }
+        .pmLogin .card .form .btnPrimary:disabled { opacity:.75 !important; cursor:default !important; }
 
         .links { display:flex; justify-content:space-between; font-size:.95rem; margin-top:10px; }
         .a { text-decoration:underline; color:#111827; }
