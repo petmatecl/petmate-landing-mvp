@@ -54,7 +54,7 @@ export default function LoginPage() {
 
     try {
       setLoading(true)
-      await new Promise((r) => setTimeout(r, 300)) // TODO: conecta auth real
+      await new Promise((r) => setTimeout(r, 300)) // TODO: conectar auth real
       router.push(role === 'client' ? '/cliente' : '/petmate')
     } catch (err: any) {
       setError(err.message || 'No se pudo iniciar sesión')
@@ -76,17 +76,13 @@ export default function LoginPage() {
               aria-selected={tab === 'client'}
               className={`tab ${tab === 'client' ? 'active' : ''}`}
               onClick={() => setTab('client')}
-            >
-              Cliente
-            </button>
+            >Cliente</button>
             <button
               role="tab"
               aria-selected={tab === 'petmate'}
               className={`tab ${tab === 'petmate' ? 'active' : ''}`}
               onClick={() => setTab('petmate')}
-            >
-              PetMate
-            </button>
+            >PetMate</button>
           </div>
 
           {/* Card */}
@@ -102,7 +98,7 @@ export default function LoginPage() {
               {/* Correo */}
               <div className="field">
                 <label htmlFor="email" className="label">
-                  <MailIcon /> <span>Correo</span>
+                  <MailIcon/> <span>Correo</span>
                 </label>
                 <div className="inputWrap">
                   <input id="email" name="email" type="email" placeholder="tu@correo.com" autoComplete="email" required />
@@ -112,7 +108,7 @@ export default function LoginPage() {
               {/* Contraseña */}
               <div className="field">
                 <label htmlFor="password" className="label">
-                  <LockIcon /> <span>Contraseña</span>
+                  <LockIcon/> <span>Contraseña</span>
                 </label>
                 <div className="inputWrap">
                   <input
@@ -127,22 +123,36 @@ export default function LoginPage() {
                     type="button"
                     className="rightIconBtn"
                     aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    onClick={() => setShowPass((v) => !v)}
+                    onClick={() => setShowPass(v => !v)}
                     title={showPass ? 'Ocultar' : 'Mostrar'}
                   >
-                    {showPass ? <EyeOffIcon /> : <EyeIcon />}
+                    {showPass ? <EyeOffIcon/> : <EyeIcon/>}
                   </button>
                 </div>
               </div>
 
               {error && <p className="error" role="alert">{error}</p>}
 
-              {/* Botón forzado visible */}
-              <div className="btnRow">
-                <button type="submit" className="btnPrimary" disabled={loading}>
-                  {loading ? 'Ingresando…' : 'Iniciar sesión'}
-                </button>
-              </div>
+              {/* Botón — estilos inline para ganar a cualquier CSS global */}
+              <button
+                type="submit"
+                className="btnPrimary"
+                disabled={loading}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 48,
+                  marginTop: 8,
+                  border: 'none',
+                  borderRadius: 10,
+                  background: '#111827',
+                  color: '#fff',
+                  fontWeight: 800 as any,
+                  cursor: loading ? 'default' : 'pointer',
+                }}
+              >
+                {loading ? 'Ingresando…' : 'Iniciar sesión'}
+              </button>
 
               {/* Links */}
               <div className="links">
@@ -191,23 +201,7 @@ export default function LoginPage() {
         }
         .rightIconBtn:hover { background:#f3f4f6; }
 
-        /* Botón principal (con especificidad y !important para ganar a estilos globales) */
-        .btnRow { display:block; }
-        .pmLogin .card .form .btnPrimary {
-          display:block !important;
-          visibility:visible !important;
-          width:100% !important;
-          height:48px !important;
-          margin-top:6px !important;
-          border:none !important;
-          border-radius:10px !important;
-          background:var(--brand) !important;
-          color:#fff !important;
-          font-weight:800 !important;
-          cursor:pointer !important;
-        }
-        .pmLogin .card .form .btnPrimary:disabled { opacity:.75 !important; cursor:default !important; }
-
+        /* Links */
         .links { display:flex; justify-content:space-between; font-size:.95rem; margin-top:10px; }
         .a { text-decoration:underline; color:#111827; }
 
