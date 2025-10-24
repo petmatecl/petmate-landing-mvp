@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#E6F4EA"/>
+      <stop offset="1" stop-color="#F5FAFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <!-- Simple house -->
+  <polygon points="400,700 800,420 1200,700 1200,860 400,860" fill="#ffffff" stroke="#e5e7eb" stroke-width="6"/>
+  <rect x="720" y="720" width="160" height="140" rx="12" fill="#e5e7eb"/>
+  <!-- Paw print -->
+  <circle cx="1080" cy="520" r="54" fill="#111827" opacity="0.9"/>
+  <circle cx="1030" cy="460" r="22" fill="#111827" opacity="0.9"/>
+  <circle cx="1065" cy="430" r="22" fill="#111827" opacity="0.9"/>
+  <circle cx="1100" cy="430" r="22" fill="#111827" opacity="0.9"/>
+  <circle cx="1135" cy="460" r="22" fill="#111827" opacity="0.9"/>
+  <!-- Copy -->
+  <text x="120" y="160" font-family="Inter, Arial, sans-serif" font-size="80" fill="#111827">PetMate</text>
+  <text x="120" y="210" font-family="Inter, Arial, sans-serif" font-size="28" fill="#374151">Tu casa y tus mascotas, en buenas manos.</text>
+</svg>
