@@ -113,11 +113,11 @@ export default function LoginPage() {
       <style jsx>{`
         :root{--brand:#111827; --muted:#f6f7f9; --border:#e5e7eb}
         .page{min-height:calc(100vh - 200px);display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(180deg,#fafafa,#fff)}
-        .wrap{width:100%;max-width:520px}
+        .wrap{width:100%;max-width:560px}
         .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--muted);padding:6px;border-radius:14px;margin-bottom:10px;border:1px solid var(--border)}
-        .tab{appearance:none;border:0;padding:.7rem 1rem;border-radius:10px;background:transparent;font-weight:700;cursor:pointer}
-        .tab.active{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px var(--border) inset}
-        .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
+        .tab{appearance:none;border:0;padding:.8rem 1rem;border-radius:10px;background:transparent;font-weight:800;cursor:pointer;color:#6b7280}
+        .tab.active{background:#fff;border:2px solid var(--brand);color:var(--brand);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+        .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
       `}</style>
     </>
   )
@@ -140,18 +140,20 @@ function AuthForm({ title, subtitle, registerHref, onSubmit, loading, error }:{
 
       {/* Correo */}
       <div className="field">
-        <label htmlFor="email">Correo</label>
+        <label htmlFor="email" className="label">
+          <MailIcon/> <span>Correo</span>
+        </label>
         <div className="inputWrap">
-          <MailIcon className="leftIcon"/>
           <input id="email" name="email" type="email" placeholder="tu@correo.com" autoComplete="email" required />
         </div>
       </div>
 
       {/* Contraseña */}
       <div className="field">
-        <label htmlFor="password">Contraseña</label>
+        <label htmlFor="password" className="label">
+          <LockIcon/> <span>Contraseña</span>
+        </label>
         <div className="inputWrap">
-          <LockIcon className="leftIcon"/>
           <input
             id="password"
             name="password"
@@ -176,21 +178,20 @@ function AuthForm({ title, subtitle, registerHref, onSubmit, loading, error }:{
       </div>
 
       <style jsx>{`
-        .title{font-size:1.6rem;margin:2px 0}
-        .subtitle{color:#6b7280;margin:0 0 12px}
-        .form{display:grid;gap:12px}
+        .title{font-size:1.8rem;margin:2px 0}
+        .subtitle{color:#6b7280;margin:0 0 16px}
+        .form{display:grid;gap:14px}
         .field{display:grid;gap:6px}
-        label{font-weight:600}
+        .label{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#111827}
         .inputWrap{position:relative}
-        input{height:46px;width:100%;padding:0 44px 0 42px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff}
+        input{height:46px;width:100%;padding:0 44px 0 12px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff}
         input::placeholder{color:#9ca3af}
         input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(17,24,39,.08)}
-        .leftIcon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280}
-        .rightIconBtn{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;padding:6px;border-radius:8px;cursor:pointer;color:#374151}
+        .rightIconBtn{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;padding:6px;border-radius:8px;cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center}
         .rightIconBtn:hover{background:#f3f4f6}
-        .btnPrimary{height:46px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+        .btnPrimary{height:46px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer;margin-top:4px}
         .btnPrimary:disabled{opacity:.75}
-        .links{display:flex;justify-content:space-between;font-size:.95rem;margin-top:4px}
+        .links{display:flex;justify-content:space-between;font-size:.95rem;margin-top:8px}
         .a{text-decoration:underline;color:#111827}
         .error{color:#b91c1c;}
       `}</style>
