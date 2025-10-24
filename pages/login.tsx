@@ -7,12 +7,32 @@ import { useRouter } from 'next/router'
 
 type Role = 'client' | 'petmate'
 
-/**
- * /pages/login.tsx — Tabs Cliente / PetMate (sin dependencias externas)
- * - 100% self-contained: sin shadcn/ui, sin lucide.
- * - Compatible con Pages Router (import from 'next/router').
- * - Estilos mínimos con styled-jsx.
- */
+// --- Íconos mono (inline SVG) ---
+const MailIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <rect x="3" y="5" width="18" height="14" rx="2"/>
+    <path d="M3 7l9 6 9-6"/>
+  </svg>
+)
+const LockIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <rect x="4" y="11" width="16" height="9" rx="2"/>
+    <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+  </svg>
+)
+const EyeIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+    <circle cx="12" cy="12" r="3.2"/>
+  </svg>
+)
+const EyeOffIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <path d="M17.94 17.94C16.1 19.24 14.12 20 12 20 5 20 1 12 1 12a20.1 20.1 0 0 1 6.05-6.05m4.31-1.55C19 4.4 23 12 23 12a20.14 20.14 0 0 1-2.83 3.94"/>
+    <path d="M1 1l22 22"/>
+  </svg>
+)
+
 export default function LoginPage() {
   const router = useRouter()
   const [tab, setTab] = React.useState<Role>('client')
@@ -33,8 +53,7 @@ export default function LoginPage() {
 
     try {
       setLoading(true)
-      // TODO: Reemplaza por tu lógica real (NextAuth, Supabase, API propia, etc.)
-      await new Promise((r) => setTimeout(r, 500))
+      await new Promise((r) => setTimeout(r, 400))
       router.push(role === 'client' ? '/cliente' : '/petmate')
     } catch (err: any) {
       setError(err.message || 'No se pudo iniciar sesión')
@@ -45,120 +64,136 @@ export default function LoginPage() {
 
   return (
     <>
-      <Head>
-        <title>Iniciar sesión — PetMate</title>
-      </Head>
-
+      <Head><title>Iniciar sesión — PetMate</title></Head>
       <main className="page">
         <div className="wrap">
-          <div className="card">
-            <div className="tabs" role="tablist" aria-label="Selecciona tipo de cuenta">
-              <button
-                role="tab"
-                aria-selected={tab === 'client'}
-                className={`tab ${tab === 'client' ? 'active' : ''}`}
-                onClick={() => setTab('client')}
-              >
-                Cliente
-              </button>
-              <button
-                role="tab"
-                aria-selected={tab === 'petmate'}
-                className={`tab ${tab === 'petmate' ? 'active' : ''}`}
-                onClick={() => setTab('petmate')}
-              >
-                PetMate
-              </button>
-            </div>
+          {/* Tabs */}
+          <div className="tabs" role="tablist" aria-label="Selecciona tipo de cuenta">
+            <button
+              role="tab"
+              aria-selected={tab === 'client'}
+              className={`tab ${tab === 'client' ? 'active' : ''}`}
+              onClick={() => setTab('client')}
+            >Cliente</button>
+            <button
+              role="tab"
+              aria-selected={tab === 'petmate'}
+              className={`tab ${tab === 'petmate' ? 'active' : ''}`}
+              onClick={() => setTab('petmate')}
+            >PetMate</button>
+          </div>
 
+          {/* Card */}
+          <div className="card">
             {tab === 'client' ? (
               <AuthForm
                 key="client"
                 title="Iniciar sesión"
                 subtitle="Accede como cliente para reservar y gestionar servicios."
-                onSubmit={handleSubmit('client')}
                 registerHref="/register?role=client"
+                onSubmit={handleSubmit('client')}
+                loading={loading}
+                error={error}
               />
             ) : (
               <AuthForm
                 key="petmate"
                 title="Iniciar sesión"
                 subtitle="Accede como PetMate para gestionar reservas y tu perfil."
-                onSubmit={handleSubmit('petmate')}
                 registerHref="/register?role=petmate"
+                onSubmit={handleSubmit('petmate')}
+                loading={loading}
+                error={error}
               />
             )}
-
-            {error && <p className="error" role="alert">{error}</p>}
-
-            <div className="footerLinks">
-              <Link href="/forgot-password" className="a">¿Olvidaste tu contraseña?</Link>
-            </div>
-
-            <button className="btnPrimary" disabled={loading} form={tab === 'client' ? 'form-client' : 'form-petmate'}>
-              {loading ? 'Ingresando…' : 'Iniciar sesión'}
-            </button>
           </div>
         </div>
       </main>
 
       <style jsx>{`
-        .page { min-height: calc(100vh - 200px); display:flex; align-items:center; justify-content:center; padding:2rem; }
-        .wrap { width:100%; max-width: 420px; }
-        .card { background: var(--card, #fff); border: 1px solid rgba(0,0,0,.08); border-radius: 14px; padding: 1rem; box-shadow: 0 8px 24px rgba(0,0,0,.04); }
-        .tabs { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; background: var(--muted,#f6f7f9); padding:.5rem; border-radius: 10px; }
-        .tab { appearance:none; border:0; padding:.6rem 1rem; border-radius:8px; background:transparent; font-weight:600; cursor:pointer; }
-        .tab.active { background:#fff; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.08) inset; }
-        .title { font-size: 1.5rem; font-weight:700; margin:.5rem 0 0; }
-        .subtitle { color:#6b7280; margin:.25rem 0 1rem; }
-        .grid { display:grid; gap:.75rem; }
-        .field { display:grid; gap:.35rem; }
-        label { font-size:.9rem; font-weight:600; }
-        input { height:42px; padding:0 .8rem; border:1px solid #e5e7eb; border-radius:8px; }
-        input:focus { outline:none; border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.08); }
-        .btnPrimary { width:100%; height:44px; margin-top:.5rem; border-radius:10px; font-weight:700; background:#111827; color:#fff; border:none; cursor:pointer; }
-        .btnPrimary[disabled] { opacity:.7; cursor:default; }
-        .helper { display:flex; gap:.5rem; align-items:center; justify-content:space-between; font-size:.9rem; }
-        .a { color:#111827; text-decoration:underline; }
-        .error { color:#b91c1c; font-size:.9rem; margin-top:.5rem; }
-        .footerLinks { margin-top:.5rem; text-align:center; }
+        :root{--brand:#111827; --muted:#f6f7f9; --border:#e5e7eb}
+        .page{min-height:calc(100vh - 200px);display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(180deg,#fafafa,#fff)}
+        .wrap{width:100%;max-width:520px}
+        .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--muted);padding:6px;border-radius:14px;margin-bottom:10px;border:1px solid var(--border)}
+        .tab{appearance:none;border:0;padding:.7rem 1rem;border-radius:10px;background:transparent;font-weight:700;cursor:pointer}
+        .tab.active{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px var(--border) inset}
+        .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
       `}</style>
     </>
   )
 }
 
-function AuthForm({
-  title,
-  subtitle,
-  onSubmit,
-  registerHref,
-}: {
-  title: string
-  subtitle: string
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
-  registerHref: string
-}) {
-  // id único por accesibilidad/submit externo
-  const formId = React.useId()
+function AuthForm({ title, subtitle, registerHref, onSubmit, loading, error }:{
+  title:string
+  subtitle:string
+  registerHref:string
+  onSubmit:(e: React.FormEvent<HTMLFormElement>)=>void
+  loading:boolean
+  error:string|null
+}){
+  const [showPass, setShowPass] = React.useState(false)
+
   return (
-    <form id={formId} className="grid" onSubmit={onSubmit}>
+    <form className="form" onSubmit={onSubmit}>
       <h1 className="title">{title}</h1>
       <p className="subtitle">{subtitle}</p>
 
+      {/* Correo */}
       <div className="field">
-        <label htmlFor={`${formId}-email`}>Correo</label>
-        <input id={`${formId}-email`} name="email" type="email" placeholder="tu@correo.com" autoComplete="email" required />
+        <label htmlFor="email">Correo</label>
+        <div className="inputWrap">
+          <MailIcon className="leftIcon"/>
+          <input id="email" name="email" type="email" placeholder="tu@correo.com" autoComplete="email" required />
+        </div>
       </div>
 
+      {/* Contraseña */}
       <div className="field">
-        <label htmlFor={`${formId}-password`}>Contraseña</label>
-        <input id={`${formId}-password`} name="password" type="password" placeholder="••••••••" autoComplete="current-password" required />
+        <label htmlFor="password">Contraseña</label>
+        <div className="inputWrap">
+          <LockIcon className="leftIcon"/>
+          <input
+            id="password"
+            name="password"
+            type={showPass ? 'text' : 'password'}
+            placeholder="••••••••"
+            autoComplete="current-password"
+            required
+          />
+          <button type="button" className="rightIconBtn" aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'} onClick={()=>setShowPass(v=>!v)}>
+            {showPass ? <EyeOffIcon/> : <EyeIcon/>}
+          </button>
+        </div>
       </div>
 
-      <div className="helper">
-        <div />
+      {error && <p className="error" role="alert">{error}</p>}
+
+      <button type="submit" className="btnPrimary" disabled={loading}>{loading? 'Ingresando…' : 'Iniciar sesión'}</button>
+
+      <div className="links">
         <Link href={registerHref} className="a">¿No tienes cuenta? Regístrate</Link>
+        <Link href="/forgot-password" className="a">¿Olvidaste tu contraseña?</Link>
       </div>
+
+      <style jsx>{`
+        .title{font-size:1.6rem;margin:2px 0}
+        .subtitle{color:#6b7280;margin:0 0 12px}
+        .form{display:grid;gap:12px}
+        .field{display:grid;gap:6px}
+        label{font-weight:600}
+        .inputWrap{position:relative}
+        input{height:46px;width:100%;padding:0 44px 0 42px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff}
+        input::placeholder{color:#9ca3af}
+        input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(17,24,39,.08)}
+        .leftIcon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280}
+        .rightIconBtn{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;padding:6px;border-radius:8px;cursor:pointer;color:#374151}
+        .rightIconBtn:hover{background:#f3f4f6}
+        .btnPrimary{height:46px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+        .btnPrimary:disabled{opacity:.75}
+        .links{display:flex;justify-content:space-between;font-size:.95rem;margin-top:4px}
+        .a{text-decoration:underline;color:#111827}
+        .error{color:#b91c1c;}
+      `}</style>
     </form>
   )
 }
