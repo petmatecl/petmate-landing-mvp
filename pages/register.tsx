@@ -21,6 +21,18 @@ export default function RegisterPage(){
   const router = useRouter()
   const [tab, setTab] = React.useState<Role>('cliente')
 
+// Activa el tab según el query param ?role=...
+React.useEffect(() => {
+   if (!router.isReady) return;             // <- guardia opcional
+  const r = String((router.query.role || '')).toLowerCase();
+  if (['petmate', 'sitter'].includes(r)) {
+    setTab('petmate');     // Tab "Quiero ser PetMate"
+  } else if (['cliente', 'client', 'owner'].includes(r)) {
+    setTab('cliente');     // Tab "Necesito un PetMate"
+  }
+  }, [router.isReady, router.query.role]);            // <-- añade router.isReady
+
+
   // --- Estado para el tab Cliente ---
   const [region, setRegion] = React.useState('RM')
   const [comuna, setComuna] = React.useState('')
