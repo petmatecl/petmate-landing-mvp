@@ -2,6 +2,7 @@
 import React from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 
 type Role = 'cliente' | 'petmate'
 
@@ -17,39 +18,34 @@ const CatIcon = (p:any)=>(
 )
 
 export default function RegisterPage(){
+  const router = useRouter()
   const [tab, setTab] = React.useState<Role>('cliente')
 
-  // Estado para el tab "Necesito un PetMate"
+  // --- Estado para el tab Cliente ---
   const [region, setRegion] = React.useState('RM')
   const [comuna, setComuna] = React.useState('')
   const [perros, setPerros] = React.useState(0)
   const [gatos, setGatos] = React.useState(0)
   const [pickerOpen, setPickerOpen] = React.useState(false)
 
-  const comunasOriente = [
-    'Las Condes','Vitacura','Lo Barnechea','La Reina','Providencia','Ñuñoa'
-  ]
+  const comunasOriente = ['Las Condes','Vitacura','Lo Barnechea','La Reina','Providencia','Ñuñoa']
 
   function resumenMascotas(){
-    const parts:string[] = []
-    if (perros>0) parts.push(`${perros} perro${perros>1?'s':''}`)
-    if (gatos>0) parts.push(`${gatos} gato${gatos>1?'s':''}`)
-    return parts.length ? parts.join(', ') : 'Sin mascotas'
+    const p = perros>0 ? `${perros} perro${perros>1?'s':''}` : ''
+    const g = gatos>0 ? `${gatos} gato${gatos>1?'s':''}` : ''
+    return [p,g].filter(Boolean).join(', ') || 'Sin mascotas'
   }
 
+  // --- submits ---
   function submitCliente(e:React.FormEvent){
     e.preventDefault()
-    // TODO: enviar a tu API
-    alert(`Registro (cliente):
-- Región: ${region}
-- Comuna: ${comuna}
-- Perros: ${perros}
-- Gatos: ${gatos}`)
+    // TODO: enviar a API de clientes
+    alert('Registro de cliente enviado (demo)')
   }
-
   function submitPetmate(e:React.FormEvent){
     e.preventDefault()
-    alert('Registro PetMate enviado (demo)')
+    // Soft signup → a onboarding privado
+    router.push('/petmate/onboarding')
   }
 
   return (
@@ -58,13 +54,11 @@ export default function RegisterPage(){
 
       <main className="page">
         <div className="wrap">
-          {/* Tabs */}
           <div className="tabs" role="tablist" aria-label="Tipo de registro">
             <button className={`tab ${tab==='cliente'?'active':''}`} onClick={()=>setTab('cliente')}>Necesito un PetMate</button>
             <button className={`tab ${tab==='petmate'?'active':''}`} onClick={()=>setTab('petmate')}>Quiero ser PetMate</button>
           </div>
 
-          {/* CARD */}
           <div className="card">
             {tab==='cliente' ? (
               <form className="grid" onSubmit={submitCliente}>
@@ -98,7 +92,6 @@ export default function RegisterPage(){
                       <option value="RM">Región Metropolitana</option>
                     </select>
                   </div>
-
                   <div className="field">
                     <label>Comuna (sector oriente)</label>
                     <select value={comuna} onChange={e=>setComuna(e.target.value)} required>
@@ -108,7 +101,7 @@ export default function RegisterPage(){
                   </div>
                 </div>
 
-                {/* Selector tipo Airbnb para mascotas */}
+                {/* Picker tipo Airbnb */}
                 <div className="field">
                   <label>Mascotas</label>
                   <button type="button" className="pickerBtn" onClick={()=>setPickerOpen(true)}>
@@ -118,20 +111,12 @@ export default function RegisterPage(){
                   {pickerOpen && (
                     <div className="overlay" onClick={()=>setPickerOpen(false)}>
                       <div className="popover" onClick={(e)=>e.stopPropagation()}>
-                        <Row
-                          icon={<DogIcon/>}
-                          title="Perros"
-                          value={perros}
-                          onDec={()=>setPerros(v=>Math.max(0,v-1))}
-                          onInc={()=>setPerros(v=>v+1)}
-                        />
-                        <Row
-                          icon={<CatIcon/>}
-                          title="Gatos"
-                          value={gatos}
-                          onDec={()=>setGatos(v=>Math.max(0,v-1))}
-                          onInc={()=>setGatos(v=>v+1)}
-                        />
+                        <Row icon={<DogIcon/>} title="Perros" value={perros}
+                             onDec={()=>setPerros(v=>Math.max(0,v-1))}
+                             onInc={()=>setPerros(v=>v+1)} />
+                        <Row icon={<CatIcon/>} title="Gatos" value={gatos}
+                             onDec={()=>setGatos(v=>Math.max(0,v-1))}
+                             onInc={()=>setGatos(v=>v+1)} />
                         <div className="end">
                           <button type="button" className="btnGhost" onClick={()=>{setPerros(0); setGatos(0)}}>Vaciar</button>
                           <button type="button" className="btnPrimary" onClick={()=>setPickerOpen(false)}>Listo</button>
@@ -146,8 +131,8 @@ export default function RegisterPage(){
               </form>
             ) : (
               <form className="grid" onSubmit={submitPetmate}>
-                <h1>Quiero ser PetMate</h1>
-                <p className="sub">Postula para cuidar mascotas.</p>
+                <h1>Registro rápido de PetMate</h1>
+                <p className="sub">Solo datos básicos. Completarás el resto en tu perfil privado.</p>
 
                 <div className="cols">
                   <div className="field">
@@ -170,17 +155,16 @@ export default function RegisterPage(){
                     <input type="email" required placeholder="tu@correo.com" />
                   </div>
                   <div className="field">
-                    <label>Comuna</label>
-                    <input required placeholder="Tu comuna" />
+                    <label>Contraseña</label>
+                    <input type="password" required placeholder="••••••••" />
+                  </div>
+                  <div className="field">
+                    <label>Confirmar contraseña</label>
+                    <input type="password" required placeholder="••••••••" />
                   </div>
                 </div>
 
-                <div className="field">
-                  <label>Experiencia</label>
-                  <textarea rows={4} placeholder="Cuéntanos brevemente tu experiencia con mascotas" />
-                </div>
-
-                <button className="btnPrimary" type="submit">Postular</button>
+                <button className="btnPrimary" type="submit">Crear cuenta y continuar</button>
               </form>
             )}
           </div>
@@ -202,9 +186,8 @@ export default function RegisterPage(){
         .sub{color:#6b7280; margin:-2px 0 8px}
         .field{display:grid; gap:6px}
         label{font-weight:700}
-        input, select, textarea{height:44px; padding:0 12px; border:1.5px solid #cbd5e1; border-radius:10px}
-        textarea{height:auto; padding:10px 12px}
-        input:focus, select:focus, textarea:focus{outline:none; border-color:var(--brand); box-shadow:0 0 0 3px rgba(17,24,39,.08)}
+        input, select{height:44px; padding:0 12px; border:1.5px solid #cbd5e1; border-radius:10px}
+        input:focus, select:focus{outline:none; border-color:var(--brand); box-shadow:0 0 0 3px rgba(17,24,39,.08)}
         .pickerBtn{height:44px; border:1.5px solid #cbd5e1; border-radius:10px; background:#fff; text-align:left; padding:0 12px}
         .overlay{position:fixed; inset:0; background:rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; z-index:60}
         .popover{width:min(420px,95vw); background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 20px 40px rgba(0,0,0,.2); padding:12px}
@@ -230,16 +213,13 @@ function Row({icon,title,value,onDec,onInc}:{icon:React.ReactNode;title:string;v
     <div className="row">
       <div className="rowL">
         <span>{icon}</span>
-        <div>
-          <div className="rowTitle">{title}</div>
-        </div>
+        <div><div className="rowTitle">{title}</div></div>
       </div>
       <div className="stepper">
         <button type="button" className="btnStep" onClick={onDec} aria-label="disminuir">−</button>
         <span className="count">{value}</span>
         <button type="button" className="btnStep" onClick={onInc} aria-label="aumentar">+</button>
       </div>
-      <style jsx>{``}</style>
     </div>
   )
 }

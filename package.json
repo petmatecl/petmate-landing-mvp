@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",
+    "cookie": "^1.0.2",
     "date-fns": "^2.30.0",
+    "mercadopago": "^1.5.17",
     "next": "14.2.3",
     "react": "18.3.1",
     "react-day-picker": "^8.10.1",

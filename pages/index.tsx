@@ -33,11 +33,11 @@ export default function Home() {
             </ul>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/solicitud?mode=owner" className="btn-primary">
-                Solicitar un PetMate →
+              <Link href="/register?role=client" className="btn-primary">
+                Solicitar un PetMate
               </Link>
               <Link href="/solicitud?mode=sitter" className="btn-secondary">
-                Quiero ser PetMate →
+                Quiero ser PetMate
               </Link>
             </div>
           </div>
