@@ -28,7 +28,7 @@ export default function Footer() {
           <h3 className="font-medium">Compañía</h3>
           <ul className="mt-2 space-y-1 text-sm">
             <li><Link href="/#quienes-somos" className="hover:underline">Quiénes somos</Link></li>
-            <li><Link href="/solicitud" className="hover:underline">Registrarse</Link></li>
+            <li><Link href="/register?role=client" className="hover:underline">Registrarse</Link></li>
             <li><Link href="/login" className="hover:underline">Iniciar sesión</Link></li>
           </ul>
         </div>
