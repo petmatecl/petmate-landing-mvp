@@ -36,7 +36,7 @@ export default function Home() {
               <Link href="/register?role=client" className="btn-primary">
                 Solicitar un PetMate
               </Link>
-              <Link href="/solicitud?mode=sitter" className="btn-secondary">
+              <Link href="/register?role=sitter" className="btn-secondary">
                 Quiero ser PetMate
               </Link>
             </div>
