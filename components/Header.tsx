@@ -14,7 +14,7 @@ export default function Header() {
         </Link>
 
         <nav className="hidden sm:flex items-center gap-2">
-          <Link href="/solicitud" className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50">
+          <Link href="/register?role=client" className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50">
             Registrarse
           </Link>
           <Link href="/login" className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-700">
@@ -34,9 +34,9 @@ export default function Header() {
       {open && (
         <div className="sm:hidden border-t bg-white">
           <div className="px-4 py-3 flex flex-col gap-2">
-            <Link href="/solicitud" className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50">
-              Registrarse
-            </Link>
+            <Link href="/register?role=client" className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50">
+  Registrarse
+</Link>
             <Link href="/login" className="rounded-md bg-emerald-600 px-3 py-2 text-sm text-white hover:bg-emerald-700">
               Iniciar sesión
             </Link>
