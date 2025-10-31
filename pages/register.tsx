@@ -172,29 +172,69 @@ export default function RegisterPage(){
                 </div>
 
                 {/* Picker tipo Airbnb para mascotas */}
-                <div className="field">
-                  <label>Mascotas</label>
-                  <button type="button" className="pickerBtn" onClick={()=>setPickerOpen(true)}>
-                    {resumenMascotas()}
-                  </button>
+                {/* Picker tipo Airbnb para mascotas */}
+<div className="field">
+  <label>Mascotas</label>
+  <button
+    type="button"
+    className="pickerBtn"
+    onClick={() => setPickerOpen(true)}
+    aria-haspopup="dialog"
+    aria-expanded={pickerOpen}
+  >
+    {resumenMascotas()}
+  </button>
 
-                  {pickerOpen && (
-                    <div className="overlay" onClick={()=>setPickerOpen(false)}>
-                      <div className="popover" onClick={(e)=>e.stopPropagation()}>
-                        <Row icon={<DogIcon/>} title="Perros" value={perros}
-                             onDec={()=>setPerros(v=>Math.max(0,v-1))}
-                             onInc={()=>setPerros(v=>v+1)} />
-                        <Row icon={<CatIcon/>} title="Gatos" value={gatos}
-                             onDec={()=>setGatos(v=>Math.max(0,v-1))}
-                             onInc={()=>setGatos(v=>v+1)} />
-                        <div className="end">
-                          <button type="button" className="btnGhost" onClick={()=>{setPerros(0); setGatos(0)}}>Vaciar</button>
-                          <button type="button" className="btnPrimary" onClick={()=>setPickerOpen(false)}>Listo</button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+  {pickerOpen && (
+    <div className="overlay" onClick={() => setPickerOpen(false)}>
+      <div
+        className="popover guestBox"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Seleccionar mascotas"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ul className="guestList" role="list">
+          <GuestRow
+            title="Perros"
+            hint="Sociables con otras mascotas"
+            value={perros}
+            onDec={() => setPerros((v) => Math.max(0, v - 1))}
+            onInc={() => setPerros((v) => v + 1)}
+          />
+          <GuestRow
+            title="Gatos"
+            hint="Considera si son indoor"
+            value={gatos}
+            onDec={() => setGatos((v) => Math.max(0, v - 1))}
+            onInc={() => setGatos((v) => v + 1)}
+          />
+        </ul>
+
+        <div className="guestActions">
+          <button
+            type="button"
+            className="btnGhost"
+            onClick={() => {
+              setPerros(0);
+              setGatos(0);
+            }}
+          >
+            Vaciar
+          </button>
+          <button
+            type="button"
+            className="btnPrimary"
+            onClick={() => setPickerOpen(false)}
+          >
+            Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
 
                 {/* Error simple */}
                 {formError && <p className="error">{formError}</p>}
@@ -251,7 +291,9 @@ export default function RegisterPage(){
         </div>
       </main>
 
-      <style jsx>{`
+      <style jsx> 
+      
+        {`
         :root{ --brand:#111827; --muted:#f6f7f9; --border:#e5e7eb; }
         .page{min-height:calc(100vh - 200px); display:flex; justify-content:center; padding:24px; background:linear-gradient(180deg,#fafafa,#fff)}
         .wrap{width:100%; max-width:920px}
@@ -291,23 +333,80 @@ export default function RegisterPage(){
         .option{display:flex; align-items:center; gap:10px; height:48px; padding:0 12px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; cursor:pointer}
         .optionIcon{width:36px; height:36px; border-radius:10px; background:#f1f5f9; display:flex; align-items:center; justify-content:center}
         .option.active{border-color:var(--brand); box-shadow:0 0 0 3px rgba(17,24,39,.08)}
+      /* ---- Picker de mascotas (look Airbnb) ---- */
+.guestBox{
+  width:min(420px,95vw);
+  padding:14px;
+  border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.22);
+}
+.guestList{ list-style:none; margin:0; padding:6px 0 }
+.guestRow{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 6px; border-bottom:1px solid #f1f5f9;
+}
+.guestRow:last-child{ border-bottom:none }
+.titleBlock{ display:flex; flex-direction:column; gap:2px }
+.rowTitle{ font-weight:800; color:#111827 }
+.rowHint{ font-size:12px; color:#6b7280 }
+.stepper{ display:flex; align-items:center; gap:10px }
+.btnCircle{
+  width:34px; height:34px; border-radius:999px;
+  border:1.5px solid #cbd5e1; background:#fff; font-weight:900;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.btnCircle:disabled{ opacity:.4; cursor:not-allowed }
+.count{ min-width:20px; text-align:center; font-weight:700 }
+.guestActions{ display:flex; justify-content:flex-end; gap:10px; margin-top:10px }
+
       `}</style>
     </>
   )
 }
 
-function Row({icon,title,value,onDec,onInc}:{icon:React.ReactNode;title:string;value:number;onDec:()=>void;onInc:()=>void}){
+function GuestRow({
+  title,
+  hint,
+  value,
+  onDec,
+  onInc,
+}: {
+  title: string;
+  hint?: string;
+  value: number;
+  onDec: () => void;
+  onInc: () => void;
+}) {
   return (
-    <div className="row">
-      <div className="rowL">
-        <span>{icon}</span>
-        <div><div className="rowTitle">{title}</div></div>
+    <li className="guestRow">
+      <div className="titleBlock">
+        <div className="rowTitle">{title}</div>
+        {hint ? <div className="rowHint">{hint}</div> : null}
       </div>
-      <div className="stepper">
-        <button type="button" className="btnStep" onClick={onDec} aria-label="disminuir">−</button>
-        <span className="count">{value}</span>
-        <button type="button" className="btnStep" onClick={onInc} aria-label="aumentar">+</button>
+
+      <div className="stepper" aria-label={`Cantidad de ${title.toLowerCase()}`}>
+        <button
+          type="button"
+          className="btnCircle"
+          aria-label={`Disminuir ${title.toLowerCase()}`}
+          onClick={onDec}
+          disabled={value === 0}
+        >
+          −
+        </button>
+        <span aria-live="polite" className="count">
+          {value}
+        </span>
+        <button
+          type="button"
+          className="btnCircle"
+          aria-label={`Aumentar ${title.toLowerCase()}`}
+          onClick={onInc}
+        >
+          +
+        </button>
       </div>
-    </div>
-  )
+    </li>
+  );
 }
+
