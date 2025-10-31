@@ -185,54 +185,44 @@ export default function RegisterPage(){
     {resumenMascotas()}
   </button>
 
-  {pickerOpen && (
-    <div className="overlay" onClick={() => setPickerOpen(false)}>
-      <div
-        className="popover guestBox"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Seleccionar mascotas"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ul className="guestList" role="list">
-          <GuestRow
-            title="Perros"
-            hint="Sociables con otras mascotas"
-            value={perros}
-            onDec={() => setPerros((v) => Math.max(0, v - 1))}
-            onInc={() => setPerros((v) => v + 1)}
-          />
-          <GuestRow
-            title="Gatos"
-            hint="Considera si son indoor"
-            value={gatos}
-            onDec={() => setGatos((v) => Math.max(0, v - 1))}
-            onInc={() => setGatos((v) => v + 1)}
-          />
-        </ul>
+{pickerOpen && (
+  <div className="overlay" onClick={()=>setPickerOpen(false)}>
+    <div
+      className="popover guestBox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Seleccionar mascotas"
+      onClick={(e)=>e.stopPropagation()}
+    >
+      <ul className="guestList" role="list">
+        <GuestRow
+          title="Perros"
+          hint="Sociables con otras mascotas"
+          value={perros}
+          onDec={()=>setPerros(v=>Math.max(0, v-1))}
+          onInc={()=>setPerros(v=>v+1)}
+        />
+        <GuestRow
+          title="Gatos"
+          hint="Considera si son indoor"
+          value={gatos}
+          onDec={()=>setGatos(v=>Math.max(0, v-1))}
+          onInc={()=>setGatos(v=>v+1)}
+        />
+      </ul>
 
-        <div className="guestActions">
-          <button
-            type="button"
-            className="btnGhost"
-            onClick={() => {
-              setPerros(0);
-              setGatos(0);
-            }}
-          >
-            Vaciar
-          </button>
-          <button
-            type="button"
-            className="btnPrimary"
-            onClick={() => setPickerOpen(false)}
-          >
-            Listo
-          </button>
-        </div>
+      <div className="guestActions">
+        <button type="button" className="btnGhost" onClick={()=>{ setPerros(0); setGatos(0); }}>
+          Vaciar
+        </button>
+        <button type="button" className="btnPrimary" onClick={()=>setPickerOpen(false)}>
+          Listo
+        </button>
       </div>
     </div>
-  )}
+  </div>
+)}
+
 </div>
 
 
@@ -365,17 +355,9 @@ export default function RegisterPage(){
 }
 
 function GuestRow({
-  title,
-  hint,
-  value,
-  onDec,
-  onInc,
+  title, hint, value, onDec, onInc,
 }: {
-  title: string;
-  hint?: string;
-  value: number;
-  onDec: () => void;
-  onInc: () => void;
+  title: string; hint?: string; value: number; onDec: () => void; onInc: () => void;
 }) {
   return (
     <li className="guestRow">
@@ -394,9 +376,7 @@ function GuestRow({
         >
           −
         </button>
-        <span aria-live="polite" className="count">
-          {value}
-        </span>
+        <span aria-live="polite" className="count">{value}</span>
         <button
           type="button"
           className="btnCircle"
@@ -409,4 +389,5 @@ function GuestRow({
     </li>
   );
 }
+
 
