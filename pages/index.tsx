@@ -1,5 +1,6 @@
 // pages/index.tsx
 import Link from 'next/link';
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -33,27 +34,28 @@ export default function Home() {
             </ul>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/register?role=client" className="btn-primary">
+              <Link href="/register?role=cliente" className="btn-primary">
                 Solicitar un PetMate
               </Link>
-              <Link href="/register?role=sitter" className="btn-secondary">
+              <Link href="/register?role=petmate" className="btn-secondary">
                 Quiero ser PetMate
               </Link>
             </div>
           </div>
 
-          <div className="card flex items-center justify-center p-6">
-            {/* Coloca un SVG en /public/hero-pet.svg o deja el placeholder */}
-            <img
-              src="/hero-pet.svg"
-              alt="Persona en casa con su mascota"
-              className="w-full max-w-md"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1558944351-dae1b4d12bf2?auto=format&fit=crop&w=900&q=60';
-              }}
-            />
-          </div>
+         <div className="card flex items-center justify-center p-6">
+  <div className="relative w-full max-w-2xl aspect-[16/10] rounded-3xl overflow-hidden">
+    <Image
+      src="https://images.pexels.com/photos/33685207/pexels-photo-33685207.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1000&dpr=1"
+      alt="Elegante gato Maine Coon relajándose en el interior"
+      fill
+      priority
+      sizes="(min-width:1024px) 50vw, 100vw"
+      className="object-cover"
+    />
+  </div>
+</div>
+
         </div>
       </section>
 
