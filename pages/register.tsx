@@ -9,15 +9,7 @@ import DateRangeAirbnb from "../components/DateRangeAirbnb";
 type Role = "cliente" | "petmate";
 
 const DogIcon = (p: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.6"
-    {...p}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
     <path d="M3 10l3-3h5l3 3v9H6a3 3 0 0 1-3-3v-6z" />
     <circle cx="15.5" cy="9.5" r="1" />
     <path d="M13 6l2-2h3l2 2v4M6 15h6" />
@@ -25,15 +17,7 @@ const DogIcon = (p: any) => (
 );
 
 const CatIcon = (p: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.6"
-    {...p}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
     <path d="M4 20c0-6 4-9 8-9s8 3 8 9" />
     <path d="M8 8V4l3 2 1-2 4 3v1" />
     <circle cx="10" cy="12" r=".8" />
@@ -43,15 +27,7 @@ const CatIcon = (p: any) => (
 
 // Iconos para tipo de vivienda
 const HouseIcon = (p: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.6"
-    {...p}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
     <path d="M3 11.5l9-7 9 7" />
     <path d="M5 10v9h14v-9" />
     <path d="M10 19v-6h4v6" />
@@ -59,15 +35,7 @@ const HouseIcon = (p: any) => (
 );
 
 const BuildingIcon = (p: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.6"
-    {...p}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
     <rect x="4" y="3" width="10" height="18" rx="1" />
     <path d="M18 21V8h2a1 1 0 0 1 1 1v12z" />
     <path d="M7 7h4M7 11h4M7 15h4" />
@@ -93,34 +61,21 @@ export default function RegisterPage() {
   const [gatos, setGatos] = React.useState(0);
   const [pickerOpen, setPickerOpen] = React.useState(false);
 
-  // Tipo de vivienda y fechas
-  const [tipoVivienda, setTipoVivienda] = React.useState<
-    "casa" | "departamento" | ""
-  >("");
+  const [tipoVivienda, setTipoVivienda] = React.useState<"casa" | "departamento" | "">("");
   const [rango, setRango] = React.useState<DateRange | undefined>(undefined);
   const [formError, setFormError] = React.useState<string | null>(null);
 
-  const comunasOriente = [
-    "Las Condes",
-    "Vitacura",
-    "Lo Barnechea",
-    "La Reina",
-    "Providencia",
-    "Ñuñoa",
-  ];
+  const comunasOriente = ["Las Condes", "Vitacura", "Lo Barnechea", "La Reina", "Providencia", "Ñuñoa"];
 
   function resumenMascotas() {
-    const p =
-      perros > 0 ? `${perros} perro${perros > 1 ? "s" : ""}` : "";
-    const g =
-      gatos > 0 ? `${gatos} gato${gatos > 1 ? "s" : ""}` : "";
+    const p = perros > 0 ? `${perros} perro${perros > 1 ? "s" : ""}` : "";
+    const g = gatos > 0 ? `${gatos} gato${gatos > 1 ? "s" : ""}` : "";
     return [p, g].filter(Boolean).join(", ") || "Sin mascotas";
   }
 
   // --- submits ---
   function submitCliente(e: React.FormEvent) {
     e.preventDefault();
-    // Validaciones mínimas
     if (!tipoVivienda) {
       setFormError("Selecciona el tipo de vivienda.");
       return;
@@ -130,14 +85,11 @@ export default function RegisterPage() {
       return;
     }
     setFormError(null);
-
-    // TODO: enviar a API de clientes con tipoVivienda y fechas
     alert("Registro de cliente enviado (demo)");
   }
 
   function submitPetmate(e: React.FormEvent) {
     e.preventDefault();
-    // Soft signup → a onboarding privado
     router.push("/petmate/onboarding");
   }
 
@@ -150,16 +102,10 @@ export default function RegisterPage() {
       <main className="page">
         <div className="wrap">
           <div className="tabs" role="tablist" aria-label="Tipo de registro">
-            <button
-              className={`tab ${tab === "cliente" ? "active" : ""}`}
-              onClick={() => setTab("cliente")}
-            >
+            <button className={`tab ${tab === "cliente" ? "active" : ""}`} onClick={() => setTab("cliente")}>
               Necesito un PetMate
             </button>
-            <button
-              className={`tab ${tab === "petmate" ? "active" : ""}`}
-              onClick={() => setTab("petmate")}
-            >
+            <button className={`tab ${tab === "petmate" ? "active" : ""}`} onClick={() => setTab("petmate")}>
               Quiero ser PetMate
             </button>
           </div>
@@ -168,9 +114,7 @@ export default function RegisterPage() {
             {tab === "cliente" ? (
               <form className="grid" onSubmit={submitCliente}>
                 <h1>Regístrate como cliente</h1>
-                <p className="sub">
-                  Cuéntanos quién eres, cuántas mascotas tienes y cuándo viajas.
-                </p>
+                <p className="sub">Cuéntanos quién eres, cuántas mascotas tienes y cuándo viajas.</p>
 
                 <div className="cols">
                   <div className="field">
@@ -195,21 +139,13 @@ export default function RegisterPage() {
                 <div className="cols">
                   <div className="field">
                     <label>Región</label>
-                    <select
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
-                      required
-                    >
+                    <select value={region} onChange={(e) => setRegion(e.target.value)} required>
                       <option value="RM">Región Metropolitana</option>
                     </select>
                   </div>
                   <div className="field">
                     <label>Comuna (sector oriente)</label>
-                    <select
-                      value={comuna}
-                      onChange={(e) => setComuna(e.target.value)}
-                      required
-                    >
+                    <select value={comuna} onChange={(e) => setComuna(e.target.value)} required>
                       <option value="" disabled>
                         Selecciona tu comuna
                       </option>
@@ -228,9 +164,7 @@ export default function RegisterPage() {
                   <div className="segmented">
                     <button
                       type="button"
-                      className={`option ${
-                        tipoVivienda === "casa" ? "active" : ""
-                      }`}
+                      className={`option ${tipoVivienda === "casa" ? "active" : ""}`}
                       onClick={() => setTipoVivienda("casa")}
                     >
                       <span className="optionIcon">
@@ -240,9 +174,7 @@ export default function RegisterPage() {
                     </button>
                     <button
                       type="button"
-                      className={`option ${
-                        tipoVivienda === "departamento" ? "active" : ""
-                      }`}
+                      className={`option ${tipoVivienda === "departamento" ? "active" : ""}`}
                       onClick={() => setTipoVivienda("departamento")}
                     >
                       <span className="optionIcon">
@@ -253,19 +185,14 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Calendario estilo Airbnb */}
+                {/* Calendario */}
                 <div className="field">
                   <label>Fechas del viaje</label>
-                  <DateRangeAirbnb
-                    value={rango}
-                    onChange={setRango}
-                    minDate={new Date()}
-                  />
+                  <DateRangeAirbnb value={rango} onChange={setRango} minDate={new Date()} />
                   <div className="muted" style={{ marginTop: 8 }}>
                     {rango?.from && rango?.to ? (
                       <>
-                        Seleccionaste:{" "}
-                        <b>{rango.from.toLocaleDateString()}</b> —{" "}
+                        Seleccionaste: <b>{rango.from.toLocaleDateString()}</b> —{" "}
                         <b>{rango.to.toLocaleDateString()}</b>
                       </>
                     ) : (
@@ -274,7 +201,7 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Picker tipo Airbnb para mascotas */}
+                {/* Picker mascotas */}
                 <div className="field">
                   <label>Mascotas</label>
                   <button
@@ -288,10 +215,7 @@ export default function RegisterPage() {
                   </button>
 
                   {pickerOpen && (
-                    <div
-                      className="overlay"
-                      onClick={() => setPickerOpen(false)}
-                    >
+                    <div className="overlay" onClick={() => setPickerOpen(false)}>
                       <div
                         className="popover guestBox"
                         role="dialog"
@@ -304,18 +228,14 @@ export default function RegisterPage() {
                             title="Perros"
                             hint="Sociables con otras mascotas"
                             value={perros}
-                            onDec={() =>
-                              setPerros((v) => Math.max(0, v - 1))
-                            }
+                            onDec={() => setPerros((v) => Math.max(0, v - 1))}
                             onInc={() => setPerros((v) => v + 1)}
                           />
                           <GuestRow
                             title="Gatos"
                             hint="Considera si son indoor"
                             value={gatos}
-                            onDec={() =>
-                              setGatos((v) => Math.max(0, v - 1))
-                            }
+                            onDec={() => setGatos((v) => Math.max(0, v - 1))}
                             onInc={() => setGatos((v) => v + 1)}
                           />
                         </ul>
@@ -331,11 +251,7 @@ export default function RegisterPage() {
                           >
                             Vaciar
                           </button>
-                          <button
-                            type="button"
-                            className="btnPrimary"
-                            onClick={() => setPickerOpen(false)}
-                          >
+                          <button type="button" className="btnPrimary" onClick={() => setPickerOpen(false)}>
                             Listo
                           </button>
                         </div>
@@ -344,15 +260,10 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                {/* Error simple */}
                 {formError && <p className="error">{formError}</p>}
 
-                {/* Hidden para postear al backend cuando conectemos */}
-                <input
-                  type="hidden"
-                  name="tipo_vivienda"
-                  value={tipoVivienda}
-                />
+                {/* hidden fields */}
+                <input type="hidden" name="tipo_vivienda" value={tipoVivienda} />
                 <input
                   type="hidden"
                   name="start_date"
@@ -363,39 +274,22 @@ export default function RegisterPage() {
                   name="end_date"
                   value={rango?.to ? rango.to.toISOString() : ""}
                 />
-                <input
-                  type="hidden"
-                  name="perros"
-                  value={String(perros)}
-                />
-                <input
-                  type="hidden"
-                  name="gatos"
-                  value={String(gatos)}
-                />
+                <input type="hidden" name="perros" value={String(perros)} />
+                <input type="hidden" name="gatos" value={String(gatos)} />
 
-                {/* Botón grande negro Registrar */}
-                <button
-                  className="btnPrimary"
-                  type="submit"
-                  style={{ width: "100%" }}
-                >
+                {/* 🔥 Botón grande negro Registrar */}
+                <button className="btnPrimary" type="submit" style={{ width: "100%", marginTop: "8px" }}>
                   Registrar
                 </button>
 
                 <p className="muted">
-                  ¿Ya tienes cuenta?{" "}
-                  <Link className="a" href="/login">
-                    Inicia sesión
-                  </Link>
+                  ¿Ya tienes cuenta? <Link className="a" href="/login">Inicia sesión</Link>
                 </p>
               </form>
             ) : (
               <form className="grid" onSubmit={submitPetmate}>
                 <h1>Registro rápido de PetMate</h1>
-                <p className="sub">
-                  Solo datos básicos. Completarás el resto en tu perfil privado.
-                </p>
+                <p className="sub">Solo datos básicos. Completarás el resto en tu perfil privado.</p>
 
                 <div className="cols">
                   <div className="field">
@@ -427,12 +321,8 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Botón grande negro Registrar */}
-                <button
-                  className="btnPrimary"
-                  type="submit"
-                  style={{ width: "100%" }}
-                >
+                {/* 🔥 Botón grande negro Registrar */}
+                <button className="btnPrimary" type="submit" style={{ width: "100%", marginTop: "8px" }}>
                   Registrar
                 </button>
               </form>
@@ -531,7 +421,6 @@ export default function RegisterPage() {
           border-color: var(--brand);
           box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
         }
-
         .pickerBtn {
           height: 44px;
           border: 1.5px solid #cbd5e1;
@@ -556,48 +445,6 @@ export default function RegisterPage() {
           border-radius: 14px;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
           padding: 12px;
-        }
-        .row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 10px 4px;
-          border-bottom: 1px solid #f1f5f9;
-        }
-        .row:last-child {
-          border-bottom: none;
-        }
-        .rowL {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .rowTitle {
-          font-weight: 700;
-        }
-        .stepper {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .btnStep {
-          width: 34px;
-          height: 34px;
-          border-radius: 999px;
-          border: 1px solid #d1d5db;
-          background: #fff;
-          font-weight: 700;
-          cursor: pointer;
-        }
-        .count {
-          min-width: 20px;
-          text-align: center;
-        }
-        .end {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 10px;
         }
         .btnPrimary {
           height: 46px;
@@ -627,8 +474,6 @@ export default function RegisterPage() {
           color: #b91c1c;
           margin-top: 4px;
         }
-
-        /* Selector tipo de vivienda */
         .segmented {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -658,8 +503,6 @@ export default function RegisterPage() {
           border-color: var(--brand);
           box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
         }
-
-        /* ---- Picker de mascotas (look Airbnb) ---- */
         .guestBox {
           width: min(420px, 95vw);
           padding: 14px;

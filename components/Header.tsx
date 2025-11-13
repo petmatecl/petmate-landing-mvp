@@ -18,7 +18,7 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Desktop CTAs: solo Ingresar y Comenzar */}
+        {/* Desktop CTAs */}
         <nav className="hidden sm:flex items-center gap-3">
           <Link
             href="/login"
@@ -30,7 +30,7 @@ export default function Header() {
             href="/register?role=cliente"
             className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
-            Comenzar
+            Registrarse
           </Link>
         </nav>
 
@@ -85,7 +85,7 @@ export default function Header() {
               className="flex-1 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               onClick={() => setOpen(false)}
             >
-              Comenzar
+              Registrarse
             </Link>
           </div>
         </div>
