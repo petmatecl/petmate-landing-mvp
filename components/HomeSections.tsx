@@ -1,52 +1,80 @@
 // components/HomeSections.tsx
 
+import Link from "next/link";
+
 export function ValueProps() {
-  const items = [
-    { title: "Sin estrés y sin traslados", desc: "Evita mover a tu mascota: nosotros vamos a tu hogar o la alojas con un PetMate cercano." },
-    { title: "PetMates verificados", desc: "Perfiles con validaciones, reseñas y cobertura de seguridad." },
-    { title: "Flexible por días", desc: "Reserva por día, fin de semana o todo tu viaje." },
-  ];
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">¿Por qué PetMate?</h2>
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((it) => (
-          <div key={it.title} className="rounded-2xl border p-6">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-              </span>
-              <div className="font-semibold text-gray-900">{it.title}</div>
-            </div>
-            <p className="mt-3 text-sm text-gray-600">{it.desc}</p>
+    <section className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          ¿Por qué PetMate?
+        </h2>
+
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="text-2xl mb-3">🏡</div>
+            <h3 className="font-semibold text-gray-900">Sin traslados ni jaulas</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Tu mascota se queda en un entorno conocido o en un hogar real, no en una
+              guardería masiva.
+            </p>
           </div>
-        ))}
+
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="text-2xl mb-3">✅</div>
+            <h3 className="font-semibold text-gray-900">PetMates verificados</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Perfiles con validación, reseñas y experiencia previa con perros y gatos.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="text-2xl mb-3">📅</div>
+            <h3 className="font-semibold text-gray-900">Flexible a tu viaje</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Reserva por día, fin de semana o semanas completas. Paga solo por el tiempo
+              que necesitas.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
 export function HowItWorks() {
-  const steps = [
-    { n: 1, t: "Cuéntanos de tu mascota", d: "Edad, rutinas y si prefieres domicilio o estadía." },
-    { n: 2, t: "Elige un PetMate", d: "Revisa reseñas y disponibilidad." },
-    { n: 3, t: "Reserva y ¡listo!", d: "Pagas en línea y quedas cubierto." },
-  ];
   return (
-    <section className="bg-gray-50 border-y">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Cómo funciona</h2>
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.n} className="rounded-2xl border bg-white p-6">
-              <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white font-bold">{s.n}</div>
-              <div className="mt-3 font-semibold text-gray-900">{s.t}</div>
-              <p className="mt-2 text-sm text-gray-600">{s.d}</p>
-            </div>
-          ))}
-        </div>
+    <section className="bg-slate-50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          ¿Cómo funciona?
+        </h2>
+
+        <ol className="mt-8 grid gap-6 sm:grid-cols-3">
+          <li className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="text-xs font-semibold text-emerald-700">Paso 1</div>
+            <h3 className="mt-2 font-semibold text-gray-900">Cuéntanos de tu mascota</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Indica tipo de mascota, tamaño, carácter y fechas de tu viaje.
+            </p>
+          </li>
+          <li className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="text-xs font-semibold text-emerald-700">Paso 2</div>
+            <h3 className="mt-2 font-semibold text-gray-900">
+              Elige entre PetMates disponibles
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Revisa perfiles, reseñas y condiciones. Coordina visitas previas si lo deseas.
+            </p>
+          </li>
+          <li className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="text-xs font-semibold text-emerald-700">Paso 3</div>
+            <h3 className="mt-2 font-semibold text-gray-900">Reserva y relájate</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Confirma tu reserva, recibe actualizaciones y fotos durante tu viaje.
+            </p>
+          </li>
+        </ol>
       </div>
     </section>
   );
@@ -54,17 +82,31 @@ export function HowItWorks() {
 
 export function CTASection() {
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
-      <div className="rounded-3xl bg-emerald-600 p-8 sm:p-12 text-white">
-        <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">¿Listo para comenzar?</h3>
-        <p className="mt-2 text-emerald-50">Crea tu solicitud en minutos y consigue un PetMate cercano.</p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-3">
-          <a href="/register?role=cliente" className="inline-flex justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50">Comenzar</a>
-          <a href="/register?role=petmate" className="inline-flex justify-center rounded-xl border border-white/30 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10">Quiero ser PetMate</a>
+    <section className="bg-emerald-700">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16 text-center text-white">
+        <h2 className="text-2xl sm:text-3xl font-bold">
+          ¿Listo para tu próximo viaje sin preocuparte por tu mascota?
+        </h2>
+        <p className="mt-3 text-sm sm:text-base text-emerald-100 max-w-2xl mx-auto">
+          Deja tus datos y te avisaremos cuando PetMate esté disponible en tu comuna
+          o comienza hoy si estás en el sector oriente de la RM.
+        </p>
+
+        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+          <Link
+            href="/register?role=cliente"
+            className="inline-flex justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
+          >
+            Quiero buscar un PetMate
+          </Link>
+          <Link
+            href="/register?role=petmate"
+            className="inline-flex justify-center rounded-xl border border-emerald-200 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-600"
+          >
+            Quiero ser PetMate
+          </Link>
         </div>
       </div>
     </section>
   );
 }
-
-export default {};
