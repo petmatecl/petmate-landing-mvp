@@ -1,7 +1,5 @@
 // pages/index.tsx
 import Head from "next/head";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { Hero } from "../components/Hero";
 import { ValueProps, HowItWorks, CTASection } from "../components/HomeSections";
 
@@ -16,25 +14,11 @@ export default function HomePage() {
         />
       </Head>
 
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Header />
-
-        <main className="flex-1">
-          {/* HERO: con imagen solo en desktop */}
-          <Hero />
-
-          {/* ¿Por qué PetMate? */}
-          <ValueProps />
-
-          {/* Cómo funciona */}
-          <HowItWorks />
-
-          {/* CTA final */}
-          <CTASection />
-        </main>
-
-        <Footer />
-      </div>
+      {/* Contenido de la landing, sin Header/Footer */}
+      <Hero />
+      <ValueProps />
+      <HowItWorks />
+      <CTASection />
     </>
   );
 }
