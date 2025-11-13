@@ -36,21 +36,11 @@ export default function Header() {
 
         {/* Botón menú mobile */}
         <button
-<<<<<<< HEAD
-=======
           type="button"
->>>>>>> 35120cb (Ajustes de Header, Hero, Footer y Home)
           onClick={() => setOpen((v) => !v)}
           className="sm:hidden inline-flex items-center justify-center rounded-xl border p-2 text-gray-700"
           aria-label="Abrir menú"
           aria-expanded={open}
-<<<<<<< HEAD
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" x2="20" y1="12" y2="12"></line>
-            <line x1="4" x2="20" y1="6" y2="6"></line>
-            <line x1="4" x2="20" y1="18" y2="18"></line>
-=======
           aria-controls="mobile-menu"
         >
           <svg
@@ -75,18 +65,13 @@ export default function Header() {
                 <line x1="4" y1="18" x2="20" y2="18" />
               </>
             )}
->>>>>>> 35120cb (Ajustes de Header, Hero, Footer y Home)
           </svg>
         </button>
       </div>
 
       {/* Menú mobile */}
       {open && (
-<<<<<<< HEAD
-        <div className="sm:hidden border-t bg-white">
-=======
         <div id="mobile-menu" className="sm:hidden border-t bg-white">
->>>>>>> 35120cb (Ajustes de Header, Hero, Footer y Home)
           <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
             <Link
               href="/login"

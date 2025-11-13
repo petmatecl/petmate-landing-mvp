@@ -1,14 +1,11 @@
 // components/HomeSections.tsx
-
 import Link from "next/link";
 
 export function ValueProps() {
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          ¿Por qué PetMate?
-        </h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">¿Por qué PetMate?</h2>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
@@ -46,9 +43,7 @@ export function HowItWorks() {
   return (
     <section className="bg-slate-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          ¿Cómo funciona?
-        </h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">¿Cómo funciona?</h2>
 
         <ol className="mt-8 grid gap-6 sm:grid-cols-3">
           <li className="rounded-2xl border bg-white p-6 shadow-sm">
@@ -88,8 +83,8 @@ export function CTASection() {
           ¿Listo para tu próximo viaje sin preocuparte por tu mascota?
         </h2>
         <p className="mt-3 text-sm sm:text-base text-emerald-100 max-w-2xl mx-auto">
-          Deja tus datos y te avisaremos cuando PetMate esté disponible en tu comuna
-          o comienza hoy si estás en el sector oriente de la RM.
+          Deja tus datos y te avisaremos cuando PetMate esté disponible en tu comuna o
+          comienza hoy si estás en el sector oriente de la RM.
         </p>
 
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
