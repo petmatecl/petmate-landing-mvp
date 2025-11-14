@@ -1,4 +1,5 @@
 // pages/register.tsx
+import PetsSelectorAirbnb, { PetsValue } from "../components/PetsSelectorAirbnb";
 import React from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -46,6 +47,9 @@ export default function RegisterPage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<Role>("cliente");
 
+  // Estado para selector de mascotas estilo Airbnb
+  const [pets, setPets] = React.useState<PetsValue>({ dogs: 0, cats: 0 });
+
   // Selección automática de tab según ?role=...
   React.useEffect(() => {
     if (!router.isReady) return;
@@ -57,21 +61,11 @@ export default function RegisterPage() {
   // --- Estado para el tab Cliente ---
   const [region, setRegion] = React.useState("RM");
   const [comuna, setComuna] = React.useState("");
-  const [perros, setPerros] = React.useState(0);
-  const [gatos, setGatos] = React.useState(0);
-  const [pickerOpen, setPickerOpen] = React.useState(false);
-
   const [tipoVivienda, setTipoVivienda] = React.useState<"casa" | "departamento" | "">("");
   const [rango, setRango] = React.useState<DateRange | undefined>(undefined);
   const [formError, setFormError] = React.useState<string | null>(null);
 
   const comunasOriente = ["Las Condes", "Vitacura", "Lo Barnechea", "La Reina", "Providencia", "Ñuñoa"];
-
-  function resumenMascotas() {
-    const p = perros > 0 ? `${perros} perro${perros > 1 ? "s" : ""}` : "";
-    const g = gatos > 0 ? `${gatos} gato${gatos > 1 ? "s" : ""}` : "";
-    return [p, g].filter(Boolean).join(", ") || "Sin mascotas";
-  }
 
   // --- submits ---
   function submitCliente(e: React.FormEvent) {
@@ -185,9 +179,8 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Calendario */}
+                {/* Calendario estilo Airbnb */}
                 <div className="field">
-                  <label>Fechas del viaje</label>
                   <DateRangeAirbnb value={rango} onChange={setRango} minDate={new Date()} />
                   <div className="muted" style={{ marginTop: 8 }}>
                     {rango?.from && rango?.to ? (
@@ -201,63 +194,9 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Picker mascotas */}
+                {/* Mascotas estilo Airbnb (huéspedes) */}
                 <div className="field">
-                  <label>Mascotas</label>
-                  <button
-                    type="button"
-                    className="pickerBtn"
-                    onClick={() => setPickerOpen(true)}
-                    aria-haspopup="dialog"
-                    aria-expanded={pickerOpen}
-                  >
-                    {resumenMascotas()}
-                  </button>
-
-                  {pickerOpen && (
-                    <div className="overlay" onClick={() => setPickerOpen(false)}>
-                      <div
-                        className="popover guestBox"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Seleccionar mascotas"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ul className="guestList" role="list">
-                          <GuestRow
-                            title="Perros"
-                            hint="Sociables con otras mascotas"
-                            value={perros}
-                            onDec={() => setPerros((v) => Math.max(0, v - 1))}
-                            onInc={() => setPerros((v) => v + 1)}
-                          />
-                          <GuestRow
-                            title="Gatos"
-                            hint="Considera si son indoor"
-                            value={gatos}
-                            onDec={() => setGatos((v) => Math.max(0, v - 1))}
-                            onInc={() => setGatos((v) => v + 1)}
-                          />
-                        </ul>
-
-                        <div className="guestActions">
-                          <button
-                            type="button"
-                            className="btnGhost"
-                            onClick={() => {
-                              setPerros(0);
-                              setGatos(0);
-                            }}
-                          >
-                            Vaciar
-                          </button>
-                          <button type="button" className="btnPrimary" onClick={() => setPickerOpen(false)}>
-                            Listo
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <PetsSelectorAirbnb value={pets} onChange={setPets} />
                 </div>
 
                 {formError && <p className="error">{formError}</p>}
@@ -274,29 +213,32 @@ export default function RegisterPage() {
                   name="end_date"
                   value={rango?.to ? rango.to.toISOString() : ""}
                 />
-                <input type="hidden" name="perros" value={String(perros)} />
-                <input type="hidden" name="gatos" value={String(gatos)} />
+                <input type="hidden" name="perros" value={String(pets.dogs)} />
+                <input type="hidden" name="gatos" value={String(pets.cats)} />
 
                 {/* 🔥 Botón grande negro Registrar */}
-<button
-  type="submit"
-  className="btnPrimary"
-  style={{
-    width: "100%",
-    marginTop: "8px",
-    height: "46px",
-    backgroundColor: "#111827", // mismo color que login
-    color: "#ffffff",
-    borderRadius: "10px",
-    border: "none",
-    fontWeight: 800,
-  }}
->
-  Registrar
-</button>
+                <button
+                  type="submit"
+                  className="btnPrimary"
+                  style={{
+                    width: "100%",
+                    marginTop: "8px",
+                    height: "46px",
+                    backgroundColor: "#111827", // mismo color que login
+                    color: "#ffffff",
+                    borderRadius: "10px",
+                    border: "none",
+                    fontWeight: 800,
+                  }}
+                >
+                  Registrar
+                </button>
 
                 <p className="muted">
-                  ¿Ya tienes cuenta? <Link className="a" href="/login">Inicia sesión</Link>
+                  ¿Ya tienes cuenta?{" "}
+                  <Link className="a" href="/login">
+                    Inicia sesión
+                  </Link>
                 </p>
               </form>
             ) : (
@@ -335,22 +277,22 @@ export default function RegisterPage() {
                 </div>
 
                 {/* 🔥 Botón grande negro Registrar */}
-               <button
-  type="submit"
-  className="btnPrimary"
-  style={{
-    width: "100%",
-    marginTop: "8px",
-    height: "46px",
-    backgroundColor: "#111827",
-    color: "#ffffff",
-    borderRadius: "10px",
-    border: "none",
-    fontWeight: 800,
-  }}
->
-  Registrar
-</button>
+                <button
+                  type="submit"
+                  className="btnPrimary"
+                  style={{
+                    width: "100%",
+                    marginTop: "8px",
+                    height: "46px",
+                    backgroundColor: "#111827",
+                    color: "#ffffff",
+                    borderRadius: "10px",
+                    border: "none",
+                    fontWeight: 800,
+                  }}
+                >
+                  Registrar
+                </button>
               </form>
             )}
           </div>
@@ -447,31 +389,6 @@ export default function RegisterPage() {
           border-color: var(--brand);
           box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
         }
-        .pickerBtn {
-          height: 44px;
-          border: 1.5px solid #cbd5e1;
-          border-radius: 10px;
-          background: #fff;
-          text-align: left;
-          padding: 0 12px;
-        }
-        .overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.25);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 60;
-        }
-        .popover {
-          width: min(420px, 95vw);
-          background: #fff;
-          border: 1px solid var(--border);
-          border-radius: 14px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-          padding: 12px;
-        }
         .btnPrimary {
           height: 46px;
           border: none;
@@ -529,119 +446,7 @@ export default function RegisterPage() {
           border-color: var(--brand);
           box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
         }
-        .guestBox {
-          width: min(420px, 95vw);
-          padding: 14px;
-          border-radius: 16px;
-          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
-        }
-        .guestList {
-          list-style: none;
-          margin: 0;
-          padding: 6px 0;
-        }
-        .guestRow {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 6px;
-          border-bottom: 1px solid #f1f5f9;
-        }
-        .guestRow:last-child {
-          border-bottom: none;
-        }
-        .titleBlock {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-        .rowTitle {
-          font-weight: 800;
-          color: #111827;
-        }
-        .rowHint {
-          font-size: 12px;
-          color: #6b7280;
-        }
-        .stepper {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .btnCircle {
-          width: 34px;
-          height: 34px;
-          border-radius: 999px;
-          border: 1.5px solid #cbd5e1;
-          background: #fff;
-          font-weight: 900;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-        }
-        .btnCircle:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-        .count {
-          min-width: 20px;
-          text-align: center;
-          font-weight: 700;
-        }
-        .guestActions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 10px;
-        }
       `}</style>
     </>
-  );
-}
-
-function GuestRow({
-  title,
-  hint,
-  value,
-  onDec,
-  onInc,
-}: {
-  title: string;
-  hint?: string;
-  value: number;
-  onDec: () => void;
-  onInc: () => void;
-}) {
-  return (
-    <li className="guestRow">
-      <div className="titleBlock">
-        <div className="rowTitle">{title}</div>
-        {hint ? <div className="rowHint">{hint}</div> : null}
-      </div>
-
-      <div className="stepper" aria-label={`Cantidad de ${title.toLowerCase()}`}>
-        <button
-          type="button"
-          className="btnCircle"
-          aria-label={`Disminuir ${title.toLowerCase()}`}
-          onClick={onDec}
-          disabled={value === 0}
-        >
-          −
-        </button>
-        <span aria-live="polite" className="count">
-          {value}
-        </span>
-        <button
-          type="button"
-          className="btnCircle"
-          aria-label={`Aumentar ${title.toLowerCase()}`}
-          onClick={onInc}
-        >
-          +
-        </button>
-      </div>
-    </li>
   );
 }
