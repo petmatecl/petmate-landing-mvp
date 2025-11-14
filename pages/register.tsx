@@ -43,6 +43,8 @@ const BuildingIcon = (p: any) => (
   </svg>
 );
 
+type Alojamiento = "en_petmate" | "a_domicilio";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<Role>("cliente");
@@ -61,6 +63,7 @@ export default function RegisterPage() {
   // --- Estado para el tab Cliente ---
   const [region, setRegion] = React.useState("RM");
   const [comuna, setComuna] = React.useState("");
+  const [alojamiento, setAlojamiento] = React.useState<Alojamiento>("en_petmate");
   const [tipoVivienda, setTipoVivienda] = React.useState<"casa" | "departamento" | "">("");
   const [rango, setRango] = React.useState<DateRange | undefined>(undefined);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -70,14 +73,18 @@ export default function RegisterPage() {
   // --- submits ---
   function submitCliente(e: React.FormEvent) {
     e.preventDefault();
-    if (!tipoVivienda) {
-      setFormError("Selecciona el tipo de vivienda.");
-      return;
-    }
+
     if (!rango?.from || !rango?.to) {
       setFormError("Selecciona las fechas de inicio y fin.");
       return;
     }
+
+    // Tipo de vivienda solo es obligatorio si el servicio es a domicilio
+    if (alojamiento === "a_domicilio" && !tipoVivienda) {
+      setFormError("Selecciona el tipo de vivienda.");
+      return;
+    }
+
     setFormError(null);
     alert("Registro de cliente enviado (demo)");
   }
@@ -95,11 +102,20 @@ export default function RegisterPage() {
 
       <main className="page">
         <div className="wrap">
+          {/* Tabs registro */}
           <div className="tabs" role="tablist" aria-label="Tipo de registro">
-            <button className={`tab ${tab === "cliente" ? "active" : ""}`} onClick={() => setTab("cliente")}>
+            <button
+              className={`tab ${tab === "cliente" ? "active" : ""}`}
+              onClick={() => setTab("cliente")}
+              type="button"
+            >
               Necesito un PetMate
             </button>
-            <button className={`tab ${tab === "petmate" ? "active" : ""}`} onClick={() => setTab("petmate")}>
+            <button
+              className={`tab ${tab === "petmate" ? "active" : ""}`}
+              onClick={() => setTab("petmate")}
+              type="button"
+            >
               Quiero ser PetMate
             </button>
           </div>
@@ -116,11 +132,11 @@ export default function RegisterPage() {
                     <input required placeholder="Tu nombre" />
                   </div>
                   <div className="field">
-                    <label>Apellido paterno</label>
+                    <label>Apellido Paterno</label>
                     <input required placeholder="Apellido paterno" />
                   </div>
                   <div className="field">
-                    <label>Apellido materno</label>
+                    <label>Apellido Materno</label>
                     <input required placeholder="Apellido materno" />
                   </div>
                 </div>
@@ -138,7 +154,7 @@ export default function RegisterPage() {
                     </select>
                   </div>
                   <div className="field">
-                    <label>Comuna (sector oriente)</label>
+                    <label>Comuna</label>
                     <select value={comuna} onChange={(e) => setComuna(e.target.value)} required>
                       <option value="" disabled>
                         Selecciona tu comuna
@@ -152,32 +168,71 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Tipo de vivienda */}
+                {/* Tipo de servicio / alojamiento */}
                 <div className="field">
-                  <label>Tipo de vivienda</label>
-                  <div className="segmented">
+                  <label>¿Dónde se quedará tu mascota?</label>
+                  <div className="segmented segmented-lg">
                     <button
                       type="button"
-                      className={`option ${tipoVivienda === "casa" ? "active" : ""}`}
-                      onClick={() => setTipoVivienda("casa")}
+                      className={`option ${alojamiento === "en_petmate" ? "active" : ""}`}
+                      onClick={() => setAlojamiento("en_petmate")}
                     >
                       <span className="optionIcon">
                         <HouseIcon />
                       </span>
-                      <span>Casa</span>
+                      <span className="text-left text-sm">
+                        En casa de un PetMate
+                        <span className="block text-xs font-normal text-gray-500">
+                          Tu mascota duerme en la casa del cuidador.
+                        </span>
+                      </span>
                     </button>
                     <button
                       type="button"
-                      className={`option ${tipoVivienda === "departamento" ? "active" : ""}`}
-                      onClick={() => setTipoVivienda("departamento")}
+                      className={`option ${alojamiento === "a_domicilio" ? "active" : ""}`}
+                      onClick={() => setAlojamiento("a_domicilio")}
                     >
                       <span className="optionIcon">
                         <BuildingIcon />
                       </span>
-                      <span>Departamento</span>
+                      <span className="text-left text-sm">
+                        PetMate a domicilio
+                        <span className="block text-xs font-normal text-gray-500">
+                          El cuidador va a tu casa a cuidar a tu mascota.
+                        </span>
+                      </span>
                     </button>
                   </div>
                 </div>
+
+                {/* Tipo de vivienda: solo relevante si es a domicilio */}
+                {alojamiento === "a_domicilio" && (
+                  <div className="field">
+                    <label>Tipo de vivienda</label>
+                    <div className="segmented">
+                      <button
+                        type="button"
+                        className={`option ${tipoVivienda === "casa" ? "active" : ""}`}
+                        onClick={() => setTipoVivienda("casa")}
+                      >
+                        <span className="optionIcon">
+                          <HouseIcon />
+                        </span>
+                        <span>Casa</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`option ${tipoVivienda === "departamento" ? "active" : ""}`}
+                        onClick={() => setTipoVivienda("departamento")}
+                      >
+                        <span className="optionIcon">
+                          <BuildingIcon />
+                        </span>
+                        <span>Departamento</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Calendario estilo Airbnb */}
                 <div className="field">
@@ -202,6 +257,7 @@ export default function RegisterPage() {
                 {formError && <p className="error">{formError}</p>}
 
                 {/* hidden fields */}
+                <input type="hidden" name="alojamiento" value={alojamiento} />
                 <input type="hidden" name="tipo_vivienda" value={tipoVivienda} />
                 <input
                   type="hidden"
@@ -252,11 +308,11 @@ export default function RegisterPage() {
                     <input required placeholder="Tu nombre" />
                   </div>
                   <div className="field">
-                    <label>Ap. paterno</label>
+                    <label>Apellido Paterno</label>
                     <input required placeholder="Apellido paterno" />
                   </div>
                   <div className="field">
-                    <label>Ap. materno</label>
+                    <label>Apellido Materno</label>
                     <input required placeholder="Apellido materno" />
                   </div>
                 </div>
@@ -301,8 +357,9 @@ export default function RegisterPage() {
 
       <style jsx>{`
         :root {
-          --brand: #111827;
-          --muted: #f6f7f9;
+          --brand: #059669; /* emerald-500 */
+          --brand-dark: #047857; /* emerald-600 */
+          --muted: #ecfdf5; /* emerald-50 */
           --border: #e5e7eb;
         }
         .page {
@@ -334,13 +391,13 @@ export default function RegisterPage() {
           background: transparent;
           font-weight: 800;
           cursor: pointer;
-          color: #6b7280;
+          color: #065f46; /* emerald-700 */
+          transition: all 0.15s ease;
         }
         .tab.active {
-          background: #fff;
-          border: 2px solid var(--brand);
-          color: var(--brand);
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+          background: var(--brand-dark);
+          color: #ffffff;
+          box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
         }
         .card {
           background: #fff;
@@ -386,25 +443,17 @@ export default function RegisterPage() {
         input:focus,
         select:focus {
           outline: none;
-          border-color: var(--brand);
-          box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+          border-color: var(--brand-dark);
+          box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
         }
         .btnPrimary {
           height: 46px;
           border: none;
           border-radius: 10px;
-          background: var(--brand);
+          background: #111827;
           color: #fff;
           font-weight: 800;
           cursor: pointer;
-        }
-        .btnGhost {
-          height: 40px;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          background: #fff;
-          padding: 0 12px;
-          font-weight: 700;
         }
         .muted {
           color: #6b7280;
@@ -422,16 +471,19 @@ export default function RegisterPage() {
           grid-template-columns: 1fr 1fr;
           gap: 10px;
         }
+        .segmented-lg {
+          grid-template-columns: 1fr 1fr;
+        }
         .option {
           display: flex;
           align-items: center;
           gap: 10px;
-          height: 48px;
-          padding: 0 12px;
+          padding: 8px 12px;
           background: #fff;
           border: 1.5px solid #cbd5e1;
           border-radius: 12px;
           cursor: pointer;
+          transition: all 0.15s ease;
         }
         .optionIcon {
           width: 36px;
@@ -443,8 +495,8 @@ export default function RegisterPage() {
           justify-content: center;
         }
         .option.active {
-          border-color: var(--brand);
-          box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+          border-color: var(--brand-dark);
+          box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
         }
       `}</style>
     </>
