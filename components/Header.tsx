@@ -4,22 +4,49 @@ import { useState } from "react";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      {/* Franja superior lanzamiento */}
+      {showBanner && (
+        <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white text-xs sm:text-sm">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-1.5 sm:px-6 lg:px-8">
+            <div className="flex flex-1 items-center justify-center gap-2">
+              <span className="hidden rounded-full border border-emerald-300/60 bg-emerald-500/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide sm:inline">
+                Lanzamiento
+              </span>
+              <p className="text-center text-[11px] font-medium sm:text-xs">
+                <span className="font-semibold">PetMate</span> es
+                <span className="font-bold"> 100% gratuito</span> por lanzamiento. ¡Regístrate y aprovecha! 🎉
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label="Cerrar aviso"
+              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/70 text-[10px] text-emerald-50 hover:bg-emerald-700"
+              onClick={() => setShowBanner(false)}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Barra principal */}
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand más grande */}
         <Link href="/" className="group flex items-center gap-3">
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white text-xl shadow-sm">
             🐾
           </span>
-          <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-emerald-700 group-hover:text-emerald-800 transition-colors">
+          <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-emerald-700 transition-colors group-hover:text-emerald-800">
             PetMate
           </span>
         </Link>
 
         {/* Desktop CTAs */}
-        <nav className="hidden sm:flex items-center gap-3">
+        <nav className="hidden items-center gap-3 sm:flex">
           <Link
             href="/login"
             className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
@@ -38,7 +65,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="sm:hidden inline-flex items-center justify-center rounded-xl border p-2 text-gray-700"
+          className="inline-flex items-center justify-center rounded-xl border p-2 text-gray-700 sm:hidden"
           aria-label="Abrir menú"
           aria-expanded={open}
           aria-controls="mobile-menu"
@@ -71,8 +98,8 @@ export default function Header() {
 
       {/* Menú mobile */}
       {open && (
-        <div id="mobile-menu" className="sm:hidden border-t bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
+        <div id="mobile-menu" className="border-t bg-white sm:hidden">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
             <Link
               href="/login"
               className="flex-1 inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
