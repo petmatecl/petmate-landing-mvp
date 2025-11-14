@@ -278,9 +278,22 @@ export default function RegisterPage() {
                 <input type="hidden" name="gatos" value={String(gatos)} />
 
                 {/* 🔥 Botón grande negro Registrar */}
-                <button className="btnPrimary" type="submit" style={{ width: "100%", marginTop: "8px" }}>
-                  Registrar
-                </button>
+<button
+  type="submit"
+  className="btnPrimary"
+  style={{
+    width: "100%",
+    marginTop: "8px",
+    height: "46px",
+    backgroundColor: "#111827", // mismo color que login
+    color: "#ffffff",
+    borderRadius: "10px",
+    border: "none",
+    fontWeight: 800,
+  }}
+>
+  Registrar
+</button>
 
                 <p className="muted">
                   ¿Ya tienes cuenta? <Link className="a" href="/login">Inicia sesión</Link>
@@ -322,9 +335,22 @@ export default function RegisterPage() {
                 </div>
 
                 {/* 🔥 Botón grande negro Registrar */}
-                <button className="btnPrimary" type="submit" style={{ width: "100%", marginTop: "8px" }}>
-                  Registrar
-                </button>
+               <button
+  type="submit"
+  className="btnPrimary"
+  style={{
+    width: "100%",
+    marginTop: "8px",
+    height: "46px",
+    backgroundColor: "#111827",
+    color: "#ffffff",
+    borderRadius: "10px",
+    border: "none",
+    fontWeight: 800,
+  }}
+>
+  Registrar
+</button>
               </form>
             )}
           </div>
