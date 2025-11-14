@@ -1,10 +1,15 @@
 // components/Header.tsx
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
+  const router = useRouter();
+
+  // Mientras no tengamos auth real, tratamos /cliente como "área privada"
+  const isClientArea = router.pathname.startsWith("/cliente");
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
@@ -45,20 +50,46 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Desktop CTAs */}
+        {/* Desktop nav */}
         <nav className="hidden items-center gap-3 sm:flex">
-          <Link
-            href="/login"
-            className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            Ingresar
-          </Link>
-          <Link
-            href="/register?role=cliente"
-            className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-          >
-            Registrarse
-          </Link>
+          {!isClientArea ? (
+            <>
+              <Link
+                href="/login"
+                className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Ingresar
+              </Link>
+              <Link
+                href="/register?role=cliente"
+                className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+              >
+                Registrarse
+              </Link>
+            </>
+          ) : (
+            <>
+              {/* Chip usuario demo */}
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+                  A
+                </span>
+                <span className="text-sm font-medium text-emerald-900">Aldo</span>
+              </div>
+              <Link
+                href="/cliente"
+                className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+              >
+                Mi panel
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Cerrar sesión
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Botón menú mobile */}
@@ -99,21 +130,51 @@ export default function Header() {
       {/* Menú mobile */}
       {open && (
         <div id="mobile-menu" className="border-t bg-white sm:hidden">
-          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-            <Link
-              href="/login"
-              className="flex-1 inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-              onClick={() => setOpen(false)}
-            >
-              Ingresar
-            </Link>
-            <Link
-              href="/register?role=cliente"
-              className="flex-1 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-              onClick={() => setOpen(false)}
-            >
-              Registrarse
-            </Link>
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3">
+            {!isClientArea ? (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  onClick={() => setOpen(false)}
+                >
+                  Ingresar
+                </Link>
+                <Link
+                  href="/register?role=cliente"
+                  className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                  onClick={() => setOpen(false)}
+                >
+                  Registrarse
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+                    A
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-emerald-900">Aldo</span>
+                    <span className="text-[11px] text-emerald-700">Cliente PetMate</span>
+                  </div>
+                </div>
+                <Link
+                  href="/cliente"
+                  className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                  onClick={() => setOpen(false)}
+                >
+                  Mi panel
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  onClick={() => setOpen(false)}
+                >
+                  Cerrar sesión
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
