@@ -4,8 +4,16 @@ import Head from "next/head";
 import Link from "next/link";
 
 export default function ClienteDashboard() {
-  // Más adelante esto vendrá del login / backend
-  const nombreDemo = "Aldo";
+  // Nombre del cliente leído desde localStorage (demo)
+  const [nombre, setNombre] = React.useState("Aldo");
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("pm_cliente_nombre");
+    if (stored && stored.trim()) {
+      setNombre(stored.trim());
+    }
+  }, []);
 
   return (
     <>
@@ -22,7 +30,7 @@ export default function ClienteDashboard() {
                 Panel de cliente
               </p>
               <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">
-                Hola, {nombreDemo} 👋
+                Hola, {nombre} 👋
               </h1>
               <p className="text-sm text-slate-600 mt-1">
                 Desde aquí podrás crear y seguir tus solicitudes de PetMate para tus mascotas.
@@ -161,7 +169,7 @@ export default function ClienteDashboard() {
                   </div>
                 </dl>
                 <p className="mt-3 text-[11px] text-slate-500">
-                  Por ahora estos datos son de ejemplo. Luego se conectarán a tu información real de uso.
+                  Por ahora estos datos son de ejemplo. Luego se conectará a tu información real de uso.
                 </p>
               </section>
             </aside>

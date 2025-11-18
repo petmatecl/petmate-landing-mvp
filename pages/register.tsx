@@ -71,8 +71,12 @@ export default function RegisterPage() {
   const comunasOriente = ["Las Condes", "Vitacura", "Lo Barnechea", "La Reina", "Providencia", "Ñuñoa"];
 
   // --- submits ---
-  function submitCliente(e: React.FormEvent) {
+  function submitCliente(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const nombre = String(data.get("nombre") || "").trim();
 
     if (!rango?.from || !rango?.to) {
       setFormError("Selecciona las fechas de inicio y fin.");
@@ -86,7 +90,14 @@ export default function RegisterPage() {
     }
 
     setFormError(null);
-    alert("Registro de cliente enviado (demo)");
+
+    // Guardar nombre "de usuario" para el panel
+    if (typeof window !== "undefined" && nombre) {
+      window.localStorage.setItem("pm_cliente_nombre", nombre);
+    }
+
+    // Redirigir al sitio privado del cliente
+    router.push("/cliente");
   }
 
   function submitPetmate(e: React.FormEvent) {
@@ -129,33 +140,43 @@ export default function RegisterPage() {
                 <div className="cols">
                   <div className="field">
                     <label>Nombre</label>
-                    <input required placeholder="Tu nombre" />
+                    <input required placeholder="Tu nombre" name="nombre" />
                   </div>
                   <div className="field">
                     <label>Apellido Paterno</label>
-                    <input required placeholder="Apellido paterno" />
+                    <input required placeholder="Apellido paterno" name="apellidoPaterno" />
                   </div>
                   <div className="field">
                     <label>Apellido Materno</label>
-                    <input required placeholder="Apellido materno" />
+                    <input required placeholder="Apellido materno" name="apellidoMaterno" />
                   </div>
                 </div>
 
                 <div className="field">
                   <label>Correo</label>
-                  <input type="email" required placeholder="tu@correo.com" />
+                  <input type="email" required placeholder="tu@correo.com" name="correo" />
                 </div>
 
                 <div className="cols">
                   <div className="field">
                     <label>Región</label>
-                    <select value={region} onChange={(e) => setRegion(e.target.value)} required>
+                    <select
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                      required
+                      name="region"
+                    >
                       <option value="RM">Región Metropolitana</option>
                     </select>
                   </div>
                   <div className="field">
                     <label>Comuna</label>
-                    <select value={comuna} onChange={(e) => setComuna(e.target.value)} required>
+                    <select
+                      value={comuna}
+                      onChange={(e) => setComuna(e.target.value)}
+                      required
+                      name="comuna"
+                    >
                       <option value="" disabled>
                         Selecciona tu comuna
                       </option>
@@ -272,7 +293,7 @@ export default function RegisterPage() {
                 <input type="hidden" name="perros" value={String(pets.dogs)} />
                 <input type="hidden" name="gatos" value={String(pets.cats)} />
 
-                {/* 🔥 Botón grande negro Registrar */}
+                {/* Botón Registrar */}
                 <button
                   type="submit"
                   className="btnPrimary"
@@ -280,7 +301,7 @@ export default function RegisterPage() {
                     width: "100%",
                     marginTop: "8px",
                     height: "46px",
-                    backgroundColor: "#111827", // mismo color que login
+                    backgroundColor: "#111827",
                     color: "#ffffff",
                     borderRadius: "10px",
                     border: "none",
@@ -305,22 +326,22 @@ export default function RegisterPage() {
                 <div className="cols">
                   <div className="field">
                     <label>Nombre</label>
-                    <input required placeholder="Tu nombre" />
+                    <input required placeholder="Tu nombre" name="nombre_petmate" />
                   </div>
                   <div className="field">
                     <label>Apellido Paterno</label>
-                    <input required placeholder="Apellido paterno" />
+                    <input required placeholder="Apellido paterno" name="apellidoPaterno_petmate" />
                   </div>
                   <div className="field">
                     <label>Apellido Materno</label>
-                    <input required placeholder="Apellido materno" />
+                    <input required placeholder="Apellido materno" name="apellidoMaterno_petmate" />
                   </div>
                 </div>
 
                 <div className="cols">
                   <div className="field">
                     <label>Correo</label>
-                    <input type="email" required placeholder="tu@correo.com" />
+                    <input type="email" required placeholder="tu@correo.com" name="correo_petmate" />
                   </div>
                   <div className="field">
                     <label>Contraseña</label>
@@ -332,7 +353,6 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* 🔥 Botón grande negro Registrar */}
                 <button
                   type="submit"
                   className="btnPrimary"
@@ -357,9 +377,9 @@ export default function RegisterPage() {
 
       <style jsx>{`
         :root {
-          --brand: #059669; /* emerald-500 */
-          --brand-dark: #047857; /* emerald-600 */
-          --muted: #ecfdf5; /* emerald-50 */
+          --brand: #059669;
+          --brand-dark: #047857;
+          --muted: #ecfdf5;
           --border: #e5e7eb;
         }
         .page {
@@ -391,7 +411,7 @@ export default function RegisterPage() {
           background: transparent;
           font-weight: 800;
           cursor: pointer;
-          color: #065f46; /* emerald-700 */
+          color: #065f46;
           transition: all 0.15s ease;
         }
         .tab.active {
