@@ -2,6 +2,23 @@
 import Image from "next/image";
 import Link from "next/link";
 
+// Iconos monocromáticos, mismos del registro
+const HouseIcon = (p: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+    <path d="M3 11.5l9-7 9 7" />
+    <path d="M5 10v9h14v-9" />
+    <path d="M10 19v-6h4v6" />
+  </svg>
+);
+
+const BuildingIcon = (p: any) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+    <rect x="4" y="3" width="10" height="18" rx="1" />
+    <path d="M18 21V8h2a1 1 0 0 1 1 1v12z" />
+    <path d="M7 7h4M7 11h4M7 15h4" />
+  </svg>
+);
+
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
@@ -31,8 +48,8 @@ export function Hero() {
                 className="group rounded-2xl border p-5 hover:shadow-sm transition-shadow"
               >
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                    🏠
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
+                    <BuildingIcon className="h-5 w-5" />
                   </span>
                   <div>
                     <div className="font-semibold text-gray-900">PetMate a domicilio</div>
@@ -46,8 +63,8 @@ export function Hero() {
                 className="group rounded-2xl border p-5 hover:shadow-sm transition-shadow"
               >
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                    🏡
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
+                    <HouseIcon className="h-5 w-5" />
                   </span>
                   <div>
                     <div className="font-semibold text-gray-900">En casa del PetMate</div>

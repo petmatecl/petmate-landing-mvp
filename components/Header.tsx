@@ -1,5 +1,6 @@
 // components/Header.tsx
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
@@ -40,11 +41,17 @@ export default function Header() {
 
       {/* Barra principal */}
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand más grande */}
+        {/* Brand con nuevo logo */}
         <Link href="/" className="group flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white text-xl shadow-sm">
-            🐾
-          </span>
+          <div className="relative h-9 w-9 sm:h-10 sm:w-10">
+            <Image
+              src="/logo-petmate.png"
+              alt="PetMate"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
           <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-emerald-700 transition-colors group-hover:text-emerald-800">
             PetMate
           </span>

@@ -43,6 +43,23 @@ const BuildingIcon = (p: any) => (
   </svg>
 );
 
+// Iconos ojo / ojo tachado para ver contraseña
+const EyeIcon = (p: any) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
+    <path d="M2.5 12S5.5 5 12 5s9.5 7 9.5 7-3 7-9.5 7S2.5 12 2.5 12z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeOffIcon = (p: any) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
+    <path d="M4 4l16 16" />
+    <path d="M5 8.5C6.7 6.1 9.2 5 12 5c4.5 0 7.5 3 8.5 4.5-.4.6-.9 1.3-1.6 2" />
+    <path d="M9.5 9.5A3 3 0 0 1 14.5 14.5" />
+    <path d="M9 19c.9.3 1.9.5 3 .5 4.5 0 7.5-3 8.5-4.5-.3-.5-.7-1-1.2-1.6" />
+  </svg>
+);
+
 type Alojamiento = "en_petmate" | "a_domicilio";
 
 export default function RegisterPage() {
@@ -66,7 +83,15 @@ export default function RegisterPage() {
   const [alojamiento, setAlojamiento] = React.useState<Alojamiento>("en_petmate");
   const [tipoVivienda, setTipoVivienda] = React.useState<"casa" | "departamento" | "">("");
   const [rango, setRango] = React.useState<DateRange | undefined>(undefined);
+  const [sinFechas, setSinFechas] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
+
+  // visibilidad contraseña Cliente
+  const [showClientePass, setShowClientePass] = React.useState(false);
+  const [showClientePassConfirm, setShowClientePassConfirm] = React.useState(false);
+  // visibilidad contraseña PetMate
+  const [showPetmatePass, setShowPetmatePass] = React.useState(false);
+  const [showPetmatePassConfirm, setShowPetmatePassConfirm] = React.useState(false);
 
   const comunasOriente = ["Las Condes", "Vitacura", "Lo Barnechea", "La Reina", "Providencia", "Ñuñoa"];
 
@@ -77,13 +102,24 @@ export default function RegisterPage() {
     const form = e.currentTarget;
     const data = new FormData(form);
     const nombre = String(data.get("nombre") || "").trim();
+    const password = String(data.get("password") || "");
+    const passwordConfirm = String(data.get("passwordConfirm") || "");
 
-    if (!rango?.from || !rango?.to) {
-      setFormError("Selecciona las fechas de inicio y fin.");
+    // Validaciones de contraseña
+    if (!password || password.length < 6) {
+      setFormError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setFormError("Las contraseñas no coinciden.");
       return;
     }
 
-    // Tipo de vivienda solo es obligatorio si el servicio es a domicilio
+    if (!sinFechas && (!rango?.from || !rango?.to)) {
+      setFormError("Selecciona las fechas de inicio y fin o marca que aún no tienes claridad.");
+      return;
+    }
+
     if (alojamiento === "a_domicilio" && !tipoVivienda) {
       setFormError("Selecciona el tipo de vivienda.");
       return;
@@ -91,17 +127,31 @@ export default function RegisterPage() {
 
     setFormError(null);
 
-    // Guardar nombre "de usuario" para el panel
     if (typeof window !== "undefined" && nombre) {
       window.localStorage.setItem("pm_cliente_nombre", nombre);
     }
 
-    // Redirigir al sitio privado del cliente
     router.push("/cliente");
   }
 
-  function submitPetmate(e: React.FormEvent) {
+  function submitPetmate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const pass = String(data.get("password_petmate") || "");
+    const passConfirm = String(data.get("passwordConfirm_petmate") || "");
+
+    if (!pass || pass.length < 6) {
+      setFormError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+    if (pass !== passConfirm) {
+      setFormError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    setFormError(null);
     router.push("/petmate/onboarding");
   }
 
@@ -137,6 +187,7 @@ export default function RegisterPage() {
                 <h1>Regístrate como cliente</h1>
                 <p className="sub">Cuéntanos quién eres, cuántas mascotas tienes y cuándo viajas.</p>
 
+                {/* Datos básicos */}
                 <div className="cols">
                   <div className="field">
                     <label>Nombre</label>
@@ -152,40 +203,61 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                <div className="field">
-                  <label>Correo</label>
-                  <input type="email" required placeholder="tu@correo.com" name="correo" />
-                </div>
-
+                {/* Correo + contraseña */}
                 <div className="cols">
                   <div className="field">
-                    <label>Región</label>
-                    <select
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
-                      required
-                      name="region"
-                    >
-                      <option value="RM">Región Metropolitana</option>
-                    </select>
+                    <label>Correo</label>
+                    <input type="email" required placeholder="tu@correo.com" name="correo" />
                   </div>
                   <div className="field">
-                    <label>Comuna</label>
-                    <select
-                      value={comuna}
-                      onChange={(e) => setComuna(e.target.value)}
-                      required
-                      name="comuna"
-                    >
-                      <option value="" disabled>
-                        Selecciona tu comuna
-                      </option>
-                      {comunasOriente.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
+                    <label>Contraseña</label>
+                    <div className="passwordField">
+                      <input
+                        type={showClientePass ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        name="password"
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        className="passwordToggle"
+                        onClick={() => setShowClientePass((v) => !v)}
+                        aria-label={showClientePass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {showClientePass ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label>Confirmar contraseña</label>
+                    <div className="passwordField">
+                      <input
+                        type={showClientePassConfirm ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        name="passwordConfirm"
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        className="passwordToggle"
+                        onClick={() => setShowClientePassConfirm((v) => !v)}
+                        aria-label={
+                          showClientePassConfirm ? "Ocultar contraseña" : "Mostrar contraseña"
+                        }
+                      >
+                        {showClientePassConfirm ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -226,6 +298,42 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Región + comuna (solo si aplica) */}
+                <div className="cols">
+                  <div className="field">
+                    <label>Región</label>
+                    <select
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                      required
+                      name="region"
+                    >
+                      <option value="RM">Región Metropolitana</option>
+                    </select>
+                  </div>
+
+                  {alojamiento === "a_domicilio" && (
+                    <div className="field">
+                      <label>Comuna</label>
+                      <select
+                        value={comuna}
+                        onChange={(e) => setComuna(e.target.value)}
+                        required
+                        name="comuna"
+                      >
+                        <option value="" disabled>
+                          Selecciona tu comuna
+                        </option>
+                        {comunasOriente.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
                 {/* Tipo de vivienda: solo relevante si es a domicilio */}
                 {alojamiento === "a_domicilio" && (
                   <div className="field">
@@ -255,20 +363,24 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* Calendario estilo Airbnb */}
+                {/* Calendario + checkbox (checkbox primero) */}
                 <div className="field">
-                  <DateRangeAirbnb value={rango} onChange={setRango} minDate={new Date()} />
-                  <div className="muted" style={{ marginTop: 8 }}>
-                    {rango?.from && rango?.to ? (
-                      <>
-                        Seleccionaste: <b>{rango.from.toLocaleDateString()}</b> —{" "}
-                        <b>{rango.to.toLocaleDateString()}</b>
-                      </>
-                    ) : (
-                      <>Selecciona fecha de inicio y fin.</>
-                    )}
-                  </div>
-                </div>
+  <label>¿Cuándo viajas?</label>
+
+  <label className="checkboxInline">
+    <input
+      type="checkbox"
+      checked={sinFechas}
+      onChange={() => setSinFechas((v) => !v)}
+    />
+    <span>Aún no tengo claridad de las fechas y quiero definirlas después.</span>
+  </label>
+
+  <div className={`calendarWrapper ${sinFechas ? "disabled" : ""}`}>
+    <DateRangeAirbnb value={rango} onChange={setRango} minDate={new Date()} />
+  </div>
+</div>
+
 
                 {/* Mascotas estilo Airbnb (huéspedes) */}
                 <div className="field">
@@ -283,12 +395,12 @@ export default function RegisterPage() {
                 <input
                   type="hidden"
                   name="start_date"
-                  value={rango?.from ? rango.from.toISOString() : ""}
+                  value={!sinFechas && rango?.from ? rango.from.toISOString() : ""}
                 />
                 <input
                   type="hidden"
                   name="end_date"
-                  value={rango?.to ? rango.to.toISOString() : ""}
+                  value={!sinFechas && rango?.to ? rango.to.toISOString() : ""}
                 />
                 <input type="hidden" name="perros" value={String(pets.dogs)} />
                 <input type="hidden" name="gatos" value={String(pets.cats)} />
@@ -345,13 +457,55 @@ export default function RegisterPage() {
                   </div>
                   <div className="field">
                     <label>Contraseña</label>
-                    <input type="password" required placeholder="••••••••" />
+                    <div className="passwordField">
+                      <input
+                        type={showPetmatePass ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        name="password_petmate"
+                      />
+                      <button
+                        type="button"
+                        className="passwordToggle"
+                        onClick={() => setShowPetmatePass((v) => !v)}
+                        aria-label={showPetmatePass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {showPetmatePass ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="field">
                     <label>Confirmar contraseña</label>
-                    <input type="password" required placeholder="••••••••" />
+                    <div className="passwordField">
+                      <input
+                        type={showPetmatePassConfirm ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        name="passwordConfirm_petmate"
+                      />
+                      <button
+                        type="button"
+                        className="passwordToggle"
+                        onClick={() => setShowPetmatePassConfirm((v) => !v)}
+                        aria-label={
+                          showPetmatePassConfirm ? "Ocultar contraseña" : "Mostrar contraseña"
+                        }
+                      >
+                        {showPetmatePassConfirm ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
+
+                {formError && <p className="error">{formError}</p>}
 
                 <button
                   type="submit"
@@ -396,28 +550,33 @@ export default function RegisterPage() {
         .tabs {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          background: var(--muted);
-          padding: 6px;
+          gap: 4px;
+          background: #ecfdf5;
+          padding: 4px;
           border: 1px solid var(--border);
-          border-radius: 14px;
-          margin-bottom: 14px;
+          border-radius: 999px;
+          margin-bottom: 18px;
         }
         .tab {
           appearance: none;
           border: 0;
-          padding: 0.9rem 1rem;
-          border-radius: 10px;
+          padding: 0.8rem 1rem;
+          border-radius: 999px;
           background: transparent;
           font-weight: 800;
           cursor: pointer;
-          color: #065f46;
+          color: #047857;
           transition: all 0.15s ease;
+          text-align: center;
+          font-size: 0.95rem;
+        }
+        .tab:hover {
+          background: rgba(255, 255, 255, 0.7);
         }
         .tab.active {
-          background: var(--brand-dark);
-          color: #ffffff;
-          box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+          background: #ffffff;
+          color: #047857;
+          box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
         }
         .card {
           background: #fff;
@@ -517,6 +676,46 @@ export default function RegisterPage() {
         .option.active {
           border-color: var(--brand-dark);
           box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
+        }
+        .calendarWrapper.disabled {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+        .checkboxInline {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 4px;
+          font-size: 0.85rem;
+          color: #4b5563;
+        }
+        .checkboxInline input {
+          width: 16px;
+          height: 16px;
+        }
+        .passwordField {
+          position: relative;
+        }
+        .passwordField input {
+          width: 100%;
+          padding-right: 40px;
+        }
+        .passwordToggle {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          border: none;
+          background: transparent;
+          padding: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #9ca3af;
+        }
+        .passwordToggle:hover {
+          color: #4b5563;
         }
       `}</style>
     </>

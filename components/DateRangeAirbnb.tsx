@@ -73,7 +73,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate }: Props) {
           </div>
         </button>
         <p className="text-xs text-slate-500">
-          Selecciona fecha de inicio y fin, igual que en Airbnb.
+          Selecciona la fecha de inicio y fin de tu viaje.
         </p>
       </div>
 
@@ -134,20 +134,28 @@ export default function DateRangeAirbnb({ value, onChange, minDate }: Props) {
                     "flex-1 pb-2 text-center text-[11px] font-semibold uppercase text-slate-500",
                   row: "flex w-full",
                   cell: "relative flex-1 p-0 text-center text-sm",
+
+                  // Día base: círculo centrado (como antes)
                   day: "mx-auto mt-1 flex h-9 w-9 items-center justify-center rounded-full text-sm text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500",
+
                   day_today:
                     "border border-emerald-500 text-emerald-700 font-semibold",
+
+                  // Día seleccionado "suelto"
                   day_selected:
                     "bg-slate-900 text-white hover:bg-slate-900",
+
                   day_disabled:
                     "text-slate-300 hover:bg-transparent cursor-not-allowed",
                   day_outside: "text-slate-300",
+
+                  // --- Todos los días del rango con el mismo estilo de círculo oscuro ---
                   day_range_start:
+                    "bg-slate-900 text-white hover:bg-slate-900",
+                  day_range_middle:
                     "bg-slate-900 text-white hover:bg-slate-900",
                   day_range_end:
                     "bg-slate-900 text-white hover:bg-slate-900",
-                  day_range_middle:
-                    "bg-slate-100 text-slate-900 rounded-none",
                 }}
               />
             </div>
