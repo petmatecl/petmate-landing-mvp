@@ -360,165 +360,189 @@ export default function ClienteDashboardPage() {
             {/* MAIN CONTENT: Plan Trip + My Pets */}
             <div className="lg:col-span-8 space-y-8">
 
-              {/* SECTION: Planear Próximo Viaje */}
+              {/* SECTION: Tu Próximo Viaje (Priority) or Create Trip */}
               <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16 z-0"></div>
 
-                <div className="flex items-center gap-3 mb-6 relative z-10">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    Planear próximo viaje
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
-                  {/* ... Inputs ... */}
-                  {/* Fecha */}
-                  <div className="md:col-span-5 flex flex-col h-full">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4"> {/* Fixed height for alignment */}
-                      Fechas del viaje
-                    </label>
-                    <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
-                  </div>
-
-                  {/* Servicio */}
-                  <div className="md:col-span-3 flex flex-col h-full">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4"> {/* Fixed height for alignment */}
-                      Tipo de Servicio
-                    </label>
-                    <div className="flex flex-col gap-2 flex-1">
-                      <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
-                          {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                        </div>
-                        <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                        <div className="flex items-center gap-2">
-                          <Home size={18} />
-                          <span className="text-sm">Domicilio</span>
-                        </div>
-                      </label>
-                      <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
-                          {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                        </div>
-                        <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                        <div className="flex items-center gap-2">
-                          <Hotel size={18} />
-                          <span className="text-sm">Hospedaje</span>
-                        </div>
-                      </label>
+                <div className="flex items-center justify-between gap-3 mb-6 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                      <Calendar className="w-5 h-5" />
                     </div>
+                    <h2 className="text-xl font-bold text-slate-900">
+                      {clientProfile?.fecha_inicio ? 'Tu próximo viaje' : 'Planear próximo viaje'}
+                    </h2>
                   </div>
-
-                  <div className="md:col-span-4 flex flex-col h-full">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4"> {/* Fixed height for alignment */}
-                      Mascotas
-                    </label>
-                    {hasPets ? (
-                      <MyPetsSelector
-                        myPets={myPets}
-                        selectedIds={selectedPetIds}
-                        onChange={(ids, counts) => {
-                          setSelectedPetIds(ids);
-                          setMascotas(counts);
-                        }}
-                        hideLabel
-                      />
-                    ) : (
-                      <PetsSelectorAirbnb
-                        value={mascotas}
-                        onChange={setMascotas}
-                        className="w-full"
-                        hideLabel
-                      />
-                    )}
-                  </div>
-
                 </div>
 
-                <div className="mt-8 flex justify-end relative z-10">
-                  <button
-                    onClick={handleSaveTrip}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95"
-                  >
-                    Crear Viaje <span className="text-slate-400 text-sm font-normal">({rango?.from ? format(rango.from, 'd MMM', { locale: es }) : '...'})</span> ✈️
-                  </button>
-                </div>
-              </section>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* SECTION: Tu Próximo Viaje Summary */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">
-                    Tu próximo viaje
-                  </h3>
-                  {clientProfile?.fecha_inicio ? (
-                    <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xl">
-                          ✈️
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-900">
-                            {format(new Date(clientProfile.fecha_inicio), "d MMM", { locale: es })} - {clientProfile.fecha_fin ? format(new Date(clientProfile.fecha_fin), "d MMM", { locale: es }) : ''}
+                {clientProfile?.fecha_inicio ? (
+                  /* SHOW EXISTING TRIP */
+                  <div className="relative z-10">
+                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-3xl shadow-sm">
+                            ✈️
                           </div>
-                          <div className="text-xs text-emerald-700 font-medium">
-                            {clientProfile.perros > 0 ? `${clientProfile.perros} Perros` : ''} {clientProfile.gatos > 0 ? `${clientProfile.gatos} Gatos` : ''}
-                            {clientProfile.mascotas_viaje?.length > 0 && Array.isArray(myPets) ?
-                              ` · ${myPets.filter(p => clientProfile.mascotas_viaje.includes(p.id)).map(p => p.nombre).join(", ")}`
-                              : ''
-                            }
+                          <div>
+                            <div className="text-2xl font-bold text-slate-900 mb-1">
+                              {format(new Date(clientProfile.fecha_inicio), "d MMM", { locale: es })} - {clientProfile.fecha_fin ? format(new Date(clientProfile.fecha_fin), "d MMM yyyy", { locale: es }) : ''}
+                            </div>
+                            <div className="text-sm text-emerald-700 font-medium">
+                              {clientProfile.perros > 0 ? `${clientProfile.perros} ${clientProfile.perros === 1 ? 'Perro' : 'Perros'}` : ''}
+                              {clientProfile.perros > 0 && clientProfile.gatos > 0 ? ' · ' : ''}
+                              {clientProfile.gatos > 0 ? `${clientProfile.gatos} ${clientProfile.gatos === 1 ? 'Gato' : 'Gatos'}` : ''}
+                              {clientProfile.mascotas_viaje?.length > 0 && Array.isArray(myPets) ?
+                                ` · ${myPets.filter(p => clientProfile.mascotas_viaje.includes(p.id)).map(p => p.nombre).join(", ")}`
+                                : ''
+                              }
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2 mt-4">
+
+                      {/* Sitter Status */}
+                      <div className="mb-4 p-4 bg-white rounded-xl border border-emerald-100">
+                        <div className="flex items-center gap-2 mb-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Estado del Sitter</span>
+                        </div>
+                        {clientProfile.sitter_asignado ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <span className="text-sm font-semibold text-slate-900">Sitter asignado</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                            <span className="text-sm font-semibold text-slate-700">Sin sitter asignado</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-3">
                         <Link
                           href={buildSearchUrl()}
-                          className="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 rounded-lg transition-colors"
+                          className="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
                         >
-                          Buscar Sitter
+                          {clientProfile.sitter_asignado ? 'Ver Sitter' : 'Buscar Sitter'}
                         </Link>
                         <button
                           onClick={handleEditTrip}
-                          className="px-3 py-2 bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-sm font-bold rounded-lg transition-colors"
+                          className="px-4 py-3 bg-white border-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-sm font-bold rounded-xl transition-all active:scale-95"
                         >
-                          Editar
+                          Editar Viaje
                         </button>
                       </div>
                     </div>
+                  </div>
+                ) : (
+                  /* SHOW CREATE TRIP FORM */
+                  <div className="relative z-10">
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
+                      {/* ... Inputs ... */}
+                      {/* Fecha */}
+                      <div className="md:col-span-5 flex flex-col h-full">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4"> {/* Fixed height for alignment */}
+                          Fechas del viaje
+                        </label>
+                        <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
+                      </div>
+
+                      {/* Servicio */}
+                      <div className="md:col-span-3 flex flex-col h-full">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4"> {/* Fixed height for alignment */}
+                          Tipo de Servicio
+                        </label>
+                        <div className="flex flex-col gap-2 flex-1">
+                          <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
+                              {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                            </div>
+                            <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                            <div className="flex items-center gap-2">
+                              <Home size={18} />
+                              <span className="text-sm">Domicilio</span>
+                            </div>
+                          </label>
+                          <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
+                              {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                            </div>
+                            <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                            <div className="flex items-center gap-2">
+                              <Hotel size={18} />
+                              <span className="text-sm">Hospedaje</span>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-4 flex flex-col h-full">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4"> {/* Fixed height for alignment */}
+                          Mascotas
+                        </label>
+                        {hasPets ? (
+                          <MyPetsSelector
+                            myPets={myPets}
+                            selectedIds={selectedPetIds}
+                            onChange={(ids, counts) => {
+                              setSelectedPetIds(ids);
+                              setMascotas(counts);
+                            }}
+                            hideLabel
+                          />
+                        ) : (
+                          <PetsSelectorAirbnb
+                            value={mascotas}
+                            onChange={setMascotas}
+                            className="w-full"
+                            hideLabel
+                          />
+                        )}
+                      </div>
+
+                    </div>
+
+                    <div className="mt-8 flex justify-end">
+                      <button
+                        onClick={handleSaveTrip}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95"
+                      >
+                        Crear Viaje <span className="text-slate-400 text-sm font-normal">({rango?.from ? format(rango.from, 'd MMM', { locale: es }) : '...'})</span> ✈️
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Mis Mascotas */}
+              <section className="rounded-2xl border bg-white p-6 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-bold text-slate-900">Mis Mascotas</h2>
+                  <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded hover:bg-emerald-100 transition-colors">+ Agregar</button>
+                </div>
+
+                <div className="flex-1 space-y-2 overflow-y-auto max-h-[300px] pr-1">
+                  {loadingPets ? (
+                    <p className="text-xs text-slate-400">Cargando...</p>
+                  ) : myPets.length > 0 ? (
+                    myPets.map(pet => (
+                      <PetCard key={pet.id} pet={pet} onEdit={handleEdit} />
+                    ))
                   ) : (
-                    <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                      <p className="text-slate-400 text-sm">Sin viajes planificados</p>
-                      <p className="text-xs text-slate-300 mt-1">Usa el buscador para crear uno.</p>
+                    <div className="text-center py-6">
+                      <span className="text-2xl block mb-2">🐾</span>
+                      <p className="text-xs text-slate-500">Agrega a tus peludos aquí.</p>
                     </div>
                   )}
                 </div>
-
-                {/* Mis Mascotas */}
-                <div className="rounded-2xl border bg-white p-5 shadow-sm flex flex-col h-full">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-base font-semibold text-slate-900">Mis Mascotas</h2>
-                    <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded hover:bg-emerald-100 transition-colors">+ Agregar</button>
-                  </div>
-
-                  <div className="flex-1 space-y-2 overflow-y-auto max-h-[300px] pr-1">
-                    {loadingPets ? (
-                      <p className="text-xs text-slate-400">Cargando...</p>
-                    ) : myPets.length > 0 ? (
-                      myPets.map(pet => (
-                        <PetCard key={pet.id} pet={pet} onEdit={handleEdit} />
-                      ))
-                    ) : (
-                      <div className="text-center py-6">
-                        <span className="text-2xl block mb-2">🐾</span>
-                        <p className="text-xs text-slate-500">Agrega a tus peludos aquí.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              </section>
 
               {/* 3. Empty History / Others */}
               <section className="rounded-2xl border bg-white p-5 shadow-sm">
@@ -535,24 +559,28 @@ export default function ClienteDashboardPage() {
       </main>
 
       {/* Modal de Mascotas */}
-      {userId && (
-        <PetFormModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSaved={handleSaved}
-          initialData={editingPet}
-          userId={userId}
-        />
-      )}
+      {
+        userId && (
+          <PetFormModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSaved={handleSaved}
+            initialData={editingPet}
+            userId={userId}
+          />
+        )
+      }
       {/* Lightbox para Foto de Perfil */}
-      {clientProfile?.foto_perfil && (
-        <ImageLightbox
-          src={clientProfile.foto_perfil}
-          alt="Foto de perfil"
-          isOpen={isLightboxOpen}
-          onClose={() => setIsLightboxOpen(false)}
-        />
-      )}
+      {
+        clientProfile?.foto_perfil && (
+          <ImageLightbox
+            src={clientProfile.foto_perfil}
+            alt="Foto de perfil"
+            isOpen={isLightboxOpen}
+            onClose={() => setIsLightboxOpen(false)}
+          />
+        )
+      }
 
       <ModalAlert
         isOpen={alertConfig.isOpen}
