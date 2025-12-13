@@ -381,7 +381,6 @@ export default function ClienteDashboardPage() {
                       Fechas del viaje
                     </label>
                     <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
-                    <p className="mt-2 text-xs text-slate-400">Selecciona la fecha de inicio y fin de tu viaje.</p>
                   </div>
 
                   {/* Servicio */}
@@ -435,7 +434,6 @@ export default function ClienteDashboardPage() {
                         hideLabel
                       />
                     )}
-                    <p className="mt-2 text-xs text-slate-400">Selecciona quiénes viajan contigo (o se quedan en casa).</p>
                   </div>
 
                 </div>
