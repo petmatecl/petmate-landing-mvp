@@ -1,50 +1,76 @@
 // components/Footer.tsx
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
-    <footer className="mt-16 border-t bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="mt-20 border-t border-slate-200 bg-white/50 backdrop-blur-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
         {/* Brand */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
-              🐾
-            </span>
-            <span className="text-lg font-bold text-emerald-800">PetMate</span>
+            <Link href="/" className="relative h-8 w-auto block">
+              <Image
+                src="/logo-pawnecta.svg"
+                alt="Pawnecta"
+                width={180}
+                height={45}
+                className="h-12 w-auto"
+              />
+            </Link>
           </div>
-          <p className="text-sm text-gray-600">
-            Mascotas sin estrés, en la seguridad de tu hogar — o en casa de un PetMate de confianza.
+          <p className="text-sm text-slate-500 leading-relaxed">
+            Mascotas sin estrés, en la seguridad de tu hogar — o en casa de un Sitter de confianza.
           </p>
         </div>
 
         {/* Servicios */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-900">Servicios</h4>
-          <ul className="mt-3 space-y-2 text-sm text-gray-600">
-            <li>PetMate a domicilio</li>
-            <li>Estadía en casa del PetMate</li>
-            <li>Paseos y administración de medicamentos</li>
+          <h4 className="text-sm font-bold text-slate-900">Servicios</h4>
+          <ul className="mt-4 space-y-3 text-sm text-slate-600">
+            <li>
+              <Link href="/servicios/domicilio" className="hover:text-emerald-600 transition-colors">
+                Pawnecta a domicilio
+              </Link>
+            </li>
+            <li>
+              <Link href="/servicios/hospedaje" className="hover:text-emerald-600 transition-colors">
+                Estadía en casa del Sitter
+              </Link>
+            </li>
+
           </ul>
         </div>
 
-        {/* Soporte */}
+        {/* Contacto */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-900">Soporte</h4>
-          <ul className="mt-3 space-y-2 text-sm text-gray-600">
+          <h4 className="text-sm font-bold text-slate-900">Contacto</h4>
+          <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
-              <Link href="/#ayuda" className="hover:text-gray-900">
-                Centro de ayuda
+              <Link href="mailto:contacto@pawnecta.com" className="hover:text-emerald-600 transition-colors">
+                contacto@pawnecta.com
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h4 className="text-sm font-bold text-slate-900">Legal</h4>
+          <ul className="mt-4 space-y-3 text-sm text-slate-600">
+            <li>
+              <Link href="/quienes-somos" className="hover:text-emerald-600 transition-colors">
+                Quiénes somos
               </Link>
             </li>
             <li>
-              <Link href="/#seguridad" className="hover:text-gray-900">
-                Seguridad y cobertura
+              <Link href="/terminos" className="hover:text-emerald-600 transition-colors">
+                Términos y Condiciones
               </Link>
             </li>
             <li>
-              <Link href="/#contacto" className="hover:text-gray-900">
-                Contacto
+              <Link href="/privacidad" className="hover:text-emerald-600 transition-colors">
+                Política de Privacidad
               </Link>
             </li>
           </ul>
@@ -52,11 +78,11 @@ export function Footer() {
 
         {/* Social */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-900">Síguenos</h4>
-          <div className="mt-3 flex items-center gap-3">
+          <h4 className="text-sm font-bold text-slate-900">Síguenos</h4>
+          <div className="mt-4 flex items-center gap-3">
             <Link
-              href="https://instagram.com"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border hover:bg-gray-50"
+              href="https://www.instagram.com/pawnecta"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
               aria-label="Instagram"
               target="_blank"
             >
@@ -80,11 +106,12 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t py-4 text-center text-xs text-gray-500">
-        © {new Date().getFullYear()} PetMate. Todos los derechos reservados.
+      <div className="border-t border-slate-100 py-6 text-center text-xs text-slate-400 font-medium">
+        © {new Date().getFullYear()} Pawnecta. Todos los derechos reservados.
       </div>
     </footer>
   );
 }
 
 export default Footer;
+

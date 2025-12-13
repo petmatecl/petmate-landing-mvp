@@ -1,90 +1,62 @@
-// components/HomeSections.tsx
 import Link from "next/link";
+import {
+  HomeIcon,
+  ShieldCheckIcon,
+  AdjustmentsHorizontalIcon,
+  MagnifyingGlassIcon,
+  ChatBubbleLeftRightIcon,
+  BriefcaseIcon
+} from "@heroicons/react/24/outline";
 
-/* ---------- Íconos monocromáticos ---------- */
-
-const HomeHeartIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-    <path d="M4 10.5C4 7.46 6.3 5 9.2 5c1.38 0 2.7.62 3.8 1.82C14.1 5.62 15.42 5 16.8 5 19.7 5 22 7.46 22 10.5c0 4.38-3.76 7.24-8.93 11.09a1.1 1.1 0 0 1-1.14 0C7.76 17.74 4 14.88 4 10.5z" />
-  </svg>
-);
-
-const CheckBadgeIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-    <path d="M8.5 3.5 12 2l3.5 1.5 3 2.5.5 4-1.5 3.5-2.5 3-3.5 1.5-3.5-1.5-2.5-3L3 10l.5-4z" />
-    <path d="m9 11.5 2 2 4-4.5" />
-  </svg>
-);
-
-const CalendarIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-    <rect x="3" y="4" width="18" height="17" rx="2" />
-    <path d="M8 2v4M16 2v4M3 9h18" />
-    <path d="M8 13h3v3H8z" />
-  </svg>
-);
-
-const PawIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-    <circle cx="7" cy="7" r="2.1" />
-    <circle cx="17" cy="7" r="2.1" />
-    <circle cx="9" cy="13" r="2.1" />
-    <circle cx="15" cy="13" r="2.1" />
-    <path d="M9 16.5c.8-.7 1.8-1.1 3-1.1s2.2.4 3 1.1c.7.6 1.2 1.6 1.2 2.5 0 1.1-.9 2-2 2H9.8c-1.1 0-2-.9-2-2 0-.9.5-1.9 1.2-2.5z" />
-  </svg>
-);
-
-const SearchIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-    <circle cx="11" cy="11" r="5.5" />
-    <path d="m15.5 15.5 3.5 3.5" />
-  </svg>
-);
-
-const MessageIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-    <path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4.5 3.5V6a1 1 0 0 1 1-1z" />
-    <path d="M7 9h10M7 12h6" />
-  </svg>
-);
-
-/* ---------- ¿Por qué PetMate? (ValueProps) ---------- */
-
+// --- SECCIÓN 1: PROPUETA DE VALOR (Fondo Claro) ---
 export function ValueProps() {
+  const features = [
+    {
+      name: "Hogar, dulce hogar",
+      description: "Tu mascota disfruta del calor de un hogar real. Cero jaulas, cero estrés. Solo mimos y rutina familiar.",
+      icon: HomeIcon,
+    },
+    {
+      name: "Confianza total",
+      description: "Cada Pawnecta Sitter es verificado manualmente. Revisa sus reseñas reales y agenda una visita previa gratuita.",
+      icon: ShieldCheckIcon,
+    },
+    {
+      name: "A tu medida",
+      description: "Desde paseos rápidos hasta largas estadías. Encuentra la solución perfecta y paga solo por lo que necesitas.",
+      icon: AdjustmentsHorizontalIcon,
+    },
+  ];
+
   return (
-    <section className="bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">¿Por qué PetMate?</h2>
-
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-3xl border bg-white p-6 shadow-sm">
-            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
-              <HomeHeartIcon className="h-5 w-5" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Sin traslados ni jaulas</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Tu mascota se queda en un entorno conocido o en un hogar real, no en una guardería masiva.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border bg-white p-6 shadow-sm">
-            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
-              <CheckBadgeIcon className="h-5 w-5" />
-            </div>
-            <h3 className="font-semibold text-gray-900">PetMates verificados</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Perfiles con validación, reseñas y experiencia previa con perros y gatos.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border bg-white p-6 shadow-sm">
-            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
-              <CalendarIcon className="h-5 w-5" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Flexible a tu viaje</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Reserva por día, fin de semana o semanas completas. Paga solo por el tiempo que necesitas.
-            </p>
+    <section className="bg-slate-50 py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:text-center">
+          <h2 className="text-base font-semibold leading-7 text-emerald-600">Beneficios</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl text-pretty">
+            ¿Por qué elegir Pawnecta?
+          </p>
+          <p className="mt-6 text-lg leading-8 text-slate-600">
+            Olvídate de los hoteles masivos. Aquí tu mascota es un miembro más de la familia.
+          </p>
+        </div>
+        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+          <div className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+            {features.map((feature) => (
+              <div key={feature.name} className="flex flex-col bg-white p-8 rounded-3xl shadow-sm border border-slate-100 transition-all hover:shadow-md hover:border-emerald-100">
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                  <feature.icon className="h-8 w-8" aria-hidden="true" />
+                </div>
+                <div className="flex flex-col flex-1">
+                  <h3 className="text-xl font-bold leading-7 text-slate-900">
+                    {feature.name}
+                  </h3>
+                  <p className="mt-4 flex-auto text-base leading-7 text-slate-600">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -92,62 +64,65 @@ export function ValueProps() {
   );
 }
 
-/* ---------- ¿Cómo funciona? ---------- */
-
+// --- SECCIÓN 2: CÓMO FUNCIONA (Fondo Oscuro para contraste) ---
 export function HowItWorks() {
   const steps = [
     {
-      id: 1,
-      title: "Cuéntanos de tu mascota",
-      description: "Indica tipo de mascota, tamaño, carácter y fechas de tu viaje.",
-      Icon: PawIcon,
+      id: "01",
+      name: "Explora",
+      description: "Encuentra cuidadores cercanos 100% verificados que se adapten a tu mascota.",
+      icon: MagnifyingGlassIcon,
     },
     {
-      id: 2,
-      title: "Elige entre PetMates disponibles",
-      description: "Revisa perfiles, reseñas y condiciones. Coordina visitas previas si lo deseas.",
-      Icon: SearchIcon,
+      id: "02",
+      name: "Conecta",
+      description: "Chatea con ellos y coordina una visita previa para asegurarte de que haya 'match'.",
+      icon: ChatBubbleLeftRightIcon,
     },
     {
-      id: 3,
-      title: "Reserva y relájate",
-      description: "Confirma tu reserva, recibe actualizaciones y fotos durante tu viaje.",
-      Icon: MessageIcon,
+      id: "03",
+      name: "Viaja tranquilo",
+      description: "Reserva seguro a través de Pawnecta y recibe fotos y reportes diarios de tu peludo.",
+      icon: BriefcaseIcon,
     },
   ];
 
   return (
-    <section className="bg-slate-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">¿Cómo funciona?</h2>
+    <section className="bg-slate-900 py-24 sm:py-32 relative overflow-hidden">
+      {/* Decoración de fondo */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-500 blur-3xl"></div>
+        <div className="absolute top-1/2 right-0 w-64 h-64 rounded-full bg-emerald-700 blur-3xl"></div>
+      </div>
 
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
-          {steps.map(({ id, title, description, Icon }) => (
-            <div
-              key={id}
-              className="relative rounded-3xl border bg-white p-6 shadow-sm"
-            >
-              {/* línea de conexión entre cards en desktop */}
-              {id !== steps.length && (
-                <div className="hidden md:block absolute right-[-24px] top-1/2 h-px w-10 bg-emerald-100" />
-              )}
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+        <div className="mx-auto max-w-2xl lg:text-center mb-16">
+          <h2 className="text-emerald-400 font-bold tracking-wide uppercase text-sm">Paso a paso</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Tu tranquilidad en 3 pasos
+          </p>
+        </div>
 
-              <div className="flex items-start gap-3">
-                {/* Icono */}
-                <span className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
-                  <Icon className="h-5 w-5" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+          {/* Línea conectora (visible solo en desktop) */}
+          <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-slate-700/50 -z-10"></div>
+
+          {steps.map((step) => (
+            <div key={step.name} className="relative flex flex-col items-center text-center">
+              {/* Círculo del número/ícono */}
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-800 border-4 border-slate-900 shadow-xl mb-6 group transition-transform hover:scale-110 duration-300">
+                <step.icon className="h-10 w-10 text-emerald-400" aria-hidden="true" />
+              </div>
+
+              <div className="flex flex-col items-center text-center">
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                  Paso {step.id}
                 </span>
 
-                {/* Contenido */}
-                <div>
-                  {/* Pill "Paso 1" en una sola línea */}
-                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                    Paso {id}
-                  </span>
-
-                  <h3 className="mt-2 text-sm font-semibold text-gray-900">{title}</h3>
-                  <p className="mt-2 text-sm text-gray-600">{description}</p>
-                </div>
+                <h3 className="mt-3 text-lg font-bold text-white">{step.name}</h3>
+                <p className="mt-1 text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
+                  {step.description}
+                </p>
               </div>
             </div>
           ))}
@@ -157,35 +132,33 @@ export function HowItWorks() {
   );
 }
 
-/* ---------- CTA final (igual que antes) ---------- */
-
+// --- SECCIÓN 3: CTA FINAL ---
 export function CTASection() {
   return (
-    <section className="bg-emerald-700">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16 text-center text-white">
-        <h2 className="text-2xl sm:text-3xl font-bold">
-          ¿Listo para tu próximo viaje sin preocuparte por tu mascota?
-        </h2>
-        <p className="mt-3 text-sm sm:text-base text-emerald-100 max-w-2xl mx-auto">
-          Deja tus datos y te avisaremos cuando PetMate esté disponible en tu comuna o
-          comienza hoy si estás en el sector oriente de la RM.
-        </p>
-
-        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/register?role=cliente"
-            className="inline-flex justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
-          >
-            Quiero buscar un PetMate
-          </Link>
-          <Link
-            href="/register?role=petmate"
-            className="inline-flex justify-center rounded-xl border border-emerald-200 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-600"
-          >
-            Quiero ser PetMate
-          </Link>
+    <div className="bg-white">
+      <div className="px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl text-pretty">
+            ¿Listo para encontrar al Pawnecta Sitter ideal?
+            <br />
+            <span className="text-emerald-600">Tu mascota te lo agradecerá.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-slate-600">
+            Regístrate hoy y obtén un descuento en tu primera reserva. Cupos limitados por lanzamiento.
+          </p>
+          <div className="mt-10 flex items-center justify-center gap-x-6">
+            <Link
+              href="/register"
+              className="rounded-xl bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-all hover:-translate-y-1"
+            >
+              Comenzar ahora
+            </Link>
+            <Link href="/explorar" className="text-sm font-semibold leading-6 text-slate-900 flex items-center gap-1 hover:gap-2 transition-all">
+              Solo quiero mirar <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

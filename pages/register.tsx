@@ -6,11 +6,20 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import type { DateRange } from "react-day-picker";
 import DateRangeAirbnb from "../components/DateRangeAirbnb";
+import { supabase } from "../lib/supabaseClient";
 
 type Role = "cliente" | "petmate";
 
 const DogIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    {...p}
+  >
     <path d="M3 10l3-3h5l3 3v9H6a3 3 0 0 1-3-3v-6z" />
     <circle cx="15.5" cy="9.5" r="1" />
     <path d="M13 6l2-2h3l2 2v4M6 15h6" />
@@ -18,7 +27,15 @@ const DogIcon = (p: any) => (
 );
 
 const CatIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    {...p}
+  >
     <path d="M4 20c0-6 4-9 8-9s8 3 8 9" />
     <path d="M8 8V4l3 2 1-2 4 3v1" />
     <circle cx="10" cy="12" r=".8" />
@@ -28,7 +45,15 @@ const CatIcon = (p: any) => (
 
 // Iconos para tipo de vivienda
 const HouseIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    {...p}
+  >
     <path d="M3 11.5l9-7 9 7" />
     <path d="M5 10v9h14v-9" />
     <path d="M10 19v-6h4v6" />
@@ -36,7 +61,15 @@ const HouseIcon = (p: any) => (
 );
 
 const BuildingIcon = (p: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    {...p}
+  >
     <rect x="4" y="3" width="10" height="18" rx="1" />
     <path d="M18 21V8h2a1 1 0 0 1 1 1v12z" />
     <path d="M7 7h4M7 11h4M7 15h4" />
@@ -60,13 +93,27 @@ const EyeOffIcon = (p: any) => (
   </svg>
 );
 
-type Alojamiento = "en_petmate" | "a_domicilio";
+type Alojamiento = "en_sitter" | "domicilio";
+
+// Estado de modalidad multi-select Pawnecta Sitter
+type ModalidadPetmateState = {
+  enCasa: boolean;
+  aDomicilio: boolean;
+};
+
+function toDateString(d?: Date | null) {
+  if (!d) return null;
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`; // YYYY-MM-DD
+}
 
 export default function RegisterPage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<Role>("cliente");
 
-  // Estado para selector de mascotas estilo Airbnb
+  // Estado mascotas estilo Airbnb
   const [pets, setPets] = React.useState<PetsValue>({ dogs: 0, cats: 0 });
 
   // Selección automática de tab según ?role=...
@@ -77,14 +124,28 @@ export default function RegisterPage() {
     else if (["cliente", "client", "owner"].includes(r)) setTab("cliente");
   }, [router.isReady, router.query.role]);
 
-  // --- Estado para el tab Cliente ---
+  // --- Estado Cliente ---
   const [region, setRegion] = React.useState("RM");
   const [comuna, setComuna] = React.useState("");
-  const [alojamiento, setAlojamiento] = React.useState<Alojamiento>("en_petmate");
+  const [alojamiento, setAlojamiento] = React.useState<Alojamiento>("en_sitter");
   const [tipoVivienda, setTipoVivienda] = React.useState<"casa" | "departamento" | "">("");
   const [rango, setRango] = React.useState<DateRange | undefined>(undefined);
   const [sinFechas, setSinFechas] = React.useState(false);
+
+  // --- Estado PetMate (multi-selección) ---
+  const [modalidadPetmate, setModalidadPetmate] = React.useState<ModalidadPetmateState>({
+    enCasa: true,
+    aDomicilio: false,
+  });
+  const [regionPetmate, setRegionPetmate] = React.useState("RM");
+  const [comunaPetmate, setComunaPetmate] = React.useState("");
+  const [tipoViviendaPetmate, setTipoViviendaPetmate] = React.useState<"casa" | "departamento" | "">("");
+  const [maxMascotasEnCasa, setMaxMascotasEnCasa] = React.useState(2);
+  const [maxMascotasDomicilio, setMaxMascotasDomicilio] = React.useState(2);
+
+  // UI / errores
   const [formError, setFormError] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
 
   // visibilidad contraseña Cliente
   const [showClientePass, setShowClientePass] = React.useState(false);
@@ -93,15 +154,25 @@ export default function RegisterPage() {
   const [showPetmatePass, setShowPetmatePass] = React.useState(false);
   const [showPetmatePassConfirm, setShowPetmatePassConfirm] = React.useState(false);
 
-  const comunasOriente = ["Las Condes", "Vitacura", "Lo Barnechea", "La Reina", "Providencia", "Ñuñoa"];
+  const comunasOriente = [
+    "Las Condes",
+    "Vitacura",
+    "Lo Barnechea",
+    "La Reina",
+    "Providencia",
+    "Ñuñoa",
+  ];
 
-  // --- submits ---
-  function submitCliente(e: React.FormEvent<HTMLFormElement>) {
+  // ---------- SUBMIT CLIENTE ----------
+  async function submitCliente(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const form = e.currentTarget;
     const data = new FormData(form);
     const nombre = String(data.get("nombre") || "").trim();
+    const apellidoPaterno = String(data.get("apellidoPaterno") || "").trim();
+    const apellidoMaterno = String(data.get("apellidoMaterno") || "").trim();
+    const correo = String(data.get("correo") || "").trim();
     const password = String(data.get("password") || "");
     const passwordConfirm = String(data.get("passwordConfirm") || "");
 
@@ -120,25 +191,86 @@ export default function RegisterPage() {
       return;
     }
 
-    if (alojamiento === "a_domicilio" && !tipoVivienda) {
+    if (alojamiento === "domicilio" && !tipoVivienda) {
       setFormError("Selecciona el tipo de vivienda.");
       return;
     }
 
     setFormError(null);
 
-    if (typeof window !== "undefined" && nombre) {
-      window.localStorage.setItem("pm_cliente_nombre", nombre);
-    }
+    try {
+      setSubmitting(true);
 
-    router.push("/cliente");
+      // 1) Crear usuario en Supabase Auth
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: correo,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/email-confirmado`,
+        },
+      });
+
+      if (signUpError) {
+        console.error(signUpError);
+        setFormError(
+          signUpError.message ||
+          "No fue posible crear tu cuenta. Revisa el correo o intenta más tarde."
+        );
+        return;
+      }
+
+      const authUserId = signUpData.user?.id;
+      if (!authUserId) {
+        setFormError("No se pudo obtener el identificador de usuario. Intenta nuevamente.");
+        return;
+      }
+
+      // 2) Insertar registro vinculado a auth_user_id
+      const { error: insertError } = await supabase.from("registro_petmate").insert([
+        {
+          auth_user_id: authUserId,
+          rol: "cliente",
+          nombre,
+          apellido_p: apellidoPaterno,
+          apellido_m: apellidoMaterno,
+          email: correo,
+          region,
+          comuna: alojamiento === "domicilio" ? comuna : null,
+          tipo_vivienda: alojamiento === "domicilio" ? (tipoVivienda || null) : null,
+          perros: pets.dogs,
+          gatos: pets.cats,
+          fecha_inicio: !sinFechas && rango?.from ? toDateString(rango.from) : null,
+          fecha_fin: !sinFechas && rango?.to ? toDateString(rango.to) : null,
+        },
+      ]);
+
+      if (insertError) {
+        console.error(insertError);
+        setFormError("Ocurrió un problema al guardar tu registro. Intenta nuevamente.");
+        return;
+      }
+
+      if (typeof window !== "undefined" && nombre) {
+        window.localStorage.setItem("pm_cliente_nombre", nombre);
+      }
+
+      router.push("/registro-exitoso?role=cliente");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  function submitPetmate(e: React.FormEvent<HTMLFormElement>) {
+  // ---------- SUBMIT PETMATE ----------
+  async function submitPetmate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const form = e.currentTarget;
     const data = new FormData(form);
+
+    const nombre = String(data.get("nombre_petmate") || "").trim();
+    const apellidoPaterno = String(data.get("apellidoPaterno_petmate") || "").trim();
+    const apellidoMaterno = String(data.get("apellidoMaterno_petmate") || "").trim();
+    const correo = String(data.get("correo_petmate") || "").trim();
     const pass = String(data.get("password_petmate") || "");
     const passConfirm = String(data.get("passwordConfirm_petmate") || "");
 
@@ -151,14 +283,103 @@ export default function RegisterPage() {
       return;
     }
 
+    // validar que haya seleccionado al menos una modalidad
+    if (!modalidadPetmate.enCasa && !modalidadPetmate.aDomicilio) {
+      setFormError("Selecciona al menos una modalidad de cuidado.");
+      return;
+    }
+
+    // Validar ubicación si es "En mi casa"
+    if (modalidadPetmate.enCasa) {
+      if (!comunaPetmate) {
+        setFormError("Debes indicar tu comuna si vas a cuidar mascotas en tu casa.");
+        return;
+      }
+      if (!tipoViviendaPetmate) {
+        setFormError("Debes indicar tu tipo de vivienda si vas a cuidar mascotas en tu casa.");
+        return;
+      }
+    }
+
     setFormError(null);
-    router.push("/petmate/onboarding");
+
+    const modalidadTexto =
+      modalidadPetmate.enCasa && modalidadPetmate.aDomicilio
+        ? "ambos"
+        : modalidadPetmate.enCasa
+          ? "en_casa_petmate"
+          : "a_domicilio";
+
+    try {
+      setSubmitting(true);
+
+      // 1) Crear usuario en Supabase Auth
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: correo,
+        password: pass,
+        options: {
+          emailRedirectTo: `${window.location.origin}/email-confirmado`,
+        },
+      });
+
+      if (signUpError) {
+        console.error(signUpError);
+        setFormError(
+          signUpError.message ||
+          "No fue posible crear tu cuenta de Sitter. Revisa el correo o intenta más tarde."
+        );
+        return;
+      }
+
+      const authUserId = signUpData.user?.id;
+      if (!authUserId) {
+        setFormError("No se pudo obtener el identificador de usuario. Intenta nuevamente.");
+        return;
+      }
+
+      // 2) Insertar registro vinculado a auth_user_id
+      const { error: insertError } = await supabase.from("registro_petmate").insert([
+        {
+          auth_user_id: authUserId,
+          rol: "petmate",
+          nombre,
+          apellido_p: apellidoPaterno,
+          apellido_m: apellidoMaterno,
+          email: correo,
+          region: modalidadPetmate.enCasa ? regionPetmate : null,
+          comuna: modalidadPetmate.enCasa ? comunaPetmate : null,
+          tipo_vivienda: modalidadPetmate.enCasa ? tipoViviendaPetmate : null,
+          max_mascotas_en_casa: modalidadPetmate.enCasa ? maxMascotasEnCasa : null,
+          max_mascotas_domicilio: modalidadPetmate.aDomicilio ? maxMascotasDomicilio : null,
+          perros: null,
+          gatos: null,
+          fecha_inicio: null,
+          fecha_fin: null,
+          // cuando tengas columna en BD:
+          // modalidad_petmate: modalidadTexto,
+        },
+      ]);
+
+      if (insertError) {
+        console.error(insertError);
+        setFormError("Ocurrió un problema al guardar tu registro. Intenta nuevamente.");
+        return;
+      }
+
+      if (typeof window !== "undefined" && nombre) {
+        window.localStorage.setItem("pm_petmate_nombre", nombre);
+      }
+
+      router.push("/registro-exitoso?role=petmate");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <>
       <Head>
-        <title>Registro — PetMate</title>
+        <title>Registro — Pawnecta</title>
       </Head>
 
       <main className="page">
@@ -170,14 +391,14 @@ export default function RegisterPage() {
               onClick={() => setTab("cliente")}
               type="button"
             >
-              Necesito un PetMate
+              Necesito un Sitter
             </button>
             <button
               className={`tab ${tab === "petmate" ? "active" : ""}`}
               onClick={() => setTab("petmate")}
               type="button"
             >
-              Quiero ser PetMate
+              Quiero ser Sitter
             </button>
           </div>
 
@@ -218,6 +439,7 @@ export default function RegisterPage() {
                         placeholder="••••••••"
                         name="password"
                         minLength={6}
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"
@@ -242,6 +464,7 @@ export default function RegisterPage() {
                         placeholder="••••••••"
                         name="passwordConfirm"
                         minLength={6}
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"
@@ -267,14 +490,14 @@ export default function RegisterPage() {
                   <div className="segmented segmented-lg">
                     <button
                       type="button"
-                      className={`option ${alojamiento === "en_petmate" ? "active" : ""}`}
-                      onClick={() => setAlojamiento("en_petmate")}
+                      className={`option ${alojamiento === "en_sitter" ? "active" : ""}`}
+                      onClick={() => setAlojamiento("en_sitter")}
                     >
                       <span className="optionIcon">
                         <HouseIcon />
                       </span>
                       <span className="text-left text-sm">
-                        En casa de un PetMate
+                        En casa de un Sitter
                         <span className="block text-xs font-normal text-gray-500">
                           Tu mascota duerme en la casa del cuidador.
                         </span>
@@ -282,14 +505,14 @@ export default function RegisterPage() {
                     </button>
                     <button
                       type="button"
-                      className={`option ${alojamiento === "a_domicilio" ? "active" : ""}`}
-                      onClick={() => setAlojamiento("a_domicilio")}
+                      className={`option ${alojamiento === "domicilio" ? "active" : ""}`}
+                      onClick={() => setAlojamiento("domicilio")}
                     >
                       <span className="optionIcon">
                         <BuildingIcon />
                       </span>
                       <span className="text-left text-sm">
-                        PetMate a domicilio
+                        Pawnecta a domicilio
                         <span className="block text-xs font-normal text-gray-500">
                           El cuidador va a tu casa a cuidar a tu mascota.
                         </span>
@@ -312,7 +535,7 @@ export default function RegisterPage() {
                     </select>
                   </div>
 
-                  {alojamiento === "a_domicilio" && (
+                  {alojamiento === "domicilio" && (
                     <div className="field">
                       <label>Comuna</label>
                       <select
@@ -335,7 +558,7 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Tipo de vivienda: solo relevante si es a domicilio */}
-                {alojamiento === "a_domicilio" && (
+                {alojamiento === "domicilio" && (
                   <div className="field">
                     <label>Tipo de vivienda</label>
                     <div className="segmented">
@@ -351,7 +574,8 @@ export default function RegisterPage() {
                       </button>
                       <button
                         type="button"
-                        className={`option ${tipoVivienda === "departamento" ? "active" : ""}`}
+                        className={`option ${tipoVivienda === "departamento" ? "active" : ""
+                          }`}
                         onClick={() => setTipoVivienda("departamento")}
                       >
                         <span className="optionIcon">
@@ -363,33 +587,32 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* Calendario + checkbox (checkbox primero) */}
+                {/* Calendario + checkbox */}
                 <div className="field">
-  <label>¿Cuándo viajas?</label>
+                  <label>¿Cuándo viajas?</label>
 
-  <label className="checkboxInline">
-    <input
-      type="checkbox"
-      checked={sinFechas}
-      onChange={() => setSinFechas((v) => !v)}
-    />
-    <span>Aún no tengo claridad de las fechas y quiero definirlas después.</span>
-  </label>
+                  <label className="checkboxInline">
+                    <input
+                      type="checkbox"
+                      checked={sinFechas}
+                      onChange={() => setSinFechas((v) => !v)}
+                    />
+                    <span>Aún no tengo claridad de las fechas y quiero definirlas después.</span>
+                  </label>
 
-  <div className={`calendarWrapper ${sinFechas ? "disabled" : ""}`}>
-    <DateRangeAirbnb value={rango} onChange={setRango} minDate={new Date()} />
-  </div>
-</div>
+                  <div className={`calendarWrapper ${sinFechas ? "disabled" : ""}`}>
+                    <DateRangeAirbnb value={rango} onChange={setRango} minDate={new Date()} />
+                  </div>
+                </div>
 
-
-                {/* Mascotas estilo Airbnb (huéspedes) */}
+                {/* Mascotas estilo Airbnb */}
                 <div className="field">
                   <PetsSelectorAirbnb value={pets} onChange={setPets} />
                 </div>
 
                 {formError && <p className="error">{formError}</p>}
 
-                {/* hidden fields */}
+                {/* hidden (no crítico, pero lo dejamos) */}
                 <input type="hidden" name="alojamiento" value={alojamiento} />
                 <input type="hidden" name="tipo_vivienda" value={tipoVivienda} />
                 <input
@@ -405,10 +628,10 @@ export default function RegisterPage() {
                 <input type="hidden" name="perros" value={String(pets.dogs)} />
                 <input type="hidden" name="gatos" value={String(pets.cats)} />
 
-                {/* Botón Registrar */}
                 <button
                   type="submit"
                   className="btnPrimary"
+                  disabled={submitting}
                   style={{
                     width: "100%",
                     marginTop: "8px",
@@ -420,7 +643,7 @@ export default function RegisterPage() {
                     fontWeight: 800,
                   }}
                 >
-                  Registrar
+                  {submitting ? "Registrando..." : "Registrar"}
                 </button>
 
                 <p className="muted">
@@ -432,9 +655,10 @@ export default function RegisterPage() {
               </form>
             ) : (
               <form className="grid" onSubmit={submitPetmate}>
-                <h1>Registro rápido de PetMate</h1>
-                <p className="sub">Solo datos básicos. Completarás el resto en tu perfil privado.</p>
-
+                <h1>Registro rápido de Pawnecta Sitter</h1>
+                <p className="mt-2 text-sm text-slate-500">
+                  Únete a nuestra red de cuidadores verificados.
+                </p>
                 <div className="cols">
                   <div className="field">
                     <label>Nombre</label>
@@ -463,6 +687,7 @@ export default function RegisterPage() {
                         required
                         placeholder="••••••••"
                         name="password_petmate"
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"
@@ -486,6 +711,7 @@ export default function RegisterPage() {
                         required
                         placeholder="••••••••"
                         name="passwordConfirm_petmate"
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"
@@ -505,11 +731,157 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Modalidad multi-selección */}
+                <div className="field">
+                  <label>¿Dónde puedes cuidar mascotas?</label>
+                  <div className="segmented">
+                    <button
+                      type="button"
+                      className={`option ${modalidadPetmate.enCasa ? "active" : ""}`}
+                      onClick={() =>
+                        setModalidadPetmate((m) => ({ ...m, enCasa: !m.enCasa }))
+                      }
+                    >
+                      <span className="optionIcon">
+                        <HouseIcon />
+                      </span>
+                      <span>En mi casa</span>
+                    </button>
+
+
+
+                    {/* Vivienda Sitter: solo si cuida en casa */}
+                    {modalidadPetmate.enCasa && (
+                      <div className="mt-4 w-full">
+                        <label className="mb-2 block text-sm font-medium text-slate-700">Tipo de vivienda</label>
+                        <div className="segmented">
+                          <button
+                            type="button"
+                            className={`option ${tipoViviendaPetmate === "casa" ? "active" : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTipoViviendaPetmate("casa");
+                            }}
+                          >
+                            <span className="optionIcon"><HouseIcon /></span>
+                            <span>Casa</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={`option ${tipoViviendaPetmate === "departamento" ? "active" : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTipoViviendaPetmate("departamento");
+                            }}
+                          >
+                            <span className="optionIcon"><BuildingIcon /></span>
+                            <span>Depto</span>
+                          </button>
+                        </div>
+
+                        <div className="mt-4">
+                          <label className="mb-1 block text-sm font-medium text-slate-700">Mascotas máximas</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={20}
+                            value={maxMascotasEnCasa}
+                            onChange={(e) => setMaxMascotasEnCasa(Number(e.target.value))}
+                            onClick={(e) => e.stopPropagation()}
+                            placeholder="Ej. 2"
+                          />
+                        </div>
+
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      className={`option ${modalidadPetmate.aDomicilio ? "active" : ""}`}
+                      onClick={() =>
+                        setModalidadPetmate((m) => ({ ...m, aDomicilio: !m.aDomicilio }))
+                      }
+                    >
+                      <span className="optionIcon">
+                        <BuildingIcon />
+                      </span>
+                      <span>En domicilio del cliente</span>
+                    </button>
+
+                    {modalidadPetmate.aDomicilio && (
+                      <div className="mt-4 w-full">
+                        <label className="mb-1 block text-sm font-medium text-slate-700">Mascotas máximas a cuidar</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={20}
+                          value={maxMascotasDomicilio}
+                          onChange={(e) => setMaxMascotasDomicilio(Number(e.target.value))}
+                          onClick={(e) => e.stopPropagation()}
+                          placeholder="Ej. 2"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p className="muted" style={{ fontSize: "0.8rem", marginTop: "4px" }}>
+                    Puedes seleccionar una o ambas opciones.
+                  </p>
+                </div>
+
+                {/* Ubicación PetMate (solo si es En mi casa) */}
+                {modalidadPetmate.enCasa && (
+                  <div className="cols">
+                    <div className="field">
+                      <label>Región</label>
+                      <select
+                        value={regionPetmate}
+                        onChange={(e) => setRegionPetmate(e.target.value)}
+                        required
+                        name="region_petmate"
+                      >
+                        <option value="RM">Región Metropolitana</option>
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Comuna</label>
+                      <select
+                        value={comunaPetmate}
+                        onChange={(e) => setComunaPetmate(e.target.value)}
+                        required
+                        name="comuna_petmate"
+                      >
+                        <option value="" disabled>Selecciona tu comuna</option>
+                        {comunasOriente.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
                 {formError && <p className="error">{formError}</p>}
+
+                {/* Campo oculto con valor de texto (por si lo usas luego) */}
+                <input
+                  type="hidden"
+                  name="modalidad_petmate"
+                  value={
+                    modalidadPetmate.enCasa && modalidadPetmate.aDomicilio
+                      ? "ambos"
+                      : modalidadPetmate.enCasa
+                        ? "en_casa_petmate"
+                        : modalidadPetmate.aDomicilio
+                          ? "a_domicilio"
+                          : ""
+                  }
+                />
 
                 <button
                   type="submit"
                   className="btnPrimary"
+                  disabled={submitting}
                   style={{
                     width: "100%",
                     marginTop: "8px",
@@ -521,13 +893,13 @@ export default function RegisterPage() {
                     fontWeight: 800,
                   }}
                 >
-                  Registrar
+                  {submitting ? "Registrando..." : "Registrar"}
                 </button>
               </form>
             )}
           </div>
         </div>
-      </main>
+      </main >
 
       <style jsx>{`
         :root {
@@ -700,22 +1072,34 @@ export default function RegisterPage() {
           width: 100%;
           padding-right: 40px;
         }
+        /* Ocultar icono nativo de Edge/IE */
+        .passwordField input::-ms-reveal,
+        .passwordField input::-ms-clear {
+          display: none;
+        }
         .passwordToggle {
           position: absolute;
-          right: 10px;
+          right: 8px;
           top: 50%;
           transform: translateY(-50%);
           border: none;
           background: transparent;
-          padding: 0;
+          padding: 6px;
+          border-radius: 50%;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           color: #9ca3af;
+          outline: none;
+          transition: all 0.2s ease;
         }
         .passwordToggle:hover {
           color: #4b5563;
+          background-color: rgba(0,0,0,0.05);
+        }
+        .passwordToggle:active {
+          transform: translateY(-50%) scale(0.9);
         }
       `}</style>
     </>

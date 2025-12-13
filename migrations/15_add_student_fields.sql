@@ -1,0 +1,3 @@
+ALTER TABLE registro_petmate
+ADD COLUMN IF NOT EXISTS universidad TEXT,
+ADD COLUMN IF NOT EXISTS carrera TEXT;

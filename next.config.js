@@ -2,13 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.pexels.com',
-        pathname: '/photos/**',
-      },
-    ],
+    domains: ["ui-avatars.com", "vubmjguwzpesxcgenkxo.supabase.co", "images.pexels.com"],
   },
 };
+
 module.exports = nextConfig;

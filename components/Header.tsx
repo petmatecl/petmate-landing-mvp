@@ -1,36 +1,63 @@
-// components/Header.tsx
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const router = useRouter();
 
-  // Mientras no tengamos auth real, tratamos /cliente como "área privada"
-  const isClientArea = router.pathname.startsWith("/cliente");
+  // Estado de sesión real
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    // 1. Ver sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // 2. Escuchar cambios (login, logout)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const isLoggedIn = !!session;
+  // Obtenemos el nombre del metadata o usamos uno por defecto
+  const userName = session?.user?.user_metadata?.nombre || "Usuario";
+  const userInitial = userName.charAt(0).toUpperCase();
+
+  // Determinamos el dashboard correcto según el rol (si lo guardáramos en metadata sería ideal, 
+  // por ahora asumimos cliente o probamos la url, pero para el link "Mi Panel" lo ideal es saber el rol.
+  // Como MVP, si está en /petmate o /cliente usamos ese, si está en /explorar usamos el último conocido o cliente por defecto?
+  // Simplificación MVP: Si el usuario inició como petmate, debería ir a petmate. 
+  // Por ahora, redirigiremos a /cliente por defecto salvo que detectemos lo contrario.
+  const dashboardLink = "/cliente"; // En un futuro ideal: session.user.user_metadata.role === 'petmate' ? '/sitter' : '/cliente'
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
       {/* Franja superior lanzamiento */}
       {showBanner && (
-        <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white text-xs sm:text-sm">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-1.5 sm:px-6 lg:px-8">
+        <div className="bg-black text-white text-sm">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-center gap-2">
-              <span className="hidden rounded-full border border-emerald-300/60 bg-emerald-500/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide sm:inline">
-                Lanzamiento
+              <span className="hidden rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide sm:inline animate-pulse">
+                Exclusivo Lanzamiento
               </span>
-              <p className="text-center text-[11px] font-medium sm:text-xs">
-                <span className="font-semibold">PetMate</span> es
-                <span className="font-bold"> 100% gratuito</span> por lanzamiento. ¡Regístrate y aprovecha! 🎉
+              <p className="text-center font-medium tracking-wide">
+                ¡Regístrate hoy y aprovecha <span className="font-extrabold text-white underline decoration-emerald-500 underline-offset-2">0% comisión de servicio</span> por tiempo limitado! 🚀
               </p>
             </div>
             <button
               type="button"
               aria-label="Cerrar aviso"
-              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/70 text-[10px] text-emerald-50 hover:bg-emerald-700"
+              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-[10px] text-white hover:bg-white/30"
               onClick={() => setShowBanner(false)}
             >
               ×
@@ -41,25 +68,26 @@ export default function Header() {
 
       {/* Barra principal */}
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand con nuevo logo */}
-        <Link href="/" className="group flex items-center gap-3">
-          <div className="relative h-9 w-9 sm:h-10 sm:w-10">
-            <Image
-              src="/logo-petmate.png"
-              alt="PetMate"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-          <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-emerald-700 transition-colors group-hover:text-emerald-800">
-            PetMate
-          </span>
+        {/* Brand con logo nuevo (solo imagen, sin texto duplicado) */}
+        <Link href="/" className="group flex items-center">
+          <Image
+            src="/logo-pawnecta.svg"
+            alt="Pawnecta"
+            width={160}
+            height={40}
+            className="h-9 sm:h-10 w-auto"
+          />
         </Link>
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-3 sm:flex">
-          {!isClientArea ? (
+          <Link
+            href="/explorar"
+            className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-2"
+          >
+            Explorar Cuidadores
+          </Link>
+          {!isLoggedIn ? (
             <>
               <Link
                 href="/login"
@@ -79,22 +107,31 @@ export default function Header() {
               {/* Chip usuario demo */}
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
-                  A
+                  {userInitial}
                 </span>
-                <span className="text-sm font-medium text-emerald-900">Aldo</span>
+                <span className="text-sm font-medium text-emerald-900">{userName}</span>
               </div>
               <Link
-                href="/cliente"
+                href={dashboardLink}
                 className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               >
                 Mi panel
               </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              <button
+                onClick={async () => {
+                  setSession(null); // Feedback inmediato visual
+                  try {
+                    await supabase.auth.signOut();
+                  } catch (error) {
+                    console.error("Error signing out:", error);
+                  } finally {
+                    router.push("/");
+                  }
+                }}
+                className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 bg-white cursor-pointer"
               >
                 Cerrar sesión
-              </Link>
+              </button>
             </>
           )}
         </nav>
@@ -138,8 +175,15 @@ export default function Header() {
       {open && (
         <div id="mobile-menu" className="border-t bg-white sm:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3">
-            {!isClientArea ? (
+            {!isLoggedIn ? (
               <>
+                <Link
+                  href="/explorar"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
+                  onClick={() => setOpen(false)}
+                >
+                  Explorar Cuidadores
+                </Link>
                 <Link
                   href="/login"
                   className="inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
@@ -157,29 +201,45 @@ export default function Header() {
               </>
             ) : (
               <>
+                <Link
+                  href="/explorar"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600 mb-2"
+                  onClick={() => setOpen(false)}
+                >
+                  Explorar Cuidadores
+                </Link>
                 <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
-                    A
+                    {userInitial}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-emerald-900">Aldo</span>
-                    <span className="text-[11px] text-emerald-700">Cliente PetMate</span>
+                    <span className="text-sm font-semibold text-emerald-900">{userName}</span>
+                    <span className="text-[11px] text-emerald-700">Conectado</span>
                   </div>
                 </div>
                 <Link
-                  href="/cliente"
+                  href={dashboardLink}
                   className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
                   onClick={() => setOpen(false)}
                 >
                   Mi panel
                 </Link>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                  onClick={() => setOpen(false)}
+                <button
+                  onClick={async () => {
+                    setSession(null);
+                    setOpen(false);
+                    try {
+                      await supabase.auth.signOut();
+                    } catch (error) {
+                      console.error("Error logging out", error);
+                    } finally {
+                      router.push("/");
+                    }
+                  }}
+                  className="inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 w-full"
                 >
                   Cerrar sesión
-                </Link>
+                </button>
               </>
             )}
           </div>

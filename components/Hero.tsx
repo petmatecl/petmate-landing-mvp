@@ -21,90 +21,99 @@ const BuildingIcon = (p: any) => (
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 lg:pt-16 lg:pb-24">
-        <div className="grid lg:grid-cols-2 gap-10 items-center">
+    <section className="relative overflow-hidden bg-slate-50">
+      {/* Background Decor */}
+      <div className="absolute top-0 -left-64 h-96 w-96 rounded-full bg-emerald-100 mix-blend-multiply blur-3xl opacity-70 animate-blob"></div>
+      <div className="absolute top-0 -right-64 h-96 w-96 rounded-full bg-teal-100 mix-blend-multiply blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:pt-12 lg:pb-24 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Copy + CTAs */}
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium text-gray-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-              Nuevo: PetMate a domicilio o estadía en casa del PetMate.
-            </div>
 
-            <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900">
-              Cuidado de mascotas sin traslados.
-              <span className="block text-emerald-700">Seguro, cercano y flexible.</span>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+              Cuidado de mascotas <br className="hidden lg:block" />
+              <span className="text-gradient">sin estrés.</span>
+              <br />
+              para tu tranquilidad.
             </h1>
 
-            <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-xl">
-              Elige que un <strong>PetMate</strong> vaya a tu hogar o deja a tu peludo en casa de un
-              <strong> PetMate verificado</strong>. Reserva por día, fin de semana o todo tu viaje.
+            <p className="mt-6 text-lg leading-8 text-slate-600">
+              Conecta con <strong className="text-slate-900">Pawnecta Sitters verificados</strong> para que cuiden a tus peludos en tu propia casa o en la suya. Sin jaulas, solo amor.
             </p>
 
             {/* Elecciones rápidas */}
-            <div className="mt-8 grid sm:grid-cols-2 gap-4">
+            <div className="mt-10 grid sm:grid-cols-2 gap-4">
               <Link
                 href="/register?role=cliente&mode=domicilio"
-                className="group rounded-2xl border p-5 hover:shadow-sm transition-shadow"
+                className="group card-premium p-5 hover:border-emerald-200"
               >
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
-                    <BuildingIcon className="h-5 w-5" />
-                  </span>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+                    <BuildingIcon className="h-6 w-6" />
+                  </div>
                   <div>
-                    <div className="font-semibold text-gray-900">PetMate a domicilio</div>
-                    <div className="text-sm text-gray-600">El PetMate cuida en tu hogar.</div>
+                    <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">A domicilio</div>
+                    <div className="text-sm text-slate-500 mt-1">El cuidador va a tu casa.</div>
                   </div>
                 </div>
               </Link>
 
               <Link
                 href="/register?role=cliente&mode=estadia"
-                className="group rounded-2xl border p-5 hover:shadow-sm transition-shadow"
+                className="group card-premium p-5 hover:border-emerald-200"
               >
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
-                    <HouseIcon className="h-5 w-5" />
-                  </span>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">
+                    <HouseIcon className="h-6 w-6" />
+                  </div>
                   <div>
-                    <div className="font-semibold text-gray-900">En casa del PetMate</div>
-                    <div className="text-sm text-gray-600">Tu mascota se hospeda con un PetMate.</div>
+                    <div className="font-bold text-slate-900 group-hover:text-teal-700 transition-colors">Hospedaje</div>
+                    <div className="text-sm text-slate-500 mt-1">En casa del cuidador.</div>
                   </div>
                 </div>
               </Link>
             </div>
 
             {/* CTA principal */}
-            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <Link
                 href="/register?role=cliente"
-                className="inline-flex justify-center rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                className="btn-primary text-base"
               >
-                Comenzar
+                Buscar cuidador
               </Link>
               <Link
                 href="/register?role=petmate"
-                className="inline-flex justify-center rounded-xl border px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                className="text-sm font-semibold leading-6 text-slate-900"
               >
-                Quiero ser PetMate
+                Quiero ser Pawnecta Sitter <span aria-hidden="true">→</span>
               </Link>
             </div>
 
-            <div className="mt-6 text-xs text-gray-500">
-              Cobertura inicial: RM – sector oriente. PetMates verificados y con reseñas.
+            <div className="mt-8 flex items-center gap-4 text-xs font-medium text-slate-500">
+              <div className="flex -space-x-2">
+                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" />
+                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" />
+                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" />
+              </div>
+              <div>
+                +200 PetMates verificados
+              </div>
             </div>
           </div>
 
           {/* Imagen solo en desktop */}
           <div className="hidden lg:block relative">
-            <div className="absolute -top-10 -right-10 h-72 w-72 rounded-full bg-emerald-100 blur-3xl opacity-60" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[120%] w-[120%] bg-gradient-to-tr from-emerald-100 to-teal-100 rounded-full blur-3xl opacity-50 -z-10" />
             <Image
               src="https://images.pexels.com/photos/33685207/pexels-photo-33685207.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1000&dpr=1"
               alt="Gato descansando tranquilo"
               width={720}
               height={720}
               sizes="(min-width:1024px) 50vw, 100vw"
-              className="relative z-10 rounded-3xl shadow-2xl object-cover"
+              className="relative rounded-[2.5rem] shadow-2xl shadow-emerald-900/10 border-4 border-white transform rotate-2 hover:rotate-0 transition-transform duration-500 max-h-[500px] w-auto mx-auto object-cover"
               priority
             />
           </div>

@@ -23,7 +23,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "lib/supabaseClient.ts"  ],
   "exclude": [
     "node_modules"
   ]

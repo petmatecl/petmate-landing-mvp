@@ -6,6 +6,8 @@ type Props = {
   value?: DateRange;
   onChange: (r?: DateRange) => void;
   minDate?: Date;
+  className?: string;
+  hideLabel?: boolean;
 };
 
 function fmt(d?: Date | null) {
@@ -16,7 +18,7 @@ function fmt(d?: Date | null) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-export default function DateRangeAirbnb({ value, onChange, minDate }: Props) {
+export default function DateRangeAirbnb({ value, onChange, minDate, className, hideLabel }: Props) {
   const [open, setOpen] = React.useState(false);
   const [range, setRange] = React.useState<DateRange | undefined>(value);
 
@@ -42,12 +44,14 @@ export default function DateRangeAirbnb({ value, onChange, minDate }: Props) {
   const hasBoth = !!(range?.from && range?.to);
 
   return (
-    <div className="relative">
+    <div className={`relative ${className || ""}`}>
       {/* Trigger tipo Airbnb: 2 campos en fila */}
       <div className="space-y-1 max-w-md">
-        <label className="block text-sm font-medium text-slate-900">
-          Fechas del viaje
-        </label>
+        {!hideLabel && (
+          <label className="block text-sm font-medium text-slate-900">
+            Fechas del viaje
+          </label>
+        )}
         <button
           type="button"
           onClick={() => setOpen(true)}

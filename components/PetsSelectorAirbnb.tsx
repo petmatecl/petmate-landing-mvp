@@ -9,26 +9,27 @@ export type PetsValue = {
 type Props = {
   value: PetsValue;
   onChange: (value: PetsValue) => void;
+  className?: string;
+  hideLabel?: boolean;
 };
 
-export default function PetsSelectorAirbnb({ value, onChange }: Props) {
+export default function PetsSelectorAirbnb({ value, onChange, className, hideLabel }: Props) {
   const [open, setOpen] = React.useState(false);
 
   const total = value.dogs + value.cats;
-
   const label =
     total === 0
       ? "Sin mascotas"
       : [
-          value.dogs > 0
-            ? `${value.dogs} perro${value.dogs > 1 ? "s" : ""}`
-            : null,
-          value.cats > 0
-            ? `${value.cats} gato${value.cats > 1 ? "s" : ""}`
-            : null,
-        ]
-          .filter(Boolean)
-          .join(", ");
+        value.dogs > 0
+          ? `${value.dogs} perro${value.dogs > 1 ? "s" : ""}`
+          : null,
+        value.cats > 0
+          ? `${value.cats} gato${value.cats > 1 ? "s" : ""}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
 
   const updateDogs = (delta: number) => {
     const next = Math.max(0, value.dogs + delta);
@@ -39,12 +40,13 @@ export default function PetsSelectorAirbnb({ value, onChange }: Props) {
     const next = Math.max(0, value.cats + delta);
     onChange({ ...value, cats: next });
   };
-
   return (
-    <div className="relative">
-      <label className="block text-sm font-medium text-slate-900">
-        Mascotas
-      </label>
+    <div className={`relative ${className || ""}`}>
+      {!hideLabel && (
+        <label className="block text-sm font-medium text-slate-900">
+          Mascotas
+        </label>
+      )}
 
       {/* Trigger tipo Airbnb */}
       <button
@@ -91,11 +93,10 @@ export default function PetsSelectorAirbnb({ value, onChange }: Props) {
                   type="button"
                   onClick={() => updateDogs(-1)}
                   disabled={value.dogs === 0}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-lg ${
-                    value.dogs === 0
-                      ? "border-slate-200 text-slate-300 cursor-not-allowed"
-                      : "border-slate-400 text-slate-700 hover:border-slate-600"
-                  }`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-lg ${value.dogs === 0
+                    ? "border-slate-200 text-slate-300 cursor-not-allowed"
+                    : "border-slate-400 text-slate-700 hover:border-slate-600"
+                    }`}
                 >
                   −
                 </button>
@@ -127,11 +128,10 @@ export default function PetsSelectorAirbnb({ value, onChange }: Props) {
                   type="button"
                   onClick={() => updateCats(-1)}
                   disabled={value.cats === 0}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-lg ${
-                    value.cats === 0
-                      ? "border-slate-200 text-slate-300 cursor-not-allowed"
-                      : "border-slate-400 text-slate-700 hover:border-slate-600"
-                  }`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-lg ${value.cats === 0
+                    ? "border-slate-200 text-slate-300 cursor-not-allowed"
+                    : "border-slate-400 text-slate-700 hover:border-slate-600"
+                    }`}
                 >
                   −
                 </button>
