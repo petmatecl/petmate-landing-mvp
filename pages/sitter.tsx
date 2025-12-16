@@ -71,6 +71,70 @@ export default function SitterDashboardPage() {
     const [averageRating, setAverageRating] = useState(0);
     const [bookings, setBookings] = useState<any[]>([]);
 
+    // Restore Auth & Load Profile Logic
+    useEffect(() => {
+        const init = async () => {
+            setLoading(true);
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session?.user) {
+                setUserId(session.user.id);
+                setEmail(session.user.email || null);
+
+                // Fetch Profile Data
+                const { data: profile, error } = await supabase
+                    .from('registro_petmate')
+                    .select('*')
+                    .eq('auth_user_id', session.user.id)
+                    .single();
+
+                if (profile) {
+                    setProfileData({
+                        nombre: profile.nombre || "",
+                        apellido_p: profile.apellido_p || "",
+                        apellido_m: profile.apellido_m || "",
+                        rut: profile.rut || "",
+                        fecha_nacimiento: profile.fecha_nacimiento || "", // YYYY-MM-DD
+                        telefono: profile.telefono || "",
+                        region: profile.region || "Metropolitana",
+                        comuna: profile.comuna || "",
+                        calle: profile.calle || "",
+                        numero: profile.numero || "",
+                        tipo_vivienda: profile.tipo_vivienda || "casa",
+                        tiene_mascotas: profile.tiene_mascotas ? "si" : "no",
+                        sexo: profile.sexo || "",
+                        ocupacion: profile.ocupacion || "",
+                        universidad: profile.universidad || "",
+                        carrera: profile.carrera || "",
+                        ano_curso: profile.ano_curso || "",
+                        descripcion: profile.descripcion || "",
+                        cuida_perros: profile.cuida_perros || false,
+                        cuida_gatos: profile.cuida_gatos || false,
+                        servicio_a_domicilio: profile.servicio_a_domicilio || false,
+                        servicio_en_casa: profile.servicio_en_casa || false,
+                        tarifa_servicio_a_domicilio: profile.tarifa_servicio_a_domicilio,
+                        tarifa_servicio_en_casa: profile.tarifa_servicio_en_casa,
+                        foto_perfil: profile.foto_perfil || null,
+                        certificado_antecedentes: profile.certificado_antecedentes || null,
+                        galeria: profile.galeria || [],
+                        redes_sociales: profile.redes_sociales || { linkedin: "", tiktok: "", instagram: "", facebook: "" },
+                        detalles_mascotas: profile.detalles_mascotas || [],
+                        videos: profile.videos || [],
+                        latitud: profile.latitud,
+                        longitud: profile.longitud,
+                        direccion_completa: profile.direccion_completa || ""
+                    });
+                    setBackupProfileData(profile); // Save backup for cancel
+                }
+            } else {
+                // Not logged in
+                // window.location.href = '/login'; 
+            }
+            setLoading(false);
+        };
+        init();
+    }, []);
+
     // Fetch Bookings
     useEffect(() => {
         if (!userId) return;
@@ -1009,6 +1073,9 @@ export default function SitterDashboardPage() {
                                                             // Validar que sea mayor de 18 años al seleccionar
                                                             validateDate={(d) => differenceInYears(new Date(), d) >= 18}
                                                             onValidationFail={() => setAgeAlertOpen(true)}
+                                                            defaultMonth={subYears(new Date(), 20)}
+                                                            fromYear={1940}
+                                                            toYear={new Date().getFullYear()}
                                                         />
                                                     </div>
                                                 </div>

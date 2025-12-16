@@ -13,9 +13,12 @@ type Props = {
     maxDate?: Date; // Fecha máxima permitida (ej: futuro)
     validateDate?: (d: Date) => boolean; // Validar fecha seleccionada
     onValidationFail?: () => void; // Callback si falla validación
+    defaultMonth?: Date; // Mes por defecto al abrir
+    fromYear?: number; // Año inicio para dropdown
+    toYear?: number; // Año fin para dropdown
 };
 
-export default function DatePickerSingle({ value, onChange, disabled, maxDate, validateDate, onValidationFail }: Props) {
+export default function DatePickerSingle({ value, onChange, disabled, maxDate, validateDate, onValidationFail, defaultMonth, fromYear, toYear }: Props) {
     const [open, setOpen] = React.useState(false);
     const [selected, setSelected] = React.useState<Date | undefined>(
         typeof value === "string" && value ? new Date(value) : (value instanceof Date ? value : undefined)
@@ -101,10 +104,13 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                             mode="single"
                             selected={selected}
                             onSelect={handleSelect}
-                            defaultMonth={selected || maxDate || new Date(2000, 0, 1)}
+                            defaultMonth={selected || defaultMonth || maxDate || new Date(2000, 0, 1)}
                             disabled={{ after: new Date() }}
                             weekStartsOn={1}
                             locale={es}
+                            captionLayout="dropdown-buttons"
+                            fromYear={fromYear || 1900}
+                            toYear={toYear || new Date().getFullYear()}
 
                             // Estilos copiados y adaptados de DateRangeAirbnb
                             classNames={{
@@ -112,7 +118,11 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                                 months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                                 month: "space-y-4",
                                 caption: "flex justify-center pt-1 relative items-center mb-2",
-                                caption_label: "text-sm font-bold text-slate-900",
+                                caption_label: "hidden", // Ocultamos el label texto porque usamos dropdowns
+                                caption_dropdowns: "flex justify-center gap-1",
+                                dropdown: "bg-white border border-slate-200 text-slate-700 text-sm rounded p-1 cursor-pointer hover:bg-slate-50 outline-none",
+                                dropdown_month: "mr-1",
+                                dropdown_year: "ml-1",
                                 nav: "space-x-1 flex items-center",
                                 nav_button: "h-7 w-7 bg-transparent hover:bg-slate-100 p-1 rounded-full transition-colors flex items-center justify-center text-slate-500",
                                 nav_button_previous: "absolute left-1",
