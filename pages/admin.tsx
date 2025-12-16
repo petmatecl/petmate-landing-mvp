@@ -34,7 +34,8 @@ export default function AdminDashboard() {
     const [stats, setStats] = useState({
         clientes: 0,
         sitters: 0,
-        solicitudes: 0,
+        solicitudesPendientes: 0,
+        solicitudesAsignadas: 0,
         serviciosRealizados: 0
     });
 
@@ -87,14 +88,23 @@ export default function AdminDashboard() {
             .select("*", { count: "exact", head: true })
             .eq("rol", "petmate");
 
-        // 3. Solicitudes (Viajes en borrador, publicado o reservado)
-        const { count: solicitudesCount } = await supabase
+        // 3. Solicitudes Pendientes (En búsqueda, sin sitter)
+        const { count: pendientesCount } = await supabase
             .from("viajes")
             .select("*", { count: "exact", head: true })
+            .is("sitter_id", null)
             .neq("estado", "cancelado")
             .neq("estado", "completado");
 
-        // 4. Servicios Realizados (Completados)
+        // 4. Solicitudes Asignadas (Con sitter, en curso)
+        const { count: asignadasCount } = await supabase
+            .from("viajes")
+            .select("*", { count: "exact", head: true })
+            .not("sitter_id", "is", null)
+            .neq("estado", "cancelado")
+            .neq("estado", "completado");
+
+        // 5. Servicios Realizados (Completados)
         const { count: completadosCount } = await supabase
             .from("viajes")
             .select("*", { count: "exact", head: true })
@@ -103,7 +113,8 @@ export default function AdminDashboard() {
         setStats({
             clientes: clientesCount || 0,
             sitters: sittersCount || 0,
-            solicitudes: solicitudesCount || 0,
+            solicitudesPendientes: pendientesCount || 0,
+            solicitudesAsignadas: asignadasCount || 0,
             serviciosRealizados: completadosCount || 0
         });
     };
@@ -352,25 +363,33 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* RESUMEN - (Mantener igual) */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
-                        <p className="text-4xl font-bold text-slate-900 mt-2">{stats.clientes}</p>
+                {/* RESUMEN */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
+                        <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
-                        <p className="text-4xl font-bold text-emerald-600 mt-2">{stats.sitters}</p>
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
+                        <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Solicitudes</p>
-                        <p className="text-4xl font-bold text-indigo-600 mt-2">{stats.solicitudes}</p>
-                        <p className="text-xs text-slate-400 mt-1">En curso</p>
+
+                    {/* Tarjetas de Solicitudes Desglosadas */}
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 bg-amber-50/30">
+                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
+                        <p className="text-3xl font-bold text-amber-600 mt-1">{stats.solicitudesPendientes}</p>
+                        <p className="text-[10px] text-amber-600/70 mt-1">Sin Sitter</p>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
-                        <p className="text-4xl font-bold text-sky-600 mt-2">{stats.serviciosRealizados}</p>
-                        <p className="text-xs text-slate-400 mt-1">Realizados</p>
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100 bg-indigo-50/30">
+                        <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
+                        <p className="text-3xl font-bold text-indigo-600 mt-1">{stats.solicitudesAsignadas}</p>
+                        <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
+                        <p className="text-3xl font-bold text-sky-600 mt-1">{stats.serviciosRealizados}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
                     </div>
                 </div>
 
