@@ -403,6 +403,12 @@ export default function SitterDashboardPage() {
 
     const displayName = profileData?.nombre || nombre || "Sitter";
 
+    // Completion Logic
+    const contactComplete = Boolean(profileData.telefono && profileData.region && profileData.comuna);
+    const personalComplete = Boolean(profileData.nombre && profileData.apellido_p && profileData.rut && profileData.fecha_nacimiento && profileData.sexo && profileData.ocupacion);
+    const profileComplete = Boolean(profileData.descripcion && profileData.descripcion.length >= 100 && profileData.tipo_vivienda && profileData.tiene_mascotas);
+
+
     return (
         <>
             <Head>
@@ -743,6 +749,11 @@ export default function SitterDashboardPage() {
                                                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                                     <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><Mail className="w-4 h-4 text-slate-500" /></div>
                                                     Datos de Contacto
+                                                    {contactComplete ? (
+                                                        <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
+                                                    ) : (
+                                                        <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Incompleto</span>
+                                                    )}
                                                 </h4>
                                             </div>
                                             {activeSection === 'contact' ? (
@@ -902,6 +913,11 @@ export default function SitterDashboardPage() {
                                                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                                     <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><User className="w-4 h-4 text-slate-500" /></div>
                                                     Información Personal
+                                                    {personalComplete ? (
+                                                        <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
+                                                    ) : (
+                                                        <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Incompleto</span>
+                                                    )}
                                                 </h4>
                                             </div>
                                             {activeSection === 'personal' ? (
@@ -1085,6 +1101,11 @@ export default function SitterDashboardPage() {
                                                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                                     <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><PawPrint className="w-4 h-4 text-slate-500" /></div>
                                                     Perfil Sitter
+                                                    {profileComplete ? (
+                                                        <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
+                                                    ) : (
+                                                        <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Incompleto</span>
+                                                    )}
                                                 </h4>
                                             </div>
                                             {activeSection === 'profile' ? (
