@@ -9,7 +9,7 @@ import { formatRut, validateRut, cleanRut } from "../lib/rutValidation";
 import DatePickerSingle from "../components/DatePickerSingle";
 import ModalAlert from "../components/ModalAlert";
 import AddressAutocomplete from "../components/AddressAutocomplete";
-import { Linkedin, Music, Instagram, Facebook, Mail, User, PawPrint, Dog, Cat, Home, MapPin, AlignLeft } from "lucide-react";
+import { Linkedin, Music, Instagram, Facebook, Mail, User, PawPrint, Dog, Cat, Home, MapPin, AlignLeft, ChevronDown, ChevronUp } from "lucide-react";
 import ImageLightbox from "../components/ImageLightbox"; // Added
 
 type Booking = {
@@ -66,236 +66,127 @@ export default function SitterDashboardPage() {
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false); // Added Lightbox State
-
-    // Estado de edición
-    const [isEditing, setIsEditing] = useState(false);
-
-    // Estado de reservas
-    const [bookings, setBookings] = useState<Booking[]>([]);
-
-    // Estado de reviews
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [reviews, setReviews] = useState<Review[]>([]);
-    const [averageRating, setAverageRating] = useState<number>(0);
+    const [averageRating, setAverageRating] = useState(0);
+    const [bookings, setBookings] = useState<any[]>([]);
 
-    // Estado para búsqueda de dirección (movido al componente)
-    // const [searchQuery, setSearchQuery] = useState("");
-    // const [addressResults, setAddressResults] = useState<any[]>([]);
-    // const [searchingAddress, setSearchingAddress] = useState(false);
+    // Fetch Bookings
+    useEffect(() => {
+        if (!userId) return;
+        const fetchBookings = async () => {
+            const { data, error } = await supabase
+                .from('viajes')
+                .select('*, cliente:cliente_id(*), mascotas:mascotas_id(*)')
+                .eq('sitter_id', userId)
+                .order('fecha_inicio', { ascending: true });
 
-    // Estado del perfil
-    const [profileData, setProfileData] = useState({
-        descripcion: "",
-        ocupacion: "",
-        edad: "",
-        tiene_mascotas: "no",
-        tipo_vivienda: "casa",
-        sexo: "otro",
-        cuida_perros: false,
-        cuida_gatos: false,
-        servicio_en_casa: false,
-        servicio_a_domicilio: false,
-        foto_perfil: "",
-        certificado_antecedentes: "",
+            if (!error && data) {
+                setBookings(data);
+            }
+        };
+        fetchBookings();
+    }, [userId]);
 
-        aprobado: false,
-        region: "RM",
-        comuna: "",
-        rut: "",
+    // Estado de edición granular
+    const [activeSection, setActiveSection] = useState<string | null>(null);
+
+    // Estado para "minimizar/maximizar" secciones
+    const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
+        contact: true,
+        personal: true,
+        profile: true
+    });
+
+    const toggleSection = (section: string) => {
+        setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
+
+    // Asegurar que al editar se expanda
+    useEffect(() => {
+        if (activeSection) {
+            setExpandedSections(prev => ({ ...prev, [activeSection]: true }));
+        }
+    }, [activeSection]);
+
+    const [showToast, setShowToast] = useState(false);
+
+    // Core Profile Data State
+    const [profileData, setProfileData] = useState<any>({
         nombre: "",
         apellido_p: "",
         apellido_m: "",
-
-        // Dirección Estructurada
+        rut: "",
+        fecha_nacimiento: "",
+        telefono: "",
+        region: "Metropolitana",
+        comuna: "",
         calle: "",
         numero: "",
-        latitud: null as number | null,
-        longitud: null as number | null,
-        direccion_completa: "", // Para mostrar la dirección seleccionada
-
+        tipo_vivienda: "casa",
+        tiene_mascotas: "no",
+        sexo: "",
+        ocupacion: "",
         universidad: "",
-
         carrera: "",
         ano_curso: "",
-        telefono: "",
-        fecha_nacimiento: "",
-        galeria: [] as string[], // Galería de fotos
-        detalles_mascotas: [] as { tipo: string; cantidad: number }[], // Detalles de mascotas
-        redes_sociales: { linkedin: "", tiktok: "", instagram: "", facebook: "" }, // Redes Sociales
-        tarifa_servicio_en_casa: null as number | null,
-        tarifa_servicio_a_domicilio: null as number | null
+        descripcion: "",
+        cuida_perros: false,
+        cuida_gatos: false,
+        servicio_a_domicilio: false,
+        servicio_en_casa: false,
+        tarifa_servicio_a_domicilio: null,
+        tarifa_servicio_en_casa: null,
+        foto_perfil: null,
+        certificado_antecedentes: null, // Added field
+        galeria: [],
+        redes_sociales: { linkedin: "", tiktok: "", instagram: "", facebook: "" },
+        detalles_mascotas: [],
+        videos: [],
+        latitud: null,
+        longitud: null,
+        direccion_completa: ""
     });
 
-    const [backupProfileData, setBackupProfileData] = useState<typeof profileData | null>(null);
+    const [backupProfileData, setBackupProfileData] = useState<any>(null);
 
-    // Estado para Lightbox de galería
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const handleViewDocument = (url: string) => {
+        if (url) window.open(url, '_blank');
+    };
 
-    // Estado para notificaciones
-    const [showToast, setShowToast] = useState(false);
+    const handleDeleteDocument = () => {
+        setProfileData({ ...profileData, certificado_antecedentes: null });
+    };
 
-    useEffect(() => {
-        if (showToast) {
-            const timer = setTimeout(() => setShowToast(false), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [showToast]);
+    const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatRut(e.target.value);
+        setProfileData({ ...profileData, rut: formatted });
+    };
 
-    useEffect(() => {
-        async function loadProfile() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                setEmail(session.user.email || null);
-                setUserId(session.user.id);
+    const handleCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        setUploading(true);
+        const file = e.target.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}/cert-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-                if (session.user.user_metadata?.nombre) {
-                    setNombre(session.user.user_metadata.nombre);
-                }
-
-                // Asegurar que userId esté setedo antes de cualquier operación
-                const currentUserId = session.user.id;
-                setUserId(currentUserId);
-
-                const { data } = await supabase
-                    .from("registro_petmate")
-                    .select("*")
-
-                    .eq("auth_user_id", session.user.id)
-                    .single();
-
-                if (data) {
-                    if (data.nombre) setNombre(data.nombre); // Mantener por compatibilidad visual header si se usa
-
-                    const loadedData = {
-                        nombre: data.nombre || "",
-                        apellido_p: data.apellido_p || "",
-                        apellido_m: data.apellido_m || "",
-                        descripcion: data.descripcion || "",
-                        ocupacion: data.ocupacion || "",
-                        edad: data.edad ? data.edad.toString() : "",
-                        tiene_mascotas: data.tiene_mascotas ? "si" : "no",
-                        tipo_vivienda: data.tipo_vivienda || "casa",
-                        sexo: data.sexo || "otro",
-                        cuida_perros: data.cuida_perros || false,
-                        cuida_gatos: data.cuida_gatos || false,
-                        servicio_en_casa: data.servicio_en_casa || false,
-                        servicio_a_domicilio: data.servicio_a_domicilio || false,
-                        foto_perfil: data.foto_perfil || "",
-                        certificado_antecedentes: data.certificado_antecedentes || "",
-
-                        aprobado: data.aprobado || false,
-                        region: data.region || "RM",
-                        comuna: data.comuna || "",
-                        rut: data.rut || "",
-
-                        calle: data.calle || "",
-                        numero: data.numero || "",
-                        latitud: data.latitud || null,
-                        longitud: data.longitud || null,
-                        direccion_completa: data.direccion_completa || "",
-
-                        universidad: data.universidad || "",
-
-                        carrera: data.carrera || "",
-                        ano_curso: data.ano_curso || "",
-                        telefono: data.telefono || "",
-                        fecha_nacimiento: data.fecha_nacimiento || "",
-                        galeria: data.galeria || [],
-                        detalles_mascotas: data.detalles_mascotas || [],
-                        redes_sociales: data.redes_sociales || { linkedin: "", tiktok: "", instagram: "", facebook: "" },
-                        tarifa_servicio_en_casa: data.tarifa_servicio_en_casa || null,
-                        tarifa_servicio_a_domicilio: data.tarifa_servicio_a_domicilio || null
-                    };
-
-                    setProfileData(loadedData);
-                    setBackupProfileData(JSON.parse(JSON.stringify(loadedData)));
-
-                    // Cargar reservas
-                    fetchBookings(session.user.id);
-                    // Cargar reviews
-                    fetchReviews(session.user.id);
-                }
-            }
-            setLoading(false);
-        }
-        loadProfile();
-    }, []);
-
-    async function fetchReviews(sitterId: string) {
-        const { data, error } = await supabase
-            .from("reviews")
-            .select("*, cliente:cliente_id(nombre, apellido_p)") // Asumiendo relación o view
-            .eq("sitter_id", sitterId)
-            .order("created_at", { ascending: false });
-
-        if (data) {
-            // Si no hay relación real, mockeamos cliente
-            const reviewsWithClient = data.map((r: any) => ({
-                ...r,
-                cliente: r.cliente || { nombre: "Cliente", apellido_p: "Anonimo" }
-            }));
-            setReviews(reviewsWithClient);
-
-            if (reviewsWithClient.length > 0) {
-                const avg = reviewsWithClient.reduce((acc: number, curr: Review) => acc + curr.calificacion, 0) / reviewsWithClient.length;
-                setAverageRating(avg);
-            }
-        }
-    }
-
-    async function fetchBookings(sitterId: string) {
-        // Nota: En una app real, haríamos join con la tabla de clientes (users o registro_petmate)
-        // Por simplicidad, aquí asumimos que podríamos tener esos datos o solo mostramos ID.
-        // Si queremos nombre del cliente, necesitamos relacionarlo.
-        // Dado que 'cliente_id' es auth.users, y los perfiles están en 'registro_petmate' (vinculado por auth_user_id o email),
-        // haremos una query simple por ahora.
-
-        const { data, error } = await supabase
-            .from("reservas")
-            .select("*")
-            .eq("sitter_id", sitterId)
-            .order("created_at", { ascending: false });
-
-        if (data) {
-            // Mockeamos el nombre del cliente por ahora ya que requeriría un join complejo sin foreign keys explícitas en frontend
-            // O podríamos hacer un fetch extra.
-            const bookingsWithClient = data.map((b: any) => ({
-                ...b,
-                cliente: { nombre: "Cliente", apellido_p: "Ejemplo" } // Placeholder
-            }));
-            setBookings(bookingsWithClient);
-        }
-    }
-
-    const displayName = profileData.nombre ? `${profileData.nombre} ${profileData.apellido_p}` : (nombre || "PetMate");
-
-    // Función genérica para subir archivos
-    const uploadFile = async (file: File, bucket: string, pathPrefix: string) => {
         try {
-            if (!email) throw new Error("No user email");
-
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${pathPrefix}_${Date.now()}.${fileExt}`;
-            const filePath = `${email}/${fileName}`;
-
             const { error: uploadError } = await supabase.storage
-                .from(bucket)
+                .from('sitter-images')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
-            // Obtener URL pública (para avatars)
-            if (bucket === 'avatars') {
-                const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-                return data.publicUrl;
-            }
+            const { data: publicUrlData } = supabase.storage
+                .from('sitter-images')
+                .getPublicUrl(filePath);
 
-            // Para documentos, retornamos el path para guardarlo
-            return filePath;
-
-        } catch (error) {
-            console.error(`Error uploading to ${bucket}:`, error);
-            alert(`Error al subir archivo a ${bucket}. Verifica que el bucket exista.`);
-            return null;
+            setProfileData({ ...profileData, certificado_antecedentes: publicUrlData.publicUrl });
+        } catch (error: any) {
+            alert('Error al subir documento: ' + error.message);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -303,197 +194,89 @@ export default function SitterDashboardPage() {
         if (!e.target.files || e.target.files.length === 0) return;
         setUploading(true);
         const file = e.target.files[0];
-
-        const publicUrl = await uploadFile(file, 'avatars', 'profile');
-
-        if (publicUrl) {
-            setProfileData(prev => ({ ...prev, foto_perfil: publicUrl }));
-            // Guardar inmediatamente la foto en DB
-            if (userId) {
-                await supabase.from("registro_petmate").update({ foto_perfil: publicUrl }).eq("auth_user_id", userId);
-            }
-        }
-        setUploading(false);
-    };
-
-    const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || e.target.files.length === 0) return;
-
-        if (profileData.galeria.length >= 6) {
-            alert("Máximo 6 fotos permitidas en la galería.");
-            return;
-        }
-
-        setUploading(true);
-        const file = e.target.files[0];
-
-        const publicUrl = await uploadFile(file, 'avatars', 'gallery');
-
-        if (publicUrl) {
-            const newGallery = [...profileData.galeria, publicUrl];
-            // Actualizar estado local inmediatamente
-            setProfileData(prev => ({ ...prev, galeria: newGallery }));
-
-            // Guardar inmediatamente en BD
-            if (userId) {
-                const { error } = await supabase
-                    .from("registro_petmate")
-                    .update({ galeria: newGallery })
-                    .eq("auth_user_id", userId);
-
-                if (error) {
-                    console.error("Error saving gallery:", error);
-                    alert(`Error al guardar la foto: ${error.message} - ${(error as any).details || ''}`);
-                } else {
-                    // Actualizar backup para evitar reversión al cancelar
-                    setBackupProfileData(prev => {
-                        if (!prev) return null;
-                        return { ...prev, galeria: newGallery };
-                    });
-                }
-            }
-        }
-        setUploading(false);
-    };
-
-
-    const handleDeletePhoto = async (index: number) => {
-        if (!confirm("¿Eliminar esta foto?")) return;
-
-        const newGallery = [...profileData.galeria];
-        newGallery.splice(index, 1);
-        setProfileData(prev => ({ ...prev, galeria: newGallery }));
-
-        if (userId) {
-            const { error } = await supabase
-                .from("registro_petmate")
-                .update({ galeria: newGallery })
-                .eq("auth_user_id", userId);
-
-            if (error) {
-                console.error("Error updating gallery:", error);
-                alert(`Error al eliminar la foto: ${error.message} - ${(error as any).details || ''}`);
-            } else {
-                setBackupProfileData(prev => {
-                    if (!prev) return null;
-                    return { ...prev, galeria: newGallery };
-                });
-            }
-        }
-    };
-
-    const handleViewDocument = async (path: string) => {
-        try {
-            const { data, error } = await supabase.storage
-                .from("documents")
-                .createSignedUrl(path, 60);
-
-            if (error) throw error;
-            if (data?.signedUrl) {
-                window.open(data.signedUrl, "_blank");
-            }
-        } catch (err) {
-            console.error("Error opening document:", err);
-            alert("No se pudo abrir el documento.");
-        }
-    };
-
-    const handleDeleteDocument = async () => {
-        if (!window.confirm("¿Estás seguro de eliminar tu certificado? Tendrás que subir uno nuevo para ser verificado.")) return;
-        setUploading(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}/profile-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
         try {
-            // 1. Eliminar del Storage
-            const path = profileData.certificado_antecedentes;
-            if (path) {
-                const { error: storageError } = await supabase.storage
-                    .from("documents")
-                    .remove([path]);
+            const { error: uploadError } = await supabase.storage
+                .from('sitter-images')
+                .upload(filePath, file);
 
-                if (storageError) {
-                    console.error("Storage delete error:", storageError);
-                    // Continuamos aunque falle el storage para limpiar la BD si es necesario, o lanzamos error?
-                    // Mejor lanzar error para no dejar inconsistencias graves, aunque el archivo huerfano es un mal menor.
-                    throw storageError;
-                }
-            }
+            if (uploadError) throw uploadError;
 
-            // 2. Limpiar registro en BD
-            if (userId) {
-                const { error: dbError } = await supabase
-                    .from("registro_petmate")
-                    .update({ certificado_antecedentes: null, aprobado: false }) // Desaprobar si borra documento
-                    .eq("auth_user_id", userId);
+            const { data: publicUrlData } = supabase.storage
+                .from('sitter-images')
+                .getPublicUrl(filePath);
 
-                if (dbError) throw dbError;
-            }
-
-            // 3. Actualizar estado local
-            setProfileData(prev => ({ ...prev, certificado_antecedentes: "", aprobado: false }));
-            alert("Documento eliminado correctamente.");
-
-        } catch (error) {
-            console.error("Error deleting document:", error);
-            alert("Error al eliminar el documento.");
+            setProfileData({ ...profileData, foto_perfil: publicUrlData.publicUrl });
+        } catch (error: any) {
+            alert('Error al subir imagen: ' + error.message);
         } finally {
             setUploading(false);
         }
     };
 
-    const handleCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
+        if (profileData.galeria && profileData.galeria.length >= 3) {
+            alert("Máximo 3 fotos en la galería.");
+            return;
+        }
+
         setUploading(true);
         const file = e.target.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}/gallery-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-        const filePath = await uploadFile(file, 'documents', 'cert_antecedentes');
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from('sitter-images')
+                .upload(filePath, file);
 
-        if (filePath) {
-            setProfileData(prev => ({ ...prev, certificado_antecedentes: filePath }));
-            if (userId) {
-                await supabase.from("registro_petmate").update({ certificado_antecedentes: filePath }).eq("auth_user_id", userId);
-            }
-            alert("Certificado subido correctamente. Un administrador lo revisará.");
+            if (uploadError) throw uploadError;
+
+            const { data: publicUrlData } = supabase.storage
+                .from('sitter-images')
+                .getPublicUrl(filePath);
+
+            setProfileData({ ...profileData, galeria: [...(profileData.galeria || []), publicUrlData.publicUrl] });
+        } catch (error: any) {
+            alert('Error al subir imagen: ' + error.message);
+        } finally {
+            setUploading(false);
         }
-        setUploading(false);
     };
 
-    const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setProfileData({ ...profileData, rut: formatRut(val) });
+    const handleDeletePhoto = (index: number) => {
+        const newGallery = [...profileData.galeria];
+        newGallery.splice(index, 1);
+        setProfileData({ ...profileData, galeria: newGallery });
     };
 
-    const handleSelectAddress = (result: any) => {
-        const address = result.address;
+    const handleSelectAddress = (address: any) => {
+        // Simple mapping attempt
+        const calle = address.address?.road || address.address?.pedestrian || address.address?.street || "";
+        const numero = address.address?.house_number || "";
+        const comuna = address.address?.city || address.address?.town || address.address?.village || address.address?.municipality || "";
 
-        // Intentar mapear campos
-        const calle = address.road || address.pedestrian || address.street || "";
-        const numero = address.house_number || "";
-        const comuna = address.city || address.town || address.village || address.municipality || "";
-        const region = address.state || "RM"; // Fallback simple
-
-        setProfileData(prev => ({
-            ...prev,
-            latitud: parseFloat(result.lat),
-            longitud: parseFloat(result.lon),
-            direccion_completa: result.display_name,
+        setProfileData({
+            ...profileData,
             calle: calle,
             numero: numero,
-            comuna: comuna, // Puede requerir ajuste manual si no coincide con nuestro select
-            region: mapRegion(region) // Función helper simple o dejar que el usuario corrija
-        }));
+            // Only update comuna/region if they seem valid/present, otherwise keep existing or let user edit
+            latitud: address.lat,
+            longitud: address.lon,
+            direccion_completa: address.display_name
+        });
     };
 
-    const mapRegion = (osRegion: string) => {
-        // Mapeo básico, idealmente mejorar
-        if (osRegion.includes("Metropolitana")) return "RM";
-        if (osRegion.includes("Valparaíso")) return "Valparaíso";
-        // ... añadir más si es necesario
-        return "RM";
-    };
-
-    const handleSaveProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSaveSection = async (section: string) => {
+        // e.preventDefault(); // If called from button type button, no event. If form, needs event.
+        // We will make buttons type="button" and call this.
         setSaving(true);
+        setErrorMsg(null);
 
         if (!userId) {
             alert("Sesión no válida o expirada.");
@@ -501,58 +284,65 @@ export default function SitterDashboardPage() {
             return;
         }
 
+        // Validaciones por Sección
+        const errors: string[] = [];
 
+        if (section === 'contact') {
+            if (!profileData.telefono) errors.push("Teléfono");
+            if (!profileData.region) errors.push("Región");
+            if (!profileData.comuna) errors.push("Comuna");
+        }
 
-        // 1. Campos Obligatorios
-        const requiredFields = [
-            { key: 'telefono', label: 'Teléfono' },
-            { key: 'region', label: 'Región' },
-            { key: 'comuna', label: 'Comuna' },
-            { key: 'rut', label: 'RUT' },
-            { key: 'fecha_nacimiento', label: 'Fecha de Nacimiento' },
-            { key: 'sexo', label: 'Sexo' },
-            { key: 'ocupacion', label: 'Ocupación' },
-            { key: 'tipo_vivienda', label: 'Tipo de Vivienda' },
-            { key: 'tiene_mascotas', label: '¿Tienes mascotas?' },
-            { key: 'descripcion', label: 'Sobre mí' },
-        ] as const;
+        if (section === 'personal') {
+            if (!profileData.nombre) errors.push("Nombres");
+            if (!profileData.apellido_p) errors.push("Apellido Paterno");
+            if (!profileData.fecha_nacimiento) errors.push("Fecha de Nacimiento");
+            if (!profileData.sexo) errors.push("Sexo");
+            if (!profileData.ocupacion) errors.push("Ocupación");
 
-        for (const field of requiredFields) {
-            // @ts-ignore
-            if (!profileData[field.key] || profileData[field.key].toString().trim() === "") {
-                alert(`El campo "${field.label}" es obligatorio.`);
+            if (profileData.ocupacion === 'Estudiante') {
+                if (!profileData.universidad || !profileData.carrera || !profileData.ano_curso) {
+                    alert("Si eres estudiante, debes completar los datos de estudios.");
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            // Validación Edad
+            const calculatedAge = profileData.fecha_nacimiento
+                ? differenceInYears(new Date(), new Date(profileData.fecha_nacimiento))
+                : 0;
+
+            if (calculatedAge < 18) {
+                setAgeAlertOpen(true);
                 setSaving(false);
                 return;
             }
         }
 
-        if (profileData.ocupacion === 'Estudiante') {
-            if (!profileData.universidad || !profileData.carrera || !profileData.ano_curso) {
-                alert("Si eres estudiante, debes completar los datos de estudios.");
+        if (section === 'profile') {
+            if (!profileData.descripcion) errors.push("Sobre mí");
+            if (profileData.descripcion && profileData.descripcion.length < 100) {
+                alert(`La descripción "Sobre mí" debe tener al menos 100 caracteres. (Actual: ${profileData.descripcion.length})`);
                 setSaving(false);
                 return;
             }
+            if (!profileData.tipo_vivienda) errors.push("Tipo de Vivienda");
+            if (!profileData.tiene_mascotas) errors.push("¿Tienes mascotas?");
         }
 
-        // 2. Validación de Edad
-        const calculatedAge = profileData.fecha_nacimiento
-            ? differenceInYears(new Date(), new Date(profileData.fecha_nacimiento))
-            : 0;
-
-        if (calculatedAge < 18) {
-            setAgeAlertOpen(true);
-            setSaving(false);
-            return;
-        }
-
-        // 3. Largo de Descripción
-        if (profileData.descripcion.length < 100) {
-            alert(`La descripción "Sobre mí" debe tener al menos 100 caracteres. (Actual: ${profileData.descripcion.length})`);
+        if (errors.length > 0) {
+            alert(`Por favor completa los siguientes campos obligatorios: ${errors.join(", ")}`);
             setSaving(false);
             return;
         }
 
         try {
+            // Construir updates basados en la sección para evitar sobrescribir con datos antiguos si hubiera desincronización (aunque el estado es unico)
+            // En React `profileData` es la fuente de verdad, así que mandamos todo o solo lo relevante. 
+            // Mandar todo es más seguro para mantener consistencia si el backend espera el objeto completo, 
+            // pero Supabase acepta partials. Mandaremos todo el objeto `profileData` ya que lo tenemos en memoria actualizado.
+
             const updates = {
                 nombre: profileData.nombre,
                 apellido_p: profileData.apellido_p,
@@ -579,12 +369,12 @@ export default function SitterDashboardPage() {
                 redes_sociales: profileData.redes_sociales,
                 tarifa_servicio_en_casa: profileData.tarifa_servicio_en_casa,
                 tarifa_servicio_a_domicilio: profileData.tarifa_servicio_a_domicilio,
-
                 calle: profileData.calle,
                 numero: profileData.numero,
                 latitud: profileData.latitud,
                 longitud: profileData.longitud,
-                direccion_completa: profileData.direccion_completa
+                direccion_completa: profileData.direccion_completa,
+                videos: profileData.videos
             };
 
             const { data, error } = await supabase
@@ -595,14 +385,14 @@ export default function SitterDashboardPage() {
 
             if (error) throw error;
 
-            // Verificación extra: si data está vacío, es que no se actualizó nada (RLS o email incorrecto)
             if (!data || data.length === 0) {
                 throw new Error("No se guardaron los cambios. Puede que tu sesión haya expirado.");
             }
 
             setShowToast(true);
-            setBackupProfileData(JSON.parse(JSON.stringify(profileData))); // Actualizar backup
-            setIsEditing(false);
+            setBackupProfileData(JSON.parse(JSON.stringify(profileData)));
+            setActiveSection(null);
+
         } catch (error) {
             console.error("Error updating profile:", error);
             alert("Hubo un error al actualizar el perfil: " + (error as any).message);
@@ -610,6 +400,8 @@ export default function SitterDashboardPage() {
             setSaving(false);
         }
     };
+
+    const displayName = profileData?.nombre || nombre || "Sitter";
 
     return (
         <>
@@ -696,7 +488,7 @@ export default function SitterDashboardPage() {
                                             : "bg-orange-50 border-orange-100 text-orange-800"
                                         }`}>
                                         <div className="flex items-center gap-2 mb-1 font-bold">
-                                            {profileData.aprobado ? "✅ Verificado" : profileData.certificado_antecedentes ? <span className="flex items-center gap-1 text-amber-600"><div className="animate-spin w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full"></div> En Revisión</span> : "⚠️ No Verificado"}
+                                            {profileData.aprobado ? "✅ Verificado" : profileData.certificado_antecedentes ? <span className="flex items-center gap-1 text-amber-600"><span className="inline-block animate-spin w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full"></span> En Revisión</span> : "⚠️ No Verificado"}
                                         </div>
                                         <p className="opacity-90 leading-relaxed">
                                             {profileData.aprobado
@@ -777,9 +569,9 @@ export default function SitterDashboardPage() {
                                             )}
                                         </h3>
 
-                                        {profileData.galeria.length > 0 ? (
+                                        {profileData.galeria && profileData.galeria.length > 0 ? (
                                             <div className="grid grid-cols-3 gap-2">
-                                                {profileData.galeria.map((photo, index) => (
+                                                {(profileData.galeria as string[]).map((photo, index) => (
                                                     <div
                                                         key={index}
                                                         className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 group cursor-pointer"
@@ -913,40 +705,10 @@ export default function SitterDashboardPage() {
                                 )}
                             </div>
 
-                            {/* BLOQUE 2: Datos del Perfil (Form Compacto) */}
-                            <form onSubmit={handleSaveProfile} className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                            {/* BLOQUE 2: Datos del Perfil (Form Compacto -> Div) */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
                                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                                     <h3 className="text-base font-bold text-slate-900">Perfil</h3>
-
-                                    {!isEditing ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsEditing(true)}
-                                            className="text-sm bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 transition-colors"
-                                        >
-                                            Editar
-                                        </button>
-                                    ) : (
-                                        <div className="flex gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                    setIsEditing(false);
-                                                }}
-                                                className="text-sm text-slate-600 px-3 py-2 font-medium hover:text-slate-900"
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={saving}
-                                                className="text-sm bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-50"
-                                            >
-                                                {saving ? "Guardando..." : "Guardar"}
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
 
                                 {/* Alerta de Perfil Incompleto */}
@@ -970,503 +732,673 @@ export default function SitterDashboardPage() {
 
                                     {/* BLOQUE 1: Datos de Contacto */}
                                     <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
-                                        <h4 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4 flex items-center gap-2">
-                                            <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><Mail className="w-4 h-4 text-slate-500" /></div>
-                                            Datos de Contacto
-                                        </h4>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Email</label>
-                                                <input
-                                                    type="email"
-                                                    disabled
-                                                    className="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-500 cursor-not-allowed"
-                                                    value={email || ""}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Teléfono</label>
-                                                <input
-                                                    type="tel"
-                                                    disabled={!isEditing}
-                                                    maxLength={12}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                        }`}
-                                                    value={profileData.telefono}
-                                                    onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
-                                                    placeholder="+569 1234 5678"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Región</label>
-                                                <select
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
-                                                        }`}
-                                                    value={profileData.region}
-                                                    onChange={(e) => setProfileData({ ...profileData, region: e.target.value })}
+                                        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => toggleSection('contact')}
+                                                    className="p-1 hover:bg-slate-100 rounded transition-colors"
                                                 >
-                                                    <option value="RM">Metropolitana</option>
-                                                </select>
+                                                    {expandedSections.contact ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                                                </button>
+                                                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                    <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><Mail className="w-4 h-4 text-slate-500" /></div>
+                                                    Datos de Contacto
+                                                </h4>
                                             </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Comuna</label>
-                                                <select
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
-                                                        }`}
-                                                    value={profileData.comuna}
-                                                    onChange={(e) => setProfileData({ ...profileData, comuna: e.target.value })}
+                                            {activeSection === 'contact' ? (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                            setActiveSection(null);
+                                                        }}
+                                                        className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSaveSection('contact')}
+                                                        disabled={saving}
+                                                        className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {saving ? "..." : "Guardar"}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setActiveSection('contact')}
+                                                    disabled={activeSection !== null && activeSection !== 'contact'}
+                                                    className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
                                                 >
-                                                    <option value="" disabled>Seleccionar</option>
-                                                    {COMUNAS_SANTIAGO.map(c => (
-                                                        <option key={c} value={c}>{c}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                                                    Editar
+                                                </button>
+                                            )}
                                         </div>
-                                        <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-100">
-                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Redes Sociales (Opcional)</h5>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                <div>
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                        <Linkedin className="w-4 h-4 text-slate-500" /> LinkedIn
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={!isEditing}
-                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                        value={profileData.redes_sociales?.linkedin || ""}
-                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, linkedin: e.target.value } })}
-                                                        placeholder="URL Perfil"
-                                                    />
+                                        {expandedSections.contact && (
+                                            <>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Email</label>
+                                                        <input
+                                                            type="email"
+                                                            disabled
+                                                            className="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-500 cursor-not-allowed"
+                                                            value={email || ""}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Teléfono</label>
+                                                        <input
+                                                            type="tel"
+                                                            disabled={activeSection !== 'contact'}
+                                                            maxLength={12}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                                }`}
+                                                            value={profileData.telefono}
+                                                            onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
+                                                            placeholder="+569 1234 5678"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Región</label>
+                                                        <select
+                                                            disabled={activeSection !== 'contact'}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                }`}
+                                                            value={profileData.region}
+                                                            onChange={(e) => setProfileData({ ...profileData, region: e.target.value })}
+                                                        >
+                                                            <option value="RM">Metropolitana</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Comuna</label>
+                                                        <select
+                                                            disabled={activeSection !== 'contact'}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                }`}
+                                                            value={profileData.comuna}
+                                                            onChange={(e) => setProfileData({ ...profileData, comuna: e.target.value })}
+                                                        >
+                                                            <option value="" disabled>Seleccionar</option>
+                                                            {COMUNAS_SANTIAGO.map(c => (
+                                                                <option key={c} value={c}>{c}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                        <Music className="w-4 h-4 text-slate-500" /> TikTok
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={!isEditing}
-                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                        value={profileData.redes_sociales?.tiktok || ""}
-                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, tiktok: e.target.value } })}
-                                                        placeholder="@usuario"
-                                                    />
+                                                <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-100">
+                                                    <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Redes Sociales (Opcional)</h5>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                <Linkedin className="w-4 h-4 text-slate-500" /> LinkedIn
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'contact'}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                value={profileData.redes_sociales?.linkedin || ""}
+                                                                onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, linkedin: e.target.value } })}
+                                                                placeholder="URL Perfil"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                <Music className="w-4 h-4 text-slate-500" /> TikTok
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'contact'}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                value={profileData.redes_sociales?.tiktok || ""}
+                                                                onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, tiktok: e.target.value } })}
+                                                                placeholder="@usuario"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                <Instagram className="w-4 h-4 text-slate-500" /> Instagram
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'contact'}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                value={profileData.redes_sociales?.instagram || ""}
+                                                                onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, instagram: e.target.value } })}
+                                                                placeholder="@usuario"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                <Facebook className="w-4 h-4 text-slate-500" /> Facebook
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'contact'}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                value={profileData.redes_sociales?.facebook || ""}
+                                                                onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, facebook: e.target.value } })}
+                                                                placeholder="URL Perfil"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                        <Instagram className="w-4 h-4 text-slate-500" /> Instagram
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={!isEditing}
-                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                        value={profileData.redes_sociales?.instagram || ""}
-                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, instagram: e.target.value } })}
-                                                        placeholder="@usuario"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                        <Facebook className="w-4 h-4 text-slate-500" /> Facebook
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={!isEditing}
-                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                        value={profileData.redes_sociales?.facebook || ""}
-                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, facebook: e.target.value } })}
-                                                        placeholder="URL Perfil"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
+                                            </>
+                                        )}
                                     </div>
 
 
                                     {/* BLOQUE 2: Información Personal */}
                                     <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
-                                        <h4 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4 flex items-center gap-2">
-                                            <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><User className="w-4 h-4 text-slate-500" /></div>
-                                            Información Personal
-                                        </h4>
-                                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                                            <div className="sm:col-span-4">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Nombres</label>
-                                                <input
-                                                    type="text"
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                    value={profileData.nombre}
-                                                    onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
-                                                />
+                                        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => toggleSection('personal')}
+                                                    className="p-1 hover:bg-slate-100 rounded transition-colors"
+                                                >
+                                                    {expandedSections.personal ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                                                </button>
+                                                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                    <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><User className="w-4 h-4 text-slate-500" /></div>
+                                                    Información Personal
+                                                </h4>
                                             </div>
-                                            <div className="sm:col-span-4">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Paterno</label>
-                                                <input
-                                                    type="text"
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                    value={profileData.apellido_p}
-                                                    onChange={(e) => setProfileData({ ...profileData, apellido_p: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="sm:col-span-4">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Materno</label>
-                                                <input
-                                                    type="text"
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                    value={profileData.apellido_m}
-                                                    onChange={(e) => setProfileData({ ...profileData, apellido_m: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="sm:col-span-6">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">RUT {isEditing && <span className="text-slate-400 font-normal normal-case">(Ej: 12.345.678-9)</span>}</label>
-                                                <input
-                                                    type="text"
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                        } ${isEditing && profileData.rut && !validateRut(profileData.rut) ? "border-red-300 focus:border-red-500 focus:ring-red-200" : ""}`}
-                                                    value={profileData.rut}
-                                                    onChange={handleRutChange}
-                                                    placeholder="12.345.678-9"
-                                                    maxLength={12}
-                                                />
-                                                {isEditing && profileData.rut && !validateRut(profileData.rut) && (
-                                                    <p className="text-xs text-red-500 mt-1">RUT inválido</p>
-                                                )}
-                                            </div>
-                                            <div className="sm:col-span-3">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Fecha de Nacimiento</label>
-                                                <div className={!isEditing ? "opacity-60 pointer-events-none" : ""}>
-                                                    <DatePickerSingle
-                                                        value={profileData.fecha_nacimiento ? new Date(profileData.fecha_nacimiento + "T12:00:00") : undefined}
-                                                        onChange={(d) => setProfileData({ ...profileData, fecha_nacimiento: d ? format(d, "yyyy-MM-dd") : "" })}
-                                                        disabled={!isEditing}
-                                                        // Solo deshabilitar fechas futuras
-                                                        maxDate={new Date()}
-                                                        // Validar que sea mayor de 18 años al seleccionar
-                                                        validateDate={(d) => differenceInYears(new Date(), d) >= 18}
-                                                        onValidationFail={() => setAgeAlertOpen(true)}
+                                            {activeSection === 'personal' ? (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                            setActiveSection(null);
+                                                        }}
+                                                        className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSaveSection('personal')}
+                                                        disabled={saving}
+                                                        className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {saving ? "..." : "Guardar"}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setActiveSection('personal')}
+                                                    disabled={activeSection !== null && activeSection !== 'personal'}
+                                                    className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    Editar
+                                                </button>
+                                            )}
+                                        </div>
+                                        {expandedSections.personal && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                                                <div className="sm:col-span-4">
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Nombres</label>
+                                                    <input
+                                                        type="text"
+                                                        disabled={activeSection !== 'personal'}
+                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                        value={profileData.nombre}
+                                                        onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
                                                     />
                                                 </div>
-                                            </div>
-                                            <div className="sm:col-span-3">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Sexo</label>
-                                                <select
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
-                                                        }`}
-                                                    value={profileData.sexo}
-                                                    onChange={(e) => setProfileData({ ...profileData, sexo: e.target.value })}
-                                                >
-                                                    <option value="masculino">Masculino</option>
-                                                    <option value="femenino">Femenino</option>
-                                                    <option value="otro">Otro</option>
-                                                </select>
-                                            </div>
-                                            <div className="sm:col-span-6">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Ocupación</label>
-                                                <select
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
-                                                        }`}
-                                                    value={profileData.ocupacion}
-                                                    onChange={(e) => setProfileData({ ...profileData, ocupacion: e.target.value })}
-                                                >
-                                                    <option value="" disabled>Selecciona tu ocupación</option>
-                                                    {OCUPACIONES.map(op => (
-                                                        <option key={op} value={op}>{op}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            {/* Campos condicionales para Estudiantes */}
-                                            {profileData.ocupacion === "Estudiante" && (
-                                                <>
-                                                    <div className="sm:col-span-6">
-                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Universidad / Instituto</label>
-                                                        <input
-                                                            type="text"
-                                                            disabled={!isEditing}
-                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                                }`}
-                                                            value={profileData.universidad}
-                                                            onChange={(e) => setProfileData({ ...profileData, universidad: e.target.value })}
-                                                            placeholder="Ej: PUC, U. de Chile"
+                                                <div className="sm:col-span-4">
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Paterno</label>
+                                                    <input
+                                                        type="text"
+                                                        disabled={activeSection !== 'personal'}
+                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                        value={profileData.apellido_p}
+                                                        onChange={(e) => setProfileData({ ...profileData, apellido_p: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="sm:col-span-4">
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Materno</label>
+                                                    <input
+                                                        type="text"
+                                                        disabled={activeSection !== 'personal'}
+                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                        value={profileData.apellido_m}
+                                                        onChange={(e) => setProfileData({ ...profileData, apellido_m: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="sm:col-span-6">
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">RUT {activeSection === 'personal' && <span className="text-slate-400 font-normal normal-case">(Ej: 12.345.678-9)</span>}</label>
+                                                    <input
+                                                        type="text"
+                                                        disabled={activeSection !== 'personal'}
+                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                            } ${activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) ? "border-red-300 focus:border-red-500 focus:ring-red-200" : ""}`}
+                                                        value={profileData.rut}
+                                                        onChange={handleRutChange}
+                                                        placeholder="12.345.678-9"
+                                                        maxLength={12}
+                                                    />
+                                                    {activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) && (
+                                                        <p className="text-xs text-red-500 mt-1">RUT inválido</p>
+                                                    )}
+                                                </div>
+                                                <div className="sm:col-span-3">
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Fecha de Nacimiento</label>
+                                                    <div className={activeSection !== 'personal' ? "opacity-60 pointer-events-none" : ""}>
+                                                        <DatePickerSingle
+                                                            value={profileData.fecha_nacimiento ? new Date(profileData.fecha_nacimiento + "T12:00:00") : undefined}
+                                                            onChange={(d) => setProfileData({ ...profileData, fecha_nacimiento: d ? format(d, "yyyy-MM-dd") : "" })}
+                                                            disabled={activeSection !== 'personal'}
+                                                            // Solo deshabilitar fechas futuras
+                                                            maxDate={new Date()}
+                                                            // Validar que sea mayor de 18 años al seleccionar
+                                                            validateDate={(d) => differenceInYears(new Date(), d) >= 18}
+                                                            onValidationFail={() => setAgeAlertOpen(true)}
                                                         />
                                                     </div>
-                                                    <div className="sm:col-span-6">
-                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Carrera</label>
-                                                        <input
-                                                            type="text"
-                                                            disabled={!isEditing}
-                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                                }`}
-                                                            value={profileData.carrera}
-                                                            onChange={(e) => setProfileData({ ...profileData, carrera: e.target.value })}
-                                                            placeholder="Ej: Medicina Veterinaria"
-                                                        />
-                                                    </div>
-                                                    <div className="sm:col-span-6">
-                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Año en Curso</label>
-                                                        <input
-                                                            type="text"
-                                                            disabled={!isEditing}
-                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                                }`}
-                                                            value={profileData.ano_curso}
-                                                            onChange={(e) => setProfileData({ ...profileData, ano_curso: e.target.value })}
-                                                            placeholder="Ej: 3er Año"
-                                                        />
-                                                    </div>
-                                                </>
-                                            )}
+                                                </div>
+                                                <div className="sm:col-span-3">
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Sexo</label>
+                                                    <select
+                                                        disabled={activeSection !== 'personal'}
+                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                            }`}
+                                                        value={profileData.sexo}
+                                                        onChange={(e) => setProfileData({ ...profileData, sexo: e.target.value })}
+                                                    >
+                                                        <option value="masculino">Masculino</option>
+                                                        <option value="femenino">Femenino</option>
+                                                        <option value="otro">Otro</option>
+                                                    </select>
+                                                </div>
+                                                <div className="sm:col-span-6">
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Ocupación</label>
+                                                    <select
+                                                        disabled={activeSection !== 'personal'}
+                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                            }`}
+                                                        value={profileData.ocupacion}
+                                                        onChange={(e) => setProfileData({ ...profileData, ocupacion: e.target.value })}
+                                                    >
+                                                        <option value="" disabled>Selecciona tu ocupación</option>
+                                                        {OCUPACIONES.map(op => (
+                                                            <option key={op} value={op}>{op}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                {/* Campos condicionales para Estudiantes */}
+                                                {profileData.ocupacion === "Estudiante" && (
+                                                    <>
+                                                        <div className="sm:col-span-6">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Universidad / Instituto</label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                                    }`}
+                                                                value={profileData.universidad}
+                                                                onChange={(e) => setProfileData({ ...profileData, universidad: e.target.value })}
+                                                                placeholder="Ej: PUC, U. de Chile"
+                                                            />
+                                                        </div>
+                                                        <div className="sm:col-span-6">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Carrera</label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                                    }`}
+                                                                value={profileData.carrera}
+                                                                onChange={(e) => setProfileData({ ...profileData, carrera: e.target.value })}
+                                                                placeholder="Ej: Medicina Veterinaria"
+                                                            />
+                                                        </div>
+                                                        <div className="sm:col-span-6">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Año en Curso</label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                                    }`}
+                                                                value={profileData.ano_curso}
+                                                                onChange={(e) => setProfileData({ ...profileData, ano_curso: e.target.value })}
+                                                                placeholder="Ej: 3er Año"
+                                                            />
+                                                        </div>
+                                                    </>
+                                                )}
 
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* BLOQUE 3: Perfil */}
                                     <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
-                                        <h4 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4 flex items-center gap-2">
-                                            <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><PawPrint className="w-4 h-4 text-slate-500" /></div>
-                                            Perfil Sitter
-                                        </h4>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
 
-                                            {/* Búsqueda de Dirección (Solo Edición) */}
-                                            {isEditing && (
-                                                <div className="sm:col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200 mb-2">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Buscar Dirección (OpenStreetMap)</label>
-                                                    <AddressAutocomplete
-                                                        onSelect={handleSelectAddress}
-                                                        placeholder="Ej: Av Providencia 1234"
-                                                    />
-                                                    <p className="text-[10px] text-slate-400 mt-1">Busca tu dirección y selecciónala para autocompletar.</p>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => toggleSection('profile')}
+                                                    className="p-1 hover:bg-slate-100 rounded transition-colors"
+                                                >
+                                                    {expandedSections.profile ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                                                </button>
+                                                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                    <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><PawPrint className="w-4 h-4 text-slate-500" /></div>
+                                                    Perfil Sitter
+                                                </h4>
+                                            </div>
+                                            {activeSection === 'profile' ? (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                            setActiveSection(null);
+                                                        }}
+                                                        className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSaveSection('profile')}
+                                                        disabled={saving}
+                                                        className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {saving ? "..." : "Guardar"}
+                                                    </button>
                                                 </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setActiveSection('profile')}
+                                                    disabled={activeSection !== null && activeSection !== 'profile'}
+                                                    className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    Editar
+                                                </button>
                                             )}
-
-                                            <div className="sm:col-span-2">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dirección Completa</label>
-                                                <input
-                                                    type="text"
-                                                    disabled={true}
-                                                    className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border border-slate-200 text-slate-600 cursor-not-allowed"
-                                                    value={profileData.direccion_completa || "No definida"}
-                                                    readOnly
-                                                />
-                                            </div>
-
-                                            <div className="sm:col-span-1">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Calle</label>
-                                                <input
-                                                    type="text"
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                    value={profileData.calle || ""}
-                                                    onChange={(e) => setProfileData({ ...profileData, calle: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="sm:col-span-1">
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Número</label>
-                                                <input
-                                                    type="text"
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                    value={profileData.numero || ""}
-                                                    onChange={(e) => setProfileData({ ...profileData, numero: e.target.value })}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Vivienda</label>
-                                                <select
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
-                                                        }`}
-                                                    value={profileData.tipo_vivienda}
-                                                    onChange={(e) => setProfileData({ ...profileData, tipo_vivienda: e.target.value })}
-                                                >
-                                                    <option value="casa">Casa</option>
-                                                    <option value="departamento">Depto</option>
-                                                    <option value="parcela">Parcela</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">¿Tienes mascotas?</label>
-                                                <select
-                                                    disabled={!isEditing}
-                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
-                                                        }`}
-                                                    value={profileData.tiene_mascotas}
-                                                    onChange={(e) => setProfileData({ ...profileData, tiene_mascotas: e.target.value })}
-                                                >
-                                                    <option value="no">No</option>
-                                                    <option value="si">Sí</option>
-                                                </select>
-                                            </div>
                                         </div>
+                                        {expandedSections.profile && (
+                                            <div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
 
-                                        {/* Detalles de mascotas si selecciona "Sí" */}
-                                        {profileData.tiene_mascotas === "si" && (
-                                            <div className="mb-4 bg-slate-100 rounded-lg p-3">
-                                                <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Cuéntanos sobre tus mascotas</label>
+                                                    {/* Búsqueda de Dirección (Solo Edición) */}
+                                                    {/* Búsqueda de Dirección (Solo Edición) */}
+                                                    {activeSection === 'profile' && (
+                                                        <div className="sm:col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200 mb-2">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Buscar Dirección (OpenStreetMap)</label>
+                                                            <AddressAutocomplete
+                                                                onSelect={handleSelectAddress}
+                                                                placeholder="Ej: Av Providencia 1234"
+                                                            />
+                                                            <p className="text-[10px] text-slate-400 mt-1">Busca tu dirección y selecciónala para autocompletar.</p>
+                                                        </div>
+                                                    )}
 
-                                                {profileData.detalles_mascotas.map((mascota, idx) => (
-                                                    <div key={idx} className="flex gap-2 mb-2 items-center">
-                                                        <select
-                                                            className="text-sm rounded-lg px-2 py-1 border border-slate-300 flex-1 outline-none"
-                                                            value={mascota.tipo}
-                                                            onChange={(e) => {
-                                                                const newDetails = [...profileData.detalles_mascotas];
-                                                                newDetails[idx].tipo = e.target.value;
-                                                                setProfileData({ ...profileData, detalles_mascotas: newDetails });
-                                                            }}
-                                                            disabled={!isEditing}
-                                                        >
-                                                            <option value="perro">Perro</option>
-                                                            <option value="gato">Gato</option>
-                                                            <option value="otro">Otro</option>
-                                                        </select>
+                                                    <div className="sm:col-span-2">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dirección Completa</label>
                                                         <input
-                                                            type="number"
-                                                            min="1"
-                                                            className="w-16 text-sm rounded-lg px-2 py-1 border border-slate-300 outline-none"
-                                                            value={mascota.cantidad}
-                                                            onChange={(e) => {
-                                                                const newDetails = [...profileData.detalles_mascotas];
-                                                                newDetails[idx].cantidad = parseInt(e.target.value) || 1;
-                                                                setProfileData({ ...profileData, detalles_mascotas: newDetails });
-                                                            }}
-                                                            disabled={!isEditing}
+                                                            type="text"
+                                                            disabled={true}
+                                                            className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border border-slate-200 text-slate-600 cursor-not-allowed"
+                                                            value={profileData.direccion_completa || "No definida"}
+                                                            readOnly
                                                         />
-                                                        {isEditing && (
+                                                    </div>
+
+                                                    <div className="sm:col-span-1">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Calle</label>
+                                                        <input
+                                                            type="text"
+                                                            disabled={activeSection !== 'profile'}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                            value={profileData.calle || ""}
+                                                            onChange={(e) => setProfileData({ ...profileData, calle: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div className="sm:col-span-1">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Número</label>
+                                                        <input
+                                                            type="text"
+                                                            disabled={activeSection !== 'profile'}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                            value={profileData.numero || ""}
+                                                            onChange={(e) => setProfileData({ ...profileData, numero: e.target.value })}
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Vivienda</label>
+                                                        <select
+                                                            disabled={activeSection !== 'profile'}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                }`}
+                                                            value={profileData.tipo_vivienda}
+                                                            onChange={(e) => setProfileData({ ...profileData, tipo_vivienda: e.target.value })}
+                                                        >
+                                                            <option value="casa">Casa</option>
+                                                            <option value="departamento">Depto</option>
+                                                            <option value="parcela">Parcela</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">¿Tienes mascotas?</label>
+                                                        <select
+                                                            disabled={activeSection !== 'profile'}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                }`}
+                                                            value={profileData.tiene_mascotas}
+                                                            onChange={(e) => setProfileData({ ...profileData, tiene_mascotas: e.target.value })}
+                                                        >
+                                                            <option value="no">No</option>
+                                                            <option value="si">Sí</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                {/* Detalles de mascotas si selecciona "Sí" */}
+                                                {profileData.tiene_mascotas === "si" && (
+                                                    <div className="mb-4 bg-slate-100 rounded-lg p-3">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Cuéntanos sobre tus mascotas</label>
+
+                                                        {(profileData.detalles_mascotas || []).map((mascota: any, idx: number) => (
+                                                            <div key={idx} className="flex gap-2 mb-2 items-center">
+                                                                <select
+                                                                    className="text-sm rounded-lg px-2 py-1 border border-slate-300 flex-1 outline-none"
+                                                                    value={mascota.tipo}
+                                                                    onChange={(e) => {
+                                                                        const newDetails = [...(profileData.detalles_mascotas || [])];
+                                                                        newDetails[idx].tipo = e.target.value;
+                                                                        setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                    }}
+                                                                    disabled={activeSection !== 'profile'}
+                                                                >
+                                                                    <option value="perro">Perro</option>
+                                                                    <option value="gato">Gato</option>
+                                                                    <option value="otro">Otro</option>
+                                                                </select>
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    className="w-16 text-sm rounded-lg px-2 py-1 border border-slate-300 outline-none"
+                                                                    value={mascota.cantidad}
+                                                                    onChange={(e) => {
+                                                                        const newDetails = [...(profileData.detalles_mascotas || [])];
+                                                                        newDetails[idx].cantidad = parseInt(e.target.value) || 1;
+                                                                        setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                    }}
+                                                                    disabled={activeSection !== 'profile'}
+                                                                />
+                                                                {activeSection === 'profile' && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newDetails = (profileData.detalles_mascotas || []).filter((_: any, i: number) => i !== idx);
+                                                                            setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                        }}
+                                                                        className="text-red-500 hover:text-red-700 p-1"
+                                                                    >
+                                                                        ✕
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+
+                                                        {activeSection === 'profile' && (
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    const newDetails = profileData.detalles_mascotas.filter((_, i) => i !== idx);
-                                                                    setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                    setProfileData({
+                                                                        ...profileData,
+                                                                        detalles_mascotas: [...profileData.detalles_mascotas, { tipo: "perro", cantidad: 1 }]
+                                                                    });
                                                                 }}
-                                                                className="text-red-500 hover:text-red-700 p-1"
+                                                                className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
                                                             >
-                                                                ✕
+                                                                + Agregar otra mascota
                                                             </button>
                                                         )}
                                                     </div>
-                                                ))}
-
-                                                {isEditing && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setProfileData({
-                                                                ...profileData,
-                                                                detalles_mascotas: [...profileData.detalles_mascotas, { tipo: "perro", cantidad: 1 }]
-                                                            });
-                                                        }}
-                                                        className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
-                                                    >
-                                                        + Agregar otra mascota
-                                                    </button>
                                                 )}
+
+                                                <div className="mb-4">
+                                                    <div className="flex justify-between items-end mb-1.5">
+                                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
+                                                            <AlignLeft className="w-4 h-4 text-slate-500" /> Sobre mí
+                                                        </label>
+                                                        <span className={`text-xs ${profileData.descripcion.length >= 100 ? 'text-emerald-600 font-medium' : 'text-slate-400'
+                                                            }`}>
+                                                            {profileData.descripcion.length} / 100 caracteres mín.
+                                                        </span>
+                                                    </div>
+                                                    <textarea
+                                                        rows={4}
+                                                        disabled={activeSection !== 'profile'}
+                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none resize-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                            }`}
+                                                        value={profileData.descripcion}
+                                                        onChange={(e) => setProfileData({ ...profileData, descripcion: e.target.value })}
+                                                        placeholder="Cuéntanos por qué eres el mejor sitter..."
+                                                    />
+                                                </div>
+
+                                                <div className="pt-2">
+                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Preferencias & Servicios</h5>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
+                                                        </label>
+                                                    </div>
+
+                                                    {/* Tarifas */}
+                                                    {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
+                                                        <div className="mt-4 pt-4 border-t border-slate-100">
+                                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas Esperadas <span className="text-slate-400 font-normal normal-case">(CLP por día/paseo)</span></h5>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                {profileData.servicio_a_domicilio && (
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa A Domicilio</label>
+                                                                        <div className="relative">
+                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                disabled={activeSection !== 'profile'}
+                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                                value={profileData.tarifa_servicio_a_domicilio || ""}
+                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parseInt(e.target.value) || null })}
+                                                                                placeholder="Ej: 15000"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {profileData.servicio_en_casa && (
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa En mi Casa</label>
+                                                                        <div className="relative">
+                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                disabled={activeSection !== 'profile'}
+                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                                value={profileData.tarifa_servicio_en_casa || ""}
+                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parseInt(e.target.value) || null })}
+                                                                                placeholder="Ej: 20000"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Videos */}
+                                                <div className="mt-4 pt-4 border-t border-slate-100">
+                                                    <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Videos (YouTube/TikTok)</h5>
+                                                    {(profileData.videos || []).map((video: string, idx: number) => (
+                                                        <div key={idx} className="flex gap-2 mb-2 items-center">
+                                                            <input
+                                                                type="text"
+                                                                value={video}
+                                                                disabled={activeSection !== 'profile'}
+                                                                onChange={(e) => {
+                                                                    const newVideos = [...(profileData.videos || [])];
+                                                                    newVideos[idx] = e.target.value;
+                                                                    setProfileData({ ...profileData, videos: newVideos });
+                                                                }}
+                                                                className={`flex-1 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                placeholder="Ej: https://youtube.com/..."
+                                                            />
+                                                            {activeSection === 'profile' && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newVideos = profileData.videos.filter((_: any, i: number) => i !== idx);
+                                                                        setProfileData({ ...profileData, videos: newVideos });
+                                                                    }}
+                                                                    className="text-red-500 hover:text-red-700 p-1"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    {activeSection === 'profile' && (profileData.videos?.length || 0) < 3 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setProfileData({ ...profileData, videos: [...(profileData.videos || []), ""] })}
+                                                            className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
+                                                        >
+                                                            + Agregar Video
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
 
-                                        <div className="mb-4">
-                                            <div className="flex justify-between items-end mb-1.5">
-                                                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
-                                                    <AlignLeft className="w-4 h-4 text-slate-500" /> Sobre mí
-                                                </label>
-                                                <span className={`text-xs ${profileData.descripcion.length >= 100 ? 'text-emerald-600 font-medium' : 'text-slate-400'
-                                                    }`}>
-                                                    {profileData.descripcion.length} / 100 caracteres mín.
-                                                </span>
-                                            </div>
-                                            <textarea
-                                                rows={4}
-                                                disabled={!isEditing}
-                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none resize-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                    }`}
-                                                value={profileData.descripcion}
-                                                onChange={(e) => setProfileData({ ...profileData, descripcion: e.target.value })}
-                                                placeholder="Cuéntanos por qué eres el mejor sitter..."
-                                            />
-                                        </div>
-
-                                        <div className="pt-2">
-                                            <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Preferencias & Servicios</h5>
-                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${isEditing ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                    <input type="checkbox" disabled={!isEditing} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                    <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
-                                                </label>
-                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${isEditing ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                    <input type="checkbox" disabled={!isEditing} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                    <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
-                                                </label>
-                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${isEditing ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                    <input type="checkbox" disabled={!isEditing} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
-                                                </label>
-                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${isEditing ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                    <input type="checkbox" disabled={!isEditing} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                    <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
-                                                </label>
-                                            </div>
-
-                                            {/* Tarifas */}
-                                            {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
-                                                <div className="mt-4 pt-4 border-t border-slate-100">
-                                                    <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas Esperadas <span className="text-slate-400 font-normal normal-case">(CLP por día/paseo)</span></h5>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        {profileData.servicio_a_domicilio && (
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa A Domicilio</label>
-                                                                <div className="relative">
-                                                                    <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                    <input
-                                                                        type="number"
-                                                                        disabled={!isEditing}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                        value={profileData.tarifa_servicio_a_domicilio || ""}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parseInt(e.target.value) || null })}
-                                                                        placeholder="Ej: 15000"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        {profileData.servicio_en_casa && (
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa En mi Casa</label>
-                                                                <div className="relative">
-                                                                    <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                    <input
-                                                                        type="number"
-                                                                        disabled={!isEditing}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${isEditing ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                        value={profileData.tarifa_servicio_en_casa || ""}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parseInt(e.target.value) || null })}
-                                                                        placeholder="Ej: 20000"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
-
-
-                    {/* SECCIÓN DERECHA: RESERVAS Y REVIEWS (Solo visible fuera de modo edición para "ver" como queda, o siempre visible para gestión) */}
-                    {/* En este dashboard de Sitter (autoadministrable), mostramos las solicitudes y reservas reales */}
-
                 </div>
+
+
+                {/* SECCIÓN DERECHA: RESERVAS Y REVIEWS (Solo visible fuera de modo edición para "ver" como queda, o siempre visible para gestión) */}
+                {/* En este dashboard de Sitter (autoadministrable), mostramos las solicitudes y reservas reales */}
+
+
 
                 {/* TOAST SUCCESS */}
                 <div className={`fixed bottom-5 right-5 z-50 transition-all duration-300 transform ${showToast ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}>
@@ -1476,36 +1408,31 @@ export default function SitterDashboardPage() {
                         </div>
                         <span className="font-medium text-sm">Cambios guardados correctamente</span>
                     </div>
-                </div >
+                </div>
 
-                {/* LIGHTBOX */}
-                {selectedImage && (
-                    <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
-                        <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
-                            <Image
-                                src={selectedImage}
-                                alt="Galería completa"
-                                fill
-                                className="object-contain"
-                                unoptimized
-                            />
-                            <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-                    </div>
+                {/* LIGHTBOX DE GALERÍA */}
+                {
+                    selectedImage && (
+                        <ImageLightbox
+                            src={selectedImage}
+                            alt="Galería completa"
+                            isOpen={!!selectedImage}
+                            onClose={() => setSelectedImage(null)}
+                        />
+                    )
+                }
+
+                {/* LIGHTBOX DE FOTO PERFIL */}
+                {profileData.foto_perfil && (
+                    <ImageLightbox
+                        src={profileData.foto_perfil}
+                        alt="Foto de perfil"
+                        isOpen={isLightboxOpen}
+                        onClose={() => setIsLightboxOpen(false)}
+                    />
                 )}
+            </main>
 
-            </main >
-            {/* Lightbox */}
-            {profileData.foto_perfil && (
-                <ImageLightbox
-                    src={profileData.foto_perfil}
-                    alt="Foto de perfil"
-                    isOpen={isLightboxOpen}
-                    onClose={() => setIsLightboxOpen(false)}
-                />
-            )}
         </>
     );
 }

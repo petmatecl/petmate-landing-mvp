@@ -12,6 +12,8 @@ export type Address = {
     codigo_postal: string;
     notas: string;
     es_principal: boolean;
+    latitud?: number;
+    longitud?: number;
 };
 
 type Props = {

@@ -11,6 +11,24 @@ export default function AdminDashboard() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
+    // ... rest of state
+
+    const checkProfileCompleteness = (user: any, role: "cliente" | "petmate") => {
+        const missing: string[] = [];
+        if (!user.nombre) missing.push("Nombre");
+        if (!user.rut) missing.push("RUT");
+        if (!user.telefono) missing.push("Teléfono");
+        if (!user.direccion_completa) missing.push("Dirección");
+
+        if (role === "petmate") {
+            if (!user.descripcion) missing.push("Descripción");
+            if (!user.ocupacion) missing.push("Ocupación");
+            if (!user.fecha_nacimiento && !user.edad) missing.push("Fecha Nacimiento/Edad");
+            // Check photo? Assuming boolean for now or check string length
+            if (!user.foto_perfil) missing.push("Foto Perfil");
+        }
+        return missing;
+    };
     const [users, setUsers] = useState<any[]>([]);
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -209,8 +227,26 @@ export default function AdminDashboard() {
         });
     };
 
-    const handleViewDetail = (user: any) => {
-        setSelectedSitter(user);
+    const handleViewDetail = async (user: any) => {
+        let enrichedUser = { ...user };
+
+        // Calcular campos faltantes
+        const role = user.rol === "petmate" ? "petmate" : "cliente";
+        const missing = checkProfileCompleteness(user, role);
+        enrichedUser.missingFields = missing;
+
+        // Si es cliente, obtener mascotas
+        if (role === "cliente") {
+            const { data: pets } = await supabase
+                .from("mascotas")
+                .select("*")
+                .eq("user_id", user.auth_user_id);
+            if (pets) {
+                enrichedUser.pets = pets;
+            }
+        }
+
+        setSelectedSitter(enrichedUser);
         setIsModalOpen(true);
     };
 
@@ -228,6 +264,31 @@ export default function AdminDashboard() {
             console.error("Error opening document:", err);
             alert("No se pudo abrir el documento. Verifica permisos.");
         }
+    };
+
+    const handleDeleteUser = (user: any) => {
+        setConfirmModal({
+            isOpen: true,
+            title: "Eliminar Usuario",
+            message: `¿Estás seguro de que deseas eliminar a ${user.nombre}? Esta acción es irreversible y eliminará todos sus datos.`,
+            onConfirm: async () => {
+                const { error } = await supabase
+                    .from("registro_petmate")
+                    .delete()
+                    .eq("id", user.id);
+
+                if (error) {
+                    alert("Error al eliminar usuario: " + error.message);
+                } else {
+                    // Refresh data
+                    await fetchUsers();
+                    await fetchStats();
+                }
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            },
+            isDestructive: true,
+            confirmText: "Eliminar"
+        });
     };
 
     useEffect(() => {
@@ -582,8 +643,12 @@ export default function AdminDashboard() {
                                                             </div>
                                                         )}
                                                         <div>
-                                                            <div className="font-bold cursor-pointer hover:text-emerald-700" onClick={() => handleViewDetail(item)}>
+                                                            <div className="font-bold cursor-pointer hover:text-emerald-700 flex items-center gap-2" onClick={() => handleViewDetail(item)}>
                                                                 {item.nombre} {item.apellido_p}
+                                                                {(() => {
+                                                                    const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
+                                                                    return missing.length > 0 ? <span title={`Faltan datos: ${missing.join(', ')}`} className="cursor-help text-lg">⚠️</span> : null;
+                                                                })()}
                                                             </div>
                                                             <span className="block text-xs font-normal text-slate-400">ID: {item.id.slice(0, 8)}...</span>
                                                         </div>
@@ -653,12 +718,21 @@ export default function AdminDashboard() {
                                                         >
                                                             {item.aprobado ? "Revocar" : "Aprobar"}
                                                         </button>
-                                                        <button
-                                                            onClick={() => handleViewDetail(item)}
-                                                            className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200"
-                                                        >
-                                                            Ver Todo
-                                                        </button>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => handleViewDetail(item)}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200"
+                                                            >
+                                                                Ver Todo
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteUser(item)}
+                                                                className="text-xs text-red-500 hover:text-red-700 font-medium bg-red-50 px-2 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+                                                                title="Eliminar usuario"
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </td>
                                             </tr>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import ImageLightbox from '../ImageLightbox';
@@ -43,7 +44,14 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
     const [loadingAddresses, setLoadingAddresses] = useState(true);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // Added
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [expandedMapId, setExpandedMapId] = useState<string | null>(null);
+
+    // Dynamic Import
+    const LocationMap = dynamic(() => import('../Shared/LocationMap'), {
+        ssr: false,
+        loading: () => <div className="h-full w-full bg-slate-100 animate-pulse" />
+    });
 
     useEffect(() => {
         if (userId) {
@@ -306,7 +314,7 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                                         addresses.map(addr => (
                                             <div key={addr.id} className="p-3 rounded-lg border border-slate-100 bg-slate-50 hover:border-slate-200 transition-all group relative">
                                                 {/* Actions */}
-                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                                     <button onClick={() => handleEditAddress(addr)} className="p-1 text-slate-400 hover:text-emerald-600">
                                                         <Edit2 size={12} />
                                                     </button>
@@ -325,8 +333,30 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                                                         <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2" title={addr.direccion_completa}>
                                                             {addr.direccion_completa}
                                                         </p>
+                                                        {addr.latitud && addr.longitud && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setExpandedMapId(expandedMapId === addr.id ? null : addr.id);
+                                                                }}
+                                                                className="text-[10px] text-emerald-600 hover:text-emerald-700 hover:underline mt-1.5 flex items-center gap-1 font-medium"
+                                                            >
+                                                                {expandedMapId === addr.id ? 'Ocultar mapa' : 'Ver en mapa'}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
+
+                                                {/* Mapa Expandible */}
+                                                {expandedMapId === addr.id && addr.latitud && addr.longitud && (
+                                                    <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 h-32 animate-in fade-in zoom-in-95 duration-200">
+                                                        <LocationMap
+                                                            lat={addr.latitud}
+                                                            lng={addr.longitud}
+                                                            approximate={false}
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         ))
                                     ) : (

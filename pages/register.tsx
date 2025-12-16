@@ -265,6 +265,16 @@ export default function RegisterPage() {
         window.localStorage.setItem("pm_cliente_nombre", nombre);
       }
 
+      // Log Consent (Async, no blocking)
+      fetch('/api/log-consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: authUserId,
+          documentVersion: "v1.0 - Dic 2025"
+        })
+      }).catch(console.error);
+
       router.push("/registro-exitoso?role=cliente");
     } finally {
       setSubmitting(false);
@@ -385,6 +395,16 @@ export default function RegisterPage() {
       if (typeof window !== "undefined" && nombre) {
         window.localStorage.setItem("pm_petmate_nombre", nombre);
       }
+
+      // Log Consent (Async, no blocking)
+      fetch('/api/log-consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: authUserId,
+          documentVersion: "v1.0 - Dic 2025"
+        })
+      }).catch(console.error);
 
       router.push("/registro-exitoso?role=petmate");
     } finally {

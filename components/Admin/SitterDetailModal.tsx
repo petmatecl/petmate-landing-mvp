@@ -50,6 +50,10 @@ type SitterData = {
     // Social
     redes_sociales?: { linkedin?: string; tiktok?: string; instagram?: string; facebook?: string };
 
+    // Extra for Clients/Admin
+    pets?: any[]; // Full pet objects
+    missingFields?: string[]; // List of missing field names
+
     created_at: string;
 };
 
@@ -80,6 +84,27 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove }: 
 
                 {/* Content Scrollable */}
                 <div className="overflow-y-auto p-6 flex-1 bg-white">
+
+                    {/* Alerta de Perfil Incompleto */}
+                    {sitter.missingFields && sitter.missingFields.length > 0 && (
+                        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                            <span className="text-2xl">⚠️</span>
+                            <div>
+                                <h4 className="font-bold text-amber-800 text-sm uppercase">Perfil Incompleto</h4>
+                                <p className="text-xs text-amber-700 mt-1">
+                                    Para ser verificado, el usuario debe completar los siguientes campos:
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {sitter.missingFields.map(field => (
+                                        <span key={field} className="px-2 py-0.5 bg-white bg-opacity-50 border border-amber-200 rounded text-[10px] font-bold text-amber-800 uppercase">
+                                            {field}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
 
                         {/* Left Col: Photo & Main Info */}
@@ -101,7 +126,12 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove }: 
                                 <h2 className="text-xl font-bold text-slate-900">{sitter.nombre} {sitter.apellido_p || ""}</h2>
                                 <p className="text-sm text-slate-500">{sitter.email || "Sin email"}</p>
                                 <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    {sitter.aprobado ? "Verificado ✅" : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div></span>}
+                                    {sitter.aprobado && (!sitter.missingFields || sitter.missingFields.length === 0)
+                                        ? "Verificado ✅"
+                                        : sitter.aprobado
+                                            ? <span className="text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) ⚠️</span>
+                                            : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div></span>
+                                    }
                                 </div>
                             </div>
 

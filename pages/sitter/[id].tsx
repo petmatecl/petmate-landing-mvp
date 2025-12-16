@@ -39,13 +39,21 @@ interface PublicProfileProps {
         aprobado: boolean;
         calle?: string;
         numero?: string;
+        // Map and Video props
+        latitud?: number;
+        longitud?: number;
+        videos?: string[];
     } | null;
     error?: string;
 }
 
 import BookingModal from "../../components/Sitter/BookingModal";
+import dynamic from "next/dynamic";
 
-// ... existing imports ...
+const LocationMap = dynamic(() => import("../../components/Shared/LocationMap"), {
+    ssr: false,
+    loading: () => <div className="h-[300px] w-full bg-slate-100 animate-pulse rounded-2xl" />
+});
 
 export default function PublicProfilePage({ petmate, error }: PublicProfileProps) {
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -246,10 +254,68 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
                                 </div>
                             </section>
 
+                            {/* Videos Section */}
+                            {petmate.videos && petmate.videos.length > 0 && (
+                                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                        Videos
+                                        <span className="text-xs font-normal text-white bg-rose-500 px-2 py-0.5 rounded-full">NUEVO</span>
+                                    </h2>
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        {petmate.videos.map((vid, i) => (
+                                            <div key={i} className="rounded-xl overflow-hidden bg-slate-100 aspect-video relative group">
+                                                {/* Simple Video Embed detection */}
+                                                {(vid.includes('youtube') || vid.includes('youtu.be')) ? (
+                                                    <iframe
+                                                        src={`https://www.youtube.com/embed/${vid.split('v=')[1]?.split('&')[0] || vid.split('/').pop()}`}
+                                                        className="w-full h-full"
+                                                        allowFullScreen
+                                                        title={`Video ${i}`}
+                                                    />
+                                                ) : (vid.includes('tiktok')) ? (
+                                                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                                        <a href={vid} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-rose-500">
+                                                            <span>Ver en TikTok</span> <span className="text-lg">↗</span>
+                                                        </a>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                                        <a href={vid} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600">Ver Video</a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Location Map Section */}
+                            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                    Ubicación Aproximada
+                                </h2>
+                                {petmate.latitud && petmate.longitud ? (
+                                    <div className="rounded-xl overflow-hidden border border-slate-200">
+                                        <LocationMap
+                                            lat={petmate.latitud}
+                                            lng={petmate.longitud}
+                                            approximate={true}
+                                            radius={800}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="p-8 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                                        <p className="text-slate-500">
+                                            {petmate.comuna ? `Este sitter se encuentra en ${petmate.comuna}, ${petmate.region || ''}.` : "Ubicación no especificada."}
+                                        </p>
+                                    </div>
+                                )}
+                            </section>
+
                             {/* Galería */}
                             {petmate.galeria && petmate.galeria.length > 0 && (
                                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
-                                    <h2 className="text-xl font-bold text-slate-900 mb-6">Galería</h2>
+                                    <h2 className="text-xl font-bold text-slate-900 mb-6">Galería de Fotos</h2>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {petmate.galeria.map((foto, index) => (
                                             <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">

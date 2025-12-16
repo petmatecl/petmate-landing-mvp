@@ -81,12 +81,12 @@ export default function TripCard({ trip, petNames, onEdit, onDelete }: Props) {
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-2">
                                     {trip.sitter && trip.sitter_asignado ? (
-                                        <div className="flex items-center gap-3 bg-emerald-50 rounded-full pl-1 pr-4 py-1 border border-emerald-100">
+                                        <Link href={`/sitter/${trip.sitter.id}`} className="flex items-center gap-3 bg-emerald-50 rounded-full pl-1 pr-4 py-1 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group">
                                             {trip.sitter.foto_perfil ? (
                                                 <img
                                                     src={trip.sitter.foto_perfil}
                                                     alt={trip.sitter.nombre}
-                                                    className="w-8 h-8 rounded-full object-cover border border-emerald-200"
+                                                    className="w-8 h-8 rounded-full object-cover border border-emerald-200 group-hover:border-emerald-300"
                                                 />
                                             ) : (
                                                 <div className="w-8 h-8 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 text-xs font-bold">
@@ -94,10 +94,10 @@ export default function TripCard({ trip, petNames, onEdit, onDelete }: Props) {
                                                 </div>
                                             )}
                                             <div className="flex flex-col leading-none">
-                                                <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">Cuidado por</span>
-                                                <span className="text-xs font-bold text-slate-900">{trip.sitter.nombre} {trip.sitter.apellido_p?.charAt(0)}.</span>
+                                                <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider group-hover:text-emerald-700">Cuidado por</span>
+                                                <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">{trip.sitter.nombre} {trip.sitter.apellido_p?.charAt(0)}.</span>
                                             </div>
-                                        </div>
+                                        </Link>
                                     ) : trip.sitter_asignado ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
                                             <CheckCircle2 size={12} /> Sitter Asignado

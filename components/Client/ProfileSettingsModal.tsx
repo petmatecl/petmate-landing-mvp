@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { X, Save, User, Phone, FileText } from 'lucide-react';
+import AddressAutocomplete from '../AddressAutocomplete';
 
 type Props = {
     isOpen: boolean;
@@ -17,6 +18,12 @@ export default function ProfileSettingsModal({ isOpen, onClose, userId, onSaved 
         apellido_p: '',
         rut: '',
         telefono: '',
+        latitud: null as number | null,
+        longitud: null as number | null,
+        videos: [] as string[],
+        consentimiento_rrss: false,
+        comuna: '', // para inicializar autocomplete
+        region: ''
     });
 
     useEffect(() => {
@@ -29,7 +36,7 @@ export default function ProfileSettingsModal({ isOpen, onClose, userId, onSaved 
         setLoading(true);
         const { data, error } = await supabase
             .from('registro_petmate')
-            .select('nombre, apellido_p, rut, telefono')
+            .select('nombre, apellido_p, rut, telefono, latitud, longitud, videos, consentimiento_rrss, comuna, region')
             .eq('auth_user_id', userId)
             .single();
 
@@ -38,7 +45,13 @@ export default function ProfileSettingsModal({ isOpen, onClose, userId, onSaved 
                 nombre: data.nombre || '',
                 apellido_p: data.apellido_p || '',
                 rut: data.rut || '',
-                telefono: data.telefono || ''
+                telefono: data.telefono || '',
+                latitud: data.latitud,
+                longitud: data.longitud,
+                videos: data.videos || [],
+                consentimiento_rrss: data.consentimiento_rrss || false,
+                comuna: data.comuna || '',
+                region: data.region || ''
             });
         }
         setLoading(false);
@@ -59,7 +72,11 @@ export default function ProfileSettingsModal({ isOpen, onClose, userId, onSaved 
                     nombre: formData.nombre,
                     apellido_p: formData.apellido_p,
                     rut: formData.rut,
-                    telefono: formData.telefono
+                    telefono: formData.telefono,
+                    latitud: formData.latitud,
+                    longitud: formData.longitud,
+                    videos: formData.videos.filter(v => v.trim() !== ''),
+                    consentimiento_rrss: formData.consentimiento_rrss
                 })
                 .eq('auth_user_id', userId);
 
@@ -150,6 +167,88 @@ export default function ProfileSettingsModal({ isOpen, onClose, userId, onSaved 
                                     className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
                                     placeholder="+56 9 1234 5678"
                                 />
+                            </div>
+
+                            {/* Ubicación Sitter */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                                    Tu Ubicación (para el mapa)
+                                </label>
+                                <AddressAutocomplete
+                                    onSelect={(res) => {
+                                        if (res.lat && res.lon) {
+                                            setFormData(prev => ({ ...prev, latitud: parseFloat(res.lat), longitud: parseFloat(res.lon) }));
+                                        }
+                                    }}
+                                    initialValue={formData.comuna ? `${formData.comuna}, ${formData.region || ''}` : ''}
+                                    placeholder="Busca tu dirección o comuna..."
+                                    className="w-full"
+                                />
+                                {formData.latitud && (
+                                    <p className="text-[10px] text-emerald-600 mt-1">✓ Ubicación georeferenciada lista</p>
+                                )}
+                            </div>
+
+                            {/* Videos */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                                    Videos (Enlaces de YouTube o TikTok)
+                                </label>
+                                <div className="space-y-2">
+                                    {formData.videos.map((vid, idx) => (
+                                        <div key={idx} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={vid}
+                                                onChange={(e) => {
+                                                    const newVideos = [...formData.videos];
+                                                    newVideos[idx] = e.target.value;
+                                                    setFormData({ ...formData, videos: newVideos });
+                                                }}
+                                                className="w-full text-xs rounded-lg border-slate-200"
+                                                placeholder="https://youtube.com/watch?v=..."
+                                            />
+                                            {idx > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newVideos = formData.videos.filter((_, i) => i !== idx);
+                                                        setFormData({ ...formData, videos: newVideos });
+                                                    }}
+                                                    className="text-slate-400 hover:text-rose-500"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {formData.videos.length < 3 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, videos: [...formData.videos, ''] })}
+                                            className="text-xs text-emerald-600 font-bold hover:underline"
+                                        >
+                                            + Agregar otro video
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Consentimiento RRSS */}
+                            <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.consentimiento_rrss}
+                                        onChange={(e) => setFormData({ ...formData, consentimiento_rrss: e.target.checked })}
+                                        className="mt-1 w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500"
+                                    />
+                                    <div className="text-sm text-emerald-800">
+                                        <span className="font-bold block text-emerald-900">Permitir uso en Redes Sociales</span>
+                                        Al marcar esto, permites que Pawnecta destaque tu perfil y videos en nuestras redes sociales.
+                                        <span className="block text-xs mt-1 font-bold text-emerald-700">🚀 ¡Esto aumenta tus probabilidades de match!</span>
+                                    </div>
+                                </label>
                             </div>
                         </form>
                     )}

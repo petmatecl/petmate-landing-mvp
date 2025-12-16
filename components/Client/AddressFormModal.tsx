@@ -16,7 +16,9 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Form State
+    const [lat, setLat] = useState<number | null>(null);
+    const [lon, setLon] = useState<number | null>(null);
+
     const [nombre, setNombre] = useState("");
     const [direccionCompleta, setDireccionCompleta] = useState("");
     const [calle, setCalle] = useState("");
@@ -37,6 +39,8 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                 setRegion(initialData.region || "");
                 setNotas(initialData.notas || "");
                 setEsPrincipal(initialData.es_principal || false);
+                setLat(initialData.latitud || null);
+                setLon(initialData.longitud || null);
             } else {
                 // Reset form for "Add" mode
                 setNombre("Casa");
@@ -47,6 +51,8 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                 setRegion("");
                 setNotas("");
                 setEsPrincipal(false);
+                setLat(null);
+                setLon(null);
             }
             setError(null);
         }
@@ -73,6 +79,8 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                 region,
                 notas,
                 es_principal: esPrincipal,
+                latitud: lat,
+                longitud: lon,
             };
 
             if (esPrincipal) {
@@ -119,6 +127,12 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
         setNumero(address.house_number || "");
         setComuna(address.city || address.town || address.village || address.municipality || "");
         setRegion(address.state || "");
+
+        // Save coordinates
+        if (result.lat && result.lon) {
+            setLat(parseFloat(result.lat));
+            setLon(parseFloat(result.lon));
+        }
     };
 
     return (

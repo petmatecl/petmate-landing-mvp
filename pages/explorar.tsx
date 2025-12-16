@@ -56,9 +56,10 @@ export default function ExplorarPage() {
                 setIsAuthenticated(!!session);
 
                 // 2. Construir consulta
+                // 2. Construir consulta
                 let query = supabase
                     .from("registro_petmate")
-                    .select("id, nombre, apellido_p, rol, modalidad, acepta_perros, acepta_gatos")
+                    .select("id, nombre, apellido_p, rol, modalidad, acepta_perros, acepta_gatos, foto_perfil")
                     .eq("rol", "petmate");
 
                 // Filtro Perros/Gatos
@@ -146,7 +147,7 @@ export default function ExplorarPage() {
                                 reviews={3 + index * 2}
                                 verified={index % 2 === 0}
                                 comuna={["Providencia", "Las Condes", "Ñuñoa"][index % 3]}
-                                imageUrl={`https://images.pexels.com/photos/${[220453, 774909, 1222271, 733872, 91227][index % 5]
+                                imageUrl={(pm as any).foto_perfil || `https://images.pexels.com/photos/${[220453, 774909, 1222271, 733872, 91227][index % 5]
                                     }/pexels-photo-${[220453, 774909, 1222271, 733872, 91227][index % 5]
                                     }.jpeg?auto=compress&cs=tinysrgb&w=600`}
                                 isAuthenticated={isAuthenticated}
