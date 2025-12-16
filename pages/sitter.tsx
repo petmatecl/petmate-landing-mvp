@@ -1161,6 +1161,69 @@ export default function SitterDashboardPage() {
                                         </div>
                                         {expandedSections.profile && (
                                             <div>
+                                                <div className="mb-6 pt-2 pb-6 border-b border-slate-100">
+                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Preferencias & Servicios</h5>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
+                                                        </label>
+                                                    </div>
+
+                                                    {/* Tarifas */}
+                                                    {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
+                                                        <div className="mt-4 pt-4 border-t border-slate-100">
+                                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas Esperadas <span className="text-slate-400 font-normal normal-case">(CLP por día/paseo)</span></h5>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                {profileData.servicio_a_domicilio && (
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa A Domicilio</label>
+                                                                        <div className="relative">
+                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                disabled={activeSection !== 'profile'}
+                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                                value={profileData.tarifa_servicio_a_domicilio || ""}
+                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parseInt(e.target.value) || null })}
+                                                                                placeholder="Ej: 15000"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {profileData.servicio_en_casa && (
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa En mi Casa</label>
+                                                                        <div className="relative">
+                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                disabled={activeSection !== 'profile'}
+                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                                value={profileData.tarifa_servicio_en_casa || ""}
+                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parseInt(e.target.value) || null })}
+                                                                                placeholder="Ej: 20000"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
 
                                                     {/* Búsqueda de Dirección (Solo Edición) */}
@@ -1323,68 +1386,7 @@ export default function SitterDashboardPage() {
                                                     />
                                                 </div>
 
-                                                <div className="pt-2">
-                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Preferencias & Servicios</h5>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
-                                                        </label>
-                                                    </div>
 
-                                                    {/* Tarifas */}
-                                                    {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
-                                                        <div className="mt-4 pt-4 border-t border-slate-100">
-                                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas Esperadas <span className="text-slate-400 font-normal normal-case">(CLP por día/paseo)</span></h5>
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                                {profileData.servicio_a_domicilio && (
-                                                                    <div>
-                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa A Domicilio</label>
-                                                                        <div className="relative">
-                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                            <input
-                                                                                type="number"
-                                                                                disabled={activeSection !== 'profile'}
-                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                                value={profileData.tarifa_servicio_a_domicilio || ""}
-                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parseInt(e.target.value) || null })}
-                                                                                placeholder="Ej: 15000"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                                {profileData.servicio_en_casa && (
-                                                                    <div>
-                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa En mi Casa</label>
-                                                                        <div className="relative">
-                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                            <input
-                                                                                type="number"
-                                                                                disabled={activeSection !== 'profile'}
-                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                                value={profileData.tarifa_servicio_en_casa || ""}
-                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parseInt(e.target.value) || null })}
-                                                                                placeholder="Ej: 20000"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
 
                                                 {/* Videos */}
                                                 <div className="mt-4 pt-4 border-t border-slate-100">
