@@ -733,12 +733,12 @@ export default function SitterDashboardPage() {
                                     {/* BLOQUE 1: Datos de Contacto */}
                                     <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
                                         <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-1">
                                                 <button
                                                     onClick={() => toggleSection('contact')}
-                                                    className="p-1 hover:bg-slate-100 rounded transition-colors"
+                                                    className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                 >
-                                                    {expandedSections.contact ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                                                    {expandedSections.contact ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                 </button>
                                                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                                     <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><Mail className="w-4 h-4 text-slate-500" /></div>
@@ -892,12 +892,12 @@ export default function SitterDashboardPage() {
                                     {/* BLOQUE 2: Información Personal */}
                                     <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
                                         <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-1">
                                                 <button
                                                     onClick={() => toggleSection('personal')}
-                                                    className="p-1 hover:bg-slate-100 rounded transition-colors"
+                                                    className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                 >
-                                                    {expandedSections.personal ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                                                    {expandedSections.personal ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                 </button>
                                                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                                     <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><User className="w-4 h-4 text-slate-500" /></div>
@@ -1075,12 +1075,12 @@ export default function SitterDashboardPage() {
                                     <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
                                         <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-1">
                                                 <button
                                                     onClick={() => toggleSection('profile')}
-                                                    className="p-1 hover:bg-slate-100 rounded transition-colors"
+                                                    className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                 >
-                                                    {expandedSections.profile ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                                                    {expandedSections.profile ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                 </button>
                                                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                                     <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><PawPrint className="w-4 h-4 text-slate-500" /></div>
