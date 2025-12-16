@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import type { DateRange } from "react-day-picker";
 import DateRangeAirbnb from "../components/DateRangeAirbnb";
 import { supabase } from "../lib/supabaseClient";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 
 type Role = "cliente" | "petmate";
 
@@ -113,24 +114,9 @@ export default function RegisterPage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<Role>("cliente");
 
-  // Estado mascotas estilo Airbnb
-  const [pets, setPets] = React.useState<PetsValue>({ dogs: 0, cats: 0 });
+  // --- Estado Cliente (simplificado) ---
+  // (Campos extra eliminados)
 
-  // Selección automática de tab según ?role=...
-  React.useEffect(() => {
-    if (!router.isReady) return;
-    const r = String(router.query.role || "").toLowerCase();
-    if (["petmate", "sitter"].includes(r)) setTab("petmate");
-    else if (["cliente", "client", "owner"].includes(r)) setTab("cliente");
-  }, [router.isReady, router.query.role]);
-
-  // --- Estado Cliente ---
-  const [region, setRegion] = React.useState("RM");
-  const [comuna, setComuna] = React.useState("");
-  const [alojamiento, setAlojamiento] = React.useState<Alojamiento>("en_sitter");
-  const [tipoVivienda, setTipoVivienda] = React.useState<"casa" | "departamento" | "">("");
-  const [rango, setRango] = React.useState<DateRange | undefined>(undefined);
-  const [sinFechas, setSinFechas] = React.useState(false);
 
   // --- Estado PetMate (multi-selección) ---
   const [modalidadPetmate, setModalidadPetmate] = React.useState<ModalidadPetmateState>({
@@ -154,7 +140,6 @@ export default function RegisterPage() {
   const [showPetmatePass, setShowPetmatePass] = React.useState(false);
   const [showPetmatePassConfirm, setShowPetmatePassConfirm] = React.useState(false);
 
-  // Consentimiento
   const [consentCliente, setConsentCliente] = React.useState(false);
   const [consentPetmate, setConsentPetmate] = React.useState(false);
 
@@ -166,6 +151,8 @@ export default function RegisterPage() {
     "Providencia",
     "Ñuñoa",
   ];
+
+
 
   // ---------- SUBMIT CLIENTE ----------
   async function submitCliente(e: React.FormEvent<HTMLFormElement>) {
@@ -192,18 +179,6 @@ export default function RegisterPage() {
 
     if (!consentCliente) {
       setFormError("Debes aceptar los Términos y Condiciones y la Política de Privacidad.");
-      return;
-    }
-
-    if (!sinFechas && (!rango?.from || !rango?.to)) {
-      setFormError("Selecciona las fechas de inicio y fin o marca que aún no tienes claridad.");
-      return;
-    }
-    // ... continue code ...
-
-
-    if (alojamiento === "domicilio" && !tipoVivienda) {
-      setFormError("Selecciona el tipo de vivienda.");
       return;
     }
 
@@ -243,15 +218,15 @@ export default function RegisterPage() {
           rol: "cliente",
           nombre,
           apellido_p: apellidoPaterno,
-          apellido_m: apellidoMaterno,
+          apellido_m: apellidoMaterno, // Re-incorporado
           email: correo,
-          region,
-          comuna: alojamiento === "domicilio" ? comuna : null,
-          tipo_vivienda: alojamiento === "domicilio" ? (tipoVivienda || null) : null,
-          perros: pets.dogs,
-          gatos: pets.cats,
-          fecha_inicio: !sinFechas && rango?.from ? toDateString(rango.from) : null,
-          fecha_fin: !sinFechas && rango?.to ? toDateString(rango.to) : null,
+          region: "RM",
+          comuna: null,
+          tipo_vivienda: null,
+          perros: 0,
+          gatos: 0,
+          fecha_inicio: null,
+          fecha_fin: null,
         },
       ]);
 
@@ -309,32 +284,14 @@ export default function RegisterPage() {
       return;
     }
 
-    // validar que haya seleccionado al menos una modalidad
-    if (!modalidadPetmate.enCasa && !modalidadPetmate.aDomicilio) {
-      setFormError("Selecciona al menos una modalidad de cuidado.");
-      return;
-    }
-
-    // Validar ubicación si es "En mi casa"
-    if (modalidadPetmate.enCasa) {
-      if (!comunaPetmate) {
-        setFormError("Debes indicar tu comuna si vas a cuidar mascotas en tu casa.");
-        return;
-      }
-      if (!tipoViviendaPetmate) {
-        setFormError("Debes indicar tu tipo de vivienda si vas a cuidar mascotas en tu casa.");
-        return;
-      }
-    }
+    // (Validaciones de modalidad/ubicación eliminadas)
 
     setFormError(null);
 
-    const modalidadTexto =
-      modalidadPetmate.enCasa && modalidadPetmate.aDomicilio
-        ? "ambos"
-        : modalidadPetmate.enCasa
-          ? "en_casa_petmate"
-          : "a_domicilio";
+    // Default o nulo para modalidad
+    // const modalidadTexto = "en_casa_petmate"; // O lo que se decida como default, o null si la BD lo permite.
+    // Dejamos pasar null en el insert
+
 
     try {
       setSubmitting(true);
@@ -372,11 +329,11 @@ export default function RegisterPage() {
           apellido_p: apellidoPaterno,
           apellido_m: apellidoMaterno,
           email: correo,
-          region: modalidadPetmate.enCasa ? regionPetmate : null,
-          comuna: modalidadPetmate.enCasa ? comunaPetmate : null,
-          tipo_vivienda: modalidadPetmate.enCasa ? tipoViviendaPetmate : null,
-          max_mascotas_en_casa: modalidadPetmate.enCasa ? maxMascotasEnCasa : null,
-          max_mascotas_domicilio: modalidadPetmate.aDomicilio ? maxMascotasDomicilio : null,
+          region: "RM", // Default hardcoded
+          comuna: null,
+          tipo_vivienda: null,
+          max_mascotas_en_casa: null,
+          max_mascotas_domicilio: null,
           perros: null,
           gatos: null,
           fecha_inicio: null,
@@ -442,7 +399,7 @@ export default function RegisterPage() {
             {tab === "cliente" ? (
               <form className="grid" onSubmit={submitCliente}>
                 <h1>Regístrate como cliente</h1>
-                <p className="sub">Cuéntanos quién eres, cuántas mascotas tienes y cuándo viajas.</p>
+                <p className="sub">Crea tu cuenta para comenzar.</p>
 
                 {/* Datos básicos */}
                 <div className="cols">
@@ -520,148 +477,8 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Tipo de servicio / alojamiento */}
-                <div className="field">
-                  <label>¿Dónde se quedará tu mascota?</label>
-                  <div className="segmented segmented-lg">
-                    <button
-                      type="button"
-                      className={`option ${alojamiento === "en_sitter" ? "active" : ""}`}
-                      onClick={() => setAlojamiento("en_sitter")}
-                    >
-                      <span className="optionIcon">
-                        <HouseIcon />
-                      </span>
-                      <span className="text-left text-sm">
-                        En casa de un Sitter
-                        <span className="block text-xs font-normal text-gray-500">
-                          Tu mascota duerme en la casa del cuidador.
-                        </span>
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`option ${alojamiento === "domicilio" ? "active" : ""}`}
-                      onClick={() => setAlojamiento("domicilio")}
-                    >
-                      <span className="optionIcon">
-                        <BuildingIcon />
-                      </span>
-                      <span className="text-left text-sm">
-                        Pawnecta a domicilio
-                        <span className="block text-xs font-normal text-gray-500">
-                          El cuidador va a tu casa a cuidar a tu mascota.
-                        </span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Región + comuna (solo si aplica) */}
-                <div className="cols">
-                  <div className="field">
-                    <label>Región</label>
-                    <select
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
-                      required
-                      name="region"
-                    >
-                      <option value="RM">Región Metropolitana</option>
-                    </select>
-                  </div>
-
-                  {alojamiento === "domicilio" && (
-                    <div className="field">
-                      <label>Comuna</label>
-                      <select
-                        value={comuna}
-                        onChange={(e) => setComuna(e.target.value)}
-                        required
-                        name="comuna"
-                      >
-                        <option value="" disabled>
-                          Selecciona tu comuna
-                        </option>
-                        {comunasOriente.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                {/* Tipo de vivienda: solo relevante si es a domicilio */}
-                {alojamiento === "domicilio" && (
-                  <div className="field">
-                    <label>Tipo de vivienda</label>
-                    <div className="segmented">
-                      <button
-                        type="button"
-                        className={`option ${tipoVivienda === "casa" ? "active" : ""}`}
-                        onClick={() => setTipoVivienda("casa")}
-                      >
-                        <span className="optionIcon">
-                          <HouseIcon />
-                        </span>
-                        <span>Casa</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={`option ${tipoVivienda === "departamento" ? "active" : ""
-                          }`}
-                        onClick={() => setTipoVivienda("departamento")}
-                      >
-                        <span className="optionIcon">
-                          <BuildingIcon />
-                        </span>
-                        <span>Departamento</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Calendario + checkbox */}
-                <div className="field">
-                  <label>¿Cuándo viajas?</label>
-
-                  <label className="checkboxInline">
-                    <input
-                      type="checkbox"
-                      checked={sinFechas}
-                      onChange={() => setSinFechas((v) => !v)}
-                    />
-                    <span>Aún no tengo claridad de las fechas y quiero definirlas después.</span>
-                  </label>
-
-                  <div className={`calendarWrapper ${sinFechas ? "disabled" : ""}`}>
-                    <DateRangeAirbnb value={rango} onChange={setRango} minDate={new Date()} />
-                  </div>
-                </div>
-
-                {/* Mascotas estilo Airbnb */}
-                <div className="field">
-                  <PetsSelectorAirbnb value={pets} onChange={setPets} />
-                </div>
-
                 {formError && <p className="error">{formError}</p>}
 
-                {/* hidden (no crítico, pero lo dejamos) */}
-                <input type="hidden" name="alojamiento" value={alojamiento} />
-                <input type="hidden" name="tipo_vivienda" value={tipoVivienda} />
-                <input
-                  type="hidden"
-                  name="start_date"
-                  value={!sinFechas && rango?.from ? rango.from.toISOString() : ""}
-                />
-                <input
-                  type="hidden"
-                  name="end_date"
-                  value={!sinFechas && rango?.to ? rango.to.toISOString() : ""}
-                />
-                <input type="hidden" name="perros" value={String(pets.dogs)} />
                 <div className="field">
                   <label className="checkboxInline items-start gap-2">
                     <input
@@ -676,21 +493,6 @@ export default function RegisterPage() {
                     </span>
                   </label>
                 </div>
-
-                <input type="hidden" name="alojamiento" value={alojamiento} />
-                <input type="hidden" name="tipo_vivienda" value={tipoVivienda} />
-                <input
-                  type="hidden"
-                  name="start_date"
-                  value={!sinFechas && rango?.from ? rango.from.toISOString() : ""}
-                />
-                <input
-                  type="hidden"
-                  name="end_date"
-                  value={!sinFechas && rango?.to ? rango.to.toISOString() : ""}
-                />
-                <input type="hidden" name="perros" value={String(pets.dogs)} />
-                <input type="hidden" name="gatos" value={String(pets.cats)} />
 
                 <button
                   type="submit"
@@ -709,6 +511,10 @@ export default function RegisterPage() {
                 >
                   {submitting ? "Registrando..." : "Registrar"}
                 </button>
+
+                <div style={{ marginTop: 12 }}>
+                  <GoogleAuthButton role="cliente" text="Registrarse con Google" />
+                </div>
 
                 <p className="muted">
                   ¿Ya tienes cuenta?{" "}
@@ -795,154 +601,7 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Modalidad multi-selección */}
                 <div className="field">
-                  <label>¿Dónde puedes cuidar mascotas?</label>
-                  <div className="segmented">
-                    <button
-                      type="button"
-                      className={`option ${modalidadPetmate.enCasa ? "active" : ""}`}
-                      onClick={() =>
-                        setModalidadPetmate((m) => ({ ...m, enCasa: !m.enCasa }))
-                      }
-                    >
-                      <span className="optionIcon">
-                        <HouseIcon />
-                      </span>
-                      <span>En mi casa</span>
-                    </button>
-
-
-
-                    {/* Vivienda Sitter: solo si cuida en casa */}
-                    {modalidadPetmate.enCasa && (
-                      <div className="mt-4 w-full">
-                        <label className="mb-2 block text-sm font-medium text-slate-700">Tipo de vivienda</label>
-                        <div className="segmented">
-                          <button
-                            type="button"
-                            className={`option ${tipoViviendaPetmate === "casa" ? "active" : ""}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTipoViviendaPetmate("casa");
-                            }}
-                          >
-                            <span className="optionIcon"><HouseIcon /></span>
-                            <span>Casa</span>
-                          </button>
-                          <button
-                            type="button"
-                            className={`option ${tipoViviendaPetmate === "departamento" ? "active" : ""}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTipoViviendaPetmate("departamento");
-                            }}
-                          >
-                            <span className="optionIcon"><BuildingIcon /></span>
-                            <span>Depto</span>
-                          </button>
-                        </div>
-
-                        <div className="mt-4">
-                          <label className="mb-1 block text-sm font-medium text-slate-700">Mascotas máximas</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={20}
-                            value={maxMascotasEnCasa}
-                            onChange={(e) => setMaxMascotasEnCasa(Number(e.target.value))}
-                            onClick={(e) => e.stopPropagation()}
-                            placeholder="Ej. 2"
-                          />
-                        </div>
-
-                      </div>
-                    )}
-
-                    <button
-                      type="button"
-                      className={`option ${modalidadPetmate.aDomicilio ? "active" : ""}`}
-                      onClick={() =>
-                        setModalidadPetmate((m) => ({ ...m, aDomicilio: !m.aDomicilio }))
-                      }
-                    >
-                      <span className="optionIcon">
-                        <BuildingIcon />
-                      </span>
-                      <span>En domicilio del cliente</span>
-                    </button>
-
-                    {modalidadPetmate.aDomicilio && (
-                      <div className="mt-4 w-full">
-                        <label className="mb-1 block text-sm font-medium text-slate-700">Mascotas máximas a cuidar</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={20}
-                          value={maxMascotasDomicilio}
-                          onChange={(e) => setMaxMascotasDomicilio(Number(e.target.value))}
-                          onClick={(e) => e.stopPropagation()}
-                          placeholder="Ej. 2"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <p className="muted" style={{ fontSize: "0.8rem", marginTop: "4px" }}>
-                    Puedes seleccionar una o ambas opciones.
-                  </p>
-                </div>
-
-                {/* Ubicación PetMate (solo si es En mi casa) */}
-                {modalidadPetmate.enCasa && (
-                  <div className="cols">
-                    <div className="field">
-                      <label>Región</label>
-                      <select
-                        value={regionPetmate}
-                        onChange={(e) => setRegionPetmate(e.target.value)}
-                        required
-                        name="region_petmate"
-                      >
-                        <option value="RM">Región Metropolitana</option>
-                      </select>
-                    </div>
-                    <div className="field">
-                      <label>Comuna</label>
-                      <select
-                        value={comunaPetmate}
-                        onChange={(e) => setComunaPetmate(e.target.value)}
-                        required
-                        name="comuna_petmate"
-                      >
-                        <option value="" disabled>Selecciona tu comuna</option>
-                        {comunasOriente.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {formError && <p className="error">{formError}</p>}
-
-                {/* Campo oculto con valor de texto (por si lo usas luego) */}
-                <input
-                  type="hidden"
-                  name="modalidad_petmate"
-                  value={
-                    modalidadPetmate.enCasa && modalidadPetmate.aDomicilio
-                      ? "ambos"
-                      : modalidadPetmate.enCasa
-                        ? "en_casa_petmate"
-                        : modalidadPetmate.aDomicilio
-                          ? "a_domicilio"
-                          : ""
-                  }
-                />
-
-                <div className="field mt-4">
                   <label className="checkboxInline items-start gap-2">
                     <input
                       type="checkbox"
@@ -956,6 +615,9 @@ export default function RegisterPage() {
                     </span>
                   </label>
                 </div>
+
+                {formError && <p className="error">{formError}</p>}
+
 
                 <button
                   type="submit"
@@ -974,6 +636,10 @@ export default function RegisterPage() {
                 >
                   {submitting ? "Registrando..." : "Registrar"}
                 </button>
+
+                <div style={{ marginTop: 12 }}>
+                  <GoogleAuthButton role="petmate" text="Registrarse con Google" />
+                </div>
               </form>
             )}
           </div>

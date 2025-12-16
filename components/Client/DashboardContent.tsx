@@ -13,6 +13,7 @@ import ModalAlert from "../ModalAlert";
 import AddressCard, { Address } from "./AddressCard";
 import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
+import ApplicationsModal from "./ApplicationsModal"; // Import Modal
 import { useClientData } from "./ClientContext";
 import { Home, Hotel, Calendar, MapPin, Plus } from "lucide-react";
 import { useRouter } from "next/router";
@@ -45,6 +46,10 @@ export default function DashboardContent() {
     const [loadingTrips, setLoadingTrips] = useState(true);
     const [showTripForm, setShowTripForm] = useState(false);
     const [selectedAddressId, setSelectedAddressId] = useState<string>("");
+
+    // Applications Modal State
+    const [isAppsModalOpen, setIsAppsModalOpen] = useState(false);
+    const [selectedTripAppsId, setSelectedTripAppsId] = useState<string | null>(null);
 
     useEffect(() => {
         if (userId) {
@@ -83,10 +88,31 @@ export default function DashboardContent() {
                 }
             }
 
+            // Fetch applications count for these trips
+            const tripIds = data.map((t: any) => t.id);
+            let appCountsMap: any = {};
+
+            if (tripIds.length > 0) {
+                const { data: apps } = await supabase
+                    .from("postulaciones")
+                    .select("viaje_id, estado")
+                    .in("viaje_id", tripIds); // Fetch all apps for these trips
+
+                if (apps) {
+                    apps.forEach((app: any) => {
+                        if (!appCountsMap[app.viaje_id]) appCountsMap[app.viaje_id] = 0;
+                        if (app.estado === 'pendiente') { // Only count pending? Or all? Let's count pending for badge
+                            appCountsMap[app.viaje_id]++;
+                        }
+                    });
+                }
+            }
+
             const tripsWithStatus = data.map((t: any) => ({
                 ...t,
                 sitter_asignado: !!t.sitter_id,
-                sitter: t.sitter_id ? sittersMap[t.sitter_id] : null
+                sitter: t.sitter_id ? sittersMap[t.sitter_id] : null,
+                postulaciones_count: appCountsMap[t.id] || 0
             }));
 
             setTrips(tripsWithStatus as Trip[]);
@@ -240,6 +266,17 @@ export default function DashboardContent() {
         }
     };
 
+    // --- New Application Handlers ---
+    const handleViewApplications = (trip: Trip) => {
+        setSelectedTripAppsId(trip.id);
+        setIsAppsModalOpen(true);
+    };
+
+    const handleAppAccepted = () => {
+        if (userId) fetchTrips(userId); // Refresh trips to show new status and assigned sitter
+        showAlert("¡Sitter Aceptado!", "Has reservado tu servicio con éxito. ¡Ponte en contacto con tu sitter!", "success");
+    };
+
     const handleSaveTrip = async () => {
         if (!userId) return;
 
@@ -261,7 +298,7 @@ export default function DashboardContent() {
                 perros: mascotas.dogs,
                 gatos: mascotas.cats,
                 mascotas_ids: selectedPetIds, // Ensure this matches DB column types
-                estado: 'borrador'
+                estado: 'publicado' // Changed from borrador to publicado default for simplified flow
             };
 
             if (servicio === 'domicilio') {
@@ -286,7 +323,7 @@ export default function DashboardContent() {
                 setSelectedPetIds([]);
                 setMascotas({ dogs: 0, cats: 0 });
                 setShowTripForm(false);
-                showAlert('¡Viaje Registrado!', 'Tu viaje ha sido creado con éxito.', 'success');
+                showAlert('¡Solicitud Publicada!', 'Los sitters recibirán tu solicitud y podrás ver sus postulaciones aquí.', 'success'); // Updated message
             }
 
         } catch (e) {
@@ -324,6 +361,7 @@ export default function DashboardContent() {
                                 trip={trip}
                                 onEdit={handleEditTripNew}
                                 onDelete={handleDeleteTrip}
+                                onViewApplications={handleViewApplications}
                                 petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
                             />
                         ))}
@@ -474,7 +512,7 @@ export default function DashboardContent() {
                                     onClick={handleSaveTrip}
                                     className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95"
                                 >
-                                    {loadingTrips ? 'Guardando...' : 'Guardar Viaje'} <span className="text-slate-400 text-sm font-normal">({rango?.from ? format(rango.from, 'd MMM', { locale: es }) : '...'})</span> ✈️
+                                    {loadingTrips ? 'Guardando...' : 'Publicar Solicitud'} <span className="text-slate-400 text-sm font-normal">({rango?.from ? format(rango.from, 'd MMM', { locale: es }) : '...'})</span> ✈️
                                 </button>
                             </div>
                         </div>
@@ -521,6 +559,16 @@ export default function DashboardContent() {
                     onSaved={handleAddressSaved}
                     initialData={editingAddress}
                     userId={userId}
+                />
+            )}
+
+            {/* Modal Postulaciones */}
+            {userId && selectedTripAppsId && (
+                <ApplicationsModal
+                    isOpen={isAppsModalOpen}
+                    onClose={() => setIsAppsModalOpen(false)}
+                    tripId={selectedTripAppsId}
+                    onAccepted={handleAppAccepted}
                 />
             )}
 

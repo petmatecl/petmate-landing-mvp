@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2 } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users } from "lucide-react";
 
 export type Trip = {
     id: string;
@@ -22,6 +22,8 @@ export type Trip = {
         apellido_p?: string;
         foto_perfil?: string;
     };
+    // New prop for marketplace logic
+    postulaciones_count?: number;
 };
 
 type Props = {
@@ -29,14 +31,23 @@ type Props = {
     petNames?: string;
     onEdit: (trip: Trip) => void;
     onDelete: (id: string) => void;
+    onViewApplications?: (trip: Trip) => void;
 };
 
-export default function TripCard({ trip, petNames, onEdit, onDelete }: Props) {
+export default function TripCard({ trip, petNames, onEdit, onDelete, onViewApplications }: Props) {
     const startDate = new Date(trip.fecha_inicio);
     const endDate = trip.fecha_fin ? new Date(trip.fecha_fin) : null;
+    const hasApplications = (trip.postulaciones_count || 0) > 0;
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow relative overflow-hidden">
+            {/* Application Badge */}
+            {!trip.sitter_asignado && hasApplications && (
+                <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10 animate-pulse">
+                    {trip.postulaciones_count} {trip.postulaciones_count === 1 ? 'Postulación' : 'Postulaciones'}
+                </div>
+            )}
+
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4 flex-grow">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 ${trip.sitter_asignado ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
@@ -68,48 +79,47 @@ export default function TripCard({ trip, petNames, onEdit, onDelete }: Props) {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            {/* Botón Buscar Sitter - Solo si no hay asignado y no está cancelado/completado */}
-                            {!trip.sitter_asignado && trip.estado !== 'cancelado' && trip.estado !== 'completado' && (
-                                <Link
-                                    href={`/explorar?service=${trip.servicio === 'domicilio' ? 'a_domicilio' : 'en_casa_petmate'}&type=${(trip.perros > 0 && trip.gatos > 0) ? 'both' : (trip.perros > 0 ? 'dogs' : (trip.gatos > 0 ? 'cats' : 'any'))}`}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm"
-                                >
-                                    🔍 Buscar Sitter
-                                </Link>
-                            )}
+                            {/* Logic for buttons:
+                                1. If assigned -> Show Sitter
+                                2. If has applications -> Show "Ver Postulantes"
+                                3. Else -> Show "Buscando..." status
+                            */}
 
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-2">
-                                    {trip.sitter && trip.sitter_asignado ? (
-                                        <Link href={`/sitter/${trip.sitter.id}`} className="flex items-center gap-3 bg-emerald-50 rounded-full pl-1 pr-4 py-1 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group">
-                                            {trip.sitter.foto_perfil ? (
-                                                <img
-                                                    src={trip.sitter.foto_perfil}
-                                                    alt={trip.sitter.nombre}
-                                                    className="w-8 h-8 rounded-full object-cover border border-emerald-200 group-hover:border-emerald-300"
-                                                />
-                                            ) : (
-                                                <div className="w-8 h-8 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 text-xs font-bold">
-                                                    {trip.sitter.nombre.charAt(0)}
-                                                </div>
-                                            )}
-                                            <div className="flex flex-col leading-none">
-                                                <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider group-hover:text-emerald-700">Cuidado por</span>
-                                                <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">{trip.sitter.nombre} {trip.sitter.apellido_p?.charAt(0)}.</span>
-                                            </div>
-                                        </Link>
-                                    ) : trip.sitter_asignado ? (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
-                                            <CheckCircle2 size={12} /> Sitter Asignado
-                                        </span>
+                            {trip.sitter_asignado && trip.sitter ? (
+                                <Link href={`/sitter/${trip.sitter.id}`} className="flex items-center gap-3 bg-emerald-50 rounded-full pl-1 pr-4 py-1 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group">
+                                    {trip.sitter.foto_perfil ? (
+                                        <img
+                                            src={trip.sitter.foto_perfil}
+                                            alt={trip.sitter.nombre}
+                                            className="w-8 h-8 rounded-full object-cover border border-emerald-200 group-hover:border-emerald-300"
+                                        />
                                     ) : (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
-                                            Buscando Sitter (Publicado)
-                                        </span>
+                                        <div className="w-8 h-8 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 text-xs font-bold">
+                                            {trip.sitter.nombre.charAt(0)}
+                                        </div>
                                     )}
-                                </div>
-                            </div>
+                                    <div className="flex flex-col leading-none">
+                                        <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider group-hover:text-emerald-700">Cuidado por</span>
+                                        <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">{trip.sitter.nombre} {trip.sitter.apellido_p?.charAt(0)}.</span>
+                                    </div>
+                                </Link>
+                            ) : hasApplications ? (
+                                <button
+                                    onClick={() => onViewApplications && onViewApplications(trip)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-colors shadow-sm animate-pulse"
+                                >
+                                    <Users size={14} /> Ver {trip.postulaciones_count} Postulantes
+                                </button>
+                            ) : trip.estado === 'publicado' || trip.estado === 'borrador' ? ( // Treat borrador as published for now in UI flow or handle specifically
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                                    Publicado (Esperando respuestas...)
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 text-slate-500 text-xs font-bold border border-slate-200">
+                                    {trip.estado}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

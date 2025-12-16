@@ -4,6 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 
 type Role = "client" | "petmate";
 
@@ -149,7 +150,7 @@ export default function LoginPage() {
             <button
               role="tab"
               aria-selected={tab === "client"}
-              className={`tab ${tab === "client" ? "active" : ""}`}
+              className={`tab ${tab === "client" ? "active" : ""} `}
               onClick={() => setTab("client")}
               type="button"
             >
@@ -158,7 +159,7 @@ export default function LoginPage() {
             <button
               role="tab"
               aria-selected={tab === "petmate"}
-              className={`tab ${tab === "petmate" ? "active" : ""}`}
+              className={`tab ${tab === "petmate" ? "active" : ""} `}
               onClick={() => setTab("petmate")}
               type="button"
             >
@@ -247,6 +248,10 @@ export default function LoginPage() {
                 {loading ? "Ingresando…" : "Iniciar sesión"}
               </button>
 
+              <div style={{ marginTop: 12 }}>
+                <GoogleAuthButton role={tab} />
+              </div>
+
               {/* Links */}
               <div className="links">
                 <Link
@@ -262,7 +267,7 @@ export default function LoginPage() {
             </form>
           </div>
         </div>
-      </main>
+      </main >
 
       <style jsx>{`
         :root {
@@ -355,7 +360,7 @@ export default function LoginPage() {
           border-radius: 10px;
           background: #fff;
         }
-        input::placeholder {
+        input:placeholder {
           color: #9ca3af;
         }
         input:focus {

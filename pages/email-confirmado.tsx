@@ -1,7 +1,30 @@
+import React, { useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { supabase } from "../lib/supabaseClient";
 
 export default function EmailConfirmadoPage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        // Escuchar cambios de estado (login con Google dispara SIGNED_IN)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' || session) {
+                const pendingRole = window.localStorage.getItem('pm_auth_role_pending');
+                if (pendingRole === 'petmate') {
+                    router.replace("/sitter");
+                } else {
+                    router.replace("/cliente");
+                }
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [router]);
+
     return (
         <>
             <Head>
@@ -18,11 +41,11 @@ export default function EmailConfirmadoPage() {
                     </div>
 
                     <h1 className="text-3xl font-extrabold text-gray-900 m-0 mb-2">
-                        ¡Correo confirmado!
+                        ¡Sesión iniciada!
                     </h1>
 
                     <p className="text-lg text-gray-600 mb-6">
-                        Tu cuenta ha sido activada correctamente. Ya eres parte oficial de la comunidad PetMate.
+                        Te estamos redirigiendo a tu cuenta...
                     </p>
 
                     <div className="space-y-3">
@@ -30,14 +53,7 @@ export default function EmailConfirmadoPage() {
                             href="/login"
                             className="inline-flex items-center justify-center h-14 rounded-xl font-bold bg-emerald-600 text-white w-full text-lg shadow-emerald-200 shadow-lg hover:bg-emerald-700 hover:scale-[1.02] transition-all"
                         >
-                            Iniciar sesión
-                        </Link>
-
-                        <Link
-                            href="/"
-                            className="inline-flex items-center justify-center h-12 rounded-xl font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 w-full transition-colors"
-                        >
-                            Volver al inicio
+                            Ir a Iniciar Sesión
                         </Link>
                     </div>
                 </div>
