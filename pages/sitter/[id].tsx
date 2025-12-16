@@ -43,9 +43,14 @@ interface PublicProfileProps {
     error?: string;
 }
 
+import BookingModal from "../../components/Sitter/BookingModal";
+
+// ... existing imports ...
+
 export default function PublicProfilePage({ petmate, error }: PublicProfileProps) {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [loadingReviews, setLoadingReviews] = useState(true);
 
     useEffect(() => {
@@ -189,8 +194,18 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
                                     {/* Aquí podríamos agregar más servicios si existieran en la data */}
                                 </div>
 
-                                <button className="w-full mt-2 btn-primary py-3 shadow-lg shadow-emerald-100 hover:shadow-xl transition-shadow">
-                                    Contactar
+                                <button
+                                    onClick={() => {
+                                        if (currentUserId) {
+                                            setIsBookingModalOpen(true);
+                                        } else {
+                                            // Redirigir a login si no está logueado
+                                            window.location.href = `/login?redirect=/sitter/${petmate.id}`;
+                                        }
+                                    }}
+                                    className="w-full mt-2 btn-primary py-3 shadow-lg shadow-emerald-100 hover:shadow-xl transition-shadow"
+                                >
+                                    Solicitar Reserva
                                 </button>
                                 <p className="text-xs text-slate-400 mt-2 text-center">Sin compromiso de reserva</p>
 
@@ -313,6 +328,14 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
                     sitterId={petmate.id}
                     onReviewSubmitted={fetchReviews}
                 />
+
+                <BookingModal
+                    isOpen={isBookingModalOpen}
+                    onClose={() => setIsBookingModalOpen(false)}
+                    sitterAuthId={petmate.auth_user_id}
+                    sitterName={displayName || "el sitter"}
+                    onSuccess={() => {/* Opcional: Redirigir o mostrar toast */ }}
+                />
             </div >
         </>
     );
@@ -320,14 +343,38 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
 
 export async function getServerSideProps(context: any) {
     const { id } = context.params;
+    const soupUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    // Usar Service Role Key para hacer bypass de RLS y poder obtener el perfil aunque no esté aprobado.
-    // La seguridad de visualización se manejará en el componente (Client Side) o aqui si tuvieramos cookies.
-    // Como no tenemos cookies fáciles aquí, pasamos el dato y el componente decide si mostrarlo.
-    const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    if (!soupUrl) {
+        return { props: { petmate: null, error: "Configuration Error: Missing API URL" } };
+    }
+
+    let supabaseAdmin;
+
+    // Intentar usar Service Key para bypass RLS (necesario para "Vista Previa" de dueños)
+    if (serviceKey) {
+        try {
+            supabaseAdmin = createClient(soupUrl, serviceKey);
+        } catch (e) {
+            console.error("Error creating Service Client:", e);
+        }
+    }
+
+    // Fallback: Usar Anon Key (solo verá perfiles públicos/aprobados)
+    if (!supabaseAdmin && anonKey) {
+        console.warn("Service Role Key missing or invalid. Falling back to Anon Key.");
+        try {
+            supabaseAdmin = createClient(soupUrl, anonKey);
+        } catch (e) {
+            console.error("Error creating Anon Client:", e);
+        }
+    }
+
+    if (!supabaseAdmin) {
+        return { props: { petmate: null, error: "Configuration Error: No valid Supabase Key found" } };
+    }
 
     const { data, error } = await supabaseAdmin
         .from("registro_petmate")
@@ -339,7 +386,7 @@ export async function getServerSideProps(context: any) {
         return {
             props: {
                 petmate: null,
-                error: "Not found"
+                error: error?.message || "Not found"
             }
         };
     }

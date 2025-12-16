@@ -3,27 +3,51 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import SitterDetailModal from "../components/Admin/SitterDetailModal";
+import { ConfirmationModal } from "../components/Shared/ConfirmationModal";
 
 export default function AdminDashboard() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<"cliente" | "petmate">("petmate");
+    const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
     const [users, setUsers] = useState<any[]>([]);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name_asc" | "name_desc">("newest");
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
+    // Confirmation Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => { },
+        isDestructive: false,
+        confirmText: "Confirmar"
+    });
+
+    // Stats State
+    const [stats, setStats] = useState({
+        clientes: 0,
+        sitters: 0,
+        solicitudes: 0
+    });
 
     // Modal State
     const [selectedSitter, setSelectedSitter] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    useEffect(() => {
-        checkAuth();
-    }, []);
+    // ... (rest of state)
 
+    // Reset pagination when tab or search changes
     useEffect(() => {
-        fetchUsers();
-    }, [activeTab]);
+        setCurrentPage(1);
+    }, [activeTab, searchTerm]);
+
+    // ... (fetch logic remains)
 
     // --- CONFIGURACIÓN: Lista de administradores ---
-    const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com"];
+    const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
 
     const checkAuth = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -42,13 +66,41 @@ export default function AdminDashboard() {
 
         setLoading(false);
         fetchUsers();
+        fetchStats();
+    };
+
+    const fetchStats = async () => {
+        // 1. Clientes
+        const { count: clientesCount } = await supabase
+            .from("registro_petmate")
+            .select("*", { count: "exact", head: true })
+            .eq("rol", "cliente");
+
+        // 2. Sitters
+        const { count: sittersCount } = await supabase
+            .from("registro_petmate")
+            .select("*", { count: "exact", head: true })
+            .eq("rol", "petmate");
+
+        // 3. Solicitudes (Viajes en borrador, publicado o reservado)
+        const { count: solicitudesCount } = await supabase
+            .from("viajes")
+            .select("*", { count: "exact", head: true })
+            .neq("estado", "cancelado")
+            .neq("estado", "completado");
+
+        setStats({
+            clientes: clientesCount || 0,
+            sitters: sittersCount || 0,
+            solicitudes: solicitudesCount || 0
+        });
     };
 
     const fetchUsers = async () => {
         const { data, error } = await supabase
             .from("registro_petmate")
             .select("*")
-            .eq("tipo_usuario", activeTab)
+            .eq("rol", activeTab)
             .order("created_at", { ascending: false });
 
         if (error) {
@@ -58,9 +110,48 @@ export default function AdminDashboard() {
         }
     };
 
-    const toggleApproval = async (userId: string, currentStatus: boolean) => {
-        if (!confirm(`¿Estás seguro de cambiar el estado a ${currentStatus ? "Pendiente" : "Aprobado"}?`)) return;
+    const fetchViajes = async () => {
+        // Fetch raw trips
+        const { data: viajes, error } = await supabase
+            .from("viajes")
+            .select("*")
+            .order("created_at", { ascending: false });
 
+        if (error) {
+            console.error("Error fetching viajes:", error);
+            setUsers([]);
+            return;
+        }
+
+        // Consultar perfiles de usuarios para enriquecer la data
+        // Obtenemos los IDs únicos de usuarios involucrados
+        const userIds = Array.from(new Set(viajes.map(v => v.user_id).concat(viajes.map(v => v.sitter_id).filter(Boolean))));
+
+        let profilesMap: any = {};
+        if (userIds.length > 0) {
+            const { data: profiles } = await supabase
+                .from("registro_petmate")
+                .select("auth_user_id, nombre, apellido_p, email, telefono")
+                .in("auth_user_id", userIds);
+
+            if (profiles) {
+                profiles.forEach(p => {
+                    profilesMap[p.auth_user_id] = p;
+                });
+            }
+        }
+
+        // Combinar data
+        const enrichedViajes = viajes.map(v => ({
+            ...v,
+            cliente: (v.user_id && profilesMap[v.user_id]) || { nombre: "Desconocido", email: "N/A" },
+            sitter: (v.sitter_id && profilesMap[v.sitter_id]) || null
+        }));
+
+        setUsers(enrichedViajes);
+    };
+
+    const executeApproval = async (userId: string, currentStatus: boolean) => {
         const { error } = await supabase
             .from("registro_petmate")
             .update({ aprobado: !currentStatus })
@@ -70,14 +161,23 @@ export default function AdminDashboard() {
             alert("Error al actualizar estado");
             console.error(error);
         } else {
-            // Recargar lista y cerrar modal si está abierto pero no es necesario cerrarlo obligatoriamente
             fetchUsers();
-
-            // Si estamos en el modal, actualizamos el objeto local para reflejar el cambio inmediato
             if (selectedSitter && selectedSitter.id === userId) {
                 setSelectedSitter((prev: any) => ({ ...prev, aprobado: !currentStatus }));
             }
         }
+        setConfirmModal(prev => ({ ...prev, isOpen: false })); // Close modal after action
+    };
+
+    const toggleApproval = (userId: string, currentStatus: boolean) => {
+        setConfirmModal({
+            isOpen: true,
+            title: currentStatus ? "Revocar Aprobación" : "Aprobar Usuario",
+            message: `¿Estás seguro de que deseas ${currentStatus ? "revocar la aprobación de" : "aprobar a"} este usuario? Esta acción afectará su visibilidad en la plataforma.`,
+            confirmText: currentStatus ? "Sí, Revocar" : "Sí, Aprobar",
+            isDestructive: currentStatus, // Red for revoking
+            onConfirm: () => executeApproval(userId, currentStatus)
+        });
     };
 
     const handleViewDetail = (user: any) => {
@@ -85,172 +185,391 @@ export default function AdminDashboard() {
         setIsModalOpen(true);
     };
 
-    if (loading) return null;
+    const handleViewDocument = async (path: string) => {
+        try {
+            const { data, error } = await supabase.storage
+                .from("documents")
+                .createSignedUrl(path, 60);
+
+            if (error) throw error;
+            if (data?.signedUrl) {
+                window.open(data.signedUrl, "_blank");
+            }
+        } catch (err) {
+            console.error("Error opening document:", err);
+            alert("No se pudo abrir el documento. Verifica permisos.");
+        }
+    };
+
+    useEffect(() => {
+        checkAuth();
+    }, [activeTab]); // Re-fetch when tab changes
+
+    // --- FILTRADO Y ORDENAMIENTO ---
+    const filteredItems = users.filter(item => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+
+        // Search logic depends on tab
+        if (activeTab === "solicitudes") {
+            const clientName = item.cliente?.nombre?.toLowerCase() || "";
+            const clientEmail = item.cliente?.email?.toLowerCase() || "";
+            const sitterName = item.sitter?.nombre?.toLowerCase() || "";
+            const idStr = item.id?.toLowerCase() || "";
+
+            return clientName.includes(term) || clientEmail.includes(term) || sitterName.includes(term) || idStr.includes(term);
+        } else {
+            // Clients / Sitters
+            const name = item.nombre ? item.nombre.toLowerCase() : "";
+            const lastName = item.apellido_p ? item.apellido_p.toLowerCase() : "";
+            const email = item.email ? item.email.toLowerCase() : "";
+            const rut = item.rut ? item.rut.toLowerCase() : "";
+            const idStr = item.id ? item.id.toLowerCase() : "";
+
+            return name.includes(term) || lastName.includes(term) || email.includes(term) || rut.includes(term) || idStr.includes(term);
+        }
+    }).sort((a, b) => {
+        if (sortOrder === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        if (sortOrder === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+
+        const nameA = activeTab === "solicitudes"
+            ? (a.cliente?.nombre || "")
+            : (a.nombre || "");
+        const nameB = activeTab === "solicitudes"
+            ? (b.cliente?.nombre || "")
+            : (b.nombre || "");
+
+        if (sortOrder === "name_asc") return nameA.localeCompare(nameB);
+        if (sortOrder === "name_desc") return nameB.localeCompare(nameA);
+        return 0;
+    });
+
+    // --- PAGINACIÓN ---
+    const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+    const paginatedItems = filteredItems.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     return (
         <div className="min-h-screen bg-slate-50 py-10">
             <Head>
-                <title>Panel de Administración | PetMate</title>
+                <title>Panel de Administración | Pawnecta</title>
             </Head>
 
             <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">Administración</h1>
-                        <p className="text-slate-500 mt-1">Gestión de usuarios registrados</p>
-                    </div>
-                    <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200">
-                        <button
-                            onClick={() => setActiveTab("petmate")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "petmate"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "text-slate-600 hover:bg-slate-50"
-                                }`}
-                        >
-                            PetMates
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("cliente")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "cliente"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "text-slate-600 hover:bg-slate-50"
-                                }`}
-                        >
-                            Clientes
-                        </button>
+                        <p className="text-slate-500 mt-1">Gestión de usuarios y solicitudes</p>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                {/* RESUMEN - (Mantener igual) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Clientes Registrados</p>
+                        <p className="text-4xl font-bold text-slate-900 mt-2">{stats.clientes}</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Sitters Registrados</p>
+                        <p className="text-4xl font-bold text-emerald-600 mt-2">{stats.sitters}</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Solicitudes en Curso</p>
+                        <p className="text-4xl font-bold text-indigo-600 mt-2">{stats.solicitudes}</p>
+                        <p className="text-xs text-slate-400 mt-1">Viajes activos</p>
+                    </div>
+                </div>
+
+                {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+
+                    {/* Tabs */}
+                    <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start">
+                        <button
+                            onClick={() => setActiveTab("petmate")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                        >
+                            Sitters
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("cliente")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                        >
+                            Clientes
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("solicitudes")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                        >
+                            Solicitudes
+                        </button>
+                    </div>
+
+                    {/* Buscador y Filtros */}
+                    <div className="flex flex-1 md:justify-end gap-3 w-full md:w-auto">
+                        <div className="relative flex-1 md:flex-none md:w-64">
+                            <input
+                                type="text"
+                                placeholder="Buscar por nombre, email o RUT..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                            />
+                            <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                        </div>
+
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value as any)}
+                            className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
+                        >
+                            <option value="newest">Más recientes</option>
+                            <option value="oldest">Más antiguos</option>
+                            <option value="name_asc">Nombre A-Z</option>
+                            <option value="name_desc">Nombre Z-A</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* TABLA DE RESULTADOS */}
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-slate-600">
                             <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
                                 <tr>
-                                    <th className="px-6 py-4">Usuario</th>
-                                    <th className="px-6 py-4">Contacto</th>
-                                    <th className="px-6 py-4">Ubicación</th>
-                                    {activeTab === "petmate" && <th className="px-6 py-4">Documentos & Estado</th>}
-                                    <th className="px-6 py-4">Registro</th>
-                                    {activeTab === "petmate" && <th className="px-6 py-4 text-right">Acciones</th>}
+                                    {activeTab === "solicitudes" ? (
+                                        <>
+                                            <th className="px-6 py-4">ID / Estado</th>
+                                            <th className="px-6 py-4">Cliente</th>
+                                            <th className="px-6 py-4">Sitter Asignado</th>
+                                            <th className="px-6 py-4">Detalles</th>
+                                            <th className="px-6 py-4">Fechas</th>
+                                            <th className="px-6 py-4 text-right">Acciones</th>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <th className="px-6 py-4">Usuario</th>
+                                            <th className="px-6 py-4">Contacto & RUT</th>
+                                            <th className="px-6 py-4">Ubicación</th>
+                                            <th className="px-6 py-4">Documentos & Estado</th>
+                                            <th className="px-6 py-4">Registro</th>
+                                            <th className="px-6 py-4 text-right">Acciones</th>
+                                        </>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {users.length === 0 ? (
+                                {paginatedItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={activeTab === "petmate" ? 6 : 4} className="px-6 py-12 text-center text-slate-400">
-                                            No hay usuarios registrados en esta categoría aún.
+                                        <td colSpan={6} className="px-6 py-12 text-center">
+                                            <div className="text-slate-400 mb-2">No se encontraron resultados</div>
+                                            {searchTerm && <button onClick={() => setSearchTerm("")} className="text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
                                         </td>
                                     </tr>
                                 ) : (
-                                    users.map((user) => (
-                                        <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-slate-900 w-1/4">
-                                                <div className="flex items-center gap-3">
-                                                    {user.foto_perfil ? (
-                                                        <img src={user.foto_perfil} alt="Perfil" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
-                                                    ) : (
-                                                        <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs uppercase">
-                                                            {user.nombre?.[0] || "?"}
+                                    paginatedItems.map((item) => {
+                                        if (activeTab === "solicitudes") {
+                                            // Render fila de solicitud
+                                            return (
+                                                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-mono text-xs text-slate-400 mb-1">{(item.id || "").slice(0, 8)}</div>
+                                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold 
+                                                            ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
+                                                                item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
+                                                                    item.estado === 'reservado' ? 'bg-emerald-100 text-emerald-700' :
+                                                                        'bg-slate-100 text-slate-700'}`}>
+                                                            {(item.estado || "Desconocido").toUpperCase()}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.cliente?.nombre || 'Desc.'} {item.cliente?.apellido_p || ''}</div>
+                                                        <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.cliente?.email || 'N/A'}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {item.sitter ? (
+                                                            <div>
+                                                                <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.sitter.nombre} {item.sitter.apellido_p}</div>
+                                                                <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.sitter.email}</div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-slate-400 italic">-- Pendiente --</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs">
+                                                        <div><span className="font-semibold">{item.servicio || "N/A"}</span></div>
+                                                        <div className="text-slate-500">
+                                                            {item.perros > 0 && <span>🐶 {item.perros} </span>}
+                                                            {item.gatos > 0 && <span>🐱 {item.gatos} </span>}
                                                         </div>
-                                                    )}
-                                                    <div>
-                                                        <div className="font-bold">{user.nombre} {user.apellido}</div>
-                                                        <span className="block text-xs font-normal text-slate-400">ID: {user.id.slice(0, 8)}...</span>
-                                                        {activeTab === "petmate" && (
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs">
+                                                        <div>Desde: {item.fecha_inicio || "-"}</div>
+                                                        <div>Hasta: {item.fecha_fin || "-"}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        {item.estado !== 'cancelado' && item.estado !== 'completado' && (
                                                             <button
-                                                                onClick={() => handleViewDetail(user)}
-                                                                className="text-xs text-emerald-600 hover:underline mt-0.5 font-medium"
+                                                                onClick={() => {
+                                                                    if (confirm("¿Estás seguro de cancelar esta solicitud?")) {
+                                                                        alert("Funcionalidad de cancelar en construcción");
+                                                                    }
+                                                                }}
+                                                                className="text-xs text-red-600 hover:text-red-800 font-medium"
                                                             >
-                                                                Ver perfil completo
+                                                                Cancelar
                                                             </button>
                                                         )}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 w-1/4">
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-2 text-xs">
-                                                        <span className="text-emerald-500">✉</span> {user.email}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs">
-                                                        <span className="text-emerald-500">📞</span> {user.telefono || "N/A"}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 w-1/4">
-                                                {user.direccion_completa ? (
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]" title={user.direccion_completa}>
-                                                            {user.calle ? `${user.calle} ${user.numero}` : user.direccion_completa}
-                                                        </span>
-                                                        <span className="text-xs text-slate-500">{user.comuna}, {user.region}</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
-                                                        {user.comuna || "Sin comuna"}
-                                                    </span>
-                                                )}
-                                            </td>
-                                            {activeTab === "petmate" && (
-                                                <td className="px-6 py-4">
-                                                    <div className="space-y-2">
-                                                        {user.certificado_antecedentes ? (
-                                                            <a href={`https://vujyabfrlqjnjrccylmp.supabase.co/storage/v1/object/public/documents/${user.certificado_antecedentes}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                                                                📄 Ver Antecedentes
-                                                            </a>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
+
+                                        // Render fila de usuario (cliente/sitter)
+                                        return (
+                                            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 font-medium text-slate-900 w-1/4">
+                                                    <div className="flex items-center gap-3">
+                                                        {item.foto_perfil ? (
+                                                            <img src={item.foto_perfil} alt="Perfil" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
                                                         ) : (
-                                                            <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
+                                                            <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs uppercase">
+                                                                {item.nombre?.[0] || "?"}
+                                                            </div>
                                                         )}
                                                         <div>
-                                                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-bold ${user.aprobado ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                                                                {user.aprobado ? "Aprobado" : "Pendiente"}
+                                                            <div className="font-bold cursor-pointer hover:text-emerald-700" onClick={() => handleViewDetail(item)}>
+                                                                {item.nombre} {item.apellido_p}
+                                                            </div>
+                                                            <span className="block text-xs font-normal text-slate-400">ID: {item.id.slice(0, 8)}...</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 w-1/4">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2 text-xs truncate max-w-[200px]" title={item.email}>
+                                                            <span className="text-emerald-500">✉</span> {item.email}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs">
+                                                            <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
+                                                        </div>
+                                                        {item.rut && (
+                                                            <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-100 pt-1 mt-1">
+                                                                <span className="text-slate-400">RUT:</span> {item.rut}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 w-1/4">
+                                                    {item.direccion_completa ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]" title={item.direccion_completa}>
+                                                                {item.calle ? `${item.calle} ${item.numero}` : item.direccion_completa}
+                                                            </span>
+                                                            <span className="text-xs text-slate-500">{item.comuna}, {item.region}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                                                            {item.comuna || "Sin comuna"}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="space-y-2">
+                                                        {activeTab === "petmate" && item.certificado_antecedentes ? (
+                                                            <button
+                                                                onClick={() => handleViewDocument(item.certificado_antecedentes)}
+                                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                            >
+                                                                📄 Ver Antecedentes
+                                                            </button>
+                                                        ) : activeTab === "petmate" ? (
+                                                            <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
+                                                        ) : null}
+                                                        <div>
+                                                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-bold ${item.aprobado ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                                                {item.aprobado ? "Aprobado" : "Pendiente"}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </td>
-                                            )}
-                                            <td className="px-6 py-4 text-xs text-slate-400 w-1/6">
-                                                {new Date(user.created_at).toLocaleDateString("es-CL", {
-                                                    day: 'numeric', month: 'short'
-                                                })}
-                                            </td>
-                                            {activeTab === "petmate" && (
+                                                <td className="px-6 py-4 text-xs text-slate-400 w-1/6">
+                                                    {item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL", {
+                                                        day: 'numeric', month: 'short'
+                                                    }) : 'N/A'}
+                                                </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex flex-col gap-2 items-end">
                                                         <button
-                                                            onClick={() => toggleApproval(user.id, user.aprobado)}
-                                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${user.aprobado
+                                                            onClick={() => toggleApproval(item.id, item.aprobado)}
+                                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${item.aprobado
                                                                 ? "border-red-200 text-red-600 hover:bg-red-50"
                                                                 : "bg-emerald-600 text-white border-transparent hover:bg-emerald-700 shadow-sm"
                                                                 }`}
                                                         >
-                                                            {user.aprobado ? "Revocar" : "Aprobar"}
+                                                            {item.aprobado ? "Revocar" : "Aprobar"}
                                                         </button>
                                                         <button
-                                                            onClick={() => handleViewDetail(user)}
-                                                            className="text-xs text-slate-500 hover:text-slate-800 font-medium"
+                                                            onClick={() => handleViewDetail(item)}
+                                                            className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200"
                                                         >
-                                                            Ver Detalle
+                                                            Ver Todo
                                                         </button>
                                                     </div>
                                                 </td>
-                                            )}
-                                        </tr>
-                                    ))
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </main>
 
-            {/* Modal de Detalle */}
+                    {/* PAGINACIÓN */}
+                    {totalPages > 1 && (
+                        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Anterior
+                            </button>
+                            <span className="text-sm text-slate-600">
+                                Página <span className="font-bold">{currentPage}</span> de <span className="font-bold">{totalPages}</span>
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </main >
+
+            {/* Modal de Detalle (Genérico para Sitter y Cliente) */}
             <SitterDetailModal
                 sitter={selectedSitter}
                 open={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onApprove={toggleApproval}
             />
-        </div>
+
+            {/* Modal Global de Confirmación */}
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText={confirmModal.confirmText}
+                isDestructive={confirmModal.isDestructive}
+            />
+        </div >
     );
 }

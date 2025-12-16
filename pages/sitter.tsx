@@ -382,17 +382,73 @@ export default function SitterDashboardPage() {
         }
     };
 
+    const handleViewDocument = async (path: string) => {
+        try {
+            const { data, error } = await supabase.storage
+                .from("documents")
+                .createSignedUrl(path, 60);
+
+            if (error) throw error;
+            if (data?.signedUrl) {
+                window.open(data.signedUrl, "_blank");
+            }
+        } catch (err) {
+            console.error("Error opening document:", err);
+            alert("No se pudo abrir el documento.");
+        }
+    };
+
+    const handleDeleteDocument = async () => {
+        if (!window.confirm("¿Estás seguro de eliminar tu certificado? Tendrás que subir uno nuevo para ser verificado.")) return;
+        setUploading(true);
+
+        try {
+            // 1. Eliminar del Storage
+            const path = profileData.certificado_antecedentes;
+            if (path) {
+                const { error: storageError } = await supabase.storage
+                    .from("documents")
+                    .remove([path]);
+
+                if (storageError) {
+                    console.error("Storage delete error:", storageError);
+                    // Continuamos aunque falle el storage para limpiar la BD si es necesario, o lanzamos error?
+                    // Mejor lanzar error para no dejar inconsistencias graves, aunque el archivo huerfano es un mal menor.
+                    throw storageError;
+                }
+            }
+
+            // 2. Limpiar registro en BD
+            if (userId) {
+                const { error: dbError } = await supabase
+                    .from("registro_petmate")
+                    .update({ certificado_antecedentes: null, aprobado: false }) // Desaprobar si borra documento
+                    .eq("auth_user_id", userId);
+
+                if (dbError) throw dbError;
+            }
+
+            // 3. Actualizar estado local
+            setProfileData(prev => ({ ...prev, certificado_antecedentes: "", aprobado: false }));
+            alert("Documento eliminado correctamente.");
+
+        } catch (error) {
+            console.error("Error deleting document:", error);
+            alert("Error al eliminar el documento.");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
         setUploading(true);
         const file = e.target.files[0];
 
-        // Asumiendo bucket 'documents' para certificados
         const filePath = await uploadFile(file, 'documents', 'cert_antecedentes');
 
         if (filePath) {
             setProfileData(prev => ({ ...prev, certificado_antecedentes: filePath }));
-            // Guardar inmediatamente en DB
             if (userId) {
                 await supabase.from("registro_petmate").update({ certificado_antecedentes: filePath }).eq("auth_user_id", userId);
             }
@@ -640,7 +696,7 @@ export default function SitterDashboardPage() {
                                             : "bg-orange-50 border-orange-100 text-orange-800"
                                         }`}>
                                         <div className="flex items-center gap-2 mb-1 font-bold">
-                                            {profileData.aprobado ? "✅ Verificado" : profileData.certificado_antecedentes ? "⏳ En Revisión" : "⚠️ No Verificado"}
+                                            {profileData.aprobado ? "✅ Verificado" : profileData.certificado_antecedentes ? <span className="flex items-center gap-1 text-amber-600"><div className="animate-spin w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full"></div> En Revisión</span> : "⚠️ No Verificado"}
                                         </div>
                                         <p className="opacity-90 leading-relaxed">
                                             {profileData.aprobado
@@ -663,11 +719,35 @@ export default function SitterDashboardPage() {
                                         </Link>
                                     </div>
 
-                                    {/* Subida de certificado si no está aprobado */}
-                                    {!profileData.aprobado && (
-                                        <div className="mt-4 pt-4 border-t border-slate-100">
-                                            <label className="block w-full py-2 px-3 border border-slate-300 border-dashed rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors text-center">
-                                                {uploading ? "Subiendo..." : (profileData.certificado_antecedentes ? "Actualizar Documento" : "📄 Subir Certificado Antecedentes")}
+                                    {/* Subida y Gestión de documentos */}
+                                    <div className="mt-4 pt-4 border-t border-slate-100">
+                                        {profileData.certificado_antecedentes ? (
+                                            <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-xl">📄</span>
+                                                    <div className="text-xs text-slate-600 truncate flex-1 font-medium">
+                                                        Certificado Antecedentes
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
+                                                        className="flex-1 text-[10px] bg-white border border-slate-200 text-slate-700 py-1.5 rounded hover:bg-slate-50 font-bold transition-colors"
+                                                    >
+                                                        Ver
+                                                    </button>
+                                                    <button
+                                                        onClick={handleDeleteDocument}
+                                                        disabled={uploading}
+                                                        className="flex-1 text-[10px] bg-white border border-red-200 text-red-600 py-1.5 rounded hover:bg-red-50 font-bold transition-colors"
+                                                    >
+                                                        {uploading ? "..." : "Eliminar"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <label className="block w-full py-3 px-3 border border-slate-300 border-dashed rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors text-center">
+                                                {uploading ? "Subiendo..." : "📄 Subir Certificado Antecedentes"}
                                                 <input
                                                     type="file"
                                                     accept="image/*,.pdf"
@@ -676,8 +756,8 @@ export default function SitterDashboardPage() {
                                                     disabled={uploading}
                                                 />
                                             </label>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
 
                                     {/* Gallery Section */}
                                     <div className="mt-6 pt-6 border-t border-slate-100">

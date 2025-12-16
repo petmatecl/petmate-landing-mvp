@@ -101,7 +101,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove }: 
                                 <h2 className="text-xl font-bold text-slate-900">{sitter.nombre} {sitter.apellido_p || ""}</h2>
                                 <p className="text-sm text-slate-500">{sitter.email || "Sin email"}</p>
                                 <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    {sitter.aprobado ? "Verificado ✅" : "Pendiente ⏳"}
+                                    {sitter.aprobado ? "Verificado ✅" : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div></span>}
                                 </div>
                             </div>
 

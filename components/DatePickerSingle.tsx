@@ -1,6 +1,6 @@
 
-
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -20,6 +20,8 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
     const [selected, setSelected] = React.useState<Date | undefined>(
         typeof value === "string" && value ? new Date(value) : (value instanceof Date ? value : undefined)
     );
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const [coords, setCoords] = React.useState({ top: 0, left: 0 });
 
     // Sincronizar prop externa
     React.useEffect(() => {
@@ -29,6 +31,29 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
             setSelected(value);
         }
     }, [value]);
+
+    // Actualizar coordenadas al abrir
+    React.useLayoutEffect(() => {
+        if (open && buttonRef.current) {
+            const updatePosition = () => {
+                const rect = buttonRef.current?.getBoundingClientRect();
+                if (rect) {
+                    setCoords({
+                        top: rect.bottom + window.scrollY + 8, // 8px de margen
+                        left: rect.left + window.scrollX,
+                    });
+                }
+            };
+            updatePosition();
+            window.addEventListener("resize", updatePosition);
+            window.addEventListener("scroll", updatePosition, true);
+
+            return () => {
+                window.removeEventListener("resize", updatePosition);
+                window.removeEventListener("scroll", updatePosition, true);
+            };
+        }
+    }, [open]);
 
     const handleSelect = (d?: Date) => {
         if (d && validateDate && !validateDate(d)) {
@@ -45,8 +70,9 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
     const formattedDate = selected ? format(selected, "dd/MM/yyyy") : "";
 
     return (
-        <div className="relative">
+        <>
             <button
+                ref={buttonRef}
                 type="button"
                 disabled={disabled}
                 onClick={() => setOpen(!open)}
@@ -57,10 +83,20 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                 <CalendarIcon className="w-5 h-5 text-slate-400" />
             </button>
 
-            {open && !disabled && (
-                <>
-                    <div className="fixed inset-0 z-[9998] bg-black/20" onClick={() => setOpen(false)} />
-                    <div className="absolute z-[9999] mt-2 p-3 bg-white rounded-xl shadow-xl border border-slate-100 w-auto min-w-[300px]">
+            {open && !disabled && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[99999] flex items-start justify-start">
+                    {/* Backdrop transparente para cerrar al hacer click fuera */}
+                    <div className="fixed inset-0 bg-transparent" onClick={() => setOpen(false)} />
+
+                    {/* Popover posicionado */}
+                    <div
+                        className="relative z-50 p-3 bg-white rounded-xl shadow-xl border border-slate-100 animate-in fade-in zoom-in-95 duration-100"
+                        style={{
+                            position: "absolute",
+                            top: coords.top,
+                            left: coords.left,
+                        }}
+                    >
                         <DayPicker
                             mode="single"
                             selected={selected}
@@ -93,15 +129,11 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                                 day_disabled: "text-slate-300 opacity-50 cursor-not-allowed hover:bg-transparent",
                                 day_hidden: "invisible",
                             }}
-
-                        // Eliminar dropdowns rotos, volver a navegación estándar
-                        // captionLayout="dropdown"
-                        // fromYear={1900}
-                        // toYear={new Date().getFullYear()}
                         />
                     </div>
-                </>
+                </div>,
+                document.body
             )}
-        </div>
+        </>
     );
 }

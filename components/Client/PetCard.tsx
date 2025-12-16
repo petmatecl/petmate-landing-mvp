@@ -17,6 +17,7 @@ export type Pet = {
     trato_especial?: boolean;
     trato_especial_desc?: string;
     foto_mascota?: string;
+    fotos_galeria?: string[]; // Added gallery field
 };
 
 type PetCardProps = {

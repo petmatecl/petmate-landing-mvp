@@ -78,12 +78,7 @@ export function Hero() {
 
             {/* CTA principal */}
             <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              <Link
-                href="/register?role=cliente"
-                className="btn-primary text-base"
-              >
-                Buscar cuidador
-              </Link>
+              {/* Botón eliminado por feedback */}
               <Link
                 href="/register?role=petmate"
                 className="text-sm font-semibold leading-6 text-slate-900"

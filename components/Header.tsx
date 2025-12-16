@@ -11,11 +11,13 @@ export default function Header() {
 
   // Estado de sesión real
   const [session, setSession] = useState<any>(null);
+  const [profile, setProfile] = useState<{ nombre: string; apellido_p: string } | null>(null);
 
   useEffect(() => {
     // 1. Ver sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session?.user) fetchProfile(session.user.id);
     });
 
     // 2. Escuchar cambios (login, logout)
@@ -23,15 +25,46 @@ export default function Header() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("registro_petmate")
+        .select("nombre, apellido_p")
+        .eq("auth_user_id", userId)
+        .single();
+
+      if (data) {
+        setProfile({ nombre: data.nombre, apellido_p: data.apellido_p });
+      }
+    } catch (err) {
+      console.error("Error fetching header profile:", err);
+    }
+  };
+
   const isLoggedIn = !!session;
-  // Obtenemos el nombre del metadata o usamos uno por defecto
-  const userName = session?.user?.user_metadata?.nombre || "Usuario";
-  const userInitial = userName.charAt(0).toUpperCase();
+  // Nombre a mostrar
+  const userName = profile?.nombre || session?.user?.user_metadata?.nombre || "Usuario";
+
+  // Iniciales
+  const getInitials = () => {
+    if (profile?.nombre && profile?.apellido_p) {
+      return (profile.nombre.charAt(0) + profile.apellido_p.charAt(0)).toUpperCase();
+    }
+    // Fallback si no hay apellido
+    return userName.charAt(0).toUpperCase();
+  };
+
+  const userInitials = getInitials();
 
   // Determinamos el dashboard correcto según el rol (si lo guardáramos en metadata sería ideal, 
   // por ahora asumimos cliente o probamos la url, pero para el link "Mi Panel" lo ideal es saber el rol.
@@ -106,8 +139,8 @@ export default function Header() {
             <>
               {/* Chip usuario demo */}
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
-                  {userInitial}
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white tracking-widest">
+                  {userInitials}
                 </span>
                 <span className="text-sm font-medium text-emerald-900">{userName}</span>
               </div>
@@ -209,8 +242,8 @@ export default function Header() {
                   Explorar Cuidadores
                 </Link>
                 <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
-                    {userInitial}
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white tracking-widest">
+                    {userInitials}
                   </span>
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-emerald-900">{userName}</span>

@@ -28,10 +28,24 @@ export default function ExplorarPage() {
         serviceType: "all"
     });
 
-    // Función para actualizar filtros
+    // Función para aumentar filtros
     const handleFilterChange = (key: string, value: any) => {
         setFilters(prev => ({ ...prev, [key]: value }));
     };
+
+    // Sincronizar con URL params al cargar
+    useEffect(() => {
+        if (!router.isReady) return;
+        const { type, service } = router.query;
+
+        if (type || service) {
+            setFilters(prev => ({
+                ...prev,
+                petType: (type as any) || prev.petType,
+                serviceType: (service as any) || prev.serviceType
+            }));
+        }
+    }, [router.isReady, router.query]);
 
     useEffect(() => {
         async function fetchPetmates() {

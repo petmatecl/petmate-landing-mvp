@@ -154,6 +154,10 @@ export default function RegisterPage() {
   const [showPetmatePass, setShowPetmatePass] = React.useState(false);
   const [showPetmatePassConfirm, setShowPetmatePassConfirm] = React.useState(false);
 
+  // Consentimiento
+  const [consentCliente, setConsentCliente] = React.useState(false);
+  const [consentPetmate, setConsentPetmate] = React.useState(false);
+
   const comunasOriente = [
     "Las Condes",
     "Vitacura",
@@ -186,10 +190,17 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!consentCliente) {
+      setFormError("Debes aceptar los Términos y Condiciones y la Política de Privacidad.");
+      return;
+    }
+
     if (!sinFechas && (!rango?.from || !rango?.to)) {
       setFormError("Selecciona las fechas de inicio y fin o marca que aún no tienes claridad.");
       return;
     }
+    // ... continue code ...
+
 
     if (alojamiento === "domicilio" && !tipoVivienda) {
       setFormError("Selecciona el tipo de vivienda.");
@@ -280,6 +291,11 @@ export default function RegisterPage() {
     }
     if (pass !== passConfirm) {
       setFormError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    if (!consentPetmate) {
+      setFormError("Debes aceptar los Términos y Condiciones y la Política de Privacidad.");
       return;
     }
 
@@ -626,6 +642,34 @@ export default function RegisterPage() {
                   value={!sinFechas && rango?.to ? rango.to.toISOString() : ""}
                 />
                 <input type="hidden" name="perros" value={String(pets.dogs)} />
+                <div className="field">
+                  <label className="checkboxInline items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={consentCliente}
+                      onChange={() => setConsentCliente((v) => !v)}
+                      required
+                      className="mt-1"
+                    />
+                    <span className="text-sm">
+                      Acepto los <Link href="/terminos" className="text-emerald-600 hover:underline">Términos y Condiciones</Link> y la <Link href="/privacidad" className="text-emerald-600 hover:underline">Política de Privacidad</Link>.
+                    </span>
+                  </label>
+                </div>
+
+                <input type="hidden" name="alojamiento" value={alojamiento} />
+                <input type="hidden" name="tipo_vivienda" value={tipoVivienda} />
+                <input
+                  type="hidden"
+                  name="start_date"
+                  value={!sinFechas && rango?.from ? rango.from.toISOString() : ""}
+                />
+                <input
+                  type="hidden"
+                  name="end_date"
+                  value={!sinFechas && rango?.to ? rango.to.toISOString() : ""}
+                />
+                <input type="hidden" name="perros" value={String(pets.dogs)} />
                 <input type="hidden" name="gatos" value={String(pets.cats)} />
 
                 <button
@@ -877,6 +921,21 @@ export default function RegisterPage() {
                           : ""
                   }
                 />
+
+                <div className="field mt-4">
+                  <label className="checkboxInline items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={consentPetmate}
+                      onChange={() => setConsentPetmate((v) => !v)}
+                      required
+                      className="mt-1"
+                    />
+                    <span className="text-sm">
+                      Acepto los <Link href="/terminos" className="text-emerald-600 hover:underline">Términos y Condiciones</Link> y la <Link href="/privacidad" className="text-emerald-600 hover:underline">Política de Privacidad</Link>.
+                    </span>
+                  </label>
+                </div>
 
                 <button
                   type="submit"
