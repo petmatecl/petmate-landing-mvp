@@ -33,6 +33,18 @@ export default function SitterExplorarPage() {
             return;
         }
         setSitterId(session.user.id);
+
+        // Fetch Profile for completeness check
+        const { data: profile } = await supabase
+            .from("registro_petmate")
+            .select("*")
+            .eq("auth_user_id", session.user.id)
+            .single();
+
+        if (profile) {
+            setSitterProfile(profile);
+        }
+
         fetchTrips(session.user.id);
     };
 
@@ -72,7 +84,23 @@ export default function SitterExplorarPage() {
         }
     };
 
+    // Profile State
+    const [sitterProfile, setSitterProfile] = useState<any>(null);
+
     const handleApplyClick = (trip: any) => {
+        if (!sitterProfile) return;
+
+        // Check Completeness
+        const contactComplete = Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna);
+        const personalComplete = Boolean(sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion);
+        // Using same logic as sitter.tsx
+        const profileComplete = Boolean(sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null));
+
+        if (!contactComplete || !personalComplete || !profileComplete) {
+            alert("Debes completar tu perfil (Información Personal, Contacto y Sobre Mí) antes de poder postular a trabajos. Ve a 'Mi Panel' para completarlo.");
+            return;
+        }
+
         setSelectedTrip(trip);
         setIsModalOpen(true);
     };

@@ -427,8 +427,8 @@ export default function SitterDashboardPage() {
                 redes_sociales: profileData.redes_sociales,
                 tarifa_servicio_en_casa: profileData.tarifa_servicio_en_casa,
                 tarifa_servicio_a_domicilio: profileData.tarifa_servicio_a_domicilio,
-                // calle: profileData.calle,
-                // numero: profileData.numero,
+                calle: profileData.calle,
+                numero: profileData.numero,
                 latitud: profileData.latitud,
                 longitud: profileData.longitud,
                 direccion_completa: profileData.direccion_completa,
@@ -485,9 +485,14 @@ export default function SitterDashboardPage() {
                                 Gestiona tus reservas y perfil.
                             </p>
                         </div>
-                        <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                            Ver perfil público ↗
-                        </Link>
+                        <div className="flex items-center gap-3 mt-4 sm:mt-0">
+                            <Link href="/sitter/explorar" className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">
+                                🔍 Buscar Oportunidades
+                            </Link>
+                            <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                                Ver perfil público ↗
+                            </Link>
+                        </div>
                     </header>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
