@@ -5,6 +5,8 @@ import { supabase } from "../lib/supabaseClient";
 import SitterDetailModal from "../components/Admin/SitterDetailModal";
 import { ConfirmationModal } from "../components/Shared/ConfirmationModal";
 
+import * as XLSX from "xlsx";
+
 export default function AdminDashboard() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -12,6 +14,8 @@ export default function AdminDashboard() {
     const [users, setUsers] = useState<any[]>([]);
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
     const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name_asc" | "name_desc">("newest");
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
@@ -30,7 +34,8 @@ export default function AdminDashboard() {
     const [stats, setStats] = useState({
         clientes: 0,
         sitters: 0,
-        solicitudes: 0
+        solicitudes: 0,
+        serviciosRealizados: 0
     });
 
     // Modal State
@@ -89,14 +94,27 @@ export default function AdminDashboard() {
             .neq("estado", "cancelado")
             .neq("estado", "completado");
 
+        // 4. Servicios Realizados (Completados)
+        const { count: completadosCount } = await supabase
+            .from("viajes")
+            .select("*", { count: "exact", head: true })
+            .eq("estado", "completado");
+
         setStats({
             clientes: clientesCount || 0,
             sitters: sittersCount || 0,
-            solicitudes: solicitudesCount || 0
+            solicitudes: solicitudesCount || 0,
+            serviciosRealizados: completadosCount || 0
         });
     };
 
     const fetchUsers = async () => {
+        // Si estamos en la tab de solicitudes, usamos la funcion dedicada
+        if (activeTab === "solicitudes") {
+            fetchViajes();
+            return;
+        }
+
         const { data, error } = await supabase
             .from("registro_petmate")
             .select("*")
@@ -207,27 +225,43 @@ export default function AdminDashboard() {
 
     // --- FILTRADO Y ORDENAMIENTO ---
     const filteredItems = users.filter(item => {
-        if (!searchTerm) return true;
-        const term = searchTerm.toLowerCase();
-
-        // Search logic depends on tab
-        if (activeTab === "solicitudes") {
-            const clientName = item.cliente?.nombre?.toLowerCase() || "";
-            const clientEmail = item.cliente?.email?.toLowerCase() || "";
-            const sitterName = item.sitter?.nombre?.toLowerCase() || "";
-            const idStr = item.id?.toLowerCase() || "";
-
-            return clientName.includes(term) || clientEmail.includes(term) || sitterName.includes(term) || idStr.includes(term);
-        } else {
-            // Clients / Sitters
-            const name = item.nombre ? item.nombre.toLowerCase() : "";
-            const lastName = item.apellido_p ? item.apellido_p.toLowerCase() : "";
-            const email = item.email ? item.email.toLowerCase() : "";
-            const rut = item.rut ? item.rut.toLowerCase() : "";
-            const idStr = item.id ? item.id.toLowerCase() : "";
-
-            return name.includes(term) || lastName.includes(term) || email.includes(term) || rut.includes(term) || idStr.includes(term);
+        // 1. Filtro por Texto
+        let matchesTerm = true;
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            if (activeTab === "solicitudes") {
+                const clientName = item.cliente?.nombre?.toLowerCase() || "";
+                const clientEmail = item.cliente?.email?.toLowerCase() || "";
+                const sitterName = item.sitter?.nombre?.toLowerCase() || "";
+                const idStr = item.id?.toLowerCase() || "";
+                matchesTerm = clientName.includes(term) || clientEmail.includes(term) || sitterName.includes(term) || idStr.includes(term);
+            } else {
+                const name = item.nombre ? item.nombre.toLowerCase() : "";
+                const lastName = item.apellido_p ? item.apellido_p.toLowerCase() : "";
+                const email = item.email ? item.email.toLowerCase() : "";
+                const rut = item.rut ? item.rut.toLowerCase() : "";
+                const idStr = item.id ? item.id.toLowerCase() : "";
+                matchesTerm = name.includes(term) || lastName.includes(term) || email.includes(term) || rut.includes(term) || idStr.includes(term);
+            }
         }
+
+        // 2. Filtro por Fecha (Rango)
+        let matchesDate = true;
+        if (startDate || endDate) {
+            const itemDate = new Date(item.created_at); // Asumimos created_at para todos. Para viajes es fecha creación, no inicio travel.
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+
+            if (start && itemDate < start) matchesDate = false;
+            if (end) {
+                // Ajustar end al final del día
+                const endDay = new Date(end);
+                endDay.setHours(23, 59, 59, 999);
+                if (itemDate > endDay) matchesDate = false;
+            }
+        }
+
+        return matchesTerm && matchesDate;
     }).sort((a, b) => {
         if (sortOrder === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         if (sortOrder === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -243,6 +277,59 @@ export default function AdminDashboard() {
         if (sortOrder === "name_desc") return nameB.localeCompare(nameA);
         return 0;
     });
+
+    // --- EXPORTAR ---
+    const handleExport = () => {
+        if (filteredItems.length === 0) {
+            alert("No hay datos para exportar con los filtros actuales.");
+            return;
+        }
+
+        let dataToExport = [];
+
+        if (activeTab === "solicitudes") {
+            dataToExport = filteredItems.map(item => ({
+                ID: item.id,
+                Estado: item.estado,
+                "Cliente Nombre": `${item.cliente?.nombre || ""} ${item.cliente?.apellido_p || ""}`.trim(),
+                "Cliente Email": item.cliente?.email || "",
+                "Sitter Nombre": item.sitter ? `${item.sitter.nombre} ${item.sitter.apellido_p}` : "Pendiente",
+                "Sitter Email": item.sitter?.email || "",
+                Servicio: item.servicio,
+                "Fecha Inicio": item.fecha_inicio,
+                "Fecha Fin": item.fecha_fin,
+                Total: item.total,
+                "Creado en": new Date(item.created_at).toLocaleString("es-CL")
+            }));
+        } else {
+            // Clientes o Sitters
+            dataToExport = filteredItems.map(item => ({
+                ID: item.id,
+                Nombre: item.nombre,
+                Apellido: item.apellido_p,
+                Email: item.email,
+                RUT: item.rut,
+                Telefono: item.telefono,
+                Comuna: item.comuna,
+                Region: item.region,
+                Direccion: item.direccion_completa,
+                Estado: item.aprobado ? "Aprobado" : "Pendiente",
+                "Registrado en": new Date(item.created_at).toLocaleString("es-CL"),
+                // Extras para Sitters
+                ...(activeTab === "petmate" ? {
+                    Ocupacion: item.ocupacion,
+                    Edad: item.edad,
+                    "En Casa": item.servicio_en_casa ? "Sí" : "No",
+                    "A Domicilio": item.servicio_a_domicilio ? "Sí" : "No"
+                } : {})
+            }));
+        }
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, activeTab.toUpperCase());
+        XLSX.writeFile(workbook, `PetMate_Export_${activeTab}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
 
     // --- PAGINACIÓN ---
     const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
@@ -266,19 +353,24 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* RESUMEN - (Mantener igual) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Clientes Registrados</p>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
                         <p className="text-4xl font-bold text-slate-900 mt-2">{stats.clientes}</p>
                     </div>
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Sitters Registrados</p>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
                         <p className="text-4xl font-bold text-emerald-600 mt-2">{stats.sitters}</p>
                     </div>
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Solicitudes en Curso</p>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Solicitudes</p>
                         <p className="text-4xl font-bold text-indigo-600 mt-2">{stats.solicitudes}</p>
-                        <p className="text-xs text-slate-400 mt-1">Viajes activos</p>
+                        <p className="text-xs text-slate-400 mt-1">En curso</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
+                        <p className="text-4xl font-bold text-sky-600 mt-2">{stats.serviciosRealizados}</p>
+                        <p className="text-xs text-slate-400 mt-1">Realizados</p>
                     </div>
                 </div>
 
@@ -308,11 +400,42 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Buscador y Filtros */}
-                    <div className="flex flex-1 md:justify-end gap-3 w-full md:w-auto">
+                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto items-end md:items-center">
+
+                        {/* Filtros de Fecha */}
+                        <div className="flex gap-2">
+                            <div className="flex flex-col">
+                                <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Desde</label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Hasta</label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Botón Exportar */}
+                        <button
+                            onClick={handleExport}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-sm h-[38px] mb-[1px]"
+                        >
+                            <span>📊</span> <span className="hidden lg:inline">Exportar Excel</span>
+                        </button>
+
                         <div className="relative flex-1 md:flex-none md:w-64">
                             <input
                                 type="text"
-                                placeholder="Buscar por nombre, email o RUT..."
+                                placeholder="Buscar..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
