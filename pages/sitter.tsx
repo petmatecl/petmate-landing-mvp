@@ -104,9 +104,9 @@ export default function SitterDashboardPage() {
                         tiene_mascotas: profile.tiene_mascotas ? "si" : "no",
                         sexo: profile.sexo || "",
                         ocupacion: profile.ocupacion || "",
-                        universidad: profile.universidad || "",
-                        carrera: profile.carrera || "",
-                        ano_curso: profile.ano_curso || "",
+                        // universidad removed
+                        // carrera removed
+                        // ano_curso removed
                         descripcion: profile.descripcion || "",
                         cuida_perros: profile.cuida_perros || false,
                         cuida_gatos: profile.cuida_gatos || false,
@@ -191,9 +191,9 @@ export default function SitterDashboardPage() {
         tiene_mascotas: "no",
         sexo: "",
         ocupacion: "",
-        universidad: "",
-        carrera: "",
-        ano_curso: "",
+        // universidad removed
+        // carrera removed
+        // ano_curso removed
         descripcion: "",
         cuida_perros: false,
         cuida_gatos: false,
@@ -364,13 +364,7 @@ export default function SitterDashboardPage() {
             if (!profileData.sexo) errors.push("Sexo");
             if (!profileData.ocupacion) errors.push("Ocupación");
 
-            if (profileData.ocupacion === 'Estudiante') {
-                if (!profileData.universidad || !profileData.carrera || !profileData.ano_curso) {
-                    alert("Si eres estudiante, debes completar los datos de estudios.");
-                    setSaving(false);
-                    return;
-                }
-            }
+            /* Student validation removed */
 
             // Validación Edad
             const calculatedAge = profileData.fecha_nacimiento
@@ -424,9 +418,9 @@ export default function SitterDashboardPage() {
                 region: profileData.region,
                 comuna: profileData.comuna,
                 rut: cleanRut(profileData.rut),
-                universidad: profileData.universidad,
-                carrera: profileData.carrera,
-                ano_curso: profileData.ano_curso,
+                // universidad removed
+                // carrera removed
+                // ano_curso removed
                 telefono: profileData.telefono,
                 galeria: profileData.galeria,
                 detalles_mascotas: profileData.detalles_mascotas,
@@ -1109,46 +1103,7 @@ export default function SitterDashboardPage() {
                                                     </select>
                                                 </div>
                                                 {/* Campos condicionales para Estudiantes */}
-                                                {profileData.ocupacion === "Estudiante" && (
-                                                    <>
-                                                        <div className="sm:col-span-6">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Universidad / Instituto</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                                    }`}
-                                                                value={profileData.universidad}
-                                                                onChange={(e) => setProfileData({ ...profileData, universidad: e.target.value })}
-                                                                placeholder="Ej: PUC, U. de Chile"
-                                                            />
-                                                        </div>
-                                                        <div className="sm:col-span-6">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Carrera</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                                    }`}
-                                                                value={profileData.carrera}
-                                                                onChange={(e) => setProfileData({ ...profileData, carrera: e.target.value })}
-                                                                placeholder="Ej: Medicina Veterinaria"
-                                                            />
-                                                        </div>
-                                                        <div className="sm:col-span-6">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Año en Curso</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                                    }`}
-                                                                value={profileData.ano_curso}
-                                                                onChange={(e) => setProfileData({ ...profileData, ano_curso: e.target.value })}
-                                                                placeholder="Ej: 3er Año"
-                                                            />
-                                                        </div>
-                                                    </>
-                                                )}
+                                                {/* Student fields removed */}
 
                                             </div>
                                         )}

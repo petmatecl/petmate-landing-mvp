@@ -19,9 +19,7 @@ type SitterData = {
     // Profile
     descripcion: string;
     ocupacion: string;
-    universidad?: string;
-    carrera?: string;
-    ano_curso?: string;
+    // Student fields removed
     tiene_mascotas: boolean;
     detalles_mascotas?: { tipo: string; cantidad: number }[];
 
@@ -217,11 +215,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove }: 
                                 <div>
                                     <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-100 pb-2 mb-3">Ocupación</h4>
                                     <p className="text-sm text-slate-600">{sitter.ocupacion}</p>
-                                    {sitter.ocupacion === "Estudiante" && (
-                                        <div className="mt-1 text-xs text-slate-500">
-                                            {sitter.carrera} en {sitter.universidad} ({sitter.ano_curso})
-                                        </div>
-                                    )}
+                                    {/* Student fields display removed */}
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-100 pb-2 mb-3">Mascotas</h4>
