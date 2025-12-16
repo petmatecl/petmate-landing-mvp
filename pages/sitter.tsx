@@ -427,8 +427,8 @@ export default function SitterDashboardPage() {
                 redes_sociales: profileData.redes_sociales,
                 tarifa_servicio_en_casa: profileData.tarifa_servicio_en_casa,
                 tarifa_servicio_a_domicilio: profileData.tarifa_servicio_a_domicilio,
-                calle: profileData.calle,
-                numero: profileData.numero,
+                // calle: profileData.calle,
+                // numero: profileData.numero,
                 latitud: profileData.latitud,
                 longitud: profileData.longitud,
                 direccion_completa: profileData.direccion_completa,
@@ -485,7 +485,7 @@ export default function SitterDashboardPage() {
                                 Gestiona tus reservas y perfil.
                             </p>
                         </div>
-                        <Link href="/explorar" className="hidden sm:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                        <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                             Ver perfil público ↗
                         </Link>
                     </header>
