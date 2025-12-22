@@ -617,7 +617,7 @@ export default function SitterDashboardPage() {
                                             if (error) throw error;
 
                                             // Update local state
-                                            setProfileData(prev => ({ ...prev, roles: uniqueRoles }));
+                                            setProfileData((prev: any) => ({ ...prev, roles: uniqueRoles }));
                                             alert("¡Perfil activado! Ahora puedes completar tus datos.");
                                         } catch (err: any) {
                                             alert("Error al activar perfil: " + err.message);

@@ -13,7 +13,7 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
     // ... rest of state
 
-    const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
+
     // ... rest of state
 
     const checkProfileCompleteness = (user: any, role: "cliente" | "petmate") => {
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
         enrichedUser.missingFields = missing;
 
         // Si es cliente, obtener mascotas
-        if (role === "cliente") {
+        if (roleToCheck === "cliente") {
             const { data: pets } = await supabase
                 .from("mascotas")
                 .select("*")
