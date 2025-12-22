@@ -216,6 +216,7 @@ export default function RegisterPage() {
         {
           auth_user_id: authUserId,
           rol: "cliente",
+          roles: ["cliente"],
           nombre,
           apellido_p: apellidoPaterno,
           apellido_m: apellidoMaterno, // Re-incorporado
@@ -325,6 +326,7 @@ export default function RegisterPage() {
         {
           auth_user_id: authUserId,
           rol: "petmate",
+          roles: ["petmate"],
           nombre,
           apellido_p: apellidoPaterno,
           apellido_m: apellidoMaterno,

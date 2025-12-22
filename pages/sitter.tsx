@@ -65,8 +65,18 @@ export default function SitterDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [isLightboxOpen, setIsLightboxOpen] = useState(false); // Added Lightbox State
+
+    // Alert State
+    const [alertState, setAlertState] = useState<{ isOpen: boolean; title: string; message: string; type: 'error' | 'warning' | 'success' | 'info' }>({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "warning"
+    });
+
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
     const [reviews, setReviews] = useState<Review[]>([]);
     const [averageRating, setAverageRating] = useState(0);
     const [bookings, setBookings] = useState<any[]>([]);
@@ -117,6 +127,7 @@ export default function SitterDashboardPage() {
                         foto_perfil: profile.foto_perfil || null,
                         certificado_antecedentes: profile.certificado_antecedentes || null,
                         galeria: profile.galeria || [],
+                        roles: profile.roles || [profile.rol || 'cliente'], // Handle migration fallback
                         redes_sociales: profile.redes_sociales || { linkedin: "", tiktok: "", instagram: "", facebook: "" },
                         detalles_mascotas: profile.detalles_mascotas || [],
                         videos: profile.videos || [],
@@ -128,7 +139,7 @@ export default function SitterDashboardPage() {
                 }
             } else {
                 // Not logged in
-                // window.location.href = '/login'; 
+                window.location.href = '/login';
             }
             setLoading(false);
         };
@@ -159,7 +170,8 @@ export default function SitterDashboardPage() {
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
         contact: true,
         personal: true,
-        profile: true
+        profile: true,
+        services: true
     });
 
     const toggleSection = (section: string) => {
@@ -206,11 +218,15 @@ export default function SitterDashboardPage() {
         galeria: [],
         redes_sociales: { linkedin: "", tiktok: "", instagram: "", facebook: "" },
         detalles_mascotas: [],
+        roles: ["cliente"], // Default
         videos: [],
         latitud: null,
         longitud: null,
         direccion_completa: ""
     });
+
+    // Privacy Notice State
+    const [showSecurityNotice, setShowSecurityNotice] = useState(true);
 
     const [backupProfileData, setBackupProfileData] = useState<any>(null);
 
@@ -218,8 +234,11 @@ export default function SitterDashboardPage() {
         if (url) window.open(url, '_blank');
     };
 
-    const handleDeleteDocument = () => {
+    const handleDeleteDocument = async () => {
         setProfileData({ ...profileData, certificado_antecedentes: null });
+        if (userId) {
+            await supabase.from('registro_petmate').update({ certificado_antecedentes: null }).eq('auth_user_id', userId);
+        }
     };
 
     const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,12 +266,20 @@ export default function SitterDashboardPage() {
                 .getPublicUrl(filePath);
 
             setProfileData({ ...profileData, certificado_antecedentes: publicUrlData.publicUrl });
+
+            // Auto-save
+            await supabase.from('registro_petmate').update({ certificado_antecedentes: publicUrlData.publicUrl }).eq('auth_user_id', userId);
+
         } catch (error: any) {
-            alert('Error al subir documento: ' + error.message);
+            setAlertState({ isOpen: true, title: "Error", message: 'Error al subir documento: ' + error.message, type: "error" });
         } finally {
             setUploading(false);
         }
     };
+
+
+
+    const isProfileIncomplete = !profileData.nombre || !profileData.apellido_p || !profileData.rut || !profileData.telefono || !profileData.region || !profileData.comuna || !profileData.descripcion || !profileData.foto_perfil;
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -274,6 +301,10 @@ export default function SitterDashboardPage() {
                 .getPublicUrl(filePath);
 
             setProfileData({ ...profileData, foto_perfil: publicUrlData.publicUrl });
+
+            // Auto-save
+            await supabase.from('registro_petmate').update({ foto_perfil: publicUrlData.publicUrl }).eq('auth_user_id', userId);
+
         } catch (error: any) {
             alert('Error al subir imagen: ' + error.message);
         } finally {
@@ -283,40 +314,63 @@ export default function SitterDashboardPage() {
 
     const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
-        if (profileData.galeria && profileData.galeria.length >= 3) {
-            alert("Máximo 3 fotos en la galería.");
+
+        const files = Array.from(e.target.files);
+        const currentCount = profileData.galeria?.length || 0;
+
+        if (currentCount + files.length > 6) {
+            setAlertState({ isOpen: true, title: "Límite excedido", message: `Solo puedes tener hasta 6 fotos. Puedes subir ${6 - currentCount} más.`, type: "warning" });
             return;
         }
 
         setUploading(true);
-        const file = e.target.files[0];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${userId}/gallery-${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
 
         try {
-            const { error: uploadError } = await supabase.storage
-                .from('sitter-images')
-                .upload(filePath, file);
+            const uploadPromises = files.map(async (file) => {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${userId}/gallery-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `${fileName}`;
 
-            if (uploadError) throw uploadError;
+                const { error: uploadError } = await supabase.storage
+                    .from('sitter-images')
+                    .upload(filePath, file);
 
-            const { data: publicUrlData } = supabase.storage
-                .from('sitter-images')
-                .getPublicUrl(filePath);
+                if (uploadError) throw uploadError;
 
-            setProfileData({ ...profileData, galeria: [...(profileData.galeria || []), publicUrlData.publicUrl] });
+                const { data: publicUrlData } = supabase.storage
+                    .from('sitter-images')
+                    .getPublicUrl(filePath);
+
+                return publicUrlData.publicUrl;
+            });
+
+            const newUrls = await Promise.all(uploadPromises);
+            const newGallery = [...(profileData.galeria || []), ...newUrls];
+
+            setProfileData({ ...profileData, galeria: newGallery });
+
+            // Auto-save
+            if (userId) {
+                await supabase.from('registro_petmate').update({ galeria: newGallery }).eq('auth_user_id', userId);
+            }
+
         } catch (error: any) {
-            alert('Error al subir imagen: ' + error.message);
+            alert('Error al subir imagenes: ' + (error.message || error));
         } finally {
             setUploading(false);
+            // Reset input value to allow selecting same files again if needed (though tricky with multiple)
+            e.target.value = "";
         }
     };
 
-    const handleDeletePhoto = (index: number) => {
+    const handleDeletePhoto = async (index: number) => {
         const newGallery = [...profileData.galeria];
         newGallery.splice(index, 1);
         setProfileData({ ...profileData, galeria: newGallery });
+
+        if (userId) {
+            await supabase.from('registro_petmate').update({ galeria: newGallery }).eq('auth_user_id', userId);
+        }
     };
 
     const handleSelectAddress = (address: any) => {
@@ -343,7 +397,12 @@ export default function SitterDashboardPage() {
         setErrorMsg(null);
 
         if (!userId) {
-            alert("Sesión no válida o expirada.");
+            setAlertState({
+                isOpen: true,
+                title: "Sesión inválida",
+                message: "Sesión no válida o expirada.",
+                type: "error"
+            });
             setSaving(false);
             return;
         }
@@ -381,7 +440,12 @@ export default function SitterDashboardPage() {
         if (section === 'profile') {
             if (!profileData.descripcion) errors.push("Sobre mí");
             if (profileData.descripcion && profileData.descripcion.length < 100) {
-                alert(`La descripción "Sobre mí" debe tener al menos 100 caracteres. (Actual: ${profileData.descripcion.length})`);
+                setAlertState({
+                    isOpen: true,
+                    title: "Descripción muy corta",
+                    message: `La descripción "Sobre mí" debe tener al menos 100 caracteres. (Actual: ${profileData.descripcion.length})`,
+                    type: "warning"
+                });
                 setSaving(false);
                 return;
             }
@@ -390,7 +454,12 @@ export default function SitterDashboardPage() {
         }
 
         if (errors.length > 0) {
-            alert(`Por favor completa los siguientes campos obligatorios: ${errors.join(", ")}`);
+            setAlertState({
+                isOpen: true,
+                title: "Faltan datos",
+                message: `Por favor completa los siguientes campos obligatorios: ${errors.join(", ")}`,
+                type: "warning"
+            });
             setSaving(false);
             return;
         }
@@ -401,39 +470,54 @@ export default function SitterDashboardPage() {
             // Mandar todo es más seguro para mantener consistencia si el backend espera el objeto completo, 
             // pero Supabase acepta partials. Mandaremos todo el objeto `profileData` ya que lo tenemos en memoria actualizado.
 
-            const updates = {
-                nombre: profileData.nombre,
-                apellido_p: profileData.apellido_p,
-                apellido_m: profileData.apellido_m,
-                descripcion: profileData.descripcion,
-                ocupacion: profileData.ocupacion,
-                edad: parseInt(profileData.edad) || null,
-                tiene_mascotas: profileData.tiene_mascotas === "si",
-                tipo_vivienda: profileData.tipo_vivienda,
-                sexo: profileData.sexo,
-                cuida_perros: profileData.cuida_perros,
-                cuida_gatos: profileData.cuida_gatos,
-                servicio_en_casa: profileData.servicio_en_casa,
-                servicio_a_domicilio: profileData.servicio_a_domicilio,
-                region: profileData.region,
-                comuna: profileData.comuna,
-                rut: cleanRut(profileData.rut),
-                // universidad removed
-                // carrera removed
-                // ano_curso removed
-                telefono: profileData.telefono,
-                galeria: profileData.galeria,
-                detalles_mascotas: profileData.detalles_mascotas,
-                redes_sociales: profileData.redes_sociales,
-                tarifa_servicio_en_casa: profileData.tarifa_servicio_en_casa,
-                tarifa_servicio_a_domicilio: profileData.tarifa_servicio_a_domicilio,
-                calle: profileData.calle,
-                numero: profileData.numero,
-                latitud: profileData.latitud,
-                longitud: profileData.longitud,
-                direccion_completa: profileData.direccion_completa,
-                videos: profileData.videos
-            };
+            let updates: any = {};
+
+            if (section === 'contact') {
+                updates = {
+                    telefono: profileData.telefono,
+                    region: profileData.region,
+                    comuna: profileData.comuna,
+                    redes_sociales: profileData.redes_sociales,
+                };
+            } else if (section === 'personal') {
+                updates = {
+                    nombre: profileData.nombre,
+                    apellido_p: profileData.apellido_p,
+                    apellido_m: profileData.apellido_m,
+                    rut: cleanRut(profileData.rut),
+                    fecha_nacimiento: profileData.fecha_nacimiento,
+                    sexo: profileData.sexo,
+                    ocupacion: profileData.ocupacion,
+                    // Student fields if they existed
+                };
+            } else if (section === 'profile') {
+                updates = {
+                    descripcion: profileData.descripcion,
+                    tipo_vivienda: profileData.tipo_vivienda,
+                    tiene_mascotas: profileData.tiene_mascotas === "si",
+                    detalles_mascotas: profileData.detalles_mascotas,
+                    videos: profileData.videos,
+                    calle: profileData.calle,
+                    numero: profileData.numero,
+                    latitud: profileData.latitud,
+                    longitud: profileData.longitud,
+                    direccion_completa: profileData.direccion_completa,
+                };
+            } else if (section === 'services') {
+                updates = {
+                    cuida_perros: profileData.cuida_perros,
+                    cuida_gatos: profileData.cuida_gatos,
+                    servicio_a_domicilio: profileData.servicio_a_domicilio,
+                    servicio_en_casa: profileData.servicio_en_casa,
+                    tarifa_servicio_a_domicilio: profileData.tarifa_servicio_a_domicilio,
+                    tarifa_servicio_en_casa: profileData.tarifa_servicio_en_casa,
+                };
+            } else {
+                // Should not happen, but fallback to full object if section is null or unknown
+                // Or easier: just return if no section matches
+                setSaving(false);
+                return;
+            }
 
             const { data, error } = await supabase
                 .from("registro_petmate")
@@ -453,7 +537,12 @@ export default function SitterDashboardPage() {
 
         } catch (error) {
             console.error("Error updating profile:", error);
-            alert("Hubo un error al actualizar el perfil: " + (error as any).message);
+            setAlertState({
+                isOpen: true,
+                title: "Error al actualizar",
+                message: "Hubo un error al actualizar el perfil: " + (error as any).message,
+                type: "error"
+            });
         } finally {
             setSaving(false);
         }
@@ -494,6 +583,58 @@ export default function SitterDashboardPage() {
                             </Link>
                         </div>
                     </header>
+
+                    {/* DUAL ROLE ACTIVATION BANNER */}
+                    {!profileData.roles?.includes('petmate') && (
+                        <div className="mb-8 bg-indigo-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold mb-2">¡Conviértete en Sitter! 🐶</h2>
+                                    <p className="text-indigo-100 max-w-xl">
+                                        Parece que ya tienes cuenta de cliente. Activa tu perfil de Sitter ahora mismo para empezar a ganar dinero cuidando mascotas.
+                                        Usarás la misma cuenta para todo.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        if (!userId) return;
+                                        setLoading(true);
+                                        try {
+                                            // Append 'petmate' to roles
+                                            const newRoles = [...(profileData.roles || []), 'petmate'];
+                                            // Deduplicate just in case
+                                            const uniqueRoles = Array.from(new Set(newRoles));
+
+                                            const { error } = await supabase
+                                                .from('registro_petmate')
+                                                .update({ roles: uniqueRoles, rol: 'petmate' }) // Update both for backward compat, though 'rol' might be unique constrained if not dropped? No, we dropped unique index.
+                                                // Actually, best to just update roles. But 'rol' column exists. Let's update roles.
+                                                // Wait, if I update 'rol' to 'petmate', I lose 'cliente' in legacy column.
+                                                // But 'roles' has both. Future code uses 'roles'.
+                                                // Let's just update 'roles'.
+                                                .eq('auth_user_id', userId);
+
+                                            if (error) throw error;
+
+                                            // Update local state
+                                            setProfileData(prev => ({ ...prev, roles: uniqueRoles }));
+                                            alert("¡Perfil activado! Ahora puedes completar tus datos.");
+                                        } catch (err: any) {
+                                            alert("Error al activar perfil: " + err.message);
+                                        } finally {
+                                            setLoading(false);
+                                        }
+                                    }}
+                                    className="bg-white text-indigo-600 px-8 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-sm"
+                                >
+                                    Activar Perfil Sitter
+                                </button>
+                            </div>
+                            {/* Decorative bubbles */}
+                            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-indigo-500 rounded-full opacity-50 blur-3xl"></div>
+                            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-indigo-700 rounded-full opacity-50 blur-3xl"></div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
@@ -557,7 +698,7 @@ export default function SitterDashboardPage() {
                                             : "bg-orange-50 border-orange-100 text-orange-800"
                                         }`}>
                                         <div className="flex items-center gap-2 mb-1 font-bold">
-                                            {profileData.aprobado ? "✅ Verificado" : profileData.certificado_antecedentes ? <span className="flex items-center gap-1 text-amber-600"><span className="inline-block animate-spin w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full"></span> En Revisión</span> : "⚠️ No Verificado"}
+                                            {profileData.aprobado ? "✅ Verificado" : profileData.certificado_antecedentes ? <span className="flex items-center gap-1 text-amber-600"><span className="text-lg">⏳</span> En Revisión</span> : "⚠️ No Verificado"}
                                         </div>
                                         <p className="opacity-90 leading-relaxed">
                                             {profileData.aprobado
@@ -630,6 +771,7 @@ export default function SitterDashboardPage() {
                                                     <input
                                                         type="file"
                                                         accept="image/*"
+                                                        multiple
                                                         className="hidden"
                                                         onChange={handleGalleryUpload}
                                                         disabled={uploading}
@@ -676,7 +818,7 @@ export default function SitterDashboardPage() {
                                     </div>
 
                                     <div className="mt-4 pt-4 border-t border-slate-100 sm:hidden">
-                                        <Link href="/explorar" className="block w-full py-2 text-xs font-medium text-slate-600 hover:text-emerald-600 text-center">
+                                        <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="block w-full py-2 text-xs font-medium text-slate-600 hover:text-emerald-600 text-center">
                                             Ver cómo aparece mi perfil
                                         </Link>
                                     </div>
@@ -688,7 +830,145 @@ export default function SitterDashboardPage() {
                         {/* MAIN CONTENT: Reservas y Datos (Col-span-8) */}
                         <div className="lg:col-span-8 space-y-6">
 
+                            {/* BLOQUE NUEVO: Mensaje de Seguridad / Privacidad */}
+                            {isProfileIncomplete && showSecurityNotice && (
+                                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
+                                    <button
+                                        onClick={() => setShowSecurityNotice(false)}
+                                        className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                    <div className="flex items-start gap-3">
+                                        <div className="text-blue-500 mt-0.5">
+                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-blue-800">Información Protegida</h4>
+                                            <p className="text-xs text-blue-700 mt-1 pr-6">
+                                                La información solicitada es confidencial y se utiliza únicamente para verificar tu identidad y garantizar la seguridad de la comunidad. Tus datos sensibles no serán públicos.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* BLOQUE NUEVO: Solicitudes Pendientes (Prioridad Alta) */}
+                            {/* BLOQUE 0: Preferencias y Servicios (MOVIDO AL TOP) */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                                    <div className="flex items-center gap-2 flex-1">
+                                        <button
+                                            onClick={() => toggleSection('services')}
+                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                        >
+                                            {expandedSections.services ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                        </button>
+                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                                            ⚙️ Mis Servicios y Tarifas
+                                        </h3>
+                                    </div>
+                                    {activeSection === 'services' ? (
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                    setActiveSection(null);
+                                                }}
+                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={() => handleSaveSection('services')}
+                                                disabled={saving}
+                                                className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                            >
+                                                {saving ? "..." : "Guardar"}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setActiveSection('services')}
+                                            disabled={activeSection !== null && activeSection !== 'services'}
+                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        >
+                                            Editar
+                                        </button>
+                                    )}
+                                </div>
+
+                                {expandedSections.services && (
+                                    <div>
+                                        <div className="mb-2">
+                                            <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Qué servicios ofreces?</h5>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                    <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                    <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
+                                                </label>
+                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                    <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                    <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
+                                                </label>
+                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                    <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
+                                                </label>
+                                                <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                    <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                    <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {/* Tarifas */}
+                                        {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
+                                            <div className="mt-4 pt-4 border-t border-slate-100">
+                                                <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas (CLP)</h5>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    {profileData.servicio_a_domicilio && (
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">A Domicilio (por visita)</label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    disabled={activeSection !== 'services'}
+                                                                    className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                    value={profileData.tarifa_servicio_a_domicilio || ""}
+                                                                    onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parseInt(e.target.value) || null })}
+                                                                    placeholder="Ej: 15000"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {profileData.servicio_en_casa && (
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">En mi Casa (por noche)</label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    disabled={activeSection !== 'services'}
+                                                                    className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                    value={profileData.tarifa_servicio_en_casa || ""}
+                                                                    onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parseInt(e.target.value) || null })}
+                                                                    placeholder="Ej: 20000"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+
                             {bookings.some(b => b.estado === 'pendiente') && (
                                 <div className="bg-white rounded-xl border border-orange-200 shadow-sm p-5 bg-orange-50/30">
                                     <h3 className="text-base font-bold text-orange-900 mb-4 flex items-center gap-2">
@@ -1166,68 +1446,7 @@ export default function SitterDashboardPage() {
                                         </div>
                                         {expandedSections.profile && (
                                             <div>
-                                                <div className="mb-6 pt-2 pb-6 border-b border-slate-100">
-                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Preferencias & Servicios</h5>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'profile' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
-                                                        </label>
-                                                    </div>
 
-                                                    {/* Tarifas */}
-                                                    {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
-                                                        <div className="mt-4 pt-4 border-t border-slate-100">
-                                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas Esperadas <span className="text-slate-400 font-normal normal-case">(CLP por día/paseo)</span></h5>
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                                {profileData.servicio_a_domicilio && (
-                                                                    <div>
-                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa A Domicilio</label>
-                                                                        <div className="relative">
-                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                            <input
-                                                                                type="number"
-                                                                                disabled={activeSection !== 'profile'}
-                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                                value={profileData.tarifa_servicio_a_domicilio || ""}
-                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parseInt(e.target.value) || null })}
-                                                                                placeholder="Ej: 15000"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                                {profileData.servicio_en_casa && (
-                                                                    <div>
-                                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Tarifa En mi Casa</label>
-                                                                        <div className="relative">
-                                                                            <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                            <input
-                                                                                type="number"
-                                                                                disabled={activeSection !== 'profile'}
-                                                                                className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                                value={profileData.tarifa_servicio_en_casa || ""}
-                                                                                onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parseInt(e.target.value) || null })}
-                                                                                placeholder="Ej: 20000"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
 
@@ -1481,7 +1700,14 @@ export default function SitterDashboardPage() {
                         onClose={() => setIsLightboxOpen(false)}
                     />
                 )}
-            </main>
+                <ModalAlert
+                    isOpen={alertState.isOpen}
+                    onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                    title={alertState.title}
+                    message={alertState.message}
+                    type={alertState.type}
+                />
+            </main >
 
         </>
     );

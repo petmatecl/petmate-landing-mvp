@@ -13,6 +13,9 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
     // ... rest of state
 
+    const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
+    // ... rest of state
+
     const checkProfileCompleteness = (user: any, role: "cliente" | "petmate") => {
         const missing: string[] = [];
         if (!user.nombre) missing.push("Nombre");
@@ -98,13 +101,13 @@ export default function AdminDashboard() {
         const { count: clientesCount } = await supabase
             .from("registro_petmate")
             .select("*", { count: "exact", head: true })
-            .eq("rol", "cliente");
+            .contains("roles", ["cliente"]);
 
         // 2. Sitters
         const { count: sittersCount } = await supabase
             .from("registro_petmate")
             .select("*", { count: "exact", head: true })
-            .eq("rol", "petmate");
+            .contains("roles", ["petmate"]);
 
         // 3. Solicitudes Pendientes (En búsqueda, sin sitter)
         const { count: pendientesCount } = await supabase
@@ -147,7 +150,7 @@ export default function AdminDashboard() {
         const { data, error } = await supabase
             .from("registro_petmate")
             .select("*")
-            .eq("rol", activeTab)
+            .contains("roles", [activeTab])
             .order("created_at", { ascending: false });
 
         if (error) {
@@ -231,8 +234,9 @@ export default function AdminDashboard() {
         let enrichedUser = { ...user };
 
         // Calcular campos faltantes
-        const role = user.rol === "petmate" ? "petmate" : "cliente";
-        const missing = checkProfileCompleteness(user, role);
+        // Para calcular campos faltantes, asumimos el rol de la tab activa si es que lo tiene, o el principal
+        const roleToCheck = activeTab === "petmate" ? "petmate" : "cliente";
+        const missing = checkProfileCompleteness(user, roleToCheck);
         enrichedUser.missingFields = missing;
 
         // Si es cliente, obtener mascotas

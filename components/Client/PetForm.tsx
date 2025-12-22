@@ -69,8 +69,10 @@ export default function PetForm({
             setUploading(true);
             const file = event.target.files[0];
             const fileExt = file.name.split('.').pop();
-            const fileName = `pet - ${Math.random()}.${fileExt} `;
-            const filePath = `${fileName} `;
+            const timestamp = Date.now();
+            // Sanitize filename: remove spaces and special chars
+            const fileName = `pet-${timestamp}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('avatars') // Using avatars bucket for now
@@ -83,44 +85,56 @@ export default function PetForm({
                 .getPublicUrl(filePath);
 
             setFotoMascota(publicUrl);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error uploading pet photo:', error);
-            alert('Error subiendo foto.');
+            alert(`Error subiendo foto: ${error.message || error.error_description || error}`);
         } finally {
             setUploading(false);
         }
     }
 
     async function handleGalleryUpload(event: React.ChangeEvent<HTMLInputElement>) {
-        if (fotosGaleria.length >= 3) {
-            alert("Máximo 3 fotos de galería.");
+        if (!event.target.files || event.target.files.length === 0) return;
+
+        const files = Array.from(event.target.files);
+        const currentCount = fotosGaleria.length;
+
+        if (currentCount + files.length > 3) {
+            alert(`Máximo 3 fotos de galería. Solo puedes agregar ${3 - currentCount} más.`);
             return;
         }
 
+        setUploading(true);
+
         try {
-            if (!event.target.files || event.target.files.length === 0) return;
-            setUploading(true);
-            const file = event.target.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `pet - gallery - ${Math.random()}.${fileExt} `;
-            const filePath = `${fileName} `;
+            const uploadPromises = files.map(async (file) => {
+                const fileExt = file.name.split('.').pop();
+                const timestamp = Date.now();
+                const fileName = `pet-gallery-${timestamp}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `${fileName}`;
 
-            const { error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, file);
+                const { error: uploadError } = await supabase.storage
+                    .from('avatars')
+                    .upload(filePath, file);
 
-            if (uploadError) throw uploadError;
+                if (uploadError) throw uploadError;
 
-            const { data: { publicUrl } } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(filePath);
+                const { data: { publicUrl } } = supabase.storage
+                    .from('avatars')
+                    .getPublicUrl(filePath);
 
-            setFotosGaleria(prev => [...prev, publicUrl]);
-        } catch (error) {
+                return publicUrl;
+            });
+
+            const newUrls = await Promise.all(uploadPromises);
+            setFotosGaleria(prev => [...prev, ...newUrls]);
+
+        } catch (error: any) {
             console.error('Error uploading gallery photo:', error);
-            alert('Error subiendo foto de galería.');
+            alert(`Error subiendo fotos: ${error.message || error.error_description || error}`);
         } finally {
             setUploading(false);
+            event.target.value = "";
         }
     }
 
@@ -196,7 +210,17 @@ export default function PetForm({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+        <form onSubmit={handleSubmit} className="relative space-y-6 max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+
+            {/* Close Button */}
+            <button
+                type="button"
+                onClick={onCancel}
+                className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                title="Cerrar"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
 
             {/* Header / Foto */}
             <div className="flex flex-col items-center gap-4 mb-6">
@@ -255,6 +279,7 @@ export default function PetForm({
                                 <input
                                     type="file"
                                     accept="image/*"
+                                    multiple
                                     className="hidden"
                                     onChange={handleGalleryUpload}
                                     disabled={uploading}
@@ -361,7 +386,8 @@ export default function PetForm({
                         <input
                             required={tieneChip}
                             value={chipId}
-                            onChange={(e) => setChipId(e.target.value)}
+                            maxLength={15}
+                            onChange={(e) => setChipId(e.target.value.slice(0, 15))}
                             placeholder="Ingrese ID del Chip (Obligatorio)"
                             className="w-full h-11 px-3 bg-white rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none animate-in fade-in slide-in-from-top-1"
                         />

@@ -8,6 +8,7 @@ import { es } from "date-fns/locale";
 import { LayoutDashboard, MapPin, Calendar, Home, Hotel, Filter } from "lucide-react";
 
 import ApplicationDialog from "../../components/Sitter/ApplicationDialog";
+import ModalAlert from "../../components/ModalAlert";
 
 export default function SitterExplorarPage() {
     const router = useRouter();
@@ -18,6 +19,12 @@ export default function SitterExplorarPage() {
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState<any | null>(null);
+    const [alertState, setAlertState] = useState<{ isOpen: boolean; title: string; message: string; type: 'error' | 'warning' | 'success' | 'info' }>({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "warning"
+    });
 
     // Filters
     const [filterService, setFilterService] = useState("");
@@ -54,7 +61,7 @@ export default function SitterExplorarPage() {
             // 1. Fetch published trips
             let query = supabase
                 .from("viajes")
-                .select("*")
+                .select("*, cliente:cliente_id(comuna, nombre)")
                 .eq("estado", "publicado")
                 .order("created_at", { ascending: false });
 
@@ -97,8 +104,15 @@ export default function SitterExplorarPage() {
         const profileComplete = Boolean(sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null));
 
         if (!contactComplete || !personalComplete || !profileComplete) {
-            alert("Debes completar tu perfil (Información Personal, Contacto y Sobre Mí) antes de poder postular a trabajos. Ve a 'Mi Panel' para completarlo.");
-            return;
+            if (!contactComplete || !personalComplete || !profileComplete) {
+                setAlertState({
+                    isOpen: true,
+                    title: "Perfil Incompleto",
+                    message: "Debes completar tu perfil (Información Personal, Contacto y Sobre Mí) antes de poder postular a trabajos. Ve a 'Mi Panel' para completarlo.",
+                    type: "warning"
+                });
+                return;
+            }
         }
 
         setSelectedTrip(trip);
@@ -179,7 +193,7 @@ export default function SitterExplorarPage() {
                                             {trip.servicio === 'hospedaje' ? <Hotel size={24} /> : <Home size={24} />}
                                         </div>
                                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide ${trip.servicio === 'hospedaje' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                            {trip.servicio}
+                                            {trip.servicio === 'hospedaje' ? 'En casa del sitter' : 'En casa del dueño'}
                                         </span>
                                     </div>
 
@@ -202,8 +216,9 @@ export default function SitterExplorarPage() {
 
                                         <div className="flex items-center gap-3 text-slate-500">
                                             <MapPin size={18} className="text-slate-400" />
-                                            <span className="italic text-sm">
-                                                Ubicación oculta
+                                            <span className="text-sm font-medium text-slate-800">
+                                                {trip.cliente?.comuna || "Santiago"}
+                                                <span className="text-slate-400 text-xs font-normal ml-1">(Aprox.)</span>
                                             </span>
                                         </div>
                                     </div>
@@ -237,6 +252,14 @@ export default function SitterExplorarPage() {
                     onApplied={handleAppSuccess}
                 />
             )}
+
+            <ModalAlert
+                isOpen={alertState.isOpen}
+                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+            />
         </div>
     );
 }

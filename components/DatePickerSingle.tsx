@@ -42,8 +42,8 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                 const rect = buttonRef.current?.getBoundingClientRect();
                 if (rect) {
                     setCoords({
-                        top: rect.bottom + window.scrollY + 8, // 8px de margen
-                        left: rect.left + window.scrollX,
+                        top: rect.bottom + 8, // 8px de margen
+                        left: rect.left,
                     });
                 }
             };
@@ -116,9 +116,9 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                             classNames={{
                                 root: "w-full",
                                 months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                                month: "space-y-4",
-                                caption: "flex justify-center pt-1 relative items-center mb-2",
-                                caption_label: "hidden", // Ocultamos el label texto porque usamos dropdowns
+                                month: "space-y-4 w-full", // Added w-full
+                                caption: "flex justify-center pt-1 relative items-center mb-2 px-10",
+                                caption_label: "hidden",
                                 caption_dropdowns: "flex justify-center gap-1",
                                 dropdown: "bg-white border border-slate-200 text-slate-700 text-sm rounded p-1 cursor-pointer hover:bg-slate-50 outline-none",
                                 dropdown_month: "mr-1",
@@ -129,10 +129,10 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                                 nav_button_next: "absolute right-1",
                                 table: "w-full border-collapse space-y-1",
                                 head_row: "flex",
-                                head_cell: "text-slate-400 rounded-md w-9 font-normal text-[0.8rem]",
+                                head_cell: "flex-1 text-slate-400 rounded-md font-normal text-[0.8rem] text-center", // Changed: flex-1, text-center, removed w-9
                                 row: "flex w-full mt-2",
-                                cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
-                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-full transition-colors",
+                                cell: "flex-1 relative p-0 text-center text-sm focus-within:relative focus-within:z-20", // Changed: flex-1
+                                day: "mx-auto h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center",
                                 day_selected: "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white",
                                 day_today: "bg-slate-100 text-accent-foreground",
                                 day_outside: "text-slate-300 opacity-50",

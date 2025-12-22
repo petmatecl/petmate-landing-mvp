@@ -69,20 +69,20 @@ export function HowItWorks() {
   const steps = [
     {
       id: "01",
-      name: "Explora",
-      description: "Encuentra cuidadores cercanos 100% verificados que se adapten a tu mascota.",
+      name: "Publica tu solicitud",
+      description: "Cuéntanos qué necesitas (fechas, mascotas, servicios) y recibe postulaciones de cuidadores verificados.",
       icon: MagnifyingGlassIcon,
     },
     {
       id: "02",
-      name: "Conecta",
-      description: "Chatea con ellos y coordina una visita previa para asegurarte de que haya 'match'.",
+      name: "Elige al mejor",
+      description: "Revisa los perfiles de los sitters interesados, chatea con ellos y coordina una visita previa.",
       icon: ChatBubbleLeftRightIcon,
     },
     {
       id: "03",
-      name: "Viaja tranquilo",
-      description: "Reserva seguro a través de Pawnecta y recibe fotos y reportes diarios de tu peludo.",
+      name: "Reserva y relájate",
+      description: "Confirma la reserva a través de Pawnecta y viaja tranquilo recibiendo fotos y reportes diarios.",
       icon: BriefcaseIcon,
     },
   ];
