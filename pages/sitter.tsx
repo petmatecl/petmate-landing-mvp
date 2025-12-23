@@ -279,7 +279,26 @@ export default function SitterDashboardPage() {
 
 
 
-    const isProfileIncomplete = !profileData.nombre || !profileData.apellido_p || !profileData.rut || !profileData.telefono || !profileData.region || !profileData.comuna || !profileData.descripcion || !profileData.foto_perfil;
+    const isProfileComplete = Boolean(
+        profileData.nombre &&
+        profileData.apellido_p &&
+        profileData.rut &&
+        profileData.fecha_nacimiento &&
+        profileData.sexo &&
+        profileData.ocupacion &&
+        profileData.telefono &&
+        profileData.region &&
+        profileData.comuna &&
+        profileData.calle &&
+        profileData.numero &&
+        profileData.descripcion &&
+        profileData.descripcion.length >= 50 && // Adjusted to be less strict or match validation
+        profileData.foto_perfil &&
+        profileData.tipo_vivienda &&
+        profileData.tiene_mascotas
+    );
+
+    const isProfileIncomplete = !isProfileComplete;
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -569,6 +588,11 @@ export default function SitterDashboardPage() {
                         <div>
                             <h1 className="text-2xl font-bold text-slate-900">
                                 Hola, {displayName} 👋
+                                {isProfileComplete && (
+                                    <span className="ml-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-sm">
+                                        Perfl Completo ✅
+                                    </span>
+                                )}
                             </h1>
                             <p className="text-sm text-slate-600">
                                 Gestiona tus reservas y perfil.
