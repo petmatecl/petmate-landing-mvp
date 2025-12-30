@@ -11,7 +11,6 @@ import AddressFormModal from './AddressFormModal'; // Added
 import { Address } from './AddressCard'; // Added type
 import { User, Calendar, Settings, LogOut, MapPin, Plus, Trash2, Edit2 } from 'lucide-react'; // Added icons
 import NotificationCenter from './NotificationCenter'; // Added
-import ProfileSettingsModal from './ProfileSettingsModal'; // Added
 import ClientContext from './ClientContext'; // Added context
 
 interface ClientLayoutProps {
@@ -44,7 +43,6 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
     const [loadingAddresses, setLoadingAddresses] = useState(true);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [expandedMapId, setExpandedMapId] = useState<string | null>(null);
 
     // Dynamic Import
@@ -325,11 +323,6 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
 
                                 {/* Navigation Links (Active state logic could be added) */}
                                 <nav className="border-t border-slate-100 p-2">
-
-                                    <button onClick={() => setIsProfileModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
-                                        <Settings size={18} />
-                                        Configuración
-                                    </button>
                                     <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors">
                                         <LogOut size={18} />
                                         Cerrar Sesión
@@ -446,16 +439,6 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                         onSaved={handleAddressSaved}
                         initialData={editingAddress}
                         userId={userId}
-                    />
-                )}
-
-                {/* Profile Settings Modal */}
-                {userId && (
-                    <ProfileSettingsModal
-                        isOpen={isProfileModalOpen}
-                        onClose={() => setIsProfileModalOpen(false)}
-                        userId={userId}
-                        onSaved={() => fetchClientProfile(userId)}
                     />
                 )}
             </div>

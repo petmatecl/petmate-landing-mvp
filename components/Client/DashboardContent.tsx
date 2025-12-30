@@ -16,8 +16,9 @@ import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
 import ApplicationsModal from "./ApplicationsModal"; // Import Modal
 import { useClientData } from "./ClientContext";
-import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText } from "lucide-react";
+import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X } from "lucide-react";
 import { useRouter } from "next/router";
+import AddressAutocomplete from "../AddressAutocomplete";
 
 export default function DashboardContent() {
     const router = useRouter();
@@ -25,6 +26,21 @@ export default function DashboardContent() {
 
     const [nombre, setNombre] = useState<string | null>(null);
     const [clientProfile, setClientProfile] = useState<any>(null);
+
+    // Profile Form State
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [profileFormData, setProfileFormData] = useState({
+        nombre: '',
+        apellido_p: '',
+        rut: '',
+        telefono: '',
+        latitud: null as number | null,
+        longitud: null as number | null,
+        videos: [] as string[],
+        consentimiento_rrss: false,
+        comuna: '',
+        region: ''
+    });
 
     // Estado del buscador
     const [rango, setRango] = useState<DateRange | undefined>();
@@ -135,6 +151,20 @@ export default function DashboardContent() {
         if (data) {
             setClientProfile(data);
             if (data.nombre && !nombre) setNombre(data.nombre);
+
+            // Populate Form Data
+            setProfileFormData({
+                nombre: data.nombre || '',
+                apellido_p: data.apellido_p || '',
+                rut: data.rut || '',
+                telefono: data.telefono || '',
+                latitud: data.latitud,
+                longitud: data.longitud,
+                videos: data.videos || [],
+                consentimiento_rrss: data.consentimiento_rrss || false,
+                comuna: data.comuna || '',
+                region: data.region || ''
+            });
 
             if (data.mascotas_viaje && Array.isArray(data.mascotas_viaje)) {
                 setSelectedPetIds(data.mascotas_viaje);
@@ -270,22 +300,58 @@ export default function DashboardContent() {
         });
     };
 
-    const handleSetDefaultAddress = async (id: string) => {
+    const handleSetDefaultAddress = async (addressId: string) => {
         if (!userId) return;
         try {
-            // Desmarcar todas
-            await supabase.from("direcciones").update({ es_principal: false }).eq("user_id", userId);
-            // Marcar nueva
-            const { error } = await supabase.from("direcciones").update({ es_principal: true }).eq("id", id);
+            // 1. Set all to false
+            await supabase.from('direcciones').update({ es_principal: false }).eq('user_id', userId);
+
+            // 2. Set selected to true
+            const { error } = await supabase.from('direcciones').update({ es_principal: true }).eq('id', addressId);
 
             if (error) throw error;
 
-            refreshAddresses();
-            showAlert("Dirección Principal", "Se ha actualizado tu dirección principal.", "success");
-        } catch (error: any) {
-            console.error("Error setting default address:", error);
-            showAlert("Error", "No se pudo actualizar la dirección principal.", "error");
+            await refreshAddresses();
+            showAlert('Dirección actualizada', 'Se ha establecido la dirección principal.', 'success');
+        } catch (error) {
+            console.error(error);
+            showAlert('Error', 'No se pudo actualizar la dirección principal.', 'error');
         }
+    };
+
+    const handleSaveProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingProfile(true);
+
+        try {
+            const { error } = await supabase
+                .from('registro_petmate')
+                .update({
+                    nombre: profileFormData.nombre,
+                    apellido_p: profileFormData.apellido_p,
+                    rut: profileFormData.rut,
+                    telefono: profileFormData.telefono,
+                    latitud: profileFormData.latitud,
+                    longitud: profileFormData.longitud,
+                    videos: profileFormData.videos.filter(v => v.trim() !== ''),
+                    consentimiento_rrss: profileFormData.consentimiento_rrss
+                })
+                .eq('auth_user_id', userId);
+
+            if (error) throw error;
+
+            await fetchClientProfile(userId!); // Refresh data
+            showAlert('Perfil actualizado', 'Tus datos han sido guardados correctamente.', 'success');
+        } catch (err: any) {
+            console.error(err);
+            showAlert('Error', 'Error al actualizar el perfil: ' + err.message, 'error');
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
+    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setProfileFormData({ ...profileFormData, [e.target.name]: e.target.value });
     };
 
     const handleDeleteTrip = (id: string) => {
@@ -762,23 +828,159 @@ export default function DashboardContent() {
 
             {/* TAB: DATOS PERSONALES */}
             {activeTab === 'datos' && (
-                <section className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                        <h2 className="text-lg font-bold text-slate-900 mb-4">Datos Personales</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
-                                <div className="text-sm font-medium text-slate-900">{clientProfile?.nombre || "No definido"} {clientProfile?.apellido_p || ""}</div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label>
-                                <div className="text-sm font-medium text-slate-900">{clientProfile?.telefono || "No definido"}</div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
-                                <div className="text-sm font-medium text-slate-900">{clientProfile?.email || "No definido"}</div>
-                            </div>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-lg font-bold text-slate-900">Datos Personales</h2>
+                            <button
+                                type="submit"
+                                form="profile-form-tab"
+                                disabled={savingProfile}
+                                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50 text-sm"
+                            >
+                                {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
+                                {!savingProfile && <Save size={16} />}
+                            </button>
                         </div>
+
+                        <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Nombre y Apellido */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Nombre</label>
+                                    <input
+                                        type="text"
+                                        name="nombre"
+                                        value={profileFormData.nombre}
+                                        onChange={handleProfileChange}
+                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                        placeholder="Tu nombre"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Apellido</label>
+                                    <input
+                                        type="text"
+                                        name="apellido_p"
+                                        value={profileFormData.apellido_p}
+                                        onChange={handleProfileChange}
+                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                        placeholder="Tu apellido"
+                                    />
+                                </div>
+
+                                {/* RUT y Teléfono */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                                        <FileText size={14} /> RUT
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="rut"
+                                        value={profileFormData.rut}
+                                        onChange={handleProfileChange}
+                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-slate-50"
+                                        placeholder="12.345.678-9"
+                                    />
+                                    <p className="text-[10px] text-slate-400 mt-1">El RUT es único por cuenta.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                                        <Phone size={14} /> Teléfono
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        name="telefono"
+                                        value={profileFormData.telefono}
+                                        onChange={handleProfileChange}
+                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                        placeholder="+56 9 1234 5678"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Ubicación */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                                    Tu Ubicación Base (para el mapa)
+                                </label>
+                                <AddressAutocomplete
+                                    onSelect={(res) => {
+                                        if (res.lat && res.lon) {
+                                            setProfileFormData(prev => ({ ...prev, latitud: parseFloat(res.lat), longitud: parseFloat(res.lon) }));
+                                        }
+                                    }}
+                                    initialValue={profileFormData.comuna ? `${profileFormData.comuna}, ${profileFormData.region || ''}` : ''}
+                                    placeholder="Busca tu dirección o comuna..."
+                                    className="w-full"
+                                />
+                                {profileFormData.latitud && (
+                                    <p className="text-[10px] text-emerald-600 mt-1">✓ Ubicación georeferenciada lista</p>
+                                )}
+                            </div>
+
+                            {/* Videos */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                                    Videos (Enlaces de YouTube o TikTok)
+                                </label>
+                                <div className="space-y-2">
+                                    {profileFormData.videos.map((vid, idx) => (
+                                        <div key={idx} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={vid}
+                                                onChange={(e) => {
+                                                    const newVideos = [...profileFormData.videos];
+                                                    newVideos[idx] = e.target.value;
+                                                    setProfileFormData({ ...profileFormData, videos: newVideos });
+                                                }}
+                                                className="w-full text-xs rounded-lg border-slate-200"
+                                                placeholder="https://youtube.com/watch?v=..."
+                                            />
+                                            {idx > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newVideos = profileFormData.videos.filter((_, i) => i !== idx);
+                                                        setProfileFormData({ ...profileFormData, videos: newVideos });
+                                                    }}
+                                                    className="text-slate-400 hover:text-rose-500"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {profileFormData.videos.length < 3 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setProfileFormData({ ...profileFormData, videos: [...profileFormData.videos, ''] })}
+                                            className="text-xs text-emerald-600 font-bold hover:underline"
+                                        >
+                                            + Agregar otro video
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Consentimiento RRSS */}
+                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={profileFormData.consentimiento_rrss}
+                                        onChange={(e) => setProfileFormData({ ...profileFormData, consentimiento_rrss: e.target.checked })}
+                                        className="mt-1 w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500"
+                                    />
+                                    <div className="text-sm text-emerald-800">
+                                        <span className="font-bold block text-emerald-900">Permitir uso en Redes Sociales</span>
+                                        Al marcar esto, permites que Pawnecta destaque tu perfil y videos en nuestras redes sociales.
+                                        <span className="block text-xs mt-1 font-bold text-emerald-700">🚀 ¡Esto aumenta tus probabilidades de match!</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </form>
                     </div>
                 </section>
             )}
