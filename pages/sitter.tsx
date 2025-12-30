@@ -82,6 +82,17 @@ export default function SitterDashboardPage() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil'>('solicitudes');
 
+    // Helpers for Price Formatting
+    const formatPrice = (value: number | null | undefined) => {
+        if (value === null || value === undefined) return "";
+        return value.toLocaleString('es-CL');
+    };
+
+    const parsePrice = (value: string) => {
+        const numericValue = value.replace(/\./g, '').replace(/[^0-9]/g, '');
+        return numericValue === "" ? null : parseInt(numericValue, 10);
+    };
+
     // Restore Auth & Load Profile Logic
     useEffect(() => {
         const init = async () => {
@@ -134,7 +145,8 @@ export default function SitterDashboardPage() {
                         videos: profile.videos || [],
                         latitud: profile.latitud,
                         longitud: profile.longitud,
-                        direccion_completa: profile.direccion_completa || ""
+                        direccion_completa: profile.direccion_completa || "",
+                        tamanos_perros: profile.tamanos_perros || []
                     });
                     setBackupProfileData(profile); // Save backup for cancel
                 }
@@ -223,7 +235,8 @@ export default function SitterDashboardPage() {
         videos: [],
         latitud: null,
         longitud: null,
-        direccion_completa: ""
+        direccion_completa: "",
+        tamanos_perros: []
     });
 
     // Privacy Notice State
@@ -542,6 +555,7 @@ export default function SitterDashboardPage() {
                     servicio_en_casa: profileData.servicio_en_casa,
                     tarifa_servicio_a_domicilio: profileData.tarifa_servicio_a_domicilio,
                     tarifa_servicio_en_casa: profileData.tarifa_servicio_en_casa,
+                    tamanos_perros: profileData.tamanos_perros
                 };
             } else {
                 // Should not happen, but fallback to full object if section is null or unknown
@@ -918,25 +932,62 @@ export default function SitterDashboardPage() {
 
                                     {expandedSections.services && (
                                         <div>
-                                            <div className="mb-2">
-                                                <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Qué servicios ofreces?</h5>
-                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                    <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                        <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                        <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
-                                                    </label>
-                                                    <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                        <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                        <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
-                                                    </label>
-                                                    <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                        <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
-                                                    </label>
-                                                    <label className={`flex items-center gap-2 p-2 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                        <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                        <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
-                                                    </label>
+                                            <div className="mb-6 space-y-6">
+                                                {/* Group 1: Mascotas */}
+                                                <div>
+                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Qué mascotas cuidas?</h5>
+                                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
+                                                        </label>
+                                                    </div>
+
+                                                    {/* Dog Sizes Selector (Conditional) */}
+                                                    {profileData.cuida_perros && (
+                                                        <div className="pl-2 border-l-2 border-slate-100 ml-1">
+                                                            <label className="block text-xs font-bold text-slate-500 mb-2">¿Qué tamaños de perro aceptas?</label>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {['Pequeño', 'Mediano', 'Grande', 'Gigante'].map((size) => (
+                                                                    <label key={size} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${activeSection === 'services' ? "cursor-pointer" : "opacity-75 cursor-not-allowed"} ${profileData.tamanos_perros?.includes(size) ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            disabled={activeSection !== 'services'}
+                                                                            className="hidden"
+                                                                            checked={profileData.tamanos_perros?.includes(size) || false}
+                                                                            onChange={(e) => {
+                                                                                const current = profileData.tamanos_perros || [];
+                                                                                const newSizes = e.target.checked
+                                                                                    ? [...current, size]
+                                                                                    : current.filter((s: string) => s !== size);
+                                                                                setProfileData({ ...profileData, tamanos_perros: newSizes });
+                                                                            }}
+                                                                        />
+                                                                        {size}
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Group 2: Ubicación */}
+                                                <div>
+                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Dónde las cuidas?</h5>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
+                                                        </label>
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                            <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
+                                                        </label>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -951,12 +1002,12 @@ export default function SitterDashboardPage() {
                                                                 <div className="relative">
                                                                     <span className="absolute left-3 top-2 text-slate-400">$</span>
                                                                     <input
-                                                                        type="number"
+                                                                        type="text"
                                                                         disabled={activeSection !== 'services'}
                                                                         className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                        value={profileData.tarifa_servicio_a_domicilio || ""}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parseInt(e.target.value) || null })}
-                                                                        placeholder="Ej: 15000"
+                                                                        value={formatPrice(profileData.tarifa_servicio_a_domicilio)}
+                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parsePrice(e.target.value) })}
+                                                                        placeholder="Ej: 15.000"
                                                                     />
                                                                 </div>
                                                             </div>
@@ -967,12 +1018,12 @@ export default function SitterDashboardPage() {
                                                                 <div className="relative">
                                                                     <span className="absolute left-3 top-2 text-slate-400">$</span>
                                                                     <input
-                                                                        type="number"
+                                                                        type="text"
                                                                         disabled={activeSection !== 'services'}
                                                                         className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                        value={profileData.tarifa_servicio_en_casa || ""}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parseInt(e.target.value) || null })}
-                                                                        placeholder="Ej: 20000"
+                                                                        value={formatPrice(profileData.tarifa_servicio_en_casa)}
+                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parsePrice(e.target.value) })}
+                                                                        placeholder="Ej: 20.000"
                                                                     />
                                                                 </div>
                                                             </div>
