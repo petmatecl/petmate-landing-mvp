@@ -32,7 +32,7 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 800
     const zoom = approximate ? 14 : 15;
 
     return (
-        <div style={{ height, width: '100%', borderRadius: '1rem', overflow: 'hidden', zIndex: 0 }}>
+        <div className="isolate" style={{ height, width: '100%', borderRadius: '1rem', overflow: 'hidden', position: 'relative', zIndex: 0 }}>
             <MapContainer
                 center={center}
                 zoom={zoom}

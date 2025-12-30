@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search } from "lucide-react";
 
 export type Trip = {
     id: string;
@@ -21,6 +21,12 @@ export type Trip = {
         nombre: string;
         apellido_p?: string;
         foto_perfil?: string;
+        telefono?: string;
+        email?: string;
+        direccion_completa?: string;
+        calle?: string;
+        numero?: string;
+        comuna?: string;
     };
     // New prop for marketplace logic
     postulaciones_count?: number;
@@ -32,11 +38,19 @@ type Props = {
     onEdit: (trip: Trip) => void;
     onDelete: (id: string) => void;
     onViewApplications?: (trip: Trip) => void;
+    onRemoveSitter?: (id: string) => void;
+    onSearchSitter?: (trip: Trip) => void;
 };
 
-export default function TripCard({ trip, petNames, onEdit, onDelete, onViewApplications }: Props) {
-    const startDate = new Date(trip.fecha_inicio);
-    const endDate = trip.fecha_fin ? new Date(trip.fecha_fin) : null;
+export default function TripCard({ trip, petNames, onEdit, onDelete, onViewApplications, onRemoveSitter, onSearchSitter }: Props) {
+    // Safe date parsing to avoid UTC/Timezone shifts
+    const parseDate = (dateStr: string) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    };
+
+    const startDate = parseDate(trip.fecha_inicio);
+    const endDate = trip.fecha_fin ? parseDate(trip.fecha_fin) : null;
     const hasApplications = (trip.postulaciones_count || 0) > 0;
 
     return (
@@ -86,23 +100,47 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                             */}
 
                             {trip.sitter_asignado && trip.sitter ? (
-                                <Link href={`/sitter/${trip.sitter.id}`} className="flex items-center gap-3 bg-emerald-50 rounded-full pl-1 pr-4 py-1 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group">
-                                    {trip.sitter.foto_perfil ? (
-                                        <img
-                                            src={trip.sitter.foto_perfil}
-                                            alt={trip.sitter.nombre}
-                                            className="w-8 h-8 rounded-full object-cover border border-emerald-200 group-hover:border-emerald-300"
-                                        />
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 text-xs font-bold">
-                                            {trip.sitter.nombre.charAt(0)}
+                                <div className="flex flex-col gap-2 w-full">
+                                    <Link href={`/sitter/${trip.sitter.id}?returnTo=/cliente`} className="flex items-center gap-3 bg-emerald-50 rounded-full pl-1 pr-4 py-1 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group w-fit">
+                                        {trip.sitter.foto_perfil ? (
+                                            <img
+                                                src={trip.sitter.foto_perfil}
+                                                alt={trip.sitter.nombre}
+                                                className="w-8 h-8 rounded-full object-cover border border-emerald-200 group-hover:border-emerald-300"
+                                            />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 text-xs font-bold">
+                                                {trip.sitter.nombre.charAt(0)}
+                                            </div>
+                                        )}
+                                        <div className="flex flex-col leading-none">
+                                            <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider group-hover:text-emerald-700">Cuidado por</span>
+                                            <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">{trip.sitter.nombre} {trip.sitter.apellido_p?.charAt(0)}.</span>
+                                        </div>
+                                    </Link>
+
+
+                                    {/* Contact Info Block - Only visible if trip is confirmed */}
+                                    {['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) && (
+                                        <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 space-y-1">
+                                            <p className="font-bold text-slate-900 mb-1">Datos de Contacto:</p>
+                                            <p className="flex items-center gap-2">📞 <a href={`tel:${trip.sitter.telefono}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.telefono || 'No registrado'}</a></p>
+                                            <p className="flex items-center gap-2">✉️ <a href={`mailto:${trip.sitter.email}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.email || 'No registrado'}</a></p>
+
+                                            {trip.servicio === 'hospedaje' && (
+                                                <div className="mt-2 pt-2 border-t border-slate-200">
+                                                    <p className="font-bold text-slate-900 mb-1">Dirección del Sitter:</p>
+                                                    <p className="flex items-start gap-2">
+                                                        📍 <span>
+                                                            {trip.sitter.direccion_completa ||
+                                                                (trip.sitter.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible')}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-                                    <div className="flex flex-col leading-none">
-                                        <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider group-hover:text-emerald-700">Cuidado por</span>
-                                        <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">{trip.sitter.nombre} {trip.sitter.apellido_p?.charAt(0)}.</span>
-                                    </div>
-                                </Link>
+                                </div>
                             ) : hasApplications ? (
                                 <button
                                     onClick={() => onViewApplications && onViewApplications(trip)}
@@ -120,6 +158,16 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                     {trip.estado}
                                 </span>
                             )}
+
+                            {/* Search Sitter Button - Only if not assigned */}
+                            {!trip.sitter_asignado && onSearchSitter && (
+                                <button
+                                    onClick={() => onSearchSitter(trip)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold hover:bg-emerald-200 transition-colors border border-emerald-200"
+                                >
+                                    <Search size={14} /> Buscar Sitter
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -133,14 +181,22 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                         <Edit2 size={16} />
                     </button>
 
-                    {/* Solo permitir borrar si no hay sitter asignado o está cancelado */}
-                    {!trip.sitter_asignado && (
+                    <button
+                        onClick={() => onDelete(trip.id)}
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Eliminar viaje"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+
+                    {/* Botón para desvincular sitter */}
+                    {trip.sitter_asignado && onRemoveSitter && (
                         <button
-                            onClick={() => onDelete(trip.id)}
-                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Eliminar viaje"
+                            onClick={() => onRemoveSitter(trip.id)}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Cancelar servicio / Desvincular Sitter"
                         >
-                            <Trash2 size={16} />
+                            <UserX size={16} />
                         </button>
                     )}
                 </div>

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Pet } from "./PetCard";
-import { Camera, Loader2 } from 'lucide-react';
+import { Camera, Loader2, Upload, X, Check, AlertCircle, Dog } from 'lucide-react';
 import DatePickerSingle from "../DatePickerSingle";
 import { format } from "date-fns";
 import { useRouter } from "next/router";
@@ -25,6 +25,7 @@ export default function PetForm({
     const [raza, setRaza] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [sexo, setSexo] = useState<"macho" | "hembra">("macho");
+    const [tamano, setTamano] = useState<"pequeño" | "mediano" | "grande" | "gigante">("pequeño");
 
     // New Fields
     const [fechaNacimiento, setFechaNacimiento] = useState<Date | undefined>(undefined);
@@ -49,6 +50,7 @@ export default function PetForm({
             setRaza(initialData.raza || "");
             setDescripcion(initialData.descripcion || "");
             setSexo(initialData.sexo || "macho");
+            setTamano(initialData.tamano || "pequeño");
 
             // New fields population
             setFechaNacimiento(initialData.fecha_nacimiento ? new Date(initialData.fecha_nacimiento + 'T00:00:00') : undefined);
@@ -158,6 +160,7 @@ export default function PetForm({
             nombre,
             tipo,
             sexo,
+            tamano,
             raza: raza || null,
             descripcion: descripcion || null,
             fecha_nacimiento: fechaNacimiento ? format(fechaNacimiento, 'yyyy-MM-dd') : null,
@@ -332,7 +335,43 @@ export default function PetForm({
                         </button>
                     </div>
                 </div>
+
+                {/* Tamaño */}
+                {/* Tamaño (Solo para Perros) */}
+                {tipo === 'perro' && (
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tamaño</label>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            {[
+                                { id: "pequeño", label: "Pequeño", range: "0 - 10 kg", scale: 0.75 },
+                                { id: "mediano", label: "Mediano", range: "11 - 25 kg", scale: 0.9 },
+                                { id: "grande", label: "Grande", range: "26 - 45 kg", scale: 1.1 },
+                                { id: "gigante", label: "Gigante", range: "+45 kg", scale: 1.25 }
+                            ].map((sizeOpt) => (
+                                <button
+                                    key={sizeOpt.id}
+                                    type="button"
+                                    onClick={() => setTamano(sizeOpt.id as any)}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${tamano === sizeOpt.id ? "border-slate-800 bg-slate-100 text-slate-900 font-bold ring-1 ring-slate-800" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                >
+                                    <div className="h-8 flex items-center justify-center mb-1">
+                                        <Dog
+                                            strokeWidth={2}
+                                            style={{
+                                                width: `${20 * sizeOpt.scale}px`,
+                                                height: `${20 * sizeOpt.scale}px`
+                                            }}
+                                        />
+                                    </div>
+                                    <span className="capitalize text-sm font-medium">{sizeOpt.label}</span>
+                                    <span className="text-[10px] text-slate-400 font-normal">{sizeOpt.range}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
+
 
             {/* Nombre */}
             <div>
@@ -470,6 +509,6 @@ export default function PetForm({
                 </div>
             </div>
 
-        </form>
+        </form >
     );
 }

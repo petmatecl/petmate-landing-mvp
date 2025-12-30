@@ -7,8 +7,11 @@ import { useState, useEffect } from "react";
 import ReviewList from "../../components/Reviews/ReviewList";
 import ReviewFormModal from "../../components/Reviews/ReviewFormModal";
 import { getReviewsBySitterId, Review } from "../../lib/reviewsService";
+import { Trash2 } from "lucide-react";
 
 // Props que recibe la página desde getServerSideProps
+import { useRouter } from "next/router";
+
 interface PublicProfileProps {
     petmate: {
         id: string;
@@ -45,35 +48,30 @@ interface PublicProfileProps {
         videos?: string[];
     } | null;
     error?: string;
+    id?: string;
 }
 
 import BookingModal from "../../components/Sitter/BookingModal";
 import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
 
 const LocationMap = dynamic(() => import("../../components/Shared/LocationMap"), {
     ssr: false,
     loading: () => <div className="h-[300px] w-full bg-slate-100 animate-pulse rounded-2xl" />
 });
 
-export default function PublicProfilePage({ petmate, error }: PublicProfileProps) {
+export default function PublicProfilePage({ petmate: initialPetmate, error, id }: PublicProfileProps) {
+    const router = useRouter();
+    const returnTo = router.query.returnTo as string;
+
+    const [profileData, setProfileData] = useState(initialPetmate);
+    const [loadingProfile, setLoadingProfile] = useState(!initialPetmate && !error); // If no data & no error, we need to fetch
+    const [fetchError, setFetchError] = useState(error);
+
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [loadingReviews, setLoadingReviews] = useState(true);
-
-    useEffect(() => {
-        if (petmate?.id) {
-            fetchReviews();
-        }
-    }, [petmate?.id]);
-
-    const fetchReviews = async () => {
-        if (!petmate?.id) return;
-        setLoadingReviews(true);
-        const { data } = await getReviewsBySitterId(petmate.id);
-        if (data) setReviews(data);
-        setLoadingReviews(false);
-    };
 
     // Estado de sesión para saber si es el dueño
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -84,34 +82,153 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
         });
     }, []);
 
+    // Effect: Client-side fetch if SSR missed (Hybrid Fetching)
+    useEffect(() => {
+        if (!profileData && id && !error) {
+            setLoadingProfile(true);
+            const fetchProfile = async () => {
+                const { data, error } = await supabase
+                    .from("registro_petmate")
+                    .select("*")
+                    .eq("id", id)
+                    .single();
+
+                if (data) {
+                    setProfileData(data);
+                    setFetchError(undefined);
+                } else {
+                    setFetchError("Perfil no encontrado o privado.");
+                }
+                setLoadingProfile(false);
+            };
+            fetchProfile();
+        } else if (initialPetmate) {
+            setLoadingProfile(false); // Already have data
+        }
+    }, [id, profileData, initialPetmate, error]);
+
+
+    useEffect(() => {
+        if (profileData?.id) {
+            fetchReviews();
+        }
+    }, [profileData?.id]);
+
+    const fetchReviews = async () => {
+        if (!profileData?.id) return;
+        setLoadingReviews(true);
+        const { data } = await getReviewsBySitterId(profileData.id);
+        if (data) setReviews(data);
+        setLoadingReviews(false);
+    };
+
+    // Estado para "Mis Viajes con este Sitter"
+    const [myTripsWithSitter, setMyTripsWithSitter] = useState<any[]>([]);
+    const [loadingTrips, setLoadingTrips] = useState(false);
+
+    useEffect(() => {
+        if (currentUserId && profileData?.auth_user_id) {
+            fetchMyTripsWithSitter();
+        }
+    }, [currentUserId, profileData?.auth_user_id]);
+
+    const fetchMyTripsWithSitter = async () => {
+        if (!profileData) return;
+        setLoadingTrips(true);
+        const { data } = await supabase
+            .from("viajes")
+            .select("*")
+            .eq("user_id", currentUserId)
+            .eq("sitter_id", profileData.auth_user_id)
+            .neq("estado", "cancelado")
+            .order("fecha_inicio", { ascending: false });
+
+        if (data) setMyTripsWithSitter(data);
+        setLoadingTrips(false);
+    };
+
+    // Confirmation Modal State (Same as before...)
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => { }
+    });
+
+    const triggerConfirm = (title: string, message: string, onConfirm: () => void) => {
+        setConfirmConfig({ isOpen: true, title, message, onConfirm });
+    };
+
+    const closeConfirm = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const handleDeleteTrip = (tripId: string) => {
+        triggerConfirm(
+            "Eliminar Solicitud",
+            "¿Estás seguro de que deseas eliminar o cancelar esta solicitud? Esta acción no se puede deshacer.",
+            async () => {
+                try {
+                    const { error } = await supabase.from("viajes").delete().eq("id", tripId);
+                    if (error) throw error;
+                    // Update local state
+                    setMyTripsWithSitter(prev => prev.filter(t => t.id !== tripId));
+                    closeConfirm();
+                } catch (err) {
+                    console.error("Error deleting trip:", err);
+                    alert("Hubo un error al eliminar la solicitud.");
+                }
+            }
+        );
+    };
+
+    // --- RENDER LOGIC ---
+
+    if (loadingProfile) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+                <Loader2 className="w-10 h-10 text-emerald-500 animate-spin mb-4" />
+                <p className="text-slate-500">Cargando perfil...</p>
+            </div>
+        );
+    }
+
     // 1. Si hay error o no hay data, error 404
-    if (error || !petmate) {
+    if (fetchError || !profileData) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
                 <h1 className="text-2xl font-bold text-slate-900">Perfil no encontrado 😢</h1>
                 <p className="mt-2 text-slate-600">Lo sentimos, no pudimos encontrar al cuidador que buscas.</p>
-                <Link href="/explorar" className="mt-6 btn-primary">
-                    Volver a explorar
+                <Link href={returnTo || "/explorar"} className="mt-6 btn-primary">
+                    Volver
                 </Link>
             </div>
         );
     }
 
     // 2. Si NO está aprobado y NO es el dueño -> 404 (simulado)
-    const isOwner = currentUserId === petmate.auth_user_id;
-    if (!petmate.aprobado && !isOwner) {
+    const isOwner = currentUserId === profileData.auth_user_id;
+    if (!profileData.aprobado && !isOwner) {
         // Renderizamos "loading" inicial si user aun carga, o 404 si ya cargó y no coincide
         if (currentUserId === null) return null; // Esperando auth
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
                 <h1 className="text-2xl font-bold text-slate-900">Perfil no disponible 🔒</h1>
                 <p className="mt-2 text-slate-600">Este perfil aún no está verificado o no es público.</p>
-                <Link href="/explorar" className="mt-6 btn-primary">
-                    Volver a explorar
+                <Link href={returnTo || "/explorar"} className="mt-6 btn-primary">
+                    Volver
                 </Link>
             </div>
         );
     }
+
+    // Use profileData instead of petmate for the rest
+    const petmate = profileData;
 
     // Inicial del apellido para privacidad
     const displayName = petmate.apellido_p ? `${petmate.nombre} ${petmate.apellido_p}` : petmate.nombre;
@@ -135,8 +252,8 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
                 {/* Header simple de vuelta */}
                 <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
                     <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
-                        <Link href="/explorar" className="text-sm font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1 transition-colors">
-                            ← Volver
+                        <Link href={returnTo || "/explorar"} className="text-sm font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1 transition-colors">
+                            ← {returnTo === '/cliente' ? 'Volver al Panel' : 'Volver a explorar'}
                         </Link>
                         <Link href="/" className="font-bold text-emerald-600 text-lg">Pawnecta</Link>
                     </div>
@@ -240,6 +357,59 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
 
                         {/* Columna Derecha: Detalles (8 columnas) */}
                         <div className="md:col-span-8 lg:col-span-8 space-y-8">
+
+                            {/* Nuevas: Mis Solicitudes con este Sitter */}
+                            {currentUserId && (myTripsWithSitter.length > 0 || loadingTrips) && (
+                                <section className="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-100 p-6 sm:p-8">
+                                    <h2 className="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        Mis Solicitudes con {petmate.nombre}
+                                    </h2>
+
+                                    {loadingTrips ? (
+                                        <div className="animate-pulse space-y-2">
+                                            <div className="h-10 bg-emerald-100 rounded w-full"></div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {myTripsWithSitter.map(trip => (
+                                                <div key={trip.id} className="bg-white p-4 rounded-xl border border-emerald-100 flex items-center justify-between">
+                                                    <div>
+                                                        <div className="font-bold text-emerald-900">
+                                                            {trip.fecha_inicio && new Date(trip.fecha_inicio + "T12:00:00").toLocaleDateString("es-CL", { day: 'numeric', month: 'long' })}
+                                                            {" - "}
+                                                            {trip.fecha_fin && new Date(trip.fecha_fin + "T12:00:00").toLocaleDateString("es-CL", { day: 'numeric', month: 'long' })}
+                                                        </div>
+                                                        <div className="text-xs text-emerald-700 flex items-center gap-2 mt-1">
+                                                            <span className="bg-emerald-100 px-2 py-0.5 rounded-full uppercase text-[10px] font-bold tracking-wide">
+                                                                {trip.servicio}
+                                                            </span>
+                                                            {trip.perros > 0 && <span>{trip.perros} 🐶</span>}
+                                                            {trip.gatos > 0 && <span>{trip.gatos} 🐱</span>}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right flex flex-col items-end gap-2">
+                                                        <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold ${trip.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-emerald-100 text-emerald-700'
+                                                            }`}>
+                                                            {trip.estado === 'pendiente' || trip.estado === 'solicitado' ? 'ASIGNADO' : trip.estado.toUpperCase()}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleDeleteTrip(trip.id)}
+                                                            className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                                            title="Eliminar solicitud"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </section>
+                            )}
 
                             {/* Sobre mí */}
                             <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
@@ -400,8 +570,38 @@ export default function PublicProfilePage({ petmate, error }: PublicProfileProps
                     onClose={() => setIsBookingModalOpen(false)}
                     sitterAuthId={petmate.auth_user_id}
                     sitterName={displayName || "el sitter"}
-                    onSuccess={() => {/* Opcional: Redirigir o mostrar toast */ }}
+                    onSuccess={() => {
+                        fetchMyTripsWithSitter();
+                        // Opcional: toast success message handled in modal or here
+                    }}
                 />
+
+                {/* Confirmation Modal */}
+                {confirmConfig.isOpen && (
+                    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
+                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all scale-100 p-6 text-center animate-in fade-in zoom-in duration-200">
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 mb-4">
+                                <Trash2 size={24} />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 mb-2">{confirmConfig.title}</h3>
+                            <p className="text-sm text-slate-500 mb-6">{confirmConfig.message}</p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={closeConfirm}
+                                    className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmConfig.onConfirm}
+                                    className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-100 transition-colors"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div >
         </>
     );
@@ -448,18 +648,25 @@ export async function getServerSideProps(context: any) {
         .eq("id", id)
         .single();
 
+    // If error is "No rows found" (PGRST116), it might be RLS hiding it from Anon/Service.
+    // We return null data but NO error string, so the client can try fetching with their session.
     if (error || !data) {
+        console.log("SSR Fetch failed or empty (RLS?):", error?.message);
         return {
             props: {
                 petmate: null,
-                error: error?.message || "Not found"
+                id: id,
+                // Only return 'error' if it's NOT a "not found" issue, to allow client retry.
+                // Actually, let's just let client retry always if null.
+                error: null
             }
         };
     }
 
     return {
         props: {
-            petmate: data
+            petmate: data,
+            id: id
         }
     };
 }

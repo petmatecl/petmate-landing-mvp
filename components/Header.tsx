@@ -11,7 +11,7 @@ export default function Header() {
 
   // Estado de sesión real
   const [session, setSession] = useState<any>(null);
-  const [profile, setProfile] = useState<{ nombre: string; apellido_p: string } | null>(null);
+  const [profile, setProfile] = useState<{ nombre: string; apellido_p: string; roles?: string[] } | null>(null);
 
   useEffect(() => {
     // 1. Ver sesión inicial
@@ -32,19 +32,40 @@ export default function Header() {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // 3. Force check on route change (fixes header lag)
+    const handleRouteChange = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
+    };
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+
+    return () => {
+      subscription.unsubscribe();
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router.asPath]); // Re-run if path changes significantly if needed, but event listener covers it.
+  // Actually, keeping [] is fine if we use event listener.
+  // But let's add [router.asPath] to be safe if event listener misses edge cases? 
+  // No, event listener is better. dependency [] is standard for mount.
+  // Let's stick to [] and just event listener.
+
 
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("registro_petmate")
-        .select("nombre, apellido_p")
+        .select("nombre, apellido_p, roles")
         .eq("auth_user_id", userId)
         .single();
 
       if (data) {
-        setProfile({ nombre: data.nombre, apellido_p: data.apellido_p });
+        setProfile({ nombre: data.nombre, apellido_p: data.apellido_p, roles: data.roles });
       }
     } catch (err) {
       console.error("Error fetching header profile:", err);
@@ -66,12 +87,10 @@ export default function Header() {
 
   const userInitials = getInitials();
 
-  // Determinamos el dashboard correcto según el rol (si lo guardáramos en metadata sería ideal, 
-  // por ahora asumimos cliente o probamos la url, pero para el link "Mi Panel" lo ideal es saber el rol.
-  // Como MVP, si está en /petmate o /cliente usamos ese, si está en /explorar usamos el último conocido o cliente por defecto?
-  // Simplificación MVP: Si el usuario inició como petmate, debería ir a petmate. 
-  // Por ahora, redirigiremos a /cliente por defecto salvo que detectemos lo contrario.
-  const dashboardLink = "/cliente"; // En un futuro ideal: session.user.user_metadata.role === 'petmate' ? '/sitter' : '/cliente'
+  // Route logic: If user has 'petmate' role, prefer Sitter Dashboard.
+  // Dual role users can navigate to client dashboard from sitter dashboard (usually).
+  const isSitter = profile?.roles?.includes('petmate');
+  const dashboardLink = isSitter ? "/sitter" : "/cliente";
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
@@ -124,7 +143,7 @@ export default function Header() {
             <>
               <Link
                 href="/login"
-                className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                className="inline-flex items-center rounded-xl border-2 border-emerald-600 bg-white px-3.5 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-50 transition-colors"
               >
                 Ingresar
               </Link>
@@ -153,6 +172,11 @@ export default function Header() {
               <button
                 onClick={async () => {
                   setSession(null); // Feedback inmediato visual
+                  // Clear local roles to prevent ghost access
+                  if (typeof window !== "undefined") {
+                    window.localStorage.removeItem("activeRole");
+                    window.localStorage.removeItem("pm_auth_role_pending");
+                  }
                   try {
                     await supabase.auth.signOut();
                   } catch (error) {
@@ -219,7 +243,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  className="inline-flex items-center justify-center rounded-xl border-2 border-emerald-600 bg-white px-3.5 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-50 transition-colors"
                   onClick={() => setOpen(false)}
                 >
                   Ingresar
@@ -261,6 +285,11 @@ export default function Header() {
                   onClick={async () => {
                     setSession(null);
                     setOpen(false);
+                    // Clear local roles to prevent ghost access
+                    if (typeof window !== "undefined") {
+                      window.localStorage.removeItem("activeRole");
+                      window.localStorage.removeItem("pm_auth_role_pending");
+                    }
                     try {
                       await supabase.auth.signOut();
                     } catch (error) {

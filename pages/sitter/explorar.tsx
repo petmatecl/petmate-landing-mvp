@@ -5,10 +5,21 @@ import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { LayoutDashboard, MapPin, Calendar, Home, Hotel, Filter } from "lucide-react";
+import { LayoutDashboard, MapPin, Calendar, Home, Hotel, Filter, Dog } from "lucide-react";
 
 import ApplicationDialog from "../../components/Sitter/ApplicationDialog";
 import ModalAlert from "../../components/ModalAlert";
+import CompletionBlocker from "../../components/Shared/CompletionBlocker";
+import { DateRange } from "react-day-picker";
+import DateRangeAirbnb from "../../components/DateRangeAirbnb";
+
+const COMUNAS_SANTIAGO = [
+    "Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia",
+    "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo",
+    "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel",
+    "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Santiago",
+    "Vitacura"
+];
 
 export default function SitterExplorarPage() {
     const router = useRouter();
@@ -25,9 +36,11 @@ export default function SitterExplorarPage() {
         message: "",
         type: "warning"
     });
-
     // Filters
     const [filterService, setFilterService] = useState("");
+    const [filterComuna, setFilterComuna] = useState("");
+    // Replaced separate date states with DateRange
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     useEffect(() => {
         checkSession();
@@ -58,17 +71,40 @@ export default function SitterExplorarPage() {
     const fetchTrips = async (uid: string) => {
         setLoading(true);
         try {
-            // 1. Fetch published trips
+            // 1. Fetch published trips (remove invalid mascotas join)
             let query = supabase
                 .from("viajes")
-                .select("*, cliente:cliente_id(comuna, nombre)")
+                .select("*, cliente:user_id(comuna, nombre)")
                 .eq("estado", "publicado")
                 .order("created_at", { ascending: false });
 
-            const { data, error } = await query;
+            const { data: tripsData, error } = await query;
             if (error) throw error;
 
-            // 2. Fetch my applications to exclude or mark
+            if (!tripsData || tripsData.length === 0) {
+                setTrips([]);
+                return;
+            }
+
+            // 2. Fetch pets manually
+            const allPetIds = tripsData.flatMap(t => t.mascotas_ids || []);
+            const uniquePetIds = Array.from(new Set(allPetIds));
+
+            let petsMap: Record<string, any> = {};
+            if (uniquePetIds.length > 0) {
+                const { data: petsData } = await supabase
+                    .from("mascotas")
+                    .select("id, tamano, tipo")
+                    .in("id", uniquePetIds);
+
+                if (petsData) {
+                    petsData.forEach(p => {
+                        petsMap[p.id] = p;
+                    });
+                }
+            }
+
+            // 3. Fetch my applications to exclude or mark
             const { data: myApps } = await supabase
                 .from("postulaciones")
                 .select("viaje_id")
@@ -76,11 +112,28 @@ export default function SitterExplorarPage() {
 
             const myAppTripIds = new Set(myApps?.map(a => a.viaje_id));
 
-            // 3. Mark trips
-            const tripsWithStatus = data?.map(t => ({
-                ...t,
-                hasApplied: myAppTripIds.has(t.id)
-            })) || [];
+            // 4. Combine data
+            const tripsWithStatus = tripsData.map(t => {
+                // Map pets. For simplicity, we'll just take the first pet's info if multiple, 
+                // or returning an array if the UI supports it.
+                // The current UI seems to expect a single object 'mascotas: { tamano, tipo }', likely expecting 1 pet or just showing info for one.
+                // However, the trip has 'mascotas_ids'. 
+                // Let's create a 'mascotas' object that represents the aggregate or the first pet to keep UI compatible if possible,
+                // OR better, update the UI to handle multiple pets.
+                // Looking at UI: trip.mascotas?.tamano && trip.mascotas?.tipo
+                // It seems to expect one object.
+                // We will populate it with the first valid pet found.
+
+                const tripPets = (t.mascotas_ids || []).map((pid: string) => petsMap[pid]).filter(Boolean);
+                const firstPet = tripPets[0] || {};
+
+                return {
+                    ...t,
+                    mascotas: firstPet, // Backward compatibility for UI
+                    all_pets: tripPets, // New field if we want to improve UI later
+                    hasApplied: myAppTripIds.has(t.id)
+                };
+            });
 
             setTrips(tripsWithStatus);
 
@@ -129,6 +182,28 @@ export default function SitterExplorarPage() {
     // Filter Logic
     const filteredTrips = trips.filter(t => {
         if (filterService && t.servicio !== filterService) return false;
+        if (filterComuna && t.cliente?.comuna !== filterComuna) return false;
+
+        // Date Logic
+        // If user selected a "from" date, filtered trips must start ON or AFTER that date
+        if (dateRange?.from) {
+            const tripStart = new Date(t.fecha_inicio);
+            // Clear time for comparison
+            tripStart.setHours(0, 0, 0, 0);
+            const rangeFrom = new Date(dateRange.from);
+            rangeFrom.setHours(0, 0, 0, 0);
+            if (tripStart < rangeFrom) return false;
+        }
+
+        // If user selected a "to" date, filtered trips must end ON or BEFORE that date
+        if (dateRange?.to) {
+            const tripEnd = t.fecha_fin ? new Date(t.fecha_fin) : new Date(t.fecha_inicio); // Fallback if single date trip
+            tripEnd.setHours(0, 0, 0, 0);
+            const rangeTo = new Date(dateRange.to);
+            rangeTo.setHours(0, 0, 0, 0);
+            if (tripEnd > rangeTo) return false;
+        }
+
         return true;
     });
 
@@ -149,6 +224,13 @@ export default function SitterExplorarPage() {
                         <Link href="/sitter" className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-bold hover:bg-white transition-colors bg-white flex items-center gap-2">
                             <LayoutDashboard size={18} /> Mi Panel
                         </Link>
+                        {/* Volver Button */}
+                        <button
+                            onClick={() => router.back()}
+                            className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-bold hover:bg-slate-50 transition-colors bg-white"
+                        >
+                            Volver
+                        </button>
                     </div>
                 </div>
 
@@ -167,6 +249,26 @@ export default function SitterExplorarPage() {
                         <option value="domicilio">A Domicilio</option>
                         <option value="hospedaje">Hospedaje</option>
                     </select>
+
+                    <select
+                        value={filterComuna}
+                        onChange={(e) => setFilterComuna(e.target.value)}
+                        className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 outline-none"
+                    >
+                        <option value="">Todas las comunas</option>
+                        {COMUNAS_SANTIAGO.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </select>
+
+                    {/* Airbnb DateRange Component */}
+                    <div className="w-full sm:w-auto">
+                        <DateRangeAirbnb
+                            value={dateRange}
+                            onChange={setDateRange}
+                            className="w-full sm:w-auto"
+                        />
+                    </div>
                 </div>
 
                 {/* Grid */}
@@ -175,6 +277,21 @@ export default function SitterExplorarPage() {
                         <div className="w-10 h-10 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
                         Cargando oportunidades...
                     </div>
+                ) : (!sitterProfile || !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna && sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion && sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) || !sitterProfile.roles?.includes('petmate')) ? (
+                    <CompletionBlocker
+                        title="Oportunidades Restringidas"
+                        message="Para ver y postular a trabajos de cuidado, necesitas completar tu perfil y activar tu cuenta."
+                        missingFields={[
+                            !sitterProfile ? "Perfil no cargado" : null,
+                            sitterProfile && !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna) ? "Datos de Contacto" : null,
+                            sitterProfile && !Boolean(sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion) ? "Información Personal" : null,
+                            sitterProfile && !Boolean(sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) ? "Perfil y Preferencias" : null,
+                            sitterProfile && (!sitterProfile.roles?.includes('petmate')) ? "Activar Perfil Sitter" : null
+                        ].filter(Boolean) as string[]}
+                        redirectUrl="/sitter"
+                        redirectText="Ir a mi Dashboard"
+                        isApproved={true} // We handle "Activar Sitter" as a missing field here slightly differently than strict approval
+                    />
                 ) : filteredTrips.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
                         <div className="text-4xl mb-4">📭</div>
@@ -206,13 +323,21 @@ export default function SitterExplorarPage() {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3 text-slate-700">
-                                            <span className="text-lg">🐾</span>
                                             <span>
                                                 {trip.perros > 0 && `${trip.perros} Perro${trip.perros > 1 ? 's' : ''}`}
                                                 {trip.perros > 0 && trip.gatos > 0 && " y "}
                                                 {trip.gatos > 0 && `${trip.gatos} Gato${trip.gatos > 1 ? 's' : ''}`}
                                             </span>
                                         </div>
+
+                                        {trip.mascotas?.tamano && trip.mascotas?.tipo === 'perro' && (
+                                            <div className="flex items-center gap-3 text-slate-700">
+                                                <Dog size={18} className="text-slate-400" />
+                                                <span className="capitalize font-medium text-slate-600">
+                                                    Tamaño: {trip.mascotas.tamano}
+                                                </span>
+                                            </div>
+                                        )}
 
                                         <div className="flex items-center gap-3 text-slate-500">
                                             <MapPin size={18} className="text-slate-400" />

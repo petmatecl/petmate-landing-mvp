@@ -10,6 +10,7 @@ import * as XLSX from "xlsx";
 export default function AdminDashboard() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [tableLoading, setTableLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
     // ... rest of state
 
@@ -54,7 +55,11 @@ export default function AdminDashboard() {
     // Stats State
     const [stats, setStats] = useState({
         clientes: 0,
+        clientesPendientes: 0,
+        clientesAprobados: 0,
         sitters: 0,
+        sittersPendientes: 0,
+        sittersAprobados: 0,
         solicitudesPendientes: 0,
         solicitudesAsignadas: 0,
         serviciosRealizados: 0
@@ -66,10 +71,14 @@ export default function AdminDashboard() {
 
     // ... (rest of state)
 
-    // Reset pagination when tab or search changes
+    const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "approved">("all");
+
+    // ... (rest of state)
+
     useEffect(() => {
+        console.log("Admin Dashboard v1.1 - Loaded");
         setCurrentPage(1);
-    }, [activeTab, searchTerm]);
+    }, [activeTab, searchTerm, filterStatus]);
 
     // ... (fetch logic remains)
 
@@ -77,6 +86,7 @@ export default function AdminDashboard() {
     const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
 
     const checkAuth = async () => {
+        setLoading(true); // Ensure loading is true when starting check/fetch
         const { data: { session } } = await supabase.auth.getSession();
 
         if (!session) {
@@ -91,23 +101,33 @@ export default function AdminDashboard() {
             return;
         }
 
+        // Verify auth matched, fetch stats but NOT users yet
+        await fetchStats();
         setLoading(false);
-        fetchUsers();
-        fetchStats();
     };
+
+
 
     const fetchStats = async () => {
         // 1. Clientes
-        const { count: clientesCount } = await supabase
+        const { data: clientes } = await supabase
             .from("registro_petmate")
-            .select("*", { count: "exact", head: true })
+            .select("aprobado")
             .contains("roles", ["cliente"]);
 
+        const clientesTotal = clientes?.length || 0;
+        const clientesPendientes = clientes?.filter(c => !c.aprobado).length || 0;
+        const clientesAprobados = clientes?.filter(c => c.aprobado).length || 0;
+
         // 2. Sitters
-        const { count: sittersCount } = await supabase
+        const { data: sitters } = await supabase
             .from("registro_petmate")
-            .select("*", { count: "exact", head: true })
+            .select("aprobado")
             .contains("roles", ["petmate"]);
+
+        const sittersTotal = sitters?.length || 0;
+        const sittersPendientes = sitters?.filter(s => !s.aprobado).length || 0;
+        const sittersAprobados = sitters?.filter(s => s.aprobado).length || 0;
 
         // 3. Solicitudes Pendientes (En búsqueda, sin sitter)
         const { count: pendientesCount } = await supabase
@@ -132,21 +152,29 @@ export default function AdminDashboard() {
             .eq("estado", "completado");
 
         setStats({
-            clientes: clientesCount || 0,
-            sitters: sittersCount || 0,
+            clientes: clientesTotal,
+            clientesPendientes,
+            clientesAprobados,
+            sitters: sittersTotal,
+            sittersPendientes,
+            sittersAprobados,
             solicitudesPendientes: pendientesCount || 0,
             solicitudesAsignadas: asignadasCount || 0,
             serviciosRealizados: completadosCount || 0
         });
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (shouldSetLoading = true) => {
+        if (shouldSetLoading) setTableLoading(true);
+
         // Si estamos en la tab de solicitudes, usamos la funcion dedicada
         if (activeTab === "solicitudes") {
-            fetchViajes();
+            await fetchViajes();
+            if (shouldSetLoading) setTableLoading(false);
             return;
         }
 
+        // Optimize: Select only necessary columns instead of *
         const { data, error } = await supabase
             .from("registro_petmate")
             .select("*")
@@ -158,6 +186,7 @@ export default function AdminDashboard() {
         } else {
             setUsers(data || []);
         }
+        if (shouldSetLoading) setTableLoading(false);
     };
 
     const fetchViajes = async () => {
@@ -297,7 +326,22 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         checkAuth();
-    }, [activeTab]); // Re-fetch when tab changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Only check auth on mount
+
+    useEffect(() => {
+        // Fetch on tab change OR when loading finishes
+        if (!loading) {
+            fetchUsers();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab, loading]);
+
+    // Stats are fetched in checkAuth, no need for separate effect unless we want auto-refresh mechanism
+    // but for now let's keep it simple.
+
+    // Remove the previous checkAuth dependency on activeTab
+
 
     // --- FILTRADO Y ORDENAMIENTO ---
     const filteredItems = users.filter(item => {
@@ -337,7 +381,14 @@ export default function AdminDashboard() {
             }
         }
 
-        return matchesTerm && matchesDate;
+        // 3. Filtro por Estado (Nuevo)
+        let matchesStatus = true;
+        if (activeTab !== "solicitudes") { // Solo aplica a usuarios por ahora
+            if (filterStatus === "pending") matchesStatus = !item.aprobado;
+            if (filterStatus === "approved") matchesStatus = item.aprobado;
+        }
+
+        return matchesTerm && matchesDate && matchesStatus;
     }).sort((a, b) => {
         if (sortOrder === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         if (sortOrder === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -420,10 +471,20 @@ export default function AdminDashboard() {
                 <title>Panel de Administración | Pawnecta</title>
             </Head>
 
+            {loading && (
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+                    <div className="relative w-20 h-20">
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-slate-200 rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-emerald-500 rounded-full animate-spin border-t-transparent"></div>
+                    </div>
+                    <p className="mt-4 text-slate-600 font-medium animate-pulse">Cargando panel...</p>
+                </div>
+            )}
+
             <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Administración</h1>
+                        <h1 className="text-3xl font-bold text-slate-900">Administrador</h1>
                         <p className="text-slate-500 mt-1">Gestión de usuarios y solicitudes</p>
                     </div>
                 </div>
@@ -433,10 +494,18 @@ export default function AdminDashboard() {
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
                         <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
+                        <div className="flex gap-2 mt-2 text-[10px]">
+                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesAprobados} OK</span>
+                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesPendientes} Pend.</span>
+                        </div>
                     </div>
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
                         <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
+                        <div className="flex gap-2 mt-2 text-[10px]">
+                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersAprobados} OK</span>
+                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersPendientes} Pend.</span>
+                        </div>
                     </div>
 
                     {/* Tarjetas de Solicitudes Desglosadas */}
@@ -485,6 +554,19 @@ export default function AdminDashboard() {
 
                     {/* Buscador y Filtros */}
                     <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto items-end md:items-center">
+
+                        {/* Filtro Estado (Solo usuarios) */}
+                        {activeTab !== "solicitudes" && (
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value as any)}
+                                className="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer h-[38px]"
+                            >
+                                <option value="all">Todos</option>
+                                <option value="pending">Pendientes</option>
+                                <option value="approved">Aprobados</option>
+                            </select>
+                        )}
 
                         {/* Filtros de Fecha */}
                         <div className="flex gap-2">
@@ -568,7 +650,16 @@ export default function AdminDashboard() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {paginatedItems.length === 0 ? (
+                                {tableLoading ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-12 text-center">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                                                <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : paginatedItems.length === 0 ? (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-12 text-center">
                                             <div className="text-slate-400 mb-2">No se encontraron resultados</div>
@@ -778,6 +869,7 @@ export default function AdminDashboard() {
                 open={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onApprove={toggleApproval}
+                onViewDocument={handleViewDocument}
             />
 
             {/* Modal Global de Confirmación */}

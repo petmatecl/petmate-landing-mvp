@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import PetCard, { Pet } from "./PetCard";
 import ModalAlert from "../ModalAlert";
+import ModalConfirm from "../ModalConfirm";
 import AddressCard, { Address } from "./AddressCard";
 import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
@@ -78,7 +79,7 @@ export default function DashboardContent() {
             if (sitterIds.length > 0) {
                 const { data: sitters } = await supabase
                     .from("registro_petmate")
-                    .select("auth_user_id, nombre, apellido_p, foto_perfil, id") // Fetch needed fields
+                    .select("auth_user_id, nombre, apellido_p, foto_perfil, id, telefono, email, direccion_completa, region, comuna, calle, numero") // Fetch needed fields
                     .in("auth_user_id", sitterIds);
 
                 if (sitters) {
@@ -139,7 +140,7 @@ export default function DashboardContent() {
             }
 
             if (data.fecha_inicio && data.fecha_fin) {
-                setRango({ from: new Date(data.fecha_inicio), to: new Date(data.fecha_fin) });
+                setRango({ from: new Date(data.fecha_inicio + "T12:00:00"), to: new Date(data.fecha_fin + "T12:00:00") });
             }
         }
     }
@@ -208,6 +209,27 @@ export default function DashboardContent() {
         setAlertConfig(prev => ({ ...prev, isOpen: false }));
     };
 
+    // Confirmation Modal State
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        confirmText?: string;
+        cancelText?: string;
+        isDestructive?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        isDestructive: false
+    });
+
+    const closeConfirm = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
+
     // --- Address Handlers ---
     const handleAddAddress = () => {
         setEditingAddress(null);
@@ -223,35 +245,88 @@ export default function DashboardContent() {
         refreshAddresses(); // Refresh global context
     };
 
-    const handleDeleteAddress = async (id: string) => {
-        if (!confirm("¿Estás seguro de eliminar esta dirección?")) return;
-        try {
-            const { error } = await supabase.from("direcciones").delete().eq("id", id);
-            if (error) throw error;
-            refreshAddresses(); // Refresh global context
-            showAlert("Dirección eliminada", "La dirección ha sido eliminada correctamente.", "success");
-        } catch (err: any) {
-            console.error(err);
-            showAlert("Error", "No se pudo eliminar la dirección.", "error");
-        }
+    const handleDeleteAddress = (id: string) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: "Eliminar Dirección",
+            message: "¿Estás seguro de que deseas eliminar esta dirección? Esta acción no se puede deshacer.",
+            confirmText: "Eliminar",
+            isDestructive: true,
+            onConfirm: async () => {
+                try {
+                    const { error } = await supabase.from("direcciones").delete().eq("id", id);
+                    if (error) throw error;
+                    refreshAddresses(); // Refresh global context
+                    showAlert("Dirección eliminada", "La dirección ha sido eliminada correctamente.", "success");
+                } catch (err: any) {
+                    console.error(err);
+                    showAlert("Error", "No se pudo eliminar la dirección.", "error");
+                }
+                closeConfirm();
+            }
+        });
     };
 
-    const handleDeleteTrip = async (id: string) => {
-        if (!confirm("¿Estás seguro de eliminar este viaje?")) return;
-        try {
-            const { error } = await supabase.from("viajes").delete().eq("id", id);
-            if (error) throw error;
-            if (userId) fetchTrips(userId);
-            showAlert("Viaje eliminado", "El viaje ha sido eliminado correctamente.", "success");
-        } catch (err: any) {
-            console.error(err);
-            showAlert("Error", "No se pudo eliminar el viaje.", "error");
-        }
+    const handleDeleteTrip = (id: string) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: "Eliminar Solicitud",
+            message: "¿Estás seguro de que deseas eliminar este viaje? Si ya tienes un sitter asigando, se le notificará la cancelación.",
+            confirmText: "Eliminar",
+            isDestructive: true,
+            onConfirm: async () => {
+                try {
+                    const { error } = await supabase.from("viajes").delete().eq("id", id);
+                    if (error) throw error;
+                    if (userId) fetchTrips(userId);
+                    showAlert("Viaje eliminado", "El viaje ha sido eliminado correctamente.", "success");
+                } catch (err: any) {
+                    console.error(err);
+                    showAlert("Error", "No se pudo eliminar el viaje.", "error");
+                }
+                closeConfirm();
+            }
+        });
     };
+
+    const handleRemoveSitter = (tripId: string) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: "Cancelar Servicio",
+            message: "¿Estás seguro de que deseas cancelar el servicio con este Sitter? Tu solicitud volverá a estar pública para recibir nuevas ofertas.",
+            confirmText: "Sí, Cancelar Servicio",
+            isDestructive: true,
+            onConfirm: async () => {
+                try {
+                    const { error } = await supabase
+                        .from("viajes")
+                        .update({
+                            sitter_id: null,
+                            estado: 'publicado'
+                        })
+                        .eq("id", tripId);
+
+                    if (error) throw error;
+
+                    if (userId) fetchTrips(userId);
+                    showAlert("Sitter Desvinculado", "El sitter ha sido removido de tu viaje. Tu solicitud vuelve a estar pública.", "success");
+                } catch (err: any) {
+                    console.error(err);
+                    showAlert("Error", "No se pudo remover al sitter.", "error");
+                }
+                closeConfirm();
+            }
+        });
+    };
+
+    const [editingTripId, setEditingTripId] = useState<string | null>(null);
+
+    // ... (existing code)
 
     const handleEditTripNew = (trip: Trip) => {
+        setEditingTripId(trip.id);
         if (trip.fecha_inicio && trip.fecha_fin) {
-            setRango({ from: new Date(trip.fecha_inicio), to: new Date(trip.fecha_fin) });
+            setRango({ from: new Date(trip.fecha_inicio + "T12:00:00"), to: new Date(trip.fecha_fin + "T12:00:00") });
         }
         setServicio(trip.servicio);
         if (trip.mascotas_ids && Array.isArray(trip.mascotas_ids)) {
@@ -281,6 +356,34 @@ export default function DashboardContent() {
         showAlert("¡Sitter Aceptado!", "Has reservado tu servicio con éxito. ¡Ponte en contacto con tu sitter!", "success");
     };
 
+    const handleSearchSitter = (trip: Trip) => {
+        const params = new URLSearchParams();
+
+        // 1. Pet Type Logic
+        if (trip.perros > 0 && trip.gatos > 0) {
+            params.append('type', 'both');
+        } else if (trip.perros > 0) {
+            params.append('type', 'dogs');
+        } else if (trip.gatos > 0) {
+            params.append('type', 'cats');
+        } else {
+            params.append('type', 'any');
+        }
+
+        // 2. Service Logic
+        // trip.servicio is 'domicilio' | 'hospedaje'
+        // explorar expects 'a_domicilio' | 'en_casa_petmate'
+        if (trip.servicio === 'domicilio') {
+            params.append('service', 'a_domicilio');
+        } else if (trip.servicio === 'hospedaje') {
+            params.append('service', 'en_casa_petmate');
+        } else {
+            params.append('service', 'all');
+        }
+
+        router.push(`/explorar?${params.toString()}`);
+    };
+
     const handleSaveTrip = async () => {
         if (!userId) return;
 
@@ -301,8 +404,8 @@ export default function DashboardContent() {
                 servicio,
                 perros: mascotas.dogs,
                 gatos: mascotas.cats,
-                mascotas_ids: selectedPetIds, // Ensure this matches DB column types
-                estado: 'publicado' // Changed from borrador to publicado default for simplified flow
+                mascotas_ids: selectedPetIds,
+                estado: 'publicado'
             };
 
             if (servicio === 'domicilio') {
@@ -315,25 +418,47 @@ export default function DashboardContent() {
 
             console.log("Saving trip payload:", payload);
 
-            const { error } = await supabase.from("viajes").insert(payload);
+            let error;
+            if (editingTripId) {
+                // Update
+                const res = await supabase.from("viajes").update(payload).eq("id", editingTripId);
+                error = res.error;
+            } else {
+                // Insert
+                const res = await supabase.from("viajes").insert(payload);
+                error = res.error;
+            }
 
             if (error) {
                 console.error("Error saving trip:", error);
-                // If column doesn't exist, this will throw
                 showAlert('Error', `Error guardando el viaje: ${error.message}`, 'error');
             } else {
                 await fetchTrips(userId);
                 setRango(undefined);
                 setSelectedPetIds([]);
                 setMascotas({ dogs: 0, cats: 0 });
+                setEditingTripId(null); // Reset
                 setShowTripForm(false);
-                showAlert('¡Solicitud Publicada!', 'Los sitters recibirán tu solicitud y podrás ver sus postulaciones aquí.', 'success'); // Updated message
+                showAlert(
+                    editingTripId ? '¡Viaje Actualizado!' : '¡Solicitud Publicada!',
+                    editingTripId ? 'Los cambios se han guardado correctamente.' : 'Los sitters recibirán tu solicitud y podrás ver sus postulaciones aquí.',
+                    'success'
+                );
             }
 
         } catch (e) {
             console.error(e);
             showAlert('Error', 'Ocurrió un error inesperado.', 'error');
         }
+    };
+
+    // Helper to reset form
+    const resetForm = () => {
+        setRango(undefined);
+        setSelectedPetIds([]);
+        setMascotas({ dogs: 0, cats: 0 });
+        setEditingTripId(null);
+        setShowTripForm(false);
     };
 
     const hasPets = myPets.length > 0;
@@ -371,14 +496,14 @@ export default function DashboardContent() {
             <section>
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <Calendar className="text-emerald-600" /> Tus Viajes
+                        <Calendar className="text-emerald-600" /> Mis Solicitudes
                     </h2>
                     {!showTripForm && (
                         <button
                             onClick={() => setShowTripForm(true)}
                             className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center gap-2"
                         >
-                            <Plus size={16} /> Nuevo Viaje
+                            <Plus size={16} /> Nueva Solicitud
                         </button>
                     )}
                 </div>
@@ -393,6 +518,8 @@ export default function DashboardContent() {
                                 onEdit={handleEditTripNew}
                                 onDelete={handleDeleteTrip}
                                 onViewApplications={handleViewApplications}
+                                onRemoveSitter={handleRemoveSitter}
+                                onSearchSitter={handleSearchSitter}
                                 petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
                             />
                         ))}
@@ -416,135 +543,140 @@ export default function DashboardContent() {
 
                 {/* Formulario de Creación / Edición */}
                 {showTripForm && (
-                    <div id="trip-form-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8 relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16 z-0"></div>
-
-                        <div className="flex items-center justify-between relative z-10 mb-6">
-                            <h3 className="text-lg font-bold text-slate-900">
-                                {rango ? 'Editando Viaje' : 'Planear Nuevo Viaje'}
-                            </h3>
-                            <button onClick={() => setShowTripForm(false)} className="text-sm text-slate-500 hover:text-slate-800 underline">
-                                Cancelar
-                            </button>
+                    <div id="trip-form-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Background Decoration Container - Clipped */}
+                        <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16"></div>
                         </div>
 
-                        <div className="relative z-10">
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                {/* Fecha */}
-                                <div className="md:col-span-12 xl:col-span-5 flex flex-col h-full">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                        Fechas del viaje
-                                    </label>
-                                    <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
-                                </div>
-
-                                {/* Servicio */}
-                                <div className="md:col-span-12 xl:col-span-3 flex flex-col h-full">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                        Tipo de Servicio
-                                    </label>
-                                    <div className="flex flex-col gap-2 flex-1">
-                                        <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
-                                                {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                            </div>
-                                            <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                            <div className="flex items-center gap-2">
-                                                <Home size={18} />
-                                                <span className="text-sm">Domicilio</span>
-                                            </div>
-                                        </label>
-                                        <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                            </div>
-                                            <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                            <div className="flex items-center gap-2">
-                                                <Hotel size={18} />
-                                                <span className="text-sm">Hospedaje</span>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div className="md:col-span-12 xl:col-span-4 flex flex-col h-full">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                        Mascotas
-                                    </label>
-                                    {hasPets ? (
-                                        <MyPetsSelector
-                                            myPets={myPets}
-                                            selectedIds={selectedPetIds}
-                                            onChange={(ids, counts) => {
-                                                setSelectedPetIds(ids);
-                                                setMascotas(counts);
-                                            }}
-                                            hideLabel
-                                        />
-                                    ) : (
-                                        <PetsSelectorAirbnb
-                                            value={mascotas}
-                                            onChange={setMascotas}
-                                            className="w-full"
-                                            hideLabel
-                                        />
-                                    )}
-                                </div>
-
-
-                                {/* Dirección (Solo Domicilio) */}
-                                {servicio === 'domicilio' && (
-                                    <div className="md:col-span-12">
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
-                                            Dirección del Servicio
-                                        </label>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            {addresses.map(addr => (
-                                                <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-emerald-300 bg-white'}`}>
-                                                    <div className="mt-0.5">
-                                                        <input
-                                                            type="radio"
-                                                            name="tripAddress"
-                                                            value={addr.id}
-                                                            checked={selectedAddressId === addr.id}
-                                                            onChange={(e) => setSelectedAddressId(e.target.value)}
-                                                            className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
-                                                        />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-bold text-slate-900 text-sm">{addr.nombre}</span>
-                                                            {addr.es_principal && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
-                                                        </div>
-                                                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{addr.direccion_completa}</p>
-                                                    </div>
-                                                </label>
-                                            ))}
-
-                                            <button
-                                                onClick={handleAddAddress}
-                                                className="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-slate-300 text-slate-500 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition-all font-medium text-sm h-full min-h-[80px]"
-                                            >
-                                                <Plus size={18} /> Nueva Dirección
-                                            </button>
-                                        </div>
-                                        {addresses.length === 0 && (
-                                            <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                                                ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-
+                        <div className="relative z-10 p-6 lg:p-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-lg font-bold text-slate-900">
+                                    {rango ? 'Editando Solicitud' : 'Nueva Solicitud'}
+                                </h3>
+                                <button onClick={() => setShowTripForm(false)} className="text-sm text-slate-500 hover:text-slate-800 underline">
+                                    Cancelar
+                                </button>
                             </div>
 
-                            <div className="mt-8 flex justify-end">
-                                <button
-                                    onClick={handleSaveTrip}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95"
-                                >
-                                    {loadingTrips ? 'Guardando...' : 'Publicar Solicitud'} <span className="text-slate-400 text-sm font-normal">({rango?.from ? format(rango.from, 'd MMM', { locale: es }) : '...'})</span> ✈️
-                                </button>
+                            <div>
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                    {/* Fecha */}
+                                    <div className="md:col-span-12 xl:col-span-5 flex flex-col h-full">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                            Fechas del viaje
+                                        </label>
+                                        <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
+                                    </div>
+
+                                    {/* Servicio */}
+                                    <div className="md:col-span-12 xl:col-span-3 flex flex-col h-full">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                            Tipo de Servicio
+                                        </label>
+                                        <div className="flex flex-col gap-2 flex-1">
+                                            <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
+                                                    {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                                                </div>
+                                                <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                                                <div className="flex items-center gap-2">
+                                                    <Home size={18} />
+                                                    <span className="text-sm">Domicilio</span>
+                                                </div>
+                                            </label>
+                                            <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                    {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                                                </div>
+                                                <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                                                <div className="flex items-center gap-2">
+                                                    <Hotel size={18} />
+                                                    <span className="text-sm">Hospedaje</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="md:col-span-12 xl:col-span-4 flex flex-col h-full">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                            Mascotas
+                                        </label>
+                                        {hasPets ? (
+                                            <MyPetsSelector
+                                                myPets={myPets}
+                                                selectedIds={selectedPetIds}
+                                                onChange={(ids, counts) => {
+                                                    setSelectedPetIds(ids);
+                                                    setMascotas(counts);
+                                                }}
+                                                hideLabel
+                                            />
+                                        ) : (
+                                            <PetsSelectorAirbnb
+                                                value={mascotas}
+                                                onChange={setMascotas}
+                                                className="w-full"
+                                                hideLabel
+                                            />
+                                        )}
+                                    </div>
+
+
+                                    {/* Dirección (Solo Domicilio) */}
+                                    {servicio === 'domicilio' && (
+                                        <div className="md:col-span-12">
+                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+                                                Dirección del Servicio
+                                            </label>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                {addresses.map(addr => (
+                                                    <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-emerald-300 bg-white'}`}>
+                                                        <div className="mt-0.5">
+                                                            <input
+                                                                type="radio"
+                                                                name="tripAddress"
+                                                                value={addr.id}
+                                                                checked={selectedAddressId === addr.id}
+                                                                onChange={(e) => setSelectedAddressId(e.target.value)}
+                                                                className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-bold text-slate-900 text-sm">{addr.nombre}</span>
+                                                                {addr.es_principal && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
+                                                            </div>
+                                                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{addr.direccion_completa}</p>
+                                                        </div>
+                                                    </label>
+                                                ))}
+
+                                                <button
+                                                    onClick={handleAddAddress}
+                                                    className="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-slate-300 text-slate-500 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition-all font-medium text-sm h-full min-h-[80px]"
+                                                >
+                                                    <Plus size={18} /> Nueva Dirección
+                                                </button>
+                                            </div>
+                                            {addresses.length === 0 && (
+                                                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                                                    ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                </div>
+
+                                <div className="mt-8 flex justify-end">
+                                    <button
+                                        onClick={handleSaveTrip}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95"
+                                    >
+                                        {loadingTrips ? 'Guardando...' : (editingTripId ? 'Guardar Cambios' : 'Publicar Solicitud')} <span className="text-slate-400 text-sm font-normal">({rango?.from ? format(rango.from, 'd MMM', { locale: es }) : '...'})</span> ✈️
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -609,6 +741,18 @@ export default function DashboardContent() {
                 title={alertConfig.title}
                 message={alertConfig.message}
                 type={alertConfig.type}
+            />
+
+            {/* Confirmation Modal */}
+            <ModalConfirm
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirm}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                confirmText={confirmConfig.confirmText}
+                cancelText={confirmConfig.cancelText}
+                isDestructive={confirmConfig.isDestructive}
             />
         </div>
     );

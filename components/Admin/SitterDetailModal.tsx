@@ -60,9 +60,10 @@ type Props = {
     open: boolean;
     onClose: () => void;
     onApprove: (id: string, currentStatus: boolean) => void;
+    onViewDocument: (path: string) => void;
 };
 
-export default function SitterDetailModal({ sitter, open, onClose, onApprove }: Props) {
+export default function SitterDetailModal({ sitter, open, onClose, onApprove, onViewDocument }: Props) {
     if (!open || !sitter) return null;
 
     return (
@@ -188,14 +189,12 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove }: 
 
                             {/* Downloads */}
                             {sitter.certificado_antecedentes && (
-                                <a
-                                    href={`https://vujyabfrlqjnjrccylmp.supabase.co/storage/v1/object/public/documents/${sitter.certificado_antecedentes}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
+                                    onClick={() => onViewDocument(sitter.certificado_antecedentes!)}
                                     className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors"
                                 >
                                     📄 Ver Certificado
-                                </a>
+                                </button>
                             )}
                         </div>
 

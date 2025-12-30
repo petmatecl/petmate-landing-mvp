@@ -76,6 +76,17 @@ export function Hero() {
               </Link>
             </div>
 
+            {/* Login quick access */}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <span className="text-sm text-slate-500 font-medium">¿Ya eres parte de nuestra comunidad?</span>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+              >
+                Iniciar sesión
+              </Link>
+            </div>
+
             {/* CTA principal */}
             <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               {/* Botón eliminado por feedback */}

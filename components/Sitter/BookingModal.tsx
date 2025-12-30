@@ -39,8 +39,8 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
             .from("viajes")
             .select("*")
             .eq("user_id", session.user.id)
-            .in("estado", ["borrador", "publicado"])
-            .is("sitter_id", null) // Solo mostrar viajes sin sitter
+            .in("estado", ["borrador", "publicado", "solicitado_por_cliente"]) // Allow re-requesting if not confirmed
+            //.is("sitter_id", null) // Now we don't rely on sitter_id for availability check strictly, but good for MVP
             .order("created_at", { ascending: false });
 
         if (data) {
@@ -53,28 +53,54 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
         if (!selectedTripId) return;
         setSending(true);
 
-        const { error } = await supabase
+        // 1. Create Postulacion
+        const { error: postError } = await supabase
+            .from("postulaciones")
+            .insert({
+                viaje_id: selectedTripId,
+                sitter_id: sitterAuthId,
+                origen: 'solicitud_cliente',
+                estado: 'pendiente'
+            });
+
+        if (postError) {
+            console.error("Error creating application:", postError);
+            alert(`Error al enviar solicitud: ${postError.message}`);
+            setSending(false);
+            return;
+        }
+
+        // 2. Update Trip State to indicate it has an active request
+        // We allow multiple requests? For now, let's just mark it as having activity if needed.
+        // Actually, for direct request flow, we might want to update the trip state to 'solicitado_por_cliente' 
+        // IF we want to lock it or show it differently. 
+        // But with marketplace, a trip can be 'publicado' and have requests.
+        // Let's keep trip as 'publicado' (or whatever it was) but maybe just ensure it's not 'borrador'.
+
+        // If it was 'borrador', make it 'publicado' so it's "live" in the system (even if just for this sitter)
+        // Or if we strictly follow the new states: 'solicitado_por_cliente'.
+
+        const { error: tripError } = await supabase
             .from("viajes")
             .update({
-                sitter_id: sitterAuthId, // Use Auth ID here
-                estado: "solicitado"
+                estado: "solicitado_por_cliente" // Updating state to reflect active outgoing request
             })
             .eq("id", selectedTripId);
 
-        if (error) {
-            console.error(error);
-            alert("Error al enviar solicitud");
-        } else {
-            setIsSuccess(true);
-            onSuccess();
+        if (tripError) {
+            console.error("Error updating trip status:", tripError);
+            // Non-critical, but good to know
         }
+
+        setIsSuccess(true);
+        onSuccess();
         setSending(false);
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* SUCCESS STATE */}

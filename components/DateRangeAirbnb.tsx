@@ -121,7 +121,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
                 onSelect={setRange}
                 disabled={{ before: minDate ?? new Date() }}
                 weekStartsOn={1}
-                showOutsideDays
+                showOutsideDays={false}
                 className="mx-auto"
                 classNames={{
                   months:
@@ -151,7 +151,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
 
                   day_disabled:
                     "text-slate-300 hover:bg-transparent cursor-not-allowed",
-                  day_outside: "text-slate-300",
+                  day_outside: "text-slate-300 opacity-50",
 
                   // --- Todos los días del rango con el mismo estilo de círculo oscuro ---
                   day_range_start:

@@ -5,6 +5,8 @@ import ClientLayout from "../components/Client/ClientLayout";
 import DashboardContent from "../components/Client/DashboardContent";
 import { useRouter } from "next/router";
 
+import RoleGuard from "../components/Shared/RoleGuard";
+
 export default function ClienteDashboardPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
@@ -21,8 +23,10 @@ export default function ClienteDashboardPage() {
   }, [router]);
 
   return (
-    <ClientLayout userId={userId} title="Panel cliente — PetMate">
-      <DashboardContent />
-    </ClientLayout>
+    <RoleGuard requiredRole="cliente">
+      <ClientLayout userId={userId} title="Panel cliente — PetMate">
+        <DashboardContent />
+      </ClientLayout>
+    </RoleGuard>
   );
 }

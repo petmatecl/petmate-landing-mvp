@@ -81,7 +81,16 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
 
     const handleSelect = (r: AddressResult) => {
         // Update input with just the main name to keep it clean, or full address
-        const mainName = r.display_name.split(',')[0];
+        let mainName = r.display_name.split(',')[0];
+
+        // Improve display for addresses (Street + Number)
+        const road = r.address?.road || r.address?.pedestrian || r.address?.street;
+        const number = r.address?.house_number;
+
+        if (road) {
+            mainName = `${road} ${number || ''}`.trim();
+        }
+
         setQuery(mainName);
         setIsOpen(false);
         onSelect(r);

@@ -66,6 +66,22 @@ const EyeOffIcon = (props: any) => (
   </svg>
 );
 
+const UserIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+const PawIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2c.7 0 1.4.1 2.1.4l.4.2c2.2 1.1 2.6 3.5 1.5 5.5l-.2.4c-.6 1.3-1.8 2.1-3.2 2.3-1.5.2-2.9-.5-3.8-1.7l-.2-.3C7.5 6.6 7.9 4.2 10.1 3l.4-.2c.5-.5 1-.8 1.5-.8z" />
+    <path d="M16.9 7.4c.5-.3 1.1-.3 1.6-.1l.4.2c1.9 1 2.3 3.3 1 5.3l-.2.3c-.7 1.1-2 1.6-3.3 1.4-1.3-.3-2.3-1.3-2.6-2.6l-.1-.4c-.3-2.1 1-4.2 3-5.2l.2.1z" />
+    <path d="M4.6 9.4c.5-.2 1.1-.1 1.6.2l.3.2c1.9 1.1 2.2 3.4.9 5.3l-.2.3c-.6 1.1-1.9 1.6-3.2 1.3-1.3-.3-2.3-1.3-2.5-2.6L1.4 14c-.4-2.1 1-4.2 3-5.2l.2.6z" />
+    <path d="M7 16c-.5 0-1 .2-1.4.5l-.3.2c-1.8 1.6-1.5 4.5.7 5.7l.4.2c1.2.6 2.6.4 3.7-.4.6-.4 1.1-.9 1.4-1.5.3-.6.5-1.3.5-1.9 0-2.1-1.7-3.6-3.8-3.6h-1.2z" />
+    <path d="M16.5 16c-2 0-3.6 1.5-3.5 3.5v.1c.1 1.2.8 2.3 1.9 2.8l.4.2c2.2 1 4.5-.9 4.6-3.2v-.4c-.1-1.7-1.6-3-3.4-3z" />
+  </svg>
+);
+
 export default function LoginPage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<Role>("client");
@@ -127,7 +143,45 @@ export default function LoginPage() {
         return;
       }
 
+      // 🛡️ SECURITY: Verify strict role ownership
+      // Prevent Sitter from logging in on Client tab (and vice-versa)
+      const { data: profile, error: profileErr } = await supabase
+        .from("registro_petmate")
+        .select("roles, rol")
+        .eq("auth_user_id", data.user.id)
+        .single();
+
+      if (profileErr || !profile) {
+        // Profile missing or error -> Deny access to prevent weird states
+        console.error("Profile check failed:", profileErr);
+        setError("No se pudo verificar tu perfil. Contacta soporte.");
+        await supabase.auth.signOut();
+        return;
+      }
+
+      const userRoles: string[] = profile.roles || [];
+      // Fallback for older records
+      if (profile.rol && !userRoles.includes(profile.rol)) {
+        userRoles.push(profile.rol);
+      }
+
+      const targetRole = role === "client" ? "cliente" : "petmate";
+
+      if (!userRoles.includes(targetRole)) {
+        // User is authenticated but selected the WRONG tab for their actual role
+        // Privacy Improvement: Do not reveal they have another account type.
+        // Just say we couldn't find a record for THIS type.
+        const tabName = targetRole === "cliente" ? "Cliente" : "Sitter";
+        setError(`No se encontró una cuenta de ${tabName} con estas credenciales.`);
+
+        await supabase.auth.signOut();
+        return;
+      }
+
       // ✅ Solo con login exitoso redirigimos
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("activeRole", targetRole);
+      }
       await router.push(role === "client" ? "/cliente" : "/sitter");
     } catch (err: any) {
       console.error(err);
@@ -154,7 +208,8 @@ export default function LoginPage() {
               onClick={() => setTab("client")}
               type="button"
             >
-              Cliente
+              <UserIcon />
+              <span>Cliente</span>
             </button>
             <button
               role="tab"
@@ -163,7 +218,8 @@ export default function LoginPage() {
               onClick={() => setTab("petmate")}
               type="button"
             >
-              Sitter
+              <PawIcon />
+              <span>Sitter</span>
             </button>
           </div>
 
@@ -293,27 +349,37 @@ export default function LoginPage() {
         .tabs {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          background: var(--muted);
-          padding: 6px;
-          border-radius: 14px;
-          margin-bottom: 14px;
-          border: 1px solid var(--border);
+          gap: 12px;
+          margin-bottom: 24px;
         }
         .tab {
           appearance: none;
-          border: 0;
-          padding: 0.9rem 1rem;
-          border-radius: 10px;
-          background: transparent;
+          border: 2px solid #e5e7eb;
+          padding: 1rem;
+          border-radius: 12px;
+          background: #fff;
           font-weight: 800;
           cursor: pointer;
           color: #6b7280;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s ease;
+          font-size: 1rem;
+        }
+        .tab:hover {
+          border-color: #d1d5db;
+          background: #f9fafb;
         }
         .tab.active {
-          background: #fff;
-          border: 2px solid var(--brand);
-          color: var(--brand);
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+          background: #10b981;
+          border-color: #10b981;
+          color: #fff;
+          box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+        }
+        .tab.active svg {
+          stroke-width: 2.5;
         }
 
         /* Card */

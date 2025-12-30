@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import FilterBar from "../components/Explore/FilterBar";
 import CaregiverCard from "../components/Explore/CaregiverCard";
+import CompletionBlocker from "../components/Shared/CompletionBlocker";
 
 // Definir interfaz del PetMate basado en tu DB
 interface PetMateUser {
@@ -11,6 +12,13 @@ interface PetMateUser {
     nombre: string;
     apellido_p: string;
     rol: string;
+    roles?: string[];
+    comuna?: string;
+    region?: string;
+    foto_perfil?: string;
+    promedio_calificacion?: number;
+    total_reviews?: number;
+    verificado?: boolean;
 }
 
 export default function ExplorarPage() {
@@ -47,40 +55,57 @@ export default function ExplorarPage() {
         }
     }, [router.isReady, router.query]);
 
+    const [clientMissingFields, setClientMissingFields] = useState<string[]>([]);
+    const [checkingProfile, setCheckingProfile] = useState(true);
+
     useEffect(() => {
-        async function fetchPetmates() {
+        async function fetchPetmatesAndProfile() {
             setLoading(true);
             try {
-                // 1. Verificar sesión
+                // 1. Verificar sesión y perfil de Cliente
                 const { data: { session } } = await supabase.auth.getSession();
                 setIsAuthenticated(!!session);
 
-                // 2. Construir consulta
-                // 2. Construir consulta
+                if (session) {
+                    // Fetch client profile data
+                    const { data: profile } = await supabase.from("registro_petmate").select("telefono").eq("auth_user_id", session.user.id).single();
+                    const { count: petsCount } = await supabase.from("mascotas").select("*", { count: 'exact', head: true }).eq("user_id", session.user.id);
+                    const { count: addrCount } = await supabase.from("direcciones").select("*", { count: 'exact', head: true }).eq("user_id", session.user.id);
+
+                    const missing = [];
+                    if (!profile?.telefono) missing.push("Teléfono de contacto");
+                    if ((petsCount || 0) === 0) missing.push("Al menos una mascota");
+                    if ((addrCount || 0) === 0) missing.push("Al menos una dirección");
+
+                    setClientMissingFields(missing);
+                }
+                setCheckingProfile(false);
+
+                // 2. Fetch Petmates
                 let query = supabase
                     .from("registro_petmate")
-                    .select("id, nombre, apellido_p, rol, modalidad, acepta_perros, acepta_gatos, foto_perfil")
-                    .eq("rol", "petmate");
+                    .select("id, nombre, apellido_p, rol, roles, modalidad, cuida_perros, cuida_gatos, foto_perfil, tarifa_servicio_en_casa, tarifa_servicio_a_domicilio, comuna, region, promedio_calificacion, total_reviews, verificado")
+                    // Use array contains for more robust role check
+                    .contains("roles", ["petmate"]);
 
                 // Filtro Perros/Gatos
                 if (filters.petType === "dogs") {
-                    query = query.eq("acepta_perros", true);
+                    query = query.eq("cuida_perros", true);
                 } else if (filters.petType === "cats") {
-                    query = query.eq("acepta_gatos", true);
+                    query = query.eq("cuida_gatos", true);
                 } else if (filters.petType === "both") {
-                    // Strict filtering: Need sitters who accept BOTH
-                    query = query.eq("acepta_perros", true).eq("acepta_gatos", true);
+                    query = query.eq("cuida_perros", true).eq("cuida_gatos", true);
                 }
-                // "any": No filtering (Show All)
 
                 // Filtro Modalidad
                 if (filters.serviceType !== "all") {
-                    // Si selecciona "en_casa_petmate", queremos los que sean "en_casa_petmate" O "ambos".
-                    // Supabase OR syntax: .or(`modalidad.eq.${filters.serviceType},modalidad.eq.ambos`)
                     query = query.or(`modalidad.eq.${filters.serviceType},modalidad.eq.ambos`);
                 }
 
+                console.log("Fetching petmates with filters:", filters);
                 const { data, error } = await query;
+
+                console.log("Petmates result:", data, error);
 
                 if (error) {
                     console.error("Error fetching petmates:", error);
@@ -94,7 +119,7 @@ export default function ExplorarPage() {
             }
         }
 
-        fetchPetmates();
+        fetchPetmatesAndProfile();
     }, [filters]); // Re-ejecutar cuando cambien los filtros
 
     return (
@@ -103,17 +128,24 @@ export default function ExplorarPage() {
                 <title>Explorar Cuidadores | Pawnecta</title>
             </Head>
 
-
-
             {/* Barra de Filtros */}
             <FilterBar filters={filters} onFilterChange={handleFilterChange} />
 
             <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
 
-                {loading ? (
+                {loading || checkingProfile ? (
                     <div className="flex h-64 items-center justify-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
                     </div>
+                ) : (isAuthenticated && clientMissingFields.length > 0) ? (
+                    <CompletionBlocker
+                        title="Completa tu perfil para reservar"
+                        message="Para ver cuidadores y gestionar reservas, necesitamos que completes tu información básica."
+                        missingFields={clientMissingFields}
+                        redirectUrl="/cliente"
+                        redirectText="Ir a mi Perfil"
+                        isApproved={true}
+                    />
                 ) : petmates.length === 0 ? (
                     <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
                         <h3 className="text-lg font-semibold text-slate-900">No encontramos Sitters con estos filtros</h3>
@@ -141,28 +173,22 @@ export default function ExplorarPage() {
                                 id={pm.id}
                                 nombre={pm.nombre || "Usuario"}
                                 apellido={pm.apellido_p || "PetMate"}
-                                // Datos mock para UI que no están en DB aún o incompletos
-                                price={15000 + (index * 2000)}
-                                rating={4.5 + (index % 5) * 0.1}
-                                reviews={3 + index * 2}
-                                verified={index % 2 === 0}
-                                comuna={["Providencia", "Las Condes", "Ñuñoa"][index % 3]}
-                                imageUrl={(pm as any).foto_perfil || `https://images.pexels.com/photos/${[220453, 774909, 1222271, 733872, 91227][index % 5]
-                                    }/pexels-photo-${[220453, 774909, 1222271, 733872, 91227][index % 5]
-                                    }.jpeg?auto=compress&cs=tinysrgb&w=600`}
+                                price={(pm as any).tarifa_servicio_en_casa || (pm as any).tarifa_servicio_a_domicilio || 15000}
+                                rating={(pm as any).promedio_calificacion || 5.0}
+                                reviews={(pm as any).total_reviews || 0}
+                                verified={(pm as any).verificado}
+                                comuna={pm.comuna || (pm as any).region || "Santiago"}
+                                imageUrl={(pm as any).foto_perfil || `https://images.pexels.com/photos/${[220453, 774909, 1222271, 733872, 91227][index % 5]}/pexels-photo-${[220453, 774909, 1222271, 733872, 91227][index % 5]}.jpeg?auto=compress&cs=tinysrgb&w=600`}
                                 isAuthenticated={isAuthenticated}
-                                // Props reales de DB (con defaults por si null)
                                 modalidad={(pm as any).modalidad || "ambos"}
-                                acepta_perros={(pm as any).acepta_perros}
-                                acepta_gatos={(pm as any).acepta_gatos}
+                                acepta_perros={(pm as any).cuida_perros}
+                                acepta_gatos={(pm as any).cuida_gatos}
                             />
                         ))}
                     </div>
                 )}
 
             </main>
-
-
         </div>
     );
 }

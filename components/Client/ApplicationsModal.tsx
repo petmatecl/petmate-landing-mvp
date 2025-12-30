@@ -19,6 +19,7 @@ type Application = {
     precio_oferta?: number;
     created_at: string;
     sitter?: {
+        id: string; // ID for profile link
         nombre: string;
         apellido_p: string;
         foto_perfil: string;
@@ -56,7 +57,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                 const sitterIds = data.map(app => app.sitter_id);
                 const { data: sitters } = await supabase
                     .from("registro_petmate")
-                    .select("auth_user_id, nombre, apellido_p, foto_perfil, biografia")
+                    .select("auth_user_id, id, nombre, apellido_p, foto_perfil, biografia")
                     .in("auth_user_id", sitterIds);
 
                 const sittersMap = sitters ? Object.fromEntries(sitters.map(s => [s.auth_user_id, s])) : {};
@@ -198,7 +199,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
 
                                                 <div className="mt-3">
                                                     <Link
-                                                        href={`/sitter/${app.sitter_id}`}
+                                                        href={app.sitter?.id ? `/sitter/${app.sitter.id}` : '#'}
                                                         target="_blank"
                                                         className="text-emerald-600 text-sm font-semibold hover:underline flex items-center gap-1"
                                                     >

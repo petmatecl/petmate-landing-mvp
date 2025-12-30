@@ -8,6 +8,7 @@ export type Pet = {
     raza?: string;
     descripcion?: string;
     sexo?: "macho" | "hembra";
+    tamano?: "pequeño" | "mediano" | "grande" | "gigante";
     // New fields
     fecha_nacimiento?: string;
     tiene_chip?: boolean;
@@ -67,7 +68,7 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
                         )}
                     </h3>
                     <p className="text-xs text-slate-500 truncate">
-                        {isDog ? "Perro" : "Gato"} • {pet.sexo === "macho" ? "Macho" : "Hembra"} • {ageDisplay}
+                        {isDog ? "Perro" : "Gato"} • {pet.sexo === "macho" ? "Macho" : "Hembra"} • {pet.tamano && <span className="capitalize">{pet.tamano} • </span>} {ageDisplay}
                     </p>
                     <div className="flex gap-1 mt-1">
                         {pet.vacunas_al_dia && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">Vacunas ✅</span>}

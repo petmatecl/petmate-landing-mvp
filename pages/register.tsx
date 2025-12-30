@@ -237,8 +237,9 @@ export default function RegisterPage() {
         return;
       }
 
-      if (typeof window !== "undefined" && nombre) {
-        window.localStorage.setItem("pm_cliente_nombre", nombre);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("pm_auth_role_pending", "cliente");
+        if (nombre) window.localStorage.setItem("pm_cliente_nombre", nombre);
       }
 
       // Log Consent (Async, no blocking)
@@ -351,8 +352,9 @@ export default function RegisterPage() {
         return;
       }
 
-      if (typeof window !== "undefined" && nombre) {
-        window.localStorage.setItem("pm_petmate_nombre", nombre);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("pm_auth_role_pending", "petmate");
+        if (nombre) window.localStorage.setItem("pm_petmate_nombre", nombre);
       }
 
       // Log Consent (Async, no blocking)

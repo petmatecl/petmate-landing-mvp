@@ -176,6 +176,55 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
         }
     };
 
+    const handleViewMap = async (e: React.MouseEvent, addr: Address) => {
+        e.stopPropagation();
+
+        if (expandedMapId === addr.id) {
+            setExpandedMapId(null);
+            return;
+        }
+
+        // Si ya tiene coordenadas, expandir
+        if (addr.latitud && addr.longitud) {
+            setExpandedMapId(addr.id);
+            return;
+        }
+
+        // Si no tiene, intentar geocodificar al vuelo
+        try {
+            const query = encodeURIComponent(`${addr.direccion_completa}`);
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+
+                // Guardar en DB para el futuro
+                const { error } = await supabase
+                    .from('direcciones')
+                    .update({ latitud: lat, longitud: lon })
+                    .eq('id', addr.id);
+
+                if (error) throw error;
+
+                // Actualizar estado local
+                setAddresses(prev => prev.map(a =>
+                    a.id === addr.id ? { ...a, latitud: lat, longitud: lon } : a
+                ));
+
+                setExpandedMapId(addr.id);
+                showAlert("Dirección actualizada", "Se han obtenido las coordenadas del mapa.", "success");
+            } else {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr.direccion_completa)}`, '_blank');
+                showAlert("Ubicación no exacta", "No pudimos cargar el mapa aquí, abriendo en Google Maps...", "warning");
+            }
+        } catch (error) {
+            console.error("Geocoding error:", error);
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr.direccion_completa)}`, '_blank');
+        }
+    };
+
     const displayName = nombre || "Cliente";
 
     // Provide context
@@ -276,10 +325,7 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
 
                                 {/* Navigation Links (Active state logic could be added) */}
                                 <nav className="border-t border-slate-100 p-2">
-                                    <Link href="/cliente" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${router.pathname === '/cliente' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-                                        <Calendar size={18} />
-                                        Mi Panel
-                                    </Link>
+
                                     <button onClick={() => setIsProfileModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
                                         <Settings size={18} />
                                         Configuración
@@ -333,17 +379,12 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                                                         <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2" title={addr.direccion_completa}>
                                                             {addr.direccion_completa}
                                                         </p>
-                                                        {addr.latitud && addr.longitud && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setExpandedMapId(expandedMapId === addr.id ? null : addr.id);
-                                                                }}
-                                                                className="text-[10px] text-emerald-600 hover:text-emerald-700 hover:underline mt-1.5 flex items-center gap-1 font-medium"
-                                                            >
-                                                                {expandedMapId === addr.id ? 'Ocultar mapa' : 'Ver en mapa'}
-                                                            </button>
-                                                        )}
+                                                        <button
+                                                            onClick={(e) => handleViewMap(e, addr)}
+                                                            className="text-[10px] text-emerald-600 hover:text-emerald-700 hover:underline mt-1.5 flex items-center gap-1 font-medium"
+                                                        >
+                                                            {expandedMapId === addr.id ? 'Ocultar mapa' : 'Ver en mapa'}
+                                                        </button>
                                                     </div>
                                                 </div>
 

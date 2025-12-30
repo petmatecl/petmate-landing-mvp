@@ -26,12 +26,12 @@ export default function SessionTimeout() {
                         });
 
                         // Forzamos la redirección con window.location para asegurar limpieza total
-                        window.location.href = "/login?timeout=true";
+                        window.location.href = "/security-logout";
                     }
                 } catch (error) {
                     console.error("Error verificando sesión en timeout:", error);
                     // Ante la duda, si falló verificar sesión pero saltó el timeout, redirigimos igual
-                    window.location.href = "/login?timeout=true";
+                    window.location.href = "/security-logout";
                 }
             }, INACTIVITY_LIMIT_MS);
         };

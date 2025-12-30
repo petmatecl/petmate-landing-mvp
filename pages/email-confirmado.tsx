@@ -13,8 +13,10 @@ export default function EmailConfirmadoPage() {
             if (event === 'SIGNED_IN' || session) {
                 const pendingRole = window.localStorage.getItem('pm_auth_role_pending');
                 if (pendingRole === 'petmate') {
+                    window.localStorage.setItem("activeRole", "petmate");
                     router.replace("/sitter");
                 } else {
+                    window.localStorage.setItem("activeRole", "cliente");
                     router.replace("/cliente");
                 }
             }
