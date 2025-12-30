@@ -80,7 +80,7 @@ export default function SitterDashboardPage() {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [averageRating, setAverageRating] = useState(0);
     const [bookings, setBookings] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<'gestion' | 'perfil'>('gestion');
+    const [activeTab, setActiveTab] = useState<'solicitudes' | 'perfil'>('solicitudes');
 
     // Restore Auth & Load Profile Logic
     useEffect(() => {
@@ -868,16 +868,18 @@ export default function SitterDashboardPage() {
 
                             {/* TAB NAVIGATION */}
                             {/* TABS NAVIGATION */}
-                            <div className="flex overflow-x-auto gap-4 border-b border-slate-200 mb-6 pb-1">
+                            {/* TABS NAVIGATION */}
+                            <div className="flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6">
                                 <button
-                                    onClick={() => setActiveTab('gestion')}
-                                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'gestion' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
+                                    onClick={() => setActiveTab('solicitudes')}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
-                                    <BarChart size={18} /> Gestión
+                                    <BarChart size={18} /> Solicitudes
                                 </button>
+                                <div className="w-px bg-slate-100 my-2"></div>
                                 <button
                                     onClick={() => setActiveTab('perfil')}
-                                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'perfil' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'perfil' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <User size={18} /> Mi Perfil
                                 </button>
@@ -1025,7 +1027,7 @@ export default function SitterDashboardPage() {
                                 </div>
                             )}
 
-                            {activeTab === 'gestion' && (
+                            {activeTab === 'solicitudes' && (
                                 <>
                                     {bookings.some(b => b.estado === 'pendiente') && (
 
