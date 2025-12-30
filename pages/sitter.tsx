@@ -80,6 +80,7 @@ export default function SitterDashboardPage() {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [averageRating, setAverageRating] = useState(0);
     const [bookings, setBookings] = useState<any[]>([]);
+    const [applications, setApplications] = useState<any[]>([]); // New state for postulations
     const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil'>('solicitudes');
 
     // Helpers for Price Formatting
@@ -163,14 +164,26 @@ export default function SitterDashboardPage() {
     useEffect(() => {
         if (!userId) return;
         const fetchBookings = async () => {
-            const { data, error } = await supabase
+            // 1. Fetch Bookings (Direct Requests)
+            const { data: bookingData, error: bookingError } = await supabase
                 .from('viajes')
                 .select('*, cliente:cliente_id(*), mascotas:mascotas_id(*)')
                 .eq('sitter_id', userId)
                 .order('fecha_inicio', { ascending: true });
 
-            if (!error && data) {
-                setBookings(data);
+            if (!bookingError && bookingData) {
+                setBookings(bookingData);
+            }
+
+            // 2. Fetch Applications (Oportunidades)
+            const { data: appData, error: appError } = await supabase
+                .from('postulaciones')
+                .select('*, viaje:viaje_id(*, cliente:cliente_id(*))')
+                .eq('sitter_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (!appError && appData) {
+                setApplications(appData);
             }
         };
         fetchBookings();
@@ -1046,6 +1059,50 @@ export default function SitterDashboardPage() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* BLOQUE NUEVO: Mis Postulaciones (Oportunidades) */}
+                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-4">
+                                        <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                            📤 Mis Postulaciones
+                                        </h3>
+                                        {applications.length > 0 ? (
+                                            <div className="grid gap-3">
+                                                {applications.map((app) => (
+                                                    <div key={app.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-sm font-bold text-slate-900">
+                                                                    {app.viaje?.cliente?.nombre || "Cliente"} {app.viaje?.cliente?.apellido_p || ""}
+                                                                </span>
+                                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase
+                                                                    ${app.estado === 'aceptada' ? 'bg-emerald-100 text-emerald-700' :
+                                                                        app.estado === 'pendiente' ? 'bg-amber-100 text-amber-700' :
+                                                                            'bg-red-100 text-red-700'}`}>
+                                                                    {app.estado}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-500 mb-1">
+                                                                📍 {app.viaje?.comuna || "Santiago"} • 📅 {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}
+                                                            </p>
+                                                            {app.mensaje && (
+                                                                <p className="text-xs text-slate-600 italic">"{app.mensaje}"</p>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className="block text-xs text-slate-400 font-medium">Oferta</span>
+                                                            <span className="text-sm font-bold text-slate-900">
+                                                                ${formatPrice(app.precio_oferta || app.viaje?.presupuesto_total || 0)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-6 text-slate-400 text-sm">
+                                                No has postulado a ninguna oportunidad aún.
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {/* BLOQUE 1: Próximas Reservas (Confirmadas) */}
                                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
