@@ -31,9 +31,11 @@ export default function ExplorarPage() {
     const [filters, setFilters] = useState<{
         petType: "dogs" | "cats" | "both" | "any";
         serviceType: "all" | "en_casa_petmate" | "a_domicilio";
+        dogSize: string | null;
     }>({
         petType: "any",
-        serviceType: "all"
+        serviceType: "all",
+        dogSize: null
     });
 
     // Función para aumentar filtros
@@ -102,6 +104,11 @@ export default function ExplorarPage() {
                     query = query.or(`modalidad.eq.${filters.serviceType},modalidad.eq.ambos`);
                 }
 
+                // Filtro Tamaño Perro
+                if ((filters.petType === 'dogs' || filters.petType === 'both') && filters.dogSize) {
+                    query = query.contains("tamanos_perros", [filters.dogSize]);
+                }
+
                 console.log("Fetching petmates with filters:", filters);
                 const { data, error } = await query;
 
@@ -152,7 +159,7 @@ export default function ExplorarPage() {
                         <p className="text-slate-500 mt-2">Intenta cambiar los criterios de búsqueda.</p>
                         <div className="flex flex-col items-center gap-3 mt-6">
                             <button
-                                onClick={() => setFilters({ petType: "any", serviceType: "all" })}
+                                onClick={() => setFilters({ petType: "any", serviceType: "all", dogSize: null })}
                                 className="text-emerald-600 font-bold hover:underline"
                             >
                                 Limpiar filtros

@@ -3,6 +3,7 @@ interface FilterBarProps {
     filters: {
         petType: "dogs" | "cats" | "both" | "any";
         serviceType: "all" | "en_casa_petmate" | "a_domicilio";
+        dogSize: string | null;
     };
     onFilterChange: (key: string, value: any) => void;
 }
@@ -70,6 +71,24 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                         >
                             🚗 A domicilio
                         </button>
+
+                        {(filters.petType === 'dogs' || filters.petType === 'both') && (
+                            <>
+                                <div className="bg-slate-200 w-px h-8 mx-1 hidden sm:block"></div>
+                                <select
+                                    className={`appearance-none rounded-full border px-4 py-2 text-sm font-bold transition-colors outline-none cursor-pointer
+                                    ${filters.dogSize ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"}`}
+                                    value={filters.dogSize || ""}
+                                    onChange={(e) => onFilterChange("dogSize", e.target.value || null)}
+                                >
+                                    <option value="" className="bg-white text-slate-900">📏 Cualquier Tamaño</option>
+                                    <option value="Pequeño" className="bg-white text-slate-900">Pequeño (0-10kg)</option>
+                                    <option value="Mediano" className="bg-white text-slate-900">Mediano (11-25kg)</option>
+                                    <option value="Grande" className="bg-white text-slate-900">Grande (26-45kg)</option>
+                                    <option value="Gigante" className="bg-white text-slate-900">Gigante (+45kg)</option>
+                                </select>
+                            </>
+                        )}
                     </div>
 
                     <div className="text-xs text-slate-400 font-medium text-right hidden sm:block">
