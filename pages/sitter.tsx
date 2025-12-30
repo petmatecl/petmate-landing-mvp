@@ -620,53 +620,7 @@ export default function SitterDashboardPage() {
                         </div>
                     </header>
 
-                    {/* DUAL ROLE ACTIVATION BANNER */}
-                    {!profileData.roles?.includes('petmate') && (
-                        <div className="mb-8 bg-indigo-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-2">¡Activa tu Perfil! 🚀</h2>
-                                </div>
-                                <button
-                                    onClick={async () => {
-                                        if (!userId) return;
-                                        setLoading(true);
-                                        try {
-                                            // Append 'petmate' to roles
-                                            const newRoles = [...(profileData.roles || []), 'petmate'];
-                                            // Deduplicate just in case
-                                            const uniqueRoles = Array.from(new Set(newRoles));
 
-                                            const { error } = await supabase
-                                                .from('registro_petmate')
-                                                .update({ roles: uniqueRoles, rol: 'petmate' }) // Update both for backward compat, though 'rol' might be unique constrained if not dropped? No, we dropped unique index.
-                                                // Actually, best to just update roles. But 'rol' column exists. Let's update roles.
-                                                // Wait, if I update 'rol' to 'petmate', I lose 'cliente' in legacy column.
-                                                // But 'roles' has both. Future code uses 'roles'.
-                                                // Let's just update 'roles'.
-                                                .eq('auth_user_id', userId);
-
-                                            if (error) throw error;
-
-                                            // Update local state
-                                            setProfileData((prev: any) => ({ ...prev, roles: uniqueRoles }));
-                                            alert("¡Perfil activado! Ahora puedes completar tus datos.");
-                                        } catch (err: any) {
-                                            alert("Error al activar perfil: " + err.message);
-                                        } finally {
-                                            setLoading(false);
-                                        }
-                                    }}
-                                    className="bg-white text-indigo-600 px-8 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-sm"
-                                >
-                                    Activar Perfil Sitter
-                                </button>
-                            </div>
-                            {/* Decorative bubbles */}
-                            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-indigo-500 rounded-full opacity-50 blur-3xl"></div>
-                            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-indigo-700 rounded-full opacity-50 blur-3xl"></div>
-                        </div>
-                    )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
