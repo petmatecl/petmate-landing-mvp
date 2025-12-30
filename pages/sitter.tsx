@@ -858,30 +858,7 @@ export default function SitterDashboardPage() {
                             </div>
 
 
-                            {/* BLOQUE NUEVO: Mensaje de Seguridad / Privacidad */}
-                            {isProfileIncomplete && showSecurityNotice && (
-                                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
-                                    <button
-                                        onClick={() => setShowSecurityNotice(false)}
-                                        className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                    <div className="flex items-start gap-3">
-                                        <div className="text-blue-500 mt-0.5">
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-bold text-blue-800">Información Protegida</h4>
-                                            <p className="text-xs text-blue-700 mt-1 pr-6">
-                                                La información solicitada es confidencial y se utiliza únicamente para verificar tu identidad y garantizar la seguridad de la comunidad. Tus datos sensibles no serán públicos.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+
 
                             {/* BLOQUE NUEVO: Solicitudes Pendientes (Prioridad Alta) */}
                             {/* BLOQUE 0: Preferencias y Servicios (MOVIDO AL TOP) */}
