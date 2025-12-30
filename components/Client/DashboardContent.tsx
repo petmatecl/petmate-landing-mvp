@@ -19,10 +19,17 @@ import { useClientData } from "./ClientContext";
 import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X } from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
+import dynamic from "next/dynamic";
 
 export default function DashboardContent() {
     const router = useRouter();
     const { userId, addresses, loadingAddresses, refreshAddresses } = useClientData();
+
+    // Dynamic Map
+    const LocationMap = dynamic(() => import("../Shared/LocationMap"), {
+        ssr: false,
+        loading: () => <div className="h-48 w-full bg-slate-100 animate-pulse rounded-lg" />
+    });
 
     const [nombre, setNombre] = useState<string | null>(null);
     const [clientProfile, setClientProfile] = useState<any>(null);
@@ -914,6 +921,15 @@ export default function DashboardContent() {
                                     placeholder="Busca tu dirección o comuna..."
                                     className="w-full"
                                 />
+                                {profileFormData.latitud && profileFormData.longitud && (
+                                    <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 h-48 animate-in fade-in zoom-in-95 duration-200">
+                                        <LocationMap
+                                            lat={profileFormData.latitud}
+                                            lng={profileFormData.longitud}
+                                            approximate={false}
+                                        />
+                                    </div>
+                                )}
                                 {profileFormData.latitud && (
                                     <p className="text-[10px] text-emerald-600 mt-1">✓ Ubicación georeferenciada lista</p>
                                 )}
