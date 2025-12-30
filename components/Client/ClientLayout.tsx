@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+// import dynamic from 'next/dynamic'; // Removed unused dynamic import
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import ImageLightbox from '../ImageLightbox';
 import ModalAlert from '../ModalAlert';
-import AddressFormModal from './AddressFormModal'; // Added
-import { Address } from './AddressCard'; // Added type
-import { User, Calendar, Settings, LogOut, MapPin, Plus, Trash2, Edit2 } from 'lucide-react'; // Added icons
-import NotificationCenter from './NotificationCenter'; // Added
-import ClientContext from './ClientContext'; // Added context
+// import AddressFormModal from './AddressFormModal'; // Removed
+import { Address } from './AddressCard';
+import { User, LogOut } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
+import ClientContext from './ClientContext';
 
 interface ClientLayoutProps {
     children: React.ReactNode;
@@ -38,18 +38,9 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
         type: 'info'
     });
 
-    // Address State
+    // Address State (for Context)
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(true);
-    const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-    const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-    const [expandedMapId, setExpandedMapId] = useState<string | null>(null);
-
-    // Dynamic Import
-    const LocationMap = dynamic(() => import('../Shared/LocationMap'), {
-        ssr: false,
-        loading: () => <div className="h-full w-full bg-slate-100 animate-pulse" />
-    });
 
     useEffect(() => {
         if (userId) {
@@ -145,83 +136,6 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
         await supabase.auth.signOut();
         router.push("/login");
     }
-
-    // Address Handlers
-    const handleAddAddress = () => {
-        setEditingAddress(null);
-        setIsAddressModalOpen(true);
-    };
-
-    const handleEditAddress = (addr: Address) => {
-        setEditingAddress(addr);
-        setIsAddressModalOpen(true);
-    };
-
-    const handleAddressSaved = () => {
-        if (userId) fetchAddresses(userId);
-    };
-
-    const handleDeleteAddress = async (id: string) => {
-        if (!confirm("¿Estás seguro de eliminar esta dirección?")) return;
-        try {
-            const { error } = await supabase.from("direcciones").delete().eq("id", id);
-            if (error) throw error;
-            if (userId) fetchAddresses(userId);
-            showAlert("Dirección eliminada", "La dirección ha sido eliminada correctamente.", "success");
-        } catch (err: any) {
-            console.error(err);
-            showAlert("Error", "No se pudo eliminar la dirección.", "error");
-        }
-    };
-
-    const handleViewMap = async (e: React.MouseEvent, addr: Address) => {
-        e.stopPropagation();
-
-        if (expandedMapId === addr.id) {
-            setExpandedMapId(null);
-            return;
-        }
-
-        // Si ya tiene coordenadas, expandir
-        if (addr.latitud && addr.longitud) {
-            setExpandedMapId(addr.id);
-            return;
-        }
-
-        // Si no tiene, intentar geocodificar al vuelo
-        try {
-            const query = encodeURIComponent(`${addr.direccion_completa}`);
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
-            const data = await response.json();
-
-            if (data && data.length > 0) {
-                const lat = parseFloat(data[0].lat);
-                const lon = parseFloat(data[0].lon);
-
-                // Guardar en DB para el futuro
-                const { error } = await supabase
-                    .from('direcciones')
-                    .update({ latitud: lat, longitud: lon })
-                    .eq('id', addr.id);
-
-                if (error) throw error;
-
-                // Actualizar estado local
-                setAddresses(prev => prev.map(a =>
-                    a.id === addr.id ? { ...a, latitud: lat, longitud: lon } : a
-                ));
-
-                setExpandedMapId(addr.id);
-                showAlert("Dirección actualizada", "Se han obtenido las coordenadas del mapa.", "success");
-            } else {
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr.direccion_completa)}`, '_blank');
-                showAlert("Ubicación no exacta", "No pudimos cargar el mapa aquí, abriendo en Google Maps...", "warning");
-            }
-        } catch (error) {
-            console.error("Geocoding error:", error);
-            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr.direccion_completa)}`, '_blank');
-        }
-    };
 
     const displayName = nombre || "Cliente";
 
@@ -329,80 +243,6 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                                     </button>
                                 </nav>
                             </div>
-
-                            {/* Addresses Box */}
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                                        <MapPin size={18} className="text-emerald-600" />
-                                        Mis Direcciones
-                                    </h3>
-                                    <button
-                                        onClick={handleAddAddress}
-                                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
-                                        title="Agregar dirección"
-                                    >
-                                        <Plus size={16} />
-                                    </button>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {loadingAddresses ? (
-                                        <p className="text-xs text-slate-400">Cargando...</p>
-                                    ) : addresses.length > 0 ? (
-                                        addresses.map(addr => (
-                                            <div key={addr.id} className="p-3 rounded-lg border border-slate-100 bg-slate-50 hover:border-slate-200 transition-all group relative">
-                                                {/* Actions */}
-                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                                    <button onClick={() => handleEditAddress(addr)} className="p-1 text-slate-400 hover:text-emerald-600">
-                                                        <Edit2 size={12} />
-                                                    </button>
-                                                    <button onClick={() => handleDeleteAddress(addr.id)} className="p-1 text-slate-400 hover:text-red-600">
-                                                        <Trash2 size={12} />
-                                                    </button>
-                                                </div>
-
-                                                <div className="flex items-start gap-2 pr-10">
-                                                    <MapPin size={14} className="text-slate-400 mt-0.5 shrink-0" />
-                                                    <div>
-                                                        <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                                                            {addr.nombre}
-                                                            {addr.es_principal && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 rounded uppercase tracking-wide">Principal</span>}
-                                                        </p>
-                                                        <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2" title={addr.direccion_completa}>
-                                                            {addr.direccion_completa}
-                                                        </p>
-                                                        <button
-                                                            onClick={(e) => handleViewMap(e, addr)}
-                                                            className="text-[10px] text-emerald-600 hover:text-emerald-700 hover:underline mt-1.5 flex items-center gap-1 font-medium"
-                                                        >
-                                                            {expandedMapId === addr.id ? 'Ocultar mapa' : 'Ver en mapa'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Mapa Expandible */}
-                                                {expandedMapId === addr.id && addr.latitud && addr.longitud && (
-                                                    <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 h-32 animate-in fade-in zoom-in-95 duration-200">
-                                                        <LocationMap
-                                                            lat={addr.latitud}
-                                                            lng={addr.longitud}
-                                                            approximate={false}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-4 border border-dashed border-slate-200 rounded-lg">
-                                            <p className="text-xs text-slate-400 mb-2">No tienes direcciones guardadas</p>
-                                            <button onClick={handleAddAddress} className="text-xs font-bold text-emerald-600 hover:underline">
-                                                + Agregar ahora
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
                         </aside>
 
                         {/* MAIN CONTENT */}
@@ -414,14 +254,16 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                 </div>
 
                 {/* Lightbox */}
-                {clientProfile?.foto_perfil && (
-                    <ImageLightbox
-                        src={clientProfile.foto_perfil}
-                        alt="Foto de perfil"
-                        isOpen={isLightboxOpen}
-                        onClose={() => setIsLightboxOpen(false)}
-                    />
-                )}
+                {
+                    clientProfile?.foto_perfil && (
+                        <ImageLightbox
+                            src={clientProfile.foto_perfil}
+                            alt="Foto de perfil"
+                            isOpen={isLightboxOpen}
+                            onClose={() => setIsLightboxOpen(false)}
+                        />
+                    )
+                }
 
                 <ModalAlert
                     isOpen={alertConfig.isOpen}
@@ -430,18 +272,7 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                     message={alertConfig.message}
                     type={alertConfig.type}
                 />
-
-                {/* Address Modal (Global in Layout) */}
-                {userId && (
-                    <AddressFormModal
-                        isOpen={isAddressModalOpen}
-                        onClose={() => setIsAddressModalOpen(false)}
-                        onSaved={handleAddressSaved}
-                        initialData={editingAddress}
-                        userId={userId}
-                    />
-                )}
-            </div>
-        </ClientContext.Provider>
+            </div >
+        </ClientContext.Provider >
     );
 }
