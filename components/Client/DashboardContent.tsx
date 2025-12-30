@@ -361,6 +361,28 @@ export default function DashboardContent() {
         setProfileFormData({ ...profileFormData, [e.target.name]: e.target.value });
     };
 
+    // Helper: Rut Formatter
+    const formatRut = (value: string) => {
+        const cleaned = value.replace(/[^\dKk]/g, '');
+        if (cleaned.length <= 1) return cleaned;
+
+        const body = cleaned.slice(0, -1);
+        const dv = cleaned.slice(-1).toUpperCase();
+
+        return `${body.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`;
+    };
+
+    const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        const formatted = formatRut(val);
+        setProfileFormData({ ...profileFormData, rut: formatted });
+    };
+
+    // Calculate Completion Status
+    const isProfileComplete = Boolean(profileFormData.nombre && profileFormData.apellido_p && profileFormData.rut && profileFormData.telefono && profileFormData.latitud && profileFormData.comuna);
+    const isPetsComplete = myPets.length > 0;
+    const isAddressesComplete = addresses.length > 0;
+
     const handleDeleteTrip = (id: string) => {
         setConfirmConfig({
             isOpen: true,
@@ -587,30 +609,36 @@ export default function DashboardContent() {
             )}
 
             {/* TABS NAVIGATION */}
-            <div className="flex overflow-x-auto gap-4 border-b border-slate-200 mb-6 pb-1">
+            <div className="flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6">
                 <button
                     onClick={() => setActiveTab('datos')}
-                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'datos' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
-                    <User size={18} /> Datos Personales
+                    Datos
+                    {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
+                <div className="w-px bg-slate-100 my-2"></div>
                 <button
                     onClick={() => setActiveTab('solicitudes')}
-                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'solicitudes' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
-                    <Calendar size={18} /> Solicitudes
+                    Solicitudes
                 </button>
+                <div className="w-px bg-slate-100 my-2"></div>
                 <button
                     onClick={() => setActiveTab('mascotas')}
-                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'mascotas' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
-                    <PawPrint size={18} /> Mascotas
+                    Mascotas
+                    {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
+                <div className="w-px bg-slate-100 my-2"></div>
                 <button
                     onClick={() => setActiveTab('direcciones')}
-                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'direcciones' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
-                    <MapPin size={18} /> Direcciones
+                    Direcciones
+                    {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
             </div>
 
@@ -885,8 +913,8 @@ export default function DashboardContent() {
                                         type="text"
                                         name="rut"
                                         value={profileFormData.rut}
-                                        onChange={handleProfileChange}
-                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-slate-50"
+                                        onChange={handleRutChange}
+                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-slate-50 font-mono tracking-wide"
                                         placeholder="12.345.678-9"
                                     />
                                     <p className="text-[10px] text-slate-400 mt-1">El RUT es único por cuenta.</p>
@@ -924,6 +952,7 @@ export default function DashboardContent() {
                                 {profileFormData.latitud && profileFormData.longitud && (
                                     <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 h-48 animate-in fade-in zoom-in-95 duration-200">
                                         <LocationMap
+                                            key={`${profileFormData.latitud}-${profileFormData.longitud}`}
                                             lat={profileFormData.latitud}
                                             lng={profileFormData.longitud}
                                             approximate={false}
