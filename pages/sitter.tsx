@@ -9,7 +9,7 @@ import { formatRut, validateRut, cleanRut } from "../lib/rutValidation";
 import DatePickerSingle from "../components/DatePickerSingle";
 import ModalAlert from "../components/ModalAlert";
 import AddressAutocomplete from "../components/AddressAutocomplete";
-import { Linkedin, Music, Instagram, Facebook, Mail, User, PawPrint, Dog, Cat, Home, MapPin, AlignLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { Linkedin, Music, Instagram, Facebook, Mail, User, PawPrint, Dog, Cat, Home, MapPin, AlignLeft, ChevronDown, ChevronUp, BarChart } from "lucide-react";
 import ImageLightbox from "../components/ImageLightbox"; // Added
 
 type Booking = {
@@ -867,18 +867,19 @@ export default function SitterDashboardPage() {
                         <div className="lg:col-span-8 space-y-6">
 
                             {/* TAB NAVIGATION */}
-                            <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex mb-2">
+                            {/* TABS NAVIGATION */}
+                            <div className="flex overflow-x-auto gap-4 border-b border-slate-200 mb-6 pb-1">
                                 <button
                                     onClick={() => setActiveTab('gestion')}
-                                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'gestion' ? "bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-200" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}
+                                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'gestion' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
                                 >
-                                    📊 Gestión
+                                    <BarChart size={18} /> Gestión
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('perfil')}
-                                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'perfil' ? "bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-200" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}
+                                    className={`pb-3 px-2 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'perfil' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-800'}`}
                                 >
-                                    👤 Mi Perfil
+                                    <User size={18} /> Mi Perfil
                                 </button>
                             </div>
 
