@@ -58,7 +58,7 @@ export default function DashboardContent() {
     const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<'datos' | 'solicitudes' | 'mascotas' | 'direcciones'>('datos');
+    const [activeTab, setActiveTab] = useState<'datos' | 'solicitudes' | 'mascotas' | 'direcciones'>('solicitudes');
 
     // Estado de gestión de mascotas
     const [myPets, setMyPets] = useState<Pet[]>([]);
@@ -611,25 +611,25 @@ export default function DashboardContent() {
             {/* TABS NAVIGATION */}
             <div className="flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6">
                 <button
-                    onClick={() => setActiveTab('datos')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
-                >
-                    Datos
-                    {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
-                </button>
-                <div className="w-px bg-slate-100 my-2"></div>
-                <button
                     onClick={() => setActiveTab('solicitudes')}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
-                    Solicitudes
+                    <Calendar size={18} /> Solicitudes
+                </button>
+                <div className="w-px bg-slate-100 my-2"></div>
+                <button
+                    onClick={() => setActiveTab('datos')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                >
+                    <User size={18} /> Datos
+                    {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
                 <div className="w-px bg-slate-100 my-2"></div>
                 <button
                     onClick={() => setActiveTab('mascotas')}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
-                    Mascotas
+                    <PawPrint size={18} /> Mascotas
                     {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
                 <div className="w-px bg-slate-100 my-2"></div>
@@ -637,7 +637,7 @@ export default function DashboardContent() {
                     onClick={() => setActiveTab('direcciones')}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
-                    Direcciones
+                    <MapPin size={18} /> Direcciones
                     {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
             </div>
@@ -646,6 +646,33 @@ export default function DashboardContent() {
             {/* TAB: SOLICITUDES */}
             {activeTab === 'solicitudes' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+
+                    {/* COMPLETION WARNING BANNER */}
+                    {(!isProfileComplete || !isPetsComplete || !isAddressesComplete) && (
+                        <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 animate-in fade-in zoom-in-95 duration-300">
+                            <h4 className="flex items-center gap-2 text-amber-800 font-bold mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                                Completa tu perfil para solicitar servicios
+                            </h4>
+                            <div className="flex flex-col gap-2">
+                                {!isProfileComplete && (
+                                    <button onClick={() => setActiveTab('datos')} className="text-sm text-amber-700 hover:text-amber-900 hover:underline text-left flex items-center gap-2">
+                                        • Faltan tus Datos Personales <span className="text-[10px] bg-amber-100 px-1 rounded border border-amber-200">Completar ahora →</span>
+                                    </button>
+                                )}
+                                {!isPetsComplete && (
+                                    <button onClick={() => setActiveTab('mascotas')} className="text-sm text-amber-700 hover:text-amber-900 hover:underline text-left flex items-center gap-2">
+                                        • No has registrado Mascotas <span className="text-[10px] bg-amber-100 px-1 rounded border border-amber-200">Agregar mascotas →</span>
+                                    </button>
+                                )}
+                                {!isAddressesComplete && (
+                                    <button onClick={() => setActiveTab('direcciones')} className="text-sm text-amber-700 hover:text-amber-900 hover:underline text-left flex items-center gap-2">
+                                        • Falta tu Dirección <span className="text-[10px] bg-amber-100 px-1 rounded border border-amber-200">Agregar dirección →</span>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             Mis Solicitudes
