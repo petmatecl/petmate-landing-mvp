@@ -9,7 +9,7 @@ import { formatRut, validateRut, cleanRut } from "../lib/rutValidation";
 import DatePickerSingle from "../components/DatePickerSingle";
 import ModalAlert from "../components/ModalAlert";
 import AddressAutocomplete from "../components/AddressAutocomplete";
-import { Linkedin, Music, Instagram, Facebook, Mail, User, PawPrint, Dog, Cat, Home, MapPin, AlignLeft, ChevronDown, ChevronUp, BarChart } from "lucide-react";
+import { Linkedin, Music, Instagram, Facebook, Mail, User, PawPrint, Dog, Cat, Home, MapPin, AlignLeft, ChevronDown, ChevronUp, BarChart, Briefcase } from "lucide-react";
 import ImageLightbox from "../components/ImageLightbox"; // Added
 
 type Booking = {
@@ -80,7 +80,7 @@ export default function SitterDashboardPage() {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [averageRating, setAverageRating] = useState(0);
     const [bookings, setBookings] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<'solicitudes' | 'perfil'>('solicitudes');
+    const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil'>('solicitudes');
 
     // Restore Auth & Load Profile Logic
     useEffect(() => {
@@ -625,11 +625,7 @@ export default function SitterDashboardPage() {
                         <div className="mb-8 bg-indigo-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
                             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                                 <div>
-                                    <h2 className="text-2xl font-bold mb-2">¡Conviértete en Sitter! 🐶</h2>
-                                    <p className="text-indigo-100 max-w-xl">
-                                        Parece que ya tienes cuenta de cliente. Activa tu perfil de Sitter ahora mismo para empezar a ganar dinero cuidando mascotas.
-                                        Usarás la misma cuenta para todo.
-                                    </p>
+                                    <h2 className="text-2xl font-bold mb-2">¡Activa tu Perfil! 🚀</h2>
                                 </div>
                                 <button
                                     onClick={async () => {
@@ -878,6 +874,13 @@ export default function SitterDashboardPage() {
                                 </button>
                                 <div className="w-px bg-slate-100 my-2"></div>
                                 <button
+                                    onClick={() => setActiveTab('servicios')}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'servicios' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <Briefcase size={18} /> Servicios
+                                </button>
+                                <div className="w-px bg-slate-100 my-2"></div>
+                                <button
                                     onClick={() => setActiveTab('perfil')}
                                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'perfil' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
@@ -914,7 +917,7 @@ export default function SitterDashboardPage() {
 
                             {/* BLOQUE NUEVO: Solicitudes Pendientes (Prioridad Alta) */}
                             {/* BLOQUE 0: Preferencias y Servicios (MOVIDO AL TOP) */}
-                            {activeTab === 'perfil' && (
+                            {activeTab === 'servicios' && (
 
                                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
                                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">

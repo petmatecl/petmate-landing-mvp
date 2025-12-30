@@ -689,7 +689,7 @@ export default function DashboardContent() {
 
                     {/* Lista de Viajes */}
                     {!loadingTrips && trips.length > 0 && !showTripForm && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        <div className="grid grid-cols-1 gap-4 mb-8">
                             {trips.map(trip => (
                                 <TripCard
                                     key={trip.id}
