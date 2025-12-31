@@ -688,22 +688,61 @@ export default function DashboardContent() {
                     </div>
 
                     {/* Lista de Viajes */}
-                    {!loadingTrips && trips.length > 0 && !showTripForm && (
-                        <div className="grid grid-cols-1 gap-4 mb-8">
-                            {trips.map(trip => (
-                                <TripCard
-                                    key={trip.id}
-                                    trip={trip}
-                                    onEdit={handleEditTripNew}
-                                    onDelete={handleDeleteTrip}
-                                    onViewApplications={handleViewApplications}
-                                    onRemoveSitter={handleRemoveSitter}
-                                    onSearchSitter={handleSearchSitter}
-                                    petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                    clientName={clientProfile ? `${clientProfile.nombre} ${clientProfile.apellido_p}` : ""}
-                                    serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
-                                />
-                            ))}
+                    {!loadingTrips && !showTripForm && trips.length > 0 && (
+                        <div className="space-y-8 mb-8">
+                            {/* Section 1: Confirmed / Active Trips */}
+                            {trips.filter(t => ['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado)).length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100">
+                                        ✅ Solicitudes Confirmadas
+                                    </h3>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {trips
+                                            .filter(t => ['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado))
+                                            .map(trip => (
+                                                <TripCard
+                                                    key={trip.id}
+                                                    trip={trip}
+                                                    onEdit={handleEditTripNew}
+                                                    onDelete={handleDeleteTrip}
+                                                    onViewApplications={handleViewApplications}
+                                                    onRemoveSitter={handleRemoveSitter}
+                                                    onSearchSitter={handleSearchSitter}
+                                                    petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                    clientName={clientProfile ? `${clientProfile.nombre} ${clientProfile.apellido_p}` : ""}
+                                                    serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
+                                                />
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section 2: Pending / Published / Draft Trips */}
+                            {trips.filter(t => !['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado)).length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3 pl-1 flex items-center gap-2">
+                                        ⏳ Solicitudes Pendientes
+                                    </h3>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {trips
+                                            .filter(t => !['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado))
+                                            .map(trip => (
+                                                <TripCard
+                                                    key={trip.id}
+                                                    trip={trip}
+                                                    onEdit={handleEditTripNew}
+                                                    onDelete={handleDeleteTrip}
+                                                    onViewApplications={handleViewApplications}
+                                                    onRemoveSitter={handleRemoveSitter}
+                                                    onSearchSitter={handleSearchSitter}
+                                                    petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                    clientName={clientProfile ? `${clientProfile.nombre} ${clientProfile.apellido_p}` : ""}
+                                                    serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
+                                                />
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
