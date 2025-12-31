@@ -40,9 +40,11 @@ type Props = {
     onViewApplications?: (trip: Trip) => void;
     onRemoveSitter?: (id: string) => void;
     onSearchSitter?: (trip: Trip) => void;
+    clientName?: string;
+    serviceAddress?: string;
 };
 
-export default function TripCard({ trip, petNames, onEdit, onDelete, onViewApplications, onRemoveSitter, onSearchSitter }: Props) {
+export default function TripCard({ trip, petNames, onEdit, onDelete, onViewApplications, onRemoveSitter, onSearchSitter, clientName, serviceAddress }: Props) {
     // Safe date parsing to avoid UTC/Timezone shifts
     const parseDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split('-').map(Number);
@@ -136,6 +138,20 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                                                 (trip.sitter.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible')}
                                                         </span>
                                                     </p>
+                                                </div>
+                                            )}
+
+                                            {trip.servicio === 'domicilio' && (
+                                                <div className="mt-2 pt-2 border-t border-slate-200">
+                                                    <p className="font-bold text-slate-900 mb-1">Ubicación del Cuidado:</p>
+                                                    <div className="space-y-1">
+                                                        <p className="flex items-center gap-2">
+                                                            👤 <span>{clientName || 'Cliente'}</span>
+                                                        </p>
+                                                        <p className="flex items-start gap-2">
+                                                            📍 <span>{serviceAddress || 'Dirección no disponible'}</span>
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
