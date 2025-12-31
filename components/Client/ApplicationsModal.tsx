@@ -98,8 +98,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                 .from("viajes")
                 .update({
                     sitter_id: app.sitter_id,
-                    estado: 'reservado',
-                    sitter_asignado: true // Optional field based on schema, mostly logic driven
+                    estado: 'reservado'
                 })
                 .eq("id", tripId);
 
@@ -122,9 +121,11 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
             onAccepted();
             onClose();
 
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error accepting application:", err);
-            alert("Hubo un error al aceptar la postulación. Inténtalo de nuevo.");
+            // Show alert in a more user-friendly way if possible, or just standard alert for now
+            // Detailed message:
+            alert(`Hubo un error al aceptar la postulación: ${err.message || err.error_description || "Error desconocido"}`);
             setProcessingId(null);
         }
     };
