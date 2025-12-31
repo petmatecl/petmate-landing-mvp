@@ -167,7 +167,7 @@ export default function SitterDashboardPage() {
             // 1. Fetch Bookings (Direct Requests)
             const { data: bookingData, error: bookingError } = await supabase
                 .from('viajes')
-                .select('*, cliente:cliente_id(*), mascotas:mascotas_id(*)')
+                .select('*, cliente:user_id(*), mascotas:mascotas_id(*)')
                 .eq('sitter_id', userId)
                 .order('fecha_inicio', { ascending: true });
 
@@ -178,7 +178,7 @@ export default function SitterDashboardPage() {
             // 2. Fetch Applications (Oportunidades)
             const { data: appData, error: appError } = await supabase
                 .from('postulaciones')
-                .select('*, viaje:viaje_id(*, cliente:cliente_id(*))')
+                .select('*, viaje:viajes(*, cliente:user_id(*))')
                 .eq('sitter_id', userId)
                 .order('created_at', { ascending: false });
 
