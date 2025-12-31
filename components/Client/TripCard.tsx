@@ -101,65 +101,90 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                 3. Else -> Show "Buscando..." status
                             */}
 
+                            {/* Contact Info Block - Only visible if trip is confirmed */}
                             {trip.sitter_asignado && trip.sitter ? (
-                                <div className="flex flex-col gap-2 w-full">
-                                    <Link href={`/sitter/${trip.sitter.id}?returnTo=/cliente`} className="flex items-center gap-3 bg-emerald-50 rounded-full pl-1 pr-4 py-1 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group w-fit">
-                                        {trip.sitter.foto_perfil ? (
-                                            <img
-                                                src={trip.sitter.foto_perfil}
-                                                alt={trip.sitter.nombre}
-                                                className="w-8 h-8 rounded-full object-cover border border-emerald-200 group-hover:border-emerald-300"
-                                            />
-                                        ) : (
-                                            <div className="w-8 h-8 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 text-xs font-bold">
-                                                {trip.sitter.nombre.charAt(0)}
-                                            </div>
-                                        )}
-                                        <div className="flex flex-col leading-none">
-                                            <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider group-hover:text-emerald-700">Cuidado por</span>
-                                            <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">{trip.sitter.nombre} {trip.sitter.apellido_p?.charAt(0)}.</span>
-                                        </div>
-                                    </Link>
-
-
+                                <div className="w-full">
                                     {/* Contact Info Block - Only visible if trip is confirmed */}
                                     {['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) && (
-                                        <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 space-y-2">
-                                            <div>
-                                                <p className="font-bold text-slate-900 mb-1">Datos de Contacto:</p>
-                                                <div className="space-y-1">
+                                        <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 relative pr-14">
+                                            {/* Sitter Photo Top-Right */}
+                                            <Link href={`/sitter/${trip.sitter?.id}?returnTo=/cliente`} className="absolute top-3 right-3 w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 hover:border-emerald-400 overflow-hidden transition-colors" title="Ver perfil del Sitter">
+                                                {trip.sitter?.foto_perfil ? (
+                                                    <img
+                                                        src={trip.sitter.foto_perfil}
+                                                        alt={trip.sitter.nombre}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-emerald-700 font-bold text-sm">
+                                                        {trip.sitter?.nombre?.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </Link>
+
+                                            <div className="mb-3">
+                                                <p className="font-bold text-slate-900 mb-1.5">Datos de Contacto:</p>
+                                                <div className="space-y-1.5">
+                                                    <p className="flex items-center gap-2">
+                                                        <User size={14} className="text-slate-400" />
+                                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/cliente`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
+                                                            {trip.sitter?.nombre} {trip.sitter?.apellido_p}
+                                                        </Link>
+                                                    </p>
                                                     <p className="flex items-center gap-2">
                                                         <Phone size={14} className="text-slate-400" />
-                                                        <a href={`tel:${trip.sitter.telefono}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.telefono || 'No registrado'}</a>
+                                                        <a href={`tel:${trip.sitter?.telefono}`} className="hover:text-emerald-600 hover:underline">{trip.sitter?.telefono || 'No registrado'}</a>
                                                     </p>
                                                     <p className="flex items-center gap-2">
                                                         <Mail size={14} className="text-slate-400" />
-                                                        <a href={`mailto:${trip.sitter.email}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.email || 'No registrado'}</a>
+                                                        <a href={`mailto:${trip.sitter?.email}`} className="hover:text-emerald-600 hover:underline">{trip.sitter?.email || 'No registrado'}</a>
                                                     </p>
                                                 </div>
                                             </div>
 
                                             {trip.servicio === 'hospedaje' && (
-                                                <div className="pt-2 border-t border-slate-200">
+                                                <div className="pt-2 border-t border-slate-200 mt-2">
                                                     <p className="font-bold text-slate-900 mb-1">Dirección del Sitter:</p>
-                                                    <p className="flex items-start gap-2">
-                                                        <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-                                                        <span>
-                                                            {trip.sitter.direccion_completa ||
-                                                                (trip.sitter.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible')}
-                                                        </span>
-                                                    </p>
+                                                    <div className="flex flex-col gap-1">
+                                                        <p className="flex items-start gap-2">
+                                                            <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
+                                                            <span>
+                                                                {trip.sitter?.direccion_completa ||
+                                                                    (trip.sitter?.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible')}
+                                                            </span>
+                                                        </p>
+                                                        {(trip.sitter?.direccion_completa || trip.sitter?.comuna) && (
+                                                            <a
+                                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trip.sitter?.direccion_completa || `${trip.sitter?.calle || ''} ${trip.sitter?.numero || ''} ${trip.sitter?.comuna || ''}`)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="text-[10px] text-emerald-600 font-bold hover:underline pl-6"
+                                                            >
+                                                                Ver mapa →
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )}
 
                                             {trip.servicio === 'domicilio' && (
-                                                <div className="pt-2 border-t border-slate-200">
-                                                    <p className="font-bold text-slate-900 mb-1">Ubicación del Cuidado:</p>
-                                                    <div className="space-y-1">
+                                                <div className="pt-2 border-t border-slate-200 mt-2">
+                                                    <p className="font-bold text-slate-900 mb-1">Ubicación del Cuidado (Tu Casa):</p>
+                                                    <div className="flex flex-col gap-1">
                                                         <p className="flex items-start gap-2">
                                                             <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
                                                             <span>{serviceAddress || 'Dirección no disponible'}</span>
                                                         </p>
+                                                        {serviceAddress && (
+                                                            <a
+                                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(serviceAddress)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="text-[10px] text-emerald-600 font-bold hover:underline pl-6"
+                                                            >
+                                                                Ver mapa →
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
@@ -226,6 +251,6 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
