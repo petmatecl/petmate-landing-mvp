@@ -189,7 +189,7 @@ export default function SitterDashboardPage() {
             // 2. Fetch Applications (Oportunidades)
             const { data: appData, error: appError } = await supabase
                 .from('postulaciones')
-                .select('*, viaje:viajes(*, cliente:user_id(*))')
+                .select('*, viaje:viajes(*, cliente:user_id(*), mascotas:mascotas_id(*))')
                 .eq('sitter_id', userId)
                 .order('created_at', { ascending: false });
 
@@ -1182,6 +1182,7 @@ export default function SitterDashboardPage() {
                                                 .map(app => ({
                                                     id: app.viaje?.id || app.id,
                                                     cliente: app.viaje?.cliente,
+                                                    mascotas: app.viaje?.mascotas, // Include pets
                                                     fecha_inicio: app.viaje?.fecha_inicio,
                                                     fecha_fin: app.viaje?.fecha_fin,
                                                     estado: 'confirmada', // Map 'aceptada' to 'confirmada' for consistency
@@ -1203,6 +1204,7 @@ export default function SitterDashboardPage() {
                                                             <tr>
                                                                 <th className="px-4 py-3 font-medium">Reserva</th>
                                                                 <th className="px-4 py-3 font-medium">Cliente</th>
+                                                                <th className="px-4 py-3 font-medium">Mascota</th>
                                                                 <th className="px-4 py-3 font-medium">Fechas</th>
                                                                 <th className="px-4 py-3 font-medium">Estado</th>
                                                             </tr>
@@ -1214,8 +1216,20 @@ export default function SitterDashboardPage() {
                                                                         #{book.id.slice(0, 6)}
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
-                                                                        {/* Placeholder */}
-                                                                        Cliente
+                                                                        <div className="flex flex-col">
+                                                                            <span className="font-bold text-slate-900">{book.cliente?.nombre} {book.cliente?.apellido_p}</span>
+                                                                            <span className="text-xs text-slate-400">{book.cliente?.email}</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-slate-600">
+                                                                        {book.mascotas ? (
+                                                                            <div className="flex items-center gap-1">
+                                                                                <span className="text-lg">{book.mascotas.tipo === 'perro' ? '🐶' : book.mascotas.tipo === 'gato' ? '🐱' : '🐾'}</span>
+                                                                                <span className="text-sm">{book.mascotas.nombre}</span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-xs italic text-slate-400">Sin ficha</span>
+                                                                        )}
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
                                                                         {format(new Date(book.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(book.fecha_fin), "d MMM", { locale: es })}
