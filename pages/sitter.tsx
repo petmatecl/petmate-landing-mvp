@@ -1223,9 +1223,10 @@ export default function SitterDashboardPage() {
                                             <span className="flex items-center gap-2"><CalendarCheck size={18} /> Solicitudes Agendadas</span>
                                             <button
                                                 onClick={() => window.print()}
+                                                title="Guarda esta vista como PDF"
                                                 className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 print:hidden"
                                             >
-                                                <Printer size={14} /> Imprimir Reporte
+                                                <Download size={14} /> Descargar Ficha
                                             </button>
                                         </h3>
 
@@ -1284,27 +1285,52 @@ export default function SitterDashboardPage() {
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
-                                                                        <div className="flex flex-col gap-1">
-                                                                            {(book.mascotas_ids || []).map((pid: string) => {
-                                                                                const pet = petsCache[pid];
-                                                                                if (!pet) return null;
-                                                                                return (
-                                                                                    <button
-                                                                                        key={pid}
-                                                                                        onClick={() => { setSelectedPet(pet); setShowPetDialog(true); }}
-                                                                                        className="flex items-center gap-1 text-sm hover:bg-slate-100 px-1.5 py-0.5 rounded -ml-1.5 transition-colors group text-left"
-                                                                                    >
-                                                                                        <span className="text-slate-500 group-hover:text-emerald-600">
-                                                                                            {pet.tipo === 'perro' ? <Dog size={14} /> : pet.tipo === 'gato' ? <Cat size={14} /> : <PawPrint size={14} />}
-                                                                                        </span>
-                                                                                        <span className="font-medium text-slate-700 group-hover:text-slate-900">{pet.nombre}</span>
-                                                                                    </button>
-                                                                                );
-                                                                            })}
-                                                                            {(!book.mascotas_ids || book.mascotas_ids.length === 0) && (
-                                                                                <span className="text-xs italic text-slate-400">Sin ficha</span>
-                                                                            )}
-                                                                        </div>
+                                                                        {(() => {
+                                                                            const petIds = book.mascotas_ids || [];
+                                                                            const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                            const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
+                                                                            const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
+                                                                            const otherCount = pets.length - dogCount - catCount;
+
+                                                                            return (
+                                                                                <div className="group relative">
+                                                                                    <div className="flex flex-wrap gap-2 items-center cursor-help">
+                                                                                        {dogCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full"><Dog size={12} /> {dogCount}</span>}
+                                                                                        {catCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full"><Cat size={12} /> {catCount}</span>}
+                                                                                        {otherCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full"><PawPrint size={12} /> {otherCount}</span>}
+                                                                                        {pets.length === 0 && <span className="text-xs italic text-slate-400">Sin ficha</span>}
+                                                                                    </div>
+
+                                                                                    {/* Tooltip with Names */}
+                                                                                    {pets.length > 0 && (
+                                                                                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 z-10">
+                                                                                            <div className="bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl">
+                                                                                                <p className="font-bold mb-1 border-b border-slate-600 pb-1">Mascotas ({pets.length}):</p>
+                                                                                                <ul className="space-y-1">
+                                                                                                    {pets.map((p: any) => (
+                                                                                                        <li key={p.id} className="flex items-center justify-between">
+                                                                                                            <span className="truncate max-w-[80px]">{p.nombre}</span>
+                                                                                                            <button
+                                                                                                                onClick={(e) => {
+                                                                                                                    e.stopPropagation();
+                                                                                                                    setSelectedPet(p);
+                                                                                                                    setShowPetDialog(true);
+                                                                                                                }}
+                                                                                                                className="text-[10px] text-emerald-300 hover:text-emerald-100 underline ml-2 whitespace-nowrap"
+                                                                                                            >
+                                                                                                                Ver ficha
+                                                                                                            </button>
+                                                                                                        </li>
+                                                                                                    ))}
+                                                                                                </ul>
+                                                                                                {/* Arrow */}
+                                                                                                <div className="w-2 h-2 bg-slate-800 rotate-45 absolute left-4 -bottom-1"></div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })()}
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
                                                                         <div className="flex flex-col">
@@ -1320,12 +1346,33 @@ export default function SitterDashboardPage() {
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-4 py-3">
-                                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${book.estado === 'confirmada' ? 'bg-emerald-100 text-emerald-800' :
-                                                                            book.estado === 'pendiente' ? 'bg-orange-100 text-orange-800' :
-                                                                                'bg-gray-100 text-gray-800'
-                                                                            }`}>
-                                                                            {book.estado}
-                                                                        </span>
+                                                                        {(() => {
+                                                                            const getStatusConfig = (status: string) => {
+                                                                                switch (status) {
+                                                                                    case 'publicado': return { label: 'Solicitado', color: 'bg-amber-100 text-amber-800', tooltip: 'El cliente ha solicitado este servicio. Pendiente de tu confirmación final o pago.' };
+                                                                                    case 'reservado': return { label: 'Reservado', color: 'bg-indigo-100 text-indigo-800', tooltip: 'Tu postulación fue elegida. Esperando detalles finales.' };
+                                                                                    case 'confirmada': return { label: 'Confirmado', color: 'bg-emerald-100 text-emerald-800', tooltip: '¡Todo listo! El servicio está pagado y agendado.' };
+                                                                                    case 'pendiente': return { label: 'Pendiente', color: 'bg-orange-100 text-orange-800', tooltip: 'Tu postulación está en espera de respuesta del cliente.' };
+                                                                                    default: return { label: status, color: 'bg-gray-100 text-gray-800', tooltip: 'Estado del servicio' };
+                                                                                }
+                                                                            };
+                                                                            const config = getStatusConfig(book.estado);
+                                                                            return (
+                                                                                <div className="group relative w-fit">
+                                                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium cursor-help ${config.color}`}>
+                                                                                        {config.label} <ShieldCheck size={10} />
+                                                                                    </span>
+                                                                                    {/* Tooltip */}
+                                                                                    <div className="absolute right-0 top-full mt-1 hidden group-hover:block w-48 z-20">
+                                                                                        <div className="bg-slate-800 text-white text-[10px] rounded p-2 shadow-lg leading-tight w-40">
+                                                                                            {config.tooltip}
+                                                                                            {/* Arrow */}
+                                                                                            <div className="w-2 h-2 bg-slate-800 rotate-45 absolute right-4 -top-1"></div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })()}
                                                                     </td>
                                                                 </tr>
                                                             ))}
