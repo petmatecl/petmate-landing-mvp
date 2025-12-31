@@ -123,11 +123,11 @@ export default function Header() {
         {/* Brand con logo nuevo (solo imagen, sin texto duplicado) */}
         <Link href="/" className="group flex items-center">
           <Image
-            src="/logo-pawnecta.svg"
+            src="/pawnecta_logo_final-trans.png"
             alt="Pawnecta"
             width={160}
-            height={40}
-            className="h-9 sm:h-10 w-auto"
+            height={45}
+            className="h-10 sm:h-12 w-auto"
           />
         </Link>
 

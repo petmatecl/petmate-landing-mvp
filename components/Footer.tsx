@@ -11,10 +11,10 @@ export function Footer() {
           <div className="flex items-center gap-3">
             <Link href="/" className="relative h-8 w-auto block">
               <Image
-                src="/logo-pawnecta.svg"
+                src="/pawnecta_logo_final-trans.png"
                 alt="Pawnecta"
-                width={180}
-                height={45}
+                width={150}
+                height={50}
                 className="h-12 w-auto"
               />
             </Link>
