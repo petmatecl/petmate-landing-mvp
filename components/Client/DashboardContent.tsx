@@ -846,9 +846,17 @@ export default function DashboardContent() {
                                         {/* Dirección (Solo Domicilio) */}
                                         {servicio === 'domicilio' && (
                                             <div className="md:col-span-12">
-                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
-                                                    Dirección del Servicio
-                                                </label>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                                        Dirección del Servicio
+                                                    </label>
+                                                    <button
+                                                        onClick={handleAddAddress}
+                                                        className="text-xs text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 hover:underline"
+                                                    >
+                                                        <Plus size={14} /> Nueva Dirección
+                                                    </button>
+                                                </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                     {addresses.map(addr => (
                                                         <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-emerald-300 bg-white'}`}>
@@ -871,13 +879,6 @@ export default function DashboardContent() {
                                                             </div>
                                                         </label>
                                                     ))}
-
-                                                    <button
-                                                        onClick={handleAddAddress}
-                                                        className="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-slate-300 text-slate-500 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition-all font-medium text-sm h-full min-h-[80px]"
-                                                    >
-                                                        <Plus size={18} /> Nueva Dirección
-                                                    </button>
                                                 </div>
                                                 {addresses.length === 0 && (
                                                     <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
