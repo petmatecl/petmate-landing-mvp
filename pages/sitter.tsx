@@ -15,7 +15,7 @@ import {
     ChevronDown, ChevronUp, Dog, Cat, Play, Linkedin, Facebook,
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
     Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
-    PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler
+    PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler, Check
 } from 'lucide-react';
 import ApplicationDialog from "../components/Sitter/ApplicationDialog";
 import ClientDetailsDialog from "../components/Sitter/ClientDetailsDialog";
@@ -291,7 +291,7 @@ export default function SitterDashboardPage() {
     // Details Dialogs State
     const [selectedClient, setSelectedClient] = useState<any>(null);
     const [showClientDialog, setShowClientDialog] = useState(false);
-    const [selectedPet, setSelectedPet] = useState<any>(null);
+    const [selectedPets, setSelectedPets] = useState<any[]>([]);
     const [showPetDialog, setShowPetDialog] = useState(false);
 
     // Application Dialog State
@@ -1293,42 +1293,15 @@ export default function SitterDashboardPage() {
                                                                             const otherCount = pets.length - dogCount - catCount;
 
                                                                             return (
-                                                                                <div className="group relative">
-                                                                                    <div className="flex flex-wrap gap-2 items-center cursor-help">
-                                                                                        {dogCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full"><Dog size={12} /> {dogCount}</span>}
-                                                                                        {catCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full"><Cat size={12} /> {catCount}</span>}
-                                                                                        {otherCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full"><PawPrint size={12} /> {otherCount}</span>}
-                                                                                        {pets.length === 0 && <span className="text-xs italic text-slate-400">Sin ficha</span>}
-                                                                                    </div>
-
-                                                                                    {/* Tooltip with Names */}
-                                                                                    {pets.length > 0 && (
-                                                                                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 z-10">
-                                                                                            <div className="bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl">
-                                                                                                <p className="font-bold mb-1 border-b border-slate-600 pb-1">Mascotas ({pets.length}):</p>
-                                                                                                <ul className="space-y-1">
-                                                                                                    {pets.map((p: any) => (
-                                                                                                        <li key={p.id} className="flex items-center justify-between">
-                                                                                                            <span className="truncate max-w-[80px]">{p.nombre}</span>
-                                                                                                            <button
-                                                                                                                onClick={(e) => {
-                                                                                                                    e.stopPropagation();
-                                                                                                                    setSelectedPet(p);
-                                                                                                                    setShowPetDialog(true);
-                                                                                                                }}
-                                                                                                                className="text-[10px] text-emerald-300 hover:text-emerald-100 underline ml-2 whitespace-nowrap"
-                                                                                                            >
-                                                                                                                Ver ficha
-                                                                                                            </button>
-                                                                                                        </li>
-                                                                                                    ))}
-                                                                                                </ul>
-                                                                                                {/* Arrow */}
-                                                                                                <div className="w-2 h-2 bg-slate-800 rotate-45 absolute left-4 -bottom-1"></div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
+                                                                                <button
+                                                                                    onClick={() => { setSelectedPets(pets); setShowPetDialog(true); }}
+                                                                                    className="group flex flex-wrap gap-2 items-center hover:scale-105 transition-transform p-1 rounded-lg border border-transparent hover:border-slate-200 hover:bg-white hover:shadow-sm"
+                                                                                    title="Ver ficha de mascotas"
+                                                                                >
+                                                                                    {dogCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full border border-amber-100"><Dog size={12} /> {dogCount}</span>}
+                                                                                    {catCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full border border-sky-100"><Cat size={12} /> {catCount}</span>}
+                                                                                    {otherCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full border border-gray-200"><PawPrint size={12} /> {otherCount}</span>}
+                                                                                </button>
                                                                             );
                                                                         })()}
                                                                     </td>
@@ -1358,18 +1331,47 @@ export default function SitterDashboardPage() {
                                                                             };
                                                                             const config = getStatusConfig(book.estado);
                                                                             return (
-                                                                                <div className="group relative w-fit">
-                                                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium cursor-help ${config.color}`}>
-                                                                                        {config.label} <ShieldCheck size={10} />
-                                                                                    </span>
-                                                                                    {/* Tooltip */}
-                                                                                    <div className="absolute right-0 top-full mt-1 hidden group-hover:block w-48 z-20">
-                                                                                        <div className="bg-slate-800 text-white text-[10px] rounded p-2 shadow-lg leading-tight w-40">
-                                                                                            {config.tooltip}
-                                                                                            {/* Arrow */}
-                                                                                            <div className="w-2 h-2 bg-slate-800 rotate-45 absolute right-4 -top-1"></div>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className="group relative w-fit">
+                                                                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium cursor-help ${config.color}`}>
+                                                                                            {config.label} <ShieldCheck size={10} />
+                                                                                        </span>
+                                                                                        {/* Tooltip */}
+                                                                                        <div className="absolute right-0 top-full mt-1 hidden group-hover:block w-48 z-20">
+                                                                                            <div className="bg-slate-800 text-white text-[10px] rounded p-2 shadow-lg leading-tight w-40">
+                                                                                                {config.tooltip}
+                                                                                                <div className="w-2 h-2 bg-slate-800 rotate-45 absolute right-4 -top-1"></div>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
+
+                                                                                    {/* ACTION BUTTON for 'publicado' (Solicitado) */}
+                                                                                    {book.estado === 'publicado' && (
+                                                                                        <button
+                                                                                            onClick={async () => {
+                                                                                                if (!confirm('¿Aceptar esta solicitud de reserva? El cliente será notificado.')) return;
+
+                                                                                                try {
+                                                                                                    const { error } = await supabase
+                                                                                                        .from('viajes')
+                                                                                                        .update({ estado: 'reservado' }) // Update to 'reservado' first
+                                                                                                        .eq('id', book.id);
+
+                                                                                                    if (error) throw error;
+
+                                                                                                    // Ideally we should reload bookings here
+                                                                                                    window.location.reload();
+                                                                                                } catch (err) {
+                                                                                                    console.error("Error accepting booking:", err);
+                                                                                                    alert("Error al aceptar la reserva");
+                                                                                                }
+                                                                                            }}
+                                                                                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2 py-0.5 rounded shadow-sm transition-colors flex items-center gap-1"
+                                                                                            title="Aceptar Reserva"
+                                                                                        >
+                                                                                            <Check size={12} /> Aceptar
+                                                                                        </button>
+                                                                                    )}
                                                                                 </div>
                                                                             );
                                                                         })()}
@@ -2063,7 +2065,7 @@ export default function SitterDashboardPage() {
             <PetDetailsDialog
                 isOpen={showPetDialog}
                 onClose={() => setShowPetDialog(false)}
-                pet={selectedPet}
+                pets={selectedPets}
             />
 
             <style jsx global>{`
