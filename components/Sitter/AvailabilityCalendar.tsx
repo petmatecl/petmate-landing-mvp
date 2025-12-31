@@ -3,7 +3,7 @@ import { DayPicker } from "react-day-picker";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { supabase } from "../../lib/supabaseClient";
-import { Save, CheckCircle2, Loader2, Calendar as CalendarIcon } from "lucide-react";
+import { Save, CheckCircle2, Loader2, Calendar as CalendarIcon, ShieldAlert } from "lucide-react";
 
 import "react-day-picker/dist/style.css";
 
@@ -18,6 +18,7 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     // Fetch availability on mount or month change
     useEffect(() => {
@@ -56,6 +57,7 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
     const handleSave = async () => {
         setSaving(true);
         setSuccessMsg(null);
+        setErrorMsg(null);
 
         // Strategy: 
         // 1. Calculate which dates are currently selected in the VISIBLE month.
@@ -79,7 +81,10 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
                 .gte("available_date", startStr)
                 .lte("available_date", endStr);
 
-            if (delError) throw delError;
+            if (delError) {
+                console.error("Delete Error:", delError);
+                throw new Error("Error al limpiar fechas anteriores.");
+            }
 
             // 2. Prepare inserts for selected days THAT FALL WITHIN this month
             // Filter selectedDays to only those in the current month
@@ -95,16 +100,19 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
                     .from("sitter_availability")
                     .insert(daysToInsert);
 
-                if (insError) throw insError;
+                if (insError) {
+                    console.error("Insert Error:", insError);
+                    throw new Error("Error al guardar nuevas fechas.");
+                }
             }
 
             setSuccessMsg("Calendario actualizado");
             setTimeout(() => setSuccessMsg(null), 3000);
             setInitialDays(selectedDays); // Update "initial" to current state
 
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error saving availability:", err);
-            // Optionally show error toast here
+            setErrorMsg(err.message || "Error desconocido al guardar.");
         } finally {
             setSaving(false);
         }
@@ -173,6 +181,11 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
                     {successMsg && (
                         <p className="text-xs text-emerald-600 font-bold mt-1 animate-in fade-in flex items-center justify-end gap-1">
                             <CheckCircle2 size={14} /> {successMsg}
+                        </p>
+                    )}
+                    {errorMsg && (
+                        <p className="text-xs text-red-500 font-bold mt-1 animate-in fade-in flex items-center justify-end gap-1">
+                            <ShieldAlert size={14} /> {errorMsg}
                         </p>
                     )}
                 </div>
