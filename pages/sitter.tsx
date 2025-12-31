@@ -189,7 +189,7 @@ export default function SitterDashboardPage() {
             // 2. Fetch Applications (Oportunidades)
             const { data: appData, error: appError } = await supabase
                 .from('postulaciones')
-                .select('*, viaje:viajes(*, cliente:user_id(*), mascotas:mascotas_id(*))')
+                .select('*, viaje:viajes(*, cliente:user_id(*))')
                 .eq('sitter_id', userId)
                 .order('created_at', { ascending: false });
 
