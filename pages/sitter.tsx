@@ -14,7 +14,7 @@ import {
     User, Mail, Phone, Home, FileText, Upload, Plus, Trash2,
     ChevronDown, ChevronUp, Dog, Cat, Play, Linkedin, Facebook,
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
-    Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase, PawPrint, AlignLeft
+    Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase, PawPrint, AlignLeft, Inbox, Send, CalendarCheck
 } from 'lucide-react';
 import ImageLightbox from "../components/ImageLightbox";
 import AvailabilityCalendar from "../components/Sitter/AvailabilityCalendar";
@@ -672,7 +672,7 @@ export default function SitterDashboardPage() {
                                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                                 </div>
-                                
+
                                 <div className="px-6 pb-6 text-center -mt-16 relative">
                                     <div className="relative w-32 h-32 mx-auto mb-4">
                                         <div
@@ -734,7 +734,7 @@ export default function SitterDashboardPage() {
                                             )}
                                         </div>
                                     </div>
-                                    
+
                                     <p className="mt-3 text-xs text-slate-400 max-w-[200px] mx-auto leading-relaxed">
                                         {profileData.aprobado
                                             ? "Perfil activo y visible para clientes."
@@ -747,7 +747,7 @@ export default function SitterDashboardPage() {
 
                                 {/* Stats & Documents Section */}
                                 <div className="bg-slate-50/50 border-t border-slate-100 p-6 space-y-6">
-                                    
+
                                     {/* Reviews Stats */}
                                     <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
                                         <div className="flex items-center gap-3">
@@ -779,18 +779,18 @@ export default function SitterDashboardPage() {
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-bold text-slate-700 truncate">Antecedentes.pdf</p>
                                                     <div className="flex gap-3 mt-1.5">
-                                                        <button 
+                                                        <button
                                                             onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
                                                             className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
                                                         >
                                                             <Eye size={10} /> Ver
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             onClick={handleDeleteDocument}
                                                             disabled={uploading}
                                                             className="text-[10px] font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
                                                         >
-                                                           {uploading ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />} Eliminar
+                                                            {uploading ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />} Eliminar
                                                         </button>
                                                     </div>
                                                 </div>
@@ -821,14 +821,14 @@ export default function SitterDashboardPage() {
                                     {/* Galería */}
                                     <div>
                                         <div className="flex items-center justify-between mb-3">
-                                             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
                                                 <ImagePlus size={14} className="text-slate-400" /> Galería
                                             </h4>
                                             <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
                                                 {profileData.galeria.length}/6
                                             </span>
                                         </div>
-                                       
+
                                         <div className="grid grid-cols-3 gap-2">
                                             {(profileData.galeria as string[]).map((photo, index) => (
                                                 <div
@@ -857,7 +857,7 @@ export default function SitterDashboardPage() {
                                                     </div>
                                                 </div>
                                             ))}
-                                            
+
                                             {/* Add Button */}
                                             {profileData.galeria.length < 6 && (
                                                 <label className="aspect-square rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/30 text-slate-400 hover:text-emerald-600 transition-all">
@@ -878,7 +878,7 @@ export default function SitterDashboardPage() {
 
                                     <div className="pt-2 sm:hidden text-center">
                                         <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="text-xs font-bold text-emerald-600 hover:underline">
-                                           Ver perfil público ↗
+                                            Ver perfil público ↗
                                         </Link>
                                     </div>
 
