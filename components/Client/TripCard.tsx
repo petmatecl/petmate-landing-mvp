@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search, User, Phone, MapPin, Mail } from "lucide-react";
 
 export type Trip = {
     id: string;
@@ -124,16 +124,31 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
 
                                     {/* Contact Info Block - Only visible if trip is confirmed */}
                                     {['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) && (
-                                        <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 space-y-1">
-                                            <p className="font-bold text-slate-900 mb-1">Datos de Contacto:</p>
-                                            <p className="flex items-center gap-2">📞 <a href={`tel:${trip.sitter.telefono}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.telefono || 'No registrado'}</a></p>
-                                            <p className="flex items-center gap-2">✉️ <a href={`mailto:${trip.sitter.email}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.email || 'No registrado'}</a></p>
+                                        <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 space-y-2">
+                                            <div>
+                                                <p className="font-bold text-slate-900 mb-1">Datos de Contacto:</p>
+                                                <div className="space-y-1">
+                                                    <p className="flex items-center gap-2">
+                                                        <User size={14} className="text-slate-400" />
+                                                        <span className="font-semibold text-slate-900">{trip.sitter.nombre} {trip.sitter.apellido_p}</span>
+                                                    </p>
+                                                    <p className="flex items-center gap-2">
+                                                        <Phone size={14} className="text-slate-400" />
+                                                        <a href={`tel:${trip.sitter.telefono}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.telefono || 'No registrado'}</a>
+                                                    </p>
+                                                    <p className="flex items-center gap-2">
+                                                        <Mail size={14} className="text-slate-400" />
+                                                        <a href={`mailto:${trip.sitter.email}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.email || 'No registrado'}</a>
+                                                    </p>
+                                                </div>
+                                            </div>
 
                                             {trip.servicio === 'hospedaje' && (
-                                                <div className="mt-2 pt-2 border-t border-slate-200">
+                                                <div className="pt-2 border-t border-slate-200">
                                                     <p className="font-bold text-slate-900 mb-1">Dirección del Sitter:</p>
                                                     <p className="flex items-start gap-2">
-                                                        📍 <span>
+                                                        <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
+                                                        <span>
                                                             {trip.sitter.direccion_completa ||
                                                                 (trip.sitter.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible')}
                                                         </span>
@@ -142,14 +157,16 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                             )}
 
                                             {trip.servicio === 'domicilio' && (
-                                                <div className="mt-2 pt-2 border-t border-slate-200">
+                                                <div className="pt-2 border-t border-slate-200">
                                                     <p className="font-bold text-slate-900 mb-1">Ubicación del Cuidado:</p>
                                                     <div className="space-y-1">
                                                         <p className="flex items-center gap-2">
-                                                            👤 <span>{clientName || 'Cliente'}</span>
+                                                            <User size={14} className="text-slate-400" />
+                                                            <span>{clientName || 'Cliente'}</span>
                                                         </p>
                                                         <p className="flex items-start gap-2">
-                                                            📍 <span>{serviceAddress || 'Dirección no disponible'}</span>
+                                                            <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
+                                                            <span>{serviceAddress || 'Dirección no disponible'}</span>
                                                         </p>
                                                     </div>
                                                 </div>
