@@ -178,7 +178,7 @@ export default function SitterDashboardPage() {
             // 1. Fetch Bookings (Direct Requests)
             const { data: bookingData, error: bookingError } = await supabase
                 .from('viajes')
-                .select('*, cliente:user_id(*), mascotas:mascotas_id(*)')
+                .select('*, cliente:user_id(*)') // Removed broken relation, relying on mascotas_ids
                 .eq('sitter_id', userId)
                 .order('fecha_inicio', { ascending: true });
 
@@ -195,6 +195,23 @@ export default function SitterDashboardPage() {
 
             if (!appError && appData) {
                 setApplications(appData);
+            }
+
+            // 3. Fetch Pets (Bulk)
+            const allTrips = [...(bookingData || []), ...(appData?.map(a => a.viaje).filter(Boolean) || [])];
+            const allPetIds = Array.from(new Set(allTrips.flatMap(t => t.mascotas_ids || [])));
+
+            if (allPetIds.length > 0) {
+                const { data: petsData } = await supabase
+                    .from('mascotas')
+                    .select('*')
+                    .in('id', allPetIds);
+
+                if (petsData) {
+                    const cache: Record<string, any> = {};
+                    petsData.forEach(p => { cache[p.id] = p; });
+                    setPetsCache(cache);
+                }
             }
         };
         fetchBookings();
@@ -265,6 +282,7 @@ export default function SitterDashboardPage() {
 
     // Privacy Notice State
     const [showSecurityNotice, setShowSecurityNotice] = useState(true);
+    const [petsCache, setPetsCache] = useState<Record<string, any>>({});
 
     const [backupProfileData, setBackupProfileData] = useState<any>(null);
 
@@ -1146,10 +1164,21 @@ export default function SitterDashboardPage() {
                                                                     {app.estado}
                                                                 </span>
                                                             </div>
-                                                            <p className="text-xs text-slate-500 mb-1 flex items-center gap-2">
-                                                                <span className="flex items-center gap-1"><MapPin size={12} /> {app.viaje?.comuna || "Santiago"}</span>
-                                                                <span className="flex items-center gap-1"><Calendar size={12} /> {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}</span>
-                                                            </p>
+                                                            <div className="text-xs text-slate-500 mb-2 flex flex-wrap gap-2">
+                                                                <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><MapPin size={12} /> {app.viaje?.comuna || "Santiago"}</span>
+                                                                <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><Calendar size={12} /> {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}</span>
+                                                                {/* Pets Display */}
+                                                                {(app.viaje?.mascotas_ids || []).map((pid: string) => {
+                                                                    const pet = petsCache[pid];
+                                                                    if (!pet) return null;
+                                                                    return (
+                                                                        <span key={pid} className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100" title={pet.nombre}>
+                                                                            {pet.tipo === 'perro' ? <Dog size={12} /> : pet.tipo === 'gato' ? <Cat size={12} /> : <PawPrint size={12} />}
+                                                                            {pet.nombre}
+                                                                        </span>
+                                                                    );
+                                                                })}
+                                                            </div>
                                                             {app.mensaje && (
                                                                 <p className="text-xs text-slate-600 italic">"{app.mensaje}"</p>
                                                             )}
@@ -1183,7 +1212,7 @@ export default function SitterDashboardPage() {
                                                 .map(app => ({
                                                     id: app.viaje?.id || app.id,
                                                     cliente: app.viaje?.cliente,
-                                                    mascotas: app.viaje?.mascotas, // Include pets
+                                                    mascotas_ids: app.viaje?.mascotas_ids, // Usar IDs para buscar en cache
                                                     fecha_inicio: app.viaje?.fecha_inicio,
                                                     fecha_fin: app.viaje?.fecha_fin,
                                                     estado: 'confirmada', // Map 'aceptada' to 'confirmada' for consistency
@@ -1219,18 +1248,27 @@ export default function SitterDashboardPage() {
                                                                     <td className="px-4 py-3 text-slate-600">
                                                                         <div className="flex flex-col">
                                                                             <span className="font-bold text-slate-900">{book.cliente?.nombre} {book.cliente?.apellido_p}</span>
-                                                                            <span className="text-xs text-slate-400">{book.cliente?.email}</span>
+                                                                            <a href={`mailto:${book.cliente?.email}`} className="text-xs text-emerald-600 hover:underline flex items-center gap-1">
+                                                                                <Mail size={10} /> {book.cliente?.email}
+                                                                            </a>
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
-                                                                        {book.mascotas ? (
-                                                                            <div className="flex items-center gap-1">
-                                                                                <span className="text-lg">{book.mascotas.tipo === 'perro' ? '🐶' : book.mascotas.tipo === 'gato' ? '🐱' : '🐾'}</span>
-                                                                                <span className="text-sm">{book.mascotas.nombre}</span>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <span className="text-xs italic text-slate-400">Sin ficha</span>
-                                                                        )}
+                                                                        <div className="flex flex-col gap-1">
+                                                                            {(book.mascotas_ids || []).map((pid: string) => {
+                                                                                const pet = petsCache[pid];
+                                                                                if (!pet) return null;
+                                                                                return (
+                                                                                    <div key={pid} className="flex items-center gap-1 text-sm">
+                                                                                        <span>{pet.tipo === 'perro' ? '🐶' : pet.tipo === 'gato' ? '🐱' : '🐾'}</span>
+                                                                                        <span>{pet.nombre}</span>
+                                                                                    </div>
+                                                                                );
+                                                                            })}
+                                                                            {(!book.mascotas_ids || book.mascotas_ids.length === 0) && (
+                                                                                <span className="text-xs italic text-slate-400">Sin ficha</span>
+                                                                            )}
+                                                                        </div>
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
                                                                         {format(new Date(book.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(book.fecha_fin), "d MMM", { locale: es })}
