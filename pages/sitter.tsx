@@ -15,7 +15,7 @@ import {
     ChevronDown, ChevronUp, Dog, Cat, Play, Linkedin, Facebook,
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
     Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
-    PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler, Check
+    PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler
 } from 'lucide-react';
 import ApplicationDialog from "../components/Sitter/ApplicationDialog";
 import ClientDetailsDialog from "../components/Sitter/ClientDetailsDialog";
