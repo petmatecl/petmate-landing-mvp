@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { X, CheckCircle2, User, Star, MessageCircle } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
@@ -241,7 +242,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                     )}
                 </div>
             </div>
-            </div>
+
 
             <ConfirmationModal
                 isOpen={confirmModal.isOpen}
