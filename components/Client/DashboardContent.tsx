@@ -584,29 +584,7 @@ export default function DashboardContent() {
 
 
             {/* Mensaje de Seguridad / Privacidad */}
-            {isClientIncomplete && showSecurityNotice && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
-                    <button
-                        onClick={() => setShowSecurityNotice(false)}
-                        className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                    <div className="flex items-start gap-3">
-                        <div className="text-blue-500 mt-0.5">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-bold text-blue-800">Información Protegida</h4>
-                            <p className="text-xs text-blue-700 mt-1 pr-6">
-                                La información solicitada es para verificar tu identidad y contactarte en caso de emergencia. Estos datos son privados y no se comparten públicamente.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* TABS NAVIGATION */}
             <div className="flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6">
@@ -648,31 +626,7 @@ export default function DashboardContent() {
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
 
                     {/* COMPLETION WARNING BANNER */}
-                    {(!isProfileComplete || !isPetsComplete || !isAddressesComplete) && (
-                        <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 animate-in fade-in zoom-in-95 duration-300">
-                            <h4 className="flex items-center gap-2 text-amber-800 font-bold mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                                Completa tu perfil para solicitar servicios
-                            </h4>
-                            <div className="flex flex-col gap-2">
-                                {!isProfileComplete && (
-                                    <button onClick={() => setActiveTab('datos')} className="text-sm text-amber-700 hover:text-amber-900 hover:underline text-left flex items-center gap-2">
-                                        • Faltan tus Datos Personales <span className="text-[10px] bg-amber-100 px-1 rounded border border-amber-200">Completar ahora →</span>
-                                    </button>
-                                )}
-                                {!isPetsComplete && (
-                                    <button onClick={() => setActiveTab('mascotas')} className="text-sm text-amber-700 hover:text-amber-900 hover:underline text-left flex items-center gap-2">
-                                        • No has registrado Mascotas <span className="text-[10px] bg-amber-100 px-1 rounded border border-amber-200">Agregar mascotas →</span>
-                                    </button>
-                                )}
-                                {!isAddressesComplete && (
-                                    <button onClick={() => setActiveTab('direcciones')} className="text-sm text-amber-700 hover:text-amber-900 hover:underline text-left flex items-center gap-2">
-                                        • Falta tu Dirección <span className="text-[10px] bg-amber-100 px-1 rounded border border-amber-200">Agregar dirección →</span>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
+
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             Mis Solicitudes
