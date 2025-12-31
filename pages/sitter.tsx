@@ -1146,8 +1146,9 @@ export default function SitterDashboardPage() {
                                                                     {app.estado}
                                                                 </span>
                                                             </div>
-                                                            <p className="text-xs text-slate-500 mb-1">
-                                                                📍 {app.viaje?.comuna || "Santiago"} • 📅 {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}
+                                                            <p className="text-xs text-slate-500 mb-1 flex items-center gap-2">
+                                                                <span className="flex items-center gap-1"><MapPin size={12} /> {app.viaje?.comuna || "Santiago"}</span>
+                                                                <span className="flex items-center gap-1"><Calendar size={12} /> {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}</span>
                                                             </p>
                                                             {app.mensaje && (
                                                                 <p className="text-xs text-slate-600 italic">"{app.mensaje}"</p>
