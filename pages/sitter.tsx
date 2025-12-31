@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { format, differenceInYears, subYears, isAfter } from "date-fns";
+import { format, differenceInYears, subYears, isAfter, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatRut, validateRut, cleanRut } from "../lib/rutValidation";
 import DatePickerSingle from "../components/DatePickerSingle";
@@ -14,8 +14,12 @@ import {
     User, Mail, Phone, Home, FileText, Upload, Plus, Trash2,
     ChevronDown, ChevronUp, Dog, Cat, Play, Linkedin, Facebook,
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
-    Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase, PawPrint, AlignLeft, Inbox, Send, CalendarCheck
+    Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
+    PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler
 } from 'lucide-react';
+import ApplicationDialog from "../components/Sitter/ApplicationDialog";
+import ClientDetailsDialog from "../components/Sitter/ClientDetailsDialog";
+import PetDetailsDialog from "../components/Sitter/PetDetailsDialog";
 import ImageLightbox from "../components/ImageLightbox";
 import AvailabilityCalendar from "../components/Sitter/AvailabilityCalendar";
 
@@ -283,6 +287,20 @@ export default function SitterDashboardPage() {
     // Privacy Notice State
     const [showSecurityNotice, setShowSecurityNotice] = useState(true);
     const [petsCache, setPetsCache] = useState<Record<string, any>>({});
+
+    // Details Dialogs State
+    const [selectedClient, setSelectedClient] = useState<any>(null);
+    const [showClientDialog, setShowClientDialog] = useState(false);
+    const [selectedPet, setSelectedPet] = useState<any>(null);
+    const [showPetDialog, setShowPetDialog] = useState(false);
+
+    // Application Dialog State
+    const [selectedTrip, setSelectedTrip] = useState<any>(null);
+    const handleApplicationSuccess = () => {
+        // Refresh triggers or toast
+        setShowToast(true);
+        // data refresh is handled by useEffect deps or manual recall if separated
+    };
 
     const [backupProfileData, setBackupProfileData] = useState<any>(null);
 
@@ -1201,8 +1219,14 @@ export default function SitterDashboardPage() {
 
                                     {/* BLOQUE 1: Próximas Reservas (Confirmadas) */}
                                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                                        <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                            <CalendarCheck size={18} /> Solicitudes Agendadas
+                                        <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center justify-between">
+                                            <span className="flex items-center gap-2"><CalendarCheck size={18} /> Solicitudes Agendadas</span>
+                                            <button
+                                                onClick={() => window.print()}
+                                                className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 print:hidden"
+                                            >
+                                                <Printer size={14} /> Imprimir Reporte
+                                            </button>
                                         </h3>
 
                                         {(() => {
@@ -1247,7 +1271,13 @@ export default function SitterDashboardPage() {
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
                                                                         <div className="flex flex-col">
-                                                                            <span className="font-bold text-slate-900">{book.cliente?.nombre} {book.cliente?.apellido_p}</span>
+                                                                            <button
+                                                                                onClick={() => { setSelectedClient(book.cliente); setShowClientDialog(true); }}
+                                                                                className="font-bold text-slate-900 hover:text-emerald-600 text-left transition-colors flex items-center gap-1 group"
+                                                                            >
+                                                                                {book.cliente?.nombre} {book.cliente?.apellido_p}
+                                                                                <Eye size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500" />
+                                                                            </button>
                                                                             <a href={`mailto:${book.cliente?.email}`} className="text-xs text-emerald-600 hover:underline flex items-center gap-1">
                                                                                 <Mail size={10} /> {book.cliente?.email}
                                                                             </a>
@@ -1259,10 +1289,16 @@ export default function SitterDashboardPage() {
                                                                                 const pet = petsCache[pid];
                                                                                 if (!pet) return null;
                                                                                 return (
-                                                                                    <div key={pid} className="flex items-center gap-1 text-sm">
-                                                                                        <span>{pet.tipo === 'perro' ? '🐶' : pet.tipo === 'gato' ? '🐱' : '🐾'}</span>
-                                                                                        <span>{pet.nombre}</span>
-                                                                                    </div>
+                                                                                    <button
+                                                                                        key={pid}
+                                                                                        onClick={() => { setSelectedPet(pet); setShowPetDialog(true); }}
+                                                                                        className="flex items-center gap-1 text-sm hover:bg-slate-100 px-1.5 py-0.5 rounded -ml-1.5 transition-colors group text-left"
+                                                                                    >
+                                                                                        <span className="text-slate-500 group-hover:text-emerald-600">
+                                                                                            {pet.tipo === 'perro' ? <Dog size={14} /> : pet.tipo === 'gato' ? <Cat size={14} /> : <PawPrint size={14} />}
+                                                                                        </span>
+                                                                                        <span className="font-medium text-slate-700 group-hover:text-slate-900">{pet.nombre}</span>
+                                                                                    </button>
                                                                                 );
                                                                             })}
                                                                             {(!book.mascotas_ids || book.mascotas_ids.length === 0) && (
@@ -1271,7 +1307,17 @@ export default function SitterDashboardPage() {
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-600">
-                                                                        {format(new Date(book.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(book.fecha_fin), "d MMM", { locale: es })}
+                                                                        <div className="flex flex-col">
+                                                                            <span>{format(new Date(book.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(book.fecha_fin), "d MMM", { locale: es })}</span>
+
+                                                                            {/* Countdown Logic */}
+                                                                            {(() => {
+                                                                                const daysLeft = differenceInDays(new Date(book.fecha_inicio), new Date());
+                                                                                if (daysLeft < 0) return <span className="text-[10px] font-bold text-slate-400 uppercase bg-slate-100 w-fit px-1.5 rounded mt-0.5">En curso / Finalizado</span>;
+                                                                                if (daysLeft === 0) return <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 w-fit px-1.5 rounded mt-0.5 animate-pulse">¡Comienza hoy!</span>;
+                                                                                return <span className="text-[10px] font-bold text-sky-600 uppercase bg-sky-50 w-fit px-1.5 rounded mt-0.5">Faltan {daysLeft} días</span>;
+                                                                            })()}
+                                                                        </div>
                                                                     </td>
                                                                     <td className="px-4 py-3">
                                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${book.estado === 'confirmada' ? 'bg-emerald-100 text-emerald-800' :
@@ -1960,6 +2006,28 @@ export default function SitterDashboardPage() {
                     type={alertState.type}
                 />
             </main >
+
+            <ClientDetailsDialog
+                isOpen={showClientDialog}
+                onClose={() => setShowClientDialog(false)}
+                client={selectedClient}
+            />
+
+            <PetDetailsDialog
+                isOpen={showPetDialog}
+                onClose={() => setShowPetDialog(false)}
+                pet={selectedPet}
+            />
+
+            <style jsx global>{`
+                @media print {
+                    body * { visibility: hidden; }
+                    #dashboard-main, #dashboard-main * { visibility: visible; }
+                    #dashboard-main { position: absolute; left: 0; top: 0; width: 100%; }
+                    header, footer, nav, aside { display: none !important; }
+                    .print\\:hidden { display: none !important; }
+                }
+            `}</style>
 
         </>
     );
