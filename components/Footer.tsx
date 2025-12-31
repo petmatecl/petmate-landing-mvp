@@ -9,13 +9,13 @@ export function Footer() {
         {/* Brand */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Link href="/" className="relative h-8 w-auto block">
+            <Link href="/" className="relative block">
               <Image
                 src="/pawnecta_logo_final-trans.png"
                 alt="Pawnecta"
-                width={150}
-                height={50}
-                className="h-12 w-auto"
+                width={130}
+                height={36}
+                className="h-8 sm:h-9 w-auto"
               />
             </Link>
           </div>

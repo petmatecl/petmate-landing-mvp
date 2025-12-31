@@ -1098,7 +1098,7 @@ export default function SitterDashboardPage() {
 
                                         <div className="bg-white rounded-xl border border-orange-200 shadow-sm p-5 bg-orange-50/30">
                                             <h3 className="text-base font-bold text-orange-900 mb-4 flex items-center gap-2">
-                                                📩 Solicitudes Pendientes
+                                                <Inbox size={18} /> Solicitudes Pendientes
                                             </h3>
                                             <div className="grid gap-3">
                                                 {bookings.filter(b => b.estado === 'pendiente').map(booking => (
@@ -1129,11 +1129,11 @@ export default function SitterDashboardPage() {
                                     {/* BLOQUE NUEVO: Mis Postulaciones (Oportunidades) */}
                                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-4">
                                         <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                            📤 Mis Postulaciones
+                                            <Send size={18} /> Mis Postulaciones
                                         </h3>
-                                        {applications.length > 0 ? (
+                                        {applications.filter(app => app.estado !== 'aceptada').length > 0 ? (
                                             <div className="grid gap-3">
-                                                {applications.map((app) => (
+                                                {applications.filter(app => app.estado !== 'aceptada').map((app) => (
                                                     <div key={app.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
@@ -1141,9 +1141,8 @@ export default function SitterDashboardPage() {
                                                                     {app.viaje?.cliente?.nombre || "Cliente"} {app.viaje?.cliente?.apellido_p || ""}
                                                                 </span>
                                                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase
-                                                                    ${app.estado === 'aceptada' ? 'bg-emerald-100 text-emerald-700' :
-                                                                        app.estado === 'pendiente' ? 'bg-amber-100 text-amber-700' :
-                                                                            'bg-red-100 text-red-700'}`}>
+                                                                    ${app.estado === 'pendiente' ? 'bg-amber-100 text-amber-700' :
+                                                                        'bg-red-100 text-red-700'}`}>
                                                                     {app.estado}
                                                                 </span>
                                                             </div>
@@ -1173,7 +1172,7 @@ export default function SitterDashboardPage() {
                                     {/* BLOQUE 1: Próximas Reservas (Confirmadas) */}
                                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
                                         <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                            📅 Reservas Agendadas
+                                            <CalendarCheck size={18} /> Solicitudes Agendadas
                                         </h3>
 
                                         {bookings.length > 0 ? (
@@ -1215,11 +1214,11 @@ export default function SitterDashboardPage() {
                                             </div>
                                         ) : (
                                             <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                                                <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 text-xl">
-                                                    📭
+                                                <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
+                                                    <Inbox size={24} className="text-slate-300" />
                                                 </div>
-                                                <p className="text-sm font-medium text-slate-900">No tienes reservas próximas</p>
-                                                <p className="text-xs text-slate-500 mt-1">Cuando recibas una solicitud, aparecerá aquí.</p>
+                                                <p className="text-sm font-medium text-slate-900">No tienes servicios agendados</p>
+                                                <p className="text-xs text-slate-500 mt-1">Cuando aceptes una solicitud, aparecerá aquí.</p>
                                             </div>
                                         )}
                                     </div>
