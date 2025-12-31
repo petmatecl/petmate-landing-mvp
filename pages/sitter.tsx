@@ -1175,52 +1175,74 @@ export default function SitterDashboardPage() {
                                             <CalendarCheck size={18} /> Solicitudes Agendadas
                                         </h3>
 
-                                        {bookings.length > 0 ? (
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full text-sm text-left">
-                                                    <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b">
-                                                        <tr>
-                                                            <th className="px-4 py-3 font-medium">Reserva</th>
-                                                            <th className="px-4 py-3 font-medium">Cliente</th>
-                                                            <th className="px-4 py-3 font-medium">Fechas</th>
-                                                            <th className="px-4 py-3 font-medium">Estado</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-slate-100">
-                                                        {bookings.map((book) => (
-                                                            <tr key={book.id} className="hover:bg-slate-50 transition-colors">
-                                                                <td className="px-4 py-3 font-bold text-slate-900">
-                                                                    #{book.id.slice(0, 6)}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-slate-600">
-                                                                    {/* Placeholder */}
-                                                                    Cliente
-                                                                </td>
-                                                                <td className="px-4 py-3 text-slate-600">
-                                                                    {format(new Date(book.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(book.fecha_fin), "d MMM", { locale: es })}
-                                                                </td>
-                                                                <td className="px-4 py-3">
-                                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${book.estado === 'confirmada' ? 'bg-emerald-100 text-emerald-800' :
-                                                                        book.estado === 'pendiente' ? 'bg-orange-100 text-orange-800' :
-                                                                            'bg-gray-100 text-gray-800'
-                                                                        }`}>
-                                                                        {book.estado}
-                                                                    </span>
-                                                                </td>
+                                        {(() => {
+                                            // 1. Normalize accepted applications to match Booking structure
+                                            const acceptedAppsAsBookings = applications
+                                                .filter(app => app.estado === 'aceptada')
+                                                .map(app => ({
+                                                    id: app.viaje?.id || app.id,
+                                                    cliente: app.viaje?.cliente,
+                                                    fecha_inicio: app.viaje?.fecha_inicio,
+                                                    fecha_fin: app.viaje?.fecha_fin,
+                                                    estado: 'confirmada', // Map 'aceptada' to 'confirmada' for consistency
+                                                    isApplication: true // Flag to identify source if needed
+                                                }));
+
+                                            // 2. Merge with existing bookings, avoiding duplicates (check by ID)
+                                            // We assume bookings are direct requests. If an accepted app *became* a booking in the DB, 
+                                            // it might be in 'bookings' list already. We check for ID collisions just in case.
+                                            const combinedServices = [
+                                                ...bookings,
+                                                ...acceptedAppsAsBookings.filter(app => !bookings.some(b => b.id === app.id))
+                                            ].sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime());
+
+                                            return combinedServices.length > 0 ? (
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-sm text-left">
+                                                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b">
+                                                            <tr>
+                                                                <th className="px-4 py-3 font-medium">Reserva</th>
+                                                                <th className="px-4 py-3 font-medium">Cliente</th>
+                                                                <th className="px-4 py-3 font-medium">Fechas</th>
+                                                                <th className="px-4 py-3 font-medium">Estado</th>
                                                             </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                                                <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
-                                                    <Inbox size={24} className="text-slate-300" />
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100">
+                                                            {combinedServices.map((book: any) => (
+                                                                <tr key={book.id} className="hover:bg-slate-50 transition-colors">
+                                                                    <td className="px-4 py-3 font-bold text-slate-900">
+                                                                        #{book.id.slice(0, 6)}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-slate-600">
+                                                                        {/* Placeholder */}
+                                                                        Cliente
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-slate-600">
+                                                                        {format(new Date(book.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(book.fecha_fin), "d MMM", { locale: es })}
+                                                                    </td>
+                                                                    <td className="px-4 py-3">
+                                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${book.estado === 'confirmada' ? 'bg-emerald-100 text-emerald-800' :
+                                                                            book.estado === 'pendiente' ? 'bg-orange-100 text-orange-800' :
+                                                                                'bg-gray-100 text-gray-800'
+                                                                            }`}>
+                                                                            {book.estado}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
-                                                <p className="text-sm font-medium text-slate-900">No tienes servicios agendados</p>
-                                                <p className="text-xs text-slate-500 mt-1">Cuando aceptes una solicitud, aparecerá aquí.</p>
-                                            </div>
-                                        )}
+                                            ) : (
+                                                <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                                                    <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
+                                                        <Inbox size={24} className="text-slate-300" />
+                                                    </div>
+                                                    <p className="text-sm font-medium text-slate-900">No tienes servicios agendados</p>
+                                                    <p className="text-xs text-slate-500 mt-1">Cuando aceptes una solicitud, aparecerá aquí.</p>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </>
                             )}
