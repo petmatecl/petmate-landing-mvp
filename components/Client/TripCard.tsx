@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search, User, Phone, MapPin, Mail, ChevronDown, ChevronUp } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock } from "lucide-react";
 
 export type Trip = {
     id: string;
@@ -70,8 +70,8 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
 
     return (
         <div className={`bg-white rounded-2xl p-5 border transition-all hover:shadow-lg ${['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
-                ? 'border-emerald-100 shadow-sm'
-                : 'border-slate-200'
+            ? 'border-emerald-100 shadow-sm'
+            : 'border-slate-200'
             }`}>
             {/* Application Badge */}
             {!trip.sitter_asignado && hasApplications && (
@@ -84,9 +84,9 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                 <div className="flex items-start gap-4 w-full">
                     {/* Icono del Servicio */}
                     <div className={`p-3 rounded-full shrink-0 ${trip.servicio === 'hospedaje' ? 'bg-indigo-50 text-indigo-600' :
-                            trip.servicio === 'domicilio' ? 'bg-emerald-50 text-emerald-600' :
-                                trip.servicio === 'paseo' ? 'bg-orange-50 text-orange-600' :
-                                    'bg-slate-100 text-slate-600'
+                        trip.servicio === 'domicilio' ? 'bg-emerald-50 text-emerald-600' :
+                            trip.servicio === 'paseo' ? 'bg-orange-50 text-orange-600' :
+                                'bg-slate-100 text-slate-600'
                         }`}>
                         {trip.servicio === 'hospedaje' && <Hotel size={20} />}
                         {trip.servicio === 'domicilio' && <Home size={20} />}
@@ -127,8 +127,8 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                             {/* Contact Info Block - Only visible if trip is confirmed */}
                             {trip.sitter_asignado && trip.sitter ? (
                                 <div className="w-full">
-                                    {/* Contact Info Block - Only visible if trip is confirmed */}
-                                    {['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) && (
+                                    {/* CONFIRMED STATE: Show Contact Info */}
+                                    {['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
                                         <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 relative pr-14">
                                             {/* Sitter Photo Top-Right */}
                                             <Link href={`/sitter/${trip.sitter?.id}?returnTo=/cliente`} className="absolute top-3 right-3 w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 hover:border-emerald-400 overflow-hidden transition-colors" title="Ver perfil del Sitter">
@@ -239,6 +239,33 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                                     </div>
                                                 </div>
                                             )}
+                                        </div>
+                                    ) : (
+                                        /* PENDING STATE: Show "Waiting for Sitter" */
+                                        <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-slate-700 flex items-center gap-3">
+                                            {/* Sitter Avatar */}
+                                            <div className="w-10 h-10 rounded-full bg-amber-100 overflow-hidden shrink-0 border border-amber-200">
+                                                {trip.sitter?.foto_perfil ? (
+                                                    <img
+                                                        src={trip.sitter.foto_perfil}
+                                                        alt={trip.sitter.nombre}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-amber-700 font-bold text-sm">
+                                                        {trip.sitter?.nombre?.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1">
+                                                <p className="font-bold text-slate-900">
+                                                    Solicitud enviada a {trip.sitter.nombre}
+                                                </p>
+                                                <p className="text-amber-700 flex items-center gap-1.5 mt-0.5 font-medium">
+                                                    <Clock size={12} /> Esperando respuesta...
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
