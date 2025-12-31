@@ -16,7 +16,7 @@ import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
 import ApplicationsModal from "./ApplicationsModal"; // Import Modal
 import { useClientData } from "./ClientContext";
-import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X } from "lucide-react";
+import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X, CheckCircle2, Clock } from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
@@ -693,8 +693,8 @@ export default function DashboardContent() {
                             {/* Section 1: Confirmed / Active Trips */}
                             {trips.filter(t => ['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado)).length > 0 && (
                                 <div>
-                                    <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100">
-                                        ✅ Solicitudes Confirmadas
+                                    <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
+                                        <CheckCircle2 size={16} /> Solicitudes Confirmadas
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4">
                                         {trips
