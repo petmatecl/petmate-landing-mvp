@@ -143,28 +143,40 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                     {['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
                                         <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 relative pr-14">
                                             {/* Sitter Photo Top-Right */}
-                                            <Link href={`/sitter/${trip.sitter?.id}?returnTo=/cliente`} className="absolute top-3 right-3 w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 hover:border-emerald-400 overflow-hidden transition-colors" title="Ver perfil del Sitter">
-                                                {trip.sitter?.foto_perfil ? (
-                                                    <img
-                                                        src={trip.sitter.foto_perfil}
-                                                        alt={trip.sitter.nombre}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-emerald-700 font-bold text-sm">
-                                                        {trip.sitter?.nombre?.charAt(0)}
-                                                    </div>
-                                                )}
-                                            </Link>
+                                            {trip.sitter?.id ? (
+                                                <Link href={`/sitter/${trip.sitter.id}?returnTo=/cliente`} className="absolute top-3 right-3 w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 hover:border-emerald-400 overflow-hidden transition-colors" title="Ver perfil del Sitter">
+                                                    {trip.sitter.foto_perfil ? (
+                                                        <img
+                                                            src={trip.sitter.foto_perfil}
+                                                            alt={trip.sitter.nombre}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-emerald-700 font-bold text-sm">
+                                                            {trip.sitter.nombre?.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </Link>
+                                            ) : (
+                                                <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-slate-400 font-bold text-sm" title="Sitter asignado">
+                                                    {trip.sitter?.nombre?.charAt(0) || <User size={16} />}
+                                                </div>
+                                            )}
 
                                             <div className="mb-3">
                                                 <p className="font-bold text-slate-900 mb-1.5">Datos de Contacto:</p>
                                                 <div className="space-y-1.5">
                                                     <p className="flex items-center gap-2">
                                                         <User size={14} className="text-slate-400" />
-                                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/cliente`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
-                                                            {trip.sitter?.nombre} {trip.sitter?.apellido_p}
-                                                        </Link>
+                                                        {trip.sitter?.id ? (
+                                                            <Link href={`/sitter/${trip.sitter.id}?returnTo=/cliente`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
+                                                                {trip.sitter.nombre} {trip.sitter.apellido_p}
+                                                            </Link>
+                                                        ) : (
+                                                            <span className="font-bold text-slate-900">
+                                                                {trip.sitter?.nombre} {trip.sitter?.apellido_p}
+                                                            </span>
+                                                        )}
                                                     </p>
                                                     <p className="flex items-center gap-2">
                                                         <Phone size={14} className="text-slate-400" />

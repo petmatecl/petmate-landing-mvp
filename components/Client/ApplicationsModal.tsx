@@ -209,13 +209,19 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                                                 )}
 
                                                 <div className="mt-3">
-                                                    <Link
-                                                        href={app.sitter?.id ? `/sitter/${app.sitter.id}` : '#'}
-                                                        target="_blank"
-                                                        className="text-emerald-600 text-sm font-semibold hover:underline flex items-center gap-1"
-                                                    >
-                                                        Ver Perfil Completo <span className="text-xs">↗</span>
-                                                    </Link>
+                                                    {app.sitter?.id ? (
+                                                        <Link
+                                                            href={`/sitter/${app.sitter.id}`}
+                                                            target="_blank"
+                                                            className="text-emerald-600 text-sm font-semibold hover:underline flex items-center gap-1"
+                                                        >
+                                                            Ver Perfil Completo <span className="text-xs">↗</span>
+                                                        </Link>
+                                                    ) : (
+                                                        <span className="text-slate-400 text-sm font-semibold flex items-center gap-1 cursor-not-allowed">
+                                                            Perfil no disponible
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

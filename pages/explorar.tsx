@@ -4,6 +4,9 @@ import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import FilterBar from "../components/Explore/FilterBar";
 import CaregiverCard from "../components/Explore/CaregiverCard";
+import Link from "next/link";
+import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 import CompletionBlocker from "../components/Shared/CompletionBlocker";
 
 // Definir interfaz del PetMate basado en tu DB
@@ -32,10 +35,12 @@ export default function ExplorarPage() {
         petType: "dogs" | "cats" | "both" | "any";
         serviceType: "all" | "en_casa_petmate" | "a_domicilio";
         dogSize: string | null;
+        dateRange: DateRange | undefined;
     }>({
         petType: "any",
         serviceType: "all",
-        dogSize: null
+        dogSize: null,
+        dateRange: undefined
     });
 
     // Función para aumentar filtros
@@ -83,36 +88,22 @@ export default function ExplorarPage() {
                 }
                 setCheckingProfile(false);
 
-                // 2. Fetch Petmates
-                let query = supabase
-                    .from("registro_petmate")
-                    .select("id, nombre, apellido_p, rol, roles, modalidad, cuida_perros, cuida_gatos, foto_perfil, tarifa_servicio_en_casa, tarifa_servicio_a_domicilio, comuna, region, promedio_calificacion, total_reviews, verificado")
-                    // Use array contains for more robust role check
-                    .contains("roles", ["petmate"]);
+                // 2. Fetch Petmates using RPC
+                const { from, to } = filters.dateRange || {};
+                const dateStart = from ? format(from, 'yyyy-MM-dd') : null;
+                const dateEnd = to ? format(to, 'yyyy-MM-dd') : null;
 
-                // Filtro Perros/Gatos
-                if (filters.petType === "dogs") {
-                    query = query.eq("cuida_perros", true);
-                } else if (filters.petType === "cats") {
-                    query = query.eq("cuida_gatos", true);
-                } else if (filters.petType === "both") {
-                    query = query.eq("cuida_perros", true).eq("cuida_gatos", true);
-                }
+                console.log("Fetching petmates with RPC filters:", { ...filters, dateStart, dateEnd });
 
-                // Filtro Modalidad
-                if (filters.serviceType !== "all") {
-                    query = query.or(`modalidad.eq.${filters.serviceType},modalidad.eq.ambos`);
-                }
+                const { data, error } = await supabase.rpc('search_sitters', {
+                    pet_type: filters.petType,
+                    service_type: filters.serviceType,
+                    dog_size: filters.dogSize,
+                    date_start: dateStart,
+                    date_end: dateEnd
+                });
 
-                // Filtro Tamaño Perro
-                if ((filters.petType === 'dogs' || filters.petType === 'both') && filters.dogSize) {
-                    query = query.contains("tamanos_perros", [filters.dogSize]);
-                }
 
-                console.log("Fetching petmates with filters:", filters);
-                const { data, error } = await query;
-
-                console.log("Petmates result:", data, error);
 
                 if (error) {
                     console.error("Error fetching petmates:", error);
@@ -159,7 +150,7 @@ export default function ExplorarPage() {
                         <p className="text-slate-500 mt-2">Intenta cambiar los criterios de búsqueda.</p>
                         <div className="flex flex-col items-center gap-3 mt-6">
                             <button
-                                onClick={() => setFilters({ petType: "any", serviceType: "all", dogSize: null })}
+                                onClick={() => setFilters({ petType: "any", serviceType: "all", dogSize: null, dateRange: undefined })}
                                 className="text-emerald-600 font-bold hover:underline"
                             >
                                 Limpiar filtros

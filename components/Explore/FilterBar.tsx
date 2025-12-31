@@ -1,9 +1,13 @@
 
+import { DateRange } from "react-day-picker";
+import DateRangeFilter from "./DateRangeFilter";
+
 interface FilterBarProps {
     filters: {
         petType: "dogs" | "cats" | "both" | "any";
         serviceType: "all" | "en_casa_petmate" | "a_domicilio";
         dogSize: string | null;
+        dateRange: DateRange | undefined;
     };
     onFilterChange: (key: string, value: any) => void;
 }
@@ -48,6 +52,15 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                         >
                             🐱 Gatos
                         </button>
+
+
+                        <div className="bg-slate-200 w-px h-8 mx-1 hidden sm:block"></div>
+
+                        {/* Date Picker */}
+                        <DateRangeFilter
+                            dateRange={filters.dateRange}
+                            onDateRangeChange={(range) => onFilterChange("dateRange", range)}
+                        />
 
                         <div className="bg-slate-200 w-px h-8 mx-1 hidden sm:block"></div>
 
