@@ -129,10 +129,6 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                                 <p className="font-bold text-slate-900 mb-1">Datos de Contacto:</p>
                                                 <div className="space-y-1">
                                                     <p className="flex items-center gap-2">
-                                                        <User size={14} className="text-slate-400" />
-                                                        <span className="font-semibold text-slate-900">{trip.sitter.nombre} {trip.sitter.apellido_p}</span>
-                                                    </p>
-                                                    <p className="flex items-center gap-2">
                                                         <Phone size={14} className="text-slate-400" />
                                                         <a href={`tel:${trip.sitter.telefono}`} className="hover:text-emerald-600 hover:underline">{trip.sitter.telefono || 'No registrado'}</a>
                                                     </p>
@@ -160,10 +156,6 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                                 <div className="pt-2 border-t border-slate-200">
                                                     <p className="font-bold text-slate-900 mb-1">Ubicación del Cuidado:</p>
                                                     <div className="space-y-1">
-                                                        <p className="flex items-center gap-2">
-                                                            <User size={14} className="text-slate-400" />
-                                                            <span>{clientName || 'Cliente'}</span>
-                                                        </p>
                                                         <p className="flex items-start gap-2">
                                                             <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
                                                             <span>{serviceAddress || 'Dirección no disponible'}</span>
