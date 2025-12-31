@@ -1130,32 +1130,116 @@ export default function SitterDashboardPage() {
 
                             {activeTab === 'solicitudes' && (
                                 <>
-                                    {bookings.some(b => b.estado === 'pendiente') && (
-
-                                        <div className="bg-white rounded-xl border border-orange-200 shadow-sm p-5 bg-orange-50/30">
-                                            <h3 className="text-base font-bold text-orange-900 mb-4 flex items-center gap-2">
-                                                <Inbox size={18} /> Solicitudes Pendientes
+                                    {/* BLOQUE NUEVO: Solicitudes por Aceptar (Entrantes) */}
+                                    {bookings.some(b => b.estado === 'publicado') && (
+                                        <div className="bg-amber-50 rounded-xl border border-amber-200 shadow-sm p-5 mb-6">
+                                            <h3 className="text-base font-bold text-amber-900 mb-4 flex items-center gap-2">
+                                                <Inbox size={18} /> Solicitudes por Aceptar
                                             </h3>
                                             <div className="grid gap-3">
-                                                {bookings.filter(b => b.estado === 'pendiente').map(booking => (
-                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border border-orange-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                {bookings.filter(b => b.estado === 'publicado').map(booking => (
+                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border border-amber-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p}</span>
-                                                                <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase">Nueva</span>
+                                                                <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase border border-amber-200">Nueva Solicitud</span>
                                                             </div>
-                                                            <p className="text-xs text-slate-500 flex items-center gap-1">
-                                                                📅 {format(new Date(booking.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(booking.fecha_fin), "d MMM", { locale: es })}
-                                                            </p>
+                                                            <div className="text-xs text-slate-500 flex flex-col gap-1">
+                                                                <span className="flex items-center gap-1 font-medium text-slate-700">
+                                                                    <Calendar size={12} /> {format(new Date(booking.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(booking.fecha_fin), "d MMM", { locale: es })}
+                                                                </span>
+                                                                {/* Pet Summary for this request */}
+                                                                {(() => {
+                                                                    const petIds = booking.mascotas_ids || [];
+                                                                    const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                    return (
+                                                                        <div className="flex gap-1 mt-1">
+                                                                            {pets.map((p: any) => (
+                                                                                <span key={p.id} className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
+                                                                                    {p.tipo === 'perro' ? <Dog size={10} /> : <Cat size={10} />} {p.nombre}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    )
+                                                                })()}
+                                                            </div>
                                                         </div>
                                                         <div className="flex gap-2 w-full sm:w-auto">
-                                                            <button className="flex-1 sm:flex-none bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-sm transition-colors">
-                                                                Aceptar
-                                                            </button>
-                                                            <button className="flex-1 sm:flex-none bg-white border border-slate-200 text-slate-600 text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                                                                Rechazar
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm('¿Aceptar esta solicitud de reserva? El cliente será notificado.')) return;
+                                                                    try {
+                                                                        const { error } = await supabase.from('viajes').update({ estado: 'reservado' }).eq('id', booking.id);
+                                                                        if (error) throw error;
+                                                                        window.location.reload();
+                                                                    } catch (err) {
+                                                                        console.error(err);
+                                                                        alert("Error al aceptar");
+                                                                    }
+                                                                }}
+                                                                className="flex-1 sm:flex-none bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-2"
+                                                            >
+                                                                <Check size={14} /> Aceptar
                                                             </button>
                                                         </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* BLOQUE: Esperando Confirmación (Reservado) */}
+                                    {bookings.some(b => b.estado === 'reservado') && (
+                                        <div className="bg-indigo-50 rounded-xl border border-indigo-200 shadow-sm p-5 mb-6">
+                                            <h3 className="text-base font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                                                <Clock size={18} /> Esperando Pago/Confirmación
+                                            </h3>
+                                            <div className="grid gap-3">
+                                                {bookings.filter(b => b.estado === 'reservado').map(booking => (
+                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border border-indigo-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p}</span>
+                                                                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold uppercase border border-indigo-200">Aceptado</span>
+                                                            </div>
+                                                            <div className="text-xs text-slate-500 flex flex-col gap-1">
+                                                                <span className="flex items-center gap-1 font-medium text-slate-700">
+                                                                    <Calendar size={12} /> {format(new Date(booking.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(booking.fecha_fin), "d MMM", { locale: es })}
+                                                                </span>
+                                                                {(() => {
+                                                                    const petIds = booking.mascotas_ids || [];
+                                                                    const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                    return (
+                                                                        <div className="flex gap-1 mt-1">
+                                                                            {pets.map((p: any) => (
+                                                                                <span key={p.id} className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
+                                                                                    {p.tipo === 'perro' ? <Dog size={10} /> : <Cat size={10} />} {p.nombre}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    )
+                                                                })()}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100 max-w-[200px] text-center">
+                                                            Has aceptado esta solicitud. El cliente debe completar el pago para confirmar.
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Existing Pending Logic (kept for 'pendiente' status if any remain) */}
+                                    {bookings.some(b => b.estado === 'pendiente') && (
+                                        <div className="bg-white rounded-xl border border-orange-200 shadow-sm p-5 bg-orange-50/30 mb-6">
+                                            <h3 className="text-base font-bold text-orange-900 mb-4 flex items-center gap-2">
+                                                <Inbox size={18} /> Solicitudes Pendientes (Otros Estados)
+                                            </h3>
+                                            <div className="grid gap-3">
+                                                {bookings.filter(b => b.estado === 'pendiente').map(booking => (
+                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border border-orange-100 shadow-sm">
+                                                        <span className="text-sm font-bold">{booking.cliente.nombre}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1231,28 +1315,29 @@ export default function SitterDashboardPage() {
                                         </h3>
 
                                         {(() => {
-                                            // 1. Normalize accepted applications to match Booking structure
+                                            // 1. Normalize accepted applications (which are effectively confirmed bookings)
                                             const acceptedAppsAsBookings = applications
                                                 .filter(app => app.estado === 'aceptada')
                                                 .map(app => ({
                                                     id: app.viaje?.id || app.id,
                                                     cliente: app.viaje?.cliente,
-                                                    mascotas_ids: app.viaje?.mascotas_ids, // Usar IDs para buscar en cache
+                                                    mascotas_ids: app.viaje?.mascotas_ids,
                                                     fecha_inicio: app.viaje?.fecha_inicio,
                                                     fecha_fin: app.viaje?.fecha_fin,
-                                                    estado: 'confirmada', // Map 'aceptada' to 'confirmada' for consistency
-                                                    isApplication: true // Flag to identify source if needed
+                                                    estado: 'confirmada', // Treat as confirmed
+                                                    isApplication: true
                                                 }));
 
-                                            // 2. Merge with existing bookings, avoiding duplicates (check by ID)
-                                            // We assume bookings are direct requests. If an accepted app *became* a booking in the DB, 
-                                            // it might be in 'bookings' list already. We check for ID collisions just in case.
-                                            const combinedServices = [
-                                                ...bookings,
-                                                ...acceptedAppsAsBookings.filter(app => !bookings.some(b => b.id === app.id))
-                                            ].sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime());
+                                            // 2. Merge bookings and accepted applications
+                                            // KEY CHANGE: Strictly show ONLY confirmed services here.
+                                            // 'publicado' goes to "Solicitudes por Aceptar"
+                                            // 'pendiente' goes to "Solicitudes Pendientes" (if enabled) or remains in limbo until accepted/rejected
+                                            const confirmedServices = bookings
+                                                .filter(b => b.estado === 'confirmado' || b.estado === 'confirmada')
+                                                .concat(acceptedAppsAsBookings.filter(app => !bookings.some(b => b.id === app.id)))
+                                                .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime());
 
-                                            return combinedServices.length > 0 ? (
+                                            return confirmedServices.length > 0 ? (
                                                 <div className="overflow-x-auto">
                                                     <table className="w-full text-sm text-left">
                                                         <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b">
@@ -1265,7 +1350,7 @@ export default function SitterDashboardPage() {
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100">
-                                                            {combinedServices.map((book: any) => (
+                                                            {confirmedServices.map((book: any) => (
                                                                 <tr key={book.id} className="hover:bg-slate-50 transition-colors">
                                                                     <td className="px-4 py-3 font-bold text-slate-900">
                                                                         #{book.id.slice(0, 6)}
@@ -1291,6 +1376,8 @@ export default function SitterDashboardPage() {
                                                                             const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
                                                                             const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
                                                                             const otherCount = pets.length - dogCount - catCount;
+
+                                                                            if (pets.length === 0) return <span className="text-xs italic text-slate-400">Sin ficha</span>;
 
                                                                             return (
                                                                                 <button
@@ -1344,34 +1431,6 @@ export default function SitterDashboardPage() {
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
-
-                                                                                    {/* ACTION BUTTON for 'publicado' (Solicitado) */}
-                                                                                    {book.estado === 'publicado' && (
-                                                                                        <button
-                                                                                            onClick={async () => {
-                                                                                                if (!confirm('¿Aceptar esta solicitud de reserva? El cliente será notificado.')) return;
-
-                                                                                                try {
-                                                                                                    const { error } = await supabase
-                                                                                                        .from('viajes')
-                                                                                                        .update({ estado: 'reservado' }) // Update to 'reservado' first
-                                                                                                        .eq('id', book.id);
-
-                                                                                                    if (error) throw error;
-
-                                                                                                    // Ideally we should reload bookings here
-                                                                                                    window.location.reload();
-                                                                                                } catch (err) {
-                                                                                                    console.error("Error accepting booking:", err);
-                                                                                                    alert("Error al aceptar la reserva");
-                                                                                                }
-                                                                                            }}
-                                                                                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2 py-0.5 rounded shadow-sm transition-colors flex items-center gap-1"
-                                                                                            title="Aceptar Reserva"
-                                                                                        >
-                                                                                            <Check size={12} /> Aceptar
-                                                                                        </button>
-                                                                                    )}
                                                                                 </div>
                                                                             );
                                                                         })()}
