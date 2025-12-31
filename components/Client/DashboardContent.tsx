@@ -709,6 +709,7 @@ export default function DashboardContent() {
                                                     onRemoveSitter={handleRemoveSitter}
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
                                                     clientName={clientProfile ? `${clientProfile.nombre} ${clientProfile.apellido_p}` : ""}
                                                     serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
                                                 />
@@ -736,6 +737,7 @@ export default function DashboardContent() {
                                                     onRemoveSitter={handleRemoveSitter}
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
                                                     clientName={clientProfile ? `${clientProfile.nombre} ${clientProfile.apellido_p}` : ""}
                                                     serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
                                                 />

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat } from "lucide-react";
 
 export type Trip = {
     id: string;
@@ -35,7 +35,8 @@ export type Trip = {
 
 type Props = {
     trip: Trip;
-    petNames: string;
+    petNames?: string; // Keep for fallback or legacy
+    pets?: { name: string; type: string }[]; // New structured prop
     onEdit: (trip: Trip) => void;
     onDelete: (id: string) => void;
     onViewApplications?: (trip: Trip) => void;
@@ -45,7 +46,7 @@ type Props = {
     serviceAddress?: string;
 };
 
-export default function TripCard({ trip, petNames, onEdit, onDelete, onViewApplications, onRemoveSitter, onSearchSitter, clientName, serviceAddress }: Props) {
+export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onViewApplications, onRemoveSitter, onSearchSitter, clientName, serviceAddress }: Props) {
     // Safe date parsing to avoid UTC/Timezone shifts
     const parseDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split('-').map(Number);
@@ -112,8 +113,19 @@ export default function TripCard({ trip, petNames, onEdit, onDelete, onViewAppli
                                 {days} {days === 1 ? 'noche' : 'noches'}
                             </span>
                             <span className="text-slate-300">|</span>
-                            <span className="truncate max-w-[200px]" title={petNames}>
-                                {petNames || 'Sin mascotas'}
+                            <span className="flex items-center flex-wrap gap-3">
+                                {pets && pets.length > 0 ? (
+                                    pets.map((pet, idx) => (
+                                        <span key={idx} className="flex items-center gap-1 text-slate-600 font-medium">
+                                            {pet.type === 'perro' ? <Dog size={12} className="text-slate-400" /> : <Cat size={12} className="text-slate-400" />}
+                                            {pet.name}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="truncate max-w-[200px]" title={petNames}>
+                                        {petNames || 'Sin mascotas'}
+                                    </span>
+                                )}
                             </span>
                         </div>
 
