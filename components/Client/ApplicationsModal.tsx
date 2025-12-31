@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
 import { X, CheckCircle2, User, Star, MessageCircle } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { ConfirmationModal } from "../Shared/ConfirmationModal";
 
 type Props = {
     isOpen: boolean;
@@ -32,6 +32,10 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; app: Application | null }>({
+        isOpen: false,
+        app: null
+    });
 
     useEffect(() => {
         if (isOpen && tripId) {
@@ -78,8 +82,13 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
         }
     };
 
-    const handleAccept = async (app: Application) => {
-        if (!confirm(`¿Estás seguro de aceptar a ${app.sitter?.nombre} para este viaje?`)) return;
+    const confirmAccept = (app: Application) => {
+        setConfirmModal({ isOpen: true, app });
+    };
+
+    const handleAccept = async () => {
+        const app = confirmModal.app;
+        if (!app) return;
 
         setProcessingId(app.id);
         try {
@@ -212,7 +221,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                                         {/* Actions */}
                                         <div className="flex flex-col justify-center gap-2 min-w-[140px] border-l border-slate-100 pl-0 md:pl-4 mt-4 md:mt-0">
                                             <button
-                                                onClick={() => handleAccept(app)}
+                                                onClick={() => confirmAccept(app)}
                                                 disabled={!!processingId}
                                                 className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg shadow-slate-900/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                             >
@@ -232,7 +241,18 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                     )}
                 </div>
             </div>
-        </div>
+            </div>
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, app: null })}
+                onConfirm={handleAccept}
+                title="Confirmar Cuidador"
+                message={`¿Estás seguro de que deseas aceptar la postulación de ${confirmModal.app?.sitter?.nombre || 'este cuidador'}? Esto confirmará la reserva.`}
+                confirmText="Aceptar y Reservar"
+                cancelText="Cancelar"
+            />
+        </div >
     );
 }
 
