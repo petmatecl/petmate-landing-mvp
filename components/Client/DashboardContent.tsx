@@ -721,7 +721,7 @@ export default function DashboardContent() {
                             {trips.filter(t => !['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado)).length > 0 && (
                                 <div>
                                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3 pl-1 flex items-center gap-2">
-                                        ⏳ Solicitudes Pendientes
+                                        <Clock size={16} /> Solicitudes Pendientes
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4">
                                         {trips

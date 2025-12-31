@@ -1,5 +1,5 @@
-import React from "react";
-import { MapPin, Edit2, Trash2, CheckCircle2 } from "lucide-react";
+import React, { useState } from "react";
+import { MapPin, Edit2, Trash2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 
 export type Address = {
     id: string;
@@ -24,14 +24,16 @@ type Props = {
 };
 
 export default function AddressCard({ address, onEdit, onDelete, onSetDefault }: Props) {
+    const [showMap, setShowMap] = useState(false);
+
     return (
         <div className={`group relative rounded-xl border p-4 transition-all hover:shadow-md ${address.es_principal ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-slate-200'}`}>
             <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                    <div className={`mt-1 p-2 rounded-full ${address.es_principal ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                <div className="flex items-start gap-3 w-full">
+                    <div className={`mt-1 p-2 rounded-full shrink-0 ${address.es_principal ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
                         <MapPin size={18} />
                     </div>
-                    <div>
+                    <div className="w-full">
                         <div className="flex items-center gap-2">
                             <h3 className="font-bold text-slate-900">{address.nombre}</h3>
                             {address.es_principal && (
@@ -43,6 +45,30 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
                         <p className="text-sm text-slate-600 mt-0.5 line-clamp-2" title={address.direccion_completa}>
                             {address.direccion_completa}
                         </p>
+
+                        {/* Inline Map Toggle */}
+                        <div className="mt-1">
+                            <button
+                                onClick={() => setShowMap(!showMap)}
+                                className="text-[10px] text-emerald-600 font-bold hover:underline flex items-center gap-1"
+                            >
+                                {showMap ? 'Ocultar mapa' : 'Ver mapa'}
+                                {showMap ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            </button>
+                            {showMap && (
+                                <div className="mt-2 rounded-lg overflow-hidden border border-slate-200">
+                                    <iframe
+                                        width="100%"
+                                        height="150"
+                                        frameBorder="0"
+                                        style={{ border: 0 }}
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(address.direccion_completa)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                        allowFullScreen
+                                    ></iframe>
+                                </div>
+                            )}
+                        </div>
+
                         {address.notas && (
                             <p className="text-xs text-slate-400 mt-2 italic flex items-start gap-1">
                                 <span className="not-italic">📝</span> {address.notas}
