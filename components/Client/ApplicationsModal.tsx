@@ -98,7 +98,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                 .from("viajes")
                 .update({
                     sitter_id: app.sitter_id,
-                    estado: 'reservado'
+                    estado: 'confirmado'
                 })
                 .eq("id", tripId);
 
