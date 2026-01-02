@@ -5,7 +5,7 @@ import { es } from "date-fns/locale";
 import { supabase } from "../../lib/supabaseClient";
 import { Save, CheckCircle2, Loader2, Calendar as CalendarIcon, ShieldAlert } from "lucide-react";
 
-import "react-day-picker/dist/style.css";
+// CSS Imported globally in _app.tsx now
 
 interface Props {
     sitterId: string;
@@ -153,6 +153,10 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">
                         Marca tus días libres.
+                    </p>
+                    {/* DEBUG MODE */}
+                    <p className="text-xs text-slate-400 mt-1 font-mono">
+                        [DEBUG] Días seleccionados: {selectedDays.length}
                     </p>
                 </div>
 
