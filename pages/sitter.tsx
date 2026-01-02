@@ -1186,13 +1186,22 @@ export default function SitterDashboardPage() {
                                                                 {(() => {
                                                                     const petIds = booking.mascotas_ids || [];
                                                                     const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                    const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
+                                                                    const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
+                                                                    const otherCount = pets.length - dogCount - catCount;
+
+                                                                    let textParts = [];
+                                                                    if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
+                                                                    if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
+                                                                    if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
+
+                                                                    const text = textParts.join(', ') || "Sin mascotas";
+
                                                                     return (
                                                                         <div className="flex gap-1 mt-1">
-                                                                            {pets.map((p: any) => (
-                                                                                <span key={p.id} className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
-                                                                                    {p.tipo === 'perro' ? <Dog size={10} /> : <Cat size={10} />} {p.nombre}
-                                                                                </span>
-                                                                            ))}
+                                                                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 font-medium">
+                                                                                <PawPrint size={10} /> {text}
+                                                                            </span>
                                                                         </div>
                                                                     )
                                                                 })()}
@@ -1233,13 +1242,22 @@ export default function SitterDashboardPage() {
                                                                 {(() => {
                                                                     const petIds = booking.mascotas_ids || [];
                                                                     const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                    const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
+                                                                    const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
+                                                                    const otherCount = pets.length - dogCount - catCount;
+
+                                                                    let textParts = [];
+                                                                    if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
+                                                                    if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
+                                                                    if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
+
+                                                                    const text = textParts.join(', ') || "Sin mascotas";
+
                                                                     return (
                                                                         <div className="flex gap-1 mt-1">
-                                                                            {pets.map((p: any) => (
-                                                                                <span key={p.id} className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
-                                                                                    {p.tipo === 'perro' ? <Dog size={10} /> : <Cat size={10} />} {p.nombre}
-                                                                                </span>
-                                                                            ))}
+                                                                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 font-medium">
+                                                                                <PawPrint size={10} /> {text}
+                                                                            </span>
                                                                         </div>
                                                                     )
                                                                 })()}
@@ -1294,16 +1312,25 @@ export default function SitterDashboardPage() {
                                                                 <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><MapPin size={12} /> {app.viaje?.comuna || "Santiago"}</span>
                                                                 <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><Calendar size={12} /> {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}</span>
                                                                 {/* Pets Display */}
-                                                                {(app.viaje?.mascotas_ids || []).map((pid: string) => {
-                                                                    const pet = petsCache[pid];
-                                                                    if (!pet) return null;
+                                                                {(() => {
+                                                                    const petIds = app.viaje?.mascotas_ids || [];
+                                                                    const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                    const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
+                                                                    const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
+                                                                    const otherCount = pets.length - dogCount - catCount;
+
+                                                                    let textParts = [];
+                                                                    if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
+                                                                    if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
+                                                                    if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
+
+                                                                    const text = textParts.join(', ') || "Sin mascotas";
                                                                     return (
-                                                                        <span key={pid} className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100" title={pet.nombre}>
-                                                                            {pet.tipo === 'perro' ? <Dog size={12} /> : pet.tipo === 'gato' ? <Cat size={12} /> : <PawPrint size={12} />}
-                                                                            {pet.nombre}
+                                                                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">
+                                                                            <PawPrint size={12} /> {text}
                                                                         </span>
                                                                     );
-                                                                })}
+                                                                })()}
                                                             </div>
                                                             {app.mensaje && (
                                                                 <p className="text-xs text-slate-600 italic">"{app.mensaje}"</p>
