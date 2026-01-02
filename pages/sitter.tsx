@@ -195,7 +195,7 @@ export default function SitterDashboardPage() {
             // 2. Fetch Applications (Oportunidades)
             const { data: appData, error: appError } = await supabase
                 .from('postulaciones')
-                .select('*, viaje:viajes(*, cliente:user_id(*))')
+                .select('*, viaje:viajes(*, cliente:user_id(*), direccion:direccion_id(*))')
                 .eq('sitter_id', userId)
                 .order('created_at', { ascending: false });
 
@@ -1342,7 +1342,10 @@ export default function SitterDashboardPage() {
                                                     fecha_inicio: app.viaje?.fecha_inicio,
                                                     fecha_fin: app.viaje?.fecha_fin,
                                                     estado: 'confirmada', // Treat as confirmed
-                                                    isApplication: true
+                                                    isApplication: true,
+                                                    servicio: app.viaje?.servicio,
+                                                    direccion: app.viaje?.direccion,
+                                                    direccion_cliente: app.viaje?.direccion_cliente
                                                 }));
 
                                             // 2. Merge bookings and accepted applications
