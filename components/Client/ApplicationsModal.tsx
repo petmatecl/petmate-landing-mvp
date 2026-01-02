@@ -24,7 +24,7 @@ type Application = {
         nombre: string;
         apellido_p: string;
         foto_perfil: string;
-        biografia?: string;
+        descripcion?: string;
         // rates could be fetched if needed, keeping simple for MVP
     };
 };
@@ -62,7 +62,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                 const sitterIds = data.map(app => app.sitter_id);
                 const { data: sitters } = await supabase
                     .from("registro_petmate")
-                    .select("auth_user_id, id, nombre, apellido_p, foto_perfil, biografia")
+                    .select("auth_user_id, id, nombre, apellido_p, foto_perfil, descripcion")
                     .in("auth_user_id", sitterIds);
 
                 const sittersMap = sitters ? Object.fromEntries(sitters.map(s => [s.auth_user_id, s])) : {};
