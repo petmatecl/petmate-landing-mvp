@@ -109,6 +109,7 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
         } catch (err: any) {
             console.error(err);
             setMessage({ type: 'error', text: 'Error al guardar.' });
+            alert(`Error detallado: ${err.message || JSON.stringify(err)}`); // Temporary Debug Alert
         } finally {
             setIsSaving(false);
         }
@@ -189,8 +190,13 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
                         month={month}
                         onMonthChange={setMonth}
                         locale={es}
-                        modifiersClassNames={{
-                            selected: "bg-emerald-600 text-white rounded-full hover:bg-emerald-700"
+                        modifiersStyles={{
+                            selected: {
+                                backgroundColor: '#10b981', // emerald-500
+                                color: 'white',
+                                borderRadius: '50%',
+                                fontWeight: 'bold'
+                            }
                         }}
                         styles={{
                             head_cell: { color: "#64748b" },
