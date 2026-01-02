@@ -1169,7 +1169,7 @@ export default function SitterDashboardPage() {
                                                                 onClick={async () => {
                                                                     if (!confirm('¿Aceptar esta solicitud de reserva? El cliente será notificado.')) return;
                                                                     try {
-                                                                        const { error } = await supabase.from('viajes').update({ estado: 'reservado' }).eq('id', booking.id);
+                                                                        const { error } = await supabase.from('viajes').update({ estado: 'confirmado' }).eq('id', booking.id);
                                                                         if (error) throw error;
                                                                         window.location.reload();
                                                                     } catch (err) {
@@ -1192,7 +1192,7 @@ export default function SitterDashboardPage() {
                                     {bookings.some(b => b.estado === 'reservado') && (
                                         <div className="bg-indigo-50 rounded-xl border border-indigo-200 shadow-sm p-5 mb-6">
                                             <h3 className="text-base font-bold text-indigo-900 mb-4 flex items-center gap-2">
-                                                <Clock size={18} /> Esperando Pago/Confirmación
+                                                <Clock size={18} /> Esperando Confirmación
                                             </h3>
                                             <div className="grid gap-3">
                                                 {bookings.filter(b => b.estado === 'reservado').map(booking => (
@@ -1222,7 +1222,7 @@ export default function SitterDashboardPage() {
                                                             </div>
                                                         </div>
                                                         <div className="text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100 max-w-[200px] text-center">
-                                                            Has aceptado esta solicitud. El cliente debe completar el pago para confirmar.
+                                                            Has aceptado esta solicitud. Esperando confirmación final.
                                                         </div>
                                                     </div>
                                                 ))}
