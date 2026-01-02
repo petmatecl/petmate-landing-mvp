@@ -72,6 +72,31 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                                 <p className="text-sm text-slate-700">Check-out: 12:00 PM</p>
                             </div>
                         </div>
+
+                        {/* Location Logic */}
+                        <div className="mt-6 border-t border-slate-100 pt-4">
+                            <div className="flex items-start gap-4">
+                                <div className="p-2 bg-slate-100 rounded-lg">
+                                    <MapPin className="w-5 h-5 text-slate-700" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-900">Lugar del Servicio</p>
+                                    {booking.servicio === 'hospedaje' ? (
+                                        <>
+                                            <span className="text-xs font-bold text-emerald-600 uppercase bg-emerald-50 px-1.5 py-0.5 rounded">En casa del Sitter</span>
+                                            <p className="text-sm text-slate-700 mt-1">{sitter?.direccion || 'Dirección no disponible'}</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-xs font-bold text-sky-600 uppercase bg-sky-50 px-1.5 py-0.5 rounded">
+                                                {booking.servicio === 'paseo' ? 'Punto de Encuentro' : 'En casa del Cliente'}
+                                            </span>
+                                            <p className="text-sm text-slate-700 mt-1">{booking.direccion_cliente || 'Dirección no especificada'}</p>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -91,12 +116,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                             <Mail className="w-4 h-4 text-slate-400" />
                             <span className="text-slate-700">{booking.cliente?.email}</span>
                         </div>
-                        {booking.servicio === 'domicilio' && (
-                            <div className="flex items-start gap-3 mt-2">
-                                <MapPin className="w-4 h-4 text-slate-400 mt-1" />
-                                <span className="text-slate-700 w-2/3">{booking.direccion_cliente || 'Dirección de visita no especificada'}</span>
-                            </div>
-                        )}
+                        {/* Address moved to Service Details */}
                     </div>
                 </div>
             </div>
