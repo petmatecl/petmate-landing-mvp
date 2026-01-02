@@ -8,6 +8,7 @@ import { es } from "date-fns/locale";
 import { formatRut, validateRut, cleanRut } from "../lib/rutValidation";
 import DatePickerSingle from "../components/DatePickerSingle";
 import ModalAlert from "../components/ModalAlert";
+import ModalConfirm from "../components/ModalConfirm";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import {
     MapPin, Calendar, Clock, DollarSign, Star, Menu, X, Check,
@@ -290,6 +291,11 @@ export default function SitterDashboardPage() {
 
     // Details Dialogs State
     const [selectedClient, setSelectedClient] = useState<any>(null);
+    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; bookingId: string | null; clientName: string }>({
+        isOpen: false,
+        bookingId: null,
+        clientName: ""
+    });
     const [showClientDialog, setShowClientDialog] = useState(false);
     const [selectedPets, setSelectedPets] = useState<any[]>([]);
     const [showPetDialog, setShowPetDialog] = useState(false);
@@ -481,6 +487,30 @@ export default function SitterDashboardPage() {
             longitud: address.lon,
             direccion_completa: address.display_name
         });
+    };
+
+
+    const handleAcceptClick = (bookingId: string, clientName: string) => {
+        setConfirmModal({
+            isOpen: true,
+            bookingId,
+            clientName
+        });
+    };
+
+    const handleConfirmAccept = async () => {
+        if (!confirmModal.bookingId) return;
+
+        try {
+            const { error } = await supabase.from('viajes').update({ estado: 'confirmado' }).eq('id', confirmModal.bookingId);
+            if (error) throw error;
+            window.location.reload();
+        } catch (err) {
+            console.error(err);
+            alert("Error al aceptar");
+        } finally {
+            setConfirmModal({ isOpen: false, bookingId: null, clientName: "" });
+        }
     };
 
     const handleSaveSection = async (section: string) => {
@@ -1166,17 +1196,7 @@ export default function SitterDashboardPage() {
                                                         </div>
                                                         <div className="flex gap-2 w-full sm:w-auto">
                                                             <button
-                                                                onClick={async () => {
-                                                                    if (!confirm('¿Aceptar esta solicitud de reserva? El cliente será notificado.')) return;
-                                                                    try {
-                                                                        const { error } = await supabase.from('viajes').update({ estado: 'confirmado' }).eq('id', booking.id);
-                                                                        if (error) throw error;
-                                                                        window.location.reload();
-                                                                    } catch (err) {
-                                                                        console.error(err);
-                                                                        alert("Error al aceptar");
-                                                                    }
-                                                                }}
+                                                                onClick={() => handleAcceptClick(booking.id, `${booking.cliente.nombre} ${booking.cliente.apellido_p}`)}
                                                                 className="flex-1 sm:flex-none bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-2"
                                                             >
                                                                 <Check size={14} /> Aceptar
@@ -2137,6 +2157,16 @@ export default function SitterDashboardPage() {
                 }
             `}</style>
 
+            {/* Modal de Confirmación */}
+            <ModalConfirm
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={handleConfirmAccept}
+                title="Aceptar Solicitud"
+                message={`¿Estás seguro de que deseas aceptar la solicitud de reserva de ${confirmModal.clientName}? El cliente será notificado.`}
+                confirmText="Aceptar y Confirmar"
+                cancelText="Cancelar"
+            />
         </>
     );
 }
