@@ -698,7 +698,7 @@ export default function SitterDashboardPage() {
     return (
         <>
             <Head>
-                <title>Panel Sitter â€” Pawnecta</title>
+                <title>Panel Sitter — Pawnecta</title>
             </Head>
 
             <main className="bg-slate-50 min-h-[calc(100vh-80px)]">
@@ -707,10 +707,10 @@ export default function SitterDashboardPage() {
                     <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
                         <div>
                             <h1 className="text-2xl font-bold text-slate-900">
-                                Hola, {displayName} ðŸ‘‹
+                                Hola, {displayName} 👋
                                 {isProfileComplete && (
                                     <span className="ml-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-sm">
-                                        Perfl Completo âœ…
+                                        Perfl Completo ✅
                                     </span>
                                 )}
                             </h1>
@@ -720,10 +720,10 @@ export default function SitterDashboardPage() {
                         </div>
                         <div className="flex items-center gap-3 mt-4 sm:mt-0">
                             <Link href="/sitter/explorar" className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">
-                                ðŸ” Buscar Oportunidades
+                                🔍 Buscar Oportunidades
                             </Link>
                             <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                                Ver perfil público â†—
+                                Ver perfil público ↗
                             </Link>
                         </div>
                     </header>
@@ -948,7 +948,7 @@ export default function SitterDashboardPage() {
 
                                     <div className="pt-2 sm:hidden text-center">
                                         <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="text-xs font-bold text-emerald-600 hover:underline">
-                                            Ver perfil público â†—
+                                            Ver perfil público ↗
                                         </Link>
                                     </div>
 
