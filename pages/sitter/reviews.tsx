@@ -16,16 +16,16 @@ export default function SitterReviewsPage() {
         const fetchSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                // Primero obtenemos el id de sitter asociado al usuario
+                // Primero obtenemos el id de sitter asociado al usuario (auth_user_id)
                 const { data: sitterData } = await supabase
                     .from("registro_petmate")
-                    .select("id")
+                    .select("auth_user_id")
                     .eq("auth_user_id", session.user.id)
                     .single();
 
                 if (sitterData) {
-                    setSitterId(sitterData.id);
-                    fetchReviews(sitterData.id);
+                    setSitterId(sitterData.auth_user_id);
+                    fetchReviews(sitterData.auth_user_id);
                 } else {
                     setLoading(false);
                 }
