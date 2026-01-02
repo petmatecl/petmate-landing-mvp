@@ -286,6 +286,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                             alt={displayName}
                                             fill
                                             className="rounded-full object-cover border-4 border-emerald-50 shadow-sm"
+                                            unoptimized
                                         />
                                         <div className="absolute bottom-1 right-1 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm" title="Verificado">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -489,7 +490,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {petmate.galeria.map((foto, index) => (
                                             <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                                <Image src={foto} alt={`Galería ${index}`} fill className="object-cover" />
+                                                <Image src={foto} alt={`Galería ${index}`} fill className="object-cover" unoptimized />
                                             </div>
                                         ))}
                                     </div>
