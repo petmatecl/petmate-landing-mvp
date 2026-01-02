@@ -94,6 +94,22 @@ const EyeOffIcon = (p: any) => (
   </svg>
 );
 
+const UserIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+const PawIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2c.7 0 1.4.1 2.1.4l.4.2c2.2 1.1 2.6 3.5 1.5 5.5l-.2.4c-.6 1.3-1.8 2.1-3.2 2.3-1.5.2-2.9-.5-3.8-1.7l-.2-.3C7.5 6.6 7.9 4.2 10.1 3l.4-.2c.5-.5 1-.8 1.5-.8z" />
+    <path d="M16.9 7.4c.5-.3 1.1-.3 1.6-.1l.4.2c1.9 1 2.3 3.3 1 5.3l-.2.3c-.7 1.1-2 1.6-3.3 1.4-1.3-.3-2.3-1.3-2.6-2.6l-.1-.4c-.3-2.1 1-4.2 3-5.2l.2.1z" />
+    <path d="M4.6 9.4c.5-.2 1.1-.1 1.6.2l.3.2c1.9 1.1 2.2 3.4.9 5.3l-.2.3c-.6 1.1-1.9 1.6-3.2 1.3-1.3-.3-2.3-1.3-2.5-2.6L1.4 14c-.4-2.1 1-4.2 3-5.2l.2.6z" />
+    <path d="M7 16c-.5 0-1 .2-1.4.5l-.3.2c-1.8 1.6-1.5 4.5.7 5.7l.4.2c1.2.6 2.6.4 3.7-.4.6-.4 1.1-.9 1.4-1.5.3-.6.5-1.3.5-1.9 0-2.1-1.7-3.6-3.8-3.6h-1.2z" />
+    <path d="M16.5 16c-2 0-3.6 1.5-3.5 3.5v.1c.1 1.2.8 2.3 1.9 2.8l.4.2c2.2 1 4.5-.9 4.6-3.2v-.4c-.1-1.7-1.6-3-3.4-3z" />
+  </svg>
+);
+
 type Alojamiento = "en_sitter" | "domicilio";
 
 // Estado de modalidad multi-select Pawnecta Sitter
@@ -384,18 +400,24 @@ export default function RegisterPage() {
           {/* Tabs registro */}
           <div className="tabs" role="tablist" aria-label="Tipo de registro">
             <button
-              className={`tab ${tab === "cliente" ? "active" : ""}`}
+              role="tab"
+              aria-selected={tab === "cliente"}
+              className={`tab ${tab === "cliente" ? "active" : ""} `}
               onClick={() => setTab("cliente")}
               type="button"
             >
-              Necesito un Sitter
+              <UserIcon />
+              <span>Cliente</span>
             </button>
             <button
-              className={`tab ${tab === "petmate" ? "active" : ""}`}
+              role="tab"
+              aria-selected={tab === "petmate"}
+              className={`tab ${tab === "petmate" ? "active" : ""} `}
               onClick={() => setTab("petmate")}
               type="button"
             >
-              Quiero ser Sitter
+              <PawIcon />
+              <span>Sitter</span>
             </button>
           </div>
 
@@ -671,33 +693,37 @@ export default function RegisterPage() {
         .tabs {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 4px;
-          background: #ecfdf5;
-          padding: 4px;
-          border: 1px solid var(--border);
-          border-radius: 999px;
-          margin-bottom: 18px;
+          gap: 12px;
+          margin-bottom: 24px;
         }
         .tab {
           appearance: none;
-          border: 0;
-          padding: 0.8rem 1rem;
-          border-radius: 999px;
-          background: transparent;
+          border: 2px solid #e5e7eb;
+          padding: 1rem;
+          border-radius: 12px;
+          background: #fff;
           font-weight: 800;
           cursor: pointer;
-          color: #047857;
-          transition: all 0.15s ease;
-          text-align: center;
-          font-size: 0.95rem;
+          color: #6b7280;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s ease;
+          font-size: 1rem;
         }
         .tab:hover {
-          background: rgba(255, 255, 255, 0.7);
+          border-color: #d1d5db;
+          background: #f9fafb;
         }
         .tab.active {
-          background: #ffffff;
-          color: #047857;
-          box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+          background: #10b981;
+          border-color: #10b981;
+          color: #fff;
+          box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+        }
+        .tab.active svg {
+          stroke-width: 2.5;
         }
         .card {
           background: #fff;
