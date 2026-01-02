@@ -74,6 +74,7 @@ export default function SitterDashboardPage() {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [ageAlertOpen, setAgeAlertOpen] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
+    const [profileId, setProfileId] = useState<string | null>(null);
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -129,6 +130,7 @@ export default function SitterDashboardPage() {
 
 
                 if (profile) {
+                    setProfileId(profile.id);
                     setProfileData({
                         nombre: profile.nombre || "",
                         apellido_p: profile.apellido_p || "",
@@ -1002,8 +1004,8 @@ export default function SitterDashboardPage() {
                             {/* DISPONIBILIDAD TAB */}
                             {activeTab === 'disponibilidad' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                    {userId ? (
-                                        <AvailabilityCalendar sitterId={userId} />
+                                    {profileId ? (
+                                        <AvailabilityCalendar sitterId={profileId} />
                                     ) : (
                                         <div className="p-8 text-center text-slate-500">Cargando perfil...</div>
                                     )}
