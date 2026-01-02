@@ -91,7 +91,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                                             <span className="text-xs font-bold text-sky-600 uppercase bg-sky-50 px-1.5 py-0.5 rounded">
                                                 {booking.servicio === 'paseo' ? 'Punto de Encuentro' : 'En casa del Cliente'}
                                             </span>
-                                            <p className="text-sm text-slate-700 mt-1">{booking.direccion_cliente || 'Dirección no especificada'}</p>
+                                            <p className="text-sm text-slate-700 mt-1">{booking.direccion?.direccion_completa || booking.direccion_cliente || 'Dirección no especificada'}</p>
                                         </>
                                     )}
                                 </div>
