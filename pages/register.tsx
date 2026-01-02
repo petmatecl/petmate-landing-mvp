@@ -666,6 +666,13 @@ export default function RegisterPage() {
                 <div style={{ marginTop: 12 }}>
                   <GoogleAuthButton role="petmate" text="Registrarse con Google" />
                 </div>
+
+                <p className="muted">
+                  ¿Ya tienes cuenta?{" "}
+                  <Link className="a" href="/login">
+                    Inicia sesión
+                  </Link>
+                </p>
               </form>
             )}
           </div>
