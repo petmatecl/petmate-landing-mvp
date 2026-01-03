@@ -72,6 +72,7 @@ export default function DashboardContent() {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [loadingTrips, setLoadingTrips] = useState(true);
     const [showTripForm, setShowTripForm] = useState(false);
+    const [showBookingSelection, setShowBookingSelection] = useState(false); // New state for selection step
     const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
     // Applications Modal State
@@ -602,6 +603,7 @@ export default function DashboardContent() {
         setMascotas({ dogs: 0, cats: 0 });
         setEditingTripId(null);
         setShowTripForm(false);
+        setShowBookingSelection(false);
     };
 
     const hasPets = myPets.length > 0;
@@ -658,9 +660,9 @@ export default function DashboardContent() {
                         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             Mis Solicitudes
                         </h2>
-                        {!showTripForm && (
+                        {!showTripForm && !showBookingSelection && (
                             <button
-                                onClick={() => setShowTripForm(true)}
+                                onClick={() => setShowBookingSelection(true)}
                                 className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center gap-2"
                             >
                                 <Plus size={16} /> Nueva Solicitud
@@ -670,7 +672,7 @@ export default function DashboardContent() {
 
 
                     {/* Lista de Viajes */}
-                    {!loadingTrips && !showTripForm && trips.length > 0 && (
+                    {!loadingTrips && !showTripForm && !showBookingSelection && trips.length > 0 && (
                         <div className="space-y-8 mb-8">
 
                             {/* Section 0: REQUIRES ACTION (Reservado) */}
@@ -764,11 +766,65 @@ export default function DashboardContent() {
                             <h3 className="text-lg font-bold text-slate-900">Aún no tienes viajes planeados</h3>
                             <p className="text-slate-500 mb-6 max-w-md mx-auto">Crea un viaje para que los sitters disponibles puedan postular y cuidar a tus mascotas.</p>
                             <button
-                                onClick={() => setShowTripForm(true)}
+                                onClick={() => setShowBookingSelection(true)}
                                 className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg"
                             >
                                 Planear mi primer viaje
                             </button>
+                        </div>
+                    )}
+
+                    {/* SELECTION UI: Choose between Public or Direct */}
+                    {showBookingSelection && (
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
+                            <div className="max-w-3xl mx-auto">
+                                <h3 className="text-2xl font-bold text-slate-900 mb-2">¿Cómo deseas encontrar a tu Sitter?</h3>
+                                <p className="text-slate-500 mb-8">Elige la opción que mejor se adapte a tus necesidades.</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Option 1: Public Request */}
+                                    <button
+                                        onClick={() => {
+                                            setShowBookingSelection(false);
+                                            setShowTripForm(true);
+                                        }}
+                                        className="group relative flex flex-col items-center p-8 rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 text-center"
+                                    >
+                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                            📢
+                                        </div>
+                                        <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                            Recomendado
+                                        </div>
+                                        <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">Publicar Solicitud</h4>
+                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                            Haz pública tu solicitud para que los mejores sitters postulen. <br />
+                                            Tendrás más visibilidad y recibirás múltiples ofertas.
+                                        </p>
+                                    </button>
+
+                                    {/* Option 2: Direct Selection */}
+                                    <button
+                                        onClick={() => router.push('/explorar')}
+                                        className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
+                                    >
+                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                            🔍
+                                        </div>
+                                        <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-sky-700 transition-colors">Elegir Sitter Directamente</h4>
+                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                            Explora nuestro catálogo de cuidadores verificados y <br /> selecciona al que más te guste.
+                                        </p>
+                                    </button>
+                                </div>
+
+                                <button
+                                    onClick={() => setShowBookingSelection(false)}
+                                    className="mt-8 text-sm text-slate-400 hover:text-slate-600 font-medium underline decoration-slate-300 underline-offset-4"
+                                >
+                                    Cancelar y volver
+                                </button>
+                            </div>
                         </div>
                     )}
 
