@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, UserX, Search, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search } from "lucide-react";
 
 export type Trip = {
     id: string;
@@ -40,13 +40,13 @@ type Props = {
     onEdit: (trip: Trip) => void;
     onDelete: (id: string) => void;
     onViewApplications?: (trip: Trip) => void;
+    onConfirm?: (trip: Trip) => void;
     onRemoveSitter?: (tripId: string) => void;
     onSearchSitter?: (trip: Trip) => void;
-    clientName?: string;
     serviceAddress?: string;
 };
 
-export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onViewApplications, onRemoveSitter, onSearchSitter, clientName, serviceAddress }: Props) {
+export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onViewApplications, onConfirm, onRemoveSitter, onSearchSitter, serviceAddress }: Props) {
     // Safe date parsing to avoid UTC/Timezone shifts
     const parseDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split('-').map(Number);
@@ -70,10 +70,18 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
     };
 
     return (
-        <div className={`bg-white rounded-2xl p-5 border transition-all hover:shadow-lg ${['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
-            ? 'border-emerald-100 shadow-sm'
-            : 'border-slate-200'
+        <div className={`bg-white rounded-2xl p-5 border transition-all hover:shadow-lg relative overflow-hidden ${['reservado'].includes(trip.estado)
+            ? 'border-amber-200 bg-amber-50/10 shadow-md ring-1 ring-amber-100'
+            : ['confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
+                ? 'border-emerald-100 shadow-sm'
+                : 'border-slate-200'
             }`}>
+
+            {/* ID Badge */}
+            <div className="absolute top-0 left-0 bg-slate-100 text-slate-500 text-[10px] font-mono px-2 py-0.5 rounded-br-lg border-b border-r border-slate-200">
+                #{trip.id.slice(0, 8).toUpperCase()}
+            </div>
+
             {/* Application Badge */}
             {!trip.sitter_asignado && hasApplications && (
                 <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10 animate-pulse">
@@ -81,7 +89,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                 </div>
             )}
 
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-4 pt-3">
                 <div className="flex items-start gap-4 w-full">
                     {/* Icono del Servicio */}
                     <div className={`p-3 rounded-full shrink-0 ${trip.servicio === 'hospedaje' ? 'bg-indigo-50 text-indigo-600' :
@@ -103,6 +111,13 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 {format(startDate, "d 'de' MMMM", { locale: es })}
                                 {endDate && ` – ${format(endDate, "d 'de' MMMM", { locale: es })}`}
                             </h3>
+
+                            {/* Status Pill */}
+                            {trip.estado === 'reservado' && (
+                                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 animate-pulse">
+                                    Por Confirmar
+                                </span>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
@@ -136,11 +151,26 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 3. Else -> Show "Buscando..." status
                             */}
 
+                            {/* ACTION BUTTON FOR 'RESERVADO' */}
+                            {trip.estado === 'reservado' && onConfirm && (
+                                <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                    <p className="text-xs text-amber-800 font-bold mb-2">
+                                        ¡El Sitter ha aceptado! Confirma para finalizar.
+                                    </p>
+                                    <button
+                                        onClick={() => onConfirm(trip)}
+                                        className="w-full bg-slate-900 text-white font-bold py-2 rounded-lg text-xs hover:bg-slate-800 transition-colors shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle2 size={14} /> Confirmar Reserva
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Contact Info Block - Only visible if trip is confirmed */}
                             {trip.sitter_asignado && trip.sitter ? (
                                 <div className="w-full">
                                     {/* CONFIRMED STATE: Show Contact Info */}
-                                    {['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
+                                    {['confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
                                         <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 relative pr-14">
                                             {/* Sitter Photo Top-Right */}
                                             {trip.sitter?.id ? (
@@ -265,33 +295,69 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                             )}
                                         </div>
                                     ) : (
-                                        /* PENDING STATE: Show "Waiting for Sitter" */
-                                        <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-slate-700 flex items-center gap-3">
-                                            {/* Sitter Avatar */}
-                                            <div className="w-10 h-10 rounded-full bg-amber-100 overflow-hidden shrink-0 border border-amber-200">
-                                                {trip.sitter?.foto_perfil ? (
-                                                    <img
-                                                        src={trip.sitter.foto_perfil}
-                                                        alt={trip.sitter.nombre}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-amber-700 font-bold text-sm">
-                                                        {trip.sitter?.nombre?.charAt(0)}
-                                                    </div>
-                                                )}
+                                        // RESERVADO STATE (Specific Message if we didn't use the action above, or just a placeholder)
+                                        trip.estado === 'reservado' ? (
+                                            <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-slate-700 flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-amber-100 overflow-hidden shrink-0 border border-amber-200">
+                                                    {trip.sitter?.foto_perfil ? (
+                                                        <img
+                                                            src={trip.sitter.foto_perfil}
+                                                            alt={trip.sitter.nombre}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-amber-700 font-bold text-sm">
+                                                            {trip.sitter?.nombre?.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-slate-900">
+                                                        {trip.sitter.nombre} aceptó tu solicitud
+                                                    </p>
+                                                    <p className="text-amber-700 flex items-center gap-1.5 mt-0.5 font-medium">
+                                                        Pendiente de tu confirmación
+                                                    </p>
+                                                </div>
                                             </div>
+                                        ) : (
+                                            /* PENDING STATE: Show "Waiting for Sitter" */
+                                            <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-slate-700 flex items-center gap-3">
+                                                {/* Sitter Avatar */}
+                                                <div className="w-10 h-10 rounded-full bg-amber-100 overflow-hidden shrink-0 border border-amber-200">
+                                                    {trip.sitter?.foto_perfil ? (
+                                                        <img
+                                                            src={trip.sitter.foto_perfil}
+                                                            alt={trip.sitter.nombre}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-amber-700 font-bold text-sm">
+                                                            {trip.sitter?.nombre?.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                                            <div className="flex-1">
-                                                <p className="font-bold text-slate-900">
-                                                    Solicitud enviada a {trip.sitter.nombre}
-                                                </p>
-                                                <p className="text-amber-700 flex items-center gap-1.5 mt-0.5 font-medium">
-                                                    <Clock size={12} /> Esperando respuesta...
-                                                </p>
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-slate-900">
+                                                        Solicitud enviada a {trip.sitter.nombre}
+                                                    </p>
+                                                    <p className="text-amber-700 flex items-center gap-1.5 mt-0.5 font-medium">
+                                                        <Clock size={12} /> Esperando respuesta...
+                                                    </p>
+                                                    {onRemoveSitter && (
+                                                        <div className="mt-2 pt-2 border-t border-amber-200">
+                                                            <button
+                                                                onClick={() => onRemoveSitter(trip.id)}
+                                                                className="w-full text-center text-[10px] text-rose-600 font-bold hover:underline"
+                                                            >
+                                                                Cancelar solicitud
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        ))}
                                 </div>
                             ) : hasApplications ? (
                                 <button
@@ -301,25 +367,27 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                     <Users size={14} /> Ver {trip.postulaciones_count} Postulantes
                                 </button>
                             ) : trip.estado === 'publicado' || trip.estado === 'borrador' ? ( // Treat borrador as published for now in UI flow or handle specifically
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
-                                    Publicado (Esperando respuestas...)
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                                        Publicado (Esperando respuestas...)
+                                    </span>
+                                    {onSearchSitter && (
+                                        <button
+                                            onClick={() => onSearchSitter(trip)}
+                                            className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+                                        >
+                                            <Search size={12} /> Buscar
+                                        </button>
+                                    )}
+                                </div>
                             ) : (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 text-slate-500 text-xs font-bold border border-slate-200">
                                     {trip.estado}
                                 </span>
                             )}
 
-                            {/* Search Sitter Button - Only if not assigned */}
-                            {!trip.sitter_asignado && onSearchSitter && (
-                                <button
-                                    onClick={() => onSearchSitter(trip)}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold hover:bg-emerald-200 transition-colors border border-emerald-200"
-                                >
-                                    <Search size={14} /> Buscar Sitter
-                                </button>
-                            )}
+
                         </div>
                     </div>
                 </div>
@@ -341,16 +409,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                         <Trash2 size={16} />
                     </button>
 
-                    {/* Botón para desvincular sitter */}
-                    {trip.sitter_asignado && onRemoveSitter && (
-                        <button
-                            onClick={() => onRemoveSitter(trip.id)}
-                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Cancelar servicio / Desvincular Sitter"
-                        >
-                            <UserX size={16} />
-                        </button>
-                    )}
+
                 </div>
             </div>
         </div>

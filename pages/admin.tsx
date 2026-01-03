@@ -71,7 +71,7 @@ export default function AdminDashboard() {
 
     // ... (rest of state)
 
-    const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "approved">("all");
+    const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "approved" | "confirmed" | "reserved" | "completed" | "cancelled">("all");
 
     // ... (rest of state)
 
@@ -383,9 +383,18 @@ export default function AdminDashboard() {
 
         // 3. Filtro por Estado (Nuevo)
         let matchesStatus = true;
-        if (activeTab !== "solicitudes") { // Solo aplica a usuarios por ahora
-            if (filterStatus === "pending") matchesStatus = !item.aprobado;
-            if (filterStatus === "approved") matchesStatus = item.aprobado;
+        if (filterStatus !== 'all') {
+            if (activeTab === "solicitudes") {
+                const s = item.estado;
+                if (filterStatus === 'pending') matchesStatus = ['pendiente', 'publicado', 'solicitado', 'borrador'].includes(s);
+                if (filterStatus === 'confirmed') matchesStatus = ['confirmado', 'en_curso', 'aceptado', 'pagado'].includes(s);
+                if (filterStatus === 'reserved') matchesStatus = s === 'reservado';
+                if (filterStatus === 'completed') matchesStatus = s === 'completado';
+                if (filterStatus === 'cancelled') matchesStatus = s === 'cancelado';
+            } else {
+                if (filterStatus === "pending") matchesStatus = !item.aprobado;
+                if (filterStatus === "approved") matchesStatus = item.aprobado;
+            }
         }
 
         return matchesTerm && matchesDate && matchesStatus;
@@ -556,17 +565,27 @@ export default function AdminDashboard() {
                     <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto items-end md:items-center">
 
                         {/* Filtro Estado (Solo usuarios) */}
-                        {activeTab !== "solicitudes" && (
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value as any)}
-                                className="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer h-[38px]"
-                            >
-                                <option value="all">Todos</option>
-                                <option value="pending">Pendientes</option>
-                                <option value="approved">Aprobados</option>
-                            </select>
-                        )}
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value as any)}
+                            className="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer h-[38px]"
+                        >
+                            <option value="all">Todos los Estados</option>
+                            {activeTab === "solicitudes" ? (
+                                <>
+                                    <option value="pending">Pendientes / Buscando</option>
+                                    <option value="confirmed">Confirmados / En Curso</option>
+                                    <option value="reserved">Por Confirmar (Reservado)</option>
+                                    <option value="completed">Completados</option>
+                                    <option value="cancelled">Cancelados</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value="pending">Pendientes de Aprobación</option>
+                                    <option value="approved">Aprobados</option>
+                                </>
+                            )}
+                        </select>
 
                         {/* Filtros de Fecha */}
                         <div className="flex gap-2">
@@ -630,7 +649,9 @@ export default function AdminDashboard() {
                                 <tr>
                                     {activeTab === "solicitudes" ? (
                                         <>
-                                            <th className="px-6 py-4">ID / Estado</th>
+                                            <th className="px-6 py-4">ID</th>
+                                            <th className="px-6 py-4">Origen</th>
+                                            <th className="px-6 py-4">Estado</th>
                                             <th className="px-6 py-4">Cliente</th>
                                             <th className="px-6 py-4">Sitter Asignado</th>
                                             <th className="px-6 py-4">Detalles</th>
@@ -652,7 +673,7 @@ export default function AdminDashboard() {
                             <tbody className="divide-y divide-slate-100">
                                 {tableLoading ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center">
+                                        <td colSpan={8} className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center justify-center">
                                                 <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                                                 <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
@@ -661,7 +682,7 @@ export default function AdminDashboard() {
                                     </tr>
                                 ) : paginatedItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center">
+                                        <td colSpan={8} className="px-6 py-12 text-center">
                                             <div className="text-slate-400 mb-2">No se encontraron resultados</div>
                                             {searchTerm && <button onClick={() => setSearchTerm("")} className="text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
                                         </td>
@@ -673,13 +694,26 @@ export default function AdminDashboard() {
                                             return (
                                                 <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                                                     <td className="px-6 py-4">
-                                                        <div className="font-mono text-xs text-slate-400 mb-1">{(item.id || "").slice(0, 8)}</div>
+                                                        <div className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {item.postulaciones_count > 0 ? (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                                                                🌐 Public
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                                                                Directa
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
                                                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold 
                                                             ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
                                                                 item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
                                                                     item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
-                                                                        item.estado === 'reservado' ? 'bg-teal-100 text-teal-700' :
-                                                                            item.estado === 'solicitado' ? 'bg-amber-100 text-amber-700' :
+                                                                        item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
+                                                                            item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
                                                                                 item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
                                                                                     'bg-slate-100 text-slate-700'}`}>
                                                             {(item.estado || "Desconocido").toUpperCase()}
@@ -869,27 +903,26 @@ export default function AdminDashboard() {
                         </div>
                     )}
                 </div>
-            </main >
+                {/* Modal de Detalle (Genérico para Sitter y Cliente) */}
+                <SitterDetailModal
+                    sitter={selectedSitter}
+                    open={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onApprove={toggleApproval}
+                    onViewDocument={handleViewDocument}
+                />
 
-            {/* Modal de Detalle (Genérico para Sitter y Cliente) */}
-            <SitterDetailModal
-                sitter={selectedSitter}
-                open={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onApprove={toggleApproval}
-                onViewDocument={handleViewDocument}
-            />
-
-            {/* Modal Global de Confirmación */}
-            <ConfirmationModal
-                isOpen={confirmModal.isOpen}
-                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                onConfirm={confirmModal.onConfirm}
-                title={confirmModal.title}
-                message={confirmModal.message}
-                confirmText={confirmModal.confirmText}
-                isDestructive={confirmModal.isDestructive}
-            />
-        </div >
+                {/* Modal Global de Confirmación */}
+                <ConfirmationModal
+                    isOpen={confirmModal.isOpen}
+                    onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    onConfirm={confirmModal.onConfirm}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    confirmText={confirmModal.confirmText}
+                    isDestructive={confirmModal.isDestructive}
+                />
+            </main>
+        </div>
     );
 }

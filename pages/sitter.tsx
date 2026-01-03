@@ -1168,7 +1168,7 @@ export default function SitterDashboardPage() {
                                                     <div key={booking.id} className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
-                                                                <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p}</span>
+                                                                <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
                                                                 <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold uppercase border border-slate-200">Nueva Solicitud</span>
                                                             </div>
                                                             <div className="text-xs text-slate-500 flex flex-col gap-1">
@@ -1225,7 +1225,7 @@ export default function SitterDashboardPage() {
                                                     <div key={booking.id} className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
-                                                                <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p}</span>
+                                                                <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
                                                                 <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold uppercase border border-slate-200">Aceptado</span>
                                                             </div>
                                                             <div className="text-xs text-slate-500 flex flex-col gap-1">
@@ -1274,7 +1274,7 @@ export default function SitterDashboardPage() {
                                             <div className="grid gap-3">
                                                 {bookings.filter(b => b.estado === 'pendiente').map(booking => (
                                                     <div key={booking.id} className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
-                                                        <span className="text-sm font-bold">{booking.cliente.nombre}</span>
+                                                        <span className="text-sm font-bold">{booking.cliente.nombre} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1294,6 +1294,7 @@ export default function SitterDashboardPage() {
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-sm font-bold text-slate-900">
                                                                     {app.viaje?.cliente?.nombre || "Cliente"} {app.viaje?.cliente?.apellido_p || ""}
+                                                                    {app.viaje?.id && <span className="font-mono text-xs text-slate-400 font-normal ml-1">#{app.viaje.id.slice(0, 6).toUpperCase()}</span>}
                                                                 </span>
                                                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase
                                                                     ${app.estado === 'pendiente' ? 'bg-slate-100 text-slate-700' :

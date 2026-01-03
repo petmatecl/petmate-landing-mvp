@@ -500,6 +500,33 @@ export default function DashboardContent() {
         router.push(`/explorar?${params.toString()}`);
     };
 
+    const handleConfirmBooking = (trip: Trip) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: "Confirmar Reserva",
+            message: "Al confirmar, notificaremos al Sitter que estás listo para comenzar. Revisa que los detalles sean correctos.",
+            confirmText: "Sí, Confirmar Reserva",
+            isDestructive: false,
+            onConfirm: async () => {
+                try {
+                    const { error } = await supabase
+                        .from("viajes")
+                        .update({ estado: 'confirmado' })
+                        .eq("id", trip.id);
+
+                    if (error) throw error;
+
+                    if (userId) fetchTrips(userId);
+                    showAlert("¡Reserva Confirmada!", "El servicio ha sido confirmado exitosamente.", "success");
+                } catch (err: any) {
+                    console.error(err);
+                    showAlert("Error", "No se pudo confirmar la reserva.", "error");
+                }
+                closeConfirm();
+            }
+        });
+    };
+
     const handleSaveTrip = async () => {
         if (!userId) return;
 
@@ -641,30 +668,59 @@ export default function DashboardContent() {
                         )}
                     </div>
 
+
                     {/* Lista de Viajes */}
                     {!loadingTrips && !showTripForm && trips.length > 0 && (
                         <div className="space-y-8 mb-8">
-                            {/* Section 1: Confirmed / Active Trips */}
-                            {trips.filter(t => ['reservado', 'confirmado', 'completado'].includes(t.estado)).length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
-                                        <CheckCircle2 size={16} /> Solicitudes Confirmadas
+
+                            {/* Section 0: REQUIRES ACTION (Reservado) */}
+                            {trips.filter(t => t.estado === 'reservado').length > 0 && (
+                                <div className="animate-in slide-in-from-left-4 duration-500">
+                                    <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wide mb-3 pl-1 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100 flex items-center gap-2">
+                                        <Clock size={16} /> Requiere tu Atención
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4">
                                         {trips
-                                            .filter(t => ['reservado', 'confirmado', 'completado'].includes(t.estado))
+                                            .filter(t => t.estado === 'reservado')
                                             .map(trip => (
                                                 <TripCard
                                                     key={trip.id}
                                                     trip={trip}
                                                     onEdit={handleEditTripNew}
                                                     onDelete={handleDeleteTrip}
+                                                    onConfirm={handleConfirmBooking}
                                                     onViewApplications={handleViewApplications}
                                                     onRemoveSitter={handleRemoveSitter}
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
                                                     pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
-                                                    clientName={clientProfile ? `${clientProfile.nombre} ${clientProfile.apellido_p}` : ""}
+                                                    serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
+                                                />
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section 1: Confirmed / Active Trips */}
+                            {trips.filter(t => ['confirmado', 'completado'].includes(t.estado)).length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
+                                        <CheckCircle2 size={16} /> Solicitudes Confirmadas
+                                    </h3>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {trips
+                                            .filter(t => ['confirmado', 'completado'].includes(t.estado))
+                                            .map(trip => (
+                                                <TripCard
+                                                    key={trip.id}
+                                                    trip={trip}
+                                                    onEdit={handleEditTripNew}
+                                                    onDelete={handleDeleteTrip} // No confirm needed here
+                                                    onViewApplications={handleViewApplications}
+                                                    onRemoveSitter={handleRemoveSitter}
+                                                    onSearchSitter={handleSearchSitter}
+                                                    petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
                                                     serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
                                                 />
                                             ))}
@@ -692,7 +748,6 @@ export default function DashboardContent() {
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
                                                     pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
-                                                    clientName={clientProfile ? `${clientProfile.nombre} ${clientProfile.apellido_p}` : ""}
                                                     serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
                                                 />
                                             ))}
