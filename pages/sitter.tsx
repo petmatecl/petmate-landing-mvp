@@ -166,7 +166,8 @@ export default function SitterDashboardPage() {
                         latitud: profile.latitud,
                         longitud: profile.longitud,
                         direccion_completa: profile.direccion_completa || "",
-                        tamanos_perros: profile.tamanos_perros || []
+                        tamanos_perros: profile.tamanos_perros || [],
+                        aprobado: profile.aprobado || false
                     });
                     setBackupProfileData(profile); // Save backup for cancel
                 }
@@ -285,7 +286,8 @@ export default function SitterDashboardPage() {
         latitud: null,
         longitud: null,
         direccion_completa: "",
-        tamanos_perros: []
+        tamanos_perros: [],
+        aprobado: false // Initialize
     });
 
     // Privacy Notice State
