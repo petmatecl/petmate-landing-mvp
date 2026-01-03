@@ -40,6 +40,14 @@ export const BLOG_POSTS: BlogPost[] = [
             <div class="alert alert-info">
                 <strong>Consejo Pro:</strong> Si notas que tu mascota respira con dificultad o babea excesivamente, busca sombra y ofrécele agua inmediatamente.
             </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100">
+                <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Fuentes y Referencias</h4>
+                <ul class="text-xs text-slate-400 space-y-1">
+                    <li><a href="https://www.aspca.org/pet-care/general-pet-care/hot-weather-safety-tips" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">ASPCA - Hot Weather Safety Tips</a></li>
+                    <li><a href="https://www.akc.org/expert-advice/health/summer-safety-tips-for-dogs/" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">American Kennel Club (AKC) - Summer Safety</a></li>
+                </ul>
+            </div>
         `
     },
     {
@@ -75,6 +83,14 @@ export const BLOG_POSTS: BlogPost[] = [
 
             <h3>Razas de Mayor Riesgo</h3>
             <p>Los perros braquicéfalos (ñatos) como Pugs, Bulldogs y Boxers tienen mayor dificultad para jadear y enfriarse, por lo que requieren cuidados extremos.</p>
+
+            <div class="mt-8 pt-6 border-t border-slate-100">
+                <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Fuentes y Referencias</h4>
+                <ul class="text-xs text-slate-400 space-y-1">
+                    <li><a href="https://www.avma.org/resources-tools/pet-owners/petcare/warm-weather-pet-safety" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">American Veterinary Medical Association (AVMA) - Warm Weather Pet Safety</a></li>
+                    <li><a href="https://www.humanesociety.org/resources/keep-pets-safe-heat" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">The Humane Society - Keep Pets Safe in the Heat</a></li>
+                </ul>
+            </div>
         `
     }
 ];

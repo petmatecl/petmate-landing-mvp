@@ -2,8 +2,6 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { GetStaticProps, GetStaticPaths } from "next";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
 import { BLOG_POSTS, BlogPost } from "../../lib/blogData";
 import { Calendar, Clock, User, ChevronLeft, Share2 } from "lucide-react";
 
@@ -15,7 +13,7 @@ export default function BlogPostPage({ post }: Props) {
     if (!post) return null;
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="bg-slate-50 min-h-screen pb-20 pt-24 font-sans text-slate-600 antialiased">
             <Head>
                 <title>{post.title} — Blog Pawnecta</title>
                 <meta name="description" content={post.excerpt} />
@@ -27,36 +25,51 @@ export default function BlogPostPage({ post }: Props) {
                 <meta property="og:type" content="article" />
             </Head>
 
-            <main className="pt-24 pb-20">
-                {/* Article Header */}
-                <article className="max-w-3xl mx-auto px-4 sm:px-6">
-                    <Link href="/blog" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-emerald-600 mb-8 transition-colors">
+            <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                {/* Back Link */}
+                <div className="mb-8">
+                    <Link href="/blog" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors">
                         <ChevronLeft size={16} className="mr-1" /> Volver al Blog
                     </Link>
+                </div>
 
-                    <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
-                        {post.title}
-                    </h1>
+                {/* Article Card - Paper Style */}
+                <article className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100 overflow-hidden">
 
-                    <div className="flex flex-wrap items-center gap-6 text-sm text-slate-500 mb-8 border-b border-slate-100 pb-8">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
-                                <User size={16} />
+                    {/* Header */}
+                    <header className="mb-10 text-center md:text-left border-b border-slate-100 pb-10">
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
+                            {post.tags.map(tag => (
+                                <span key={tag} className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 uppercase tracking-wide">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+
+                        <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
+                            {post.title}
+                        </h1>
+
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm text-slate-500 font-medium">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                                    <User size={16} />
+                                </div>
+                                <span className="text-slate-900">{post.author}</span>
                             </div>
-                            <span className="font-medium text-slate-900">{post.author}</span>
+                            <div className="flex items-center gap-1.5">
+                                <Calendar size={16} className="text-slate-400" />
+                                <span>{post.date}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <Clock size={16} className="text-slate-400" />
+                                <span>{post.readTime}</span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <Calendar size={16} />
-                            <span>{post.date}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <Clock size={16} />
-                            <span>{post.readTime}</span>
-                        </div>
-                    </div>
+                    </header>
 
                     {/* Featured Image */}
-                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-10 shadow-lg">
+                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-12 shadow-sm border border-slate-100">
                         <Image
                             src={post.coverImage}
                             alt={post.title}
@@ -68,29 +81,27 @@ export default function BlogPostPage({ post }: Props) {
 
                     {/* Content */}
                     <div
-                        className="prose prose-slate prose-lg md:prose-xl max-w-none 
-                        prose-headings:text-slate-900 prose-headings:font-bold
-                        prose-p:text-slate-600 prose-p:leading-relaxed
-                        prose-a:text-emerald-600 prose-a:no-underline hover:prose-a:underline
-                        prose-strong:text-slate-800
-                        prose-li:text-slate-600
-                        prose-img:rounded-xl"
+                        className="prose prose-slate prose-lg max-w-none 
+                        prose-headings:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight
+                        prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg
+                        prose-a:text-emerald-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                        prose-strong:text-slate-800 prose-strong:font-bold
+                        prose-li:text-slate-600 prose-li:marker:text-emerald-500
+                        prose-blockquote:border-l-4 prose-blockquote:border-emerald-200 prose-blockquote:bg-emerald-50/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
+                        prose-img:rounded-2xl prose-img:shadow-sm"
                         dangerouslySetInnerHTML={{ __html: post.content }}
                     />
 
-                    {/* Tags & Share */}
-                    <div className="mt-12 pt-8 border-t border-slate-100 flex items-center justify-between">
-                        <div className="flex gap-2">
-                            {post.tags.map(tag => (
-                                <span key={tag} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-sm font-medium">
-                                    #{tag}
-                                </span>
-                            ))}
+                    {/* Share / Footer of Article */}
+                    <div className="mt-16 pt-8 border-t border-slate-100 flex items-center justify-between text-slate-400 text-sm">
+                        <span>Compartir este artículo</span>
+                        <div className="flex gap-4">
+                            <button className="hover:text-emerald-600 transition-colors"><Share2 size={20} /></button>
+                            {/* Add more social icons if needed */}
                         </div>
                     </div>
                 </article>
             </main>
-
         </div>
     );
 }

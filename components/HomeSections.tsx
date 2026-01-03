@@ -18,7 +18,7 @@ export function ValueProps() {
     },
     {
       name: "Confianza total",
-      description: "Cada Pawnecta Sitter es verificado manualmente. Revisa sus reseñas reales y agenda una visita previa gratuita.",
+      description: "Cada Pawnecta Sitter es verificado manualmente. Revisa sus reseñas reales y coordina directamente el servicio.",
       icon: ShieldCheckIcon,
     },
     {
@@ -76,7 +76,7 @@ export function HowItWorks() {
     {
       id: "02",
       name: "Elige al mejor",
-      description: "Revisa los perfiles de los sitters interesados, chatea con ellos y coordina una visita previa.",
+      description: "Contactate con ellos y coordina el servicio. No podemos asegurar una visita previa ni tampoco que la comunicación sea vía chat. Recuerda que por el momento solo conectaremos, sin monetizar, por lo que al haber match entregamos los datos de contactos de ambas partes.",
       icon: ChatBubbleLeftRightIcon,
     },
     {
