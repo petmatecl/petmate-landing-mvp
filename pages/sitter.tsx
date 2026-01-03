@@ -96,6 +96,7 @@ export default function SitterDashboardPage() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil' | 'disponibilidad'>('solicitudes');
+    const [availabilityCount, setAvailabilityCount] = useState(0);
 
     // Helpers for Price Formatting
     const formatPrice = (value: number | null | undefined) => {
@@ -222,6 +223,15 @@ export default function SitterDashboardPage() {
                     setPetsCache(cache);
                 }
             }
+
+            // 4. Fetch Availability Count (Future dates only)
+            const { count: availCount } = await supabase
+                .from('sitter_availability')
+                .select('*', { count: 'exact', head: true })
+                .eq('sitter_id', userId)
+                .gte('available_date', new Date().toISOString().split('T')[0]);
+
+            setAvailabilityCount(availCount || 0);
         };
         fetchBookings();
     }, [userId]);
@@ -387,6 +397,13 @@ export default function SitterDashboardPage() {
     );
 
     const isProfileIncomplete = !isProfileComplete;
+
+    const isServicesComplete = Boolean(
+        (profileData.servicio_a_domicilio && profileData.tarifa_servicio_a_domicilio) ||
+        (profileData.servicio_en_casa && profileData.tarifa_servicio_en_casa)
+    );
+
+    const isAvailabilityComplete = availabilityCount > 0;
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -977,6 +994,7 @@ export default function SitterDashboardPage() {
                                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'servicios' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <Briefcase size={18} /> Servicios
+                                    {isServicesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                                 </button>
                                 <div className="w-px bg-slate-100 my-2"></div>
                                 <button
@@ -984,6 +1002,7 @@ export default function SitterDashboardPage() {
                                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'disponibilidad' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <Calendar size={18} /> Disponibilidad
+                                    {isAvailabilityComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                                 </button>
                                 <div className="w-px bg-slate-100 my-2"></div>
                                 <button
