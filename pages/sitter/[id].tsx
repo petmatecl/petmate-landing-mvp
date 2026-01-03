@@ -46,6 +46,8 @@ interface PublicProfileProps {
         latitud?: number;
         longitud?: number;
         videos?: string[];
+        cuida_perros?: boolean;
+        cuida_gatos?: boolean;
     } | null;
     error?: string;
     id?: string;
