@@ -38,6 +38,11 @@ export function Footer() {
                 Estadía en casa del Sitter
               </Link>
             </li>
+            <li>
+              <Link href="/blog" className="hover:text-emerald-600 transition-colors">
+                Blog
+              </Link>
+            </li>
 
           </ul>
         </div>

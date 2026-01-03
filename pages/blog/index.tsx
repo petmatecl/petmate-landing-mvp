@@ -14,8 +14,6 @@ export default function BlogIndex() {
                 <meta name="description" content="Descubre consejos, guías y noticias sobre el cuidado de perros y gatos en el Blog de PetMate Chile." />
             </Head>
 
-            <Header />
-
             <main className="pt-24 pb-20">
                 {/* Hero Section */}
                 <div className="bg-slate-50 py-16 mb-16 border-b border-slate-100">
@@ -86,8 +84,6 @@ export default function BlogIndex() {
                     </div>
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 }

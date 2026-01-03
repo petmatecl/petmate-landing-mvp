@@ -27,8 +27,6 @@ export default function BlogPostPage({ post }: Props) {
                 <meta property="og:type" content="article" />
             </Head>
 
-            <Header />
-
             <main className="pt-24 pb-20">
                 {/* Article Header */}
                 <article className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -93,8 +91,9 @@ export default function BlogPostPage({ post }: Props) {
                 </article>
             </main>
 
-            <Footer />
-        </div>
+        </article>
+            </main >
+        </div >
     );
 }
 
