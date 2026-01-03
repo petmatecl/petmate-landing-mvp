@@ -32,7 +32,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                 </div>
                 <div className="text-right">
                     <div className="inline-block bg-slate-900 text-white px-3 py-1 rounded font-bold text-sm uppercase tracking-wide">
-                        {booking.estado === 'confirmado' || booking.estado === 'confirmada' ? 'Confirmado' : booking.estado}
+                        {booking.estado === 'confirmado' ? 'Confirmado' : booking.estado === 'solicitado' ? 'Solicitud Pendiente' : booking.estado}
                     </div>
                     <p className="text-sm text-slate-500 mt-2">
                         Impreso el: {format(new Date(), "d 'de' MMMM, yyyy", { locale: es })}

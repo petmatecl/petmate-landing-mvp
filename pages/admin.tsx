@@ -677,8 +677,11 @@ export default function AdminDashboard() {
                                                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold 
                                                             ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
                                                                 item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
-                                                                    item.estado === 'reservado' ? 'bg-emerald-100 text-emerald-700' :
-                                                                        'bg-slate-100 text-slate-700'}`}>
+                                                                    item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
+                                                                        item.estado === 'reservado' ? 'bg-teal-100 text-teal-700' :
+                                                                            item.estado === 'solicitado' ? 'bg-amber-100 text-amber-700' :
+                                                                                item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
+                                                                                    'bg-slate-100 text-slate-700'}`}>
                                                             {(item.estado || "Desconocido").toUpperCase()}
                                                         </span>
                                                     </td>

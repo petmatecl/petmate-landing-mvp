@@ -645,14 +645,14 @@ export default function DashboardContent() {
                     {!loadingTrips && !showTripForm && trips.length > 0 && (
                         <div className="space-y-8 mb-8">
                             {/* Section 1: Confirmed / Active Trips */}
-                            {trips.filter(t => ['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado)).length > 0 && (
+                            {trips.filter(t => ['reservado', 'confirmado', 'completado'].includes(t.estado)).length > 0 && (
                                 <div>
                                     <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
                                         <CheckCircle2 size={16} /> Solicitudes Confirmadas
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4">
                                         {trips
-                                            .filter(t => ['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado))
+                                            .filter(t => ['reservado', 'confirmado', 'completado'].includes(t.estado))
                                             .map(trip => (
                                                 <TripCard
                                                     key={trip.id}
@@ -673,14 +673,14 @@ export default function DashboardContent() {
                             )}
 
                             {/* Section 2: Pending / Published / Draft Trips */}
-                            {trips.filter(t => !['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado)).length > 0 && (
+                            {trips.filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado)).length > 0 && (
                                 <div>
                                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3 pl-1 flex items-center gap-2">
                                         <Clock size={16} /> Solicitudes Pendientes
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4">
                                         {trips
-                                            .filter(t => !['reservado', 'confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(t.estado))
+                                            .filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado))
                                             .map(trip => (
                                                 <TripCard
                                                     key={trip.id}
