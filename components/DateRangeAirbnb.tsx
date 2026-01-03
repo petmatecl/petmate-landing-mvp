@@ -46,7 +46,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
   return (
     <div className={`relative ${className || ""}`}>
       {/* Trigger tipo Airbnb: 2 campos en fila */}
-      <div className="space-y-1 max-w-md">
+      <div className="space-y-1 max-w-3xl">
         {!hideLabel && (
           <label className="block text-sm font-medium text-slate-900">
             Fechas del viaje
@@ -118,8 +118,8 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
                 mode="range"
                 numberOfMonths={2}
                 selected={range}
-                onSelect={setRange}
-                disabled={{ before: minDate ?? new Date() }}
+                onSelect={(r) => setRange(r)}
+                disabled={{ before: minDate ?? new Date(new Date().setHours(0, 0, 0, 0)) }}
                 weekStartsOn={1}
                 showOutsideDays={false}
                 className="mx-auto"
