@@ -72,7 +72,7 @@ export default function DashboardContent() {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [loadingTrips, setLoadingTrips] = useState(true);
     const [showTripForm, setShowTripForm] = useState(false);
-    const [showBookingSelection, setShowBookingSelection] = useState(false); // New state for selection step
+
     const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
     // Applications Modal State
@@ -603,7 +603,59 @@ export default function DashboardContent() {
         setMascotas({ dogs: 0, cats: 0 });
         setEditingTripId(null);
         setShowTripForm(false);
-        setShowBookingSelection(false);
+
+    };
+
+
+    // --- New Handler: Search Directly with Validation ---
+    const handleSearchDirectly = () => {
+        // 1. Validate same inputs as 'SaveTrip'
+        if (!rango?.from || !rango?.to) {
+            showAlert('Fechas requeridas', 'Por favor selecciona las fechas de inicio y fin.', 'warning');
+            return;
+        }
+        if (mascotas.dogs === 0 && mascotas.cats === 0) {
+            showAlert('Mascotas requeridas', 'Debes indicar cuántos perros y/o gatos viajarán.', 'warning');
+            return;
+        }
+        if (servicio === 'domicilio' && !selectedAddressId) {
+            showAlert('Dirección requerida', 'Para servicio a domicilio debes seleccionar una dirección.', 'warning');
+            return;
+        }
+
+        // 2. Build Query Params
+        const params = new URLSearchParams();
+
+        // Dates
+        params.append('from', format(rango.from, 'yyyy-MM-dd'));
+        params.append('to', format(rango.to, 'yyyy-MM-dd'));
+
+        // Service (explorar uses 'a_domicilio', 'en_casa_petmate')
+        if (servicio === 'domicilio') {
+            params.append('service', 'a_domicilio');
+            // If domicilio, we might want to pass lat/lng of selected address to filter nearby sitters
+            // (Assuming 'addresses' has this data if needed, or we rely on user filtering in Explore)
+            const addr = addresses.find(a => a.id === selectedAddressId);
+            if (addr && addr.latitud && addr.longitud) {
+                params.append('lat', addr.latitud.toString());
+                params.append('lng', addr.longitud.toString());
+                params.append('comuna', addr.comuna || '');
+            }
+        } else {
+            params.append('service', 'en_casa_petmate');
+            // If hosting, maybe filter by user's base location or let them choose? 
+            // Currently Explore uses map center. We can pass user's base district if known.
+            if (profileFormData.comuna) {
+                params.append('location', profileFormData.comuna);
+            }
+        }
+
+        // Pets
+        params.append('dogs', mascotas.dogs.toString());
+        params.append('cats', mascotas.cats.toString());
+
+        // Redirect
+        router.push(`/explorar?${params.toString()}`);
     };
 
     const hasPets = myPets.length > 0;
@@ -660,9 +712,9 @@ export default function DashboardContent() {
                         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             Mis Solicitudes
                         </h2>
-                        {!showTripForm && !showBookingSelection && (
+                        {!showTripForm && (
                             <button
-                                onClick={() => setShowBookingSelection(true)}
+                                onClick={() => setShowTripForm(true)}
                                 className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center gap-2"
                             >
                                 <Plus size={16} /> Nueva Solicitud
@@ -672,7 +724,7 @@ export default function DashboardContent() {
 
 
                     {/* Lista de Viajes */}
-                    {!loadingTrips && !showTripForm && !showBookingSelection && trips.length > 0 && (
+                    {!loadingTrips && !showTripForm && trips.length > 0 && (
                         <div className="space-y-8 mb-8">
 
                             {/* Section 0: REQUIRES ACTION (Reservado) */}
@@ -766,7 +818,8 @@ export default function DashboardContent() {
                             <h3 className="text-lg font-bold text-slate-900">Aún no tienes viajes planeados</h3>
                             <p className="text-slate-500 mb-6 max-w-md mx-auto">Crea un viaje para que los sitters disponibles puedan postular y cuidar a tus mascotas.</p>
                             <button
-                                onClick={() => setShowBookingSelection(true)}
+
+                                onClick={() => setShowTripForm(true)}
                                 className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg"
                             >
                                 Planear mi primer viaje
@@ -774,59 +827,6 @@ export default function DashboardContent() {
                         </div>
                     )}
 
-                    {/* SELECTION UI: Choose between Public or Direct */}
-                    {showBookingSelection && (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
-                            <div className="max-w-3xl mx-auto">
-                                <h3 className="text-2xl font-bold text-slate-900 mb-2">¿Cómo deseas encontrar a tu Sitter?</h3>
-                                <p className="text-slate-500 mb-8">Elige la opción que mejor se adapte a tus necesidades.</p>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Option 1: Public Request */}
-                                    <button
-                                        onClick={() => {
-                                            setShowBookingSelection(false);
-                                            setShowTripForm(true);
-                                        }}
-                                        className="group relative flex flex-col items-center p-8 rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 text-center"
-                                    >
-                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                            📢
-                                        </div>
-                                        <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                                            Recomendado
-                                        </div>
-                                        <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">Publicar Solicitud</h4>
-                                        <p className="text-sm text-slate-500 leading-relaxed">
-                                            Haz pública tu solicitud para que los mejores sitters postulen. <br />
-                                            Tendrás más visibilidad y recibirás múltiples ofertas.
-                                        </p>
-                                    </button>
-
-                                    {/* Option 2: Direct Selection */}
-                                    <button
-                                        onClick={() => router.push('/explorar')}
-                                        className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
-                                    >
-                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                            🔍
-                                        </div>
-                                        <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-sky-700 transition-colors">Elegir Sitter Directamente</h4>
-                                        <p className="text-sm text-slate-500 leading-relaxed">
-                                            Explora nuestro catálogo de cuidadores verificados y <br /> selecciona al que más te guste.
-                                        </p>
-                                    </button>
-                                </div>
-
-                                <button
-                                    onClick={() => setShowBookingSelection(false)}
-                                    className="mt-8 text-sm text-slate-400 hover:text-slate-600 font-medium underline decoration-slate-300 underline-offset-4"
-                                >
-                                    Cancelar y volver
-                                </button>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Formulario de Creación / Edición */}
                     {showTripForm && (
@@ -957,13 +957,43 @@ export default function DashboardContent() {
 
                                     </div>
 
-                                    <div className="mt-8 flex justify-end">
-                                        <button
-                                            onClick={handleSaveTrip}
-                                            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95"
-                                        >
-                                            {loadingTrips ? 'Guardando...' : (editingTripId ? 'Guardar Cambios' : 'Publicar Solicitud')} <span className="text-slate-400 text-sm font-normal">({rango?.from ? format(rango.from, 'd MMM', { locale: es }) : '...'})</span> ✈️
-                                        </button>
+                                    <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-100 pt-6">
+
+                                        {!editingTripId && (
+                                            <div className="flex-1 w-full md:w-auto text-left">
+                                                <p className="text-xs text-slate-400">
+                                                    Completa los datos para ver opciones de sitters o publicar.
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                                            {/* Secondary Action: Search */}
+                                            {!editingTripId && (
+                                                <button
+                                                    onClick={handleSearchDirectly}
+                                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 hover:border-emerald-500 hover:text-emerald-700 text-slate-600 font-bold rounded-xl transition-all"
+                                                >
+                                                    <div className="p-1 bg-slate-100 rounded-full">
+                                                        <User size={16} />
+                                                    </div>
+                                                    Elegir Sitter
+                                                </button>
+                                            )}
+
+                                            {/* Primary Action: Publish / Save */}
+                                            <button
+                                                onClick={handleSaveTrip}
+                                                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
+                                            >
+                                                {loadingTrips ? 'Procesando...' : (editingTripId ? 'Guardar Cambios' : 'Publicar Solicitud')}
+                                                {!loadingTrips && (
+                                                    <div className="p-0.5 bg-emerald-700/50 rounded-full">
+                                                        {editingTripId ? <Save size={14} /> : <Plus size={14} />}
+                                                    </div>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

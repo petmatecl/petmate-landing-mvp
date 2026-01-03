@@ -252,7 +252,8 @@ export default function SitterDashboardPage() {
         contact: true,
         personal: true,
         profile: true,
-        services: true
+        services: true,
+        documents: true
     });
 
     const toggleSection = (section: string) => {
@@ -862,57 +863,7 @@ export default function SitterDashboardPage() {
                                         </Link>
                                     </div>
 
-                                    {/* Documentos */}
-                                    <div>
-                                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                            <FileCheck size={14} className="text-slate-400" /> Documentación
-                                        </h4>
-                                        {profileData.certificado_antecedentes ? (
-                                            <div className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm group/file transition-colors">
-                                                <div className="p-2.5 bg-slate-100 text-slate-500 rounded-lg transition-colors">
-                                                    <FileText size={20} />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-bold text-slate-700 truncate">Antecedentes.pdf</p>
-                                                    <div className="flex gap-3 mt-1.5">
-                                                        <button
-                                                            onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
-                                                            className="text-[10px] font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors"
-                                                        >
-                                                            <Eye size={10} /> Ver
-                                                        </button>
-                                                        <button
-                                                            onClick={handleDeleteDocument}
-                                                            disabled={uploading}
-                                                            className="text-[10px] font-bold text-slate-400 hover:text-red-600 flex items-center gap-1 transition-colors"
-                                                        >
-                                                            {uploading ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />} Eliminar
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div className="text-slate-400">
-                                                    <CheckCircle2 size={16} />
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <label className="flex flex-col items-center justify-center gap-2 p-4 border border-dashed border-slate-300 rounded-xl hover:border-slate-400 hover:bg-slate-50 cursor-pointer transition-all group/upload">
-                                                <div className="p-3 bg-slate-50 text-slate-400 rounded-full group-hover/upload:text-slate-600 transition-colors">
-                                                    <Upload size={20} />
-                                                </div>
-                                                <div className="text-center">
-                                                    <p className="text-xs font-bold text-slate-600 group-hover/upload:text-slate-800">Subir Certificado</p>
-                                                    <p className="text-[10px] text-slate-400">PDF o Imagen</p>
-                                                </div>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*,.pdf"
-                                                    className="hidden"
-                                                    onChange={handleCertUpload}
-                                                    disabled={uploading}
-                                                />
-                                            </label>
-                                        )}
-                                    </div>
+                                    {/* Documentación MOVED TO MI PERFIL TAB */}
 
                                     {/* Galería */}
                                     <div>
@@ -2155,62 +2106,164 @@ export default function SitterDashboardPage() {
 
                                             </div>
                                         </div>
+
+                                        {/* BLOQUE 4: Documentación */}
+                                        <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100 mt-8">
+                                            <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <button
+                                                        onClick={() => toggleSection('documents')}
+                                                        className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                    >
+                                                        {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                    </button>
+                                                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                        <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><FileCheck className="w-4 h-4 text-slate-500" /></div>
+                                                        Documentación
+                                                        {profileData.certificado_antecedentes ? (
+                                                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
+                                                        ) : (
+                                                            <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Pendiente</span>
+                                                        )}
+                                                    </h4>
+                                                </div>
+                                                {activeSection === 'documents' ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => setActiveSection(null)}
+                                                            className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                        >
+                                                            Listo
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setActiveSection('documents')}
+                                                        disabled={activeSection !== null && activeSection !== 'documents'}
+                                                        className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {expandedSections.documents && (
+                                                <div>
+                                                    {profileData.certificado_antecedentes ? (
+                                                        <div className="flex items-start gap-3 p-4 bg-white border border-slate-200 rounded-xl shadow-sm group/file transition-colors max-w-md">
+                                                            <div className="p-3 bg-slate-100 text-slate-500 rounded-lg transition-colors">
+                                                                <FileText size={24} />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-sm font-bold text-slate-700 truncate">Antecedentes.pdf</p>
+                                                                <p className="text-xs text-slate-400 mt-0.5">Certificado de Antecedentes</p>
+                                                                <div className="flex gap-3 mt-3">
+                                                                    <button
+                                                                        onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
+                                                                        className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border border-slate-200 hover:bg-white"
+                                                                    >
+                                                                        <Eye size={12} /> Ver Documento
+                                                                    </button>
+                                                                    {activeSection === 'documents' && (
+                                                                        <button
+                                                                            onClick={handleDeleteDocument}
+                                                                            disabled={uploading}
+                                                                            className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors px-2 py-1 bg-red-50 rounded border border-red-100 hover:bg-white"
+                                                                        >
+                                                                            {uploading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Eliminar
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-emerald-500">
+                                                                <CheckCircle2 size={20} />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="max-w-md">
+                                                            <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-200 opacity-60 cursor-not-allowed"}`}>
+                                                                <div className={`p-4 rounded-full transition-colors ${activeSection === 'documents' ? "bg-slate-50 text-slate-400 group-hover/upload:text-emerald-600 group-hover/upload:bg-emerald-100" : "bg-slate-50 text-slate-300"}`}>
+                                                                    <Upload size={24} />
+                                                                </div>
+                                                                <div className="text-center mt-2">
+                                                                    <p className={`text-sm font-bold ${activeSection === 'documents' ? "text-slate-600 group-hover/upload:text-emerald-700" : "text-slate-400"}`}>Subir Certificado de Antecedentes</p>
+                                                                    <p className="text-xs text-slate-400 mt-1">Sube tu archivo PDF o Imagen</p>
+                                                                </div>
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*,.pdf"
+                                                                    className="hidden"
+                                                                    onChange={handleCertUpload}
+                                                                    disabled={activeSection !== 'documents' || uploading}
+                                                                />
+                                                            </label>
+                                                            {activeSection !== 'documents' && (
+                                                                <p className="text-xs text-slate-400 mt-2 text-center text-balance">
+                                                                    Haz clic en <span className="font-bold">Editar</span> para gestionar tus documentos.
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
+
                                 )
                             }
-                        </div >
-                    </div >
-                </div >
 
 
 
 
 
-                {/* SECCIÃ“N DERECHA: RESERVAS Y REVIEWS (Solo visible fuera de modo edición para "ver" como queda, o siempre visible para gestión) */}
-                {/* En este dashboard de Sitter (autoadministrable), mostramos las solicitudes y reservas reales */}
+                            {/* SECCIÃ“N DERECHA: RESERVAS Y REVIEWS (Solo visible fuera de modo edición para "ver" como queda, o siempre visible para gestión) */}
+                            {/* En este dashboard de Sitter (autoadministrable), mostramos las solicitudes y reservas reales */}
 
 
 
-                {/* TOAST SUCCESS */}
-                <div className={`fixed bottom-5 right-5 z-50 transition-all duration-300 transform ${showToast ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}>
-                    <div className="bg-slate-900/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3">
-                        <div className="bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center text-xs text-slate-900 font-bold">
-                            âœ“
+                            {/* TOAST SUCCESS */}
+                            <div className={`fixed bottom-5 right-5 z-50 transition-all duration-300 transform ${showToast ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}>
+                                <div className="bg-slate-900/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3">
+                                    <div className="bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center text-xs text-slate-900 font-bold">
+                                        âœ“
+                                    </div>
+                                    <span className="font-medium text-sm">Cambios guardados correctamente</span>
+                                </div>
+                            </div>
+
+                            {/* LIGHTBOX DE GALERÃA */}
+                            {
+                                selectedImage && (
+                                    <ImageLightbox
+                                        src={selectedImage}
+                                        alt="Galería completa"
+                                        isOpen={!!selectedImage}
+                                        onClose={() => setSelectedImage(null)}
+                                    />
+                                )
+                            }
+
+                            {/* LIGHTBOX DE FOTO PERFIL */}
+                            {
+                                profileData.foto_perfil && (
+                                    <ImageLightbox
+                                        src={profileData.foto_perfil}
+                                        alt="Foto de perfil"
+                                        isOpen={isLightboxOpen}
+                                        onClose={() => setIsLightboxOpen(false)}
+                                    />
+                                )
+                            }
+                            <ModalAlert
+                                isOpen={alertState.isOpen}
+                                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                                title={alertState.title}
+                                message={alertState.message}
+                                type={alertState.type}
+                            />
                         </div>
-                        <span className="font-medium text-sm">Cambios guardados correctamente</span>
                     </div>
                 </div>
-
-                {/* LIGHTBOX DE GALERÃA */}
-                {
-                    selectedImage && (
-                        <ImageLightbox
-                            src={selectedImage}
-                            alt="Galería completa"
-                            isOpen={!!selectedImage}
-                            onClose={() => setSelectedImage(null)}
-                        />
-                    )
-                }
-
-                {/* LIGHTBOX DE FOTO PERFIL */}
-                {
-                    profileData.foto_perfil && (
-                        <ImageLightbox
-                            src={profileData.foto_perfil}
-                            alt="Foto de perfil"
-                            isOpen={isLightboxOpen}
-                            onClose={() => setIsLightboxOpen(false)}
-                        />
-                    )
-                }
-                <ModalAlert
-                    isOpen={alertState.isOpen}
-                    onClose={() => setAlertState({ ...alertState, isOpen: false })}
-                    title={alertState.title}
-                    message={alertState.message}
-                    type={alertState.type}
-                />
             </main >
 
             <ClientDetailsDialog
