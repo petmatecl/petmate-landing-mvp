@@ -19,7 +19,7 @@ export const BLOG_POSTS: BlogPost[] = [
         excerpt: "Las altas temperaturas pueden ser peligrosas. Aprende cómo mantener a tu perro o gato fresco, hidratado y seguro durante la ola de calor.",
         coverImage: "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?q=80&w=1000&auto=format&fit=crop",
         date: "2024-01-02",
-        author: "Equipo PetMate",
+        author: "Equipo Pawnecta",
         readTime: "4 min lectura",
         tags: ["Verano", "Salud", "Perros"],
         content: `
@@ -49,7 +49,7 @@ export const BLOG_POSTS: BlogPost[] = [
         excerpt: "El golpe de calor es una emergencia veterinaria común en verano. Conoce las señales de alerta y cómo reaccionar para salvar la vida de tu peludo.",
         coverImage: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?q=80&w=1000&auto=format&fit=crop",
         date: "2024-01-03",
-        author: "Dra. Valentina (Vet PetMate)",
+        author: "Dra. Valentina (Vet Pawnecta)",
         readTime: "6 min lectura",
         tags: ["Emergencia", "Salud", "Prevención"],
         content: `

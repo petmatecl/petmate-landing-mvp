@@ -165,12 +165,12 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
             {/* Sitter Info (Footer) */}
             <div className="border-t-2 border-slate-100 pt-8 mt-12 flex items-center justify-between text-slate-500 text-sm">
                 <div>
-                    <p className="font-bold text-slate-900 mb-1">Cuidado por PetMate</p>
+                    <p className="font-bold text-slate-900 mb-1">Cuidado por Pawnecta</p>
                     <p>Sitter: {sitter?.nombre} {sitter?.apellido}</p>
                     <p>{sitter?.email}</p>
                 </div>
                 <div className="text-right">
-                    <p className="italic">Generado por PetMate.cl</p>
+                    <p className="italic">Generado por Pawnecta.cl</p>
                 </div>
             </div>
         </div>

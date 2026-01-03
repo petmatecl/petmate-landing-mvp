@@ -10,8 +10,8 @@ export default function BlogIndex() {
     return (
         <div className="min-h-screen bg-white">
             <Head>
-                <title>Blog PetMate - Consejos para el cuidado de tu mascota</title>
-                <meta name="description" content="Descubre consejos, guías y noticias sobre el cuidado de perros y gatos en el Blog de PetMate Chile." />
+                <title>Blog Pawnecta - Consejos para el cuidado de tu mascota</title>
+                <meta name="description" content="Descubre consejos, guías y noticias sobre el cuidado de perros y gatos en el Blog de Pawnecta Chile." />
             </Head>
 
             <main className="pt-24 pb-20">

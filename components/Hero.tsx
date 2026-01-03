@@ -105,7 +105,7 @@ export function Hero() {
                 <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" />
               </div>
               <div>
-                +200 PetMates verificados
+                +200 Cuidadores verificados
               </div>
             </div>
           </div>

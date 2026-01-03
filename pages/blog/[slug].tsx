@@ -17,7 +17,7 @@ export default function BlogPostPage({ post }: Props) {
     return (
         <div className="min-h-screen bg-white">
             <Head>
-                <title>{post.title} — Blog PetMate</title>
+                <title>{post.title} — Blog Pawnecta</title>
                 <meta name="description" content={post.excerpt} />
 
                 {/* OG Tags */}

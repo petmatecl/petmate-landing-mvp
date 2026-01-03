@@ -19,7 +19,7 @@ interface ClientLayoutProps {
     title?: string;
 }
 
-export default function ClientLayout({ children, userId, title = "Panel cliente — PetMate" }: ClientLayoutProps) {
+export default function ClientLayout({ children, userId, title = "Panel cliente — Pawnecta" }: ClientLayoutProps) {
     const router = useRouter();
     const [clientProfile, setClientProfile] = useState<any>(null);
     const [nombre, setNombre] = useState<string | null>(null);
@@ -159,9 +159,9 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                     <header className="mb-8 flex justify-between items-center">
                         <div>
                             <h1 className="text-2xl font-bold text-slate-900">
-                                {title === "Panel cliente — PetMate" ? `Hola, ${displayName} 👋` : title}
+                                {title === "Panel cliente — Pawnecta" ? `Hola, ${displayName} 👋` : title}
                             </h1>
-                            {title === "Panel cliente — PetMate" && (
+                            {title === "Panel cliente — Pawnecta" && (
                                 <p className="text-sm text-slate-600">
                                     Gestiona tus viajes, mascotas y perfil.
                                 </p>
