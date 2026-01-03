@@ -3,13 +3,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { BLOG_POSTS, BlogPost } from "../../lib/blogData";
-import { Calendar, Clock, User, ChevronLeft, Share2 } from "lucide-react";
+import { Calendar, Clock, User, ChevronLeft, Share2, ArrowRight } from "lucide-react";
 
 interface Props {
     post: BlogPost;
+    relatedPosts: BlogPost[];
 }
 
-export default function BlogPostPage({ post }: Props) {
+export default function BlogPostPage({ post, relatedPosts }: Props) {
     if (!post) return null;
 
     return (
@@ -34,7 +35,7 @@ export default function BlogPostPage({ post }: Props) {
                 </div>
 
                 {/* Article Card - Paper Style */}
-                <article className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100 overflow-hidden">
+                <article className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100 overflow-hidden mb-16">
 
                     {/* Header */}
                     <header className="mb-10 text-center md:text-left border-b border-slate-100 pb-10">
@@ -101,6 +102,43 @@ export default function BlogPostPage({ post }: Props) {
                         </div>
                     </div>
                 </article>
+
+                {/* Related Articles Section */}
+                {relatedPosts.length > 0 && (
+                    <section className="border-t border-slate-200 pt-16 mt-16">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-8">Te podría interesar</h2>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {relatedPosts.map((relatedPost) => (
+                                <Link href={`/blog/${relatedPost.slug}`} key={relatedPost.id} className="group">
+                                    <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300">
+                                        {/* Image */}
+                                        <div className="relative h-48 overflow-hidden">
+                                            <Image
+                                                src={relatedPost.coverImage}
+                                                alt={relatedPost.title}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="p-5 flex flex-col flex-grow">
+                                            <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors line-clamp-2">
+                                                {relatedPost.title}
+                                            </h3>
+                                            <p className="text-slate-500 text-sm line-clamp-2 mb-4">
+                                                {relatedPost.excerpt}
+                                            </p>
+                                            <div className="mt-auto flex items-center text-emerald-600 font-bold text-xs uppercase tracking-wide">
+                                                Leer más <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    </article>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </main>
         </div>
     );
@@ -123,9 +161,15 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         };
     }
 
+    // Find related posts (exclude current post)
+    const relatedPosts = BLOG_POSTS
+        .filter(p => p.id !== post.id)
+        .slice(0, 3);
+
     return {
         props: {
             post,
+            relatedPosts
         },
     };
 };
