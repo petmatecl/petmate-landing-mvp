@@ -709,12 +709,7 @@ export default function SitterDashboardPage() {
                     <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
                         <div>
                             <h1 className="text-2xl font-bold text-slate-900">
-                                Hola, {displayName} 👋
-                                {isProfileComplete && (
-                                    <span className="ml-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-sm">
-                                        Perfl Completo ✅
-                                    </span>
-                                )}
+                                Hola, {displayName}
                             </h1>
                             <p className="text-sm text-slate-600">
                                 Gestiona tus reservas y perfil.
@@ -740,8 +735,7 @@ export default function SitterDashboardPage() {
                             {/* Tarjeta de Identidad Consolidada */}
                             <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300">
                                 {/* Header con gradiente premium */}
-                                <div className="h-32 bg-gradient-to-br from-emerald-600 to-teal-800 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                                <div className="h-32 bg-slate-800 relative overflow-hidden">
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                                 </div>
 
@@ -767,7 +761,7 @@ export default function SitterDashboardPage() {
                                         </div>
 
                                         {/* Botón Editar (Lápiz) Flotante */}
-                                        <label className="absolute bottom-1 right-1 p-2 bg-white/90 backdrop-blur-sm border border-slate-100 rounded-full shadow-lg cursor-pointer hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 transition-all z-10 hover:scale-110 active:scale-95">
+                                        <label className="absolute bottom-1 right-1 p-2 bg-white/90 backdrop-blur-sm border border-slate-100 rounded-full shadow-lg cursor-pointer hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all z-10 hover:scale-110 active:scale-95">
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -786,34 +780,29 @@ export default function SitterDashboardPage() {
                                     <h2 className="text-xl font-bold text-slate-900 tracking-tight">{displayName}</h2>
                                     <p className="text-sm text-slate-500 font-medium">{email}</p>
 
-                                    {/* Estado de Verificación Premium */}
-                                    <div className="mt-6 flex items-center justify-center gap-2">
-                                        <div className={`
-                                            px-4 py-2 rounded-xl border flex items-center gap-2 text-sm font-semibold transition-colors
-                                            ${profileData.aprobado
-                                                ? "bg-emerald-50 border-emerald-100 text-emerald-700"
-                                                : profileData.certificado_antecedentes
-                                                    ? "bg-amber-50 border-amber-100 text-amber-700"
-                                                    : "bg-slate-50 border-slate-100 text-slate-600"
-                                            }
-                                        `}>
-                                            {profileData.aprobado ? (
-                                                <> <ShieldCheck size={18} /> <span>Verificado</span> </>
-                                            ) : profileData.certificado_antecedentes ? (
-                                                <> <Clock size={18} /> <span>En Revisión</span> </>
-                                            ) : (
-                                                <> <ShieldAlert size={18} /> <span>No Verificado</span> </>
-                                            )}
-                                        </div>
-                                    </div>
+                                    {/* Estado de Verificación UNIFICADO */}
+                                    <div className="mt-6 flex flex-col items-center justify-center gap-2">
+                                        {profileData.aprobado ? (
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold">
+                                                <ShieldCheck size={14} className="text-slate-600" />
+                                                <span>Verificado</span>
+                                            </div>
+                                        ) : profileData.certificado_antecedentes ? (
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-semibold">
+                                                <Clock size={14} />
+                                                <span>En Revisión</span>
+                                            </div>
+                                        ) : (
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-400 border border-slate-100 text-xs font-semibold">
+                                                <ShieldAlert size={14} />
+                                                <span>No Verificado</span>
+                                            </div>
+                                        )}
 
-                                    <p className="mt-3 text-xs text-slate-400 max-w-[200px] mx-auto leading-relaxed">
-                                        {profileData.aprobado
-                                            ? "Perfil activo y visible para clientes."
-                                            : profileData.certificado_antecedentes
-                                                ? "Validando documentos..."
-                                                : "Sube tu certificado para activar."}
-                                    </p>
+                                        {!profileData.aprobado && profileData.certificado_antecedentes && (
+                                            <p className="text-[10px] text-slate-400">Validando documentos...</p>
+                                        )}
+                                    </div>
 
                                 </div>
 
@@ -844,8 +833,8 @@ export default function SitterDashboardPage() {
                                             <FileCheck size={14} className="text-slate-400" /> Documentación
                                         </h4>
                                         {profileData.certificado_antecedentes ? (
-                                            <div className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm group/file hover:border-emerald-200 transition-colors">
-                                                <div className="p-2.5 bg-slate-100 text-slate-500 rounded-lg group-hover/file:bg-emerald-50 group-hover/file:text-emerald-600 transition-colors">
+                                            <div className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm group/file transition-colors">
+                                                <div className="p-2.5 bg-slate-100 text-slate-500 rounded-lg transition-colors">
                                                     <FileText size={20} />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -853,30 +842,30 @@ export default function SitterDashboardPage() {
                                                     <div className="flex gap-3 mt-1.5">
                                                         <button
                                                             onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
-                                                            className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                                                            className="text-[10px] font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors"
                                                         >
                                                             <Eye size={10} /> Ver
                                                         </button>
                                                         <button
                                                             onClick={handleDeleteDocument}
                                                             disabled={uploading}
-                                                            className="text-[10px] font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
+                                                            className="text-[10px] font-bold text-slate-400 hover:text-red-600 flex items-center gap-1 transition-colors"
                                                         >
                                                             {uploading ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />} Eliminar
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div className="text-emerald-500">
+                                                <div className="text-slate-400">
                                                     <CheckCircle2 size={16} />
                                                 </div>
                                             </div>
                                         ) : (
-                                            <label className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-xl hover:border-emerald-400 hover:bg-emerald-50/30 cursor-pointer transition-all group/upload">
-                                                <div className="p-3 bg-slate-100 text-slate-400 rounded-full group-hover/upload:bg-emerald-100 group-hover/upload:text-emerald-600 transition-colors">
+                                            <label className="flex flex-col items-center justify-center gap-2 p-4 border border-dashed border-slate-300 rounded-xl hover:border-slate-400 hover:bg-slate-50 cursor-pointer transition-all group/upload">
+                                                <div className="p-3 bg-slate-50 text-slate-400 rounded-full group-hover/upload:text-slate-600 transition-colors">
                                                     <Upload size={20} />
                                                 </div>
                                                 <div className="text-center">
-                                                    <p className="text-xs font-bold text-slate-700 group-hover/upload:text-emerald-700">Subir Certificado</p>
+                                                    <p className="text-xs font-bold text-slate-600 group-hover/upload:text-slate-800">Subir Certificado</p>
                                                     <p className="text-[10px] text-slate-400">PDF o Imagen</p>
                                                 </div>
                                                 <input
@@ -932,7 +921,7 @@ export default function SitterDashboardPage() {
 
                                             {/* Add Button */}
                                             {profileData.galeria.length < 6 && (
-                                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/30 text-slate-400 hover:text-emerald-600 transition-all">
+                                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-slate-400 hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-all">
                                                     <Plus size={24} />
                                                     <span className="text-[10px] font-bold">Añadir</span>
                                                     <input
