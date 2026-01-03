@@ -91,9 +91,7 @@ export default function BlogPostPage({ post }: Props) {
                 </article>
             </main>
 
-        </article>
-            </main >
-        </div >
+        </div>
     );
 }
 
