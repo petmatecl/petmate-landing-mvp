@@ -224,17 +224,25 @@ export default function SitterDashboardPage() {
                 }
             }
 
-            // 4. Fetch Availability Count (Future dates only)
+            setAvailabilityCount(0); // Will be updated by the other effect
+        };
+        fetchBookings();
+    }, [userId]);
+
+    // Separate effect for availability count that depends on profileId
+    useEffect(() => {
+        if (!profileId) return;
+        const fetchAvailabilityCount = async () => {
             const { count: availCount } = await supabase
                 .from('sitter_availability')
                 .select('*', { count: 'exact', head: true })
-                .eq('sitter_id', userId)
+                .eq('sitter_id', profileId) // Use profileId, not userId
                 .gte('available_date', new Date().toISOString().split('T')[0]);
 
             setAvailabilityCount(availCount || 0);
         };
-        fetchBookings();
-    }, [userId]);
+        fetchAvailabilityCount();
+    }, [profileId]);
 
     // Estado de edición granular
     const [activeSection, setActiveSection] = useState<string | null>(null);

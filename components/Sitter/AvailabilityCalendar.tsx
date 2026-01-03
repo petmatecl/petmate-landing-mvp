@@ -139,7 +139,7 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
                         <CalendarIcon className="text-emerald-600" /> Disponibilidad
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">
-                        Marca tus días libres. Se guardarán todos los cambios.
+                        Marca tus días disponibles para aceptar servicios. Se guardarán todos los cambios.
                     </p>
                 </div>
 
