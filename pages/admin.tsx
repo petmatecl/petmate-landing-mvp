@@ -714,9 +714,14 @@ export default function AdminDashboard() {
                                                         {item.estado !== 'cancelado' && item.estado !== 'completado' && (
                                                             <button
                                                                 onClick={() => {
-                                                                    if (confirm("¿Estás seguro de cancelar esta solicitud?")) {
-                                                                        alert("Funcionalidad de cancelar en construcción");
-                                                                    }
+                                                                    setConfirmModal({
+                                                                        isOpen: true,
+                                                                        title: "Cancelar Solicitud",
+                                                                        message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
+                                                                        onConfirm: () => alert("Funcionalidad de cancelar en construcción"), // To come: actual logic
+                                                                        isDestructive: true,
+                                                                        confirmText: "Sí, Cancelar"
+                                                                    });
                                                                 }}
                                                                 className="text-xs text-red-600 hover:text-red-800 font-medium"
                                                             >

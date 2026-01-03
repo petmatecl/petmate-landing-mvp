@@ -245,7 +245,21 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         <>
             <Head>
                 <title>{displayName} — Sitter en Pawnecta</title>
-                <meta name="description" content={`Conoce el perfil de ${displayName} y reserva su cuidado en Pawnecta.`} />
+                <meta name="description" content={`Conoce el perfil de ${displayName} y reserva su cuidado en Pawnecta. ${petmate.comuna}, ${petmate.region}.`} />
+
+                {/* Facebook / Open Graph */}
+                <meta property="og:type" content="profile" />
+                <meta property="og:url" content={`https://www.pawnecta.cl/sitter/${id}`} />
+                <meta property="og:title" content={`${displayName} — Sitter en Pawnecta`} />
+                <meta property="og:description" content={`¡Reserva con ${displayName}! Sitter verificado en ${petmate.comuna}. ${averageRating} ★ de calificación. Cuida ${petmate.cuida_perros ? 'perros' : ''} ${petmate.cuida_gatos ? 'y gatos' : ''}.`} />
+                <meta property="og:image" content={petmate.foto_perfil || "https://www.pawnecta.cl/og-sitter-default.jpg"} />
+
+                {/* Twitter */}
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:url" content={`https://www.pawnecta.cl/sitter/${id}`} />
+                <meta property="twitter:title" content={`${displayName} — Sitter en Pawnecta`} />
+                <meta property="twitter:description" content={`¡Reserva con ${displayName}! Sitter verificado en ${petmate.comuna}.`} />
+                <meta property="twitter:image" content={petmate.foto_perfil || "https://www.pawnecta.cl/og-sitter-default.jpg"} />
             </Head>
 
             <div className="bg-slate-50 min-h-screen pb-20">
