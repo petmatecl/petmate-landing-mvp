@@ -134,6 +134,12 @@ export default function Header() {
         {/* Desktop nav */}
         <nav className="hidden items-center gap-3 sm:flex">
           <Link
+            href="/blog"
+            className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-4"
+          >
+            Blog
+          </Link>
+          <Link
             href="/explorar"
             className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-2"
           >
@@ -234,6 +240,13 @@ export default function Header() {
           <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3">
             {!isLoggedIn ? (
               <>
+                <Link
+                  href="/blog"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
+                  onClick={() => setOpen(false)}
+                >
+                  Blog
+                </Link>
                 <Link
                   href="/explorar"
                   className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
