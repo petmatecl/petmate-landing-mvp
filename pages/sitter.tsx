@@ -510,7 +510,15 @@ export default function SitterDashboardPage() {
         if (!confirmModal.bookingId) return;
 
         try {
-            const { error } = await supabase.from('viajes').update({ estado: 'confirmado' }).eq('id', confirmModal.bookingId);
+            // Option A: Set to 'reservado' (waiting for client) and assign self as sitter
+            const { error } = await supabase
+                .from('viajes')
+                .update({
+                    estado: 'reservado',
+                    sitter_id: userId
+                })
+                .eq('id', confirmModal.bookingId);
+
             if (error) throw error;
             window.location.reload();
         } catch (err) {
@@ -1226,7 +1234,7 @@ export default function SitterDashboardPage() {
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
-                                                                <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold uppercase border border-slate-200">Aceptado</span>
+                                                                <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase border border-amber-200">Por Confirmar</span>
                                                             </div>
                                                             <div className="text-xs text-slate-500 flex flex-col gap-1">
                                                                 <span className="flex items-center gap-1 font-medium text-slate-700">
