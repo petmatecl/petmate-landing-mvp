@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -40,6 +40,15 @@ export default function CaregiverCard({
     const router = useRouter();
     const [showAuthModal, setShowAuthModal] = useState(false);
 
+    // Image handling
+    const fallbackImage = `https://ui-avatars.com/api/?name=${nombre}+${apellido}&background=random&size=400`;
+    const [imgSrc, setImgSrc] = useState(imageUrl || fallbackImage);
+
+    // Sync if prop changes
+    useEffect(() => {
+        setImgSrc(imageUrl || fallbackImage);
+    }, [imageUrl, nombre, apellido]);
+
     const handleProfileClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation(); // Evitar propagación si hay otros clicks
@@ -72,10 +81,12 @@ export default function CaregiverCard({
                 {/* Imagen */}
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <Image
-                        src={imageUrl || `https://ui-avatars.com/api/?name=${nombre}+${apellido}&background=random&size=400`}
+                        src={imgSrc}
                         alt={`${nombre} ${apellido}`}
                         fill
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={() => setImgSrc(fallbackImage)}
+                        unoptimized
                     />
                     {verified && (
                         <div className="absolute top-3 right-3 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 shadow-sm backdrop-blur-sm border border-emerald-100/50">

@@ -154,18 +154,41 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                     <title>{title}</title>
                 </Head>
 
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Header (Local to Layout if needed, but keeping global header for now just focusing on sidebar) */}
-                    <header className="mb-8 flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900">
-                                {title === "Panel cliente — Pawnecta" ? `Hola, ${displayName} 👋` : title}
-                            </h1>
-                            {title === "Panel cliente — Pawnecta" && (
-                                <p className="text-sm text-slate-600">
-                                    Gestiona tus viajes, mascotas y perfil.
-                                </p>
-                            )}
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+                    {/* Header */}
+                    <header className="mb-6 sm:mb-8 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            {/* Mobile Avatar */}
+                            <div className="md:hidden relative w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-white shrink-0">
+                                {clientProfile?.foto_perfil ? (
+                                    <Image
+                                        src={clientProfile.foto_perfil}
+                                        alt="Foto perfil"
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-slate-300 text-lg">👤</div>
+                                )}
+                            </div>
+
+                            <div>
+                                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+                                    {title === "Panel cliente — Pawnecta" ? <span className="block sm:inline">Hola, {displayName.split(' ')[0]} 👋</span> : title}
+                                </h1>
+                                {/* Mobile Status Badge */}
+                                <div className="md:hidden mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Cliente Verificado
+                                </div>
+
+                                {title === "Panel cliente — Pawnecta" && (
+                                    <p className="hidden md:block text-sm text-slate-600 mt-1">
+                                        Gestiona tus viajes, mascotas y perfil.
+                                    </p>
+                                )}
+                            </div>
                         </div>
                         {userId && <NotificationCenter userId={userId} />}
                     </header>
@@ -173,7 +196,7 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
                         {/* SIDEBAR */}
-                        <aside className="lg:col-span-4 space-y-6">
+                        <aside className="lg:col-span-4 space-y-6 order-2 lg:order-1">
                             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                                 <div className="h-24 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                                 <div className="px-6 pb-6 text-center -mt-12 relative">
@@ -229,7 +252,7 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                                         )}
                                     </div>
 
-                                    <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100">
+                                    <div className="hidden md:inline-flex mt-3 items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /></svg>
                                         Cliente Verificado
                                     </div>
@@ -246,7 +269,7 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
                         </aside>
 
                         {/* MAIN CONTENT */}
-                        <div className="lg:col-span-8">
+                        <div className="lg:col-span-8 order-1 lg:order-2">
                             {children}
                         </div>
 

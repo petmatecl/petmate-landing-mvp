@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import ReviewList from "../../components/Reviews/ReviewList";
 import ReviewFormModal from "../../components/Reviews/ReviewFormModal";
 import { getReviewsBySitterId, Review } from "../../lib/reviewsService";
-import { Trash2 } from "lucide-react";
+import { Trash2, Share2 } from "lucide-react";
 
 // Props que recibe la página desde getServerSideProps
 import { useRouter } from "next/router";
@@ -271,7 +271,26 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                         <Link href={returnTo || "/explorar"} className="text-sm font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1 transition-colors">
                             ← {returnTo === '/cliente' ? 'Volver al Panel' : 'Volver a explorar'}
                         </Link>
-                        <Link href="/" className="font-bold text-emerald-600 text-lg">Pawnecta</Link>
+                        <Link href="/" className="font-bold text-emerald-600 text-lg hidden sm:block">Pawnecta</Link>
+                        <button
+                            onClick={() => {
+                                if (navigator.share) {
+                                    navigator.share({
+                                        title: `${displayName} — Sitter en Pawnecta`,
+                                        text: `Mira el perfil de ${displayName} en Pawnecta`,
+                                        url: window.location.href,
+                                    }).catch(console.error);
+                                } else {
+                                    navigator.clipboard.writeText(window.location.href);
+                                    // Simple alert fallback, could be toast
+                                    alert('Enlace copiado al portapapeles');
+                                }
+                            }}
+                            className="p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all"
+                            title="Compartir perfil"
+                        >
+                            <Share2 size={20} />
+                        </button>
                     </div>
                 </div>
 
@@ -302,7 +321,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                             alt={displayName}
                                             fill
                                             className="rounded-full object-cover border-4 border-emerald-50 shadow-sm"
-                                            unoptimized
+                                        // unoptimized removed for better performance
                                         />
                                         <div className="absolute bottom-1 right-1 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm" title="Verificado">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -506,7 +525,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {petmate.galeria.map((foto, index) => (
                                             <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                                <Image src={foto} alt={`Galería ${index}`} fill className="object-cover" unoptimized />
+                                                <Image src={foto} alt={`Galería ${index}`} fill className="object-cover" />
                                             </div>
                                         ))}
                                     </div>

@@ -24,6 +24,42 @@ import ClientDetailsDialog from "../components/Sitter/ClientDetailsDialog";
 import PetDetailsDialog from "../components/Sitter/PetDetailsDialog";
 import ImageLightbox from "../components/ImageLightbox";
 import AvailabilityCalendar from "../components/Sitter/AvailabilityCalendar";
+import { Skeleton } from "../components/Shared/Skeleton";
+
+function SitterDashboardSkeleton() {
+    return (
+        <div className="animate-pulse space-y-8">
+            {/* Header */}
+            <div className="flex justify-between items-center">
+                <div className="space-y-3">
+                    <Skeleton className="h-8 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+                <Skeleton className="h-10 w-40 rounded-xl" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Sidebar */}
+                <div className="lg:col-span-4 space-y-6">
+                    <Skeleton className="h-96 w-full rounded-2xl" />
+                    <Skeleton className="h-48 w-full rounded-2xl" />
+                </div>
+                {/* Main Content */}
+                <div className="lg:col-span-8 space-y-6">
+                    {/* Tabs */}
+                    <div className="flex gap-4">
+                        <Skeleton className="h-10 w-32 rounded-lg" />
+                        <Skeleton className="h-10 w-32 rounded-lg" />
+                        <Skeleton className="h-10 w-32 rounded-lg" />
+                    </div>
+                    {/* Content */}
+                    <Skeleton className="h-64 w-full rounded-2xl" />
+                    <Skeleton className="h-48 w-full rounded-2xl" />
+                </div>
+            </div>
+        </div>
+    );
+}
 
 type Booking = {
     id: string;
@@ -733,6 +769,21 @@ export default function SitterDashboardPage() {
     const profileComplete = Boolean(profileData.descripcion && profileData.descripcion.length >= 100 && profileData.tipo_vivienda && profileData.tiene_mascotas);
 
 
+    if (loading) {
+        return (
+            <>
+                <Head>
+                    <title>Cargando... — Pawnecta</title>
+                </Head>
+                <main className="bg-slate-50 min-h-[calc(100vh-80px)]">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+                        <SitterDashboardSkeleton />
+                    </div>
+                </main>
+            </>
+        );
+    }
+
     return (
         <>
             <Head>
@@ -747,6 +798,34 @@ export default function SitterDashboardPage() {
                             <h1 className="text-2xl font-bold text-slate-900">
                                 Hola, {displayName}
                             </h1>
+                            <div className="flex items-center gap-3 sm:hidden mt-2 mb-1">
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md">
+                                    {profileData.foto_perfil ? (
+                                        <Image
+                                            src={profileData.foto_perfil}
+                                            alt="Perfil"
+                                            fill
+                                            className="object-cover"
+                                            unoptimized
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                                            <User size={20} className="text-slate-400" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    {profileData.aprobado ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                                            <ShieldCheck size={10} /> Verificado
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold border border-slate-200">
+                                            <ShieldAlert size={10} /> No Verificado
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                             <p className="text-sm text-slate-600">
                                 Gestiona tus reservas y perfil.
                             </p>
@@ -765,8 +844,8 @@ export default function SitterDashboardPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-                        {/* SIDEBAR: Identidad y Verificación (Col-span-4) */}
-                        <div className="lg:col-span-4 space-y-6">
+                        {/* SIDEBAR: Identidad y Verificación (Col-span-4) - Order 2 on Mobile */}
+                        <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
 
                             {/* Tarjeta de Identidad Consolidada */}
                             <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300">
@@ -934,39 +1013,36 @@ export default function SitterDashboardPage() {
                         </div>
 
 
-                        {/* MAIN CONTENT: Reservas y Datos (Col-span-8) */}
-                        <div className="lg:col-span-8 space-y-6">
+                        {/* MAIN CONTENT: Reservas y Datos (Col-span-8) - Order 1 on Mobile */}
+                        <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
 
                             {/* TAB NAVIGATION */}
                             {/* TABS NAVIGATION */}
                             {/* TABS NAVIGATION */}
-                            <div className="flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6">
+                            <div className="grid grid-cols-2 sm:flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
                                 <button
                                     onClick={() => setActiveTab('solicitudes')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <BarChart size={18} /> Solicitudes
                                 </button>
-                                <div className="w-px bg-slate-100 my-2"></div>
                                 <button
                                     onClick={() => setActiveTab('servicios')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'servicios' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'servicios' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <Briefcase size={18} /> Servicios
                                     {isServicesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                                 </button>
-                                <div className="w-px bg-slate-100 my-2"></div>
                                 <button
                                     onClick={() => setActiveTab('disponibilidad')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'disponibilidad' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'disponibilidad' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
-                                    <Calendar size={18} /> Disponibilidad
+                                    <Calendar size={18} /> Calendario
                                     {isAvailabilityComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                                 </button>
-                                <div className="w-px bg-slate-100 my-2"></div>
                                 <button
                                     onClick={() => setActiveTab('perfil')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'perfil' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'perfil' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <User size={18} /> Mi Perfil
                                     {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
@@ -982,7 +1058,20 @@ export default function SitterDashboardPage() {
                             {activeTab === 'disponibilidad' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                     {profileId ? (
-                                        <AvailabilityCalendar sitterId={profileId} />
+                                        <AvailabilityCalendar
+                                            sitterId={profileId}
+                                            onSaveSuccess={() => {
+                                                const fetchAvailabilityCount = async () => {
+                                                    const { count: availCount } = await supabase
+                                                        .from('sitter_availability')
+                                                        .select('*', { count: 'exact', head: true })
+                                                        .eq('sitter_id', profileId)
+                                                        .gte('available_date', new Date().toISOString().split('T')[0]);
+                                                    setAvailabilityCount(availCount || 0);
+                                                };
+                                                fetchAvailabilityCount();
+                                            }}
+                                        />
                                     ) : (
                                         <div className="p-8 text-center text-slate-500">Cargando perfil...</div>
                                     )}
@@ -2223,7 +2312,7 @@ export default function SitterDashboardPage() {
 
                             {/* TOAST SUCCESS */}
                             <div className={`fixed bottom-5 right-5 z-50 transition-all duration-300 transform ${showToast ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}>
-                                <div className="bg-slate-900/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3">
+                                <div className="bg-emerald-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3">
                                     <div className="bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center text-xs text-slate-900 font-bold">
                                         âœ“
                                     </div>

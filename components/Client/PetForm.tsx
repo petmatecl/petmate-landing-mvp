@@ -241,7 +241,7 @@ export default function PetForm({
                             </div>
                         )}
                     </div>
-                    <label className="absolute bottom-0 right-0 p-2.5 bg-slate-900 rounded-full shadow-lg cursor-pointer hover:bg-slate-700 text-white transition-all z-10 hover:scale-105 active:scale-95">
+                    <label className="absolute bottom-0 right-0 p-2.5 bg-emerald-600 rounded-full shadow-lg cursor-pointer hover:bg-emerald-700 text-white transition-all z-10 hover:scale-105 active:scale-95">
                         <input
                             type="file"
                             accept="image/*"
@@ -502,7 +502,7 @@ export default function PetForm({
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-8 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-8 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-900/10 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {loading ? <span className="animate-spin"><Loader2 size={20} /></span> : "Guardar Mascota"}
                     </button>

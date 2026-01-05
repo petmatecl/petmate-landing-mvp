@@ -31,7 +31,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                     <p className="text-slate-500 mt-1 font-medium">Reserva #{booking.id.slice(0, 8)}</p>
                 </div>
                 <div className="text-right">
-                    <div className="inline-block bg-slate-900 text-white px-3 py-1 rounded font-bold text-sm uppercase tracking-wide">
+                    <div className="inline-block bg-emerald-600 text-white px-3 py-1 rounded font-bold text-sm uppercase tracking-wide">
                         {booking.estado === 'confirmado' ? 'Confirmado' : booking.estado === 'solicitado' ? 'Solicitud Pendiente' : booking.estado}
                     </div>
                     <p className="text-sm text-slate-500 mt-2">

@@ -1,9 +1,41 @@
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import SitterDetailModal from "../components/Admin/SitterDetailModal";
 import { ConfirmationModal } from "../components/Shared/ConfirmationModal";
+import { Skeleton } from "../components/Shared/Skeleton";
+
+function AdminDashboardSkeleton() {
+    return (
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 animate-pulse">
+            <div className="mb-8">
+                <Skeleton className="h-10 w-64 mb-2" />
+                <Skeleton className="h-4 w-48" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+                ))}
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <Skeleton className="h-10 w-48 rounded-xl" />
+                <Skeleton className="h-10 w-full md:w-96 rounded-xl" />
+            </div>
+
+            <div className="bg-white rounded-3xl p-6 border border-slate-200">
+                <div className="space-y-4">
+                    {[...Array(5)].map((_, i) => (
+                        <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 import * as XLSX from "xlsx";
 
@@ -475,303 +507,188 @@ export default function AdminDashboard() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 py-10">
+        <>
             <Head>
                 <title>Panel de Administración | Pawnecta</title>
             </Head>
 
-            {loading && (
-                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-                    <div className="relative w-20 h-20">
-                        <div className="absolute top-0 left-0 w-full h-full border-4 border-slate-200 rounded-full"></div>
-                        <div className="absolute top-0 left-0 w-full h-full border-4 border-emerald-500 rounded-full animate-spin border-t-transparent"></div>
-                    </div>
-                    <p className="mt-4 text-slate-600 font-medium animate-pulse">Cargando panel...</p>
+            {loading ? (
+                <div className="min-h-screen bg-slate-50">
+                    <AdminDashboardSkeleton />
                 </div>
-            )}
-
-            <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between mb-8">
-                    <div>
+            ) : (
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+                    <div className="mb-8">
                         <h1 className="text-3xl font-bold text-slate-900">Administrador</h1>
                         <p className="text-slate-500 mt-1">Gestión de usuarios y solicitudes</p>
                     </div>
-                </div>
 
-                {/* RESUMEN */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
-                        <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
-                        <div className="flex gap-2 mt-2 text-[10px]">
-                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesAprobados} OK</span>
-                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesPendientes} Pend.</span>
-                        </div>
-                    </div>
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
-                        <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
-                        <div className="flex gap-2 mt-2 text-[10px]">
-                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersAprobados} OK</span>
-                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersPendientes} Pend.</span>
-                        </div>
-                    </div>
-
-                    {/* Tarjetas de Solicitudes Desglosadas */}
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 bg-amber-50/30">
-                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
-                        <p className="text-3xl font-bold text-amber-600 mt-1">{stats.solicitudesPendientes}</p>
-                        <p className="text-[10px] text-amber-600/70 mt-1">Sin Sitter</p>
-                    </div>
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100 bg-indigo-50/30">
-                        <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
-                        <p className="text-3xl font-bold text-indigo-600 mt-1">{stats.solicitudesAsignadas}</p>
-                        <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
-                        <p className="text-3xl font-bold text-sky-600 mt-1">{stats.serviciosRealizados}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
-                    </div>
-                </div>
-
-                {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-
-                    {/* Tabs */}
-                    <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start">
-                        <button
-                            onClick={() => setActiveTab("petmate")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                        >
-                            Sitters
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("cliente")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                        >
-                            Clientes
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("solicitudes")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                        >
-                            Solicitudes
-                        </button>
-                    </div>
-
-                    {/* Buscador y Filtros */}
-                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto items-end md:items-center">
-
-                        {/* Filtro Estado (Solo usuarios) */}
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value as any)}
-                            className="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer h-[38px]"
-                        >
-                            <option value="all">Todos los Estados</option>
-                            {activeTab === "solicitudes" ? (
-                                <>
-                                    <option value="pending">Pendientes / Buscando</option>
-                                    <option value="confirmed">Confirmados / En Curso</option>
-                                    <option value="reserved">Por Confirmar (Reservado)</option>
-                                    <option value="completed">Completados</option>
-                                    <option value="cancelled">Cancelados</option>
-                                </>
-                            ) : (
-                                <>
-                                    <option value="pending">Pendientes de Aprobación</option>
-                                    <option value="approved">Aprobados</option>
-                                </>
-                            )}
-                        </select>
-
-                        {/* Filtros de Fecha */}
-                        <div className="flex gap-2">
-                            <div className="flex flex-col">
-                                <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Desde</label>
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                                />
+                    {/* RESUMEN */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
+                            <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
+                            <div className="flex gap-2 mt-2 text-[10px]">
+                                <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesAprobados} OK</span>
+                                <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesPendientes} Pend.</span>
                             </div>
-                            <div className="flex flex-col">
-                                <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Hasta</label>
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                                />
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
+                            <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
+                            <div className="flex gap-2 mt-2 text-[10px]">
+                                <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersAprobados} OK</span>
+                                <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersPendientes} Pend.</span>
                             </div>
                         </div>
 
-                        {/* Botón Exportar */}
-                        <button
-                            onClick={handleExport}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-sm h-[38px] mb-[1px]"
-                        >
-                            <span>📊</span> <span className="hidden lg:inline">Exportar Excel</span>
-                        </button>
-
-                        <div className="relative flex-1 md:flex-none md:w-64">
-                            <input
-                                type="text"
-                                placeholder="Buscar..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                            />
-                            <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                        {/* Tarjetas de Solicitudes Desglosadas */}
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 bg-amber-50/30">
+                            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
+                            <p className="text-3xl font-bold text-amber-600 mt-1">{stats.solicitudesPendientes}</p>
+                            <p className="text-[10px] text-amber-600/70 mt-1">Sin Sitter</p>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100 bg-indigo-50/30">
+                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
+                            <p className="text-3xl font-bold text-indigo-600 mt-1">{stats.solicitudesAsignadas}</p>
+                            <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
                         </div>
 
-                        <select
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value as any)}
-                            className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
-                        >
-                            <option value="newest">Más recientes</option>
-                            <option value="oldest">Más antiguos</option>
-                            <option value="name_asc">Nombre A-Z</option>
-                            <option value="name_desc">Nombre Z-A</option>
-                        </select>
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
+                            <p className="text-3xl font-bold text-sky-600 mt-1">{stats.serviciosRealizados}</p>
+                            <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
+                        </div>
                     </div>
-                </div>
 
-                {/* TABLA DE RESULTADOS */}
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-slate-600">
-                            <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
-                                <tr>
-                                    {activeTab === "solicitudes" ? (
-                                        <>
-                                            <th className="px-6 py-4">ID</th>
-                                            <th className="px-6 py-4">Origen</th>
-                                            <th className="px-6 py-4">Estado</th>
-                                            <th className="px-6 py-4">Cliente</th>
-                                            <th className="px-6 py-4">Sitter Asignado</th>
-                                            <th className="px-6 py-4">Detalles</th>
-                                            <th className="px-6 py-4">Fechas</th>
-                                            <th className="px-6 py-4 text-right">Acciones</th>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <th className="px-6 py-4">Usuario</th>
-                                            <th className="px-6 py-4">Contacto & RUT</th>
-                                            <th className="px-6 py-4">Ubicación</th>
-                                            <th className="px-6 py-4">Documentos & Estado</th>
-                                            <th className="px-6 py-4">Registro</th>
-                                            <th className="px-6 py-4 text-right">Acciones</th>
-                                        </>
-                                    )}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {tableLoading ? (
-                                    <tr>
-                                        <td colSpan={8} className="px-6 py-12 text-center">
-                                            <div className="flex flex-col items-center justify-center">
-                                                <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                                                <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : paginatedItems.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className="px-6 py-12 text-center">
-                                            <div className="text-slate-400 mb-2">No se encontraron resultados</div>
-                                            {searchTerm && <button onClick={() => setSearchTerm("")} className="text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
-                                        </td>
-                                    </tr>
+                    {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+
+                        {/* Tabs */}
+                        <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start">
+                            <button
+                                onClick={() => setActiveTab("petmate")}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                            >
+                                Sitters
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("cliente")}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                            >
+                                Clientes
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("solicitudes")}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                            >
+                                Solicitudes
+                            </button>
+                        </div>
+
+                        {/* Buscador y Filtros */}
+                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto items-end md:items-center">
+
+                            {/* Filtro Estado (Solo usuarios) */}
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value as any)}
+                                className="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer h-[38px]"
+                            >
+                                <option value="all">Todos los Estados</option>
+                                {activeTab === "solicitudes" ? (
+                                    <>
+                                        <option value="pending">Pendientes / Buscando</option>
+                                        <option value="confirmed">Confirmados / En Curso</option>
+                                        <option value="reserved">Por Confirmar (Reservado)</option>
+                                        <option value="completed">Completados</option>
+                                        <option value="cancelled">Cancelados</option>
+                                    </>
                                 ) : (
-                                    paginatedItems.map((item) => {
-                                        if (activeTab === "solicitudes") {
-                                            // Render fila de solicitud
-                                            return (
-                                                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {item.postulaciones_count > 0 ? (
-                                                            <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
-                                                                🌐 Public
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
-                                                                Directa
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold 
-                                                            ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
-                                                                item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
-                                                                    item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
-                                                                        item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
-                                                                            item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
-                                                                                item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
-                                                                                    'bg-slate-100 text-slate-700'}`}>
-                                                            {(item.estado || "Desconocido").toUpperCase()}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.cliente?.nombre || 'Desc.'} {item.cliente?.apellido_p || ''}</div>
-                                                        <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.cliente?.email || 'N/A'}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {item.sitter ? (
-                                                            <div>
-                                                                <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.sitter.nombre} {item.sitter.apellido_p}</div>
-                                                                <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.sitter.email}</div>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-xs text-slate-400 italic">-- Pendiente --</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-xs">
-                                                        <div><span className="font-semibold">{item.servicio || "N/A"}</span></div>
-                                                        <div className="text-slate-500">
-                                                            {item.perros > 0 && <span>🐶 {item.perros} </span>}
-                                                            {item.gatos > 0 && <span>🐱 {item.gatos} </span>}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-xs">
-                                                        <div>Desde: {item.fecha_inicio || "-"}</div>
-                                                        <div>Hasta: {item.fecha_fin || "-"}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        {item.estado !== 'cancelado' && item.estado !== 'completado' && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    setConfirmModal({
-                                                                        isOpen: true,
-                                                                        title: "Cancelar Solicitud",
-                                                                        message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
-                                                                        onConfirm: () => alert("Funcionalidad de cancelar en construcción"), // To come: actual logic
-                                                                        isDestructive: true,
-                                                                        confirmText: "Sí, Cancelar"
-                                                                    });
-                                                                }}
-                                                                className="text-xs text-red-600 hover:text-red-800 font-medium"
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        }
+                                    <>
+                                        <option value="pending">Pendientes de Aprobación</option>
+                                        <option value="approved">Aprobados</option>
+                                    </>
+                                )}
+                            </select>
 
-                                        // Render fila de usuario (cliente/sitter)
-                                        return (
-                                            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4 font-medium text-slate-900 w-1/4">
-                                                    <div className="flex items-center gap-3">
+                            {/* Filtros de Fecha */}
+                            <div className="flex gap-2">
+                                <div className="flex flex-col">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Desde</label>
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Hasta</label>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Botón Exportar */}
+                            <button
+                                onClick={handleExport}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-sm h-[38px] mb-[1px]"
+                            >
+                                <span>📊</span> <span className="hidden lg:inline">Exportar Excel</span>
+                            </button>
+
+                            <div className="relative flex-1 md:flex-none md:w-64">
+                                <input
+                                    type="text"
+                                    placeholder="Buscar..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                                />
+                                <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                            </div>
+
+                            <select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value as any)}
+                                className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
+                            >
+                                <option value="newest">Más recientes</option>
+                                <option value="oldest">Más antiguos</option>
+                                <option value="name_asc">Nombre A-Z</option>
+                                <option value="name_desc">Nombre Z-A</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* TABLA DE RESULTADOS */}
+                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+
+                        {/* MOBILE CARDS VIEW (Visible < md) */}
+                        <div className="md:hidden divide-y divide-slate-100">
+                            {tableLoading ? (
+                                <div className="p-8 text-center">
+                                    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                    <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
+                                </div>
+                            ) : paginatedItems.length === 0 ? (
+                                <div className="p-8 text-center text-slate-400">
+                                    No se encontraron resultados
+                                    {searchTerm && <button onClick={() => setSearchTerm("")} className="block w-full mt-2 text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
+                                </div>
+                            ) : (
+                                paginatedItems.map((item) => (
+                                    <div key={item.id} className="p-4 space-y-3">
+                                        {/* Cabecera Card */}
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                {activeTab !== "solicitudes" && (
+                                                    <div className="relative">
                                                         {item.foto_perfil ? (
                                                             <img src={item.foto_perfil} alt="Perfil" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
                                                         ) : (
@@ -779,150 +696,411 @@ export default function AdminDashboard() {
                                                                 {item.nombre?.[0] || "?"}
                                                             </div>
                                                         )}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    {activeTab === "solicitudes" ? (
+                                                        <span className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</span>
+                                                    ) : (
+                                                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2" onClick={() => handleViewDetail(item)}>
+                                                            {item.nombre} {item.apellido_p}
+                                                            {(() => {
+                                                                const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
+                                                                return missing.length > 0 ? <span className="text-base">⚠️</span> : null;
+                                                            })()}
+                                                        </div>
+                                                    )}
+                                                    <div className="text-xs text-slate-500">
+                                                        {activeTab === "solicitudes" ? item.servicio : item.email}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Estado Badge */}
+                                            {activeTab === "solicitudes" ? (
+                                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold 
+                                                ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
+                                                        item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
+                                                            item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
+                                                                item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
+                                                                    item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
+                                                                        item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
+                                                                            'bg-slate-100 text-slate-700'}`}>
+                                                    {(item.estado || "Desconocido").toUpperCase()}
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => toggleApproval(item.id, item.aprobado)}
+                                                    className={`px-2 py-1 rounded text-[10px] font-bold ${item.aprobado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}
+                                                >
+                                                    {item.aprobado ? "APROBADO" : "PENDIENTE"}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Detalles Body */}
+                                        <div className="bg-slate-50 rounded-lg p-3 text-xs space-y-2">
+                                            {activeTab === "solicitudes" ? (
+                                                <>
+                                                    <div className="grid grid-cols-2 gap-2">
                                                         <div>
-                                                            <div className="font-bold cursor-pointer hover:text-emerald-700 flex items-center gap-2" onClick={() => handleViewDetail(item)}>
-                                                                {item.nombre} {item.apellido_p}
-                                                                {(() => {
-                                                                    const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
-                                                                    return missing.length > 0 ? <span title={`Faltan datos: ${missing.join(', ')}`} className="cursor-help text-lg">⚠️</span> : null;
-                                                                })()}
-                                                            </div>
-                                                            <span className="block text-xs font-normal text-slate-400">ID: {item.id.slice(0, 8)}...</span>
+                                                            <span className="block text-slate-400 text-[10px] uppercase font-bold">Cliente</span>
+                                                            <span className="font-medium text-slate-700">{item.cliente?.nombre} {item.cliente?.apellido_p}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="block text-slate-400 text-[10px] uppercase font-bold">Sitter</span>
+                                                            <span className="font-medium text-slate-700">{item.sitter?.nombre ? `${item.sitter.nombre} ${item.sitter.apellido_p}` : '--'}</span>
                                                         </div>
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 w-1/4">
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2 text-xs truncate max-w-[200px]" title={item.email}>
-                                                            <span className="text-emerald-500">✉</span> {item.email}
+                                                    <div className="pt-2 border-t border-slate-200 mt-2">
+                                                        <span className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Fechas</span>
+                                                        <div className="flex justify-between text-slate-700">
+                                                            <span>{item.fecha_inicio}</span>
+                                                            <span>→</span>
+                                                            <span>{item.fecha_fin}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-2 text-xs">
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2">
                                                             <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
                                                         </div>
-                                                        {item.rut && (
-                                                            <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-100 pt-1 mt-1">
-                                                                <span className="text-slate-400">RUT:</span> {item.rut}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 w-1/4">
-                                                    {item.direccion_completa ? (
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]" title={item.direccion_completa}>
-                                                                {item.calle ? `${item.calle} ${item.numero}` : item.direccion_completa}
-                                                            </span>
-                                                            <span className="text-xs text-slate-500">{item.comuna}, {item.region}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-emerald-500">🆔</span> {item.rut || "N/A"}
                                                         </div>
-                                                    ) : (
-                                                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
-                                                            {item.comuna || "Sin comuna"}
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="space-y-2">
-                                                        {activeTab === "petmate" && item.certificado_antecedentes ? (
-                                                            <button
-                                                                onClick={() => handleViewDocument(item.certificado_antecedentes)}
-                                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                                            >
-                                                                📄 Ver Antecedentes
-                                                            </button>
-                                                        ) : activeTab === "petmate" ? (
-                                                            <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
-                                                        ) : null}
-                                                        <div>
-                                                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-bold ${item.aprobado ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                                                                {item.aprobado ? "Aprobado" : "Pendiente"}
-                                                            </span>
+                                                        <div className="flex items-center gap-2 line-clamp-1">
+                                                            <span className="text-emerald-500">📍</span> {item.direccion_completa || "Sin dirección"}
                                                         </div>
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-xs text-slate-400 w-1/6">
-                                                    {item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL", {
-                                                        day: 'numeric', month: 'short'
-                                                    }) : 'N/A'}
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex flex-col gap-2 items-end">
-                                                        <button
-                                                            onClick={() => toggleApproval(item.id, item.aprobado)}
-                                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${item.aprobado
-                                                                ? "border-red-200 text-red-600 hover:bg-red-50"
-                                                                : "bg-emerald-600 text-white border-transparent hover:bg-emerald-700 shadow-sm"
-                                                                }`}
-                                                        >
-                                                            {item.aprobado ? "Revocar" : "Aprobar"}
-                                                        </button>
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => handleViewDetail(item)}
-                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200"
-                                                            >
-                                                                Ver Todo
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteUser(item)}
-                                                                className="text-xs text-red-500 hover:text-red-700 font-medium bg-red-50 px-2 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
-                                                                title="Eliminar usuario"
-                                                            >
-                                                                🗑️
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                </>
+                                            )}
+                                        </div>
 
-                    {/* PAGINACIÓN */}
-                    {totalPages > 1 && (
-                        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Anterior
-                            </button>
-                            <span className="text-sm text-slate-600">
-                                Página <span className="font-bold">{currentPage}</span> de <span className="font-bold">{totalPages}</span>
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Siguiente
-                            </button>
+                                        {/* Acciones Footer */}
+                                        <div className="flex justify-end gap-3 pt-1">
+                                            {activeTab === "solicitudes" ? (
+                                                item.estado !== 'cancelado' && item.estado !== 'completado' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setConfirmModal({
+                                                                isOpen: true,
+                                                                title: "Cancelar Solicitud",
+                                                                message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
+                                                                onConfirm: () => alert("Funcionalidad de cancelar en construcción"),
+                                                                isDestructive: true,
+                                                                confirmText: "Sí, Cancelar"
+                                                            });
+                                                        }}
+                                                        className="text-xs text-red-600 hover:text-red-800 font-bold px-3 py-2 bg-red-50 rounded-lg w-full"
+                                                    >
+                                                        Cancelar Solicitud
+                                                    </button>
+                                                )
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(item)}
+                                                        className="flex-1 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                    >
+                                                        Eliminar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleViewDetail(item)}
+                                                        className="flex-1 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors"
+                                                    >
+                                                        Ver Detalles
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
-                    )}
-                </div>
-                {/* Modal de Detalle (Genérico para Sitter y Cliente) */}
-                <SitterDetailModal
-                    sitter={selectedSitter}
-                    open={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onApprove={toggleApproval}
-                    onViewDocument={handleViewDocument}
-                />
 
-                {/* Modal Global de Confirmación */}
-                <ConfirmationModal
-                    isOpen={confirmModal.isOpen}
-                    onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                    onConfirm={confirmModal.onConfirm}
-                    title={confirmModal.title}
-                    message={confirmModal.message}
-                    confirmText={confirmModal.confirmText}
-                    isDestructive={confirmModal.isDestructive}
-                />
-            </main>
-        </div>
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left text-sm text-slate-600">
+                                <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
+                                    <tr>
+                                        {activeTab === "solicitudes" ? (
+                                            <>
+                                                <th className="px-6 py-4">ID</th>
+                                                <th className="px-6 py-4">Origen</th>
+                                                <th className="px-6 py-4">Estado</th>
+                                                <th className="px-6 py-4">Cliente</th>
+                                                <th className="px-6 py-4">Sitter Asignado</th>
+                                                <th className="px-6 py-4">Detalles</th>
+                                                <th className="px-6 py-4">Fechas</th>
+                                                <th className="px-6 py-4 text-right">Acciones</th>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <th className="px-6 py-4">Usuario</th>
+                                                <th className="px-6 py-4">Contacto & RUT</th>
+                                                <th className="px-6 py-4">Ubicación</th>
+                                                <th className="px-6 py-4">Documentos & Estado</th>
+                                                <th className="px-6 py-4">Registro</th>
+                                                <th className="px-6 py-4 text-right">Acciones</th>
+                                            </>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {tableLoading ? (
+                                        <tr>
+                                            <td colSpan={8} className="px-6 py-12 text-center">
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                                                    <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : paginatedItems.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={8} className="px-6 py-12 text-center">
+                                                <div className="text-slate-400 mb-2">No se encontraron resultados</div>
+                                                {searchTerm && <button onClick={() => setSearchTerm("")} className="text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        paginatedItems.map((item) => {
+                                            if (activeTab === "solicitudes") {
+                                                // Render fila de solicitud
+                                                return (
+                                                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {item.postulaciones_count > 0 ? (
+                                                                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                                                                    🌐 Public
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                                                                    Directa
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold 
+                                                            ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
+                                                                    item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
+                                                                        item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
+                                                                            item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
+                                                                                item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
+                                                                                    item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
+                                                                                        'bg-slate-100 text-slate-700'}`}>
+                                                                {(item.estado || "Desconocido").toUpperCase()}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.cliente?.nombre || 'Desc.'} {item.cliente?.apellido_p || ''}</div>
+                                                            <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.cliente?.email || 'N/A'}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {item.sitter ? (
+                                                                <div>
+                                                                    <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.sitter.nombre} {item.sitter.apellido_p}</div>
+                                                                    <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.sitter.email}</div>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-xs text-slate-400 italic">-- Pendiente --</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-xs">
+                                                            <div><span className="font-semibold">{item.servicio || "N/A"}</span></div>
+                                                            <div className="text-slate-500">
+                                                                {item.perros > 0 && <span>🐶 {item.perros} </span>}
+                                                                {item.gatos > 0 && <span>🐱 {item.gatos} </span>}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-xs">
+                                                            <div>Desde: {item.fecha_inicio || "-"}</div>
+                                                            <div>Hasta: {item.fecha_fin || "-"}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            {item.estado !== 'cancelado' && item.estado !== 'completado' && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setConfirmModal({
+                                                                            isOpen: true,
+                                                                            title: "Cancelar Solicitud",
+                                                                            message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
+                                                                            onConfirm: () => alert("Funcionalidad de cancelar en construcción"), // To come: actual logic
+                                                                            isDestructive: true,
+                                                                            confirmText: "Sí, Cancelar"
+                                                                        });
+                                                                    }}
+                                                                    className="text-xs text-red-600 hover:text-red-800 font-medium"
+                                                                >
+                                                                    Cancelar
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+
+                                            // Render fila de usuario (cliente/sitter)
+                                            return (
+                                                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4 font-medium text-slate-900 w-1/4">
+                                                        <div className="flex items-center gap-3">
+                                                            {item.foto_perfil ? (
+                                                                <img src={item.foto_perfil} alt="Perfil" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
+                                                            ) : (
+                                                                <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs uppercase">
+                                                                    {item.nombre?.[0] || "?"}
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <div className="font-bold cursor-pointer hover:text-emerald-700 flex items-center gap-2" onClick={() => handleViewDetail(item)}>
+                                                                    {item.nombre} {item.apellido_p}
+                                                                    {(() => {
+                                                                        const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
+                                                                        return missing.length > 0 ? <span title={`Faltan datos: ${missing.join(', ')}`} className="cursor-help text-lg">⚠️</span> : null;
+                                                                    })()}
+                                                                </div>
+                                                                <span className="block text-xs font-normal text-slate-400">ID: {item.id.slice(0, 8)}...</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 w-1/4">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2 text-xs truncate max-w-[200px]" title={item.email}>
+                                                                <span className="text-emerald-500">✉</span> {item.email}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-xs">
+                                                                <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
+                                                            </div>
+                                                            {item.rut && (
+                                                                <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-100 pt-1 mt-1">
+                                                                    <span className="text-slate-400">RUT:</span> {item.rut}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 w-1/4">
+                                                        {item.direccion_completa ? (
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]" title={item.direccion_completa}>
+                                                                    {item.calle ? `${item.calle} ${item.numero}` : item.direccion_completa}
+                                                                </span>
+                                                                <span className="text-xs text-slate-500">{item.comuna}, {item.region}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                                                                {item.comuna || "Sin comuna"}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="space-y-2">
+                                                            {activeTab === "petmate" && item.certificado_antecedentes ? (
+                                                                <button
+                                                                    onClick={() => handleViewDocument(item.certificado_antecedentes)}
+                                                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                                >
+                                                                    📄 Ver Antecedentes
+                                                                </button>
+                                                            ) : activeTab === "petmate" ? (
+                                                                <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
+                                                            ) : null}
+                                                            <div>
+                                                                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-bold ${item.aprobado ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                                                    {item.aprobado ? "Aprobado" : "Pendiente"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-slate-400 w-1/6">
+                                                        {item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL", {
+                                                            day: 'numeric', month: 'short'
+                                                        }) : 'N/A'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <div className="flex flex-col gap-2 items-end">
+                                                            <button
+                                                                onClick={() => toggleApproval(item.id, item.aprobado)}
+                                                                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${item.aprobado
+                                                                    ? "border-red-200 text-red-600 hover:bg-red-50"
+                                                                    : "bg-emerald-600 text-white border-transparent hover:bg-emerald-700 shadow-sm"
+                                                                    }`}
+                                                            >
+                                                                {item.aprobado ? "Revocar" : "Aprobar"}
+                                                            </button>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleViewDetail(item)}
+                                                                    className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200"
+                                                                >
+                                                                    Ver Todo
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteUser(item)}
+                                                                    className="text-xs text-red-500 hover:text-red-700 font-medium bg-red-50 px-2 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+                                                                    title="Eliminar usuario"
+                                                                >
+                                                                    🗑️
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* PAGINACIÓN */}
+                        {totalPages > 1 && (
+                            <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Anterior
+                                </button>
+                                <span className="text-sm text-slate-600">
+                                    Página <span className="font-bold">{currentPage}</span> de <span className="font-bold">{totalPages}</span>
+                                </span>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Siguiente
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    {/* Modal de Detalle (Genérico para Sitter y Cliente) */}
+                    <SitterDetailModal
+                        sitter={selectedSitter}
+                        open={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onApprove={toggleApproval}
+                        onViewDocument={handleViewDocument}
+                    />
+
+                    {/* Modal Global de Confirmación */}
+                    <ConfirmationModal
+                        isOpen={confirmModal.isOpen}
+                        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                        onConfirm={confirmModal.onConfirm}
+                        title={confirmModal.title}
+                        message={confirmModal.message}
+                        confirmText={confirmModal.confirmText}
+                        isDestructive={confirmModal.isDestructive}
+                    />
+                </div>
+            )}
+        </>
     );
 }

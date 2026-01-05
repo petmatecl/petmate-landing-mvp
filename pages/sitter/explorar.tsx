@@ -355,7 +355,7 @@ export default function SitterExplorarPage() {
                                     ) : (
                                         <button
                                             onClick={() => handleApplyClick(trip)}
-                                            className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-emerald-600 transition-colors shadow-lg shadow-slate-900/10 active:scale-95"
+                                            className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-900/10 active:scale-95"
                                         >
                                             Postular
                                         </button>

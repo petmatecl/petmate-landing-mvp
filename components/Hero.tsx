@@ -100,9 +100,9 @@ export function Hero() {
 
             <div className="mt-8 flex items-center gap-4 text-xs font-medium text-slate-500">
               <div className="flex -space-x-2">
-                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" />
-                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" />
-                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 1" width={32} height={32} />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 2" width={32} height={32} />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 3" width={32} height={32} />
               </div>
               <div>
                 +200 Cuidadores verificados

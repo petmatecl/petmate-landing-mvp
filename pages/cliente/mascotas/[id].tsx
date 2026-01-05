@@ -93,9 +93,27 @@ export default function EditarMascotaPage() {
     if (loading) {
         return (
             <ClientLayout userId={userId} title="Cargando...">
-                <div className="flex flex-col items-center justify-center pt-32 pb-32">
-                    <Loader2 size={48} className="text-emerald-500 animate-spin mb-4" />
-                    <p className="text-slate-500 font-medium animate-pulse">Cargando información...</p>
+                <div className="max-w-3xl mx-auto animate-pulse">
+                    <div className="mb-6 flex justify-between items-center">
+                        <div className="h-8 bg-slate-200 rounded w-1/3"></div>
+                        <div className="h-4 bg-slate-200 rounded w-24"></div>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
+                        <div className="grid sm:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                                <div className="h-10 bg-slate-100 rounded"></div>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                                <div className="h-10 bg-slate-100 rounded"></div>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                            <div className="h-24 bg-slate-100 rounded"></div>
+                        </div>
+                    </div>
                 </div>
             </ClientLayout>
         );

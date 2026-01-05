@@ -33,20 +33,27 @@ export default function NotificationCenter({ userId }: Props) {
             console.error('Error fetching notifications:', error);
         } else {
             setNotifications(data || []);
-            setUnreadCount(data?.filter(n => !n.read).length || 0);
         }
         setLoading(false);
     };
 
+    // Derived state for unread count
+    useEffect(() => {
+        setUnreadCount(notifications.filter(n => !n.read).length);
+    }, [notifications]);
+
     const markAsRead = async (id: string) => {
+        // Optimistic update
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+
         const { error } = await supabase
             .from('notifications')
             .update({ read: true })
             .eq('id', id);
 
-        if (!error) {
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-            setUnreadCount(prev => Math.max(0, prev - 1));
+        if (error) {
+            // Revert if error (optional, but good practice)
+            console.error('Error marking as read:', error);
         }
     };
 
@@ -54,30 +61,28 @@ export default function NotificationCenter({ userId }: Props) {
         const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
         if (unreadIds.length === 0) return;
 
+        // Optimistic update
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+
         const { error } = await supabase
             .from('notifications')
             .update({ read: true })
             .in('id', unreadIds);
 
-        if (!error) {
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-            setUnreadCount(0);
-        }
+        if (error) console.error(error);
     };
 
     const deleteNotification = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
+        // Optimistic update
+        setNotifications(prev => prev.filter(n => n.id !== id));
+
         const { error } = await supabase
             .from('notifications')
             .delete()
             .eq('id', id);
 
-        if (!error) {
-            setNotifications(prev => prev.filter(n => n.id !== id));
-            // Recalculate unread in case we deleted an unread one
-            // Ideally we check if it was read or not, but filtering is safe
-            setUnreadCount(prev => notifications.find(n => n.id === id && !n.read) ? prev - 1 : prev);
-        }
+        if (error) console.error(error);
     };
 
     useEffect(() => {
@@ -88,14 +93,21 @@ export default function NotificationCenter({ userId }: Props) {
             const subscription = supabase
                 .channel('notifications_channel')
                 .on('postgres_changes', {
-                    event: 'INSERT',
+                    event: '*', // Listen to INSERT, UPDATE, DELETE
                     schema: 'public',
                     table: 'notifications',
                     filter: `user_id=eq.${userId}`
                 }, (payload) => {
-                    const newNotif = payload.new as Notification;
-                    setNotifications(prev => [newNotif, ...prev]);
-                    setUnreadCount(prev => prev + 1);
+                    if (payload.eventType === 'INSERT') {
+                        const newNotif = payload.new as Notification;
+                        setNotifications(prev => [newNotif, ...prev]);
+                    } else if (payload.eventType === 'UPDATE') {
+                        const updatedNotif = payload.new as Notification;
+                        setNotifications(prev => prev.map(n => n.id === updatedNotif.id ? updatedNotif : n));
+                    } else if (payload.eventType === 'DELETE') {
+                        const deletedId = payload.old.id; // Usually only id is available in old for DELETE
+                        setNotifications(prev => prev.filter(n => n.id !== deletedId));
+                    }
                 })
                 .subscribe();
 

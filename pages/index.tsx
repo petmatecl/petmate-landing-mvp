@@ -15,11 +15,31 @@ export default function HomePage({ caregivers }: HomePageProps) {
         <title>Pawnecta | Cuidadores de Mascotas Verificados en Chile</title>
         <meta
           name="description"
-          content="Encuentra a los mejores cuidadores de perros y gatos en tu comuna. Reserva paseos, alojamiento y cuidados a domicilio en Pawnecta (ex PetMate)."
+          content="Encuentra a los mejores cuidadores de perros y gatos en tu comuna. Reserva paseos, alojamiento y cuidados a domicilio en Pawnecta."
         />
         <meta property="og:title" content="Pawnecta | Cuidadores de Mascotas Verificados" />
         <meta property="og:description" content="Reserva paseos y alojamiento para tu mascota con cuidadores verificados. Sin jaulas, con amor de hogar." />
         <meta property="og:image" content="https://www.pawnecta.cl/favicon_sin_fondo_png.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              "name": "Pawnecta",
+              "image": "https://www.pawnecta.cl/favicon_sin_fondo_png.png",
+              "description": "Plataforma para encontrar cuidadores de mascotas verificados en Chile.",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Santiago",
+                "addressRegion": "RM",
+                "addressCountry": "CL"
+              },
+              "priceRange": "$$",
+              "telephone": "+56912345678"
+            })
+          }}
+        />
       </Head>
 
       <Hero />
@@ -37,7 +57,7 @@ export async function getStaticProps() {
   // Filtramos por rol='petmate' si tu tabla mezcla usuarios, pero aqui es registro_petmate
   const { data } = await supabase
     .from("registro_petmate")
-    .select("id, nombre, apellido_p, comuna")
+    .select("id, nombre, apellido_p, comuna, foto_perfil, promedio_calificacion")
     .limit(3);
 
   return {

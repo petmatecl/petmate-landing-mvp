@@ -20,6 +20,42 @@ import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Ph
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
+import { Skeleton } from "../Shared/Skeleton";
+
+function TripCardSkeleton() {
+    return (
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-sm animate-pulse">
+            <div className="flex justify-between items-start">
+                <div className="space-y-3 w-full">
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-24 rounded" />
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-24 rounded" />
+                    </div>
+                    <Skeleton className="h-6 w-3/4 rounded" />
+                </div>
+                <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+            <div className="space-y-2 pt-2">
+                <Skeleton className="h-4 w-full max-w-md rounded" />
+                <Skeleton className="h-4 w-1/2 rounded" />
+            </div>
+            <div className="pt-4 flex justify-end gap-3 border-t border-slate-50 mt-2">
+                <Skeleton className="h-10 w-24 rounded-xl" />
+                <Skeleton className="h-10 w-32 rounded-xl" />
+            </div>
+        </div>
+    );
+}
+
+function ItemsSkeleton() {
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-pulse">
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-40 w-full rounded-2xl" />
+        </div>
+    );
+}
 
 export default function DashboardContent() {
     const router = useRouter();
@@ -677,33 +713,30 @@ export default function DashboardContent() {
 
 
             {/* TABS NAVIGATION */}
-            <div className="flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6">
+            <div className="grid grid-cols-2 sm:flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
                 <button
                     onClick={() => setActiveTab('solicitudes')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <Calendar size={18} /> Solicitudes
                 </button>
-                <div className="w-px bg-slate-100 my-2"></div>
                 <button
                     onClick={() => setActiveTab('datos')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <User size={18} /> Datos
                     {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
-                <div className="w-px bg-slate-100 my-2"></div>
                 <button
                     onClick={() => setActiveTab('mascotas')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <PawPrint size={18} /> Mascotas
                     {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
-                <div className="w-px bg-slate-100 my-2"></div>
                 <button
                     onClick={() => setActiveTab('direcciones')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <MapPin size={18} /> Direcciones
                     {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
@@ -724,13 +757,24 @@ export default function DashboardContent() {
                         {!showTripForm && (
                             <button
                                 onClick={() => setShowTripForm(true)}
-                                className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center gap-2"
+                                className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 transition-all flex items-center gap-2"
                             >
                                 <Plus size={16} /> Nueva Solicitud
                             </button>
                         )}
                     </div>
 
+
+                    {/* Loading State */}
+                    {loadingTrips && (
+                        <div className="space-y-8 mb-8 animate-in fade-in duration-500">
+                            <div className="grid grid-cols-1 gap-4">
+                                <TripCardSkeleton />
+                                <TripCardSkeleton />
+                                <TripCardSkeleton />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Lista de Viajes */}
                     {!loadingTrips && !showTripForm && trips.length > 0 && (
@@ -1037,7 +1081,7 @@ export default function DashboardContent() {
                                                 ) : (
                                                     <button
                                                         onClick={handleContinue}
-                                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95 group"
+                                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 group"
                                                     >
                                                         Continuar
                                                         <div className="group-hover:translate-x-1 transition-transform">→</div>
@@ -1061,20 +1105,22 @@ export default function DashboardContent() {
                         <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">+ Agregar</button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {loadingPets ? (
-                            <p className="text-xs text-slate-400">Cargando...</p>
-                        ) : myPets.length > 0 ? (
-                            myPets.map(pet => (
-                                <PetCard key={pet.id} pet={pet} onEdit={handleEdit} />
-                            ))
-                        ) : (
-                            <div className="text-center py-6 col-span-2">
-                                <span className="text-2xl block mb-2">🐾</span>
-                                <p className="text-xs text-slate-500">Agrega a tus peludos aquí.</p>
-                            </div>
-                        )}
-                    </div>
+                    {loadingPets ? (
+                        <ItemsSkeleton />
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {myPets.length > 0 ? (
+                                myPets.map(pet => (
+                                    <PetCard key={pet.id} pet={pet} onEdit={handleEdit} />
+                                ))
+                            ) : (
+                                <div className="text-center py-6 col-span-2">
+                                    <span className="text-2xl block mb-2">🐾</span>
+                                    <p className="text-xs text-slate-500">Agrega a tus peludos aquí.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </section>
             )}
 
@@ -1256,23 +1302,27 @@ export default function DashboardContent() {
                             <button onClick={handleAddAddress} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">+ Agregar</button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {addresses.map(addr => (
-                                <AddressCard
-                                    key={addr.id}
-                                    address={addr}
-                                    onEdit={handleEditAddress}
-                                    onDelete={handleDeleteAddress}
-                                    onSetDefault={handleSetDefaultAddress}
-                                />
-                            ))}
-                            {addresses.length === 0 && (
-                                <div className="text-center py-6 col-span-2">
-                                    <span className="text-2xl block mb-2">📍</span>
-                                    <p className="text-xs text-slate-500">Agrega tus direcciones para solicitar servicios a domicilio.</p>
-                                </div>
-                            )}
-                        </div>
+                        {loadingAddresses ? (
+                            <ItemsSkeleton />
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {addresses.map(addr => (
+                                    <AddressCard
+                                        key={addr.id}
+                                        address={addr}
+                                        onEdit={handleEditAddress}
+                                        onDelete={handleDeleteAddress}
+                                        onSetDefault={handleSetDefaultAddress}
+                                    />
+                                ))}
+                                {addresses.length === 0 && (
+                                    <div className="text-center py-6 col-span-2">
+                                        <span className="text-2xl block mb-2">📍</span>
+                                        <p className="text-xs text-slate-500">Agrega tus direcciones para solicitar servicios a domicilio.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </section>
             )}

@@ -9,9 +9,10 @@ import { Save, Loader2, Calendar as CalendarIcon } from "lucide-react";
 
 interface Props {
     sitterId: string;
+    onSaveSuccess?: () => void;
 }
 
-export default function AvailabilityCalendar({ sitterId }: Props) {
+export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props) {
     // State management
     const [selectedDays, setSelectedDays] = useState<Date[]>([]);
     const [month, setMonth] = useState<Date>(new Date());
@@ -98,6 +99,7 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
             }
 
             setMessage({ type: 'success', text: 'Calendario actualizado correctamente.' });
+            if (onSaveSuccess) onSaveSuccess();
             setTimeout(() => setMessage(null), 3000);
 
         } catch (err: any) {
@@ -149,7 +151,7 @@ export default function AvailabilityCalendar({ sitterId }: Props) {
                         onClick={handleSave}
                         disabled={isSaving}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-white transition-all
-                        ${isSaving ? 'bg-slate-400' : 'bg-slate-900 hover:bg-slate-800'}`}
+                        ${isSaving ? 'bg-slate-400' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                     >
                         {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
                         {isSaving ? "Guardando..." : "Guardar"}

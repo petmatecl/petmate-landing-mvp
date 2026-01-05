@@ -97,7 +97,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
 
                     <button
                         onClick={handleLogout}
-                        className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-black transition-all shadow-lg shadow-slate-900/10"
+                        className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10"
                     >
                         Cerrar Sesión
                     </button>

@@ -133,7 +133,7 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                                 row: "flex w-full mt-2",
                                 cell: "flex-1 relative p-0 text-center text-sm focus-within:relative focus-within:z-20", // Changed: flex-1
                                 day: "mx-auto h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center",
-                                day_selected: "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white",
+                                day_selected: "bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white focus:bg-emerald-600 focus:text-white",
                                 day_today: "bg-slate-100 text-accent-foreground",
                                 day_outside: "text-slate-300 opacity-50",
                                 day_disabled: "text-slate-300 opacity-50 cursor-not-allowed hover:bg-transparent",
