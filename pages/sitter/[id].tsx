@@ -89,11 +89,26 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         if (!profileData && id && !error) {
             setLoadingProfile(true);
             const fetchProfile = async () => {
-                const { data, error } = await supabase
+                // 1. Try by ID
+                let { data, error } = await supabase
                     .from("registro_petmate")
                     .select("*")
                     .eq("id", id)
                     .single();
+
+                // 2. Fallback: Try by Auth ID
+                if (!data || error) {
+                    const { data: authData, error: authError } = await supabase
+                        .from("registro_petmate")
+                        .select("*")
+                        .eq("auth_user_id", id)
+                        .single();
+
+                    if (authData) {
+                        data = authData;
+                        error = null;
+                    }
+                }
 
                 if (data) {
                     setProfileData(data);
@@ -678,22 +693,49 @@ export async function getServerSideProps(context: any) {
         return { props: { petmate: null, error: "Configuration Error: No valid Supabase Key found" } };
     }
 
-    const { data, error } = await supabaseAdmin
+    // 1. Try fetching by ID (PK)
+    let { data, error } = await supabaseAdmin
         .from("registro_petmate")
         .select("*")
         .eq("id", id)
         .single();
 
-    // If error is "No rows found" (PGRST116), it might be RLS hiding it from Anon/Service.
+    // 2. If not found, try fetching by auth_user_id (Fallback for legacy links)
+    if (!data && !error) {
+        // Only try if id looks like a UUID to avoid syntax errors, though param is usually string
+        const { data: authData, error: authError } = await supabaseAdmin
+            .from("registro_petmate")
+            .select("*")
+            .eq("auth_user_id", id)
+            .single();
+
+        if (authData) {
+            data = authData;
+        }
+    } else if (error && error.code === 'PGRST116') {
+        // PGRST116 = JSON object requested, multiple (or no) rows returned
+        // Try by auth_user_id
+        const { data: authData } = await supabaseAdmin
+            .from("registro_petmate")
+            .select("*")
+            .eq("auth_user_id", id)
+            .single();
+
+        if (authData) {
+            data = authData;
+            error = null;
+        }
+    }
+
+    // If error is "No rows found" (PGRST116) AND we still rely on RLS/Client fetch:
     // We return null data but NO error string, so the client can try fetching with their session.
     if (error || !data) {
-        console.log("SSR Fetch failed or empty (RLS?):", error?.message);
+        console.log("SSR Fetch failed or empty (RLS or Wrong ID):", error?.message);
         return {
             props: {
                 petmate: null,
                 id: id,
                 // Only return 'error' if it's NOT a "not found" issue, to allow client retry.
-                // Actually, let's just let client retry always if null.
                 error: null
             }
         };
