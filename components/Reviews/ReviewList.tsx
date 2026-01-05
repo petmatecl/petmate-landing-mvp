@@ -27,7 +27,7 @@ export default function ReviewList({ reviews }: ReviewListProps) {
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-slate-900">
-                                    {review.cliente?.nombre} {review.cliente?.apellido_p}
+                                    {review.cliente?.nombre} {review.cliente?.apellido_p ? `${review.cliente.apellido_p.charAt(0)}.` : ''}
                                 </h4>
                                 <p className="text-xs text-slate-500">
                                     {format(new Date(review.created_at), "d MMMM yyyy", { locale: es })}

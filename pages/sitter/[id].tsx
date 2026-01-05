@@ -347,7 +347,9 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 
                                     {/* Nombre + Estrellas (Juntos) */}
                                     <div className="flex items-center justify-center gap-2 mb-1">
-                                        <h1 className="text-xl font-extrabold text-slate-900">{displayName}</h1>
+                                        <h1 className="text-xl font-extrabold text-slate-900">
+                                            {displayName} {petmate.apellido_p ? `${petmate.apellido_p.charAt(0)}.` : ''}
+                                        </h1>
                                         <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full text-xs font-bold border border-amber-100">
                                             <span>★ {averageRating}</span>
                                         </div>

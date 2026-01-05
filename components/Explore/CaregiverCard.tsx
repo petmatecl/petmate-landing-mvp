@@ -100,7 +100,7 @@ export default function CaregiverCard({
                     <div className="flex items-start justify-between">
                         <div>
                             <h3 className="text-lg font-bold text-slate-800 group-hover:text-emerald-700 transition-colors">
-                                {nombre} {isAuthenticated ? apellido : `${apellido.charAt(0)}.`}
+                                {nombre} {apellido ? `${apellido.charAt(0)}.` : ''}
                             </h3>
                             <p className="text-sm text-slate-500 flex items-center gap-1">
                                 <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
