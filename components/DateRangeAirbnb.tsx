@@ -1,6 +1,7 @@
 // components/DateRangeAirbnb.tsx
 import * as React from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
+import { es } from "date-fns/locale";
 
 type Props = {
   value?: DateRange;
@@ -155,12 +156,13 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
 
                   // --- Todos los días del rango con el mismo estilo de círculo oscuro ---
                   day_range_start:
-                    "bg-slate-900 text-white hover:bg-slate-900",
+                    "bg-slate-900 text-white hover:bg-slate-900 rounded-l-full rounded-r-none",
                   day_range_middle:
-                    "bg-slate-900 text-white hover:bg-slate-900",
+                    "bg-slate-100 text-slate-900 hover:bg-slate-200 rounded-none",
                   day_range_end:
-                    "bg-slate-900 text-white hover:bg-slate-900",
+                    "bg-slate-900 text-white hover:bg-slate-900 rounded-r-full rounded-l-none",
                 }}
+                locale={es}
               />
             </div>
 
