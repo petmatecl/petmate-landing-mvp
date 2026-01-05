@@ -1,11 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}", "./lib/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
         brand: {
-          50:  "#f0faf7",
+          50: "#f0faf7",
           100: "#d6f4ea",
           200: "#b0e7d6",
           300: "#85d7c0",
