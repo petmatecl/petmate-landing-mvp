@@ -16,7 +16,7 @@ import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
 import ApplicationsModal from "./ApplicationsModal"; // Import Modal
 import { useClientData } from "./ClientContext";
-import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X, CheckCircle2, Clock } from "lucide-react";
+import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X, CheckCircle2, Clock, Megaphone } from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
@@ -72,6 +72,7 @@ export default function DashboardContent() {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [loadingTrips, setLoadingTrips] = useState(true);
     const [showTripForm, setShowTripForm] = useState(false);
+    const [showStrategySelection, setShowStrategySelection] = useState(false);
 
     const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
@@ -532,19 +533,12 @@ export default function DashboardContent() {
         if (!userId) return;
 
         try {
-            if (!rango?.from || !rango?.to) {
-                showAlert('Fechas requeridas', 'Por favor selecciona las fechas de inicio y fin.', 'warning');
-                return;
-            }
-            if (mascotas.dogs === 0 && mascotas.cats === 0) {
-                showAlert('Mascotas requeridas', 'Debes indicar cuántos perros y/o gatos viajarán.', 'warning');
-                return;
-            }
+            if (!validateForm()) return;
 
             const payload: any = {
                 user_id: userId,
-                fecha_inicio: format(rango.from, 'yyyy-MM-dd'),
-                fecha_fin: format(rango.to, 'yyyy-MM-dd'),
+                fecha_inicio: format(rango!.from!, 'yyyy-MM-dd'),
+                fecha_fin: format(rango!.to!, 'yyyy-MM-dd'),
                 servicio,
                 perros: mascotas.dogs,
                 gatos: mascotas.cats,
@@ -582,7 +576,9 @@ export default function DashboardContent() {
                 setSelectedPetIds([]);
                 setMascotas({ dogs: 0, cats: 0 });
                 setEditingTripId(null); // Reset
+                setEditingTripId(null); // Reset
                 setShowTripForm(false);
+                setShowStrategySelection(false);
                 showAlert(
                     editingTripId ? '¡Viaje Actualizado!' : '¡Solicitud Publicada!',
                     editingTripId ? 'Los cambios se han guardado correctamente.' : 'Los sitters recibirán tu solicitud y podrás ver sus postulaciones aquí.',
@@ -603,32 +599,45 @@ export default function DashboardContent() {
         setMascotas({ dogs: 0, cats: 0 });
         setEditingTripId(null);
         setShowTripForm(false);
+        setShowStrategySelection(false);
+    };
 
+    // --- Validation Helper ---
+    const validateForm = (): boolean => {
+        if (!rango?.from || !rango?.to) {
+            showAlert('Fechas requeridas', 'Por favor selecciona las fechas de inicio y fin.', 'warning');
+            return false;
+        }
+        if (mascotas.dogs === 0 && mascotas.cats === 0) {
+            showAlert('Mascotas requeridas', 'Debes indicar cuántos perros y/o gatos viajarán.', 'warning');
+            return false;
+        }
+        if (servicio === 'domicilio' && !selectedAddressId) {
+            showAlert('Dirección requerida', 'Para servicio a domicilio debes seleccionar una dirección.', 'warning');
+            return false;
+        }
+        return true;
+    }
+
+    const handleContinue = () => {
+        if (validateForm()) {
+            setShowStrategySelection(true);
+        }
     };
 
 
     // --- New Handler: Search Directly with Validation ---
     const handleSearchDirectly = () => {
-        // 1. Validate same inputs as 'SaveTrip'
-        if (!rango?.from || !rango?.to) {
-            showAlert('Fechas requeridas', 'Por favor selecciona las fechas de inicio y fin.', 'warning');
-            return;
-        }
-        if (mascotas.dogs === 0 && mascotas.cats === 0) {
-            showAlert('Mascotas requeridas', 'Debes indicar cuántos perros y/o gatos viajarán.', 'warning');
-            return;
-        }
-        if (servicio === 'domicilio' && !selectedAddressId) {
-            showAlert('Dirección requerida', 'Para servicio a domicilio debes seleccionar una dirección.', 'warning');
-            return;
-        }
+        // Validation already done if coming from Strategy Screen, but safe to keep or rely on caller.
+        // If called directly validation is good.
+        if (!validateForm()) return;
 
         // 2. Build Query Params
         const params = new URLSearchParams();
 
         // Dates
-        params.append('from', format(rango.from, 'yyyy-MM-dd'));
-        params.append('to', format(rango.to, 'yyyy-MM-dd'));
+        params.append('from', format(rango!.from!, 'yyyy-MM-dd'));
+        params.append('to', format(rango!.to!, 'yyyy-MM-dd'));
 
         // Service (explorar uses 'a_domicilio', 'en_casa_petmate')
         if (servicio === 'domicilio') {
@@ -836,167 +845,209 @@ export default function DashboardContent() {
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16"></div>
                             </div>
 
-                            <div className="relative z-10 p-6 lg:p-8">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-bold text-slate-900">
-                                        {rango ? 'Editando Solicitud' : 'Nueva Solicitud'}
-                                    </h3>
-                                    <button onClick={() => setShowTripForm(false)} className="text-sm text-slate-500 hover:text-slate-800 underline">
-                                        Cancelar
+                            {/* STRATEGY SELECTION VIEW */}
+                            {showStrategySelection ? (
+                                <div className="relative z-10 p-6 lg:p-12 text-center animate-in zoom-in-95 duration-300">
+                                    <h3 className="text-2xl font-bold text-slate-900 mb-2">¿Cómo deseas continuar?</h3>
+                                    <p className="text-slate-500 mb-8 max-w-lg mx-auto">Ya tenemos los detalles de tu solicitud. Ahora elige la mejor opción para ti.</p>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                                        {/* Option 2: Search (Secondary) */}
+                                        <button
+                                            onClick={handleSearchDirectly}
+                                            className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
+                                        >
+                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-sky-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-slate-100">
+                                                <User size={32} />
+                                            </div>
+                                            <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-sky-700 transition-colors">Elegir Sitter</h4>
+                                            <p className="text-sm text-slate-500 leading-relaxed">
+                                                Explora el catálogo y elige manualmente.<br />(Recomendado si buscas algo muy específico)
+                                            </p>
+                                        </button>
+
+                                        {/* Option 1: Publish (Recommended) */}
+                                        <button
+                                            onClick={handleSaveTrip}
+                                            className="group relative flex flex-col items-center p-8 rounded-2xl border-2 border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 text-center"
+                                        >
+                                            <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                                Recomendado
+                                            </div>
+                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-emerald-100">
+                                                <Megaphone size={32} />
+                                            </div>
+                                            <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">Publicar Solicitud</h4>
+                                            <p className="text-sm text-slate-500 leading-relaxed">
+                                                Deja que los sitters postulen a tu viaje.<br />Recibirás ofertas de cuidadores disponibles.
+                                            </p>
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setShowStrategySelection(false)}
+                                        className="mt-8 text-sm text-slate-400 hover:text-slate-600 font-medium underline decoration-slate-300 underline-offset-4"
+                                    >
+                                        Volver a editar solicitud
                                     </button>
                                 </div>
-
-                                <div>
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                        {/* Fecha */}
-                                        <div className="md:col-span-12 xl:col-span-5 flex flex-col h-full">
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                Fechas del viaje
-                                            </label>
-                                            <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
-                                        </div>
-
-                                        {/* Servicio */}
-                                        <div className="md:col-span-12 xl:col-span-3 flex flex-col h-full">
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                Tipo de Servicio
-                                            </label>
-                                            <div className="flex flex-col gap-2 flex-1">
-                                                <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
-                                                        {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                                    </div>
-                                                    <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                                    <div className="flex items-center gap-2">
-                                                        <Home size={18} />
-                                                        <span className="text-sm">Domicilio</span>
-                                                    </div>
-                                                </label>
-                                                <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                        {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                                    </div>
-                                                    <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                                    <div className="flex items-center gap-2">
-                                                        <Hotel size={18} />
-                                                        <span className="text-sm">Hospedaje</span>
-                                                    </div>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div className="md:col-span-12 xl:col-span-4 flex flex-col h-full">
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                Mascotas
-                                            </label>
-                                            {hasPets ? (
-                                                <MyPetsSelector
-                                                    myPets={myPets}
-                                                    selectedIds={selectedPetIds}
-                                                    onChange={(ids, counts) => {
-                                                        setSelectedPetIds(ids);
-                                                        setMascotas(counts);
-                                                    }}
-                                                    hideLabel
-                                                />
-                                            ) : (
-                                                <PetsSelectorAirbnb
-                                                    value={mascotas}
-                                                    onChange={setMascotas}
-                                                    className="w-full"
-                                                    hideLabel
-                                                />
-                                            )}
-                                        </div>
-
-
-                                        {/* Dirección (Solo Domicilio) */}
-                                        {servicio === 'domicilio' && (
-                                            <div className="md:col-span-12">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                                                        Dirección del Servicio
-                                                    </label>
-                                                    <button
-                                                        onClick={handleAddAddress}
-                                                        className="text-xs text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 hover:underline"
-                                                    >
-                                                        <Plus size={14} /> Nueva Dirección
-                                                    </button>
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    {addresses.map(addr => (
-                                                        <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-emerald-300 bg-white'}`}>
-                                                            <div className="mt-0.5">
-                                                                <input
-                                                                    type="radio"
-                                                                    name="tripAddress"
-                                                                    value={addr.id}
-                                                                    checked={selectedAddressId === addr.id}
-                                                                    onChange={(e) => setSelectedAddressId(e.target.value)}
-                                                                    className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
-                                                                />
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="font-bold text-slate-900 text-sm">{addr.nombre}</span>
-                                                                    {addr.es_principal && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
-                                                                </div>
-                                                                <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{addr.direccion_completa}</p>
-                                                            </div>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                                {addresses.length === 0 && (
-                                                    <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                                                        ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-
+                            ) : (
+                                /* FORM VIEW */
+                                <div className="relative z-10 p-6 lg:p-8">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-bold text-slate-900">
+                                            {rango ? 'Editando Solicitud' : 'Nueva Solicitud'}
+                                        </h3>
+                                        <button onClick={() => setShowTripForm(false)} className="text-sm text-slate-500 hover:text-slate-800 underline">
+                                            Cancelar
+                                        </button>
                                     </div>
 
-                                    <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-100 pt-6">
-
-                                        {!editingTripId && (
-                                            <div className="flex-1 w-full md:w-auto text-left">
-                                                <p className="text-xs text-slate-400">
-                                                    Completa los datos para ver opciones de sitters o publicar.
-                                                </p>
+                                    <div>
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                            {/* Fecha */}
+                                            <div className="md:col-span-12 xl:col-span-5 flex flex-col h-full">
+                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                                    Fechas del viaje
+                                                </label>
+                                                <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
                                             </div>
-                                        )}
 
-                                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                                            {/* Secondary Action: Search */}
-                                            {!editingTripId && (
-                                                <button
-                                                    onClick={handleSearchDirectly}
-                                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 hover:border-emerald-500 hover:text-emerald-700 text-slate-600 font-bold rounded-xl transition-all"
-                                                >
-                                                    <div className="p-1 bg-slate-100 rounded-full">
-                                                        <User size={16} />
+                                            {/* Servicio */}
+                                            <div className="md:col-span-12 xl:col-span-3 flex flex-col h-full">
+                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                                    Tipo de Servicio
+                                                </label>
+                                                <div className="flex flex-col gap-2 flex-1">
+                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
+                                                            {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                                                        </div>
+                                                        <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                                                        <div className="flex items-center gap-2">
+                                                            <Home size={18} />
+                                                            <span className="text-sm">Domicilio</span>
+                                                        </div>
+                                                    </label>
+                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                            {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                                                        </div>
+                                                        <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                                                        <div className="flex items-center gap-2">
+                                                            <Hotel size={18} />
+                                                            <span className="text-sm">Hospedaje</span>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div className="md:col-span-12 xl:col-span-4 flex flex-col h-full">
+                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                                    Mascotas
+                                                </label>
+                                                {hasPets ? (
+                                                    <MyPetsSelector
+                                                        myPets={myPets}
+                                                        selectedIds={selectedPetIds}
+                                                        onChange={(ids, counts) => {
+                                                            setSelectedPetIds(ids);
+                                                            setMascotas(counts);
+                                                        }}
+                                                        hideLabel
+                                                    />
+                                                ) : (
+                                                    <PetsSelectorAirbnb
+                                                        value={mascotas}
+                                                        onChange={setMascotas}
+                                                        className="w-full"
+                                                        hideLabel
+                                                    />
+                                                )}
+                                            </div>
+
+
+                                            {/* Dirección (Solo Domicilio) */}
+                                            {servicio === 'domicilio' && (
+                                                <div className="md:col-span-12">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                                            Dirección del Servicio
+                                                        </label>
+                                                        <button
+                                                            onClick={handleAddAddress}
+                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 hover:underline"
+                                                        >
+                                                            <Plus size={14} /> Nueva Dirección
+                                                        </button>
                                                     </div>
-                                                    Elegir Sitter
-                                                </button>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        {addresses.map(addr => (
+                                                            <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-emerald-300 bg-white'}`}>
+                                                                <div className="mt-0.5">
+                                                                    <input
+                                                                        type="radio"
+                                                                        name="tripAddress"
+                                                                        value={addr.id}
+                                                                        checked={selectedAddressId === addr.id}
+                                                                        onChange={(e) => setSelectedAddressId(e.target.value)}
+                                                                        className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-bold text-slate-900 text-sm">{addr.nombre}</span>
+                                                                        {addr.es_principal && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
+                                                                    </div>
+                                                                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{addr.direccion_completa}</p>
+                                                                </div>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                    {addresses.length === 0 && (
+                                                        <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                                                            ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
+                                                        </p>
+                                                    )}
+                                                </div>
                                             )}
 
-                                            {/* Primary Action: Publish / Save */}
-                                            <button
-                                                onClick={handleSaveTrip}
-                                                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
-                                            >
-                                                {loadingTrips ? 'Procesando...' : (editingTripId ? 'Guardar Cambios' : 'Publicar Solicitud')}
-                                                {!loadingTrips && (
-                                                    <div className="p-0.5 bg-emerald-700/50 rounded-full">
-                                                        {editingTripId ? <Save size={14} /> : <Plus size={14} />}
-                                                    </div>
+                                        </div>
+
+                                        <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-100 pt-6">
+
+                                            {!editingTripId && (
+                                                <div className="flex-1 w-full md:w-auto text-left">
+                                                    <p className="text-xs text-slate-400">
+                                                        Completa los datos para continuar.
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                                                {/* Primary Action: Continuar (New Flow) or Save (Edit Mode) */}
+                                                {editingTripId ? (
+                                                    <button
+                                                        onClick={handleSaveTrip}
+                                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
+                                                    >
+                                                        {loadingTrips ? 'Guardando...' : 'Guardar Cambios'}
+                                                        <Save size={14} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleContinue}
+                                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/20 active:scale-95 group"
+                                                    >
+                                                        Continuar
+                                                        <div className="group-hover:translate-x-1 transition-transform">→</div>
+                                                    </button>
                                                 )}
-                                            </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
                 </section>
