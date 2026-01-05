@@ -156,11 +156,11 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
 
                   // --- Todos los días del rango con el mismo estilo de círculo oscuro ---
                   day_range_start:
-                    "!bg-slate-900 !text-white hover:bg-slate-900 rounded-l-full rounded-r-none",
+                    "!bg-emerald-600 !text-white hover:bg-emerald-700 rounded-l-full rounded-r-none",
                   day_range_middle:
-                    "!bg-slate-100 !text-slate-900 hover:!bg-slate-200 rounded-none",
+                    "!bg-emerald-100 !text-emerald-900 hover:!bg-emerald-200 rounded-none",
                   day_range_end:
-                    "!bg-slate-900 !text-white hover:bg-slate-900 rounded-r-full rounded-l-none",
+                    "!bg-emerald-600 !text-white hover:bg-emerald-700 rounded-r-full rounded-l-none",
                 }}
                 locale={es}
               />
