@@ -23,57 +23,75 @@ export const BLOG_POSTS: BlogPost[] = [
         readTime: "4 min lectura",
         tags: ["Verano", "Salud", "Perros"],
         content: `
-            <p class="lead text-xl text-slate-600 mb-8 leading-relaxed">
-                👋 El verano en Chile puede alcanzar temperaturas extremas 🌡️, y nuestros compañeros peludos lo sienten tanto o más que nosotros. Aquí te dejamos una <strong>guía práctica</strong> para cuidarlos y disfrutar del sol sin riesgos.
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                El verano en Chile puede alcanzar temperaturas extremas, y nuestros compañeros peludos lo sienten tanto o más que nosotros. Aquí te dejamos una <strong>guía práctica</strong> para cuidarlos y disfrutar del sol sin riesgos.
             </p>
 
-            <h3 class="text-2xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                💧 1. Hidratación Constante
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                1. Hidratación Constante
             </h3>
-            <p class="mb-6 text-lg leading-relaxed text-slate-600">
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
                 Asegúrate de que siempre tengan <strong>agua fresca y limpia</strong>. Si sales de paseo, lleva una botella portátil. 
                 <br/><br/>
-                🧊 <em>Un truco útil:</em> Coloca cubitos de hielo en su bebedero para mantener el agua fría por más tiempo y hacerlo más divertido para ellos.
+                <span class="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Tip útil:
+                </span> 
+                Coloca cubitos de hielo en su bebedero para mantener el agua fría por más tiempo.
             </p>
 
-            <h3 class="text-2xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                🐾 2. Cuidado con el Pavimento
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                2. Cuidado con el Pavimento
             </h3>
-            <p class="mb-6 text-lg leading-relaxed text-slate-600">
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
                 Antes de salir a pasear, haz la <strong>"prueba de los 5 segundos"</strong>: coloca el dorso de tu mano sobre el asfalto. 
             </p>
-            <blockquote class="border-l-4 border-amber-400 bg-amber-50 p-4 italic text-slate-700 my-6 rounded-r-lg">
-                "Si no puedes aguantar 5 segundos, está demasiado caliente para las almohadillas de tu perro."
+            <blockquote class="border-l-4 border-amber-400 bg-amber-50 p-4 text-slate-700 my-6 rounded-r-lg flex gap-3 items-start">
+                <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span class="italic">"Si no puedes aguantar 5 segundos, está demasiado caliente para las almohadillas de tu perro."</span>
             </blockquote>
-            <p class="mb-6 text-lg leading-relaxed text-slate-600">
-                🌅 Prefiere pasear temprano en la mañana o tarde en la noche cuando el suelo está más fresco.
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Prefiere pasear temprano en la mañana o tarde en la noche cuando el suelo está más fresco.
             </p>
 
-            <h3 class="text-2xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                🚗 3. Nunca los Dejes en el Auto
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                3. Nunca los Dejes en el Auto
             </h3>
-            <p class="mb-6 text-lg leading-relaxed text-slate-600">
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
                 Incluso con las ventanas abiertas, la temperatura dentro de un auto puede subir mortalmente en pocos minutos. 
-                <strong>Si vas a hacer trámites, es mejor dejarlos en casa frescos y seguros.</strong> 🏠
+                <strong>Si vas a hacer trámites, es mejor dejarlos en casa frescos y seguros.</strong>
             </p>
 
-            <h3 class="text-2xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                ☀️ 4. Protector Solar
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                4. Protector Solar
             </h3>
-            <p class="mb-6 text-lg leading-relaxed text-slate-600">
-                ¿Sabías que los animales de pelaje blanco o muy corto pueden sufrir quemaduras solares? 🧴 Consulta con tu veterinario sobre protectores solares aptos para mascotas y aplícalos en <strong>orejas y nariz</strong>.
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                ¿Sabías que los animales de pelaje blanco o muy corto pueden sufrir quemaduras solares? Consulta con tu veterinario sobre protectores solares aptos para mascotas y aplícalos en <strong>orejas y nariz</strong>.
             </p>
 
-            <div class="alert bg-sky-50 border-l-4 border-sky-500 p-5 rounded-r-xl my-8 shadow-sm">
-                <strong class="block text-sky-800 text-lg mb-1 flex items-center gap-2">💡 Consejo Pro:</strong> 
-                <span class="text-sky-700">Si notas que tu mascota respira con dificultad o babea excesivamente, busca sombra y ofrécele agua inmediatamente. Podría ser el inicio de un golpe de calor.</span>
+            <div class="bg-gray-50 border border-gray-200 p-5 rounded-xl my-8 flex gap-4 items-start">
+                <svg class="w-6 h-6 text-emerald-600 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div>
+                    <strong class="block text-slate-900 text-lg mb-1">Consejo Profesional</strong> 
+                    <span class="text-slate-600">Si notas que tu mascota respira con dificultad o babea excesivamente, busca sombra y ofrécele agua inmediatamente. Podría ser el inicio de un golpe de calor.</span>
+                </div>
             </div>
 
             <div class="mt-12 pt-8 border-t border-slate-200">
-                <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
-                    <li><a href="https://www.aspca.org/pet-care/general-pet-care/hot-weather-safety-tips" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline flex items-center gap-1">🔗 ASPCA - Hot Weather Safety Tips</a></li>
-                    <li><a href="https://www.akc.org/expert-advice/health/summer-safety-tips-for-dogs/" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline flex items-center gap-1">🔗 American Kennel Club (AKC) - Summer Safety</a></li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.aspca.org/pet-care/general-pet-care/hot-weather-safety-tips" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">ASPCA - Hot Weather Safety Tips</a>
+                    </li>
+                    <li class="flex items-center gap-2">
+                         <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.akc.org/expert-advice/health/summer-safety-tips-for-dogs/" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">American Kennel Club (AKC) - Summer Safety</a>
+                    </li>
                 </ul>
             </div>
         `
@@ -89,61 +107,85 @@ export const BLOG_POSTS: BlogPost[] = [
         readTime: "6 min lectura",
         tags: ["Emergencia", "Salud", "Prevención"],
         content: `
-            <p class="lead text-xl text-slate-600 mb-8 leading-relaxed">
-                🚨 El <strong>golpe de calor</strong> ocurre cuando la temperatura corporal de tu mascota sube peligrosamente y no puede regularla. Es una situación crítica que requiere acción inmediata.
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                El <strong>golpe de calor</strong> ocurre cuando la temperatura corporal de tu mascota sube peligrosamente y no puede regularla. Es una situación crítica que requiere acción inmediata.
             </p>
 
-            <h3 class="text-2xl font-bold text-rose-600 mt-8 mb-4 flex items-center gap-2">
-                ⚠️ Síntomas de Alerta
+            <h3 class="text-xl font-bold text-rose-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Síntomas de Alerta
             </h3>
             <div class="bg-rose-50 rounded-xl p-6 border border-rose-100 mb-8">
-                <ul class="space-y-3 text-lg text-slate-700">
-                    <li class="flex items-start gap-2"><span class="text-rose-500 mt-1">●</span> Jadeo excesivo y ruidoso 🌬️</li>
-                    <li class="flex items-start gap-2"><span class="text-rose-500 mt-1">●</span> Encías muy rojas o moradas 🦷</li>
-                    <li class="flex items-start gap-2"><span class="text-rose-500 mt-1">●</span> Salivación espesa 💧</li>
-                    <li class="flex items-start gap-2"><span class="text-rose-500 mt-1">●</span> Vómitos o diarrea 🤢</li>
-                    <li class="flex items-start gap-2"><span class="text-rose-500 mt-1">●</span> Tambaleo o incapacidad para levantarse 😵</li>
+                <ul class="space-y-3 text-base text-slate-700">
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Jadeo excesivo y ruidoso
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Encías muy rojas o moradas
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Salivación espesa
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Vómitos o diarrea
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Tambaleo o incapacidad para levantarse
+                    </li>
                 </ul>
             </div>
 
-            <h3 class="text-2xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                🚑 ¿Qué hacer ante un golpe de calor?
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                ¿Qué hacer ante un golpe de calor?
             </h3>
-            <ol class="list-none space-y-4 mb-8 text-lg text-slate-600">
-                <li class="flex gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold">1</span>
-                    <span><strong>Muévelo a la sombra</strong> inmediatamente y a un lugar ventilado. 🌳</span>
+            <ol class="list-none space-y-4 mb-8 text-base text-slate-600">
+                <li class="flex gap-3 items-start">
+                    <span class="flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">1</span>
+                    <span><strong>Muévelo a la sombra</strong> inmediatamente y a un lugar ventilado.</span>
                 </li>
-                <li class="flex gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold">2</span>
-                    <span>Ofrece <strong>agua fresca</strong> (no helada) en pequeñas cantidades. ❌ No lo fuerces a beber si no quiere.</span>
+                <li class="flex gap-3 items-start">
+                    <span class="flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">2</span>
+                    <span>Ofrece <strong>agua fresca</strong> (no helada) en pequeñas cantidades. No lo fuerces a beber si no quiere.</span>
                 </li>
-                <li class="flex gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold">3</span>
-                    <span>Moja sus <strong>patas, ingle y axilas</strong> con agua a temperatura ambiente. 🛁 Evita el agua muy helada para no causar un shock térmico.</span>
+                <li class="flex gap-3 items-start">
+                    <span class="flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">3</span>
+                    <span>Moja sus <strong>patas, ingle y axilas</strong> con agua a temperatura ambiente. Evita el agua muy helada.</span>
                 </li>
-                <li class="flex gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold">4</span>
-                    <span>Utiliza un <strong>ventilador</strong> o abanico para ayudar a disipar el calor corporal. 💨</span>
+                <li class="flex gap-3 items-start">
+                    <span class="flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">4</span>
+                    <span>Utiliza un <strong>ventilador</strong> o abanico para ayudar a disipar el calor corporal.</span>
                 </li>
-                <li class="flex gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center font-bold">5</span>
-                    <span class="font-bold text-rose-600">¡Dirígete al veterinario de urgencia! 🏥 Incluso si parece mejorar, puede haber daños internos.</span>
+                <li class="flex gap-3 items-start">
+                    <span class="flex-shrink-0 w-6 h-6 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">5</span>
+                    <span class="font-bold text-rose-600">¡Dirígete al veterinario de urgencia! Incluso si parece mejorar, puede haber daños internos.</span>
                 </li>
             </ol>
 
-            <h3 class="text-2xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                🐶 Razas de Mayor Riesgo
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Razas de Mayor Riesgo
             </h3>
-            <p class="mb-6 text-lg leading-relaxed text-slate-600">
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
                 Los perros <strong>braquicéfalos</strong> (ñatos) como <em>Pugs, Bulldogs y Boxers</em> tienen mayor dificultad para jadear y enfriarse, por lo que requieren cuidados extremos y vigilancia constante en días calurosos.
             </p>
 
             <div class="mt-12 pt-8 border-t border-slate-200">
-                <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
-                <ul class="text-xs text-slate-500 space-y-2">
-                    <li><a href="https://www.avma.org/resources-tools/pet-owners/petcare/warm-weather-pet-safety" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline flex items-center gap-1">🔗 AVMA - Warm Weather Pet Safety</a></li>
-                    <li><a href="https://www.humanesociety.org/resources/keep-pets-safe-heat" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline flex items-center gap-1">🔗 The Humane Society - Keep Pets Safe</a></li>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                 <ul class="text-xs text-slate-500 space-y-2">
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.avma.org/resources-tools/pet-owners/petcare/warm-weather-pet-safety" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">AVMA - Warm Weather Pet Safety</a>
+                    </li>
+                    <li class="flex items-center gap-2">
+                         <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.humanesociety.org/resources/keep-pets-safe-heat" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">The Humane Society - Keep Pets Safe</a>
+                    </li>
                 </ul>
             </div>
         `
