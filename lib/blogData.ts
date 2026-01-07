@@ -194,120 +194,140 @@ export const BLOG_POSTS: BlogPost[] = [
         id: "3",
         slug: "mitos-verdades-gato-indoor-100-por-ciento",
         title: "Mitos y Verdades: Por qué tu gato debe ser 100% Indoor",
-        excerpt: "Descubre por qué mantener a tu gato dentro de casa no solo prolonga su vida hasta en 10 años, sino que protege la fauna nativa. Derribamos los mitos sobre la 'libertad' felina.",
+        excerpt: "Un análisis profundo sobre por qué mantener a tu gato dentro de casa es la decisión más ética y responsable. Datos científicos, impacto ecológico y consejos de enriquecimiento.",
         coverImage: "https://images.unsplash.com/photo-1513245543132-31f507417b26?q=80&w=1000&auto=format&fit=crop",
         date: "2024-03-20",
         author: "Equipo Pawnecta",
-        readTime: "7 min lectura",
-        tags: ["Gatos", "Indoor", "Mitos", "Seguridad"],
+        readTime: "8 min lectura",
+        tags: ["Gatos", "Indoor", "Ecología", "Tenencia Responsable"],
         content: `
             <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
-                Existe un debate común entre dueños de gatos: <strong>¿Dejarlo salir o mantenerlo dentro de casa?</strong> 
-                La ciencia y los veterinarios son claros: un gato 100% indoor no solo vive más, sino que vive mejor. 
-                Aquí te contamos por qué, con datos reales y derribando los mitos más comunes.
+                Existe un debate apasionado entre los tutores de gatos sobre si permitirles salir o no. Sin embargo, la comunidad científica y veterinaria ha llegado a un consenso claro: <strong>mantener a los gatos dentro de casa (o en exteriores controlados) es fundamental para su bienestar y la protección del medio ambiente.</strong>
             </p>
 
-            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                El Dato Más Importante: Longevidad
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Longevidad y Salud: Los Datos No Mienten
             </h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                La diferencia en la esperanza de vida es uno de los argumentos más contundentes. Al eliminar los riesgos externos, estás regalándole años de vida a tu mascota.
+            </p>
             <div class="bg-emerald-50 rounded-xl p-6 border border-emerald-100 mb-8">
-                <p class="text-base text-slate-700 leading-relaxed mb-4">
-                    La diferencia en la esperanza de vida es dramática. Según estudios veterinarios:
-                </p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-emerald-100">
-                        <span class="block text-sm text-slate-500 uppercase tracking-widest font-bold mb-1">Gato Outdoor</span>
-                        <span class="text-2xl font-bold text-emerald-500">2 a 5 años</span>
-                        <p class="text-xs text-slate-400 mt-2">Promedio de vida expuesto a peligros</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-emerald-50">
+                        <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-2">Gato Outdoor (Con acceso libre)</span>
+                        <span class="text-3xl font-extrabold text-slate-400">2 a 5 años</span>
+                        <p class="text-sm text-slate-500 mt-2">Expuesto a atropellos, venenos y depredadores.</p>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-emerald-100">
-                        <span class="block text-sm text-slate-500 uppercase tracking-widest font-bold mb-1">Gato Indoor</span>
-                        <span class="text-2xl font-bold text-emerald-600">12 a 15+ años</span>
-                        <p class="text-xs text-slate-400 mt-2">Seguro en casa</p>
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-emerald-200 ring-2 ring-emerald-50">
+                        <span class="block text-xs text-emerald-600 uppercase tracking-widest font-bold mb-2">Gato Indoor (Hogareño)</span>
+                        <span class="text-3xl font-extrabold text-emerald-600">12 a 15+ años</span>
+                        <p class="text-sm text-slate-600 mt-2">Protegido y con control veterinario.</p>
                     </div>
                 </div>
             </div>
 
-            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                Peligros Reales del "Mundo Exterior"
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Enfermedades Incurables
             </h3>
             <p class="mb-6 text-base leading-relaxed text-slate-600">
-                Muchos creen que los gatos "se saben cuidar solos", pero la realidad urbana es muy peligrosa para ellos.
+                El contacto directo con gatos desconocidos es la principal vía de transmisión de enfermedades virales graves para las cuales, en muchos casos, no existe cura:
             </p>
             <ul class="space-y-4 mb-8 text-base text-slate-600">
                 <li class="flex gap-3 items-start">
-                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
-                        <strong>Enfermedades Morales e Incurables:</strong> El contacto con otros gatos (peleas o apareamiento) es la vía principal de transmisión de <em class="text-emerald-600">Leucemia Felina (FeLV)</em> y <em class="text-emerald-600">VIF (SIDA felino)</em>.
+                        <strong class="text-emerald-700">Leucemia Felina (FeLV):</strong> Se transmite por contacto cercano (acicalamiento, platos compartidos). Deprime el sistema inmune y es altamente mortal.
                     </div>
                 </li>
                 <li class="flex gap-3 items-start">
-                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
-                        <strong>Accidentes y Traumas:</strong> Atropellos, ataques de perros, caídas y crueldad humana son causas frecuentes de muerte prematura.
+                        <strong class="text-emerald-700">VIF (SIDA Felino):</strong> Transmitido principalmente por mordeduras profundas durante peleas territoriales.
                     </div>
                 </li>
             </ul>
 
-            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Impacto Ecológico: Eres Responsable
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Impacto Ecológico Devastador
             </h3>
-            <p class="mb-6 text-base leading-relaxed text-slate-600">
-                Tu gato es un depredador introducido, no una parte natural del ecosistema local. Se estima que los gatos domésticos son responsables de la muerte de <strong>miles de millones de aves y mamíferos pequeños</strong> cada año en el mundo.
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Los gatos son <strong>depredadores introducidos</strong>. En muchos ecosistemas, la fauna nativa (aves, lagartijas, pequeños mamíferos) no ha evolucionado con defensas contra ellos.
             </p>
-            <blockquote class="border-l-4 border-slate-400 bg-slate-50 p-4 text-slate-700 my-6 rounded-r-lg italic">
-                "Proteger a tu gato manteniéndolo dentro también es proteger a la fauna silvestre de tu comunidad."
-            </blockquote>
+            <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-100 mb-8">
+                <p class="italic text-slate-700 mb-4">
+                    "En EE.UU., se estima que los gatos libre-deambulantes matan entre 1.3 y 4.0 mil millones de aves y entre 6.3 y 22.3 mil millones de mamíferos anualmente."
+                </p>
+                <cite class="text-xs text-emerald-600 font-bold not-italic block text-right">— Nature Communications Study (2013)</cite>
+            </div>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Incluso si tu gato está bien alimentado, su instinto de caza permanece activo. Permitir que cace fauna silvestre contribuye al declive de la biodiversidad local.
+            </p>
 
             <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
                 <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Mito vs. Realidad
+                Derribando Mitos Comunes
             </h3>
             
-            <div class="space-y-4 mb-8">
+            <div class="space-y-6 mb-8">
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold text-xs">❌</div>
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold text-xs mt-1">❌</div>
                     <div>
-                        <strong class="block text-slate-800 text-sm">Mito: "Se aburren si no salen"</strong>
-                        <p class="text-slate-600 text-sm mt-1">
-                            Un gato no necesita "la calle", necesita <strong>estímulos</strong>. Juguetes, rascadores y tiempo de juego contigo son suficientes.
+                        <strong class="block text-slate-900 text-base mb-1">Mito: "Es cruel tenerlos encerrados"</strong>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            <strong>Realidad:</strong> Lo cruel es exponerlos a atropellos, envenenamientos o ataques de perros. Un gato indoor con un ambiente enriquecido es un gato pleno y seguro.
                         </p>
                     </div>
                 </div>
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold text-xs">❌</div>
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold text-xs mt-1">❌</div>
                     <div>
-                        <strong class="block text-slate-800 text-sm">Mito: "Es cruel privarlos de libertad"</strong>
-                        <p class="text-slate-600 text-sm mt-1">
-                            No es libertad, es exposición al peligro. Es como dejar a un niño pequeño jugar solo en una avenida. Lo cruel es exponerlos a sufrir.
+                        <strong class="block text-slate-900 text-base mb-1">Mito: "Se aburren si no salen"</strong>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            <strong>Realidad:</strong> El aburrimiento se combate con <em>enriquecimiento ambiental</em> (rascadores, alturas, juego), no con exposición al peligro.
                         </p>
                     </div>
                 </div>
             </div>
 
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">¿Cómo hacer feliz a un gato indoor?</h3>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600 mb-8">
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <span>Gatificación (repisas y alturas)</span>
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <span>Juguetes tipo caña (caza simulada)</span>
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <span>Catios (patios cerrados)</span>
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <span>Puzzles alimenticios</span>
+                </li>
+            </ul>
+
             <div class="mt-12 pt-8 border-t border-slate-200">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">¿Cómo enriquecer su vida en casa?</h4>
-                <div class="grid grid-cols-2 gap-4 text-xs text-slate-500">
-                    <div class="flex items-center gap-2">
-                         <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                         Rascadores verticales altos
-                    </div>
-                    <div class="flex items-center gap-2">
-                         <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                         Repisas en ventanas ("Gatificación")
-                    </div>
-                    <div class="flex items-center gap-2">
-                         <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                         Juguetes de caña interactivos
-                    </div>
-                    <div class="flex items-center gap-2">
-                         <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                         Catios (patios cerrados seguros)
-                    </div>
-                </div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
+                <ul class="text-xs text-slate-500 space-y-2">
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        <a href="https://www.avma.org/" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">American Veterinary Medical Association (AVMA)</a>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        <a href="https://abcbirds.org/program/cats-indoors/" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">American Bird Conservancy - Cats Indoors</a>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        <a href="https://www.nature.com/articles/ncomms2380" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">Loss, S. R., Will, T. & Marra, P. P. The impact of free-ranging domestic cats on wildlife of the United States. Nat Commun (2013)</a>
+                    </li>
+                </ul>
             </div>
         `
     }

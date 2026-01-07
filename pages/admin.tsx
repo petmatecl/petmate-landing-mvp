@@ -523,8 +523,72 @@ export default function AdminDashboard() {
                         <p className="text-slate-500 mt-1">Gestión de usuarios y solicitudes</p>
                     </div>
 
+                    {/* NOTIFICATION SECTION */}
+                    <div className="mb-10 bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                        <div className="relative z-10 flex flex-col md:flex-row gap-8">
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <span className="bg-white/20 p-1.5 rounded-lg">🔔</span> Actividad Reciente
+                                </h3>
+                                <div className="space-y-4">
+                                    {/* New Users Preview */}
+                                    {users.slice(0, 2).map((user) => (
+                                        <div key={user.id} className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
+                                            <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs uppercase border border-emerald-500/30">
+                                                {user.nombre?.[0] || "?"}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-200">
+                                                    Nuevo {user.roles?.includes('petmate') ? 'Sitter' : 'Cliente'}: <span className="text-white font-bold">{user.nombre}</span>
+                                                </p>
+                                                <p className="text-xs text-slate-400">
+                                                    {user.email} • {new Date(user.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            {!user.aprobado && (
+                                                <div className="ml-auto">
+                                                    <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2 py-1 rounded-full border border-amber-500/30">PENDIENTE</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="w-px bg-white/10 hidden md:block"></div>
+
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <span className="bg-white/20 p-1.5 rounded-lg">🚀</span> Acciones Rápidas
+                                </h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => { setActiveTab('solicitudes'); setFilterStatus('pending'); }}
+                                        className="text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors group"
+                                    >
+                                        <p className="text-xs text-slate-400 uppercase font-bold mb-1 group-hover:text-emerald-300">Solicitudes</p>
+                                        <p className="text-2xl font-bold">{stats.solicitudesPendientes}</p>
+                                        <p className="text-[10px] text-slate-500">Sin asignar</p>
+                                    </button>
+                                    <button
+                                        onClick={() => { setActiveTab('petmate'); setFilterStatus('pending'); }}
+                                        className="text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors group"
+                                    >
+                                        <p className="text-xs text-slate-400 uppercase font-bold mb-1 group-hover:text-amber-300">Sitters</p>
+                                        <p className="text-2xl font-bold">{stats.sittersPendientes}</p>
+                                        <p className="text-[10px] text-slate-500">Por aprobar</p>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Decoration */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
+                    </div>
+
                     {/* RESUMEN */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
                         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
                             <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
@@ -562,38 +626,38 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
 
                         {/* Tabs */}
-                        <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start">
+                        <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start xl:self-auto overflow-x-auto max-w-full">
                             <button
                                 onClick={() => setActiveTab("petmate")}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
                             >
                                 Sitters
                             </button>
                             <button
                                 onClick={() => setActiveTab("cliente")}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
                             >
                                 Clientes
                             </button>
                             <button
                                 onClick={() => setActiveTab("solicitudes")}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
                             >
                                 Solicitudes
                             </button>
                         </div>
 
                         {/* Buscador y Filtros */}
-                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto items-end md:items-center">
+                        <div className="flex flex-col lg:flex-row gap-3 w-full xl:w-auto items-stretch lg:items-center">
 
                             {/* Filtro Estado (Solo usuarios) */}
                             <select
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value as any)}
-                                className="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer h-[38px]"
+                                className="h-10 px-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
                             >
                                 <option value="all">Todos los Estados</option>
                                 {activeTab === "solicitudes" ? (
@@ -614,22 +678,22 @@ export default function AdminDashboard() {
 
                             {/* Filtros de Fecha */}
                             <div className="flex gap-2">
-                                <div className="flex flex-col">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Desde</label>
+                                <div className="flex flex-col justify-center">
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        placeholder="Desde"
                                     />
                                 </div>
-                                <div className="flex flex-col">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Hasta</label>
+                                <div className="flex flex-col justify-center">
                                     <input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        placeholder="Hasta"
                                     />
                                 </div>
                             </div>
@@ -637,26 +701,26 @@ export default function AdminDashboard() {
                             {/* Botón Exportar */}
                             <button
                                 onClick={handleExport}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-sm h-[38px] mb-[1px]"
+                                className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
                             >
-                                <span>📊</span> <span className="hidden lg:inline">Exportar Excel</span>
+                                <span>📊</span> <span className="hidden lg:inline">Exportar</span>
                             </button>
 
-                            <div className="relative flex-1 md:flex-none md:w-64">
+                            <div className="relative flex-1 lg:w-64">
                                 <input
                                     type="text"
                                     placeholder="Buscar..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                                    className="h-10 w-full pl-10 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                 />
-                                <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
                             </div>
 
                             <select
                                 value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value as any)}
-                                className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
+                                className="h-10 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
                             >
                                 <option value="newest">Más recientes</option>
                                 <option value="oldest">Más antiguos</option>

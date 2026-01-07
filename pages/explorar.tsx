@@ -8,6 +8,13 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import CompletionBlocker from "../components/Shared/CompletionBlocker";
+import dynamic from 'next/dynamic';
+import { Map, List } from "lucide-react";
+
+const CaregiverMap = dynamic(() => import('../components/Explore/CaregiverMap'), {
+    loading: () => <div className="h-[600px] w-full bg-slate-100 animate-pulse rounded-3xl" />,
+    ssr: false
+});
 
 // Definir interfaz del PetMate basado en tu DB
 interface PetMateUser {
@@ -29,6 +36,8 @@ export default function ExplorarPage() {
     const [petmates, setPetmates] = useState<PetMateUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
     // Estado de filtros
     const [filters, setFilters] = useState<{
@@ -164,26 +173,108 @@ export default function ExplorarPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {petmates.map((pm, index) => (
-                            <CaregiverCard
-                                key={pm.id}
-                                id={pm.id}
-                                nombre={pm.nombre || "Usuario"}
-                                apellido={pm.apellido_p || "PetMate"}
-                                price={(pm as any).tarifa_servicio_en_casa || (pm as any).tarifa_servicio_a_domicilio || 15000}
-                                rating={(pm as any).promedio_calificacion || 5.0}
-                                reviews={(pm as any).total_reviews || 0}
-                                verified={(pm as any).verificado}
-                                comuna={pm.comuna || (pm as any).region || "Santiago"}
-                                imageUrl={(pm as any).foto_perfil || `https://images.pexels.com/photos/${[220453, 774909, 1222271, 733872, 91227][index % 5]}/pexels-photo-${[220453, 774909, 1222271, 733872, 91227][index % 5]}.jpeg?auto=compress&cs=tinysrgb&w=600`}
-                                isAuthenticated={isAuthenticated}
-                                modalidad={(pm as any).modalidad || "ambos"}
-                                acepta_perros={(pm as any).cuida_perros}
-                                acepta_gatos={(pm as any).cuida_gatos}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        {/* Control de Vista & Resultados */}
+                        <div className="flex flex-col sm:flex-row justify-between items-end sm:items-center mb-6 gap-4">
+                            <p className="text-slate-500 font-medium">
+                                {petmates.length} cuidador{petmates.length !== 1 ? 'es' : ''} encontrado{petmates.length !== 1 ? 's' : ''}
+                            </p>
+
+                            <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
+                                <button
+                                    onClick={() => setViewMode("list")}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === "list"
+                                        ? "bg-white text-slate-900 shadow-sm"
+                                        : "text-slate-500 hover:text-slate-700"
+                                        }`}
+                                >
+                                    <List size={18} /> Lista
+                                </button>
+                                <button
+                                    onClick={() => setViewMode("map")}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === "map"
+                                        ? "bg-white text-slate-900 shadow-sm"
+                                        : "text-slate-500 hover:text-slate-700"
+                                        }`}
+                                >
+                                    <Map size={18} /> Mapa
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="relative min-h-[500px]">
+
+                            {viewMode === "list" ? (
+                                /* VISTA DE LISTA */
+                                <div className={`grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 transition-all duration-500 ${!isAuthenticated ? 'blur-[8px] select-none pointer-events-none opacity-60 grayscale-[0.3]' : ''}`}>
+                                    {petmates.map((pm, index) => (
+                                        <CaregiverCard
+                                            key={pm.id}
+                                            id={pm.id}
+                                            nombre={pm.nombre || "Usuario"}
+                                            apellido={pm.apellido_p || "PetMate"}
+                                            price={(pm as any).tarifa_servicio_en_casa || (pm as any).tarifa_servicio_a_domicilio || 15000}
+                                            rating={(pm as any).promedio_calificacion || 5.0}
+                                            reviews={(pm as any).total_reviews || 0}
+                                            verified={(pm as any).verificado}
+                                            comuna={pm.comuna || (pm as any).region || "Santiago"}
+                                            imageUrl={(pm as any).foto_perfil || `https://images.pexels.com/photos/${[220453, 774909, 1222271, 733872, 91227][index % 5]}/pexels-photo-${[220453, 774909, 1222271, 733872, 91227][index % 5]}.jpeg?auto=compress&cs=tinysrgb&w=600`}
+                                            isAuthenticated={isAuthenticated}
+                                            modalidad={(pm as any).modalidad || "ambos"}
+                                            acepta_perros={(pm as any).cuida_perros}
+                                            acepta_gatos={(pm as any).cuida_gatos}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                /* VISTA DE MAPA */
+                                <div className={`transition-all duration-500 ${!isAuthenticated ? 'blur-[4px] pointer-events-none' : ''}`}>
+                                    <CaregiverMap sitters={petmates} isAuthenticated={isAuthenticated} />
+                                </div>
+                            )}
+
+                            {/* Overlay para no autenticados */}
+                            {!isAuthenticated && (
+                                <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
+                                    <div className="bg-white/90 backdrop-blur-md border border-white/50 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+                                        {/* Decorative gradient blob */}
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-100 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none"></div>
+
+                                        <div className="relative z-10">
+                                            <div className="mx-auto w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-md shadow-emerald-100 text-3xl">
+                                                🔒
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                                                Descubre a nuestros cuidadores
+                                            </h3>
+                                            <p className="text-slate-600 mb-8 leading-relaxed">
+                                                Regístrate gratuitamente para ver los perfiles completos, fotos y reseñas de la comunidad de Pawnecta.
+                                            </p>
+
+                                            <div className="space-y-3">
+                                                <Link
+                                                    href="/register"
+                                                    className="block w-full py-3.5 px-6 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 hover:-translate-y-0.5"
+                                                >
+                                                    Crear cuenta gratis
+                                                </Link>
+                                                <Link
+                                                    href="/login"
+                                                    className="block w-full py-3.5 px-6 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
+                                                >
+                                                    Iniciar sesión
+                                                </Link>
+                                            </div>
+                                            <p className="text-xs text-slate-400 mt-6">
+                                                Únete a más de 1,000 dueños de mascotas felices.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
 
             </main>

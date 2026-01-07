@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { LayoutDashboard, MapPin, Calendar, Home, Hotel, Filter, Dog } from "lucide-react";
+import { LayoutDashboard, MapPin, Calendar, Home, Hotel, Filter, Dog, Ruler, Check } from "lucide-react";
 
 import ApplicationDialog from "../../components/Sitter/ApplicationDialog";
 import ModalAlert from "../../components/ModalAlert";
@@ -301,65 +301,117 @@ export default function SitterExplorarPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredTrips.map(trip => (
-                            <div key={trip.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group">
-                                <div className="p-5">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className={`p-2 rounded-xl ${trip.servicio === 'hospedaje' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                                            {trip.servicio === 'hospedaje' ? <Hotel size={24} /> : <Home size={24} />}
-                                        </div>
-                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide ${trip.servicio === 'hospedaje' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                            {trip.servicio === 'hospedaje' ? 'En casa del sitter' : 'En casa del dueño'}
-                                        </span>
+                            <div key={trip.id} className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group flex flex-col relative">
+
+                                {/* Badge Overlay */}
+                                <div className="absolute top-4 left-4 z-10 flex gap-2">
+                                    <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide backdrop-blur-md shadow-sm border border-white/20
+                                        ${trip.servicio === 'hospedaje' ? 'bg-indigo-500/90 text-white' : 'bg-emerald-500/90 text-white'}`}>
+                                        {trip.servicio === 'hospedaje' ? 'En casa del sitter' : 'A Domicilio'}
+                                    </span>
+                                </div>
+
+                                {/* "Image" / Header Area */}
+                                <div className={`h-32 w-full relative overflow-hidden flex items-center justify-center
+                                    ${trip.servicio === 'hospedaje' ? 'bg-gradient-to-br from-indigo-50 to-purple-50' : 'bg-gradient-to-br from-emerald-50 to-teal-50'}`}>
+
+                                    {/* Decorative Icon Background */}
+                                    <div className="absolute inset-0 opacity-10 transform scale-150 rotate-12 flex items-center justify-center pointer-events-none">
+                                        {trip.servicio === 'hospedaje' ? <Hotel size={120} /> : <Home size={120} />}
                                     </div>
 
-                                    <div className="space-y-3 mb-6">
-                                        <div className="flex items-center gap-3 text-slate-700">
-                                            <Calendar size={18} className="text-slate-400" />
-                                            <span className="font-semibold">
-                                                {format(new Date(trip.fecha_inicio), "d MMM", { locale: es })}
-                                                {trip.fecha_fin && ` - ${format(new Date(trip.fecha_fin), "d MMM", { locale: es })}`}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-slate-700">
-                                            <span>
-                                                {trip.perros > 0 && `${trip.perros} Perro${trip.perros > 1 ? 's' : ''}`}
-                                                {trip.perros > 0 && trip.gatos > 0 && " y "}
-                                                {trip.gatos > 0 && `${trip.gatos} Gato${trip.gatos > 1 ? 's' : ''}`}
-                                            </span>
-                                        </div>
+                                    {/* Main centered icon */}
+                                    <div className={`relative z-10 p-4 rounded-full bg-white shadow-lg transform group-hover:scale-110 transition-transform duration-500
+                                        ${trip.servicio === 'hospedaje' ? 'text-indigo-500' : 'text-emerald-500'}`}>
+                                        {trip.servicio === 'hospedaje' ? <Hotel size={32} /> : <Home size={32} />}
+                                    </div>
+                                </div>
 
-                                        {trip.mascotas?.tamano && trip.mascotas?.tipo === 'perro' && (
-                                            <div className="flex items-center gap-3 text-slate-700">
-                                                <Dog size={18} className="text-slate-400" />
-                                                <span className="capitalize font-medium text-slate-600">
-                                                    Tamaño: {trip.mascotas.tamano}
+                                <div className="p-6 flex flex-col flex-1">
+                                    {/* Header Info */}
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-xl font-bold text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors">
+                                                {trip.cliente?.comuna || "Santiago"}
+                                            </h3>
+                                            <div className="text-xs font-medium text-slate-400 mt-1 flex items-center gap-1">
+                                                <MapPin size={12} /> {trip.cliente?.nombre?.split(" ")[0]} • 4.5 km aprox.
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-bold text-slate-900 font-mono">
+                                                ${(trip.total || 0).toLocaleString('es-CL')}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Total</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Details Grid */}
+                                    <div className="space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+
+                                        {/* Date */}
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 flex-shrink-0">
+                                                <Calendar size={14} />
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs font-bold text-slate-400 uppercase">Fechas</span>
+                                                <span className="text-sm font-semibold text-slate-700">
+                                                    {format(new Date(trip.fecha_inicio), "d MMM", { locale: es })}
+                                                    {trip.fecha_fin && ` - ${format(new Date(trip.fecha_fin), "d MMM", { locale: es })}`}
                                                 </span>
                                             </div>
-                                        )}
-
-                                        <div className="flex items-center gap-3 text-slate-500">
-                                            <MapPin size={18} className="text-slate-400" />
-                                            <span className="text-sm font-medium text-slate-800">
-                                                {trip.cliente?.comuna || "Santiago"}
-                                                <span className="text-slate-400 text-xs font-normal ml-1">(Aprox.)</span>
-                                            </span>
                                         </div>
+
+                                        {/* Pets */}
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 flex-shrink-0">
+                                                {trip.perros > 0 ? <Dog size={14} /> : <Dog size={14} />}
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs font-bold text-slate-400 uppercase">Mascotas</span>
+                                                <span className="text-sm font-semibold text-slate-700">
+                                                    {trip.perros > 0 && `${trip.perros} Perro${trip.perros > 1 ? 's' : ''}`}
+                                                    {trip.perros > 0 && trip.gatos > 0 && ", "}
+                                                    {trip.gatos > 0 && `${trip.gatos} Gato${trip.gatos > 1 ? 's' : ''}`}
+                                                    {trip.perros === 0 && trip.gatos === 0 && "Sin especificar"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Specific Pet Details if single */}
+                                        {trip.mascotas?.tamano && trip.mascotas?.tipo === 'perro' && (
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 flex-shrink-0">
+                                                    <Ruler size={14} />
+                                                </div>
+                                                <div>
+                                                    <span className="block text-xs font-bold text-slate-400 uppercase">Tamaño</span>
+                                                    <span className="text-sm font-semibold text-slate-700 capitalize">
+                                                        {trip.mascotas.tamano}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {trip.hasApplied ? (
-                                        <button disabled className="w-full py-3 rounded-xl bg-slate-100 text-slate-400 font-bold border border-slate-200 cursor-not-allowed flex items-center justify-center gap-2">
-                                            <span className="text-emerald-500">✓</span> Ya postulaste
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleApplyClick(trip)}
-                                            className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-900/10 active:scale-95"
-                                        >
-                                            Postular
-                                        </button>
-                                    )}
+                                    {/* Footer / Action */}
+                                    <div className="mt-auto pt-2">
+                                        {trip.hasApplied ? (
+                                            <button disabled className="w-full py-3.5 rounded-xl bg-slate-100 text-slate-400 font-bold border-2 border-slate-100 cursor-not-allowed flex items-center justify-center gap-2">
+                                                <span className="bg-slate-200 text-slate-500 rounded-full p-0.5"><Check size={12} /></span> Ya postulaste
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleApplyClick(trip)}
+                                                className="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-emerald-600 transition-all duration-300 shadow-lg shadow-slate-200 hover:shadow-emerald-200 hover:-translate-y-0.5 flex items-center justify-center gap-2 group-hover/btn"
+                                            >
+                                                Postular ahora
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}

@@ -10,6 +10,56 @@ interface Props {
     relatedPosts: BlogPost[];
 }
 
+import { Check } from "lucide-react";
+import { useState } from "react";
+
+const ShareButton = ({ title, text }: { title: string, text: string }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleShare = async () => {
+        const url = window.location.href;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title,
+                    text,
+                    url
+                });
+            } catch (err) {
+                console.log('Error sharing:', err);
+            }
+        } else {
+            // Fallback to clipboard
+            try {
+                await navigator.clipboard.writeText(url);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        }
+    };
+
+    return (
+        <button
+            onClick={handleShare}
+            className={`flex items-center gap-2 transition-all duration-300 ${copied ? "text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full" : "hover:text-emerald-600"
+                }`}
+            title="Compartir"
+        >
+            {copied ? (
+                <>
+                    <Check size={18} />
+                    <span className="font-medium">¡Link copiado!</span>
+                </>
+            ) : (
+                <Share2 size={20} />
+            )}
+        </button>
+    );
+};
+
 export default function BlogPostPage({ post, relatedPosts }: Props) {
     if (!post) return null;
 
@@ -97,8 +147,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     <div className="mt-16 pt-8 border-t border-slate-100 flex items-center justify-between text-slate-400 text-sm">
                         <span>Compartir este artículo</span>
                         <div className="flex gap-4">
-                            <button className="hover:text-emerald-600 transition-colors"><Share2 size={20} /></button>
-                            {/* Add more social icons if needed */}
+                            <ShareButton title={post.title} text={post.excerpt} />
                         </div>
                     </div>
                 </article>
