@@ -40,7 +40,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            console.log('GTag Loaded', '${gtag.GA_TRACKING_ID}');
             gtag('config', '${gtag.GA_TRACKING_ID}', {
               page_path: window.location.pathname,
               debug_mode: true,
