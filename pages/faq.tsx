@@ -1,6 +1,4 @@
 import Head from "next/head";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
@@ -39,15 +37,13 @@ export default function FAQ() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
+        <>
             <Head>
                 <title>Preguntas Frecuentes | Pawnecta</title>
                 <meta name="description" content="Resuelve tus dudas sobre Pawnecta. Aprende cómo funciona el servicio de cuidado de mascotas más confiable de Chile." />
             </Head>
 
-            <Header />
-
-            <main className="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+            <div className="flex-grow py-12 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">
                 <div className="max-w-3xl mx-auto">
                     <div className="text-center mb-12">
                         <div className="inline-flex items-center justify-center p-3 bg-emerald-100 text-emerald-600 rounded-full mb-4">
@@ -66,8 +62,8 @@ export default function FAQ() {
                             <div
                                 key={index}
                                 className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
-                                        ? "border-emerald-500 shadow-md"
-                                        : "border-slate-200 hover:border-emerald-300"
+                                    ? "border-emerald-500 shadow-md"
+                                    : "border-slate-200 hover:border-emerald-300"
                                     }`}
                             >
                                 <button
@@ -104,9 +100,7 @@ export default function FAQ() {
                         </a>
                     </div>
                 </div>
-            </main>
-
-            <Footer />
-        </div>
+            </div>
+        </>
     );
 }
