@@ -133,6 +133,7 @@ export default function ExplorarPage() {
         <div className="min-h-screen bg-white">
             <Head>
                 <title>Explorar Cuidadores | Pawnecta</title>
+                <meta name="description" content="Busca y encuentra cuidadores de mascotas verificados en tu comuna. Filtra por servicios de hospedaje o a domicilio. Reserva con confianza en Pawnecta." />
             </Head>
 
             {/* Barra de Filtros */}
