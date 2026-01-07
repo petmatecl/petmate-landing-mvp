@@ -48,8 +48,8 @@ export const BLOG_POSTS: BlogPost[] = [
             <p class="mb-6 text-base leading-relaxed text-slate-600">
                 Antes de salir a pasear, haz la <strong>"prueba de los 5 segundos"</strong>: coloca el dorso de tu mano sobre el asfalto. 
             </p>
-            <blockquote class="border-l-4 border-amber-400 bg-amber-50 p-4 text-slate-700 my-6 rounded-r-lg flex gap-3 items-start">
-                <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <blockquote class="border-l-4 border-emerald-400 bg-emerald-50 p-4 text-slate-700 my-6 rounded-r-lg flex gap-3 items-start">
+                <svg class="w-6 h-6 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 <span class="italic">"Si no puedes aguantar 5 segundos, está demasiado caliente para las almohadillas de tu perro."</span>
             </blockquote>
             <p class="mb-6 text-base leading-relaxed text-slate-600">
@@ -111,30 +111,30 @@ export const BLOG_POSTS: BlogPost[] = [
                 El <strong>golpe de calor</strong> ocurre cuando la temperatura corporal de tu mascota sube peligrosamente y no puede regularla. Es una situación crítica que requiere acción inmediata.
             </p>
 
-            <h3 class="text-xl font-bold text-rose-600 mt-8 mb-4 flex items-center gap-2">
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 Síntomas de Alerta
             </h3>
-            <div class="bg-rose-50 rounded-xl p-6 border border-rose-100 mb-8">
+            <div class="bg-emerald-50 rounded-xl p-6 border border-emerald-100 mb-8">
                 <ul class="space-y-3 text-base text-slate-700">
                     <li class="flex items-start gap-2">
-                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <svg class="w-5 h-5 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         Jadeo excesivo y ruidoso
                     </li>
                     <li class="flex items-start gap-2">
-                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <svg class="w-5 h-5 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         Encías muy rojas o moradas
                     </li>
                     <li class="flex items-start gap-2">
-                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <svg class="w-5 h-5 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         Salivación espesa
                     </li>
                     <li class="flex items-start gap-2">
-                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <svg class="w-5 h-5 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         Vómitos o diarrea
                     </li>
                     <li class="flex items-start gap-2">
-                        <svg class="w-5 h-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <svg class="w-5 h-5 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         Tambaleo o incapacidad para levantarse
                     </li>
                 </ul>
@@ -162,8 +162,8 @@ export const BLOG_POSTS: BlogPost[] = [
                     <span>Utiliza un <strong>ventilador</strong> o abanico para ayudar a disipar el calor corporal.</span>
                 </li>
                 <li class="flex gap-3 items-start">
-                    <span class="flex-shrink-0 w-6 h-6 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">5</span>
-                    <span class="font-bold text-rose-600">¡Dirígete al veterinario de urgencia! Incluso si parece mejorar, puede haber daños internos.</span>
+                    <span class="flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">5</span>
+                    <span class="font-bold text-emerald-600">¡Dirígete al veterinario de urgencia! Incluso si parece mejorar, puede haber daños internos.</span>
                 </li>
             </ol>
 
@@ -218,7 +218,7 @@ export const BLOG_POSTS: BlogPost[] = [
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-4 rounded-lg shadow-sm border border-emerald-100">
                         <span class="block text-sm text-slate-500 uppercase tracking-widest font-bold mb-1">Gato Outdoor</span>
-                        <span class="text-2xl font-bold text-rose-500">2 a 5 años</span>
+                        <span class="text-2xl font-bold text-emerald-500">2 a 5 años</span>
                         <p class="text-xs text-slate-400 mt-2">Promedio de vida expuesto a peligros</p>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-sm border border-emerald-100">
@@ -238,13 +238,13 @@ export const BLOG_POSTS: BlogPost[] = [
             </p>
             <ul class="space-y-4 mb-8 text-base text-slate-600">
                 <li class="flex gap-3 items-start">
-                    <svg class="w-5 h-5 text-rose-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
-                        <strong>Enfermedades Morales e Incurables:</strong> El contacto con otros gatos (peleas o apareamiento) es la vía principal de transmisión de <em class="text-rose-600">Leucemia Felina (FeLV)</em> y <em class="text-rose-600">VIF (SIDA felino)</em>.
+                        <strong>Enfermedades Morales e Incurables:</strong> El contacto con otros gatos (peleas o apareamiento) es la vía principal de transmisión de <em class="text-emerald-600">Leucemia Felina (FeLV)</em> y <em class="text-emerald-600">VIF (SIDA felino)</em>.
                     </div>
                 </li>
                 <li class="flex gap-3 items-start">
-                    <svg class="w-5 h-5 text-rose-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
                         <strong>Accidentes y Traumas:</strong> Atropellos, ataques de perros, caídas y crueldad humana son causas frecuentes de muerte prematura.
                     </div>
@@ -269,7 +269,7 @@ export const BLOG_POSTS: BlogPost[] = [
             
             <div class="space-y-4 mb-8">
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0 text-rose-600 font-bold text-xs">❌</div>
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold text-xs">❌</div>
                     <div>
                         <strong class="block text-slate-800 text-sm">Mito: "Se aburren si no salen"</strong>
                         <p class="text-slate-600 text-sm mt-1">
@@ -278,7 +278,7 @@ export const BLOG_POSTS: BlogPost[] = [
                     </div>
                 </div>
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0 text-rose-600 font-bold text-xs">❌</div>
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold text-xs">❌</div>
                     <div>
                         <strong class="block text-slate-800 text-sm">Mito: "Es cruel privarlos de libertad"</strong>
                         <p class="text-slate-600 text-sm mt-1">
