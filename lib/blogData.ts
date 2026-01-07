@@ -558,5 +558,87 @@ export const BLOG_POSTS: BlogPost[] = [
                 </ul>
             </div>
         `
+    },
+    {
+        id: "7",
+        slug: "ventajas-desventajas-hotel-mascotas-vs-sitter",
+        title: "Hoteles para Mascotas: Lo Bueno, Lo Malo y Lo que Debes Saber",
+        excerpt: "¿Pensando en dejar a tu peludo en un hotel? Analizamos sus ventajas de seguridad vs. el riesgo de estrés y contagios. Toma la mejor decisión para tu viaje.",
+        coverImage: "/blog/pet-hotel-pros-cons.png",
+        date: "2024-06-15",
+        author: "Equipo Pawnecta",
+        readTime: "6 min lectura",
+        tags: ["Comparativa", "Hoteles", "Bienestar"],
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Cuando no podemos llevar a nuestra mascota de viaje, los <strong>hoteles o guarderías caninas</strong> suelen ser la primera opción que se nos viene a la mente. Ofrecen instalaciones profesionales y vigilancia, pero ¿son realmente el "paraíso" que prometen? Analizamos sus pros y contras sin filtros.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+                <!-- Ventajas -->
+                <div class="bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
+                    <h3 class="text-xl font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Ventajas del Hotel
+                    </h3>
+                    <ul class="space-y-4 text-sm text-indigo-800">
+                        <li class="flex gap-3">
+                            <span class="font-bold text-indigo-600">Seguridad las 24hrs:</span> Es difícil que una mascota se escape de instalaciones diseñadas con doble puerta y cercos altos.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-indigo-600">Personal Profesional:</span> Suelen tener cuidadores entrenados que pueden administrar medicamentos o reaccionar ante emergencias.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-indigo-600">Socialización:</span> Para perros muy sociables y enérgicos, jugar todo el día con otros perros puede ser divertido.
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Desventajas -->
+                <div class="bg-rose-50 rounded-2xl p-6 border border-rose-100">
+                    <h3 class="text-xl font-bold text-rose-900 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Desventajas del Hotel
+                    </h3>
+                    <ul class="space-y-4 text-sm text-rose-800">
+                        <li class="flex gap-3">
+                            <span class="font-bold text-rose-600">Riesgo de Contagios:</span> La "Tos de las Perreras" (Bordetella) y los parásitos son comunes donde hay alta concentración de animales.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-rose-600">Estrés Elevado:</span> El ruido constante de ladridos (efecto canil) y el entorno desconocido pueden causar ansiedad severa y diarreas.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-rose-600">Falta de Atención 1 a 1:</span> Un cuidador suele estar a cargo de 10-20 perros, por lo que la atención individual es mínima.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">¿Para quién es recomendable el Hotel?</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Los hoteles pueden ser una buena opción para <strong>perros jóvenes, sanos, vacunados y extremadamente sociables</strong> que disfrutan del caos de una manada. Sin embargo, no se recomiendan para:
+            </p>
+            <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4 mb-8">
+                <li>Gatos (el estrés de salir de casa es demasiado alto).</li>
+                <li>Perros ancianos o con movilidad reducida.</li>
+                <li>Mascotas tímidas, miedosas o reactivas.</li>
+                <li>Cachorros sin esquema de vacunación completo.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4">La Alternativa: Sitter Personalizado</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si buscas lo mejor de los dos mundos (seguridad y atención), un <strong>Pet Sitter verificado en Pawnecta</strong> ofrece la ventaja de mantener a tu mascota en su entorno (o en un hogar real), reduciendo el estrés a casi cero y garantizando atención exclusiva.
+            </p>
+
+             <div class="mt-12 pt-8 border-t border-slate-200">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                <ul class="text-xs text-slate-500 space-y-2">
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.akc.org/expert-advice/home-living/boarding-kennel-vs-pet-sitter/" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">AKC - Boarding Kennel vs. Pet Sitter</a>
+                    </li>
+                </ul>
+            </div>
+        `
     }
 ];
