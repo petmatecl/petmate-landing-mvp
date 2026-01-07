@@ -11,7 +11,7 @@ export interface BlogPost {
     tags: string[];
 }
 
-export const BLOG_POSTS: BlogPost[] = [
+const RAW_POSTS: BlogPost[] = [
     {
         id: "1",
         slug: "cuidados-mascotas-verano-altas-temperaturas",
@@ -642,3 +642,5 @@ export const BLOG_POSTS: BlogPost[] = [
         `
     }
 ];
+
+export const BLOG_POSTS = RAW_POSTS.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
