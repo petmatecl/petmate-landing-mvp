@@ -214,7 +214,7 @@ export default function ExplorarPage() {
                                             key={pm.id}
                                             id={pm.id}
                                             nombre={pm.nombre || "Usuario"}
-                                            apellido={pm.apellido_p || "PetMate"}
+                                            apellido={pm.apellido_p || "Pawnecta"}
                                             price={(pm as any).tarifa_servicio_en_casa || (pm as any).tarifa_servicio_a_domicilio || 15000}
                                             rating={(pm as any).promedio_calificacion || 5.0}
                                             reviews={(pm as any).total_reviews || 0}

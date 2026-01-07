@@ -61,7 +61,7 @@ export default function QuienesSomos() {
                             <div className="w-full lg:w-2/3">
                                 <h2 className="text-2xl font-bold text-slate-900 mt-10">La solución que soñábamos: Pawnecta</h2>
                                 <p>
-                                    PetMate nació de esa frustración y de ese amor. Queríamos crear una plataforma donde pudiéramos encontrar a alguien de confianza, un verdadero <em>Pawnecta Sitter</em>, que pudiera quedarse en casa o pasar tiempo de calidad con ellos, manteniendo sus rutinas y su tranquilidad intactas.
+                                    Pawnecta nació de esa frustración y de ese amor. Queríamos crear una plataforma donde pudiéramos encontrar a alguien de confianza, un verdadero <em>Pawnecta Sitter</em>, que pudiera quedarse en casa o pasar tiempo de calidad con ellos, manteniendo sus rutinas y su tranquilidad intactas.
                                 </p>
 
                                 <div className="border-l-4 border-emerald-500 pl-6 py-2 my-6 italic text-slate-600 bg-slate-50 rounded-r-lg">

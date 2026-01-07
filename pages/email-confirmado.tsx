@@ -30,7 +30,7 @@ export default function EmailConfirmadoPage() {
     return (
         <>
             <Head>
-                <title>¡Correo confirmado! — PetMate</title>
+                <title>¡Correo confirmado! — Pawnecta</title>
             </Head>
 
             <main className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-emerald-50 to-white">

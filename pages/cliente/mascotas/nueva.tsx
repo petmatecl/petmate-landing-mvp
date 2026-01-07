@@ -32,7 +32,7 @@ export default function NuevaMascotaPage() {
     if (!userId) return null; // Or loading spinner
 
     return (
-        <ClientLayout userId={userId} title="Nueva Mascota — PetMate">
+        <ClientLayout userId={userId} title="Nueva Mascota — Pawnecta">
             <div className="max-w-3xl mx-auto">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-slate-900">Agregar Nueva Mascota</h1>

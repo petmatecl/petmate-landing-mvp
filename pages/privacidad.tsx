@@ -4,7 +4,7 @@ export default function PrivacidadPage() {
     return (
         <div className="bg-slate-50 min-h-screen py-12">
             <Head>
-                <title>Política de Privacidad | PetMate</title>
+                <title>Política de Privacidad | Pawnecta</title>
             </Head>
             <div className="mx-auto max-w-4xl px-6 lg:px-8">
                 <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100">
