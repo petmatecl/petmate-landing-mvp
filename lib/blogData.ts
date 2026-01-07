@@ -464,5 +464,99 @@ export const BLOG_POSTS: BlogPost[] = [
                 </ul>
             </div>
         `
+    },
+    {
+        id: "6",
+        slug: "importancia-no-cambiar-ambiente-mascotas-viaje",
+        title: "¿Viajas? Por qué tu mascota prefiere quedarse en casa (y la ciencia lo respalda)",
+        excerpt: "Cambiar de ambiente genera estrés en perros y gatos. Descubre por qué mantener su rutina y entorno es la opción más saludable según veterinarios.",
+        coverImage: "/blog/pet-home-comfort-cover.png",
+        date: "2024-05-20",
+        author: "Equipo Pawnecta",
+        readTime: "7 min lectura",
+        tags: ["Bienestar Animal", "Estrés", "Tips de Viaje"],
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Cuando planeamos vacaciones, surge la eterna duda: ¿Llevamos a la mascota, la dejamos en una guardería o contratamos un sitter a domicilio? Aunque la idea de una guardería suena divertida, <strong>la evidencia veterinaria sugiere que mantener a tu mascota en su propio hogar es, en la mayoría de los casos, la opción más saludable y menos estresante.</strong>
+            </p>
+
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                El Impacto del "Estrés Ambiental"
+            </h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Tanto gatos como perros son animales de costumbres. Los gatos, en particular, son extremadamente sensibles a los cambios en su territorio físico. Un estudio publicado en <em>Nature Communications</em> y fuentes de la <em>American Veterinary Medical Association (AVMA)</em> indican que la novedad ambiental es uno de los mayores disparadores de cortisol (hormona del estrés) en mascotas.
+            </p>
+            <div class="bg-amber-50 rounded-xl p-6 border border-amber-100 mb-8">
+                <strong class="block text-amber-800 mb-2">¿Qué provoca el cambio de ambiente?</strong>
+                <ul class="list-disc list-inside text-amber-700 text-sm space-y-1">
+                    <li>Disminución del apetito y problemas digestivos.</li>
+                    <li>Baja en las defensas (sistema inmune).</li>
+                    <li>Alteraciones de conducta (miedo, agresividad o apatía).</li>
+                </ul>
+            </div>
+
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Beneficios de Quedarse en Casa (Sitter a Domicilio)
+            </h3>
+            
+            <div class="space-y-6 mb-8">
+                <div class="flex gap-4 items-start">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold mt-1">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    </div>
+                    <div>
+                        <strong class="block text-slate-900 text-lg mb-1">Mantenimiento de la Rutina</strong>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Los horarios de comida, paseos y sueño se mantienen intactos. Esta predictibilidad da seguridad emocional a tu mascota, algo imposible de replicar en un entorno nuevo y ruidoso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-start">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold mt-1">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                        <strong class="block text-slate-900 text-lg mb-1">Menor Riesgo de Enfermedades</strong>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Las guarderías, por muy limpias que sean, son focos de contagio de "tos de las perreras", parásitos y virus respiratorios debido a la alta concentración de animales. En casa, tu mascota no está expuesta a patógenos externos.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-start">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600 font-bold mt-1">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    </div>
+                    <div>
+                        <strong class="block text-slate-900 text-lg mb-1">Atención Personalizada (1 a 1)</strong>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Un sitter dedicado se enfoca 100% en tu peludo. Si es tímido, respeta su espacio; si es juguetón, gasta su energía. No hay competencia por atención ni conflictos jerárquicos con otros animales desconocidos.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Conclusión Veterinaria</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si tu mascota no tiene problemas graves de ansiedad por separación que requieran vigilancia médica constante, <strong>la opción "en casa" es el estándar de oro para su bienestar mental y físico.</strong> Al regresar, encontrarás a un amigo relajado que te espera en su sillón favorito, no a uno estresado por una "vacaciones" forzadas en un lugar extraño.
+            </p>
+
+            <div class="mt-12 pt-8 border-t border-slate-200">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
+                <ul class="text-xs text-slate-500 space-y-2">
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        <a href="https://www.aspca.org/pet-care/general-pet-care" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">ASPCA - General Pet Care & Stress Management</a>
+                    </li>
+                    <li class="flex items-center gap-2">
+                         <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        <a href="https://icatcare.org/advice/cats-and-stress/" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">International Cat Care - Environmental Stress in Cats</a>
+                    </li>
+                </ul>
+            </div>
+        `
     }
 ];
