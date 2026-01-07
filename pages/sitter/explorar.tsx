@@ -301,114 +301,80 @@ export default function SitterExplorarPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredTrips.map(trip => (
-                            <div key={trip.id} className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group flex flex-col relative">
+                            <div key={trip.id} className="bg-white rounded-xl border border-slate-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group flex flex-col relative overflow-hidden">
+                                {/* Service Stripe */}
+                                <div className={`h-1.5 w-full ${trip.servicio === 'hospedaje' ? 'bg-indigo-500' : 'bg-emerald-500'}`}></div>
 
-                                {/* Badge Overlay */}
-                                <div className="absolute top-4 left-4 z-10 flex gap-2">
-                                    <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide backdrop-blur-md shadow-sm border border-white/20
-                                        ${trip.servicio === 'hospedaje' ? 'bg-indigo-500/90 text-white' : 'bg-emerald-500/90 text-white'}`}>
-                                        {trip.servicio === 'hospedaje' ? 'En casa del sitter' : 'A Domicilio'}
-                                    </span>
-                                </div>
-
-                                {/* "Image" / Header Area */}
-                                <div className={`h-32 w-full relative overflow-hidden flex items-center justify-center
-                                    ${trip.servicio === 'hospedaje' ? 'bg-gradient-to-br from-indigo-50 to-purple-50' : 'bg-gradient-to-br from-emerald-50 to-teal-50'}`}>
-
-                                    {/* Decorative Icon Background */}
-                                    <div className="absolute inset-0 opacity-10 transform scale-150 rotate-12 flex items-center justify-center pointer-events-none">
-                                        {trip.servicio === 'hospedaje' ? <Hotel size={120} /> : <Home size={120} />}
-                                    </div>
-
-                                    {/* Main centered icon */}
-                                    <div className={`relative z-10 p-4 rounded-full bg-white shadow-lg transform group-hover:scale-110 transition-transform duration-500
-                                        ${trip.servicio === 'hospedaje' ? 'text-indigo-500' : 'text-emerald-500'}`}>
-                                        {trip.servicio === 'hospedaje' ? <Hotel size={32} /> : <Home size={32} />}
-                                    </div>
-                                </div>
-
-                                <div className="p-6 flex flex-col flex-1">
-                                    {/* Header Info */}
-                                    <div className="flex justify-between items-start mb-4">
+                                <div className="p-5 flex flex-col h-full">
+                                    {/* Header */}
+                                    <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h3 className="text-xl font-bold text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded text-white uppercase tracking-wider
+                                                    ${trip.servicio === 'hospedaje' ? 'bg-indigo-500' : 'bg-emerald-500'}`}>
+                                                    {trip.servicio === 'hospedaje' ? 'Hospedaje' : 'Domicilio'}
+                                                </span>
+                                                <span className="text-xs text-slate-400 font-medium">
+                                                    {trip.cliente?.nombre?.split(" ")[0]}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-lg font-bold text-slate-900 leading-tight flex items-center gap-1">
+                                                <MapPin size={16} className="text-slate-400" />
                                                 {trip.cliente?.comuna || "Santiago"}
                                             </h3>
-                                            <div className="text-xs font-medium text-slate-400 mt-1 flex items-center gap-1">
-                                                <MapPin size={12} /> {trip.cliente?.nombre?.split(" ")[0]} • 4.5 km aprox.
-                                            </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-2xl font-bold text-slate-900 font-mono">
+                                            <div className="text-xl font-bold text-slate-900">
                                                 ${(trip.total || 0).toLocaleString('es-CL')}
                                             </div>
-                                            <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Total</div>
                                         </div>
                                     </div>
 
-                                    {/* Details Grid */}
-                                    <div className="space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                    {/* Divider */}
+                                    <div className="border-t border-slate-100 my-3"></div>
 
-                                        {/* Date */}
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 flex-shrink-0">
-                                                <Calendar size={14} />
-                                            </div>
-                                            <div>
-                                                <span className="block text-xs font-bold text-slate-400 uppercase">Fechas</span>
-                                                <span className="text-sm font-semibold text-slate-700">
-                                                    {format(new Date(trip.fecha_inicio), "d MMM", { locale: es })}
-                                                    {trip.fecha_fin && ` - ${format(new Date(trip.fecha_fin), "d MMM", { locale: es })}`}
-                                                </span>
-                                            </div>
+                                    {/* Details */}
+                                    <div className="space-y-2 mb-4 flex-1">
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <Calendar size={16} className="text-slate-400" />
+                                            <span className="font-medium">
+                                                {format(new Date(trip.fecha_inicio), "d MMM", { locale: es })}
+                                                {trip.fecha_fin && ` - ${format(new Date(trip.fecha_fin), "d MMM", { locale: es })}`}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <Dog size={16} className="text-slate-400" />
+                                            <span>
+                                                {trip.perros > 0 && `${trip.perros} Perro${trip.perros > 1 ? 's' : ''}`}
+                                                {trip.perros > 0 && trip.gatos > 0 && ", "}
+                                                {trip.gatos > 0 && `${trip.gatos} Gato${trip.gatos > 1 ? 's' : ''}`}
+                                            </span>
                                         </div>
 
-                                        {/* Pets */}
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 flex-shrink-0">
-                                                {trip.perros > 0 ? <Dog size={14} /> : <Dog size={14} />}
-                                            </div>
-                                            <div>
-                                                <span className="block text-xs font-bold text-slate-400 uppercase">Mascotas</span>
-                                                <span className="text-sm font-semibold text-slate-700">
-                                                    {trip.perros > 0 && `${trip.perros} Perro${trip.perros > 1 ? 's' : ''}`}
-                                                    {trip.perros > 0 && trip.gatos > 0 && ", "}
-                                                    {trip.gatos > 0 && `${trip.gatos} Gato${trip.gatos > 1 ? 's' : ''}`}
-                                                    {trip.perros === 0 && trip.gatos === 0 && "Sin especificar"}
+                                        {/* Optional Pet Details */}
+                                        {trip.mascotas?.tamano && (
+                                            <div className="flex items-center gap-2 text-xs text-slate-500 ml-6">
+                                                <span className="bg-slate-100 px-2 py-0.5 rounded">
+                                                    Tamaño {trip.mascotas.tamano}
                                                 </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Specific Pet Details if single */}
-                                        {trip.mascotas?.tamano && trip.mascotas?.tipo === 'perro' && (
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 flex-shrink-0">
-                                                    <Ruler size={14} />
-                                                </div>
-                                                <div>
-                                                    <span className="block text-xs font-bold text-slate-400 uppercase">Tamaño</span>
-                                                    <span className="text-sm font-semibold text-slate-700 capitalize">
-                                                        {trip.mascotas.tamano}
-                                                    </span>
-                                                </div>
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Footer / Action */}
-                                    <div className="mt-auto pt-2">
+                                    {/* Action */}
+                                    <div className="mt-auto">
                                         {trip.hasApplied ? (
-                                            <button disabled className="w-full py-3.5 rounded-xl bg-slate-100 text-slate-400 font-bold border-2 border-slate-100 cursor-not-allowed flex items-center justify-center gap-2">
-                                                <span className="bg-slate-200 text-slate-500 rounded-full p-0.5"><Check size={12} /></span> Ya postulaste
+                                            <button disabled className="w-full py-2.5 rounded-lg bg-slate-50 text-emerald-600 font-bold border border-emerald-100 cursor-not-allowed flex items-center justify-center gap-2 text-sm">
+                                                <Check size={16} /> Ya postulaste
                                             </button>
                                         ) : (
                                             <button
                                                 onClick={() => handleApplyClick(trip)}
-                                                className="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-emerald-600 transition-all duration-300 shadow-lg shadow-slate-200 hover:shadow-emerald-200 hover:-translate-y-0.5 flex items-center justify-center gap-2 group-hover/btn"
+                                                className="w-full py-2.5 rounded-lg bg-slate-900 text-white font-bold hover:bg-emerald-600 transition-colors text-sm shadow-sm hover:shadow-md"
                                             >
-                                                Postular ahora
+                                                Postular
                                             </button>
                                         )}
                                     </div>
@@ -420,15 +386,17 @@ export default function SitterExplorarPage() {
             </div>
 
             {/* Application Modal */}
-            {sitterId && (
-                <ApplicationDialog
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    trip={selectedTrip}
-                    sitterId={sitterId}
-                    onApplied={handleAppSuccess}
-                />
-            )}
+            {
+                sitterId && (
+                    <ApplicationDialog
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        trip={selectedTrip}
+                        sitterId={sitterId}
+                        onApplied={handleAppSuccess}
+                    />
+                )
+            }
 
             <ModalAlert
                 isOpen={alertState.isOpen}
@@ -437,6 +405,6 @@ export default function SitterExplorarPage() {
                 message={alertState.message}
                 type={alertState.type}
             />
-        </div>
+        </div >
     );
 }

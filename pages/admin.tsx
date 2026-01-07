@@ -516,243 +516,450 @@ export default function AdminDashboard() {
                 <div className="min-h-screen bg-slate-50">
                     <AdminDashboardSkeleton />
                 </div>
-            ) : (
+            ) : (<div className="min-h-screen bg-slate-50 pb-20">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-slate-900">Administrador</h1>
-                        <p className="text-slate-500 mt-1">Gestión de usuarios y solicitudes</p>
+                    <h1 className="text-3xl font-bold text-slate-900">Administrador</h1>
+                    <div className="flex items-center justify-between mt-1">
+                        <p className="text-slate-500">Gestión de usuarios y solicitudes</p>
+                        <Link href="/admin/notificaciones" className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-colors">
+                            🔔 <span className="hidden sm:inline">Notificaciones</span>
+                            {stats.solicitudesPendientes + stats.sittersPendientes > 0 && (
+                                <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                                    {stats.solicitudesPendientes + stats.sittersPendientes}
+                                </span>
+                            )}
+                        </Link>
+                    </div>
+                </div>
+
+
+
+                {/* RESUMEN */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
+                        <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
+                        <div className="flex gap-2 mt-2 text-[10px]">
+                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesAprobados} OK</span>
+                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesPendientes} Pend.</span>
+                        </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
+                        <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
+                        <div className="flex gap-2 mt-2 text-[10px]">
+                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersAprobados} OK</span>
+                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersPendientes} Pend.</span>
+                        </div>
                     </div>
 
-                    {/* NOTIFICATION SECTION */}
-                    <div className="mb-10 bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-                        <div className="relative z-10 flex flex-col md:flex-row gap-8">
-                            <div className="flex-1">
-                                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span className="bg-white/20 p-1.5 rounded-lg">🔔</span> Actividad Reciente
-                                </h3>
-                                <div className="space-y-4">
-                                    {/* New Users Preview */}
-                                    {users.slice(0, 2).map((user) => (
-                                        <div key={user.id} className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
-                                            <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs uppercase border border-emerald-500/30">
-                                                {user.nombre?.[0] || "?"}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-slate-200">
-                                                    Nuevo {user.roles?.includes('petmate') ? 'Sitter' : 'Cliente'}: <span className="text-white font-bold">{user.nombre}</span>
-                                                </p>
-                                                <p className="text-xs text-slate-400">
-                                                    {user.email} • {new Date(user.created_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                            {!user.aprobado && (
-                                                <div className="ml-auto">
-                                                    <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2 py-1 rounded-full border border-amber-500/30">PENDIENTE</span>
+                    {/* Tarjetas de Solicitudes Desglosadas */}
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 bg-amber-50/30">
+                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
+                        <p className="text-3xl font-bold text-amber-600 mt-1">{stats.solicitudesPendientes}</p>
+                        <p className="text-[10px] text-amber-600/70 mt-1">Sin Sitter</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100 bg-indigo-50/30">
+                        <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
+                        <p className="text-3xl font-bold text-indigo-600 mt-1">{stats.solicitudesAsignadas}</p>
+                        <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
+                        <p className="text-3xl font-bold text-sky-600 mt-1">{stats.serviciosRealizados}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
+                    </div>
+                </div>
+
+                {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+
+                    {/* Tabs */}
+                    <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start xl:self-auto overflow-x-auto max-w-full">
+                        <button
+                            onClick={() => setActiveTab("petmate")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                        >
+                            Sitters
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("cliente")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                        >
+                            Clientes
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("solicitudes")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                        >
+                            Solicitudes
+                        </button>
+                    </div>
+
+                    {/* Buscador y Filtros */}
+                    <div className="flex flex-col lg:flex-row gap-3 w-full xl:w-auto items-stretch lg:items-center">
+
+                        {/* Filtro Estado (Solo usuarios) */}
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value as any)}
+                            className="h-10 px-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
+                        >
+                            <option value="all">Todos los Estados</option>
+                            {activeTab === "solicitudes" ? (
+                                <>
+                                    <option value="pending">Pendientes / Buscando</option>
+                                    <option value="confirmed">Confirmados / En Curso</option>
+                                    <option value="reserved">Por Confirmar (Reservado)</option>
+                                    <option value="completed">Completados</option>
+                                    <option value="cancelled">Cancelados</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value="pending">Pendientes de Aprobación</option>
+                                    <option value="approved">Aprobados</option>
+                                </>
+                            )}
+                        </select>
+
+                        {/* Filtros de Fecha */}
+                        <div className="flex gap-2">
+                            <div className="flex flex-col justify-center">
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    placeholder="Desde"
+                                />
+                            </div>
+                            <div className="flex flex-col justify-center">
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    placeholder="Hasta"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Botón Exportar */}
+                        <button
+                            onClick={handleExport}
+                            className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                        >
+                            <span>📊</span> <span className="hidden lg:inline">Exportar</span>
+                        </button>
+
+                        <div className="relative flex-1 lg:w-64">
+                            <input
+                                type="text"
+                                placeholder="Buscar..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="h-10 w-full pl-10 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                            />
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                        </div>
+
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value as any)}
+                            className="h-10 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
+                        >
+                            <option value="newest">Más recientes</option>
+                            <option value="oldest">Más antiguos</option>
+                            <option value="name_asc">Nombre A-Z</option>
+                            <option value="name_desc">Nombre Z-A</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* TABLA DE RESULTADOS */}
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+
+                    {/* MOBILE CARDS VIEW (Visible < md) */}
+                    <div className="md:hidden divide-y divide-slate-100">
+                        {tableLoading ? (
+                            <div className="p-8 text-center">
+                                <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
+                            </div>
+                        ) : paginatedItems.length === 0 ? (
+                            <div className="p-8 text-center text-slate-400">
+                                No se encontraron resultados
+                                {searchTerm && <button onClick={() => setSearchTerm("")} className="block w-full mt-2 text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
+                            </div>
+                        ) : (
+                            paginatedItems.map((item) => (
+                                <div key={item.id} className="p-4 space-y-3">
+                                    {/* Cabecera Card */}
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-3">
+                                            {activeTab !== "solicitudes" && (
+                                                <div className="relative">
+                                                    {item.foto_perfil ? (
+                                                        <img src={item.foto_perfil} alt="Perfil" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
+                                                    ) : (
+                                                        <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs uppercase">
+                                                            {item.nombre?.[0] || "?"}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
+                                            <div>
+                                                {activeTab === "solicitudes" ? (
+                                                    <span className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</span>
+                                                ) : (
+                                                    <div className="font-bold text-slate-900 text-sm flex items-center gap-2" onClick={() => handleViewDetail(item)}>
+                                                        {item.nombre} {item.apellido_p}
+                                                        {(() => {
+                                                            const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
+                                                            return missing.length > 0 ? <span className="text-base">⚠️</span> : null;
+                                                        })()}
+                                                    </div>
+                                                )}
+                                                <div className="text-xs text-slate-500">
+                                                    {activeTab === "solicitudes" ? item.servicio : item.email}
+                                                </div>
+                                            </div>
                                         </div>
-                                    ))}
+
+                                        {/* Estado Badge */}
+                                        {activeTab === "solicitudes" ? (
+                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold 
+                                                ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
+                                                    item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
+                                                        item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
+                                                            item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
+                                                                item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
+                                                                    item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
+                                                                        'bg-slate-100 text-slate-700'}`}>
+                                                {(item.estado || "Desconocido").toUpperCase()}
+                                            </span>
+                                        ) : (
+                                            <button
+                                                onClick={() => toggleApproval(item.id, item.aprobado)}
+                                                className={`px-2 py-1 rounded text-[10px] font-bold ${item.aprobado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}
+                                            >
+                                                {item.aprobado ? "APROBADO" : "PENDIENTE"}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Detalles Body */}
+                                    <div className="bg-slate-50 rounded-lg p-3 text-xs space-y-2">
+                                        {activeTab === "solicitudes" ? (
+                                            <>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <span className="block text-slate-400 text-[10px] uppercase font-bold">Cliente</span>
+                                                        <span className="font-medium text-slate-700">{item.cliente?.nombre} {item.cliente?.apellido_p}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-slate-400 text-[10px] uppercase font-bold">Sitter</span>
+                                                        <span className="font-medium text-slate-700">{item.sitter?.nombre ? `${item.sitter.nombre} ${item.sitter.apellido_p}` : '--'}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="pt-2 border-t border-slate-200 mt-2">
+                                                    <span className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Fechas</span>
+                                                    <div className="flex justify-between text-slate-700">
+                                                        <span>{item.fecha_inicio}</span>
+                                                        <span>→</span>
+                                                        <span>{item.fecha_fin}</span>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-emerald-500">🆔</span> {item.rut || "N/A"}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 line-clamp-1">
+                                                        <span className="text-emerald-500">📍</span> {item.direccion_completa || "Sin dirección"}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Acciones Footer */}
+                                    <div className="flex justify-end gap-3 pt-1">
+                                        {activeTab === "solicitudes" ? (
+                                            item.estado !== 'cancelado' && item.estado !== 'completado' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setConfirmModal({
+                                                            isOpen: true,
+                                                            title: "Cancelar Solicitud",
+                                                            message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
+                                                            onConfirm: () => alert("Funcionalidad de cancelar en construcción"),
+                                                            isDestructive: true,
+                                                            confirmText: "Sí, Cancelar"
+                                                        });
+                                                    }}
+                                                    className="text-xs text-red-600 hover:text-red-800 font-bold px-3 py-2 bg-red-50 rounded-lg w-full"
+                                                >
+                                                    Cancelar Solicitud
+                                                </button>
+                                            )
+                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={() => handleDeleteUser(item)}
+                                                    className="flex-1 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleViewDetail(item)}
+                                                    className="flex-1 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors"
+                                                >
+                                                    Ver Detalles
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="w-px bg-white/10 hidden md:block"></div>
-
-                            <div className="flex-1">
-                                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span className="bg-white/20 p-1.5 rounded-lg">🚀</span> Acciones Rápidas
-                                </h3>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => { setActiveTab('solicitudes'); setFilterStatus('pending'); }}
-                                        className="text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors group"
-                                    >
-                                        <p className="text-xs text-slate-400 uppercase font-bold mb-1 group-hover:text-emerald-300">Solicitudes</p>
-                                        <p className="text-2xl font-bold">{stats.solicitudesPendientes}</p>
-                                        <p className="text-[10px] text-slate-500">Sin asignar</p>
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('petmate'); setFilterStatus('pending'); }}
-                                        className="text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors group"
-                                    >
-                                        <p className="text-xs text-slate-400 uppercase font-bold mb-1 group-hover:text-amber-300">Sitters</p>
-                                        <p className="text-2xl font-bold">{stats.sittersPendientes}</p>
-                                        <p className="text-[10px] text-slate-500">Por aprobar</p>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Decoration */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
+                            ))
+                        )}
                     </div>
 
-                    {/* RESUMEN */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
-                            <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
-                            <div className="flex gap-2 mt-2 text-[10px]">
-                                <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesAprobados} OK</span>
-                                <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesPendientes} Pend.</span>
-                            </div>
-                        </div>
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
-                            <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
-                            <div className="flex gap-2 mt-2 text-[10px]">
-                                <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersAprobados} OK</span>
-                                <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersPendientes} Pend.</span>
-                            </div>
-                        </div>
-
-                        {/* Tarjetas de Solicitudes Desglosadas */}
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 bg-amber-50/30">
-                            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
-                            <p className="text-3xl font-bold text-amber-600 mt-1">{stats.solicitudesPendientes}</p>
-                            <p className="text-[10px] text-amber-600/70 mt-1">Sin Sitter</p>
-                        </div>
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100 bg-indigo-50/30">
-                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
-                            <p className="text-3xl font-bold text-indigo-600 mt-1">{stats.solicitudesAsignadas}</p>
-                            <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
-                        </div>
-
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
-                            <p className="text-3xl font-bold text-sky-600 mt-1">{stats.serviciosRealizados}</p>
-                            <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
-                        </div>
-                    </div>
-
-                    {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
-
-                        {/* Tabs */}
-                        <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start xl:self-auto overflow-x-auto max-w-full">
-                            <button
-                                onClick={() => setActiveTab("petmate")}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                            >
-                                Sitters
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("cliente")}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                            >
-                                Clientes
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("solicitudes")}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                            >
-                                Solicitudes
-                            </button>
-                        </div>
-
-                        {/* Buscador y Filtros */}
-                        <div className="flex flex-col lg:flex-row gap-3 w-full xl:w-auto items-stretch lg:items-center">
-
-                            {/* Filtro Estado (Solo usuarios) */}
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value as any)}
-                                className="h-10 px-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
-                            >
-                                <option value="all">Todos los Estados</option>
-                                {activeTab === "solicitudes" ? (
-                                    <>
-                                        <option value="pending">Pendientes / Buscando</option>
-                                        <option value="confirmed">Confirmados / En Curso</option>
-                                        <option value="reserved">Por Confirmar (Reservado)</option>
-                                        <option value="completed">Completados</option>
-                                        <option value="cancelled">Cancelados</option>
-                                    </>
+                    <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-left text-sm text-slate-600">
+                            <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
+                                <tr>
+                                    {activeTab === "solicitudes" ? (
+                                        <>
+                                            <th className="px-6 py-4">ID</th>
+                                            <th className="px-6 py-4">Origen</th>
+                                            <th className="px-6 py-4">Estado</th>
+                                            <th className="px-6 py-4">Cliente</th>
+                                            <th className="px-6 py-4">Sitter Asignado</th>
+                                            <th className="px-6 py-4">Detalles</th>
+                                            <th className="px-6 py-4">Fechas</th>
+                                            <th className="px-6 py-4 text-right">Acciones</th>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <th className="px-6 py-4">Usuario</th>
+                                            <th className="px-6 py-4">Contacto & RUT</th>
+                                            <th className="px-6 py-4">Ubicación</th>
+                                            <th className="px-6 py-4">Documentos & Estado</th>
+                                            <th className="px-6 py-4">Registro</th>
+                                            <th className="px-6 py-4 text-right">Acciones</th>
+                                        </>
+                                    )}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {tableLoading ? (
+                                    <tr>
+                                        <td colSpan={8} className="px-6 py-12 text-center">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                                                <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : paginatedItems.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} className="px-6 py-12 text-center">
+                                            <div className="text-slate-400 mb-2">No se encontraron resultados</div>
+                                            {searchTerm && <button onClick={() => setSearchTerm("")} className="text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
+                                        </td>
+                                    </tr>
                                 ) : (
-                                    <>
-                                        <option value="pending">Pendientes de Aprobación</option>
-                                        <option value="approved">Aprobados</option>
-                                    </>
-                                )}
-                            </select>
+                                    paginatedItems.map((item) => {
+                                        if (activeTab === "solicitudes") {
+                                            // Render fila de solicitud
+                                            return (
+                                                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {item.postulaciones_count > 0 ? (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                                                                🌐 Public
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                                                                Directa
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold 
+                                                            ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
+                                                                item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
+                                                                    item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
+                                                                        item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
+                                                                            item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
+                                                                                item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
+                                                                                    'bg-slate-100 text-slate-700'}`}>
+                                                            {(item.estado || "Desconocido").toUpperCase()}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.cliente?.nombre || 'Desc.'} {item.cliente?.apellido_p || ''}</div>
+                                                        <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.cliente?.email || 'N/A'}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {item.sitter ? (
+                                                            <div>
+                                                                <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.sitter.nombre} {item.sitter.apellido_p}</div>
+                                                                <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.sitter.email}</div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-slate-400 italic">-- Pendiente --</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs">
+                                                        <div><span className="font-semibold">{item.servicio || "N/A"}</span></div>
+                                                        <div className="text-slate-500">
+                                                            {item.perros > 0 && <span>🐶 {item.perros} </span>}
+                                                            {item.gatos > 0 && <span>🐱 {item.gatos} </span>}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs">
+                                                        <div>Desde: {item.fecha_inicio || "-"}</div>
+                                                        <div>Hasta: {item.fecha_fin || "-"}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        {item.estado !== 'cancelado' && item.estado !== 'completado' && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setConfirmModal({
+                                                                        isOpen: true,
+                                                                        title: "Cancelar Solicitud",
+                                                                        message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
+                                                                        onConfirm: () => alert("Funcionalidad de cancelar en construcción"), // To come: actual logic
+                                                                        isDestructive: true,
+                                                                        confirmText: "Sí, Cancelar"
+                                                                    });
+                                                                }}
+                                                                className="text-xs text-red-600 hover:text-red-800 font-medium"
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
 
-                            {/* Filtros de Fecha */}
-                            <div className="flex gap-2">
-                                <div className="flex flex-col justify-center">
-                                    <input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                                        placeholder="Desde"
-                                    />
-                                </div>
-                                <div className="flex flex-col justify-center">
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                                        placeholder="Hasta"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Botón Exportar */}
-                            <button
-                                onClick={handleExport}
-                                className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                            >
-                                <span>📊</span> <span className="hidden lg:inline">Exportar</span>
-                            </button>
-
-                            <div className="relative flex-1 lg:w-64">
-                                <input
-                                    type="text"
-                                    placeholder="Buscar..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="h-10 w-full pl-10 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                            </div>
-
-                            <select
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value as any)}
-                                className="h-10 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
-                            >
-                                <option value="newest">Más recientes</option>
-                                <option value="oldest">Más antiguos</option>
-                                <option value="name_asc">Nombre A-Z</option>
-                                <option value="name_desc">Nombre Z-A</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* TABLA DE RESULTADOS */}
-                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-
-                        {/* MOBILE CARDS VIEW (Visible < md) */}
-                        <div className="md:hidden divide-y divide-slate-100">
-                            {tableLoading ? (
-                                <div className="p-8 text-center">
-                                    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                                    <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
-                                </div>
-                            ) : paginatedItems.length === 0 ? (
-                                <div className="p-8 text-center text-slate-400">
-                                    No se encontraron resultados
-                                    {searchTerm && <button onClick={() => setSearchTerm("")} className="block w-full mt-2 text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
-                                </div>
-                            ) : (
-                                paginatedItems.map((item) => (
-                                    <div key={item.id} className="p-4 space-y-3">
-                                        {/* Cabecera Card */}
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-3">
-                                                {activeTab !== "solicitudes" && (
-                                                    <div className="relative">
+                                        // Render fila de usuario (cliente/sitter)
+                                        return (
+                                            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 font-medium text-slate-900 w-1/4">
+                                                    <div className="flex items-center gap-3">
                                                         {item.foto_perfil ? (
                                                             <img src={item.foto_perfil} alt="Perfil" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
                                                         ) : (
@@ -760,410 +967,150 @@ export default function AdminDashboard() {
                                                                 {item.nombre?.[0] || "?"}
                                                             </div>
                                                         )}
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    {activeTab === "solicitudes" ? (
-                                                        <span className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</span>
-                                                    ) : (
-                                                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2" onClick={() => handleViewDetail(item)}>
-                                                            {item.nombre} {item.apellido_p}
-                                                            {(() => {
-                                                                const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
-                                                                return missing.length > 0 ? <span className="text-base">⚠️</span> : null;
-                                                            })()}
-                                                        </div>
-                                                    )}
-                                                    <div className="text-xs text-slate-500">
-                                                        {activeTab === "solicitudes" ? item.servicio : item.email}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Estado Badge */}
-                                            {activeTab === "solicitudes" ? (
-                                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold 
-                                                ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
-                                                        item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
-                                                            item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
-                                                                item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
-                                                                    item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
-                                                                        item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
-                                                                            'bg-slate-100 text-slate-700'}`}>
-                                                    {(item.estado || "Desconocido").toUpperCase()}
-                                                </span>
-                                            ) : (
-                                                <button
-                                                    onClick={() => toggleApproval(item.id, item.aprobado)}
-                                                    className={`px-2 py-1 rounded text-[10px] font-bold ${item.aprobado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}
-                                                >
-                                                    {item.aprobado ? "APROBADO" : "PENDIENTE"}
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* Detalles Body */}
-                                        <div className="bg-slate-50 rounded-lg p-3 text-xs space-y-2">
-                                            {activeTab === "solicitudes" ? (
-                                                <>
-                                                    <div className="grid grid-cols-2 gap-2">
                                                         <div>
-                                                            <span className="block text-slate-400 text-[10px] uppercase font-bold">Cliente</span>
-                                                            <span className="font-medium text-slate-700">{item.cliente?.nombre} {item.cliente?.apellido_p}</span>
-                                                        </div>
-                                                        <div>
-                                                            <span className="block text-slate-400 text-[10px] uppercase font-bold">Sitter</span>
-                                                            <span className="font-medium text-slate-700">{item.sitter?.nombre ? `${item.sitter.nombre} ${item.sitter.apellido_p}` : '--'}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="pt-2 border-t border-slate-200 mt-2">
-                                                        <span className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Fechas</span>
-                                                        <div className="flex justify-between text-slate-700">
-                                                            <span>{item.fecha_inicio}</span>
-                                                            <span>→</span>
-                                                            <span>{item.fecha_fin}</span>
+                                                            <div className="font-bold cursor-pointer hover:text-emerald-700 flex items-center gap-2" onClick={() => handleViewDetail(item)}>
+                                                                {item.nombre} {item.apellido_p}
+                                                                {(() => {
+                                                                    const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
+                                                                    return missing.length > 0 ? <span title={`Faltan datos: ${missing.join(', ')}`} className="cursor-help text-lg">⚠️</span> : null;
+                                                                })()}
+                                                            </div>
+                                                            <span className="block text-xs font-normal text-slate-400">ID: {item.id.slice(0, 8)}...</span>
                                                         </div>
                                                     </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2">
+                                                </td>
+                                                <td className="px-6 py-4 w-1/4">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2 text-xs truncate max-w-[200px]" title={item.email}>
+                                                            <span className="text-emerald-500">✉</span> {item.email}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs">
                                                             <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-emerald-500">🆔</span> {item.rut || "N/A"}
+                                                        {item.rut && (
+                                                            <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-100 pt-1 mt-1">
+                                                                <span className="text-slate-400">RUT:</span> {item.rut}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 w-1/4">
+                                                    {item.direccion_completa ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]" title={item.direccion_completa}>
+                                                                {item.calle ? `${item.calle} ${item.numero}` : item.direccion_completa}
+                                                            </span>
+                                                            <span className="text-xs text-slate-500">{item.comuna}, {item.region}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-2 line-clamp-1">
-                                                            <span className="text-emerald-500">📍</span> {item.direccion_completa || "Sin dirección"}
+                                                    ) : (
+                                                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                                                            {item.comuna || "Sin comuna"}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="space-y-2">
+                                                        {activeTab === "petmate" && item.certificado_antecedentes ? (
+                                                            <button
+                                                                onClick={() => handleViewDocument(item.certificado_antecedentes)}
+                                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                            >
+                                                                📄 Ver Antecedentes
+                                                            </button>
+                                                        ) : activeTab === "petmate" ? (
+                                                            <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
+                                                        ) : null}
+                                                        <div>
+                                                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-bold ${item.aprobado ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                                                {item.aprobado ? "Aprobado" : "Pendiente"}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {/* Acciones Footer */}
-                                        <div className="flex justify-end gap-3 pt-1">
-                                            {activeTab === "solicitudes" ? (
-                                                item.estado !== 'cancelado' && item.estado !== 'completado' && (
-                                                    <button
-                                                        onClick={() => {
-                                                            setConfirmModal({
-                                                                isOpen: true,
-                                                                title: "Cancelar Solicitud",
-                                                                message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
-                                                                onConfirm: () => alert("Funcionalidad de cancelar en construcción"),
-                                                                isDestructive: true,
-                                                                confirmText: "Sí, Cancelar"
-                                                            });
-                                                        }}
-                                                        className="text-xs text-red-600 hover:text-red-800 font-bold px-3 py-2 bg-red-50 rounded-lg w-full"
-                                                    >
-                                                        Cancelar Solicitud
-                                                    </button>
-                                                )
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleDeleteUser(item)}
-                                                        className="flex-1 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleViewDetail(item)}
-                                                        className="flex-1 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors"
-                                                    >
-                                                        Ver Detalles
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        <div className="hidden md:block overflow-x-auto">
-                            <table className="w-full text-left text-sm text-slate-600">
-                                <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
-                                    <tr>
-                                        {activeTab === "solicitudes" ? (
-                                            <>
-                                                <th className="px-6 py-4">ID</th>
-                                                <th className="px-6 py-4">Origen</th>
-                                                <th className="px-6 py-4">Estado</th>
-                                                <th className="px-6 py-4">Cliente</th>
-                                                <th className="px-6 py-4">Sitter Asignado</th>
-                                                <th className="px-6 py-4">Detalles</th>
-                                                <th className="px-6 py-4">Fechas</th>
-                                                <th className="px-6 py-4 text-right">Acciones</th>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <th className="px-6 py-4">Usuario</th>
-                                                <th className="px-6 py-4">Contacto & RUT</th>
-                                                <th className="px-6 py-4">Ubicación</th>
-                                                <th className="px-6 py-4">Documentos & Estado</th>
-                                                <th className="px-6 py-4">Registro</th>
-                                                <th className="px-6 py-4 text-right">Acciones</th>
-                                            </>
-                                        )}
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {tableLoading ? (
-                                        <tr>
-                                            <td colSpan={8} className="px-6 py-12 text-center">
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                                                    <p className="text-sm text-slate-500 font-medium">Cargando datos...</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : paginatedItems.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={8} className="px-6 py-12 text-center">
-                                                <div className="text-slate-400 mb-2">No se encontraron resultados</div>
-                                                {searchTerm && <button onClick={() => setSearchTerm("")} className="text-emerald-600 text-xs font-bold hover:underline">Limpiar búsqueda</button>}
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        paginatedItems.map((item) => {
-                                            if (activeTab === "solicitudes") {
-                                                // Render fila de solicitud
-                                                return (
-                                                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-mono text-xs text-slate-500 font-bold">#{item.id.slice(0, 8).toUpperCase()}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            {item.postulaciones_count > 0 ? (
-                                                                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
-                                                                    🌐 Public
-                                                                </span>
-                                                            ) : (
-                                                                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
-                                                                    Directa
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold 
-                                                            ${item.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
-                                                                    item.estado === 'cancelado' ? 'bg-red-100 text-red-700' :
-                                                                        item.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' :
-                                                                            item.estado === 'reservado' ? 'bg-amber-100 text-amber-700' :
-                                                                                item.estado === 'solicitado' ? 'bg-indigo-100 text-indigo-700' :
-                                                                                    item.estado === 'publicado' ? 'bg-sky-100 text-sky-700' :
-                                                                                        'bg-slate-100 text-slate-700'}`}>
-                                                                {(item.estado || "Desconocido").toUpperCase()}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.cliente?.nombre || 'Desc.'} {item.cliente?.apellido_p || ''}</div>
-                                                            <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.cliente?.email || 'N/A'}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            {item.sitter ? (
-                                                                <div>
-                                                                    <div className="font-medium text-slate-900 truncate max-w-[150px]">{item.sitter.nombre} {item.sitter.apellido_p}</div>
-                                                                    <div className="text-xs text-slate-500 truncate max-w-[150px]">{item.sitter.email}</div>
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-xs text-slate-400 italic">-- Pendiente --</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-xs">
-                                                            <div><span className="font-semibold">{item.servicio || "N/A"}</span></div>
-                                                            <div className="text-slate-500">
-                                                                {item.perros > 0 && <span>🐶 {item.perros} </span>}
-                                                                {item.gatos > 0 && <span>🐱 {item.gatos} </span>}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-xs">
-                                                            <div>Desde: {item.fecha_inicio || "-"}</div>
-                                                            <div>Hasta: {item.fecha_fin || "-"}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
-                                                            {item.estado !== 'cancelado' && item.estado !== 'completado' && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setConfirmModal({
-                                                                            isOpen: true,
-                                                                            title: "Cancelar Solicitud",
-                                                                            message: "¿Estás seguro de cancelar esta solicitud? Esta acción no se puede deshacer.",
-                                                                            onConfirm: () => alert("Funcionalidad de cancelar en construcción"), // To come: actual logic
-                                                                            isDestructive: true,
-                                                                            confirmText: "Sí, Cancelar"
-                                                                        });
-                                                                    }}
-                                                                    className="text-xs text-red-600 hover:text-red-800 font-medium"
-                                                                >
-                                                                    Cancelar
-                                                                </button>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            }
-
-                                            // Render fila de usuario (cliente/sitter)
-                                            return (
-                                                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                                                    <td className="px-6 py-4 font-medium text-slate-900 w-1/4">
-                                                        <div className="flex items-center gap-3">
-                                                            {item.foto_perfil ? (
-                                                                <img src={item.foto_perfil} alt="Perfil" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
-                                                            ) : (
-                                                                <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs uppercase">
-                                                                    {item.nombre?.[0] || "?"}
-                                                                </div>
-                                                            )}
-                                                            <div>
-                                                                <div className="font-bold cursor-pointer hover:text-emerald-700 flex items-center gap-2" onClick={() => handleViewDetail(item)}>
-                                                                    {item.nombre} {item.apellido_p}
-                                                                    {(() => {
-                                                                        const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
-                                                                        return missing.length > 0 ? <span title={`Faltan datos: ${missing.join(', ')}`} className="cursor-help text-lg">⚠️</span> : null;
-                                                                    })()}
-                                                                </div>
-                                                                <span className="block text-xs font-normal text-slate-400">ID: {item.id.slice(0, 8)}...</span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 w-1/4">
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center gap-2 text-xs truncate max-w-[200px]" title={item.email}>
-                                                                <span className="text-emerald-500">✉</span> {item.email}
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-xs">
-                                                                <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
-                                                            </div>
-                                                            {item.rut && (
-                                                                <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-100 pt-1 mt-1">
-                                                                    <span className="text-slate-400">RUT:</span> {item.rut}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 w-1/4">
-                                                        {item.direccion_completa ? (
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]" title={item.direccion_completa}>
-                                                                    {item.calle ? `${item.calle} ${item.numero}` : item.direccion_completa}
-                                                                </span>
-                                                                <span className="text-xs text-slate-500">{item.comuna}, {item.region}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
-                                                                {item.comuna || "Sin comuna"}
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="space-y-2">
-                                                            {activeTab === "petmate" && item.certificado_antecedentes ? (
-                                                                <button
-                                                                    onClick={() => handleViewDocument(item.certificado_antecedentes)}
-                                                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                                                >
-                                                                    📄 Ver Antecedentes
-                                                                </button>
-                                                            ) : activeTab === "petmate" ? (
-                                                                <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
-                                                            ) : null}
-                                                            <div>
-                                                                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-bold ${item.aprobado ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                                                                    {item.aprobado ? "Aprobado" : "Pendiente"}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-xs text-slate-400 w-1/6">
-                                                        {item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL", {
-                                                            day: 'numeric', month: 'short'
-                                                        }) : 'N/A'}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <div className="flex flex-col gap-2 items-end">
+                                                </td>
+                                                <td className="px-6 py-4 text-xs text-slate-400 w-1/6">
+                                                    {item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL", {
+                                                        day: 'numeric', month: 'short'
+                                                    }) : 'N/A'}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex flex-col gap-2 items-end">
+                                                        <button
+                                                            onClick={() => toggleApproval(item.id, item.aprobado)}
+                                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${item.aprobado
+                                                                ? "border-red-200 text-red-600 hover:bg-red-50"
+                                                                : "bg-emerald-600 text-white border-transparent hover:bg-emerald-700 shadow-sm"
+                                                                }`}
+                                                        >
+                                                            {item.aprobado ? "Revocar" : "Aprobar"}
+                                                        </button>
+                                                        <div className="flex gap-2">
                                                             <button
-                                                                onClick={() => toggleApproval(item.id, item.aprobado)}
-                                                                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${item.aprobado
-                                                                    ? "border-red-200 text-red-600 hover:bg-red-50"
-                                                                    : "bg-emerald-600 text-white border-transparent hover:bg-emerald-700 shadow-sm"
-                                                                    }`}
+                                                                onClick={() => handleViewDetail(item)}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200"
                                                             >
-                                                                {item.aprobado ? "Revocar" : "Aprobar"}
+                                                                Ver Todo
                                                             </button>
-                                                            <div className="flex gap-2">
-                                                                <button
-                                                                    onClick={() => handleViewDetail(item)}
-                                                                    className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200"
-                                                                >
-                                                                    Ver Todo
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteUser(item)}
-                                                                    className="text-xs text-red-500 hover:text-red-700 font-medium bg-red-50 px-2 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
-                                                                    title="Eliminar usuario"
-                                                                >
-                                                                    🗑️
-                                                                </button>
-                                                            </div>
+                                                            <button
+                                                                onClick={() => handleDeleteUser(item)}
+                                                                className="text-xs text-red-500 hover:text-red-700 font-medium bg-red-50 px-2 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+                                                                title="Eliminar usuario"
+                                                            >
+                                                                🗑️
+                                                            </button>
                                                         </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* PAGINACIÓN */}
-                        {totalPages > 1 && (
-                            <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Anterior
-                                </button>
-                                <span className="text-sm text-slate-600">
-                                    Página <span className="font-bold">{currentPage}</span> de <span className="font-bold">{totalPages}</span>
-                                </span>
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Siguiente
-                                </button>
-                            </div>
-                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                    {/* Modal de Detalle (Genérico para Sitter y Cliente) */}
-                    <SitterDetailModal
-                        sitter={selectedSitter}
-                        open={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onApprove={toggleApproval}
-                        onViewDocument={handleViewDocument}
-                    />
 
-                    {/* Modal Global de Confirmación */}
-                    <ConfirmationModal
-                        isOpen={confirmModal.isOpen}
-                        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                        onConfirm={confirmModal.onConfirm}
-                        title={confirmModal.title}
-                        message={confirmModal.message}
-                        confirmText={confirmModal.confirmText}
-                        isDestructive={confirmModal.isDestructive}
-                    />
+                    {/* PAGINACIÓN */}
+                    {totalPages > 1 && (
+                        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Anterior
+                            </button>
+                            <span className="text-sm text-slate-600">
+                                Página <span className="font-bold">{currentPage}</span> de <span className="font-bold">{totalPages}</span>
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    )}
                 </div>
+                {/* Modal de Detalle (Genérico para Sitter y Cliente) */}
+                <SitterDetailModal
+                    sitter={selectedSitter}
+                    open={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onApprove={toggleApproval}
+                    onViewDocument={handleViewDocument}
+                />
+
+                {/* Modal Global de Confirmación */}
+                <ConfirmationModal
+                    isOpen={confirmModal.isOpen}
+                    onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    onConfirm={confirmModal.onConfirm}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    confirmText={confirmModal.confirmText}
+                    isDestructive={confirmModal.isDestructive}
+                />
+            </div>
             )}
         </>
     );

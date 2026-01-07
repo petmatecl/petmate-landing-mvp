@@ -12,13 +12,13 @@ export default function HomePage({ caregivers }: HomePageProps) {
   return (
     <>
       <Head>
-        <title>Pawnecta | Cuidadores de Mascotas Verificados en Chile</title>
+        <title>Pawnecta | Cuidadores de confianza cerca de ti, en tu comuna</title>
         <meta
           name="description"
-          content="Encuentra a los mejores cuidadores de perros y gatos en tu comuna. Reserva paseos, alojamiento y cuidados a domicilio en Pawnecta."
+          content="Encuentra el match perfecto: revisa reseñas, experiencia y disponibilidad, y elige tu sitter con tranquilidad. Cuidadores verificados en todo Chile."
         />
-        <meta property="og:title" content="Pawnecta | Cuidadores de Mascotas Verificados" />
-        <meta property="og:description" content="Reserva paseos y alojamiento para tu mascota con cuidadores verificados. Sin jaulas, con amor de hogar." />
+        <meta property="og:title" content="Pawnecta | Cuidadores de confianza cerca de ti" />
+        <meta property="og:description" content="Encuentra el match perfecto: revisa reseñas, experiencia y disponibilidad, y elige tu sitter con tranquilidad." />
         <meta property="og:image" content="https://www.pawnecta.cl/favicon_sin_fondo_png.png" />
         <script
           type="application/ld+json"

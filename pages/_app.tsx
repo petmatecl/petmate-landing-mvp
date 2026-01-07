@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import * as gtag from "../lib/gtag";
 import "../styles/globals.css";
 import "react-day-picker/dist/style.css"; // GLOBAL CSS IMPORT for Calendar
+import "leaflet/dist/leaflet.css"; // Fix Leaflet Map visibility
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SessionTimeout from "../components/SessionTimeout";

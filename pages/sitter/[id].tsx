@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import ReviewList from "../../components/Reviews/ReviewList";
 import ReviewFormModal from "../../components/Reviews/ReviewFormModal";
 import { getReviewsBySitterId, Review } from "../../lib/reviewsService";
-import { Trash2, Share2 } from "lucide-react";
+import { Trash2, Share2, Home, Hotel, Maximize, CheckCircle2, XCircle } from "lucide-react";
 
 // Props que recibe la página desde getServerSideProps
 import { useRouter } from "next/router";
@@ -37,7 +37,11 @@ interface PublicProfileProps {
         };
         foto_perfil?: string;
         galeria?: string[];
-        // ...
+        // Campos nuevos
+        fotos_vivienda?: string[];
+        tiene_patio?: boolean;
+        tiene_malla?: boolean;
+        dimensiones_vivienda?: string;
         auth_user_id: string;
         aprobado: boolean;
         calle?: string;
@@ -509,6 +513,66 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                             </div>
                                         ))}
                                     </div>
+                                </section>
+                            )}
+
+                            {/* Detalles del Hogar (Solo si tiene hospedaje o cuidado en casa) */}
+                            {(petmate.tipo_vivienda || petmate.dimensiones_vivienda) && (
+                                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                        <Home className="text-emerald-500" />
+                                        Espacio y Hogar
+                                    </h2>
+
+                                    <div className="grid sm:grid-cols-2 gap-6 mb-6">
+                                        <div className="space-y-4">
+                                            {petmate.tipo_vivienda && (
+                                                <div className="flex items-start gap-3">
+                                                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                                                        {petmate.tipo_vivienda === 'casa' ? <Home size={20} /> : <Hotel size={20} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-400 uppercase">Tipo de Vivienda</p>
+                                                        <p className="text-slate-900 font-medium capitalize">{petmate.tipo_vivienda}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {petmate.dimensiones_vivienda && (
+                                                <div className="flex items-start gap-3">
+                                                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                                                        <Maximize size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-400 uppercase">Dimensiones / Espacio</p>
+                                                        <p className="text-slate-900 font-medium">{petmate.dimensiones_vivienda}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-100 text-slate-400 opacity-60'}`}>
+                                                {petmate.tiene_patio ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
+                                                <span className="font-medium">Patio o Jardín</span>
+                                            </div>
+                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-100 text-slate-400 opacity-60'}`}>
+                                                {petmate.tiene_malla ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
+                                                <span className="font-medium">Mallas de Seguridad</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Fotos del Hogar */}
+                                    {petmate.fotos_vivienda && petmate.fotos_vivienda.length > 0 && (
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                                            {petmate.fotos_vivienda.map((foto, i) => (
+                                                <div key={i} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer group">
+                                                    <Image src={foto} alt={`Foto hogar ${i}`} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </section>
                             )}
 

@@ -204,6 +204,10 @@ export default function SitterDashboardPage() {
                         longitud: profile.longitud,
                         direccion_completa: profile.direccion_completa || "",
                         tamanos_perros: profile.tamanos_perros || [],
+                        dimensiones_vivienda: profile.dimensiones_vivienda || "",
+                        fotos_vivienda: profile.fotos_vivienda || [],
+                        tiene_patio: profile.tiene_patio || false,
+                        tiene_malla: profile.tiene_malla || false,
                         aprobado: profile.aprobado || false
                     });
                     setBackupProfileData(profile); // Save backup for cancel
@@ -342,6 +346,11 @@ export default function SitterDashboardPage() {
         longitud: null,
         direccion_completa: "",
         tamanos_perros: [],
+
+        dimensiones_vivienda: "",
+        fotos_vivienda: [],
+        tiene_patio: false,
+        tiene_malla: false,
         aprobado: false // Initialize
     });
 
@@ -542,6 +551,68 @@ export default function SitterDashboardPage() {
         }
     };
 
+    // --- Housing Gallery Handlers ---
+
+    const handleHousingGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const files = Array.from(e.target.files);
+        const currentCount = profileData.fotos_vivienda?.length || 0;
+
+        if (currentCount + files.length > 4) { // Limit to 4 for housing
+            setAlertState({ isOpen: true, title: "Límite excedido", message: `Solo puedes subir hasta 4 fotos de tu hogar.`, type: "warning" });
+            return;
+        }
+
+        setUploading(true);
+
+        try {
+            const uploadPromises = files.map(async (file) => {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${userId}/housing-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('sitter-images')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('sitter-images')
+                    .getPublicUrl(filePath);
+
+                return publicUrlData.publicUrl;
+            });
+
+            const newUrls = await Promise.all(uploadPromises);
+            const newGallery = [...(profileData.fotos_vivienda || []), ...newUrls];
+
+            setProfileData({ ...profileData, fotos_vivienda: newGallery });
+
+            // Auto-save
+            if (userId) {
+                await supabase.from('registro_petmate').update({ fotos_vivienda: newGallery }).eq('auth_user_id', userId);
+            }
+
+        } catch (error: any) {
+            alert('Error al subir fotos del hogar: ' + (error.message || error));
+        } finally {
+            setUploading(false);
+            e.target.value = "";
+        }
+    };
+
+    const handleDeleteHousingPhoto = async (index: number) => {
+        const newGallery = [...(profileData.fotos_vivienda || [])];
+        newGallery.splice(index, 1);
+        setProfileData({ ...profileData, fotos_vivienda: newGallery });
+
+        if (userId) {
+            await supabase.from('registro_petmate').update({ fotos_vivienda: newGallery }).eq('auth_user_id', userId);
+        }
+    };
+
     const handleSelectAddress = (address: any) => {
         // Simple mapping attempt
         const calle = address.address?.road || address.address?.pedestrian || address.address?.street || "";
@@ -712,7 +783,7 @@ export default function SitterDashboardPage() {
                     numero: profileData.numero,
                     latitud: profileData.latitud,
                     longitud: profileData.longitud,
-                    direccion_completa: profileData.direccion_completa,
+
                 };
             } else if (section === 'services') {
                 updates = {

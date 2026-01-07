@@ -330,5 +330,139 @@ export const BLOG_POSTS: BlogPost[] = [
                 </ul>
             </div>
         `
+    },
+    {
+        id: "4",
+        slug: "importancia-registro-nacional-mascotas-chile",
+        title: "Registro Nacional de Mascotas: ¿Por qué es fundamental inscribir a tu peludo?",
+        excerpt: "Cumplir con la Ley Cholito no es solo un trámite legal, es un acto de amor. Aprende paso a paso cómo inscribir a tu mascota y por qué es clave para su seguridad.",
+        coverImage: "/blog/pet-registration-cover.png",
+        date: "2024-04-10",
+        author: "Equipo Pawnecta",
+        readTime: "5 min lectura",
+        tags: ["Ley Cholito", "Responsabilidad Legal", "Microchip"],
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                En Chile, la <strong>Ley de Tenencia Responsable (conocida como Ley Cholito)</strong> establece que todos los perros y gatos deben estar inscritos en el Registro Nacional de Mascotas. Pero más allá de la obligación legal, este registro es la mejor herramienta para proteger a tu compañero en caso de extravío.
+            </p>
+
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                ¿Por qué es tan importante?
+            </h3>
+            <ul class="space-y-4 mb-8 text-base text-slate-600">
+                <li class="flex gap-3 items-start">
+                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <div>
+                        <strong class="text-emerald-700">Recuperación efectiva:</strong> Si tu mascota se pierde y alguien la encuentra, al escanear su microchip podrán contactarte inmediatamente gracias a los datos del registro.
+                    </div>
+                </li>
+                <li class="flex gap-3 items-start">
+                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <div>
+                        <strong class="text-emerald-700">Demostración de propiedad:</strong> Es el único documento oficial que acredita legalmente que eres el tutor de la mascota ante cualquier disputa.
+                    </div>
+                </li>
+                 <li class="flex gap-3 items-start">
+                    <svg class="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <div>
+                        <strong class="text-emerald-700">Evitas Multas:</strong> No tener a tu mascota inscrita puede conllevar multas que van desde 1 a 30 UTM.
+                    </div>
+                </li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                Paso a Paso para la Inscripción
+            </h3>
+            
+            <div class="bg-slate-50 border-l-4 border-emerald-500 p-6 rounded-r-xl mb-8">
+                <ol class="list-decimal list-inside space-y-4 text-slate-700 text-sm">
+                    <li>
+                        <strong>Implantación del Microchip:</strong> Acude a un médico veterinario para que implante el microchip subcutáneo. Es un procedimiento rápido y casi indoloro.
+                    </li>
+                    <li>
+                        <strong>Certificado Veterinario:</strong> El veterinario te entregará un certificado de implantación con los datos de tu mascota y tu firma.
+                    </li>
+                    <li>
+                        <strong>Inscripción Online:</strong> Ingresa a <a href="https://registratumascota.cl" target="_blank" class="text-emerald-600 font-bold hover:underline">registratumascota.cl</a> con tu Clave Única.
+                    </li>
+                    <li>
+                        <strong>Subir Documentos:</strong> Deberás cargar el certificado veterinario y una declaración simple de tenedor de mascota.
+                    </li>
+                </ol>
+            </div>
+
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Una vez aprobado (tarda unos días), recibirás la <strong>Licencia de Registro</strong> digital en tu correo. ¡Felicidades, tu peludo ya es un ciudadano oficial!
+            </p>
+        `
+    },
+    {
+        id: "5",
+        slug: "beneficios-físicos-emocionales-tener-mascota",
+        title: "Más que Compañía: Los Impactantes Beneficios de Tener una Mascota",
+        excerpt: "Tener un perro o gato no solo alegra tus días, también mejora tu salud física y mental. Descubre qué dice la ciencia sobre el poder sanador de las mascotas.",
+        coverImage: "/blog/importance-of-pets-cover.png",
+        date: "2024-04-15",
+        author: "Equipo Pawnecta",
+        readTime: "6 min lectura",
+        tags: ["Salud Mental", "Bienestar", "Familia"],
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Quienes tienen mascotas saben intuitivamente que su presencia nos hace sentir mejor. Pero la ciencia confirma que estos beneficios van mucho más allá de la alegría momentánea: <strong>impactan directamente nuestra salud cardiovascular, sistema inmune y estabilidad emocional.</strong>
+            </p>
+
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                Salud Mental y Reducción del Estrés
+            </h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Acariciar a un perro o gato durante solo 10 minutos puede reducir significativamente los niveles de <strong>cortisol</strong> (la hormona del estrés). Además, su compañía combate la soledad y la depresión, proporcionando un sentido de propósito y rutina diaria.
+            </p>
+            <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 mb-8 text-indigo-900 text-sm">
+                <strong>¿Sabías que?</strong> Los dueños de mascotas tienen menos probabilidades de sufrir depresión clínica en comparación con quienes no tienen animales de compañía.
+            </div>
+
+            <h3 class="text-xl font-bold text-emerald-600 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                Salud Física y Actividad
+            </h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Especialmente en el caso de los perros, la necesidad de paseos diarios motiva a sus dueños a mantenerse activos. Estudios demuestran que los dueños de perros caminan en promedio <strong>30 minutos más a la semana</strong> que quienes no tienen mascota.
+            </p>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-600 mb-8">
+                <li class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                    <strong class="block text-slate-900 mb-1">Presión Arterial</strong>
+                    Tener mascota se asocia con niveles más bajos de presión arterial y colesterol.
+                </li>
+                <li class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                    <strong class="block text-slate-900 mb-1">Inmunidad en Niños</strong>
+                    Crecer con mascotas puede fortalecer el sistema inmune y reducir el riesgo de alergias futuras.
+                </li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                Conexión Social
+            </h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Las mascotas son excelentes "rompehielos". Salir a pasear o visitar el veterinario crea oportunidades naturales para interactuar con vecinos y otros dueños de mascotas, fortaleciendo el tejido social de la comunidad.
+            </p>
+
+            <div class="mt-12 pt-8 border-t border-slate-200">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                <ul class="text-xs text-slate-500 space-y-2">
+                    <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.cdc.gov/healthypets/health-benefits/index.html" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">CDC - Health Benefits of Owning a Pet</a>
+                    </li>
+                     <li class="flex items-center gap-2">
+                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.mentalhealth.org.uk/explore-mental-health/a-z-topics/pets-and-mental-health" target="_blank" rel="nofollow noopener" class="hover:text-emerald-600 hover:underline">Mental Health Foundation - Pets and Mental Health</a>
+                    </li>
+                </ul>
+            </div>
+        `
     }
 ];
