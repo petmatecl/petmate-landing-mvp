@@ -783,7 +783,11 @@ export default function SitterDashboardPage() {
                     numero: profileData.numero,
                     latitud: profileData.latitud,
                     longitud: profileData.longitud,
-
+                    // New Housing Fields
+                    dimensiones_vivienda: profileData.dimensiones_vivienda,
+                    fotos_vivienda: profileData.fotos_vivienda,
+                    tiene_patio: profileData.tiene_patio,
+                    tiene_malla: profileData.tiene_malla
                 };
             } else if (section === 'services') {
                 updates = {
@@ -2117,6 +2121,91 @@ export default function SitterDashboardPage() {
                                                                     <option value="parcela">Parcela</option>
                                                                 </select>
                                                             </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dimensiones</label>
+                                                                <select
+                                                                    disabled={activeSection !== 'profile'}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                        }`}
+                                                                    value={profileData.dimensiones_vivienda || ""}
+                                                                    onChange={(e) => setProfileData({ ...profileData, dimensiones_vivienda: e.target.value })}
+                                                                >
+                                                                    <option value="" disabled>Seleccionar</option>
+                                                                    <option value="Menos de 30m2">Menos de 30m²</option>
+                                                                    <option value="30-70m2">30 - 70m²</option>
+                                                                    <option value="70-130m2">70 - 130m²</option>
+                                                                    <option value="Más de 130m2">Más de 130m²</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div className="sm:col-span-2 grid grid-cols-2 gap-4">
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_patio ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-200 text-slate-500'}`}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        disabled={activeSection !== 'profile'}
+                                                                        checked={profileData.tiene_patio || false}
+                                                                        onChange={(e) => setProfileData({ ...profileData, tiene_patio: e.target.checked })}
+                                                                        className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    />
+                                                                    <span className="text-sm font-bold">Tiene Patio/Jardín</span>
+                                                                </label>
+
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_malla ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-200 text-slate-500'}`}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        disabled={activeSection !== 'profile'}
+                                                                        checked={profileData.tiene_malla || false}
+                                                                        onChange={(e) => setProfileData({ ...profileData, tiene_malla: e.target.checked })}
+                                                                        className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    />
+                                                                    <span className="text-sm font-bold">Mallas de Seguridad</span>
+                                                                </label>
+                                                            </div>
+
+                                                            <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-100">
+                                                                <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide flex justify-between items-center">
+                                                                    Fotos del Hogar (Máx 4)
+                                                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{(profileData.fotos_vivienda?.length || 0)}/4</span>
+                                                                </h5>
+
+                                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                                    {(profileData.fotos_vivienda || []).map((foto: string, idx: number) => (
+                                                                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm border border-slate-100">
+                                                                            <Image src={foto} alt={`Hogar ${idx}`} fill className="object-cover" />
+                                                                            {activeSection === 'profile' && (
+                                                                                <button
+                                                                                    onClick={() => handleDeleteHousingPhoto(idx)}
+                                                                                    className="absolute top-1 right-1 bg-white/90 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-red-600"
+                                                                                >
+                                                                                    <Trash2 size={14} />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+
+                                                                    {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 4 && (
+                                                                        <label className="aspect-square rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
+                                                                            {uploading ? (
+                                                                                <Loader2 size={20} className="animate-spin" />
+                                                                            ) : (
+                                                                                <>
+                                                                                    <ImagePlus size={20} className="mb-1" />
+                                                                                    <span className="text-[10px] font-bold">Agregar</span>
+                                                                                </>
+                                                                            )}
+                                                                            <input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                multiple
+                                                                                className="hidden"
+                                                                                onChange={handleHousingGalleryUpload}
+                                                                                disabled={uploading}
+                                                                            />
+                                                                        </label>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
                                                             <div>
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">¿Tienes mascotas?</label>
                                                                 <select
