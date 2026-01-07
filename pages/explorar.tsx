@@ -180,24 +180,26 @@ export default function ExplorarPage() {
                                 {petmates.length} cuidador{petmates.length !== 1 ? 'es' : ''} encontrado{petmates.length !== 1 ? 's' : ''}
                             </p>
 
-                            <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
+                            <div className="bg-white p-1.5 rounded-xl flex gap-1 border border-slate-200 shadow-sm">
                                 <button
                                     onClick={() => setViewMode("list")}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === "list"
-                                        ? "bg-white text-slate-900 shadow-sm"
-                                        : "text-slate-500 hover:text-slate-700"
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${viewMode === "list"
+                                        ? "bg-slate-900 text-white shadow-md transform scale-[1.02]"
+                                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                                         }`}
                                 >
-                                    <List size={18} /> Lista
+                                    <List size={18} strokeWidth={2.5} />
+                                    <span>Lista</span>
                                 </button>
                                 <button
                                     onClick={() => setViewMode("map")}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === "map"
-                                        ? "bg-white text-slate-900 shadow-sm"
-                                        : "text-slate-500 hover:text-slate-700"
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${viewMode === "map"
+                                        ? "bg-emerald-600 text-white shadow-md transform scale-[1.02]"
+                                        : "text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
                                         }`}
                                 >
-                                    <Map size={18} /> Mapa
+                                    <Map size={18} strokeWidth={2.5} />
+                                    <span>Mapa</span>
                                 </button>
                             </div>
                         </div>
