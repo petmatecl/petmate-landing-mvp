@@ -6,6 +6,7 @@ export type Review = {
     cliente_id: string;
     calificacion: number;
     comentario: string;
+    fotos?: string[];
     created_at: string;
     cliente: {
         nombre: string;
@@ -19,7 +20,7 @@ export async function getReviewsBySitterId(sitterId: string): Promise<{ data: Re
         .from("reviews")
         .select(`
             *,
-            cliente:cliente_id(nombre, apellido_p)
+            cliente:cliente_id(nombre, apellido_p, foto_perfil)
         `)
         .eq("sitter_id", sitterId)
         .order("created_at", { ascending: false });
@@ -39,6 +40,7 @@ export async function createReview(review: {
     sitter_id: string;
     calificacion: number;
     comentario: string;
+    fotos: string[];
 }): Promise<{ data: any; error: any }> {
     const { data: { session } } = await supabase.auth.getSession();
 
