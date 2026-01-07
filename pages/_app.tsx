@@ -15,7 +15,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   useEffect(() => {
-    const handleRouteChange = (url: URL) => {
+    const handleRouteChange = (url: string) => {
       gtag.pageview(url);
     };
 
@@ -42,6 +42,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             gtag('js', new Date());
             gtag('config', '${gtag.GA_TRACKING_ID}', {
               page_path: window.location.pathname,
+              debug_mode: true,
             });
           `,
         }}

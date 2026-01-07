@@ -7,9 +7,11 @@ declare global {
 }
 
 // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
-export const pageview = (url: URL) => {
+export const pageview = (url: string) => {
+    // console.log("GA Pageview:", url);
     window.gtag("config", GA_TRACKING_ID, {
         page_path: url,
+        debug_mode: true,
     });
 };
 
