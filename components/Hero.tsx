@@ -33,14 +33,12 @@ export function Hero() {
 
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
-              Cuidado de mascotas <br className="hidden lg:block" />
-              <span className="text-gradient">sin estrés.</span>
-              <br />
-              para tu tranquilidad.
+              Encuentra un Sitter <br className="hidden lg:block" />
+              <span className="text-gradient">de confianza.</span>
             </h1>
 
             <p className="mt-6 text-lg leading-8 text-slate-600">
-              Conecta con <strong className="text-slate-900">Pawnecta Sitters verificados</strong> para que cuiden a tus peludos en tu propia casa o en la suya. Sin jaulas, solo amor.
+              El match perfecto existe. Revisa <strong>reseñas reales</strong>, explora sus <strong>experiencias en fotos</strong> y confirma su <strong>disponibilidad</strong> inmediata.
             </p>
 
             {/* Elecciones rápidas */}

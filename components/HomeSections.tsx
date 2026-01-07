@@ -12,19 +12,19 @@ import {
 export function ValueProps() {
   const features = [
     {
-      name: "Hogar, dulce hogar",
-      description: "Tu mascota disfruta del calor de un hogar real. Cero jaulas, cero estrés. Solo mimos y rutina familiar.",
-      icon: HomeIcon,
-    },
-    {
-      name: "Confianza total",
-      description: "Cada Pawnecta Sitter es verificado manualmente. Revisa sus reseñas reales y coordina directamente el servicio.",
+      name: "Reseñas y Experiencia",
+      description: "No elijas a ciegas. Lee opiniones genuinas de otros dueños y mira fotos de sus cuidados anteriores para decidir con bases reales.",
       icon: ShieldCheckIcon,
     },
     {
-      name: "A tu medida",
-      description: "Desde paseos rápidos hasta largas estadías. Encuentra la solución perfecta y paga solo por lo que necesitas.",
+      name: "Disponibilidad Real",
+      description: "Filtra por fechas exactas y encuentra cuidadores listos para recibir a tu peludo cuando tú lo necesitas, sin falsas expectativas.",
       icon: AdjustmentsHorizontalIcon,
+    },
+    {
+      name: "Hogar, dulce hogar",
+      description: "Tu mascota disfruta del calor de un hogar real. Cero jaulas, cero estrés. Solo mimos y una rutina familiar adaptada a ellos.",
+      icon: HomeIcon,
     },
   ];
 
@@ -75,8 +75,8 @@ export function HowItWorks() {
     },
     {
       id: "02",
-      name: "Elige al mejor",
-      description: "Contactate con ellos y coordina el servicio. No podemos asegurar una visita previa ni tampoco que la comunicación sea vía chat. Recuerda que por el momento solo conectaremos, sin monetizar, por lo que al haber match entregamos los datos de contactos de ambas partes.",
+      name: "Elige con confianza",
+      description: "Revisa sus fotos y lee lo que otros dueños dicen de ellos. Cuando encuentres el match perfecto, contáctalo directamente para coordinar.",
       icon: ChatBubbleLeftRightIcon,
     },
     {

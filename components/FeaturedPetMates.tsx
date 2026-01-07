@@ -59,7 +59,7 @@ export function FeaturedPetMates({ caregivers }: FeaturedPetMatesProps) {
                                 Encuentra al <span className="text-emerald-600">compañero ideal</span> para tu mascota
                             </h2>
                             <p className="mt-4 text-base text-slate-600 leading-relaxed">
-                                Personas verificadas, amantes de los animales y listas para dar cariño extra. ❤️
+                                Miles de <strong>reseñas reales</strong>. Mira sus fotos, conoce su experiencia y encuentra disponibilidad inmediata para tu próximo viaje. ❤️
                             </p>
 
                             <div className="mt-6">
