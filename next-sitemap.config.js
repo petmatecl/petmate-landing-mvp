@@ -13,14 +13,16 @@ module.exports = {
         '/registro-exitoso',
         '/reset-password',
         '/forgot-password',
-        '/security-logout'
+        '/security-logout',
+        '/login',
+        '/register'
     ],
     robotsTxtOptions: {
         policies: [
             {
                 userAgent: '*',
                 allow: '/',
-                disallow: ['/admin', '/cliente', '/sitter', '/sitter/explorar', '/api/*']
+                disallow: ['/admin', '/cliente', '/sitter', '/sitter/explorar', '/login', '/register', '/api/*']
             }
         ]
     }
