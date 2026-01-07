@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 
-type Role = "client" | "petmate";
+type Role = "client" | "sitter";
 
 // ==== Íconos mono (inline SVG) ====
 const MailIcon = (props: any) => (
@@ -89,11 +89,11 @@ export default function LoginPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [showPass, setShowPass] = React.useState(false);
 
-  // (Opcional) si quieres que /login?role=petmate seleccione el tab solo
+  // (Opcional) si quieres que /login?role=sitter seleccione el tab solo
   React.useEffect(() => {
     if (!router.isReady) return;
     const q = String(router.query.role || "").toLowerCase();
-    if (q === "petmate") setTab("petmate");
+    if (q === "sitter" || q === "petmate") setTab("sitter");
     if (q === "client" || q === "cliente") setTab("client");
 
     // Verificar si viene por timeout
@@ -165,7 +165,7 @@ export default function LoginPage() {
         userRoles.push(profile.rol);
       }
 
-      const targetRole = role === "client" ? "cliente" : "petmate";
+      const targetRole = role === "client" ? "cliente" : "sitter";
 
       if (!userRoles.includes(targetRole)) {
         // User is authenticated but selected the WRONG tab for their actual role
@@ -213,9 +213,9 @@ export default function LoginPage() {
             </button>
             <button
               role="tab"
-              aria-selected={tab === "petmate"}
-              className={`tab ${tab === "petmate" ? "active" : ""} `}
-              onClick={() => setTab("petmate")}
+              aria-selected={tab === "sitter"}
+              className={`tab ${tab === "sitter" ? "active" : ""} `}
+              onClick={() => setTab("sitter")}
               type="button"
             >
               <PawIcon />
@@ -311,7 +311,7 @@ export default function LoginPage() {
               {/* Links */}
               <div className="links">
                 <Link
-                  href={tab === "client" ? "/register?role=client" : "/register?role=petmate"}
+                  href={tab === "client" ? "/register?role=client" : "/register?role=sitter"}
                   className="a"
                 >
                   ¿No tienes cuenta? Regístrate

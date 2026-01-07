@@ -277,7 +277,7 @@ export default function SitterExplorarPage() {
                         <div className="w-10 h-10 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
                         Cargando oportunidades...
                     </div>
-                ) : (!sitterProfile || !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna && sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion && sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) || !sitterProfile.roles?.includes('petmate')) ? (
+                ) : (!sitterProfile || !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna && sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion && sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) || !sitterProfile.roles?.includes('sitter')) ? (
                     <CompletionBlocker
                         title="Oportunidades Restringidas"
                         message="Para ver y postular a trabajos de cuidado, necesitas completar tu perfil y activar tu cuenta."
@@ -286,7 +286,7 @@ export default function SitterExplorarPage() {
                             sitterProfile && !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna) ? "Datos de Contacto" : null,
                             sitterProfile && !Boolean(sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion) ? "Información Personal" : null,
                             sitterProfile && !Boolean(sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) ? "Perfil y Preferencias" : null,
-                            sitterProfile && (!sitterProfile.roles?.includes('petmate')) ? "Activar Perfil Sitter" : null
+                            sitterProfile && (!sitterProfile.roles?.includes('sitter')) ? "Activar Perfil Sitter" : null
                         ].filter(Boolean) as string[]}
                         redirectUrl="/sitter"
                         redirectText="Ir a mi Dashboard"

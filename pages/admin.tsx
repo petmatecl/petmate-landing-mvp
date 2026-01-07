@@ -43,20 +43,20 @@ export default function AdminDashboard() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [tableLoading, setTableLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<"cliente" | "petmate" | "solicitudes">("petmate");
+    const [activeTab, setActiveTab] = useState<"cliente" | "sitter" | "solicitudes">("sitter");
     // ... rest of state
 
 
     // ... rest of state
 
-    const checkProfileCompleteness = (user: any, role: "cliente" | "petmate") => {
+    const checkProfileCompleteness = (user: any, role: "cliente" | "sitter") => {
         const missing: string[] = [];
         if (!user.nombre) missing.push("Nombre");
         if (!user.rut) missing.push("RUT");
         if (!user.telefono) missing.push("Teléfono");
         if (!user.direccion_completa) missing.push("Dirección");
 
-        if (role === "petmate") {
+        if (role === "sitter") {
             if (!user.descripcion) missing.push("Descripción");
             if (!user.ocupacion) missing.push("Ocupación");
             if (!user.fecha_nacimiento && !user.edad) missing.push("Fecha Nacimiento/Edad");
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
         const { data: sitters } = await supabase
             .from("registro_petmate")
             .select("aprobado")
-            .contains("roles", ["petmate"]);
+            .contains("roles", ["sitter"]);
 
         const sittersTotal = sitters?.length || 0;
         const sittersPendientes = sitters?.filter(s => !s.aprobado).length || 0;
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
 
         // Calcular campos faltantes
         // Para calcular campos faltantes, asumimos el rol de la tab activa si es que lo tiene, o el principal
-        const roleToCheck = activeTab === "petmate" ? "petmate" : "cliente";
+        const roleToCheck = activeTab === "sitter" ? "sitter" : "cliente";
         const missing = checkProfileCompleteness(user, roleToCheck);
         enrichedUser.missingFields = missing;
 
@@ -484,7 +484,7 @@ export default function AdminDashboard() {
                 Estado: item.aprobado ? "Aprobado" : "Pendiente",
                 "Registrado en": new Date(item.created_at).toLocaleString("es-CL"),
                 // Extras para Sitters
-                ...(activeTab === "petmate" ? {
+                ...(activeTab === "sitter" ? {
                     Ocupacion: item.ocupacion,
                     Edad: item.edad,
                     "En Casa": item.servicio_en_casa ? "Sí" : "No",
@@ -578,8 +578,8 @@ export default function AdminDashboard() {
                     {/* Tabs */}
                     <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start xl:self-auto overflow-x-auto max-w-full">
                         <button
-                            onClick={() => setActiveTab("petmate")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "petmate" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
+                            onClick={() => setActiveTab("sitter")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "sitter" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
                         >
                             Sitters
                         </button>
@@ -716,7 +716,7 @@ export default function AdminDashboard() {
                                                     <div className="font-bold text-slate-900 text-sm flex items-center gap-2" onClick={() => handleViewDetail(item)}>
                                                         {item.nombre} {item.apellido_p}
                                                         {(() => {
-                                                            const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
+                                                            const missing = checkProfileCompleteness(item, activeTab === "sitter" ? "sitter" : "cliente");
                                                             return missing.length > 0 ? <span className="text-base">⚠️</span> : null;
                                                         })()}
                                                     </div>
@@ -971,7 +971,7 @@ export default function AdminDashboard() {
                                                             <div className="font-bold cursor-pointer hover:text-emerald-700 flex items-center gap-2" onClick={() => handleViewDetail(item)}>
                                                                 {item.nombre} {item.apellido_p}
                                                                 {(() => {
-                                                                    const missing = checkProfileCompleteness(item, activeTab === "petmate" ? "petmate" : "cliente");
+                                                                    const missing = checkProfileCompleteness(item, activeTab === "sitter" ? "sitter" : "cliente");
                                                                     return missing.length > 0 ? <span title={`Faltan datos: ${missing.join(', ')}`} className="cursor-help text-lg">⚠️</span> : null;
                                                                 })()}
                                                             </div>
@@ -1010,14 +1010,14 @@ export default function AdminDashboard() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="space-y-2">
-                                                        {activeTab === "petmate" && item.certificado_antecedentes ? (
+                                                        {activeTab === "sitter" && item.certificado_antecedentes ? (
                                                             <button
                                                                 onClick={() => handleViewDocument(item.certificado_antecedentes)}
                                                                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
                                                             >
                                                                 📄 Ver Antecedentes
                                                             </button>
-                                                        ) : activeTab === "petmate" ? (
+                                                        ) : activeTab === "sitter" ? (
                                                             <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
                                                         ) : null}
                                                         <div>

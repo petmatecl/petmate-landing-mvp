@@ -742,10 +742,10 @@ export default function SitterDashboardPage() {
             // Mandar todo es más seguro para mantener consistencia si el backend espera el objeto completo, 
             // pero Supabase acepta partials. Mandaremos todo el objeto `profileData` ya que lo tenemos en memoria actualizado.
 
-            // ADMIN FIX: Ensure 'petmate' role is assigned
+            // ADMIN FIX: Ensure 'sitter' role is assigned
             let currentRoles = profileData.roles || [];
-            if (!currentRoles.includes('petmate')) {
-                currentRoles = [...currentRoles, 'petmate'];
+            if (!currentRoles.includes('sitter')) {
+                currentRoles = [...currentRoles, 'sitter'];
             }
 
             let updates: any = { roles: currentRoles };

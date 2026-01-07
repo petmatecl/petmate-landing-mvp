@@ -343,7 +343,7 @@ export default function RegisterPage() {
         {
           auth_user_id: authUserId,
           rol: "petmate",
-          roles: ["petmate"],
+          roles: ["sitter"],
           nombre,
           apellido_p: apellidoPaterno,
           apellido_m: apellidoMaterno,
@@ -369,7 +369,7 @@ export default function RegisterPage() {
       }
 
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("pm_auth_role_pending", "petmate");
+        window.localStorage.setItem("pm_auth_role_pending", "sitter");
         if (nombre) window.localStorage.setItem("pm_petmate_nombre", nombre);
       }
 
@@ -383,7 +383,7 @@ export default function RegisterPage() {
         })
       }).catch(console.error);
 
-      router.push("/registro-exitoso?role=petmate");
+      router.push("/registro-exitoso?role=sitter");
     } finally {
       setSubmitting(false);
     }
@@ -664,7 +664,7 @@ export default function RegisterPage() {
                 </button>
 
                 <div style={{ marginTop: 12 }}>
-                  <GoogleAuthButton role="petmate" text="Registrarse con Google" />
+                  <GoogleAuthButton role="sitter" text="Registrarse con Google" />
                 </div>
 
                 <p className="muted">

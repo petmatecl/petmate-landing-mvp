@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Props = {
-    role: "cliente" | "petmate" | "client"; // supporting legacy "client" string
+    role: "cliente" | "sitter" | "client"; // supporting legacy "client" string
     text?: string;
 };
 

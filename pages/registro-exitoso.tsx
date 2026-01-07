@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 export default function RegistroExitosoPage() {
   const router = useRouter();
   const role = String(router.query.role || "");
-  const esPetmate = role === "petmate";
+  const esPetmate = role === "sitter";
 
   return (
     <>
