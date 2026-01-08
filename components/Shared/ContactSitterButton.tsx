@@ -9,7 +9,7 @@ import { createNotification } from '../../lib/notifications';
 interface Props {
     sitterId: string;
     className?: string; // Allow custom styling
-    label?: string; // Custom label
+    label?: React.ReactNode; // Custom label (string or element)
 }
 
 export default function ContactSitterButton({ sitterId, className, label = "Contactar" }: Props) {
