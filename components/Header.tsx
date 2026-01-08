@@ -4,12 +4,13 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
+import UnreadBadge from "./Shared/UnreadBadge";
 
 export default function Header() {
+
   const [open, setOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const router = useRouter();
-
   // Estado de sesión real
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<{ nombre: string; apellido_p: string; roles?: string[] } | null>(null);
@@ -172,9 +173,10 @@ export default function Header() {
               </div>
               <Link
                 href="/mensajes"
-                className="inline-flex items-center rounded-xl bg-white border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2"
+                className="inline-flex items-center rounded-xl bg-white border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2 relative"
               >
                 Mensajes
+                {session?.user?.id && <UnreadBadge userId={session.user.id} className="-top-2 -right-2 absolute" />}
               </Link>
               <Link
                 href={dashboardLink}
@@ -296,10 +298,11 @@ export default function Header() {
                 </div>
                 <Link
                   href="/mensajes"
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 mb-2"
+                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 mb-2 relative"
                   onClick={() => setOpen(false)}
                 >
                   Mensajes
+                  {session?.user?.id && <UnreadBadge userId={session.user.id} className="top-1 right-2 absolute" />}
                 </Link>
                 <Link
                   href={dashboardLink}

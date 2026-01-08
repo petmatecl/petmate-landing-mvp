@@ -729,6 +729,15 @@ export default function DashboardContent() {
 
     const hasPets = myPets.length > 0;
 
+    const getFormattedAddress = (addressId?: string) => {
+        const addr = addresses.find(a => a.id === addressId);
+        if (!addr) return "";
+        if (addr.calle && addr.numero && addr.comuna) {
+            return `${addr.calle} ${addr.numero}, ${addr.comuna}`;
+        }
+        return addr.direccion_completa || "";
+    };
+
     return (
         <div className="space-y-8">
 
@@ -825,7 +834,7 @@ export default function DashboardContent() {
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
                                                     pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
-                                                    serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
+                                                    serviceAddress={getFormattedAddress(trip.direccion_id)}
                                                 />
                                             ))}
                                     </div>
@@ -852,7 +861,7 @@ export default function DashboardContent() {
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
                                                     pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
-                                                    serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
+                                                    serviceAddress={getFormattedAddress(trip.direccion_id)}
                                                 />
                                             ))}
                                     </div>
@@ -879,7 +888,7 @@ export default function DashboardContent() {
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
                                                     pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
-                                                    serviceAddress={addresses.find(a => a.id === trip.direccion_id)?.direccion_completa || ""}
+                                                    serviceAddress={getFormattedAddress(trip.direccion_id)}
                                                 />
                                             ))}
                                     </div>

@@ -19,8 +19,9 @@ import {
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
     Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
     PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler,
-    MessageSquare
+    MessageSquare, AlertCircle, RefreshCw
 } from 'lucide-react';
+import UnreadBadge from "../components/Shared/UnreadBadge";
 import ApplicationDialog from "../components/Sitter/ApplicationDialog";
 import ClientDetailsDialog from "../components/Sitter/ClientDetailsDialog";
 import PetDetailsDialog from "../components/Sitter/PetDetailsDialog";
@@ -1139,9 +1140,10 @@ export default function SitterDashboardPage() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('mensajes')}
-                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mensajes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all relative ${activeTab === 'mensajes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <Inbox size={18} /> Mensajes
+                                    <UnreadBadge userId={userId} className="-top-1 -right-1 absolute" />
                                 </button>
                             </div>
 
