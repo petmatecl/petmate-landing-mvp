@@ -8,9 +8,10 @@ interface Props {
     userId: string | null;
     initialConversationId?: string;
     returnTo?: string;
+    onBack?: () => void;
 }
 
-export default function ChatLayout({ userId, initialConversationId, returnTo }: Props) {
+export default function ChatLayout({ userId, initialConversationId, returnTo, onBack }: Props) {
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(initialConversationId || null);
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -33,10 +34,16 @@ export default function ChatLayout({ userId, initialConversationId, returnTo }: 
                         <MessageSquare size={18} className="text-emerald-600" />
                         Mensajes
                     </h2>
-                    {returnTo && (
-                        <Link href={returnTo} className="text-xs font-bold text-slate-500 hover:text-emerald-600 flex items-center gap-1">
-                            <ArrowLeft size={14} /> Volver
-                        </Link>
+                    {(onBack || returnTo) && (
+                        onBack ? (
+                            <button onClick={onBack} className="text-xs font-bold text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                                <ArrowLeft size={14} /> Volver
+                            </button>
+                        ) : (
+                            <Link href={returnTo!} className="text-xs font-bold text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                                <ArrowLeft size={14} /> Volver
+                            </Link>
+                        )
                     )}
                 </div>
                 <ConversationList

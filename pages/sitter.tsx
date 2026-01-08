@@ -26,6 +26,7 @@ import PetDetailsDialog from "../components/Sitter/PetDetailsDialog";
 import ImageLightbox from "../components/ImageLightbox";
 import AvailabilityCalendar from "../components/Sitter/AvailabilityCalendar";
 import { Skeleton } from "../components/Shared/Skeleton";
+import ChatLayout from "../components/Chat/ChatLayout";
 
 function SitterDashboardSkeleton() {
     return (
@@ -132,7 +133,7 @@ export default function SitterDashboardPage() {
     const [averageRating, setAverageRating] = useState(0);
     const [bookings, setBookings] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil' | 'disponibilidad'>('solicitudes');
+    const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil' | 'disponibilidad' | 'mensajes'>('solicitudes');
     const [availabilityCount, setAvailabilityCount] = useState(0);
 
     // Helpers for Price Formatting
@@ -1134,10 +1135,25 @@ export default function SitterDashboardPage() {
                                     <User size={18} /> Mi Perfil
                                     {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab('mensajes')}
+                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mensajes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <Inbox size={18} /> Mensajes
+                                </button>
                             </div>
 
 
 
+                            {/* MESSAGES TAB */}
+                            {activeTab === 'mensajes' && (
+                                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <ChatLayout
+                                        userId={userId}
+                                        onBack={() => setActiveTab('solicitudes')}
+                                    />
+                                </div>
+                            )}
 
                             {/* BLOQUE NUEVO: Solicitudes Pendientes (Prioridad Alta) */}
 
