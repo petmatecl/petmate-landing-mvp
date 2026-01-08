@@ -1143,7 +1143,7 @@ export default function SitterDashboardPage() {
                                     className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all relative ${activeTab === 'mensajes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                                 >
                                     <Inbox size={18} /> Mensajes
-                                    <UnreadBadge userId={userId} className="-top-1 -right-1 absolute" />
+                                    {userId && <UnreadBadge userId={userId} className="-top-1 -right-1 absolute" />}
                                 </button>
                             </div>
 
