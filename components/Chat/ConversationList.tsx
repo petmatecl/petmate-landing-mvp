@@ -9,9 +9,10 @@ interface Props {
     selectedId: string | null;
     onSelect: (id: string) => void;
     userId: string | null;
+    targetUserId?: string | null | undefined;
 }
 
-export default function ConversationList({ selectedId, onSelect, userId }: Props) {
+export default function ConversationList({ selectedId, onSelect, userId, targetUserId }: Props) {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -99,6 +100,21 @@ export default function ConversationList({ selectedId, onSelect, userId }: Props
             });
 
             setConversations(formatted);
+
+            // Auto-select if targetUserId is present
+            if (targetUserId) {
+                const targetConv = formatted.find((c: any) =>
+                    c.otherUser?.auth_user_id === targetUserId
+                );
+                if (targetConv) {
+                    onSelect(targetConv.id);
+                } else {
+                    // Optional: If conversation doesn't exist, we might want to create it or signal "New Chat".
+                    // For now, let's just leave it unselected or implementation-dependent.
+                    // Ideally, we start a new thread if not found, but that requires more logic.
+                    console.log("Conversation not found for target user", targetUserId);
+                }
+            }
         } catch (error) {
             console.error('Error fetching conversations:', error);
         } finally {

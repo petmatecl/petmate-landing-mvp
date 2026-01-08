@@ -18,7 +18,8 @@ import {
     ChevronDown, ChevronUp, Dog, Cat, Play, Linkedin, Facebook,
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
     Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
-    PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler
+    PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler,
+    MessageSquare
 } from 'lucide-react';
 import ApplicationDialog from "../components/Sitter/ApplicationDialog";
 import ClientDetailsDialog from "../components/Sitter/ClientDetailsDialog";
@@ -134,6 +135,7 @@ export default function SitterDashboardPage() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil' | 'disponibilidad' | 'mensajes'>('solicitudes');
+    const [selectedChatUser, setSelectedChatUser] = useState<string | null>(null);
     const [availabilityCount, setAvailabilityCount] = useState(0);
 
     // Helpers for Price Formatting
@@ -1150,7 +1152,11 @@ export default function SitterDashboardPage() {
                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                     <ChatLayout
                                         userId={userId}
-                                        onBack={() => setActiveTab('solicitudes')}
+                                        onBack={() => {
+                                            setActiveTab('solicitudes');
+                                            setSelectedChatUser(null);
+                                        }}
+                                        initialClientUserId={selectedChatUser}
                                     />
                                 </div>
                             )}
@@ -1524,14 +1530,13 @@ export default function SitterDashboardPage() {
                                         )}
                                     </div>
 
-                                    {/* BLOQUE 1: Próximas Reservas (Confirmadas) */}
-                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                                        <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center justify-between">
-                                            <span className="flex items-center gap-2"><CalendarCheck size={18} /> Solicitudes Agendadas</span>
+                                    {/* BLOQUE 1: Próximas Reservas (Confirmadas) - CARD LAYOUT */}
+                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                        <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                            <CheckCircle2 size={20} className="text-emerald-600" /> Solicitudes Confirmadas
                                         </h3>
 
                                         {(() => {
-                                            // 1. Normalize accepted applications (which are effectively confirmed bookings)
                                             const acceptedAppsAsBookings = applications
                                                 .filter(app => app.estado === 'aceptada')
                                                 .map(app => ({
@@ -1540,153 +1545,135 @@ export default function SitterDashboardPage() {
                                                     mascotas_ids: app.viaje?.mascotas_ids,
                                                     fecha_inicio: app.viaje?.fecha_inicio,
                                                     fecha_fin: app.viaje?.fecha_fin,
-                                                    estado: 'confirmada', // Treat as confirmed
-                                                    isApplication: true,
+                                                    estado: 'confirmada',
                                                     servicio: app.viaje?.servicio,
                                                     direccion: app.viaje?.direccion,
-                                                    direccion_cliente: app.viaje?.direccion_cliente
+                                                    direccion_cliente: app.viaje?.direccion_cliente,
+                                                    cliente_id: app.viaje?.cliente?.auth_user_id || app.viaje?.user_id // Ensure we have ID for chat
                                                 }));
 
-                                            // 2. Merge bookings and accepted applications
-                                            // KEY CHANGE: Strictly show ONLY confirmed services here.
-                                            // 'publicado' goes to "Solicitudes por Aceptar"
-                                            // 'pendiente' goes to "Solicitudes Pendientes" (if enabled) or remains in limbo until accepted/rejected
                                             const confirmedServices = bookings
                                                 .filter(b => b.estado === 'confirmado' || b.estado === 'confirmada')
                                                 .concat(acceptedAppsAsBookings.filter(app => !bookings.some(b => b.id === app.id)))
                                                 .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime());
 
                                             return confirmedServices.length > 0 ? (
-                                                <div className="overflow-x-auto">
-                                                    <table className="w-full text-sm text-left">
-                                                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b">
-                                                            <tr>
-                                                                <th className="px-4 py-3 font-medium">Reserva</th>
-                                                                <th className="px-4 py-3 font-medium">Cliente</th>
-                                                                <th className="px-4 py-3 font-medium">Mascota</th>
-                                                                <th className="px-4 py-3 font-medium">Fechas</th>
-                                                                <th className="px-4 py-3 font-medium">Estado</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-slate-100">
-                                                            {confirmedServices.map((book: any) => (
-                                                                <tr key={book.id} className="hover:bg-slate-50 transition-colors">
-                                                                    <td className="px-4 py-3 font-bold text-slate-900">
-                                                                        #{book.id.slice(0, 6)}
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-slate-600">
-                                                                        <div className="flex flex-col">
-                                                                            <button
-                                                                                onClick={() => { setSelectedClient(book.cliente); setShowClientDialog(true); }}
-                                                                                className="font-bold text-slate-900 hover:text-emerald-600 text-left transition-colors flex items-center gap-1 group"
-                                                                            >
-                                                                                {book.cliente?.nombre} {book.cliente?.apellido_p}
-                                                                                <Eye size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500" />
-                                                                            </button>
-                                                                            <a href={`mailto:${book.cliente?.email}`} className="text-xs text-emerald-600 hover:underline flex items-center gap-1">
-                                                                                <Mail size={10} /> {book.cliente?.email}
-                                                                            </a>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                                                    {confirmedServices.map((book: any) => {
+                                                        const clientUserId = book.cliente_id || book.cliente?.auth_user_id || book.user_id; // Try multiple paths
+                                                        const petIds = book.mascotas_ids || [];
+                                                        const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                        const petNames = pets.map((p: any) => p.nombre).join(", ");
+                                                        const startDate = new Date(book.fecha_inicio);
+                                                        const endDate = new Date(book.fecha_fin);
+                                                        const duration = differenceInDays(endDate, startDate) + 1; // Include end date
+
+                                                        return (
+                                                            <div key={book.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                                                {/* Decorative Top Border */}
+                                                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
+
+                                                                <div className="flex flex-col md:flex-row justify-between items-start gap-6 pt-2">
+
+                                                                    {/* Left Column: Booking Info */}
+                                                                    <div className="flex-1 space-y-4">
+
+                                                                        {/* Header & Dates */}
+                                                                        <div>
+                                                                            <div className="flex items-center gap-3 mb-2">
+                                                                                <span className="bg-slate-100 text-slate-500 font-mono text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">#{book.id.slice(0, 8)}</span>
+                                                                                {book.servicio && (
+                                                                                    <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-100">
+                                                                                        {book.servicio === 'hospedaje' ? <Home size={10} /> : <MapPin size={10} />}
+                                                                                        {book.servicio === 'hospedaje' ? 'Hospedaje' : 'Domicilio'}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                            <h4 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                                                                {format(startDate, "d 'de' MMMM", { locale: es })} – {format(endDate, "d 'de' MMMM", { locale: es })}
+                                                                            </h4>
+                                                                            <p className="text-sm text-slate-500 font-medium ml-1">
+                                                                                {duration} noche{duration !== 1 ? 's' : ''} · {pets.length} mascota{pets.length !== 1 ? 's' : ''} {petNames && <span className="text-slate-400 font-normal">({petNames})</span>}
+                                                                            </p>
                                                                         </div>
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-slate-600">
-                                                                        {(() => {
-                                                                            const petIds = book.mascotas_ids || [];
-                                                                            const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
-                                                                            const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
-                                                                            const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
-                                                                            const otherCount = pets.length - dogCount - catCount;
 
-                                                                            if (pets.length === 0) return <span className="text-xs italic text-slate-400">Sin ficha</span>;
-
-                                                                            return (
-                                                                                <button
-                                                                                    onClick={() => { setSelectedPets(pets); setShowPetDialog(true); }}
-                                                                                    className="group flex flex-wrap gap-2 items-center hover:scale-105 transition-transform p-1 rounded-lg border border-transparent hover:border-slate-200 hover:bg-white hover:shadow-sm"
-                                                                                    title="Ver ficha de mascotas"
-                                                                                >
-                                                                                    {dogCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full border border-amber-100"><Dog size={12} /> {dogCount}</span>}
-                                                                                    {catCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full border border-sky-100"><Cat size={12} /> {catCount}</span>}
-                                                                                    {otherCount > 0 && <span className="flex items-center gap-1 text-xs font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full border border-gray-200"><PawPrint size={12} /> {otherCount}</span>}
-                                                                                </button>
-                                                                            );
-                                                                        })()}
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-slate-600">
-                                                                        <div className="flex flex-col">
-                                                                            <span>{format(new Date(book.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(book.fecha_fin), "d MMM", { locale: es })}</span>
-
-                                                                            {/* Countdown Logic */}
-                                                                            {(() => {
-                                                                                const daysLeft = differenceInDays(new Date(book.fecha_inicio), new Date());
-                                                                                if (daysLeft < 0) return <span className="text-[10px] font-bold text-slate-400 uppercase bg-slate-100 w-fit px-1.5 rounded mt-0.5">En curso / Finalizado</span>;
-                                                                                if (daysLeft === 0) return <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 w-fit px-1.5 rounded mt-0.5 animate-pulse">¡Comienza hoy!</span>;
-                                                                                return <span className="text-[10px] font-bold text-sky-600 uppercase bg-sky-50 w-fit px-1.5 rounded mt-0.5">Faltan {daysLeft} días</span>;
-                                                                            })()}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="px-4 py-3">
-                                                                        <div className="flex flex-col gap-2 align-top">
-                                                                            {(() => {
-                                                                                const getStatusConfig = (status: string) => {
-                                                                                    switch (status) {
-                                                                                        case 'publicado': return { label: 'Solicitado', color: 'bg-amber-100 text-amber-800', tooltip: 'El cliente ha solicitado este servicio. Pendiente de tu confirmación final o pago.' };
-                                                                                        case 'reservado': return { label: 'Reservado', color: 'bg-indigo-100 text-indigo-800', tooltip: 'Tu postulación fue elegida. Esperando detalles finales.' };
-                                                                                        case 'confirmada': return { label: 'Confirmado', color: 'bg-emerald-100 text-emerald-800', tooltip: '¡Todo listo! El servicio está pagado y agendado.' };
-                                                                                        case 'pendiente': return { label: 'Pendiente', color: 'bg-orange-100 text-orange-800', tooltip: 'Tu postulación está en espera de respuesta del cliente.' };
-                                                                                        default: return { label: status, color: 'bg-gray-100 text-gray-800', tooltip: 'Estado del servicio' };
-                                                                                    }
-                                                                                };
-
-                                                                                // Override for accepted applications being treated as bookings
-                                                                                const displayStatus = book.isApplication ? 'confirmada' : book.estado;
-                                                                                const config = getStatusConfig(displayStatus);
-
-                                                                                return (
-                                                                                    <div className="group relative w-fit">
-                                                                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium cursor-help ${config.color}`}>
-                                                                                            {config.label}
-                                                                                        </span>
-                                                                                        {/* Tooltip */}
-                                                                                        <div className="absolute right-0 top-full mt-1 hidden group-hover:block w-48 z-20">
-                                                                                            <div className="bg-slate-800 text-white text-[10px] rounded p-2 shadow-lg leading-tight w-40">
-                                                                                                {config.tooltip}
-                                                                                                <div className="w-2 h-2 bg-slate-800 rotate-45 absolute right-4 -top-1"></div>
-                                                                                            </div>
-                                                                                        </div>
+                                                                        {/* Contact Card */}
+                                                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                                            <div className="space-y-2">
+                                                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos de Contacto</p>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                                                                                        {book.cliente?.nombre?.[0] || <User size={14} />}
                                                                                     </div>
-                                                                                );
-                                                                            })()}
+                                                                                    <div>
+                                                                                        <p className="text-sm font-bold text-slate-900">{book.cliente?.nombre} {book.cliente?.apellido_p}</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="flex flex-col gap-1 pl-10">
+                                                                                    <a href={`tel:${book.cliente?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2">
+                                                                                        <Phone size={14} className="text-slate-400" /> {book.cliente?.telefono || "No registrado"}
+                                                                                    </a>
+                                                                                    <a href={`mailto:${book.cliente?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2">
+                                                                                        <Mail size={14} className="text-slate-400" /> {book.cliente?.email}
+                                                                                    </a>
+                                                                                </div>
+                                                                            </div>
 
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const petIds = book.mascotas_ids || [];
-                                                                                    const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
-                                                                                    setPrintBooking({ booking: book, pets: pets });
-                                                                                    setTimeout(() => window.print(), 100);
-                                                                                }}
-                                                                                className="text-xs flex items-center gap-1 text-slate-500 hover:text-emerald-600 transition-colors font-medium border border-slate-200 rounded px-2 py-1 bg-white hover:border-emerald-300 w-fit"
-                                                                                title="Imprimir Ficha de Servicio"
-                                                                            >
-                                                                                <Printer size={12} /> Ficha
-                                                                            </button>
+                                                                            {/* Chat Button */}
+                                                                            <div className="flex flex-col justify-center min-w-[140px]">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        if (clientUserId) {
+                                                                                            setSelectedChatUser(clientUserId);
+                                                                                            setActiveTab('mensajes');
+                                                                                        } else {
+                                                                                            alert("No se pudo identificar al usuario para el chat.");
+                                                                                        }
+                                                                                    }}
+                                                                                    className="bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 transition-all active:scale-95"
+                                                                                >
+                                                                                    <MessageSquare size={18} />
+                                                                                    Chat
+                                                                                </button>
+                                                                            </div>
                                                                         </div>
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
+
+                                                                        {/* Location */}
+                                                                        {(book.direccion || book.direccion_cliente) && (
+                                                                            <div className="pl-2 border-l-2 border-slate-100">
+                                                                                <p className="text-xs font-bold text-slate-900 mb-1">Ubicación del Cuidado</p>
+                                                                                <p className="text-sm text-slate-600 flex items-start gap-2">
+                                                                                    <MapPin size={16} className="text-slate-400 mt-0.5 shrink-0" />
+                                                                                    <span className="line-clamp-2">
+                                                                                        {book.direccion?.display_name || book.direccion_cliente || "Dirección no disponible"}
+                                                                                    </span>
+                                                                                </p>
+                                                                                <a
+                                                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(book.direccion?.display_name || book.direccion_cliente || "")}`}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="text-xs font-bold text-emerald-600 mt-1 ml-6 hover:underline inline-flex items-center gap-1"
+                                                                                >
+                                                                                    Ver mapa <ChevronDown size={10} className="-rotate-90" />
+                                                                                </a>
+                                                                            </div>
+                                                                        )}
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             ) : (
-                                                <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                                                    <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
-                                                        <Inbox size={24} className="text-slate-300" />
-                                                    </div>
-                                                    <p className="text-sm font-medium text-slate-900">No tienes servicios agendados</p>
-                                                    <p className="text-xs text-slate-500 mt-1">Cuando aceptes una solicitud, aparecerá aquí.</p>
+                                                <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+                                                    <CalendarCheck size={48} className="mx-auto text-slate-300 mb-3" />
+                                                    <p className="text-slate-500 font-medium">No tienes solicitudes confirmadas próximas.</p>
                                                 </div>
                                             );
                                         })()}
-                                    </div >
+                                    </div>
+
                                 </>
                             )
                             }
@@ -2540,7 +2527,7 @@ export default function SitterDashboardPage() {
                             />
                         </div>
                     </div>
-                </div>
+                </div >
             </main >
 
             <ClientDetailsDialog

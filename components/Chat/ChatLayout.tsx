@@ -9,9 +9,10 @@ interface Props {
     initialConversationId?: string;
     returnTo?: string;
     onBack?: () => void;
+    initialClientUserId?: string | null;
 }
 
-export default function ChatLayout({ userId, initialConversationId, returnTo, onBack }: Props) {
+export default function ChatLayout({ userId, initialConversationId, returnTo, onBack, initialClientUserId }: Props) {
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(initialConversationId || null);
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -50,6 +51,7 @@ export default function ChatLayout({ userId, initialConversationId, returnTo, on
                     selectedId={selectedConversationId}
                     onSelect={setSelectedConversationId}
                     userId={userId}
+                    targetUserId={initialClientUserId}
                 />
             </div>
 
