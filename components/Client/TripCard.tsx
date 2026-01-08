@@ -173,137 +173,108 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 <div className="w-full">
                                     {/* CONFIRMED STATE: Show Contact Info */}
                                     {['confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
-                                        <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 relative pr-14">
-                                            {/* Sitter Photo Top-Right */}
-                                            {trip.sitter?.id ? (
-                                                <Link href={`/sitter/${trip.sitter.id}?returnTo=/usuario`} className="absolute top-3 right-3 w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 hover:border-emerald-400 overflow-hidden transition-colors" title="Ver perfil del Sitter">
-                                                    {trip.sitter.foto_perfil ? (
-                                                        <img
-                                                            src={trip.sitter.foto_perfil}
-                                                            alt={trip.sitter.nombre}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-emerald-700 font-bold text-sm">
-                                                            {trip.sitter.nombre?.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </Link>
-                                            ) : (
-                                                <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-slate-400 font-bold text-sm" title="Sitter asignado">
-                                                    {trip.sitter?.nombre?.charAt(0) || <User size={16} />}
-                                                </div>
-                                            )}
+                                        <div className="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                                            <div className="mb-3">
-                                                <p className="font-bold text-slate-900 mb-1.5">Datos de Contacto:</p>
-                                                <div className="space-y-1.5">
-                                                    <p className="flex items-center gap-2">
-                                                        <User size={14} className="text-slate-400" />
-                                                        {trip.sitter?.id ? (
-                                                            <Link href={`/sitter/${trip.sitter.id}?returnTo=/usuario`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
-                                                                {trip.sitter.nombre} {trip.sitter.apellido_p}
-                                                            </Link>
+                                            {/* Left Column: Contact Sitter */}
+                                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-between h-full gap-4 relative">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos del Sitter</p>
+
+                                                {/* Sitter Avatar & Name */}
+                                                <div className="flex items-center gap-3">
+                                                    <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 overflow-hidden shrink-0 flex items-center justify-center text-emerald-700 font-bold text-sm hover:opacity-90 transition-opacity">
+                                                        {trip.sitter?.foto_perfil ? (
+                                                            <img src={trip.sitter.foto_perfil} alt={trip.sitter.nombre} className="w-full h-full object-cover" />
                                                         ) : (
-                                                            <span className="font-bold text-slate-900">
-                                                                {trip.sitter?.nombre} {trip.sitter?.apellido_p}
-                                                            </span>
+                                                            trip.sitter?.nombre?.charAt(0) || <User size={16} />
                                                         )}
-                                                    </p>
-                                                    <p className="flex items-center gap-2">
-                                                        <Phone size={14} className="text-slate-400" />
-                                                        <a href={`tel:${trip.sitter?.telefono}`} className="hover:text-emerald-600 hover:underline">{trip.sitter?.telefono || 'No registrado'}</a>
-                                                    </p>
-                                                    <p className="flex items-center gap-2">
-                                                        <Mail size={14} className="text-slate-400" />
-                                                        <a href={`mailto:${trip.sitter?.email}`} className="hover:text-emerald-600 hover:underline">{trip.sitter?.email || 'No registrado'}</a>
-                                                    </p>
-                                                    {trip.sitter?.auth_user_id && (
-                                                        <div className="pt-2">
-                                                            <ContactSitterButton
-                                                                sitterId={trip.sitter.auth_user_id}
-                                                                className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-xs hover:bg-emerald-700 transition-colors"
-                                                                label="Chat"
-                                                            />
-                                                        </div>
+                                                    </Link>
+                                                    <div>
+                                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="text-sm font-bold text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1">
+                                                            {trip.sitter?.nombre} {trip.sitter?.apellido_p}
+                                                        </Link>
+                                                        <p className="text-xs text-slate-500">Sitter Certificado</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Contact Details */}
+                                                <div className="space-y-1.5 pl-1">
+                                                    <a href={`tel:${trip.sitter?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
+                                                        <div className="w-6 flex justify-center"><Phone size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                        {trip.sitter?.telefono || 'No registrado'}
+                                                    </a>
+                                                    <a href={`mailto:${trip.sitter?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
+                                                        <div className="w-6 flex justify-center"><Mail size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                        {trip.sitter?.email || 'No registrado'}
+                                                    </a>
+                                                </div>
+
+                                                {/* Chat Button */}
+                                                {trip.sitter?.auth_user_id && (
+                                                    <div className="pt-2">
+                                                        <ContactSitterButton
+                                                            sitterId={trip.sitter.auth_user_id}
+                                                            className="w-full bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-600/20 transition-all active:scale-95 text-sm"
+                                                            label="Chat con Sitter"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Right Column: Location / Address */}
+                                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col h-full gap-2 relative">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    {trip.servicio === 'hospedaje' ? 'Dirección del Sitter' : 'Ubicación del Cuidado'}
+                                                </p>
+
+                                                <div className="flex-1 flex items-start gap-3 mt-1">
+                                                    <div className="mt-1 bg-white p-1.5 rounded-full border border-slate-200 text-emerald-600 shadow-sm">
+                                                        <MapPin size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-slate-900 leading-snug">
+                                                            {trip.servicio === 'hospedaje'
+                                                                ? (trip.sitter?.direccion_completa || (trip.sitter?.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible'))
+                                                                : (serviceAddress || 'Dirección no disponible')
+                                                            }
+                                                        </p>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            {trip.servicio === 'hospedaje' ? 'Debes llevar a tu mascota aquí' : 'El Sitter vendrá a esta dirección'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Map Toggle & Actions */}
+                                                <div className="mt-auto pt-2">
+                                                    {((trip.servicio === 'hospedaje' && (trip.sitter?.direccion_completa || trip.sitter?.comuna)) || (trip.servicio === 'domicilio' && serviceAddress)) && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => toggleMap(trip.servicio === 'hospedaje' ? 'sitter' : 'client')}
+                                                                className="w-full bg-white border border-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-emerald-300 hover:text-emerald-600 transition-all text-sm mb-2"
+                                                            >
+                                                                {activeMap === (trip.servicio === 'hospedaje' ? 'sitter' : 'client') ? 'Ocultar Mapa' : 'Ver Ubicación'}
+                                                                {activeMap === (trip.servicio === 'hospedaje' ? 'sitter' : 'client') ? <ChevronUp size={14} /> : <MapPin size={14} />}
+                                                            </button>
+
+                                                            {activeMap === (trip.servicio === 'hospedaje' ? 'sitter' : 'client') && (
+                                                                <div className="rounded-lg overflow-hidden border border-slate-200 shadow-inner">
+                                                                    <iframe
+                                                                        width="100%"
+                                                                        height="160"
+                                                                        frameBorder="0"
+                                                                        style={{ border: 0 }}
+                                                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                                                                            trip.servicio === 'hospedaje'
+                                                                                ? (trip.sitter?.direccion_completa || `${trip.sitter?.calle} ${trip.sitter?.numero} ${trip.sitter?.comuna}`)
+                                                                                : (serviceAddress || '')
+                                                                        )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                                                        allowFullScreen
+                                                                    ></iframe>
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </div>
                                             </div>
-
-                                            {trip.servicio === 'hospedaje' && (
-                                                <div className="pt-2 border-t border-slate-200 mt-2">
-                                                    <p className="font-bold text-slate-900 mb-1">Dirección del Sitter:</p>
-                                                    <div className="flex flex-col gap-1">
-                                                        <p className="flex items-start gap-2">
-                                                            <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-                                                            <span>
-                                                                {trip.sitter?.direccion_completa ||
-                                                                    (trip.sitter?.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible')}
-                                                            </span>
-                                                        </p>
-                                                        {(trip.sitter?.direccion_completa || trip.sitter?.comuna) && (
-                                                            <div className="w-full">
-                                                                <button
-                                                                    onClick={() => toggleMap('sitter')}
-                                                                    className="text-[10px] text-emerald-600 font-bold hover:underline pl-6 flex items-center gap-1"
-                                                                >
-                                                                    {activeMap === 'sitter' ? 'Ocultar mapa' : 'Ver mapa'}
-                                                                    {activeMap === 'sitter' ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                                                </button>
-
-                                                                {activeMap === 'sitter' && (
-                                                                    <div className="mt-2 rounded-lg overflow-hidden border border-slate-200">
-                                                                        <iframe
-                                                                            width="100%"
-                                                                            height="200"
-                                                                            frameBorder="0"
-                                                                            style={{ border: 0 }}
-                                                                            src={`https://maps.google.com/maps?q=${encodeURIComponent(trip.sitter.direccion_completa || `${trip.sitter.calle} ${trip.sitter.numero} ${trip.sitter.comuna}`)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                                                                            allowFullScreen
-                                                                        ></iframe>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {trip.servicio === 'domicilio' && (
-                                                <div className="pt-2 border-t border-slate-200 mt-2">
-                                                    <p className="font-bold text-slate-900 mb-1">Ubicación del Cuidado (Tu Casa):</p>
-                                                    <div className="flex flex-col gap-1">
-                                                        <p className="flex items-start gap-2">
-                                                            <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-                                                            <span>{serviceAddress || 'Dirección no disponible'}</span>
-                                                        </p>
-                                                        {serviceAddress && (
-                                                            <div className="w-full">
-                                                                <button
-                                                                    onClick={() => toggleMap('client')}
-                                                                    className="text-[10px] text-emerald-600 font-bold hover:underline pl-6 flex items-center gap-1"
-                                                                >
-                                                                    {activeMap === 'client' ? 'Ocultar mapa' : 'Ver mapa'}
-                                                                    {activeMap === 'client' ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                                                </button>
-
-                                                                {activeMap === 'client' && (
-                                                                    <div className="mt-2 rounded-lg overflow-hidden border border-slate-200">
-                                                                        <iframe
-                                                                            width="100%"
-                                                                            height="200"
-                                                                            frameBorder="0"
-                                                                            style={{ border: 0 }}
-                                                                            src={`https://maps.google.com/maps?q=${encodeURIComponent(serviceAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                                                                            allowFullScreen
-                                                                        ></iframe>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     ) : (
                                         // RESERVADO STATE (Specific Message if we didn't use the action above, or just a placeholder)
