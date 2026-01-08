@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { Hero } from "../components/Hero";
 import { ValueProps, HowItWorks, CTASection } from "../components/HomeSections";
-import { FeaturedPetMates } from "../components/FeaturedPetMates";
+import { FeaturedPawnectas } from "../components/FeaturedPawnectas";
 import { supabase } from "../lib/supabaseClient";
 
 interface HomePageProps {
@@ -43,7 +43,7 @@ export default function HomePage({ caregivers }: HomePageProps) {
       </Head>
 
       <Hero />
-      <FeaturedPetMates caregivers={caregivers} />
+      <FeaturedPawnectas caregivers={caregivers} />
       <ValueProps />
       <HowItWorks />
       <CTASection />

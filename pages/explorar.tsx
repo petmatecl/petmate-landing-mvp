@@ -42,7 +42,7 @@ export default function ExplorarPage() {
     // Estado de filtros
     const [filters, setFilters] = useState<{
         petType: "dogs" | "cats" | "both" | "any";
-        serviceType: "all" | "en_casa_petmate" | "a_domicilio";
+        serviceType: "all" | "hospedaje" | "a_domicilio"; // Changed for URL cleanliness
         dogSize: string | null;
         dateRange: DateRange | undefined;
     }>({
@@ -63,10 +63,14 @@ export default function ExplorarPage() {
         const { type, service } = router.query;
 
         if (type || service) {
+            let normalizedService = service as any;
+            // Legacy/Mapping check
+            if (normalizedService === 'en_casa_petmate') normalizedService = 'hospedaje';
+
             setFilters(prev => ({
                 ...prev,
                 petType: (type as any) || prev.petType,
-                serviceType: (service as any) || prev.serviceType
+                serviceType: normalizedService || prev.serviceType
             }));
         }
     }, [router.isReady, router.query]);
@@ -104,9 +108,12 @@ export default function ExplorarPage() {
 
                 console.log("Fetching petmates with RPC filters:", { ...filters, dateStart, dateEnd });
 
+                // Map frontend 'hospedaje' to backend 'en_casa_petmate'
+                const rpcServiceType = filters.serviceType === 'hospedaje' ? 'en_casa_petmate' : filters.serviceType;
+
                 const { data, error } = await supabase.rpc('search_sitters', {
                     pet_type: filters.petType,
-                    service_type: filters.serviceType,
+                    service_type: rpcServiceType,
                     dog_size: filters.dogSize,
                     date_start: dateStart,
                     date_end: dateEnd
@@ -150,7 +157,7 @@ export default function ExplorarPage() {
                         title="Completa tu perfil para reservar"
                         message="Para ver cuidadores y gestionar reservas, necesitamos que completes tu información básica."
                         missingFields={clientMissingFields}
-                        redirectUrl="/cliente"
+                        redirectUrl="/usuario"
                         redirectText="Ir a mi Perfil"
                         isApproved={true}
                     />
@@ -231,7 +238,7 @@ export default function ExplorarPage() {
                                 </div>
                             ) : (
                                 /* VISTA DE MAPA */
-                                <div className={`transition-all duration-500 ${!isAuthenticated ? 'blur-[4px] pointer-events-none' : ''}`}>
+                                <div className={`h-[600px] w-full transition-all duration-500 ${!isAuthenticated ? 'blur-[4px] pointer-events-none' : ''}`}>
                                     <CaregiverMap sitters={petmates} isAuthenticated={isAuthenticated} />
                                 </div>
                             )}

@@ -21,6 +21,7 @@ import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
 import { Skeleton } from "../Shared/Skeleton";
+import { createNotification } from "../../lib/notifications";
 
 function TripCardSkeleton() {
     return (
@@ -255,11 +256,11 @@ export default function DashboardContent() {
     }, [myPets, selectedPetIds]);
 
     const handleEdit = (pet: Pet) => {
-        router.push(`/cliente/mascotas/${pet.id}`);
+        router.push(`/usuario/mascotas/${pet.id}`);
     };
 
     const handleAdd = () => {
-        router.push("/cliente/mascotas/nueva");
+        router.push("/usuario/mascotas/nueva");
     };
 
     // Modal Alert State
@@ -463,6 +464,17 @@ export default function DashboardContent() {
                     if (error) throw error;
 
                     if (userId) fetchTrips(userId);
+
+                    // [NEW] Notification to Sitter (Cancellation/Removal)
+                    // We need to know who was removed. But after update, we can't get it from DB.
+                    // We should use the trip object passed to find sitter_id roughly? 
+                    // handleRemoveSitter only gets tripId. We need to fetch trip first or use state if we had it.
+                    // But for now, let's assume we can fetch it BEFORE update or just skip if too complex for MVP.
+                    // Actually, let's skip "Removal" notification for now to avoid complexity of fetching "who was assigned".
+                    // The user asked for "new opportunities, applications, accepted". Cancellation was not explicitly requested but good to have.
+                    // User Request: "notificar al sitter cuando el cliente le ha enviado una solicitud, notificar al sitter cuando un cliente ha aceptado una solicitud"
+                    // NOT "cancelled". I will skip cancellation notification to stick to strict requirements + safe changes.
+
                     showAlert("Sitter Desvinculado", "El sitter ha sido removido de tu viaje. Tu solicitud vuelve a estar pública.", "success");
                 } catch (err: any) {
                     console.error(err);
@@ -530,7 +542,7 @@ export default function DashboardContent() {
         if (trip.servicio === 'domicilio') {
             params.append('service', 'a_domicilio');
         } else if (trip.servicio === 'hospedaje') {
-            params.append('service', 'en_casa_petmate');
+            params.append('service', 'hospedaje');
         } else {
             params.append('service', 'all');
         }
@@ -555,6 +567,18 @@ export default function DashboardContent() {
                     if (error) throw error;
 
                     if (userId) fetchTrips(userId);
+
+                    // [NEW] Notification to Sitter
+                    if (trip.sitter_id) {
+                        await createNotification({
+                            userId: trip.sitter_id,
+                            type: 'acceptance',
+                            title: '¡Reserva Confirmada!',
+                            message: `El cliente ha confirmado la reserva. ¡Prepárate para el servicio!`,
+                            link: '/sitter'
+                        });
+                    }
+
                     showAlert("¡Reserva Confirmada!", "El servicio ha sido confirmado exitosamente.", "success");
                 } catch (err: any) {
                     console.error(err);
@@ -687,7 +711,7 @@ export default function DashboardContent() {
                 params.append('comuna', addr.comuna || '');
             }
         } else {
-            params.append('service', 'en_casa_petmate');
+            params.append('service', 'hospedaje');
             // If hosting, maybe filter by user's base location or let them choose? 
             // Currently Explore uses map center. We can pass user's base district if known.
             if (profileFormData.comuna) {
@@ -1114,8 +1138,8 @@ export default function DashboardContent() {
                                     <PetCard key={pet.id} pet={pet} onEdit={handleEdit} />
                                 ))
                             ) : (
-                                <div className="text-center py-6 col-span-2">
-                                    <span className="text-2xl block mb-2">🐾</span>
+                                <div className="text-center py-6 col-span-2 flex flex-col items-center justify-center">
+                                    <PawPrint className="w-12 h-12 text-slate-200 mb-2" />
                                     <p className="text-xs text-slate-500">Agrega a tus peludos aquí.</p>
                                 </div>
                             )}
@@ -1316,8 +1340,8 @@ export default function DashboardContent() {
                                     />
                                 ))}
                                 {addresses.length === 0 && (
-                                    <div className="text-center py-6 col-span-2">
-                                        <span className="text-2xl block mb-2">📍</span>
+                                    <div className="text-center py-6 col-span-2 flex flex-col items-center justify-center">
+                                        <MapPin className="w-12 h-12 text-slate-200 mb-2" />
                                         <p className="text-xs text-slate-500">Agrega tus direcciones para solicitar servicios a domicilio.</p>
                                     </div>
                                 )}

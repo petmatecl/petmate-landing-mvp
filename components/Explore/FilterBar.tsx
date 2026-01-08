@@ -1,11 +1,12 @@
 
 import { DateRange } from "react-day-picker";
 import DateRangeFilter from "./DateRangeFilter";
+import { PawPrint, Home, Car, Ruler } from "lucide-react";
 
 interface FilterBarProps {
     filters: {
         petType: "dogs" | "cats" | "both" | "any";
-        serviceType: "all" | "en_casa_petmate" | "a_domicilio";
+        serviceType: "all" | "hospedaje" | "a_domicilio";
         dogSize: string | null;
         dateRange: DateRange | undefined;
     };
@@ -34,7 +35,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                                     ? "bg-slate-900 border-slate-900 text-white"
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                         >
-                            🐶 Perros
+                            <PawPrint size={16} /> Perros
                         </button>
 
                         <button
@@ -50,7 +51,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                                 else onFilterChange("petType", "cats");
                             }}
                         >
-                            🐱 Gatos
+                            <PawPrint size={16} /> Gatos
                         </button>
 
 
@@ -67,12 +68,12 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                         {/* Dropdown/Select Modalidad simplificado como botones */}
                         <button
                             className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
-                                ${filters.serviceType === "en_casa_petmate"
+                                ${filters.serviceType === "hospedaje"
                                     ? "bg-emerald-600 border-emerald-600 text-white"
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                            onClick={() => onFilterChange("serviceType", filters.serviceType === "en_casa_petmate" ? "all" : "en_casa_petmate")}
+                            onClick={() => onFilterChange("serviceType", filters.serviceType === "hospedaje" ? "all" : "hospedaje")}
                         >
-                            🏠 En casa del Sitter
+                            <Home size={16} /> En casa del Sitter
                         </button>
 
                         <button
@@ -82,24 +83,29 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                             onClick={() => onFilterChange("serviceType", filters.serviceType === "a_domicilio" ? "all" : "a_domicilio")}
                         >
-                            🚗 A domicilio
+                            <Car size={16} /> A domicilio
                         </button>
 
                         {(filters.petType === 'dogs' || filters.petType === 'both') && (
                             <>
                                 <div className="bg-slate-200 w-px h-8 mx-1 hidden sm:block"></div>
-                                <select
-                                    className={`appearance-none rounded-full border px-4 py-2 text-sm font-bold transition-colors outline-none cursor-pointer
-                                    ${filters.dogSize ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"}`}
-                                    value={filters.dogSize || ""}
-                                    onChange={(e) => onFilterChange("dogSize", e.target.value || null)}
-                                >
-                                    <option value="" className="bg-white text-slate-900">📏 Cualquier Tamaño</option>
-                                    <option value="Pequeño" className="bg-white text-slate-900">Pequeño (0-10kg)</option>
-                                    <option value="Mediano" className="bg-white text-slate-900">Mediano (11-25kg)</option>
-                                    <option value="Grande" className="bg-white text-slate-900">Grande (26-45kg)</option>
-                                    <option value="Gigante" className="bg-white text-slate-900">Gigante (+45kg)</option>
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        className={`appearance-none rounded-full border pl-10 pr-4 py-2 text-sm font-bold transition-colors outline-none cursor-pointer
+                                        ${filters.dogSize ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"}`}
+                                        value={filters.dogSize || ""}
+                                        onChange={(e) => onFilterChange("dogSize", e.target.value || null)}
+                                    >
+                                        <option value="" className="bg-white text-slate-900">Cualquier Tamaño</option>
+                                        <option value="Pequeño" className="bg-white text-slate-900">Pequeño (0-10kg)</option>
+                                        <option value="Mediano" className="bg-white text-slate-900">Mediano (11-25kg)</option>
+                                        <option value="Grande" className="bg-white text-slate-900">Grande (26-45kg)</option>
+                                        <option value="Gigante" className="bg-white text-slate-900">Gigante (+45kg)</option>
+                                    </select>
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <Ruler size={16} />
+                                    </div>
+                                </div>
                             </>
                         )}
                     </div>

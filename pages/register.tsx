@@ -130,6 +130,16 @@ export default function RegisterPage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<Role>("cliente");
 
+  // Sync tab with URL query
+  React.useEffect(() => {
+    if (router.isReady) {
+      const { role } = router.query;
+      if (role === "petmate" || role === "sitter") {
+        setTab("petmate");
+      }
+    }
+  }, [router.isReady, router.query]);
+
   // --- Estado Cliente (simplificado) ---
   // (Campos extra eliminados)
 
@@ -407,7 +417,7 @@ export default function RegisterPage() {
               type="button"
             >
               <UserIcon />
-              <span>Cliente</span>
+              <span>Usuario</span>
             </button>
             <button
               role="tab"
@@ -424,7 +434,7 @@ export default function RegisterPage() {
           <div className="card">
             {tab === "cliente" ? (
               <form className="grid" onSubmit={submitCliente}>
-                <h1>Regístrate como cliente</h1>
+                <h1>Regístrate como usuario</h1>
                 <p className="sub">Crea tu cuenta para comenzar.</p>
 
                 {/* Datos básicos */}

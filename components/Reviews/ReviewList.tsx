@@ -40,20 +40,23 @@ export default function ReviewList({ reviews }: ReviewListProps) {
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold uppercase text-sm relative overflow-hidden">
-                                {review.cliente?.foto_perfil ? (
+                                {review.cliente?.foto_perfil || review.foto_cliente_manual ? (
                                     <Image
-                                        src={review.cliente.foto_perfil}
-                                        alt={review.cliente.nombre}
+                                        src={review.cliente?.foto_perfil || review.foto_cliente_manual || ''}
+                                        alt={review.cliente?.nombre || review.nombre_cliente_manual || 'Usuario'}
                                         fill
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <span>{review.cliente?.nombre?.charAt(0) || 'U'}</span>
+                                    <span>{(review.cliente?.nombre || review.nombre_cliente_manual || 'U').charAt(0)}</span>
                                 )}
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-slate-900">
-                                    {review.cliente?.nombre} {review.cliente?.apellido_p ? `${review.cliente.apellido_p.charAt(0)}.` : ''}
+                                    {review.nombre_cliente_manual
+                                        ? review.nombre_cliente_manual
+                                        : `${review.cliente?.nombre} ${review.cliente?.apellido_p ? `${review.cliente.apellido_p.charAt(0)}.` : ''}`
+                                    }
                                 </h4>
                                 <p className="text-xs text-slate-500">
                                     {format(new Date(review.created_at), "d MMMM yyyy", { locale: es })}

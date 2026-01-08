@@ -22,7 +22,7 @@ export default function NuevaMascotaPage() {
     }, [router]);
 
     const handleSaved = () => {
-        router.push("/cliente");
+        router.push("/usuario");
     };
 
     const handleCancel = () => {

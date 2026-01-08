@@ -17,7 +17,7 @@ export default function EmailConfirmadoPage() {
                     router.replace("/sitter");
                 } else {
                     window.localStorage.setItem("activeRole", "cliente");
-                    router.replace("/cliente");
+                    router.replace("/usuario");
                 }
             }
         });

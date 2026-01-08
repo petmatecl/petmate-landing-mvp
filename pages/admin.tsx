@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabaseClient";
 import SitterDetailModal from "../components/Admin/SitterDetailModal";
 import { ConfirmationModal } from "../components/Shared/ConfirmationModal";
 import { Skeleton } from "../components/Shared/Skeleton";
+import AdminLayout from "../components/Admin/AdminLayout";
 
 function AdminDashboardSkeleton() {
     return (
@@ -507,16 +508,16 @@ export default function AdminDashboard() {
     );
 
     return (
-        <>
+        <AdminLayout>
             <Head>
                 <title>Panel de Administración | Pawnecta</title>
             </Head>
 
             {loading ? (
-                <div className="min-h-screen bg-slate-50">
+                <div className="w-full p-8 px-4">
                     <AdminDashboardSkeleton />
                 </div>
-            ) : (<div className="min-h-screen bg-slate-50 pb-20">
+            ) : (<div className="w-full pb-20">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
                     <h1 className="text-3xl font-bold text-slate-900">Administrador</h1>
                     <div className="flex items-center justify-between mt-1">
@@ -537,7 +538,7 @@ export default function AdminDashboard() {
                 {/* RESUMEN */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Clientes</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Usuarios</p>
                         <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
                         <div className="flex gap-2 mt-2 text-[10px]">
                             <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesAprobados} OK</span>
@@ -587,7 +588,7 @@ export default function AdminDashboard() {
                             onClick={() => setActiveTab("cliente")}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
                         >
-                            Clientes
+                            Usuarios
                         </button>
                         <button
                             onClick={() => setActiveTab("solicitudes")}
@@ -755,7 +756,7 @@ export default function AdminDashboard() {
                                             <>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div>
-                                                        <span className="block text-slate-400 text-[10px] uppercase font-bold">Cliente</span>
+                                                        <span className="block text-slate-400 text-[10px] uppercase font-bold">Usuario</span>
                                                         <span className="font-medium text-slate-700">{item.cliente?.nombre} {item.cliente?.apellido_p}</span>
                                                     </div>
                                                     <div>
@@ -1112,6 +1113,6 @@ export default function AdminDashboard() {
                 />
             </div>
             )}
-        </>
+        </AdminLayout>
     );
 }

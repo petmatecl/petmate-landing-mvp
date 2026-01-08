@@ -52,7 +52,7 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
                         </div>
                     ) : (
                         <div
-                            className={`w-12 h-12 flex items-center justify-center rounded-full text-2xl ${isDog ? "bg-orange-50 text-orange-500" : "bg-purple-50 text-purple-500"
+                            className={`w-12 h-12 flex items-center justify-center rounded-full text-2xl ${isDog ? "bg-orange-50 text-orange-500" : "bg-emerald-50 text-emerald-500"
                                 }`}
                         >
                             {isDog ? "🐶" : "🐱"}

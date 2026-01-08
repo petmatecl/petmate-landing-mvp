@@ -1,7 +1,7 @@
 import Link from "next/link";
 import CaregiverCard from "./Explore/CaregiverCard";
 
-interface FeaturedPetMatesProps {
+interface FeaturedPawnectasProps {
     caregivers: any[];
 }
 
@@ -42,7 +42,7 @@ const MOCK_CAREGIVERS = [
     }
 ];
 
-export function FeaturedPetMates({ caregivers }: FeaturedPetMatesProps) {
+export function FeaturedPawnectas({ caregivers }: FeaturedPawnectasProps) {
     // FORZAR MOCK DATA VISUAL (Solicitud del usuario: "hasta que contemos con cuidadores reales")
     // Ignoramos la prop 'caregivers' por ahora para asegurar que se vean las fotos bonitas.
     const displayCaregivers = MOCK_CAREGIVERS;

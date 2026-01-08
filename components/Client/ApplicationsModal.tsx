@@ -5,6 +5,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ConfirmationModal } from "../Shared/ConfirmationModal";
+import { createNotification } from "../../lib/notifications";
 
 type Props = {
     isOpen: boolean;
@@ -116,6 +117,15 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                 .update({ estado: 'rechazada' })
                 .eq("viaje_id", tripId)
                 .neq("id", app.id);
+
+            // [NEW] Notification to Sitter
+            await createNotification({
+                userId: app.sitter_id,
+                type: 'acceptance',
+                title: '¡Postulación Aceptada!',
+                message: 'El cliente ha aceptado tu postulación. ¡Tienes una nueva reserva!',
+                link: '/sitter'
+            });
 
             // Success
             onAccepted();

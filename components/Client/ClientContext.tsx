@@ -4,6 +4,7 @@ import { Address } from './AddressCard';
 interface ClientContextType {
     addresses: Address[];
     loadingAddresses: boolean;
+    loading: boolean;
     refreshAddresses: () => void;
     userId: string | null;
 }

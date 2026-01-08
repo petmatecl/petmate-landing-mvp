@@ -82,7 +82,7 @@ export default function EditarMascotaPage() {
     }, [userId, router.isReady, id]);
 
     const handleSaved = () => {
-        router.push("/cliente");
+        router.push("/usuario");
     };
 
     const handleCancel = () => {
@@ -127,7 +127,7 @@ export default function EditarMascotaPage() {
                     <h1 className="text-2xl font-bold text-slate-800 mb-2">Ups, algo salió mal 😕</h1>
                     <p className="text-red-500 mb-6">{errorMsg || "Mascota no encontrada."}</p>
                     <button
-                        onClick={() => router.push("/cliente")}
+                        onClick={() => router.push("/usuario")}
                         className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-bold"
                     >
                         Volver a Mi Panel
@@ -146,7 +146,7 @@ export default function EditarMascotaPage() {
                         <p className="text-slate-600 text-sm">Actualiza la información de {pet.nombre}.</p>
                     </div>
                     <button
-                        onClick={() => router.push('/cliente')}
+                        onClick={() => router.push('/usuario')}
                         className="text-sm text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1"
                     >
                         <ArrowLeft size={16} />

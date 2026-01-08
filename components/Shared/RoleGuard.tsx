@@ -88,8 +88,8 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                         Cambio de Perfil Requerido
                     </h1>
                     <p className="text-slate-600 mb-8">
-                        Estás conectado como <strong>{currentRole === 'cliente' ? 'Cliente' : 'Sitter'}</strong>,
-                        pero estás intentando acceder al panel de <strong>{requiredRole === 'cliente' ? 'Cliente' : 'Sitter'}</strong>.
+                        Estás conectado como <strong>{currentRole === 'cliente' ? 'Usuario' : 'Sitter'}</strong>,
+                        pero estás intentando acceder al panel de <strong>{requiredRole === 'cliente' ? 'Usuario' : 'Sitter'}</strong>.
                     </p>
                     <p className="text-slate-500 text-sm mb-6 bg-slate-50 p-4 rounded-lg">
                         Por razones de seguridad y flujo, debes cerrar sesión e ingresar seleccionando el perfil correcto.

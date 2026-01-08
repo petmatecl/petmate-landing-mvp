@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
+import { createNotification } from "../../lib/notifications";
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -92,6 +93,15 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
             // Non-critical, but good to know
         }
 
+        // [NEW] Notification to Sitter
+        await createNotification({
+            userId: sitterAuthId,
+            type: 'request',
+            title: 'Nueva Solicitud de Reserva',
+            message: 'Un usuario te ha enviado una solicitud directa para un servicio.',
+            link: '/sitter?tab=solicitudes' // Lead them to requests tab
+        });
+
         setIsSuccess(true);
         onSuccess();
         setSending(false);
@@ -141,7 +151,7 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
                             ) : trips.length === 0 ? (
                                 <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                                     <p className="text-slate-500 mb-3">No tienes viajes disponibles para asignar.</p>
-                                    <Link href="/cliente" className="text-emerald-600 font-bold hover:underline text-sm">
+                                    <Link href="/usuario" className="text-emerald-600 font-bold hover:underline text-sm">
                                         + Crear Nuevo Viaje
                                     </Link>
                                 </div>

@@ -44,7 +44,7 @@ export function Hero() {
             {/* Elecciones rápidas */}
             <div className="mt-10 grid sm:grid-cols-2 gap-4">
               <Link
-                href="/register?role=cliente&mode=domicilio"
+                href="/register?role=usuario&mode=domicilio"
                 className="group card-premium p-5 hover:border-emerald-200"
               >
                 <div className="flex items-start gap-4">
@@ -59,7 +59,7 @@ export function Hero() {
               </Link>
 
               <Link
-                href="/register?role=cliente&mode=estadia"
+                href="/register?role=usuario&mode=estadia"
                 className="group card-premium p-5 hover:border-emerald-200"
               >
                 <div className="flex items-start gap-4">
@@ -89,7 +89,7 @@ export function Hero() {
             <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               {/* Botón eliminado por feedback */}
               <Link
-                href="/register?role=petmate"
+                href="/register?role=sitter"
                 className="text-sm font-semibold leading-6 text-slate-900"
               >
                 Quiero ser Pawnecta Sitter <span aria-hidden="true">→</span>

@@ -1,0 +1,16 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /usuario
+Disallow: /sitter
+Disallow: /sitter/explorar
+Disallow: /login
+Disallow: /register
+Disallow: /api/*
+
+# Host
+Host: https://www.pawnecta.com
+
+# Sitemaps
+Sitemap: https://www.pawnecta.com/sitemap.xml

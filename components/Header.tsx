@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import NotificationBell from "./Shared/NotificationBell";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -90,7 +91,7 @@ export default function Header() {
   // Route logic: If user has 'petmate' role, prefer Sitter Dashboard.
   // Dual role users can navigate to client dashboard from sitter dashboard (usually).
   const isSitter = profile?.roles?.includes('petmate');
-  const dashboardLink = isSitter ? "/sitter" : "/cliente";
+  const dashboardLink = isSitter ? "/sitter" : "/usuario";
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
@@ -154,7 +155,7 @@ export default function Header() {
                 Ingresar
               </Link>
               <Link
-                href="/register?role=cliente"
+                href="/register?role=usuario"
                 className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               >
                 Registrarse
@@ -169,6 +170,12 @@ export default function Header() {
                 </span>
                 <span className="text-sm font-medium text-emerald-900">{userName}</span>
               </div>
+              <Link
+                href="/mensajes"
+                className="inline-flex items-center rounded-xl bg-white border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2"
+              >
+                Mensajes
+              </Link>
               <Link
                 href={dashboardLink}
                 className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
@@ -262,7 +269,7 @@ export default function Header() {
                   Ingresar
                 </Link>
                 <Link
-                  href="/register?role=cliente"
+                  href="/register?role=usuario"
                   className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
                   onClick={() => setOpen(false)}
                 >
@@ -287,6 +294,13 @@ export default function Header() {
                     <span className="text-[11px] text-emerald-700">Conectado</span>
                   </div>
                 </div>
+                <Link
+                  href="/mensajes"
+                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 mb-2"
+                  onClick={() => setOpen(false)}
+                >
+                  Mensajes
+                </Link>
                 <Link
                   href={dashboardLink}
                   className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"

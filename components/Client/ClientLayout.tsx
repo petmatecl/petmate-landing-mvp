@@ -19,7 +19,7 @@ interface ClientLayoutProps {
     title?: string;
 }
 
-export default function ClientLayout({ children, userId, title = "Panel cliente — Pawnecta" }: ClientLayoutProps) {
+export default function ClientLayout({ children, userId, title = "Panel Usuario — Pawnecta" }: ClientLayoutProps) {
     const router = useRouter();
     const [clientProfile, setClientProfile] = useState<any>(null);
     const [nombre, setNombre] = useState<string | null>(null);
@@ -137,12 +137,13 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
         router.push("/login");
     }
 
-    const displayName = nombre || "Cliente";
+    const displayName = nombre || "Usuario";
 
     // Provide context
     const contextValue = {
         addresses,
         loadingAddresses,
+        loading: userId ? !clientProfile : false,
         refreshAddresses: () => userId && fetchAddresses(userId),
         userId
     };
@@ -175,15 +176,15 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
 
                             <div>
                                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
-                                    {title === "Panel cliente — Pawnecta" ? <span className="block sm:inline">Hola, {displayName.split(' ')[0]} 👋</span> : title}
+                                    {title === "Panel Usuario — Pawnecta" ? <span className="block sm:inline">Hola, {displayName.split(' ')[0]} 👋</span> : title}
                                 </h1>
                                 {/* Mobile Status Badge */}
                                 <div className="md:hidden mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    Cliente Verificado
+                                    Usuario Verificado
                                 </div>
 
-                                {title === "Panel cliente — Pawnecta" && (
+                                {title === "Panel Usuario — Pawnecta" && (
                                     <p className="hidden md:block text-sm text-slate-600 mt-1">
                                         Gestiona tus viajes, mascotas y perfil.
                                     </p>
@@ -254,7 +255,7 @@ export default function ClientLayout({ children, userId, title = "Panel cliente 
 
                                     <div className="hidden md:inline-flex mt-3 items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /></svg>
-                                        Cliente Verificado
+                                        Usuario Verificado
                                     </div>
                                 </div>
 

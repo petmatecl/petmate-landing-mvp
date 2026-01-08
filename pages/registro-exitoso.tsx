@@ -23,7 +23,7 @@ export default function RegistroExitosoPage() {
           <h1 className="text-2xl font-bold text-gray-900 m-0">¡Registro enviado!</h1>
 
           <p className="mt-1.5 mb-3 text-gray-600">
-            Ya creamos tu cuenta {esPetmate ? "de Sitter" : "de cliente"}.
+            Ya creamos tu cuenta {esPetmate ? "de Sitter" : "de usuario"}.
           </p>
 
           <p className="mb-2 text-gray-500 text-sm">

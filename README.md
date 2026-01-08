@@ -1,4 +1,4 @@
-# PetMate — Landing MVP
+# Pawnecta — Landing MVP
 
 Minimal **Next.js + Tailwind + Supabase** landing with a waitlist form.
 
@@ -11,7 +11,7 @@ Minimal **Next.js + Tailwind + Supabase** landing with a waitlist form.
 
 ## Paso a paso
 1. **Descarga** este proyecto y descomprímelo.
-2. Abre una terminal en la carpeta `petmate-landing-mvp` y ejecuta:
+2. Abre una terminal en la carpeta `petmate-landing-mvp` (o la carpeta raíz del proyecto) y ejecuta:
    ```bash
    npm install
    ```

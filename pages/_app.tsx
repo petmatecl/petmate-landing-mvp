@@ -42,7 +42,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             gtag('js', new Date());
             gtag('config', '${gtag.GA_TRACKING_ID}', {
               page_path: window.location.pathname,
-              debug_mode: true,
             });
           `,
         }}

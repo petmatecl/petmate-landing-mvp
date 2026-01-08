@@ -24,7 +24,7 @@ export default function ClienteDashboardPage() {
 
   return (
     <RoleGuard requiredRole="cliente">
-      <ClientLayout userId={userId} title="Panel cliente — Pawnecta">
+      <ClientLayout userId={userId} title="Panel Usuario — Pawnecta">
         <DashboardContent />
       </ClientLayout>
     </RoleGuard>

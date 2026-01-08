@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
 import { ArrowLeft, Bell, Calendar, ChevronRight, User } from "lucide-react";
+import AdminLayout from "../../components/Admin/AdminLayout";
 
 export default function AdminNotifications() {
     const router = useRouter();
@@ -71,13 +72,12 @@ export default function AdminNotifications() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <AdminLayout>
             <Head>
                 <title>Notificaciones | Admin Pawnecta</title>
             </Head>
 
-            <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
-
+            <div className="w-full pb-20">
                 {/* Header with Back Button */}
                 <div className="mb-8 flex items-center gap-4">
                     <button
@@ -173,7 +173,7 @@ export default function AdminNotifications() {
 
                     </div>
                 )}
-            </main>
-        </div>
+            </div>
+        </AdminLayout>
     );
 }

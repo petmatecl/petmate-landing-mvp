@@ -17,6 +17,6 @@
   <circle cx="1100" cy="430" r="22" fill="#111827" opacity="0.9"/>
   <circle cx="1135" cy="460" r="22" fill="#111827" opacity="0.9"/>
   <!-- Copy -->
-  <text x="120" y="160" font-family="Inter, Arial, sans-serif" font-size="80" fill="#111827">PetMate</text>
+  <text x="110" y="160" font-family="Inter, Arial, sans-serif" font-size="80" fill="#111827">Pawnecta</text>
   <text x="120" y="210" font-family="Inter, Arial, sans-serif" font-size="28" fill="#374151">Tu casa y tus mascotas, en buenas manos.</text>
 </svg>

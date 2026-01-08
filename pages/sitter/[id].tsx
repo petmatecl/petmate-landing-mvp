@@ -60,6 +60,7 @@ interface PublicProfileProps {
 import BookingModal from "../../components/Sitter/BookingModal";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
+import ContactSitterButton from "../../components/Shared/ContactSitterButton";
 
 const LocationMap = dynamic(() => import("../../components/Shared/LocationMap"), {
     ssr: false,
@@ -288,7 +289,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                 <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
                     <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
                         <Link href={returnTo || "/explorar"} className="text-sm font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1 transition-colors">
-                            ← {returnTo === '/cliente' ? 'Volver al Panel' : 'Volver a explorar'}
+                            ← {returnTo === '/usuario' ? 'Volver al Panel' : 'Volver a explorar'}
                         </Link>
                         <Link href="/" className="font-bold text-emerald-600 text-lg hidden sm:block">Pawnecta</Link>
                         <button
@@ -389,6 +390,13 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                 >
                                     Solicitar Reserva
                                 </button>
+                                <div className="mt-3">
+                                    <ContactSitterButton
+                                        sitterId={petmate.auth_user_id} // Use auth_user_id for chat, as conversations link to auth.users
+                                        className="w-full btn-secondary py-3 flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors rounded-xl font-bold text-slate-700"
+                                        label="Enviar Mensaje"
+                                    />
+                                </div>
                                 <p className="text-xs text-slate-400 mt-2 text-center">Sin compromiso de reserva</p>
 
                                 {/* Redes Sociales */}

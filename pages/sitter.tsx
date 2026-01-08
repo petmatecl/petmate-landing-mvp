@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { createNotification } from "../lib/notifications";
 import { format, differenceInYears, subYears, isAfter, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatRut, validateRut, cleanRut } from "../lib/rutValidation";
@@ -644,15 +645,26 @@ export default function SitterDashboardPage() {
 
         try {
             // Option A: Set to 'reservado' (waiting for client) and assign self as sitter
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('viajes')
                 .update({
-                    estado: 'reservado',
                     sitter_id: userId
                 })
-                .eq('id', confirmModal.bookingId);
+                .eq('id', confirmModal.bookingId)
+                .select('user_id')
+                .single();
 
             if (error) throw error;
+
+            if (data) {
+                await createNotification({
+                    userId: data.user_id,
+                    type: 'acceptance',
+                    title: '¡Sitter Confirmado!',
+                    message: `El sitter ${profileData.nombre} ha aceptado tu solicitud de reserva.`,
+                    link: '/usuario' // Redirect to dashboard to see it
+                });
+            }
             window.location.reload();
         } catch (err) {
             console.error(err);

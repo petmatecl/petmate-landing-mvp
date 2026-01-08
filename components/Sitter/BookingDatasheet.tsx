@@ -2,6 +2,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { MapPin, Calendar, User, Mail, Phone, Dog, Cat, PawPrint, DollarSign, Clock } from 'lucide-react';
+import ContactClientButton from '../Shared/ContactClientButton';
 
 type BookingDatasheetProps = {
     booking: any;
@@ -89,7 +90,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                                     ) : (
                                         <>
                                             <span className="text-xs font-bold text-sky-600 uppercase bg-sky-50 px-1.5 py-0.5 rounded">
-                                                {booking.servicio === 'paseo' ? 'Punto de Encuentro' : 'En casa del Cliente'}
+                                                {booking.servicio === 'paseo' ? 'Punto de Encuentro' : 'En casa del Usuario'}
                                             </span>
                                             <p className="text-sm text-slate-700 mt-1">{booking.direccion?.direccion_completa || booking.direccion_cliente || 'Dirección no especificada'}</p>
                                         </>
@@ -102,7 +103,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
 
                 {/* Cliente */}
                 <div>
-                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-wider border-b border-slate-100 pb-2">Datos del Cliente</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-wider border-b border-slate-100 pb-2">Datos del Usuario</h3>
                     <div className="space-y-3">
                         <div className="flex items-center gap-3">
                             <User className="w-4 h-4 text-slate-400" />
@@ -112,6 +113,16 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                             <Phone className="w-4 h-4 text-slate-400" />
                             <span className="text-slate-700">{booking.cliente?.telefono || 'No registrado'}</span>
                         </div>
+                        {booking.user_id && (
+                            <div className="pt-2">
+                                <ContactClientButton
+                                    clientId={booking.user_id}
+                                    clientName={booking.cliente?.nombre}
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-slate-800 transition-colors"
+                                    label="Enviar mensaje"
+                                />
+                            </div>
+                        )}
                         <div className="flex items-center gap-3">
                             <Mail className="w-4 h-4 text-slate-400" />
                             <span className="text-slate-700">{booking.cliente?.email}</span>

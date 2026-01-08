@@ -15,7 +15,7 @@ export default function ClientDetailsDialog({ isOpen, onClose, client }: Props) 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <User size={20} className="text-emerald-500" /> Confirmación del Cliente
+                        <User size={20} className="text-emerald-500" /> Confirmación del Usuario
                     </h2>
                     <button
                         onClick={onClose}
@@ -36,7 +36,7 @@ export default function ClientDetailsDialog({ isOpen, onClose, client }: Props) 
                         <h3 className="text-xl font-bold text-slate-900 text-center">
                             {client.nombre} {client.apellido_p}
                         </h3>
-                        <p className="text-sm text-slate-500">Cliente de Pawnecta</p>
+                        <p className="text-sm text-slate-500">Usuario de Pawnecta</p>
                     </div>
 
                     <div className="space-y-3">

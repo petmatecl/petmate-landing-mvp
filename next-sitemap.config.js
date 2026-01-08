@@ -1,11 +1,11 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-    siteUrl: 'https://www.pawnecta.cl',
+    siteUrl: 'https://www.pawnecta.com',
     generateRobotsTxt: true,
     // Exclude private and auth pages
     exclude: [
         '/admin*',
-        '/cliente*',
+        '/usuario*',
         '/sitter',
         '/sitter/explorar',
         '/sitter/reviews',
@@ -22,7 +22,7 @@ module.exports = {
             {
                 userAgent: '*',
                 allow: '/',
-                disallow: ['/admin', '/cliente', '/sitter', '/sitter/explorar', '/login', '/register', '/api/*']
+                disallow: ['/admin', '/usuario', '/sitter', '/sitter/explorar', '/login', '/register', '/api/*']
             }
         ]
     }

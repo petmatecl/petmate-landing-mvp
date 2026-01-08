@@ -105,10 +105,12 @@ export default function SitterReviewsPage() {
                                     <div className="flex justify-between items-start mb-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
-                                                {review.cliente.nombre.charAt(0)}
+                                                {(review.cliente?.nombre || review.nombre_cliente_manual || '?').charAt(0)}
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-slate-900">{review.cliente.nombre} {review.cliente.apellido_p}</h4>
+                                                <h4 className="font-bold text-slate-900">
+                                                    {review.cliente?.nombre ? `${review.cliente.nombre} ${review.cliente.apellido_p || ''}` : (review.nombre_cliente_manual || 'Usuario')}
+                                                </h4>
                                                 <p className="text-xs text-slate-400">{new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                             </div>
                                         </div>

@@ -94,7 +94,7 @@ export default function LoginPage() {
     if (!router.isReady) return;
     const q = String(router.query.role || "").toLowerCase();
     if (q === "sitter" || q === "petmate") setTab("sitter");
-    if (q === "client" || q === "cliente") setTab("client");
+    if (q === "client" || q === "cliente" || q === "usuario") setTab("client");
 
     // Verificar si viene por timeout
     if (router.query.timeout === "true") {
@@ -171,7 +171,7 @@ export default function LoginPage() {
         // User is authenticated but selected the WRONG tab for their actual role
         // Privacy Improvement: Do not reveal they have another account type.
         // Just say we couldn't find a record for THIS type.
-        const tabName = targetRole === "cliente" ? "Cliente" : "Sitter";
+        const tabName = targetRole === "cliente" ? "Usuario" : "Sitter";
         setError(`No se encontró una cuenta de ${tabName} con estas credenciales.`);
 
         await supabase.auth.signOut();
@@ -182,7 +182,7 @@ export default function LoginPage() {
       if (typeof window !== "undefined") {
         window.localStorage.setItem("activeRole", targetRole);
       }
-      await router.push(role === "client" ? "/cliente" : "/sitter");
+      await router.push(role === "client" ? "/usuario" : "/sitter");
     } catch (err: any) {
       console.error(err);
       setError("No se pudo iniciar sesión. Intenta nuevamente.");
@@ -209,7 +209,7 @@ export default function LoginPage() {
               type="button"
             >
               <UserIcon />
-              <span>Cliente</span>
+              <span>Usuario</span>
             </button>
             <button
               role="tab"
@@ -227,7 +227,7 @@ export default function LoginPage() {
           <div className="card">
             <h1 className="title">Iniciar sesión</h1>
             <p className="subtitle">
-              Accede como {tab === "client" ? "cliente" : "Sitter"} para reservar y gestionar
+              Accede como {tab === "client" ? "usuario" : "Sitter"} para reservar y gestionar
               servicios.
             </p>
 

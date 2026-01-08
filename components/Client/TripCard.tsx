@@ -3,6 +3,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search } from "lucide-react";
+import ContactSitterButton from "../Shared/ContactSitterButton";
 
 export type Trip = {
     id: string;
@@ -18,6 +19,7 @@ export type Trip = {
     sitter_asignado?: boolean; // Derivado o cargado
     sitter?: { // Perfil del sitter
         id: string;
+        auth_user_id: string; // Needed for chat
         nombre: string;
         apellido_p?: string;
         foto_perfil?: string;
@@ -92,7 +94,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
             <div className="flex items-start justify-between gap-4 pt-3">
                 <div className="flex items-start gap-4 w-full">
                     {/* Icono del Servicio */}
-                    <div className={`p-3 rounded-full shrink-0 ${trip.servicio === 'hospedaje' ? 'bg-indigo-50 text-indigo-600' :
+                    <div className={`p-3 rounded-full shrink-0 ${trip.servicio === 'hospedaje' ? 'bg-emerald-50 text-emerald-600' :
                         trip.servicio === 'domicilio' ? 'bg-emerald-50 text-emerald-600' :
                             trip.servicio === 'paseo' ? 'bg-orange-50 text-orange-600' :
                                 'bg-slate-100 text-slate-600'
@@ -174,7 +176,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                         <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 relative pr-14">
                                             {/* Sitter Photo Top-Right */}
                                             {trip.sitter?.id ? (
-                                                <Link href={`/sitter/${trip.sitter.id}?returnTo=/cliente`} className="absolute top-3 right-3 w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 hover:border-emerald-400 overflow-hidden transition-colors" title="Ver perfil del Sitter">
+                                                <Link href={`/sitter/${trip.sitter.id}?returnTo=/usuario`} className="absolute top-3 right-3 w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 hover:border-emerald-400 overflow-hidden transition-colors" title="Ver perfil del Sitter">
                                                     {trip.sitter.foto_perfil ? (
                                                         <img
                                                             src={trip.sitter.foto_perfil}
@@ -199,7 +201,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                                     <p className="flex items-center gap-2">
                                                         <User size={14} className="text-slate-400" />
                                                         {trip.sitter?.id ? (
-                                                            <Link href={`/sitter/${trip.sitter.id}?returnTo=/cliente`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
+                                                            <Link href={`/sitter/${trip.sitter.id}?returnTo=/usuario`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
                                                                 {trip.sitter.nombre} {trip.sitter.apellido_p}
                                                             </Link>
                                                         ) : (
@@ -216,6 +218,15 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                                         <Mail size={14} className="text-slate-400" />
                                                         <a href={`mailto:${trip.sitter?.email}`} className="hover:text-emerald-600 hover:underline">{trip.sitter?.email || 'No registrado'}</a>
                                                     </p>
+                                                    {trip.sitter?.auth_user_id && (
+                                                        <div className="pt-2">
+                                                            <ContactSitterButton
+                                                                sitterId={trip.sitter.auth_user_id}
+                                                                className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-xs hover:bg-emerald-700 transition-colors"
+                                                                label="Chat"
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -412,6 +423,6 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

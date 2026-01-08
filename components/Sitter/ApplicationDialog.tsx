@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Send, DollarSign } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
+import { createNotification } from "../../lib/notifications";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -50,6 +51,18 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
             }
 
             onApplied();
+
+            // [NEW] Notify Client
+            if (trip.user_id) {
+                await createNotification({
+                    userId: trip.user_id,
+                    type: 'message', // or 'application' if we add that type later
+                    title: '¡Nueva Postulación!',
+                    message: `Un sitter ha postulado a tu viaje de ${trip.servicio}. ¡Reísala ahora!`,
+                    link: '/usuario'
+                });
+            }
+
             onClose();
 
         } catch (err: any) {
