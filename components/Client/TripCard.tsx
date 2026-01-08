@@ -176,13 +176,13 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                         <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0">
 
                                             {/* Left Column: Contact Sitter */}
-                                            <div className="flex flex-col gap-4 lg:pr-6">
-                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos del Sitter</p>
+                                            <div className="flex flex-col gap-4 lg:pr-6 justify-between">
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Datos del Sitter</p>
 
-                                                <div className="flex items-start justify-between gap-4">
                                                     {/* Sitter Avatar & Name */}
-                                                    <div className="flex items-center gap-3">
-                                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 overflow-hidden shrink-0 flex items-center justify-center text-emerald-700 font-bold text-sm hover:opacity-90 transition-opacity">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 overflow-hidden shrink-0 flex items-center justify-center text-emerald-700 font-bold text-sm hover:opacity-90 transition-opacity">
                                                             {trip.sitter?.foto_perfil ? (
                                                                 <img src={trip.sitter.foto_perfil} alt={trip.sitter.nombre} className="w-full h-full object-cover" />
                                                             ) : (
@@ -190,33 +190,36 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                                             )}
                                                         </Link>
                                                         <div>
-                                                            <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="text-sm font-bold text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1">
+                                                            <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="text-base font-bold text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1">
                                                                 {trip.sitter?.nombre} {trip.sitter?.apellido_p}
                                                             </Link>
                                                             <p className="text-xs text-slate-500">Sitter Certificado</p>
                                                         </div>
                                                     </div>
 
-                                                    {trip.sitter?.auth_user_id && (
-                                                        <ContactSitterButton
-                                                            sitterId={trip.sitter.auth_user_id}
-                                                            className="bg-emerald-600 text-white p-2 sm:px-3 sm:py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2"
-                                                            label={<span className="font-bold text-xs hidden sm:block">Chat</span>}
-                                                        />
-                                                    )}
+                                                    {/* Contact Details */}
+                                                    <div className="space-y-3 pl-1">
+                                                        <a href={`tel:${trip.sitter?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-3 group/link">
+                                                            <div className="w-8 flex justify-center"><Phone size={16} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                            {trip.sitter?.telefono || 'No registrado'}
+                                                        </a>
+                                                        <a href={`mailto:${trip.sitter?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-3 group/link">
+                                                            <div className="w-8 flex justify-center"><Mail size={16} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                            {trip.sitter?.email || 'No registrado'}
+                                                        </a>
+                                                    </div>
                                                 </div>
 
-                                                {/* Contact Details */}
-                                                <div className="space-y-2 pl-13">
-                                                    <a href={`tel:${trip.sitter?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-3 group/link">
-                                                        <Phone size={14} className="text-slate-400 group-hover/link:text-emerald-500" />
-                                                        {trip.sitter?.telefono || 'No registrado'}
-                                                    </a>
-                                                    <a href={`mailto:${trip.sitter?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-3 group/link">
-                                                        <Mail size={14} className="text-slate-400 group-hover/link:text-emerald-500" />
-                                                        {trip.sitter?.email || 'No registrado'}
-                                                    </a>
-                                                </div>
+                                                {/* Chat Button (Prominent, Bottom) */}
+                                                {trip.sitter?.auth_user_id && (
+                                                    <div className="pt-2">
+                                                        <ContactSitterButton
+                                                            sitterId={trip.sitter.auth_user_id}
+                                                            className="w-full bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-600/20 transition-all active:scale-95 text-sm"
+                                                            label="Chat con Sitter"
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Right Column: Location / Address */}
