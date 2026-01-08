@@ -1573,14 +1573,12 @@ export default function SitterDashboardPage() {
                                                                 {/* Decorative Top Border */}
                                                                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
 
-                                                                <div className="flex flex-col md:flex-row justify-between items-start gap-6 pt-2">
+                                                                <div className="flex flex-col gap-6 pt-2">
 
-                                                                    {/* Left Column: Booking Info */}
-                                                                    <div className="flex-1 space-y-4">
-
-                                                                        {/* Header & Dates */}
-                                                                        <div>
-                                                                            <div className="flex items-center gap-3 mb-2">
+                                                                    {/* Header section with Dates and Actions */}
+                                                                    <div className="flex justify-between items-start">
+                                                                        <div className="space-y-2">
+                                                                            <div className="flex items-center gap-3">
                                                                                 <span className="bg-slate-100 text-slate-500 font-mono text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">#{book.id.slice(0, 8)}</span>
                                                                                 {book.servicio && (
                                                                                     <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-100">
@@ -1597,68 +1595,104 @@ export default function SitterDashboardPage() {
                                                                             </p>
                                                                         </div>
 
+                                                                        {/* Top Right Actions */}
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setPrintBooking({ booking: book, pets: pets });
+                                                                                setTimeout(() => window.print(), 100);
+                                                                            }}
+                                                                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all"
+                                                                            title="Imprimir Ficha"
+                                                                        >
+                                                                            <Printer size={18} />
+                                                                        </button>
+                                                                    </div>
+
+                                                                    {/* Details Grid */}
+                                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
                                                                         {/* Contact Card */}
-                                                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                                            <div className="space-y-2">
-                                                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos de Contacto</p>
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-                                                                                        {book.cliente?.nombre?.[0] || <User size={14} />}
+                                                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col justify-between h-full gap-4">
+                                                                            <div className="space-y-3">
+                                                                                <div className="flex justify-between items-start">
+                                                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos de Contacto</p>
+                                                                                    {clientUserId && (
+                                                                                        <div className={`w-2 h-2 rounded-full ${selectedChatUser === clientUserId ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} title="Estado chat"></div>
+                                                                                    )}
+                                                                                </div>
+
+                                                                                <div className="flex items-center gap-3">
+                                                                                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg border border-emerald-200">
+                                                                                        {book.cliente?.nombre?.[0] || <User size={18} />}
                                                                                     </div>
                                                                                     <div>
                                                                                         <p className="text-sm font-bold text-slate-900">{book.cliente?.nombre} {book.cliente?.apellido_p}</p>
+                                                                                        <p className="text-xs text-slate-500">Cliente</p>
                                                                                     </div>
                                                                                 </div>
-                                                                                <div className="flex flex-col gap-1 pl-10">
-                                                                                    <a href={`tel:${book.cliente?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2">
-                                                                                        <Phone size={14} className="text-slate-400" /> {book.cliente?.telefono || "No registrado"}
+
+                                                                                <div className="space-y-1.5 pl-1">
+                                                                                    <a href={`tel:${book.cliente?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
+                                                                                        <div className="w-6 flex justify-center"><Phone size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                                                        {book.cliente?.telefono || "No registrado"}
                                                                                     </a>
-                                                                                    <a href={`mailto:${book.cliente?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2">
-                                                                                        <Mail size={14} className="text-slate-400" /> {book.cliente?.email}
+                                                                                    <a href={`mailto:${book.cliente?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
+                                                                                        <div className="w-6 flex justify-center"><Mail size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                                                        {book.cliente?.email}
                                                                                     </a>
                                                                                 </div>
                                                                             </div>
 
-                                                                            {/* Chat Button */}
-                                                                            <div className="flex flex-col justify-center min-w-[140px]">
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        if (clientUserId) {
-                                                                                            setSelectedChatUser(clientUserId);
-                                                                                            setActiveTab('mensajes');
-                                                                                        } else {
-                                                                                            alert("No se pudo identificar al usuario para el chat.");
-                                                                                        }
-                                                                                    }}
-                                                                                    className="bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 transition-all active:scale-95"
-                                                                                >
-                                                                                    <MessageSquare size={18} />
-                                                                                    Chat
-                                                                                </button>
-                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    if (clientUserId) {
+                                                                                        setSelectedChatUser(clientUserId);
+                                                                                        setActiveTab('mensajes');
+                                                                                    } else {
+                                                                                        alert("No se pudo identificar al usuario para el chat.");
+                                                                                    }
+                                                                                }}
+                                                                                className="w-full bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-600/20 transition-all active:scale-95"
+                                                                            >
+                                                                                <MessageSquare size={16} />
+                                                                                Enviar Mensaje
+                                                                            </button>
                                                                         </div>
 
-                                                                        {/* Location */}
-                                                                        {(book.direccion || book.direccion_cliente) && (
-                                                                            <div className="pl-2 border-l-2 border-slate-100">
-                                                                                <p className="text-xs font-bold text-slate-900 mb-1">Ubicación del Cuidado</p>
-                                                                                <p className="text-sm text-slate-600 flex items-start gap-2">
-                                                                                    <MapPin size={16} className="text-slate-400 mt-0.5 shrink-0" />
-                                                                                    <span className="line-clamp-2">
+                                                                        {/* Location Card */}
+                                                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col h-full gap-2">
+                                                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
+
+                                                                            <div className="flex-1 flex items-start gap-3 mt-1">
+                                                                                <div className="mt-1 bg-white p-1.5 rounded-full border border-slate-200 text-emerald-600 shadow-sm">
+                                                                                    <MapPin size={16} />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-sm font-medium text-slate-900 leading-snug">
                                                                                         {book.direccion?.display_name || book.direccion_cliente || "Dirección no disponible"}
-                                                                                    </span>
-                                                                                </p>
+                                                                                    </p>
+                                                                                    <p className="text-xs text-slate-500 mt-1">
+                                                                                        {book.servicio === 'hospedaje' ? 'Tu Domicilio (Sitter)' : 'Domicilio del Cliente'}
+                                                                                    </p>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {(book.direccion || book.direccion_cliente) && (
                                                                                 <a
                                                                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(book.direccion?.display_name || book.direccion_cliente || "")}`}
                                                                                     target="_blank"
                                                                                     rel="noopener noreferrer"
-                                                                                    className="text-xs font-bold text-emerald-600 mt-1 ml-6 hover:underline inline-flex items-center gap-1"
+                                                                                    className="mt-auto w-full bg-white border border-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-emerald-300 hover:text-emerald-600 transition-all text-sm"
                                                                                 >
-                                                                                    Ver mapa <ChevronDown size={10} className="-rotate-90" />
+                                                                                    Ver en Mapa <ChevronDown size={14} className="-rotate-90" />
                                                                                 </a>
-                                                                            </div>
-                                                                        )}
-
+                                                                            )}
+                                                                            {(!book.direccion && !book.direccion_cliente) && (
+                                                                                <div className="mt-auto w-full py-2.5 px-4 text-center text-xs text-slate-400 italic">
+                                                                                    Sin ubicación registrada
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
