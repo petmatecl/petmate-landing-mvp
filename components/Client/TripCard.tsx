@@ -248,7 +248,9 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                                     <div>
                                                         <p className="text-sm font-medium text-slate-900 leading-snug">
                                                             {trip.servicio === 'hospedaje'
-                                                                ? (trip.sitter?.direccion_completa || (trip.sitter?.calle ? `${trip.sitter.calle} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}` : 'Dirección no disponible'))
+                                                                ? (trip.sitter?.calle && trip.sitter?.numero && trip.sitter?.comuna
+                                                                    ? `${trip.sitter.calle} ${trip.sitter.numero}, ${trip.sitter.comuna}`
+                                                                    : (trip.sitter?.direccion_completa || 'Dirección no disponible'))
                                                                 : (serviceAddress || 'Dirección no disponible')
                                                             }
                                                         </p>
