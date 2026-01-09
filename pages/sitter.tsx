@@ -2148,7 +2148,7 @@ export default function SitterDashboardPage() {
                                                                 />
                                                             </div>
                                                             <div className="sm:col-span-1">
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Número</label>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Número / Depto / Casa</label>
                                                                 <input
                                                                     type="text"
                                                                     disabled={activeSection !== 'profile'}
