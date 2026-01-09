@@ -11,6 +11,8 @@ import Footer from "../components/Footer";
 import SessionTimeout from "../components/SessionTimeout";
 import { Toaster } from 'sonner';
 
+import { OnlineStatusProvider } from "../components/Shared/OnlineStatusProvider";
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
@@ -26,17 +28,18 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [router.events]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* Global Site Tag (gtag.js) - Google Analytics */}
-      <Script
-        strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${gtag.GA_TRACKING_ID}`}
-      />
-      <Script
-        id="gtag-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
+    <OnlineStatusProvider>
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        {/* Global Site Tag (gtag.js) - Google Analytics */}
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${gtag.GA_TRACKING_ID}`}
+        />
+        <Script
+          id="gtag-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
@@ -44,18 +47,19 @@ export default function MyApp({ Component, pageProps }: AppProps) {
               page_path: window.location.pathname,
             });
           `,
-        }}
-      />
+          }}
+        />
 
-      <SessionTimeout />
-      <Toaster position="top-center" richColors />
-      <Header />
+        <SessionTimeout />
+        <Toaster position="top-center" richColors />
+        <Header />
 
-      <main className="flex-1">
-        <Component {...pageProps} />
-      </main>
+        <main className="flex-1">
+          <Component {...pageProps} />
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </OnlineStatusProvider>
   );
 }

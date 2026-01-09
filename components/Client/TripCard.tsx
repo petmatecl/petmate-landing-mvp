@@ -48,8 +48,12 @@ type Props = {
     serviceAddress?: string;
 };
 
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Download } from 'lucide-react';
+
 export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onViewApplications, onConfirm, onRemoveSitter, onSearchSitter, serviceAddress }: Props) {
-    // Safe date parsing to avoid UTC/Timezone shifts
+    // Other hooks ...
     const parseDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split('-').map(Number);
         return new Date(year, month - 1, day);
@@ -69,6 +73,73 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
         } else {
             setActiveMap(type);
         }
+    };
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+
+        // Brand Colors
+        const emeraldColor = '#10b981'; // Emerald 500
+        const slateColor = '#334155'; // Slate 700
+
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(emeraldColor);
+        doc.text("Ficha de Servicio - Pawnecta", 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(slateColor);
+        doc.text(`ID Reserva: #${trip.id.slice(0, 8).toUpperCase()}`, 14, 28);
+        doc.text(`Fecha de Emisión: ${format(new Date(), "d 'de' MMMM yyyy", { locale: es })}`, 14, 33);
+
+        // Service Details
+        autoTable(doc, {
+            startY: 40,
+            head: [['Detalle del Servicio', 'Información']],
+            body: [
+                ['Tipo de Servicio', trip.servicio.charAt(0).toUpperCase() + trip.servicio.slice(1)],
+                ['Fecha Inicio', format(startDate, "d 'de' MMMM yyyy", { locale: es })],
+                ['Fecha Fin', endDate ? format(endDate, "d 'de' MMMM yyyy", { locale: es }) : '-'],
+                ['Duración', `${days} ${days === 1 ? 'noche' : 'noches'}`],
+                ['Mascotas', pets ? pets.map(p => p.name).join(', ') : (petNames || 'N/A')],
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: emeraldColor },
+            styles: { fontSize: 10 }
+        });
+
+        // Sitter Details
+        if (trip.sitter) {
+            autoTable(doc, {
+                startY: (doc as any).lastAutoTable.finalY + 10,
+                head: [['Datos del Sitter', '']],
+                body: [
+                    ['Nombre', `${trip.sitter.nombre} ${trip.sitter.apellido_p || ''}`],
+                    ['Teléfono', trip.sitter.telefono || 'No registrado'],
+                    ['Email', trip.sitter.email || 'No registrado'],
+                    ['Dirección', trip.sitter.direccion_completa || `${trip.sitter.calle || ''} ${trip.sitter.numero || ''}, ${trip.sitter.comuna || ''}`],
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: slateColor },
+                styles: { fontSize: 10 }
+            });
+        }
+
+        // Location Details
+        const locationText = trip.servicio === 'hospedaje'
+            ? (trip.sitter?.direccion_completa || 'Dirección del Sitter')
+            : (serviceAddress || 'Domicilio del Cliente');
+
+        doc.text("Ubicación del Cuidado:", 14, (doc as any).lastAutoTable.finalY + 10);
+        doc.setFontSize(10);
+        doc.text(locationText, 14, (doc as any).lastAutoTable.finalY + 16);
+
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text("Pawnecta - Cuidado de mascotas de confianza.", 14, 280);
+
+        doc.save(`Ficha_Pawnecta_${trip.id.slice(0, 8)}.pdf`);
     };
 
     return (
@@ -91,311 +162,193 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                 </div>
             )}
 
-            <div className="flex items-start justify-between gap-4 pt-3">
-                <div className="flex items-start gap-4 w-full">
-                    {/* Icono del Servicio */}
-                    <div className={`p-3 rounded-full shrink-0 ${trip.servicio === 'hospedaje' ? 'bg-emerald-50 text-emerald-600' :
-                        trip.servicio === 'domicilio' ? 'bg-emerald-50 text-emerald-600' :
-                            trip.servicio === 'paseo' ? 'bg-orange-50 text-orange-600' :
-                                'bg-slate-100 text-slate-600'
-                        }`}>
-                        {trip.servicio === 'hospedaje' && <Hotel size={20} />}
-                        {trip.servicio === 'domicilio' && <Home size={20} />}
-                        {trip.servicio === 'paseo' && <CheckCircle2 size={20} />}
-                        {trip.servicio === 'guarderia' && <Calendar size={20} />}
-                    </div>
-
-                    <div className="flex flex-col gap-1 w-full relative">
-                        {/* Status Dots/Badges can go here if needed, or stick to simple layout */}
-
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-bold text-slate-900 text-base">
+            <div className="flex flex-col gap-4 pt-3">
+                {/* Header Section: Icon + Date + Basic Info */}
+                <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-full shrink-0 ${trip.servicio === 'hospedaje' ? 'bg-emerald-50 text-emerald-600' :
+                            trip.servicio === 'domicilio' ? 'bg-emerald-50 text-emerald-600' :
+                                trip.servicio === 'paseo' ? 'bg-orange-50 text-orange-600' :
+                                    'bg-slate-100 text-slate-600'
+                            }`}>
+                            {trip.servicio === 'hospedaje' && <Hotel size={24} />}
+                            {trip.servicio === 'domicilio' && <Home size={24} />}
+                            {trip.servicio === 'paseo' && <CheckCircle2 size={24} />}
+                            {trip.servicio === 'guarderia' && <Calendar size={24} />}
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-slate-900 text-lg">
                                 {format(startDate, "d 'de' MMMM", { locale: es })}
                                 {endDate && ` – ${format(endDate, "d 'de' MMMM", { locale: es })}`}
                             </h3>
-
-                            {/* Status Pill */}
-                            {trip.estado === 'reservado' && (
-                                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 animate-pulse">
-                                    Por Confirmar
+                            <div className="flex items-center gap-3 text-sm text-slate-500">
+                                <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-100 capitalize font-medium">
+                                    {trip.servicio}
                                 </span>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
-                            <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-100 capitalize font-medium">
-                                {trip.servicio}
-                            </span>
-                            <span className="flex items-center gap-1">
-                                {days} {days === 1 ? 'noche' : 'noches'}
-                            </span>
-                            <span className="text-slate-300">|</span>
-                            <span className="flex items-center flex-wrap gap-3">
-                                {pets && pets.length > 0 ? (
-                                    pets.map((pet, idx) => (
-                                        <span key={idx} className="flex items-center gap-1 text-slate-600 font-medium">
-                                            {pet.type === 'perro' ? <Dog size={12} className="text-slate-400" /> : <Cat size={12} className="text-slate-400" />}
-                                            {pet.name}
-                                        </span>
-                                    ))
-                                ) : (
-                                    <span className="truncate max-w-[200px]" title={petNames}>
-                                        {petNames || 'Sin mascotas'}
-                                    </span>
-                                )}
-                            </span>
-                        </div>
-
-                        <div className="flex flex-col gap-2 mt-1 w-full max-w-md">
-                            {/* Logic for buttons:
-                                1. If assigned -> Show Sitter
-                                2. If has applications -> Show "Ver Postulantes"
-                                3. Else -> Show "Buscando..." status
-                            */}
-
-                            {/* ACTION BUTTON FOR 'RESERVADO' */}
-                            {trip.estado === 'reservado' && onConfirm && (
-                                <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                                    <p className="text-xs text-amber-800 font-bold mb-2">
-                                        ¡El Sitter ha aceptado! Confirma para finalizar.
-                                    </p>
-                                    <button
-                                        onClick={() => onConfirm(trip)}
-                                        className="w-full bg-slate-900 text-white font-bold py-2 rounded-lg text-xs hover:bg-slate-800 transition-colors shadow-sm flex items-center justify-center gap-2"
-                                    >
-                                        <CheckCircle2 size={14} /> Confirmar Reserva
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Contact Info Block - Only visible if trip is confirmed */}
-                            {trip.sitter_asignado && trip.sitter ? (
-                                <div className="w-full">
-                                    {/* CONFIRMED STATE: Show Contact Info */}
-                                    {['confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
-                                        <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0">
-
-                                            {/* Left Column: Contact Sitter */}
-                                            <div className="flex flex-col gap-4 lg:pr-6 justify-between">
-                                                <div>
-                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Datos del Sitter</p>
-
-                                                    {/* Sitter Avatar & Name */}
-                                                    <div className="flex items-center gap-3 mb-4">
-                                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 overflow-hidden shrink-0 flex items-center justify-center text-emerald-700 font-bold text-sm hover:opacity-90 transition-opacity">
-                                                            {trip.sitter?.foto_perfil ? (
-                                                                <img src={trip.sitter.foto_perfil} alt={trip.sitter.nombre} className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                trip.sitter?.nombre?.charAt(0) || <User size={16} />
-                                                            )}
-                                                        </Link>
-                                                        <div>
-                                                            <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="text-base font-bold text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1">
-                                                                {trip.sitter?.nombre} {trip.sitter?.apellido_p}
-                                                            </Link>
-                                                            <p className="text-xs text-slate-500">Sitter Certificado</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Contact Details */}
-                                                    <div className="space-y-3 pl-1">
-                                                        <a href={`tel:${trip.sitter?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-3 group/link">
-                                                            <div className="w-8 flex justify-center"><Phone size={16} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
-                                                            {trip.sitter?.telefono || 'No registrado'}
-                                                        </a>
-                                                        <a href={`mailto:${trip.sitter?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-3 group/link">
-                                                            <div className="w-8 flex justify-center"><Mail size={16} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
-                                                            {trip.sitter?.email || 'No registrado'}
-                                                        </a>
-                                                    </div>
-                                                </div>
-
-                                                {/* Chat Button (Prominent, Bottom) */}
-                                                {trip.sitter?.auth_user_id && (
-                                                    <div className="pt-2">
-                                                        <ContactSitterButton
-                                                            sitterId={trip.sitter.auth_user_id}
-                                                            className="w-full bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-600/20 transition-all active:scale-95 text-sm"
-                                                            label="Chat con Sitter"
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Right Column: Location / Address */}
-                                            <div className="flex flex-col gap-4 lg:pl-6 lg:border-l border-slate-100">
-                                                <div className="flex justify-between items-start">
-                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                                        {trip.servicio === 'hospedaje' ? 'Dirección del Sitter' : 'Ubicación del Cuidado'}
-                                                    </p>
-
-                                                    {/* Map Toggle Button (Top Right of Column) */}
-                                                    {((trip.servicio === 'hospedaje' && (trip.sitter?.direccion_completa || trip.sitter?.comuna)) || (trip.servicio === 'domicilio' && serviceAddress)) && (
-                                                        <button
-                                                            onClick={() => toggleMap(trip.servicio === 'hospedaje' ? 'sitter' : 'client')}
-                                                            className="text-[10px] text-emerald-600 font-bold hover:underline flex items-center gap-1"
-                                                        >
-                                                            {activeMap === (trip.servicio === 'hospedaje' ? 'sitter' : 'client') ? 'Ocultar' : 'Ver Mapa'}
-                                                            {activeMap === (trip.servicio === 'hospedaje' ? 'sitter' : 'client') ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 text-emerald-600 shrink-0">
-                                                        <MapPin size={18} />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium text-slate-900 leading-snug">
-                                                            {trip.servicio === 'hospedaje'
-                                                                ? (trip.sitter?.calle && trip.sitter?.numero && trip.sitter?.comuna
-                                                                    ? `${trip.sitter.calle} ${trip.sitter.numero}, ${trip.sitter.comuna}`
-                                                                    : (trip.sitter?.direccion_completa || 'Dirección no disponible'))
-                                                                : (serviceAddress || 'Dirección no disponible')
-                                                            }
-                                                        </p>
-                                                        <p className="text-xs text-slate-500 mt-1">
-                                                            {trip.servicio === 'hospedaje' ? 'Debes llevar a tu mascota aquí' : 'El Sitter vendrá a esta dirección'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                {/* Map container */}
-                                                {((trip.servicio === 'hospedaje' && (trip.sitter?.direccion_completa || trip.sitter?.comuna)) || (trip.servicio === 'domicilio' && serviceAddress)) && activeMap === (trip.servicio === 'hospedaje' ? 'sitter' : 'client') && (
-                                                    <div className="rounded-lg overflow-hidden border border-slate-200 shadow-inner mt-1">
-                                                        <iframe
-                                                            width="100%"
-                                                            height="150"
-                                                            frameBorder="0"
-                                                            style={{ border: 0 }}
-                                                            src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                                                                trip.servicio === 'hospedaje'
-                                                                    ? (trip.sitter?.direccion_completa || `${trip.sitter?.calle} ${trip.sitter?.numero} ${trip.sitter?.comuna}`)
-                                                                    : (serviceAddress || '')
-                                                            )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                                                            allowFullScreen
-                                                        ></iframe>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                                <span className="flex items-center gap-1">
+                                    {days} {days === 1 ? 'noche' : 'noches'}
+                                </span>
+                                <span className="text-slate-300">|</span>
+                                <span className="flex items-center flex-wrap gap-2">
+                                    {pets && pets.length > 0 ? (
+                                        pets.map((pet, idx) => (
+                                            <span key={idx} className="flex items-center gap-1 text-slate-600 font-medium">
+                                                {pet.type === 'perro' ? <Dog size={14} className="text-slate-400" /> : <Cat size={14} className="text-slate-400" />}
+                                                {pet.name}
+                                            </span>
+                                        ))
                                     ) : (
-                                        // RESERVADO STATE (Specific Message if we didn't use the action above, or just a placeholder)
-                                        trip.estado === 'reservado' ? (
-                                            <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-slate-700 flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-amber-100 overflow-hidden shrink-0 border border-amber-200">
-                                                    {trip.sitter?.foto_perfil ? (
-                                                        <img
-                                                            src={trip.sitter.foto_perfil}
-                                                            alt={trip.sitter.nombre}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-amber-700 font-bold text-sm">
-                                                            {trip.sitter?.nombre?.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="font-bold text-slate-900">
-                                                        {trip.sitter.nombre} aceptó tu solicitud
-                                                    </p>
-                                                    <p className="text-amber-700 flex items-center gap-1.5 mt-0.5 font-medium">
-                                                        Pendiente de tu confirmación
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            /* PENDING STATE: Show "Waiting for Sitter" */
-                                            <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-slate-700 flex items-center gap-3">
-                                                {/* Sitter Avatar */}
-                                                <div className="w-10 h-10 rounded-full bg-amber-100 overflow-hidden shrink-0 border border-amber-200">
-                                                    {trip.sitter?.foto_perfil ? (
-                                                        <img
-                                                            src={trip.sitter.foto_perfil}
-                                                            alt={trip.sitter.nombre}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-amber-700 font-bold text-sm">
-                                                            {trip.sitter?.nombre?.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex-1">
-                                                    <p className="font-bold text-slate-900">
-                                                        Solicitud enviada a {trip.sitter.nombre}
-                                                    </p>
-                                                    <p className="text-amber-700 flex items-center gap-1.5 mt-0.5 font-medium">
-                                                        <Clock size={12} /> Esperando respuesta...
-                                                    </p>
-                                                    {onRemoveSitter && (
-                                                        <div className="mt-2 pt-2 border-t border-amber-200">
-                                                            <button
-                                                                onClick={() => onRemoveSitter(trip.id)}
-                                                                className="w-full text-center text-[10px] text-rose-600 font-bold hover:underline"
-                                                            >
-                                                                Cancelar solicitud
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                </div>
-                            ) : hasApplications ? (
-                                <button
-                                    onClick={() => onViewApplications && onViewApplications(trip)}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-colors shadow-sm animate-pulse"
-                                >
-                                    <Users size={14} /> Ver {trip.postulaciones_count} Postulantes
-                                </button>
-                            ) : trip.estado === 'publicado' || trip.estado === 'borrador' ? ( // Treat borrador as published for now in UI flow or handle specifically
-                                <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
-                                        Publicado (Esperando respuestas...)
-                                    </span>
-                                    {onSearchSitter && (
-                                        <button
-                                            onClick={() => onSearchSitter(trip)}
-                                            className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
-                                        >
-                                            <Search size={12} /> Buscar
-                                        </button>
+                                        <span className="truncate max-w-[200px]" title={petNames}>
+                                            {petNames || 'Sin mascotas'}
+                                        </span>
                                     )}
-                                </div>
-                            ) : (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 text-slate-500 text-xs font-bold border border-slate-200">
-                                    {trip.estado}
                                 </span>
-                            )}
-
-
+                            </div>
                         </div>
+                    </div>
+
+                    {/* Top Actions: Edit/Delete (Only if not active/completed to avoid accidents, or always keep them small) */}
+                    <div className="flex gap-1">
+                        <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors"><Edit2 size={16} /></button>
+                        <button onClick={() => onDelete(trip.id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-1 shrink-0">
-                    <button
-                        onClick={() => onEdit(trip)}
-                        className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                        title="Editar viaje"
-                    >
-                        <Edit2 size={16} />
-                    </button>
+                <hr className="border-slate-100" />
 
-                    <button
-                        onClick={() => onDelete(trip.id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                        title="Eliminar viaje"
-                    >
-                        <Trash2 size={16} />
-                    </button>
+                {/* 3-Column Layout for Confirmed/Assigned Trips */}
+                {trip.sitter_asignado && trip.sitter ? (
+                    ['confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
+                            {/* Column 1: Sitter Data */}
+                            <div className="flex flex-col gap-3">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos del Sitter</p>
+                                <div className="flex items-center gap-3">
+                                    <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 overflow-hidden shrink-0 flex items-center justify-center">
+                                        {trip.sitter?.foto_perfil ? <img src={trip.sitter.foto_perfil} className="w-full h-full object-cover" /> : <User size={20} className="text-emerald-700" />}
+                                    </Link>
+                                    <div>
+                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
+                                            {trip.sitter?.nombre} {trip.sitter?.apellido_p}
+                                        </Link>
+                                        <p className="text-xs text-slate-500">Sitter Certificado</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2 pl-1">
+                                    <a href={`tel:${trip.sitter?.telefono}`} className="text-xs text-slate-600 hover:text-emerald-600 flex items-center gap-2">
+                                        <Phone size={14} className="text-slate-400" /> {trip.sitter?.telefono || 'No registrado'}
+                                    </a>
+                                    <a href={`mailto:${trip.sitter?.email}`} className="text-xs text-slate-600 hover:text-emerald-600 flex items-center gap-2">
+                                        <Mail size={14} className="text-slate-400" /> {trip.sitter?.email || 'No registrado'}
+                                    </a>
+                                </div>
+                            </div>
 
-                </div>
+                            {/* Column 2: Location */}
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-100 md:pl-6">
+                                <div className="flex justify-between items-center">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
+                                    {((trip.servicio === 'hospedaje' && (trip.sitter?.direccion_completa || trip.sitter?.comuna)) || (trip.servicio === 'domicilio' && serviceAddress)) && (
+                                        <button onClick={() => toggleMap(trip.servicio === 'hospedaje' ? 'sitter' : 'client')} className="text-[10px] text-emerald-600 font-bold hover:underline flex items-center gap-1">
+                                            Ver Mapa {activeMap ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <MapPin size={16} className="text-emerald-600 mt-0.5 shrink-0" />
+                                    <div>
+                                        <p className="text-sm text-slate-800 leading-snug">
+                                            {trip.servicio === 'hospedaje'
+                                                ? (trip.sitter?.calle && trip.sitter?.numero && trip.sitter?.comuna
+                                                    ? `${trip.sitter.calle} ${trip.sitter.numero}, ${trip.sitter.comuna}`
+                                                    : (trip.sitter?.direccion_completa || 'Dirección no disponible'))
+                                                : (serviceAddress || 'Dirección no disponible')
+                                            }
+                                        </p>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            {trip.servicio === 'hospedaje' ? 'Debes llevar a tu mascota aquí' : 'El Sitter vendrá a esta dirección'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {/* Map */}
+                                {activeMap && (
+                                    <div className="rounded-lg overflow-hidden border border-slate-200 shadow-inner h-32 w-full">
+                                        <iframe
+                                            width="100%" height="100%" frameBorder="0" style={{ border: 0 }}
+                                            src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                                                trip.servicio === 'hospedaje' ? (trip.sitter?.direccion_completa || '') : (serviceAddress || '')
+                                            )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                        ></iframe>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Column 3: Actions */}
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-100 md:pl-6 justify-center">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider md:hidden">Acciones</p>
+                                {trip.sitter?.auth_user_id && (
+                                    <ContactSitterButton
+                                        sitterId={trip.sitter.auth_user_id}
+                                        className="w-full bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-sm text-sm"
+                                        label="Chat con Sitter"
+                                    />
+                                )}
+                                <button
+                                    onClick={generatePDF}
+                                    className="w-full bg-white text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 hover:text-emerald-600 transition-colors text-sm"
+                                >
+                                    <Download size={16} /> Descargar Ficha
+                                </button>
+                            </div>
+
+                        </div>
+                    ) : (
+                        // RESERVADO BUT NOT CONFIRMED STATE
+                        trip.estado === 'reservado' ? (
+                            <div className="bg-amber-50 rounded-lg p-4 border border-amber-200 flex flex-col md:flex-row items-center gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold border border-amber-200">
+                                        {trip.sitter?.foto_perfil ? <img src={trip.sitter.foto_perfil} className="w-full h-full rounded-full object-cover" /> : trip.sitter.nombre.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-900">{trip.sitter.nombre} ha aceptado</p>
+                                        <p className="text-xs text-amber-700">Confirma para completar la reserva.</p>
+                                    </div>
+                                </div>
+                                <div className="flex-1 w-full md:w-auto flex justify-end">
+                                    {onConfirm && (
+                                        <button onClick={() => onConfirm(trip)} className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-slate-800 shadow-lg flex gap-2 items-center w-full md:w-auto justify-center">
+                                            <CheckCircle2 size={16} /> Confirmar Reserva
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            // PENDING STATE
+                            <div className="bg-slate-50 rounded-lg p-4 text-center text-slate-500 text-sm">
+                                Esperando respuesta del sitter...
+                            </div>
+                        )
+                    )
+                ) : (
+                    // NO SITTER ASSIGNED (Borrador/Marketplace/Pending Application)
+                    <div className="flex flex-col items-center justify-center py-4 gap-3 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                        {hasApplications ? (
+                            <div className="text-center">
+                                <p className="font-bold text-slate-700 mb-2">¡Tienes {trip.postulaciones_count} postulantes!</p>
+                                <button onClick={() => onViewApplications && onViewApplications(trip)} className="bg-rose-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-rose-700 animate-pulse">
+                                    Ver Postulantes
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="text-center">
+                                <p className="font-medium text-slate-500 mb-2">Publicado en el muro</p>
+                                <p className="text-xs text-slate-400">Los sitters se postularán pronto.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div >
     );

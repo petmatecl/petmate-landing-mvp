@@ -5,6 +5,7 @@ import { Send, User as UserIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useOnlineStatus } from '../../components/Shared/OnlineStatusProvider';
 
 interface Props {
     conversationId: string;
@@ -12,10 +13,11 @@ interface Props {
 }
 
 export default function MessageThread({ conversationId, userId }: Props) {
+    const { onlineUsers } = useOnlineStatus();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
-    const [otherUser, setOtherUser] = useState<{ nombre: string; apellido_p?: string; foto_perfil?: string } | null>(null);
+    const [otherUser, setOtherUser] = useState<{ auth_user_id: string; nombre: string; apellido_p?: string; foto_perfil?: string } | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -36,8 +38,8 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 .select(`
                     client_id,
                     sitter_id,
-                    client:registro_petmate!client_id(nombre, apellido_p, foto_perfil),
-                    sitter:registro_petmate!sitter_id(nombre, apellido_p, foto_perfil)
+                    client:registro_petmate!client_id(auth_user_id, nombre, apellido_p, foto_perfil),
+                    sitter:registro_petmate!sitter_id(auth_user_id, nombre, apellido_p, foto_perfil)
                 `)
                 .eq('id', conversationId)
                 .single();
@@ -45,11 +47,24 @@ export default function MessageThread({ conversationId, userId }: Props) {
             if (error) throw error;
 
             const isClient = data.client_id === userId;
-            // Supabase sometimes returns arrays for relations depending on schema, safe check
             const clientData = Array.isArray(data.client) ? data.client[0] : data.client;
             const sitterData = Array.isArray(data.sitter) ? data.sitter[0] : data.sitter;
 
-            setOtherUser(isClient ? sitterData : clientData);
+            // Determine other user based on Auth ID matching
+            const clientAuthId = clientData?.auth_user_id;
+
+            if (clientAuthId === userId) {
+                setOtherUser(sitterData);
+            } else {
+                // Fallback or explicit logic: if userId is NOT client auth id, assume I am sitter?
+                // Or just trust isClient logic if userId passed is auth id.
+                // let's stick to the robust check:
+                setOtherUser(clientData);
+                // Note: If userId matches neither, this logic might be flawed, but standard flow holds.
+                // If previous logic `isClient = data.client_id === userId` worked, then `data.client` IS the client profile.
+                // So if `isClient` is true, other is sitter.
+                setOtherUser(isClient ? sitterData : clientData);
+            }
         } catch (error) {
             console.error('Error fetching conversation details:', error);
         }
@@ -90,14 +105,6 @@ export default function MessageThread({ conversationId, userId }: Props) {
             }, (payload) => {
                 const newMsg = payload.new as Message;
                 setMessages(prev => {
-                    // Avoid duplicates if we already added it optimally (check by ID or content/timestamp if ID is temp)
-                    // Since optimistic ID is random, and real ID is UUID from DB, they won't match.
-                    // We need a way to replace the optimistic one or just ignore the real time event if it matches our optimistic one?
-                    // Simpler: Just append. Optimistic UI usually replaces the temp one. 
-                    // For now, let's just append the REAL one and filter out the optimistic one if we can identify it, 
-                    // OR simpler: don't do full optimistic ID replacement complexity yet, just fast fetch or just append.
-
-                    // Check if message with this ID already exists
                     if (prev.some(m => m.id === newMsg.id)) return prev;
                     return [...prev, newMsg];
                 });
@@ -165,6 +172,8 @@ export default function MessageThread({ conversationId, userId }: Props) {
         </div>
     );
 
+    const isOnline = otherUser && onlineUsers.has(otherUser.auth_user_id);
+
     return (
         <div className="flex flex-col h-full bg-slate-50/50">
             {/* Header */}
@@ -182,11 +191,24 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                 <UserIcon size={20} />
                             </div>
                         )}
+                        {/* Online Indicator Dot */}
+                        {isOnline && (
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+                        )}
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-800 text-sm">
                             {otherUser.nombre} {otherUser.apellido_p}
                         </h3>
+                        {isOnline ? (
+                            <span className="text-[10px] font-bold text-emerald-600 animate-pulse">
+                                ● En línea
+                            </span>
+                        ) : (
+                            <span className="text-[10px] text-slate-400">
+                                Desconectado
+                            </span>
+                        )}
                     </div>
                 </div>
             )}
