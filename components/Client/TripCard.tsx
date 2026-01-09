@@ -246,7 +246,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             </div>
 
                             {/* Column 2: Location */}
-                            <div className="flex flex-col gap-3 md:border-l md:border-slate-100 md:pl-6">
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-200 md:pl-6">
                                 <div className="flex justify-between items-center">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
                                     {((trip.servicio === 'hospedaje' && (trip.sitter?.direccion_completa || trip.sitter?.comuna)) || (trip.servicio === 'domicilio' && serviceAddress)) && (
@@ -259,12 +259,20 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                     <MapPin size={16} className="text-emerald-600 mt-0.5 shrink-0" />
                                     <div>
                                         <p className="text-sm text-slate-800 leading-snug">
-                                            {trip.servicio === 'hospedaje'
-                                                ? (trip.sitter?.calle && trip.sitter?.numero && trip.sitter?.comuna
-                                                    ? `${trip.sitter.calle} ${trip.sitter.numero}, ${trip.sitter.comuna}`
-                                                    : (trip.sitter?.direccion_completa || 'Dirección no disponible'))
-                                                : (serviceAddress || 'Dirección no disponible')
-                                            }
+                                            {(() => {
+                                                const originalAddress = trip.servicio === 'hospedaje'
+                                                    ? (trip.sitter?.calle && trip.sitter?.numero && trip.sitter?.comuna
+                                                        ? `${trip.sitter.calle} ${trip.sitter.numero}, ${trip.sitter.comuna}`
+                                                        : (trip.sitter?.direccion_completa || 'Dirección no disponible'))
+                                                    : (serviceAddress || 'Dirección no disponible');
+
+                                                // Clean up address: Remove generic suffixes like "Región Metrop...", "Chile", Zip Codes
+                                                return originalAddress
+                                                    .replace(/, Región Metropolitana.*$/, '')
+                                                    .replace(/, Provincia de.*$/, '')
+                                                    .replace(/, \d{7}.*$/, '') // Remove zip + ending
+                                                    .replace(/, Chile$/, '');
+                                            })()}
                                         </p>
                                         <p className="text-xs text-slate-500 mt-1">
                                             {trip.servicio === 'hospedaje' ? 'Debes llevar a tu mascota aquí' : 'El Sitter vendrá a esta dirección'}
@@ -285,7 +293,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             </div>
 
                             {/* Column 3: Actions */}
-                            <div className="flex flex-col gap-3 md:border-l md:border-slate-100 md:pl-6 justify-center">
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-200 md:pl-6 justify-center">
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider md:hidden">Acciones</p>
                                 {trip.sitter?.auth_user_id && (
                                     <ContactSitterButton
