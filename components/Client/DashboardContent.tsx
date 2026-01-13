@@ -25,7 +25,7 @@ import { createNotification } from "../../lib/notifications";
 
 function TripCardSkeleton() {
     return (
-        <div className="bg-white rounded-2xl border-2 border-slate-400 p-6 space-y-4 shadow-sm animate-pulse">
+        <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 space-y-4 shadow-sm animate-pulse">
             <div className="flex justify-between items-start">
                 <div className="space-y-3 w-full">
                     <div className="flex items-center gap-2">
@@ -756,7 +756,7 @@ export default function DashboardContent() {
 
 
             {/* TABS NAVIGATION */}
-            <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-400 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
+            <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-300 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
                 <button
                     onClick={() => setActiveTab('solicitudes')}
                     className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
