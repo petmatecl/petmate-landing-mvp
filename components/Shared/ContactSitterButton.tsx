@@ -146,7 +146,7 @@ export default function ContactSitterButton({ sitterId, className, label = "Cont
         <button
             onClick={handleContact}
             disabled={loading}
-            className={`relative ${className || "flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-bold hover:bg-emerald-100 transition-colors disabled:opacity-70"}`}
+            className={`relative ${className || "flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border-2 border-emerald-200 rounded-lg font-bold hover:bg-emerald-100 transition-colors disabled:opacity-70"}`}
         >
             {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>

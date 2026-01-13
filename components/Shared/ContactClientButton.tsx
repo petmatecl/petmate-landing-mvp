@@ -93,7 +93,7 @@ export default function ContactClientButton({ clientId, clientName, className, l
         <button
             onClick={handleContact}
             disabled={loading}
-            className={className || "flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:opacity-70 shadow-sm shadow-emerald-900/10"}
+            className={className || "flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:opacity-70 shadow-lg shadow-emerald-200 hover:shadow-emerald-300 hover:-translate-y-0.5"}
             title={clientName ? `Enviar mensaje a ${clientName}` : 'Enviar mensaje'}
         >
             {loading ? (
