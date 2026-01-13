@@ -759,13 +759,13 @@ export default function DashboardContent() {
             <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-300 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
                 <button
                     onClick={() => setActiveTab('solicitudes')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <Calendar size={18} /> Solicitudes
                 </button>
                 <button
                     onClick={() => setActiveTab('datos')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <User size={18} /> Datos
                     {isProfileComplete ?
@@ -775,14 +775,14 @@ export default function DashboardContent() {
                 </button>
                 <button
                     onClick={() => setActiveTab('mascotas')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <PawPrint size={18} /> Mascotas
                     {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
                 <button
                     onClick={() => setActiveTab('direcciones')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <MapPin size={18} /> Direcciones
                     {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
@@ -1245,7 +1245,7 @@ export default function DashboardContent() {
                                         value={profileFormData.nombre}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : ''}`}
                                         placeholder="Tu nombre"
                                     />
                                 </div>
@@ -1257,7 +1257,7 @@ export default function DashboardContent() {
                                         value={profileFormData.apellido_p}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : ''}`}
                                         placeholder="Tu apellido"
                                     />
                                 </div>
@@ -1273,7 +1273,7 @@ export default function DashboardContent() {
                                         value={profileFormData.rut}
                                         onChange={handleRutChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-slate-100 text-slate-500' : 'bg-slate-50'}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : 'bg-slate-50'}`}
                                         placeholder="12.345.678-9"
                                     />
                                     <p className="text-[10px] text-slate-400 mt-1">El RUT es único por cuenta.</p>
@@ -1288,7 +1288,7 @@ export default function DashboardContent() {
                                         value={profileFormData.telefono}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : ''}`}
                                         placeholder="+56 9 1234 5678"
                                     />
                                 </div>
