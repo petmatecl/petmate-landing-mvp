@@ -28,7 +28,7 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
     const [showMap, setShowMap] = useState(false);
 
     return (
-        <div className={`group relative rounded-xl border p-4 transition-all hover:shadow-md ${address.es_principal ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-slate-300'}`}>
+        <div className={`group relative rounded-xl border-2 p-4 transition-all hover:shadow-md ${address.es_principal ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-slate-400'}`}>
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 w-full">
                     <div className={`mt-1 p-2 rounded-full shrink-0 ${address.es_principal ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>

@@ -163,11 +163,11 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
     };
 
     return (
-        <div className={`bg-white rounded-2xl p-5 border transition-all hover:shadow-lg relative overflow-hidden ${['reservado'].includes(trip.estado)
+        <div className={`bg-white rounded-2xl p-5 border-2 transition-all hover:shadow-lg relative overflow-hidden ${['reservado'].includes(trip.estado)
             ? 'border-amber-200 bg-amber-50/10 shadow-md ring-1 ring-amber-100'
             : ['confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
                 ? 'border-emerald-100 shadow-sm'
-                : 'border-slate-300'
+                : 'border-slate-400'
             }`}>
 
             {/* ID Badge */}

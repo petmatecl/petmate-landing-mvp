@@ -198,7 +198,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
                         {/* SIDEBAR */}
                         <aside className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-                            <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm overflow-hidden">
+                            <div className="bg-white rounded-xl border-2 border-slate-400 shadow-sm overflow-hidden">
                                 <div className="h-24 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                                 <div className="px-6 pb-6 text-center -mt-12 relative">
                                     <div className="relative w-24 h-24 mx-auto">
