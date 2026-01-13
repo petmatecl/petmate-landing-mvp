@@ -102,13 +102,79 @@ const UserIcon = (props: any) => (
 );
 const PawIcon = (props: any) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <path d="M12 2c.7 0 1.4.1 2.1.4l.4.2c2.2 1.1 2.6 3.5 1.5 5.5l-.2.4c-.6 1.3-1.8 2.1-3.2 2.3-1.5.2-2.9-.5-3.8-1.7l-.2-.3C7.5 6.6 7.9 4.2 10.1 3l.4-.2c.5-.5 1-.8 1.5-.8z" />
-    <path d="M16.9 7.4c.5-.3 1.1-.3 1.6-.1l.4.2c1.9 1 2.3 3.3 1 5.3l-.2.3c-.7 1.1-2 1.6-3.3 1.4-1.3-.3-2.3-1.3-2.6-2.6l-.1-.4c-.3-2.1 1-4.2 3-5.2l.2.1z" />
-    <path d="M4.6 9.4c.5-.2 1.1-.1 1.6.2l.3.2c1.9 1.1 2.2 3.4.9 5.3l-.2.3c-.6 1.1-1.9 1.6-3.2 1.3-1.3-.3-2.3-1.3-2.5-2.6L1.4 14c-.4-2.1 1-4.2 3-5.2l.2.6z" />
-    <path d="M7 16c-.5 0-1 .2-1.4.5l-.3.2c-1.8 1.6-1.5 4.5.7 5.7l.4.2c1.2.6 2.6.4 3.7-.4.6-.4 1.1-.9 1.4-1.5.3-.6.5-1.3.5-1.9 0-2.1-1.7-3.6-3.8-3.6h-1.2z" />
-    <path d="M16.5 16c-2 0-3.6 1.5-3.5 3.5v.1c.1 1.2.8 2.3 1.9 2.8l.4.2c2.2 1 4.5-.9 4.6-3.2v-.4c-.1-1.7-1.6-3-3.4-3z" />
+    <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z" />
+    <path d="M17 3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z" />
+    <path d="M7 3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z" />
+    <path d="M6 9c0-2.8 2.2-5 5-5s5 2.2 5 5v.1c0 2.8-2.2 5-5 5s-5-2.2-5-5V9z" />
+    <path d="M9 16.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5v-.5z" />
+    <circle cx="12" cy="12" r="3" />
+    <path d="M17.4 17.6c-.6 1.8-2.3 3.1-4.2 3.3-2.3.2-4.4-1.3-4.9-3.6-.5-2.3 1-4.5 3.3-4.9 1.9-.4 3.9.6 4.7 2.4.2.5.8.7 1.3.5.5-.2.7-.8.5-1.3-1.1-2.4-3.8-3.7-6.3-3.2-3.1.6-5.1 3.5-4.5 6.6.6 3.1 3.5 5.1 6.6 4.5 2.5-.5 4.7-2.3 5.5-4.7.2-.5-.1-1.1-.6-1.3-.5-.2-1.1.1-1.3.6z" />
   </svg>
 );
+// Actually, let's just use a standard PawPrint path from Lucide to be safe and clean.
+// Lucide PawPrint:
+// <path d="M11 10.418v11.164M11 21.582l-7.236-4.173M11 21.582l7.236-4.173M3.764 17.409l-2.764-4.818M18.236 17.409l2.764-4.818M1 12.591l7.236-4.173M22.764 12.591l-7.236-4.173" /> ... wait, no that's a cube.
+// Simple Paw:
+// path 1: 3 toe pads (circles/ellipses)
+// path 2: main pad
+// Let's use the one from `Iconos` library or similar:
+/*
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paw-print"><circle cx="12" cy="12" r="3"/><path d="M19.38 20.5 18 13l-1.72-2.18a3 3 0 0 0-4.56 0L10 13l-1.38 7.5"/><path d="M8 6h.01"/><path d="M11 18h2"/><path d="M16 6h.01"/></svg> ... no that's weird.
+*/
+// I will reuse the `PawIcon` variable but with better path data.
+// standard simple paw:
+/*
+    <path d="M12 2a3 3 0 0 0-2.12 5.12A3 3 0 0 0 12 8a3 3 0 0 0 2.12-.88A3 3 0 0 0 12 2Z" />
+    <path d="M18 4a3 3 0 0 0-2.12 5.12A3 3 0 0 0 18 10a3 3 0 0 0 2.12-.88A3 3 0 0 0 18 4Z" />
+    <path d="M6 4a3 3 0 0 0-2.12 5.12A3 3 0 0 0 6 10a3 3 0 0 0 2.12-.88A3 3 0 0 0 6 4Z" />
+    <path d="M12 11c-2.67 0-8 1.34-8 4v7h16v-7c0-2.66-5.33-4-8-4Z" />
+*/
+// Wait, I should just use the Lucide `PawPrint` import if I can, but I see `import { ... }` at top.
+// The file defines icons inline. I will replace `PawIcon` with a known good "Paw" path.
+/*
+  // Lucide 'paw-print'
+  <circle cx="12" cy="12" r="3" />
+  <circle cx="19" cy="5" r="3" />
+  <circle cx="5" cy="5" r="3" />
+  <circle cx="12" cy="2" r="3" /> // This is a bit too scattered.
+*/
+
+// Let's use a solid, cute paw.
+/*
+  <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 3C4.9 6 4 6.9 4 8s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 5c-3.3 0-6 2.7-6 6 0 2.2 1.2 4.1 3 5.2V22h6v-2.8c1.8-1.1 3-3 3-5.2 0-3.3-2.7-6-6-6z" />
+  (This is a filled path, I need stroked for "stroke='currentColor'". Or I can make it fill if the design uses fills.
+   The other icons are stroked (`strokeWidth="2"`).
+   So I need a stroked paw.
+*/
+
+/*
+  // Stroked Paw implementation
+  <path d="M10.1 2.38a2.1 2.1 0 0 1 2.8 0 2.1 2.1 0 0 1 0 3 2.1 2.1 0 0 1-2.8 0 2.1 2.1 0 0 1 0-3Z" />
+  <path d="M4.3 6.9a2.1 2.1 0 0 1 2.8 0 2.1 2.1 0 0 1 0 3 2.1 2.1 0 0 1-2.8 0 2.1 2.1 0 0 1 0-3Z" />
+  <path d="M15.9 6.9a2.1 2.1 0 0 1 2.8 0 2.1 2.1 0 0 1 0 3 2.1 2.1 0 0 1-2.8 0 2.1 2.1 0 0 1 0-3Z" />
+  <path d="M12 11c-3 0-5.5 2.5-5.5 5.5S9 22 12 22s5.5-2.5 5.5-5.5S15 11 12 11Z" />
+*/
+// This looks correct for a "Patita" (3 toes + pad).
+
+const PawIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="5" r="2.5" />
+    <circle cx="19" cy="8" r="2.5" />
+    <circle cx="5" cy="8" r="2.5" />
+    <path d="M12 12c-2.5 0-4.5 2-4.5 4.5S9.5 21 12 21s4.5-2 4.5-4.5S14.5 12 12 12z" />
+  </svg>
+);
+
+
+/* Styles update in register.tsx */
+/*
+  :root { ... --border: #cbd5e1; } // update
+  .tab { ... border: 2px solid #cbd5e1; } // update
+  .tab:hover { border-color: #94a3b8; } // update
+  .card { ... border: 2px solid var(--border); } // update
+  input, select { ... border: 2px solid #cbd5e1; } // update
+*/
+
 
 type Alojamiento = "en_sitter" | "domicilio";
 
@@ -694,7 +760,7 @@ export default function RegisterPage() {
           --brand: #059669;
           --brand-dark: #047857;
           --muted: #ecfdf5;
-          --border: #e5e7eb;
+          --border: #cbd5e1; /* reinforced */
         }
         .page {
           min-height: calc(100vh - 200px);
@@ -715,7 +781,7 @@ export default function RegisterPage() {
         }
         .tab {
           appearance: none;
-          border: 2px solid #e5e7eb;
+          border: 2px solid #cbd5e1; /* reinforced */
           padding: 1rem;
           border-radius: 12px;
           background: #fff;
@@ -730,7 +796,7 @@ export default function RegisterPage() {
           font-size: 1rem;
         }
         .tab:hover {
-          border-color: #d1d5db;
+          border-color: #94a3b8;
           background: #f9fafb;
         }
         .tab.active {
@@ -744,7 +810,7 @@ export default function RegisterPage() {
         }
         .card {
           background: #fff;
-          border: 1px solid var(--border);
+          border: 2px solid var(--border); /* reinforced */
           border-radius: 16px;
           padding: 20px;
           box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
@@ -780,7 +846,7 @@ export default function RegisterPage() {
         select {
           height: 44px;
           padding: 0 12px;
-          border: 1.5px solid #cbd5e1;
+          border: 2px solid #cbd5e1; /* reinforced */
           border-radius: 10px;
         }
         input:focus,
