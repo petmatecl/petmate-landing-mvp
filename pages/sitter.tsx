@@ -972,7 +972,7 @@ export default function SitterDashboardPage() {
                                             <ShieldCheck size={10} /> Verificado
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold border border-slate-200">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold border-2 border-slate-300">
                                             <ShieldAlert size={10} /> No Verificado
                                         </span>
                                     )}
@@ -986,7 +986,7 @@ export default function SitterDashboardPage() {
                             <Link href="/sitter/explorar" className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">
                                 🔍 Buscar Oportunidades
                             </Link>
-                            <Link href={profileId ? `/sitter/${profileId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                            <Link href={profileId ? `/sitter/${profileId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                                 Ver perfil público ↗
                             </Link>
                         </div>
@@ -1000,7 +1000,7 @@ export default function SitterDashboardPage() {
                         <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
 
                             {/* Tarjeta de Identidad Consolidada */}
-                            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300">
+                            <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300">
                                 {/* Header con gradiente premium */}
                                 <div className="h-32 bg-slate-800 relative overflow-hidden">
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -1050,12 +1050,12 @@ export default function SitterDashboardPage() {
                                     {/* Estado de Verificación UNIFICADO */}
                                     <div className="mt-6 flex flex-col items-center justify-center gap-2">
                                         {profileData.aprobado ? (
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border-2 border-slate-300 text-xs font-semibold">
                                                 <ShieldCheck size={14} className="text-slate-600" />
                                                 <span>Verificado</span>
                                             </div>
                                         ) : profileData.certificado_antecedentes ? (
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-semibold">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 border-2 border-slate-300 text-xs font-semibold">
                                                 <Clock size={14} />
                                                 <span>En Revisión</span>
                                             </div>
@@ -1138,7 +1138,7 @@ export default function SitterDashboardPage() {
 
                                             {/* Add Button */}
                                             {profileData.galeria.length < 6 && (
-                                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-slate-400 hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-all">
+                                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-slate-400 hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-all">
                                                     <Plus size={24} />
                                                     <span className="text-[10px] font-bold">Añadir</span>
                                                     <input
@@ -1171,7 +1171,7 @@ export default function SitterDashboardPage() {
                             {/* TAB NAVIGATION */}
                             {/* TABS NAVIGATION */}
                             {/* TABS NAVIGATION */}
-                            <div className="grid grid-cols-2 sm:flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
+                            <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-300 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
                                 <button
                                     onClick={() => setActiveTab('solicitudes')}
                                     className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
@@ -1253,12 +1253,12 @@ export default function SitterDashboardPage() {
                             {/* BLOQUE 0: Preferencias y Servicios (MOVIDO AL TOP) */}
                             {activeTab === 'servicios' && (
 
-                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                                <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm p-5">
                                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                                         <div className="flex items-center gap-2 flex-1">
                                             <button
                                                 onClick={() => toggleSection('services')}
-                                                className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                className="p-1.5 bg-white border-2 border-slate-300 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                             >
                                                 {expandedSections.services ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                             </button>
@@ -1303,11 +1303,11 @@ export default function SitterDashboardPage() {
                                                 <div>
                                                     <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Qué mascotas cuidas?</h5>
                                                     <div className="grid grid-cols-2 gap-3 mb-3">
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-300 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
                                                             <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
                                                             <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
                                                         </label>
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-300 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
                                                             <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
                                                             <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
                                                         </label>
@@ -1319,7 +1319,7 @@ export default function SitterDashboardPage() {
                                                             <label className="block text-xs font-bold text-slate-500 mb-2">¿Qué tamaños de perro aceptas?</label>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {['Pequeño', 'Mediano', 'Grande', 'Gigante'].map((size) => (
-                                                                    <label key={size} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${activeSection === 'services' ? "cursor-pointer" : "opacity-75 cursor-not-allowed"} ${profileData.tamanos_perros?.includes(size) ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                                                                    <label key={size} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${activeSection === 'services' ? "cursor-pointer" : "opacity-75 cursor-not-allowed"} ${profileData.tamanos_perros?.includes(size) ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-300 text-slate-600 hover:border-slate-300"}`}>
                                                                         <input
                                                                             type="checkbox"
                                                                             disabled={activeSection !== 'services'}
@@ -1345,11 +1345,11 @@ export default function SitterDashboardPage() {
                                                 <div>
                                                     <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Dónde las cuidas?</h5>
                                                     <div className="grid grid-cols-2 gap-3">
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-300 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
                                                             <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
                                                             <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
                                                         </label>
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-200 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-300 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
                                                             <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
                                                             <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
                                                         </label>
@@ -1370,7 +1370,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'services'}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                         value={formatPrice(profileData.tarifa_servicio_a_domicilio)}
                                                                         onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parsePrice(e.target.value) })}
                                                                         placeholder="Ej: 15.000"
@@ -1386,7 +1386,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'services'}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                         value={formatPrice(profileData.tarifa_servicio_en_casa)}
                                                                         onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parsePrice(e.target.value) })}
                                                                         placeholder="Ej: 20.000"
@@ -1406,17 +1406,17 @@ export default function SitterDashboardPage() {
                                 <>
                                     {/* BLOQUE NUEVO: Solicitudes por Aceptar (Entrantes) */}
                                     {bookings.some(b => b.estado === 'publicado') && (
-                                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+                                        <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm p-5 mb-6">
                                             <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                                                 <Inbox size={18} /> Solicitudes por Aceptar
                                             </h3>
                                             <div className="grid gap-3">
                                                 {bookings.filter(b => b.estado === 'publicado').map(booking => (
-                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
-                                                                <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold uppercase border border-slate-200">Nueva Solicitud</span>
+                                                                <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold uppercase border-2 border-slate-300">Nueva Solicitud</span>
                                                             </div>
                                                             <div className="text-xs text-slate-500 flex flex-col gap-1">
                                                                 <span className="flex items-center gap-1 font-medium text-slate-700">
@@ -1463,13 +1463,13 @@ export default function SitterDashboardPage() {
 
                                     {/* BLOQUE: Esperando Confirmación (Reservado) */}
                                     {bookings.some(b => b.estado === 'reservado') && (
-                                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+                                        <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm p-5 mb-6">
                                             <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                                                 <Clock size={18} /> Esperando Confirmación
                                             </h3>
                                             <div className="grid gap-3">
                                                 {bookings.filter(b => b.estado === 'reservado').map(booking => (
-                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
@@ -1514,13 +1514,13 @@ export default function SitterDashboardPage() {
 
                                     {/* Existing Pending Logic (kept for 'pendiente' status if any remain) */}
                                     {bookings.some(b => b.estado === 'pendiente') && (
-                                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+                                        <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm p-5 mb-6">
                                             <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                                                 <Inbox size={18} /> Solicitudes Pendientes (Otros Estados)
                                             </h3>
                                             <div className="grid gap-3">
                                                 {bookings.filter(b => b.estado === 'pendiente').map(booking => (
-                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
+                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-300 shadow-sm">
                                                         <span className="text-sm font-bold">{booking.cliente.nombre} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
                                                     </div>
                                                 ))}
@@ -1529,14 +1529,14 @@ export default function SitterDashboardPage() {
                                     )}
 
                                     {/* BLOQUE NUEVO: Mis Postulaciones (Oportunidades) */}
-                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-4">
+                                    <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm p-5 mb-4">
                                         <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                                             <Send size={18} /> Mis Postulaciones
                                         </h3>
                                         {applications.filter(app => app.estado !== 'aceptada').length > 0 ? (
                                             <div className="grid gap-3">
                                                 {applications.filter(app => app.estado !== 'aceptada').map((app) => (
-                                                    <div key={app.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                    <div key={app.id} className="p-4 bg-slate-50 rounded-lg border-2 border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-sm font-bold text-slate-900">
@@ -1594,7 +1594,7 @@ export default function SitterDashboardPage() {
                                     </div>
 
                                     {/* BLOQUE 1: Próximas Reservas (Confirmadas) - CARD LAYOUT */}
-                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                    <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm p-6">
                                         <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
                                             <CheckCircle2 size={20} className="text-emerald-600" /> Solicitudes Confirmadas
                                         </h3>
@@ -1632,7 +1632,7 @@ export default function SitterDashboardPage() {
                                                         const duration = differenceInDays(endDate, startDate) + 1; // Include end date
 
                                                         return (
-                                                            <div key={book.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                                            <div key={book.id} className="bg-white border-2 border-slate-300 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                                                                 {/* Decorative Top Border */}
                                                                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
 
@@ -1727,7 +1727,7 @@ export default function SitterDashboardPage() {
                                                                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
 
                                                                             <div className="flex-1 flex items-start gap-3 mt-1">
-                                                                                <div className="mt-1 bg-white p-1.5 rounded-full border border-slate-200 text-emerald-600 shadow-sm">
+                                                                                <div className="mt-1 bg-white p-1.5 rounded-full border-2 border-slate-300 text-emerald-600 shadow-sm">
                                                                                     <MapPin size={16} />
                                                                                 </div>
                                                                                 <div>
@@ -1754,7 +1754,7 @@ export default function SitterDashboardPage() {
                                                                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(book.direccion?.display_name || book.direccion_cliente || "")}`}
                                                                                     target="_blank"
                                                                                     rel="noopener noreferrer"
-                                                                                    className="mt-auto w-full bg-white border border-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-emerald-300 hover:text-emerald-600 transition-all text-sm"
+                                                                                    className="mt-auto w-full bg-white border-2 border-slate-300 text-slate-600 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-emerald-300 hover:text-emerald-600 transition-all text-sm"
                                                                                 >
                                                                                     Ver en Mapa <ChevronDown size={14} className="-rotate-90" />
                                                                                 </a>
@@ -1772,7 +1772,7 @@ export default function SitterDashboardPage() {
                                                     })}
                                                 </div>
                                             ) : (
-                                                <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+                                                <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-300 rounded-xl">
                                                     <CalendarCheck size={48} className="mx-auto text-slate-300 mb-3" />
                                                     <p className="text-slate-500 font-medium">No tienes solicitudes confirmadas próximas.</p>
                                                 </div>
@@ -1786,7 +1786,7 @@ export default function SitterDashboardPage() {
 
                             {
                                 activeTab === 'perfil' && (
-                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                                    <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm p-5">
 
 
                                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
@@ -1814,11 +1814,11 @@ export default function SitterDashboardPage() {
 
                                             {/* BLOQUE 1: Datos de Contacto */}
                                             <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
-                                                <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                                                <div className="flex items-center justify-between border-b border-slate-300 pb-3 mb-4">
                                                     <div className="flex items-center gap-2 flex-1">
                                                         <button
                                                             onClick={() => toggleSection('contact')}
-                                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                            className="p-1.5 bg-white border-2 border-slate-300 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                         >
                                                             {expandedSections.contact ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
@@ -1869,7 +1869,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="email"
                                                                     disabled
-                                                                    className="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-500 cursor-not-allowed"
+                                                                    className="w-full text-sm bg-white border-2 border-slate-300 rounded-lg px-3 py-2 text-slate-500 cursor-not-allowed"
                                                                     value={email || ""}
                                                                 />
                                                             </div>
@@ -1879,7 +1879,7 @@ export default function SitterDashboardPage() {
                                                                     type="tel"
                                                                     disabled={activeSection !== 'contact'}
                                                                     maxLength={12}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"
                                                                         }`}
                                                                     value={profileData.telefono}
                                                                     onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
@@ -1890,7 +1890,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Región</label>
                                                                 <select
                                                                     disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.region}
                                                                     onChange={(e) => setProfileData({ ...profileData, region: e.target.value })}
@@ -1902,7 +1902,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Comuna</label>
                                                                 <select
                                                                     disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.comuna}
                                                                     onChange={(e) => setProfileData({ ...profileData, comuna: e.target.value })}
@@ -1924,7 +1924,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                         value={profileData.redes_sociales?.linkedin || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, linkedin: e.target.value } })}
                                                                         placeholder="URL Perfil"
@@ -1937,7 +1937,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                         value={profileData.redes_sociales?.tiktok || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, tiktok: e.target.value } })}
                                                                         placeholder="@usuario"
@@ -1950,7 +1950,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                         value={profileData.redes_sociales?.instagram || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, instagram: e.target.value } })}
                                                                         placeholder="@usuario"
@@ -1963,7 +1963,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                         value={profileData.redes_sociales?.facebook || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, facebook: e.target.value } })}
                                                                         placeholder="URL Perfil"
@@ -1978,11 +1978,11 @@ export default function SitterDashboardPage() {
 
                                             {/* BLOQUE 2: Información Personal */}
                                             <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
-                                                <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                                                <div className="flex items-center justify-between border-b border-slate-300 pb-3 mb-4">
                                                     <div className="flex items-center gap-2 flex-1">
                                                         <button
                                                             onClick={() => toggleSection('personal')}
-                                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                            className="p-1.5 bg-white border-2 border-slate-300 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                         >
                                                             {expandedSections.personal ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
@@ -2032,7 +2032,7 @@ export default function SitterDashboardPage() {
                                                             <input
                                                                 type="text"
                                                                 disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                 value={profileData.nombre}
                                                                 onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
                                                             />
@@ -2042,7 +2042,7 @@ export default function SitterDashboardPage() {
                                                             <input
                                                                 type="text"
                                                                 disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                 value={profileData.apellido_p}
                                                                 onChange={(e) => setProfileData({ ...profileData, apellido_p: e.target.value })}
                                                             />
@@ -2052,7 +2052,7 @@ export default function SitterDashboardPage() {
                                                             <input
                                                                 type="text"
                                                                 disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                 value={profileData.apellido_m}
                                                                 onChange={(e) => setProfileData({ ...profileData, apellido_m: e.target.value })}
                                                             />
@@ -2062,7 +2062,7 @@ export default function SitterDashboardPage() {
                                                             <input
                                                                 type="text"
                                                                 disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"
                                                                     } ${activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) ? "border-red-300 focus:border-red-500 focus:ring-red-200" : ""}`}
                                                                 value={profileData.rut}
                                                                 onChange={handleRutChange}
@@ -2095,7 +2095,7 @@ export default function SitterDashboardPage() {
                                                             <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Sexo</label>
                                                             <select
                                                                 disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500 appearance-none"
                                                                     }`}
                                                                 value={profileData.sexo}
                                                                 onChange={(e) => setProfileData({ ...profileData, sexo: e.target.value })}
@@ -2109,7 +2109,7 @@ export default function SitterDashboardPage() {
                                                             <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Ocupación</label>
                                                             <select
                                                                 disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500 appearance-none"
                                                                     }`}
                                                                 value={profileData.ocupacion}
                                                                 onChange={(e) => setProfileData({ ...profileData, ocupacion: e.target.value })}
@@ -2129,12 +2129,12 @@ export default function SitterDashboardPage() {
 
                                             {/* BLOQUE 3: Perfil */}
                                             <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100">
-                                                <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                                                <div className="flex items-center justify-between border-b border-slate-300 pb-3 mb-4">
 
                                                     <div className="flex items-center gap-2 flex-1">
                                                         <button
                                                             onClick={() => toggleSection('profile')}
-                                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                            className="p-1.5 bg-white border-2 border-slate-300 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                         >
                                                             {expandedSections.profile ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
@@ -2186,7 +2186,7 @@ export default function SitterDashboardPage() {
                                                             {/* Búsqueda de Dirección (Solo Edición) */}
                                                             {/* Búsqueda de Dirección (Solo Edición) */}
                                                             {activeSection === 'profile' && (
-                                                                <div className="sm:col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200 mb-2">
+                                                                <div className="sm:col-span-2 bg-slate-50 p-3 rounded-lg border-2 border-slate-300 mb-2">
                                                                     <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Buscar Dirección (OpenStreetMap)</label>
                                                                     <AddressAutocomplete
                                                                         onSelect={handleSelectAddress}
@@ -2201,7 +2201,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="text"
                                                                     disabled={true}
-                                                                    className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border border-slate-200 text-slate-600 cursor-not-allowed"
+                                                                    className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border-2 border-slate-300 text-slate-600 cursor-not-allowed"
                                                                     value={profileData.direccion_completa || "No definida"}
                                                                     readOnly
                                                                 />
@@ -2212,7 +2212,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="text"
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                     value={profileData.calle || ""}
                                                                     onChange={(e) => setProfileData({ ...profileData, calle: e.target.value })}
                                                                 />
@@ -2222,7 +2222,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="text"
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                     value={profileData.numero || ""}
                                                                     onChange={(e) => setProfileData({ ...profileData, numero: e.target.value })}
                                                                 />
@@ -2232,7 +2232,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Vivienda</label>
                                                                 <select
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.tipo_vivienda}
                                                                     onChange={(e) => setProfileData({ ...profileData, tipo_vivienda: e.target.value })}
@@ -2246,7 +2246,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dimensiones</label>
                                                                 <select
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.dimensiones_vivienda || ""}
                                                                     onChange={(e) => setProfileData({ ...profileData, dimensiones_vivienda: e.target.value })}
@@ -2260,7 +2260,7 @@ export default function SitterDashboardPage() {
                                                             </div>
 
                                                             <div className="sm:col-span-2 grid grid-cols-2 gap-4">
-                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_patio ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-200 text-slate-500'}`}>
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_patio ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
                                                                     <input
                                                                         type="checkbox"
                                                                         disabled={activeSection !== 'profile'}
@@ -2271,7 +2271,7 @@ export default function SitterDashboardPage() {
                                                                     <span className="text-sm font-bold">Tiene Patio/Jardín</span>
                                                                 </label>
 
-                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_malla ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-200 text-slate-500'}`}>
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_malla ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
                                                                     <input
                                                                         type="checkbox"
                                                                         disabled={activeSection !== 'profile'}
@@ -2305,7 +2305,7 @@ export default function SitterDashboardPage() {
                                                                     ))}
 
                                                                     {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 4 && (
-                                                                        <label className="aspect-square rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
+                                                                        <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
                                                                             {uploading ? (
                                                                                 <Loader2 size={20} className="animate-spin" />
                                                                             ) : (
@@ -2331,7 +2331,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">¿Tienes mascotas?</label>
                                                                 <select
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.tiene_mascotas}
                                                                     onChange={(e) => setProfileData({ ...profileData, tiene_mascotas: e.target.value })}
@@ -2350,7 +2350,7 @@ export default function SitterDashboardPage() {
                                                                 {(profileData.detalles_mascotas || []).map((mascota: any, idx: number) => (
                                                                     <div key={idx} className="flex gap-2 mb-2 items-center">
                                                                         <select
-                                                                            className="text-sm rounded-lg px-2 py-1 border border-slate-300 flex-1 outline-none"
+                                                                            className="text-sm rounded-lg px-2 py-1 border-2 border-slate-300 flex-1 outline-none"
                                                                             value={mascota.tipo}
                                                                             onChange={(e) => {
                                                                                 const newDetails = [...(profileData.detalles_mascotas || [])];
@@ -2366,7 +2366,7 @@ export default function SitterDashboardPage() {
                                                                         <input
                                                                             type="number"
                                                                             min="1"
-                                                                            className="w-16 text-sm rounded-lg px-2 py-1 border border-slate-300 outline-none"
+                                                                            className="w-16 text-sm rounded-lg px-2 py-1 border-2 border-slate-300 outline-none"
                                                                             value={mascota.cantidad}
                                                                             onChange={(e) => {
                                                                                 const newDetails = [...(profileData.detalles_mascotas || [])];
@@ -2420,7 +2420,7 @@ export default function SitterDashboardPage() {
                                                             <textarea
                                                                 rows={4}
                                                                 disabled={activeSection !== 'profile'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none resize-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
+                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none resize-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"
                                                                     }`}
                                                                 value={profileData.descripcion}
                                                                 onChange={(e) => setProfileData({ ...profileData, descripcion: e.target.value })}
@@ -2444,7 +2444,7 @@ export default function SitterDashboardPage() {
                                                                             newVideos[idx] = e.target.value;
                                                                             setProfileData({ ...profileData, videos: newVideos });
                                                                         }}
-                                                                        className={`flex-1 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        className={`flex-1 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-300 text-slate-500"}`}
                                                                         placeholder="Ej: https://youtube.com/..."
                                                                     />
                                                                     {activeSection === 'profile' && (
@@ -2483,7 +2483,7 @@ export default function SitterDashboardPage() {
                                                     Video de Presentación
                                                 </h4>
 
-                                                <div className="bg-white p-4 rounded-xl border border-slate-200">
+                                                <div className="bg-white p-4 rounded-xl border-2 border-slate-300">
                                                     <p className="text-xs text-slate-500 mb-4">
                                                         Sube un video corto presentándote a los dueños de mascotas. Esto aumenta significativamente tus posibilidades de ser contratado.
                                                     </p>
@@ -2507,7 +2507,7 @@ export default function SitterDashboardPage() {
                                                         </div>
                                                     ) : (
                                                         activeSection === 'profile' ? (
-                                                            <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
+                                                            <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
                                                                 <input
                                                                     type="file"
                                                                     accept="video/mp4,video/quicktime,video/webm"
@@ -2532,7 +2532,7 @@ export default function SitterDashboardPage() {
 
                                                     {/* Consentimiento RRSS */}
                                                     <div className="mt-4 pt-4 border-t border-slate-100">
-                                                        <label className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
+                                                        <label className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-300'}`}>
                                                             <div className="pt-0.5">
                                                                 <input
                                                                     type="checkbox"
@@ -2558,11 +2558,11 @@ export default function SitterDashboardPage() {
 
                                         {/* BLOQUE 4: Documentación */}
                                         <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100 mt-8">
-                                            <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                                            <div className="flex items-center justify-between border-b border-slate-300 pb-3 mb-4">
                                                 <div className="flex items-center gap-2 flex-1">
                                                     <button
                                                         onClick={() => toggleSection('documents')}
-                                                        className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                        className="p-1.5 bg-white border-2 border-slate-300 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                     >
                                                         {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                     </button>
@@ -2599,7 +2599,7 @@ export default function SitterDashboardPage() {
                                             {expandedSections.documents && (
                                                 <div>
                                                     {profileData.certificado_antecedentes ? (
-                                                        <div className="flex items-start gap-3 p-4 bg-white border border-slate-200 rounded-xl shadow-sm group/file transition-colors max-w-md">
+                                                        <div className="flex items-start gap-3 p-4 bg-white border-2 border-slate-300 rounded-xl shadow-sm group/file transition-colors max-w-md">
                                                             <div className="p-3 bg-slate-100 text-slate-500 rounded-lg transition-colors">
                                                                 <FileText size={24} />
                                                             </div>
@@ -2609,7 +2609,7 @@ export default function SitterDashboardPage() {
                                                                 <div className="flex gap-3 mt-3">
                                                                     <button
                                                                         onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
-                                                                        className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border border-slate-200 hover:bg-white"
+                                                                        className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border-2 border-slate-300 hover:bg-white"
                                                                     >
                                                                         <Eye size={12} /> Ver Documento
                                                                     </button>
@@ -2630,7 +2630,7 @@ export default function SitterDashboardPage() {
                                                         </div>
                                                     ) : (
                                                         <div className="max-w-md">
-                                                            <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-200 opacity-60 cursor-not-allowed"}`}>
+                                                            <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-300 opacity-60 cursor-not-allowed"}`}>
                                                                 <div className={`p-4 rounded-full transition-colors ${activeSection === 'documents' ? "bg-slate-50 text-slate-400 group-hover/upload:text-emerald-600 group-hover/upload:bg-emerald-100" : "bg-slate-50 text-slate-300"}`}>
                                                                     <Upload size={24} />
                                                                 </div>

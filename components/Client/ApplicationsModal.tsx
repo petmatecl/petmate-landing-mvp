@@ -165,7 +165,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                 <div className="p-6 overflow-y-auto flex-1">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-10 gap-3 text-slate-400">
-                            <div className="w-8 h-8 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></div>
+                            <div className="w-8 h-8 border-4 border-slate-300 border-t-emerald-500 rounded-full animate-spin"></div>
                             <p className="text-sm">Cargando postulaciones...</p>
                         </div>
                     ) : applications.length === 0 ? (
@@ -179,7 +179,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                     ) : (
                         <div className="space-y-4">
                             {applications.map(app => (
-                                <div key={app.id} className="border border-slate-200 rounded-xl p-4 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all">
+                                <div key={app.id} className="border-2 border-slate-300 rounded-xl p-4 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all">
                                     <div className="flex flex-col md:flex-row gap-4">
                                         {/* Sitter Info */}
                                         <div className="flex items-start gap-4 flex-1">

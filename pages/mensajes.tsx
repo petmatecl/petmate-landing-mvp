@@ -58,7 +58,7 @@ export default function MensajesPage() {
                     <div>
                         <Link
                             href={returnTo || '/'}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 font-bold hover:text-emerald-600 hover:border-emerald-300 transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-bold hover:text-emerald-600 hover:border-emerald-300 transition-colors shadow-sm"
                         >
                             <ArrowLeft size={18} />
                             Volver al Panel
