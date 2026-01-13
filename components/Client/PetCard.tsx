@@ -34,9 +34,34 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
     const calculateAge = (dobString?: string) => {
         if (!dobString) return pet.edad ? `${pet.edad} años` : "Edad desc.";
         const dob = new Date(dobString);
-        const diffMs = Date.now() - dob.getTime();
-        const ageDt = new Date(diffMs);
-        return `${Math.abs(ageDt.getUTCFullYear() - 1970)} años`;
+        const today = new Date();
+
+        let years = today.getFullYear() - dob.getFullYear();
+        let months = today.getMonth() - dob.getMonth();
+
+        if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
+            years--;
+            months += 12;
+        }
+
+        if (years < 1) {
+            // Recalculate strict months if needed, but the above logic handles year adjustment.
+            // If years became -1 (future date), handle it? Assuming valid past date.
+            // If years is 0, we use the months remainder.
+            if (today.getDate() < dob.getDate()) {
+                months--;
+            }
+            // Ensure non-negative
+            months = Math.max(0, months + (years * 12)); // Should be just 'months' if years is 0
+
+            // Simplest approach for < 1 year:
+            const diffMonths = (today.getFullYear() - dob.getFullYear()) * 12 + (today.getMonth() - dob.getMonth());
+            const adjustedMonths = today.getDate() < dob.getDate() ? diffMonths - 1 : diffMonths;
+
+            return `${Math.max(0, adjustedMonths)} meses`;
+        }
+
+        return `${years} años`;
     };
 
     const ageDisplay = calculateAge(pet.fecha_nacimiento);

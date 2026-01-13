@@ -1162,7 +1162,7 @@ export default function DashboardContent() {
 
             {/* TAB: MIS MASCOTAS */}
             {activeTab === 'mascotas' && (
-                <section className="rounded-2xl border bg-white p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <section className="bg-white rounded-2xl border-2 border-slate-300 p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-bold text-slate-900">Mis Mascotas</h2>
                         <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">+ Agregar</button>
