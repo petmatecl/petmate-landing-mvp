@@ -29,7 +29,7 @@ body {
 }
 
 .card-premium:hover {
-  @apply -translate-y-1 shadow-2xl shadow-emerald-100/50 border-emerald-300;
+  @apply -translate-y-1 shadow-2xl shadow-slate-200 border-slate-400;
 }
 
 .btn-primary {
@@ -42,7 +42,7 @@ body {
 
 /* Campos de formulario modernos */
 .form-input {
-  @apply w-full rounded-xl border-2 border-slate-300 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 shadow-sm;
+  @apply w-full rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 shadow-sm;
 }
 
 .form-label {

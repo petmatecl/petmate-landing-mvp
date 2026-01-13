@@ -162,7 +162,7 @@ export default function ExplorarPage() {
                         isApproved={true}
                     />
                 ) : petmates.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-300">
+                    <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-300">
                         <h3 className="text-lg font-semibold text-slate-900">No encontramos Sitters con estos filtros</h3>
                         <p className="text-slate-500 mt-2">Intenta cambiar los criterios de búsqueda.</p>
                         <div className="flex flex-col items-center gap-3 mt-6">
