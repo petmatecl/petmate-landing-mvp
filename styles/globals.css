@@ -17,11 +17,25 @@ body {
 
 /* --- Premium Utilities --- */
 
+/* Option A: High Contrast Legacy (Default for Glass Panel) */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.85);
+  /* Increased opacity for solid look */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid #cbd5e1;
+  /* Slate-300: High visibility */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  /* Shadow-md */
+}
+
+/* Option B: Elevated/Soft Shadow */
+.card-elevated {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  /* Slate-200 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Shadow-xl */
 }
 
 .ambient-bg {
