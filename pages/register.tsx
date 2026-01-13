@@ -743,7 +743,7 @@ export default function RegisterPage() {
         }
         .card {
           background: #fff;
-          border: 2px solid var(--border); /* reinforced */
+          border: 2px solid #94a3b8; /* explicitly darker (slate-400) */
           border-radius: 16px;
           padding: 20px;
           box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);

@@ -384,7 +384,7 @@ export default function LoginPage() {
         /* Card */
         .card {
           background: #fff;
-          border: 2px solid var(--border); /* reinforced thickness */
+          border: 2px solid #94a3b8; /* explicitly darker (slate-400) */
           border-radius: 16px;
           padding: 24px;
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
