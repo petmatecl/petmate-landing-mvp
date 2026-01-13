@@ -150,7 +150,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
     return (
         <ClientContext.Provider value={contextValue}>
-            <div className="bg-slate-50 min-h-screen">
+            <div className="ambient-bg min-h-screen">
                 <Head>
                     <title>{title}</title>
                 </Head>

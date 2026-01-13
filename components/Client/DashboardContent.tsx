@@ -756,36 +756,40 @@ export default function DashboardContent() {
 
 
             {/* TABS NAVIGATION */}
-            <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-300 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
+            <div className="grid grid-cols-2 sm:flex w-full glass-panel rounded-2xl p-1.5 shadow-sm mb-6 gap-1.5">
                 <button
                     onClick={() => setActiveTab('solicitudes')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 relative flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'solicitudes' ? 'bg-white text-emerald-700 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'}`}
                 >
-                    <Calendar size={18} /> Solicitudes
+                    <Calendar size={18} className={activeTab === 'solicitudes' ? 'text-emerald-500' : ''} />
+                    <span className="relative z-10">Solicitudes</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('datos')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 relative flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'datos' ? 'bg-white text-emerald-700 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'}`}
                 >
-                    <User size={18} /> Datos
+                    <User size={18} className={activeTab === 'datos' ? 'text-emerald-500' : ''} />
+                    <span className="relative z-10">Datos</span>
                     {isProfileComplete ?
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> :
-                        <div className="w-2 h-2 rounded-full bg-amber-400" title={!clientProfile?.foto_perfil ? "Falta Foto de Perfil" : "Pendiente"}></div>
+                        <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500" title="Completo"></div> :
+                        <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-amber-400" title="Pendiente"></div>
                     }
                 </button>
                 <button
                     onClick={() => setActiveTab('mascotas')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 relative flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'mascotas' ? 'bg-white text-emerald-700 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'}`}
                 >
-                    <PawPrint size={18} /> Mascotas
-                    {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                    <PawPrint size={18} className={activeTab === 'mascotas' ? 'text-emerald-500' : ''} />
+                    <span className="relative z-10">Mascotas</span>
+                    {isPetsComplete ? <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500" title="Completo"></div> : <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
                 <button
                     onClick={() => setActiveTab('direcciones')}
-                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-200 text-slate-900 shadow-sm ring-1 ring-slate-300' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full sm:flex-1 relative flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'direcciones' ? 'bg-white text-emerald-700 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'}`}
                 >
-                    <MapPin size={18} /> Direcciones
-                    {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                    <MapPin size={18} className={activeTab === 'direcciones' ? 'text-emerald-500' : ''} />
+                    <span className="relative z-10">Direcciones</span>
+                    {isAddressesComplete ? <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500" title="Completo"></div> : <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-amber-400" title="Pendiente"></div>}
                 </button>
             </div>
 
@@ -1162,7 +1166,7 @@ export default function DashboardContent() {
 
             {/* TAB: MIS MASCOTAS */}
             {activeTab === 'mascotas' && (
-                <section className="bg-white rounded-2xl border-2 border-slate-300 p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <section className="glass-panel rounded-3xl p-6 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-bold text-slate-900">Mis Mascotas</h2>
                         <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">+ Agregar</button>
@@ -1189,8 +1193,8 @@ export default function DashboardContent() {
 
             {/* TAB: DATOS PERSONALES */}
             {activeTab === 'datos' && (
-                <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 shadow-sm">
+                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="glass-panel rounded-3xl p-8 shadow-xl shadow-slate-200/50">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-lg font-bold text-slate-900">Datos Personales</h2>
