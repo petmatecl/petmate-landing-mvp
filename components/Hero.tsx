@@ -43,85 +43,86 @@ export function Hero() {
 
             {/* Elecciones rápidas */}
             <div className="mt-10 grid sm:grid-cols-2 gap-4">
-              href="/register?role=usuario&mode=domicilio"
-              className="group bg-white rounded-3xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 transition-all duration-300 p-5 hover:border-emerald-400 hover:shadow-emerald-100"
+              <Link
+                href="/register?role=usuario&mode=domicilio"
+                className="group bg-white rounded-3xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 transition-all duration-300 p-5 hover:border-emerald-400 hover:shadow-emerald-100"
               >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
-                  <BuildingIcon className="h-6 w-6" />
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+                    <BuildingIcon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">A domicilio</div>
+                    <div className="text-sm text-slate-500 mt-1">El cuidador va a tu casa.</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">A domicilio</div>
-                  <div className="text-sm text-slate-500 mt-1">El cuidador va a tu casa.</div>
+              </Link>
+
+              <Link
+                href="/register?role=usuario&mode=estadia"
+                className="group bg-white rounded-3xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 transition-all duration-300 p-5 hover:border-teal-400 hover:shadow-teal-100"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">
+                    <HouseIcon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-900 group-hover:text-teal-700 transition-colors">Hospedaje</div>
+                    <div className="text-sm text-slate-500 mt-1">En casa del cuidador.</div>
+                  </div>
                 </div>
-              </div>
-            </Link>
-
-            <Link
-              href="/register?role=usuario&mode=estadia"
-              className="group bg-white rounded-3xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 transition-all duration-300 p-5 hover:border-teal-400 hover:shadow-teal-100"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">
-                  <HouseIcon className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="font-bold text-slate-900 group-hover:text-teal-700 transition-colors">Hospedaje</div>
-                  <div className="text-sm text-slate-500 mt-1">En casa del cuidador.</div>
-                </div>
-              </div>
-            </Link>
-          </div>
-
-          {/* Login quick access */}
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <span className="text-sm text-slate-500 font-medium">¿Ya eres parte de nuestra comunidad?</span>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
-            >
-              Iniciar sesión
-            </Link>
-          </div>
-
-          {/* CTA principal */}
-          <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            {/* Botón eliminado por feedback */}
-            <Link
-              href="/register?role=sitter"
-              className="text-sm font-semibold leading-6 text-slate-900"
-            >
-              Quiero ser Pawnecta Sitter <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-
-          <div className="mt-8 flex items-center gap-4 text-xs font-medium text-slate-500">
-            <div className="flex -space-x-2">
-              <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 1" width={32} height={32} />
-              <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 2" width={32} height={32} />
-              <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 3" width={32} height={32} />
+              </Link>
             </div>
-            <div>
-              +200 Cuidadores verificados
+
+            {/* Login quick access */}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <span className="text-sm text-slate-500 font-medium">¿Ya eres parte de nuestra comunidad?</span>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+              >
+                Iniciar sesión
+              </Link>
+            </div>
+
+            {/* CTA principal */}
+            <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              {/* Botón eliminado por feedback */}
+              <Link
+                href="/register?role=sitter"
+                className="text-sm font-semibold leading-6 text-slate-900"
+              >
+                Quiero ser Pawnecta Sitter <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+
+            <div className="mt-8 flex items-center gap-4 text-xs font-medium text-slate-500">
+              <div className="flex -space-x-2">
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 1" width={32} height={32} />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 2" width={32} height={32} />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 3" width={32} height={32} />
+              </div>
+              <div>
+                +200 Cuidadores verificados
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Imagen solo en desktop */}
-        <div className="hidden lg:block relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[120%] w-[120%] bg-gradient-to-tr from-emerald-100 to-teal-100 rounded-full blur-3xl opacity-50 -z-10" />
-          <Image
-            src="https://images.pexels.com/photos/33685207/pexels-photo-33685207.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1000&dpr=1"
-            alt="Gato descansando tranquilo"
-            width={720}
-            height={720}
-            sizes="(min-width:1024px) 50vw, 100vw"
-            className="relative rounded-[2.5rem] shadow-2xl shadow-emerald-900/10 border-4 border-white transform rotate-2 hover:rotate-0 transition-transform duration-500 max-h-[500px] w-auto mx-auto object-cover"
-            priority
-          />
-        </div>
+          {/* Imagen solo en desktop */}
+          <div className="hidden lg:block relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[120%] w-[120%] bg-gradient-to-tr from-emerald-100 to-teal-100 rounded-full blur-3xl opacity-50 -z-10" />
+            <Image
+              src="https://images.pexels.com/photos/33685207/pexels-photo-33685207.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1000&dpr=1"
+              alt="Gato descansando tranquilo"
+              width={720}
+              height={720}
+              sizes="(min-width:1024px) 50vw, 100vw"
+              className="relative rounded-[2.5rem] shadow-2xl shadow-emerald-900/10 border-4 border-white transform rotate-2 hover:rotate-0 transition-transform duration-500 max-h-[500px] w-auto mx-auto object-cover"
+              priority
+            />
+          </div>
+        </div >
       </div >
-    </div >
     </section >
   );
 }
