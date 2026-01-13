@@ -1245,7 +1245,7 @@ export default function DashboardContent() {
                                         value={profileFormData.nombre}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : ''}`}
+                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'border-slate-300 bg-slate-50 text-slate-600'}`}
                                         placeholder="Tu nombre"
                                     />
                                 </div>
@@ -1257,7 +1257,7 @@ export default function DashboardContent() {
                                         value={profileFormData.apellido_p}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : ''}`}
+                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'border-slate-300 bg-slate-50 text-slate-600'}`}
                                         placeholder="Tu apellido"
                                     />
                                 </div>
@@ -1273,7 +1273,7 @@ export default function DashboardContent() {
                                         value={profileFormData.rut}
                                         onChange={handleRutChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : 'bg-slate-50'}`}
+                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'bg-slate-50 border-slate-300'}`}
                                         placeholder="12.345.678-9"
                                     />
                                     <p className="text-[10px] text-slate-400 mt-1">El RUT es único por cuenta.</p>
@@ -1288,7 +1288,7 @@ export default function DashboardContent() {
                                         value={profileFormData.telefono}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-100/70 text-slate-700 border-transparent cursor-default' : ''}`}
+                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'border-slate-300 bg-slate-50 text-slate-600'}`}
                                         placeholder="+56 9 1234 5678"
                                     />
                                 </div>
