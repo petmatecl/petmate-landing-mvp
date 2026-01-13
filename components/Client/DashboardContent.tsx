@@ -1166,10 +1166,10 @@ export default function DashboardContent() {
 
             {/* TAB: MIS MASCOTAS */}
             {activeTab === 'mascotas' && (
-                <section className="glass-panel rounded-3xl p-6 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-bold text-slate-900">Mis Mascotas</h2>
-                        <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">+ Agregar</button>
+                <section className="glass-panel rounded-3xl p-8 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Mascotas</h2>
+                        <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors tracking-wide uppercase">+ Agregar</button>
                     </div>
 
                     {loadingPets ? (
@@ -1309,17 +1309,17 @@ export default function DashboardContent() {
 
             {/* TAB: DIRECCIONES */}
             {activeTab === 'direcciones' && (
-                <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 shadow-sm">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold text-slate-900">Mis Direcciones</h2>
-                            <button onClick={handleAddAddress} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">+ Agregar</button>
+                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="glass-panel rounded-3xl p-8 shadow-xl shadow-slate-200/50">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Direcciones</h2>
+                            <button onClick={handleAddAddress} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors tracking-wide uppercase">+ Agregar</button>
                         </div>
 
                         {loadingAddresses ? (
                             <ItemsSkeleton />
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {addresses.map(addr => (
                                     <AddressCard
                                         key={addr.id}
@@ -1330,9 +1330,11 @@ export default function DashboardContent() {
                                     />
                                 ))}
                                 {addresses.length === 0 && (
-                                    <div className="text-center py-6 col-span-2 flex flex-col items-center justify-center">
-                                        <MapPin className="w-12 h-12 text-slate-200 mb-2" />
-                                        <p className="text-xs text-slate-500">Agrega tus direcciones para solicitar servicios a domicilio.</p>
+                                    <div className="text-center py-10 col-span-2 flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 text-slate-300">
+                                            <MapPin size={32} />
+                                        </div>
+                                        <p className="text-sm font-medium text-slate-500">Agrega tus direcciones para solicitar servicios a domicilio.</p>
                                     </div>
                                 )}
                             </div>
