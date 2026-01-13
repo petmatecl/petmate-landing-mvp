@@ -329,7 +329,7 @@ export default function LoginPage() {
         :root {
           --brand: #111827;
           --muted: #f6f7f9;
-          --border: #e5e7eb;
+          --border: #cbd5e1; /* slate-300 matches global reinforcement */
         }
 
         .page {
@@ -354,7 +354,7 @@ export default function LoginPage() {
         }
         .tab {
           appearance: none;
-          border: 2px solid #e5e7eb;
+          border: 2px solid #cbd5e1; /* reinforced */
           padding: 1rem;
           border-radius: 12px;
           background: #fff;
@@ -369,7 +369,7 @@ export default function LoginPage() {
           font-size: 1rem;
         }
         .tab:hover {
-          border-color: #d1d5db;
+          border-color: #94a3b8; /* darker on hover */
           background: #f9fafb;
         }
         .tab.active {
@@ -385,7 +385,7 @@ export default function LoginPage() {
         /* Card */
         .card {
           background: #fff;
-          border: 1px solid var(--border);
+          border: 2px solid var(--border); /* reinforced thickness */
           border-radius: 16px;
           padding: 24px;
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
@@ -422,7 +422,7 @@ export default function LoginPage() {
           height: 46px;
           width: 100%;
           padding: 0 44px 0 12px;
-          border: 1.5px solid #cbd5e1;
+          border: 2px solid #cbd5e1; /* reinforced thickness */
           border-radius: 10px;
           background: #fff;
         }
