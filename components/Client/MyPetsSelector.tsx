@@ -64,7 +64,7 @@ export default function MyPetsSelector({ myPets, selectedIds, onChange, hideLabe
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
-                className="mt-1 flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 text-left text-sm shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="mt-1 flex w-full items-center justify-between rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-left text-sm shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
                 <div className="flex flex-col overflow-hidden">
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -90,7 +90,7 @@ export default function MyPetsSelector({ myPets, selectedIds, onChange, hideLabe
                         onClick={() => setOpen(false)}
                     />
 
-                    <div className="absolute z-50 mt-2 w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl border border-slate-100 right-0 sm:left-0 sm:right-auto">
+                    <div className="absolute z-50 mt-2 w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl border-2 border-slate-300 right-0 sm:left-0 sm:right-auto">
                         <div className="mb-2 flex justify-between items-center">
                             <span className="text-xs font-bold text-slate-500 uppercase">Tus Mascotas</span>
                             <button type="button" onClick={selectAll} className="text-xs text-emerald-600 font-medium hover:underline">Seleccionar todas</button>
@@ -103,7 +103,7 @@ export default function MyPetsSelector({ myPets, selectedIds, onChange, hideLabe
                                     <div
                                         key={pet.id}
                                         onClick={() => togglePet(pet.id)}
-                                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer border transition-all ${isSelected ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 hover:bg-slate-50'}`}
+                                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer border transition-all ${isSelected ? 'border-emerald-500 bg-emerald-50' : 'border-slate-300 hover:bg-slate-50'}`}
                                     >
                                         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}`}>
                                             {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}

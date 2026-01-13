@@ -20,7 +20,7 @@ export default function ReviewList({ reviews }: ReviewListProps) {
 
     if (!reviews || reviews.length === 0) {
         return (
-            <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300">
                 <p>Aún no hay reseñas. ¡Sé el primero en opinar!</p>
             </div>
         );
@@ -36,7 +36,7 @@ export default function ReviewList({ reviews }: ReviewListProps) {
             />
 
             {reviews.map((review) => (
-                <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
+                <div key={review.id} className="border-b border-slate-300 pb-6 last:border-0 last:pb-0">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold uppercase text-sm relative overflow-hidden">
@@ -83,7 +83,7 @@ export default function ReviewList({ reviews }: ReviewListProps) {
                             {review.fotos.map((foto, idx) => (
                                 <div
                                     key={idx}
-                                    className="relative w-24 h-24 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border border-slate-200"
+                                    className="relative w-24 h-24 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-2 border-slate-300"
                                     onClick={() => openLightbox(foto, `Foto reseña ${review.cliente?.nombre}`)}
                                 >
                                     <Image

@@ -82,7 +82,7 @@ export default function AdminNotifications() {
                 <div className="mb-8 flex items-center gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="p-2 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors"
+                        className="p-2 bg-white border-2 border-slate-300 rounded-full hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
                     </button>
@@ -135,8 +135,8 @@ export default function AdminNotifications() {
                         </div>
 
                         {/* Recent Activity Feed */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="p-6 border-b border-slate-100 flex items-center gap-2">
+                        <div className="bg-white rounded-3xl shadow-sm border-2 border-slate-300 overflow-hidden">
+                            <div className="p-6 border-b border-slate-300 flex items-center gap-2">
                                 <Bell className="text-slate-400" size={20} />
                                 <h3 className="font-bold text-lg text-slate-900">Últimos Registros</h3>
                             </div>

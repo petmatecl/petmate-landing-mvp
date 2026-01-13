@@ -167,11 +167,11 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
             ? 'border-amber-200 bg-amber-50/10 shadow-md ring-1 ring-amber-100'
             : ['confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
                 ? 'border-emerald-100 shadow-sm'
-                : 'border-slate-200'
+                : 'border-slate-300'
             }`}>
 
             {/* ID Badge */}
-            <div className="absolute top-0 left-0 bg-slate-100 text-slate-500 text-[10px] font-mono px-2 py-0.5 rounded-br-lg border-b border-r border-slate-200">
+            <div className="absolute top-0 left-0 bg-slate-100 text-slate-500 text-[10px] font-mono px-2 py-0.5 rounded-br-lg border-b border-r border-slate-300">
                 #{trip.id.slice(0, 8).toUpperCase()}
             </div>
 
@@ -202,7 +202,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 {endDate && ` – ${format(endDate, "d 'de' MMMM", { locale: es })}`}
                             </h3>
                             <div className="flex items-center gap-3 text-sm text-slate-500">
-                                <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-100 capitalize font-medium">
+                                <span className="bg-slate-50 px-2 py-0.5 rounded border-2 border-slate-300 capitalize font-medium">
                                     {trip.servicio}
                                 </span>
                                 <span className="flex items-center gap-1">
@@ -234,7 +234,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                     </div>
                 </div>
 
-                <hr className="border-slate-100" />
+                <hr className="border-slate-300" />
 
                 {/* 3-Column Layout for Confirmed/Assigned Trips */}
                 {trip.sitter_asignado && trip.sitter ? (
@@ -266,7 +266,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             </div>
 
                             {/* Column 2: Location */}
-                            <div className="flex flex-col gap-3 md:border-l md:border-slate-200 md:pl-6">
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-300 md:pl-6">
                                 <div className="flex justify-between items-center">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
                                     {((trip.servicio === 'hospedaje' && (trip.sitter?.direccion_completa || trip.sitter?.comuna)) || (trip.servicio === 'domicilio' && serviceAddress)) && (
@@ -301,7 +301,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 </div>
                                 {/* Map */}
                                 {activeMap && (
-                                    <div className="rounded-lg overflow-hidden border border-slate-200 shadow-inner h-32 w-full">
+                                    <div className="rounded-lg overflow-hidden border-2 border-slate-300 shadow-inner h-32 w-full">
                                         <iframe
                                             width="100%" height="100%" frameBorder="0" style={{ border: 0 }}
                                             src={`https://maps.google.com/maps?q=${encodeURIComponent(
@@ -313,7 +313,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             </div>
 
                             {/* Column 3: Actions */}
-                            <div className="flex flex-col gap-3 md:border-l md:border-slate-200 md:pl-6 justify-center">
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-300 md:pl-6 justify-center">
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider md:hidden">Acciones</p>
                                 {trip.sitter?.auth_user_id && (
                                     <ContactSitterButton
@@ -324,7 +324,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 )}
                                 <button
                                     onClick={handlePreviewPDF}
-                                    className="w-full bg-white text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 hover:text-emerald-600 transition-colors text-sm"
+                                    className="w-full bg-white text-slate-700 border-2 border-slate-300 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 hover:text-emerald-600 transition-colors text-sm"
                                 >
                                     <FileText size={16} /> Ver Ficha
                                 </button>

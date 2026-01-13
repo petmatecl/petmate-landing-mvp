@@ -28,7 +28,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
                     <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                         {isDestructive && <AlertTriangle className="text-amber-500" size={20} />}
                         {title}
@@ -49,7 +49,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-300 flex justify-end gap-3">
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"

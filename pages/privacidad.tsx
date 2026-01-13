@@ -7,11 +7,11 @@ export default function PrivacidadPage() {
                 <title>Política de Privacidad | Pawnecta</title>
             </Head>
             <div className="mx-auto max-w-4xl px-6 lg:px-8">
-                <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100">
+                <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border-2 border-slate-300">
                     <h1 className="text-4xl font-extrabold text-slate-900 mb-8 tracking-tight">Política de Privacidad</h1>
 
                     <div className="text-slate-600 leading-relaxed text-lg space-y-10">
-                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <div className="bg-slate-50 p-6 rounded-2xl border-2 border-slate-300">
                             <p className="font-semibold text-slate-900">Última actualización: 16 de diciembre de 2025</p>
                             <p className="mt-2">
                                 En Pawnecta valoramos tu privacidad. Esta Política de Privacidad explica qué datos personales tratamos cuando usas <a href="https://www.pawnecta.com" className="text-emerald-600 font-medium hover:underline">www.pawnecta.com</a> (el “Sitio”), para qué los usamos, con quién los compartimos y cuáles son tus derechos.

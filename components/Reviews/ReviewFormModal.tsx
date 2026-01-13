@@ -107,7 +107,7 @@ export default function ReviewFormModal({ isOpen, onClose, sitterId, onReviewSub
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div className="p-6 border-b border-slate-300 flex justify-between items-center bg-gray-50">
                     <h3 className="text-lg font-bold text-gray-900">Escribir Reseña</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
                         ✕
@@ -160,7 +160,7 @@ export default function ReviewFormModal({ isOpen, onClose, sitterId, onReviewSub
 
                         <div className="grid grid-cols-4 gap-2 mb-2">
                             {previewUrls.map((url, idx) => (
-                                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+                                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300 group">
                                     <Image src={url} alt="Preview" fill className="object-cover" />
                                     <button
                                         type="button"
@@ -195,7 +195,7 @@ export default function ReviewFormModal({ isOpen, onClose, sitterId, onReviewSub
                         </div>
                     )}
 
-                    <div className="pt-2 flex gap-3 justify-end border-t border-gray-100 mt-4">
+                    <div className="pt-2 flex gap-3 justify-end border-t border-slate-300 mt-4">
                         <button
                             type="button"
                             onClick={onClose}

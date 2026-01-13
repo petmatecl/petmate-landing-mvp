@@ -42,7 +42,7 @@ export default function GoogleAuthButton({ role, text = "Continuar con Google" }
             type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 rounded-xl transition-all shadow-sm"
+            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 rounded-xl transition-all shadow-sm"
         >
             {loading ? (
                 <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>

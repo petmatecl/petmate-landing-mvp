@@ -28,7 +28,7 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
     const [showMap, setShowMap] = useState(false);
 
     return (
-        <div className={`group relative rounded-xl border p-4 transition-all hover:shadow-md ${address.es_principal ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-slate-200'}`}>
+        <div className={`group relative rounded-xl border p-4 transition-all hover:shadow-md ${address.es_principal ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-slate-300'}`}>
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 w-full">
                     <div className={`mt-1 p-2 rounded-full shrink-0 ${address.es_principal ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
@@ -57,7 +57,7 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
                                 {showMap ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                             </button>
                             {showMap && (
-                                <div className="mt-2 rounded-lg overflow-hidden border border-slate-200">
+                                <div className="mt-2 rounded-lg overflow-hidden border-2 border-slate-300">
                                     <iframe
                                         width="100%"
                                         height="150"
@@ -97,7 +97,7 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
             </div>
 
             {!address.es_principal && (
-                <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                <div className="mt-4 pt-3 border-t border-slate-300 flex justify-end">
                     <button
                         onClick={() => onSetDefault(address.id)}
                         className="text-xs font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1.5 px-2 py-1 rounded hover:bg-emerald-50 transition-colors"

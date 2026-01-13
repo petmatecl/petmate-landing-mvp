@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-slate-200 bg-white/50 backdrop-blur-sm">
+    <footer className="mt-20 border-t border-slate-300 bg-white/50 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
         {/* Brand */}
         <div className="space-y-4">
@@ -92,7 +92,7 @@ export function Footer() {
           <div className="mt-4 flex items-center gap-3">
             <Link
               href="https://www.instagram.com/pawnecta"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 border-slate-300 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
               aria-label="Instagram"
               target="_blank"
             >
@@ -116,7 +116,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-slate-100 py-6 text-center text-xs text-slate-400 font-medium">
+      <div className="border-t border-slate-300 py-6 text-center text-xs text-slate-400 font-medium">
         © {new Date().getFullYear()} Pawnecta. Todos los derechos reservados.
       </div>
     </footer>

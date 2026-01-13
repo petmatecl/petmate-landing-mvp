@@ -45,7 +45,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
             <div className="grid grid-cols-2 gap-12 mb-10">
                 {/* Fechas */}
                 <div>
-                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-wider border-b border-slate-100 pb-2">Detalles del Servicio</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-wider border-b border-slate-300 pb-2">Detalles del Servicio</h3>
                     <div className="space-y-4">
                         <div className="flex items-start gap-4">
                             <div className="p-2 bg-slate-100 rounded-lg">
@@ -75,7 +75,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                         </div>
 
                         {/* Location Logic */}
-                        <div className="mt-6 border-t border-slate-100 pt-4">
+                        <div className="mt-6 border-t border-slate-300 pt-4">
                             <div className="flex items-start gap-4">
                                 <div className="p-2 bg-slate-100 rounded-lg">
                                     <MapPin className="w-5 h-5 text-slate-700" />
@@ -103,7 +103,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
 
                 {/* Cliente */}
                 <div>
-                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-wider border-b border-slate-100 pb-2">Datos del Usuario</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-wider border-b border-slate-300 pb-2">Datos del Usuario</h3>
                     <div className="space-y-3">
                         <div className="flex items-center gap-3">
                             <User className="w-4 h-4 text-slate-400" />
@@ -134,12 +134,12 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
 
             {/* Mascotas */}
             <div className="mb-10">
-                <h3 className="text-xs font-bold uppercase text-slate-400 mb-6 tracking-wider border-b border-slate-100 pb-2">Mascotas a Cuidar</h3>
+                <h3 className="text-xs font-bold uppercase text-slate-400 mb-6 tracking-wider border-b border-slate-300 pb-2">Mascotas a Cuidar</h3>
                 <div className="grid grid-cols-1 gap-6">
                     {pets.map((pet, index) => (
-                        <div key={index} className="flex gap-6 p-4 rounded-xl border border-slate-200 bg-slate-50/50 break-inside-avoid">
+                        <div key={index} className="flex gap-6 p-4 rounded-xl border-2 border-slate-300 bg-slate-50/50 break-inside-avoid">
                             {/* Icon / Image Placeholder */}
-                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-2 border-slate-100 shadow-sm shrink-0">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-2 border-slate-300 shadow-sm shrink-0">
                                 {pet.tipo === 'perro' ? <Dog className="w-8 h-8 text-slate-400" /> :
                                     pet.tipo === 'gato' ? <Cat className="w-8 h-8 text-slate-400" /> :
                                         <PawPrint className="w-8 h-8 text-slate-400" />}
@@ -148,7 +148,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                             <div className="flex-1 grid grid-cols-2 gap-x-8 gap-y-2">
                                 <div className="col-span-2 mb-1 flex items-center gap-2">
                                     <h4 className="text-lg font-bold text-slate-900">{pet.nombre}</h4>
-                                    <span className="text-xs font-medium px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-500 uppercase">{pet.tipo}</span>
+                                    <span className="text-xs font-medium px-2 py-0.5 bg-white border-2 border-slate-300 rounded text-slate-500 uppercase">{pet.tipo}</span>
                                 </div>
 
                                 <div>
@@ -160,7 +160,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
                                     <span className="text-sm text-slate-900">{pet.edad_anos} años, {pet.edad_meses} meses</span>
                                 </div>
 
-                                <div className="col-span-2 mt-2 pt-2 border-t border-slate-200/50">
+                                <div className="col-span-2 mt-2 pt-2 border-t border-slate-300/50">
                                     <span className="text-xs font-bold text-slate-400 block mb-1">Cuidados Especiales / Nota</span>
                                     <p className="text-sm text-slate-700 italic">{pet.descripcion || 'Sin descripción adicional.'}</p>
                                 </div>
@@ -174,7 +174,7 @@ export default function BookingDatasheet({ booking, sitter, pets }: BookingDatas
             </div>
 
             {/* Sitter Info (Footer) */}
-            <div className="border-t-2 border-slate-100 pt-8 mt-12 flex items-center justify-between text-slate-500 text-sm">
+            <div className="border-t-2 border-slate-300 pt-8 mt-12 flex items-center justify-between text-slate-500 text-sm">
                 <div>
                     <p className="font-bold text-slate-900 mb-1">Cuidado por Pawnecta</p>
                     <p>Sitter: {sitter?.nombre} {sitter?.apellido}</p>

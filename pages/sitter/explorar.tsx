@@ -221,13 +221,13 @@ export default function SitterExplorarPage() {
                         <p className="text-slate-500">Encuentra y postula a servicios de cuidado.</p>
                     </div>
                     <div className="flex gap-2">
-                        <Link href="/sitter" className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-bold hover:bg-white transition-colors bg-white flex items-center gap-2">
+                        <Link href="/sitter" className="px-4 py-2 border-2 border-slate-300 rounded-lg text-slate-600 font-bold hover:bg-white transition-colors bg-white flex items-center gap-2">
                             <LayoutDashboard size={18} /> Mi Panel
                         </Link>
                         {/* Volver Button */}
                         <button
                             onClick={() => router.back()}
-                            className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-bold hover:bg-slate-50 transition-colors bg-white"
+                            className="px-4 py-2 border-2 border-slate-300 rounded-lg text-slate-600 font-bold hover:bg-slate-50 transition-colors bg-white"
                         >
                             Volver
                         </button>
@@ -235,7 +235,7 @@ export default function SitterExplorarPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center">
+                <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-sm mb-6 flex flex-wrap gap-4 items-center">
                     <div className="flex items-center gap-2 text-slate-500 font-bold mr-2">
                         <Filter size={18} /> Filtros:
                     </div>
@@ -243,7 +243,7 @@ export default function SitterExplorarPage() {
                     <select
                         value={filterService}
                         onChange={(e) => setFilterService(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 outline-none"
+                        className="px-3 py-2 rounded-lg border-2 border-slate-300 text-sm focus:border-emerald-500 outline-none"
                     >
                         <option value="">Todos los servicios</option>
                         <option value="domicilio">A Domicilio</option>
@@ -253,7 +253,7 @@ export default function SitterExplorarPage() {
                     <select
                         value={filterComuna}
                         onChange={(e) => setFilterComuna(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 outline-none"
+                        className="px-3 py-2 rounded-lg border-2 border-slate-300 text-sm focus:border-emerald-500 outline-none"
                     >
                         <option value="">Todas las comunas</option>
                         {COMUNAS_SANTIAGO.map(c => (
@@ -274,7 +274,7 @@ export default function SitterExplorarPage() {
                 {/* Grid */}
                 {loading ? (
                     <div className="text-center py-20 text-slate-400">
-                        <div className="w-10 h-10 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
+                        <div className="w-10 h-10 border-4 border-slate-300 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
                         Cargando oportunidades...
                     </div>
                 ) : (!sitterProfile || !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna && sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion && sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) || !sitterProfile.roles?.includes('sitter')) ? (
@@ -293,7 +293,7 @@ export default function SitterExplorarPage() {
                         isApproved={true} // We handle "Activar Sitter" as a missing field here slightly differently than strict approval
                     />
                 ) : filteredTrips.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
+                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                         <div className="text-4xl mb-4">📭</div>
                         <h3 className="text-lg font-bold text-slate-900">No hay solicitudes disponibles</h3>
                         <p className="text-slate-500 max-w-sm mx-auto mt-2">
@@ -303,7 +303,7 @@ export default function SitterExplorarPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredTrips.map(trip => (
-                            <div key={trip.id} className="bg-white rounded-xl border border-slate-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group flex flex-col relative overflow-hidden">
+                            <div key={trip.id} className="bg-white rounded-xl border-2 border-slate-300 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group flex flex-col relative overflow-hidden">
                                 {/* Service Stripe */}
                                 <div className={`h-1.5 w-full ${trip.servicio === 'hospedaje' ? 'bg-indigo-500' : 'bg-emerald-500'}`}></div>
 
@@ -333,7 +333,7 @@ export default function SitterExplorarPage() {
                                     </div>
 
                                     {/* Divider */}
-                                    <div className="border-t border-slate-100 my-3"></div>
+                                    <div className="border-t border-slate-300 my-3"></div>
 
                                     {/* Details */}
                                     <div className="space-y-2 mb-4 flex-1">

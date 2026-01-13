@@ -98,7 +98,7 @@ export default function EditarMascotaPage() {
                         <div className="h-8 bg-slate-200 rounded w-1/3"></div>
                         <div className="h-4 bg-slate-200 rounded w-24"></div>
                     </div>
-                    <div className="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
+                    <div className="bg-white rounded-xl border-2 border-slate-300 p-8 space-y-6">
                         <div className="grid sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <div className="h-4 bg-slate-200 rounded w-1/4"></div>

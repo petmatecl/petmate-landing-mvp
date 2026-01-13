@@ -146,7 +146,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
                     <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <span className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
                             <MapPin size={20} />
@@ -180,7 +180,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                             value={nombre}
                             onChange={(e) => setNombre(e.target.value)}
                             placeholder="Ej: Casa, Depto Playa, Casa de mis papás"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:text-slate-400 font-medium"
+                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:text-slate-400 font-medium"
                             required
                         />
                     </div>
@@ -197,7 +197,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                             className="w-full"
                         />
                         {direccionCompleta && (
-                            <p className="mt-2 text-xs text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
+                            <p className="mt-2 text-xs text-slate-500 bg-slate-50 p-2 rounded border-2 border-slate-300">
                                 <span className="font-semibold">Detectado:</span> {calle} {numero ? `#${numero}` : ''}, {comuna}
                             </p>
                         )}
@@ -214,7 +214,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={numero}
                                 onChange={(e) => setNumero(e.target.value)}
                                 placeholder="Ej: 204"
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
                             />
                         </div>
                         <div>
@@ -226,7 +226,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={depto}
                                 onChange={(e) => setDepto(e.target.value)}
                                 placeholder="Ej: 404, Block B"
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
                             />
                         </div>
                         <div className="col-span-2 sm:col-span-1">
@@ -238,7 +238,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={comuna}
                                 onChange={(e) => setComuna(e.target.value)}
                                 placeholder="Ej: Las Condes"
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
                             />
                         </div>
                         <div className="col-span-2 sm:col-span-1">
@@ -250,7 +250,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
                                 placeholder="Ej: Región Metropolitana"
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -265,12 +265,12 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                             value={notas}
                             onChange={(e) => setNotas(e.target.value)}
                             placeholder="Ej: Tocar el timbre conserjería, reja negra..."
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"
+                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"
                         />
                     </div>
 
                     {/* Es Principal */}
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border-2 border-slate-300">
                         <input
                             type="checkbox"
                             id="esPrincipal"
@@ -284,7 +284,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                     </div>
 
                     {/* Footer Buttons */}
-                    <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 mt-6">
+                    <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-300 mt-6">
                         <button
                             type="button"
                             onClick={onClose}

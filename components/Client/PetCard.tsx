@@ -42,12 +42,12 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
     const ageDisplay = calculateAge(pet.fecha_nacimiento);
 
     return (
-        <div className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between p-4 bg-white border-2 border-slate-300 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-4">
                 {/* Icono / Avatar */}
                 <div className="w-12 h-12 flex-shrink-0">
                     {pet.foto_mascota ? (
-                        <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-100 shadow-sm relative">
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-300 shadow-sm relative">
                             <img src={pet.foto_mascota} alt={pet.nombre} className="w-full h-full object-cover" />
                         </div>
                     ) : (

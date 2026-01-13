@@ -178,16 +178,16 @@ export default function MessageThread({ conversationId, userId }: Props) {
         <div className="flex flex-col h-full bg-slate-50/50">
             {/* Header */}
             {otherUser && (
-                <div className="p-3 bg-white border-b border-slate-100 flex items-center gap-3 shadow-sm z-10">
+                <div className="p-3 bg-white border-b border-slate-300 flex items-center gap-3 shadow-sm z-10">
                     <div className="relative">
                         {otherUser.foto_perfil ? (
                             <img
                                 src={otherUser.foto_perfil}
                                 alt={otherUser.nombre}
-                                className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                                className="w-10 h-10 rounded-full object-cover border-2 border-slate-300"
                             />
                         ) : (
-                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-slate-300 text-slate-400">
                                 <UserIcon size={20} />
                             </div>
                         )}
@@ -231,7 +231,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                 <div
                                     className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-sm text-sm ${isMe
                                         ? 'bg-emerald-600 text-white rounded-tr-none'
-                                        : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
+                                        : 'bg-white text-slate-800 rounded-tl-none border-2 border-slate-300'
                                         } ${isTemp ? 'opacity-70' : ''}`}
                                 >
                                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
@@ -256,14 +256,14 @@ export default function MessageThread({ conversationId, userId }: Props) {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-slate-100">
+            <div className="p-4 bg-white border-t border-slate-300">
                 <form onSubmit={handleSend} className="flex gap-2 relative">
                     <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Escribe un mensaje..."
-                        className="flex-1 rounded-full border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-emerald-500 focus:border-emerald-500 transition-shadow outline-none"
+                        className="flex-1 rounded-full border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:ring-emerald-500 focus:border-emerald-500 transition-shadow outline-none"
                     />
                     <button
                         type="submit"

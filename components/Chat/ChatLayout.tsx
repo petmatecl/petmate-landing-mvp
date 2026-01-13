@@ -27,11 +27,11 @@ export default function ChatLayout({ userId, initialConversationId, returnTo, on
     };
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden flex h-[600px] max-h-[80vh]">
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 overflow-hidden flex h-[600px] max-h-[80vh]">
 
             {/* Sidebar List */}
-            <div className={`w-full md:w-80 border-r border-slate-100 flex flex-col ${selectedConversationId ? 'hidden md:flex' : 'flex'}`}>
-                <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <div className={`w-full md:w-80 border-r border-slate-300 flex flex-col ${selectedConversationId ? 'hidden md:flex' : 'flex'}`}>
+                <div className="p-4 border-b border-slate-300 bg-slate-50/50 flex justify-between items-center">
                     <h2 className="font-bold text-slate-800 flex items-center gap-2">
                         <MessageSquare size={18} className="text-emerald-600" />
                         Mensajes
@@ -61,7 +61,7 @@ export default function ChatLayout({ userId, initialConversationId, returnTo, on
                 {selectedConversationId ? (
                     <>
                         {/* Mobile Header */}
-                        <div className="md:hidden p-3 border-b border-slate-100 flex items-center gap-2 bg-white">
+                        <div className="md:hidden p-3 border-b border-slate-300 flex items-center gap-2 bg-white">
                             <button onClick={handleBack} className="text-slate-500 hover:text-slate-900 p-1">
                                 ← Volver
                             </button>

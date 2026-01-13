@@ -68,7 +68,7 @@ export default function DateRangeFilter({ dateRange, onDateRangeChange, placehol
                     className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
                         ${hasSelection
                             ? "bg-slate-900 border-slate-900 text-white"
-                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                            : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"}`}
                 >
                     <CalendarIcon className="w-4 h-4" />
                     <span>{displayText}</span>
@@ -94,7 +94,7 @@ export default function DateRangeFilter({ dateRange, onDateRangeChange, placehol
 
                     {/* Popover posicionado */}
                     <div
-                        className="relative z-50 p-3 bg-white rounded-xl shadow-xl border border-slate-100 animate-in fade-in zoom-in-95 duration-100"
+                        className="relative z-50 p-3 bg-white rounded-xl shadow-xl border-2 border-slate-300 animate-in fade-in zoom-in-95 duration-100"
                         style={{
                             position: "absolute",
                             top: coords.top,

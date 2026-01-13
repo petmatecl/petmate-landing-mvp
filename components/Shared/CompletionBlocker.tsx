@@ -39,7 +39,7 @@ export default function CompletionBlocker({
     }
 
     return (
-        <div className="flex flex-col items-center justify-center p-8 bg-white border border-slate-200 rounded-2xl shadow-sm text-center max-w-2xl mx-auto mt-10">
+        <div className="flex flex-col items-center justify-center p-8 bg-white border-2 border-slate-300 rounded-2xl shadow-sm text-center max-w-2xl mx-auto mt-10">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                 <Lock className="w-8 h-8 text-slate-500" />
             </div>

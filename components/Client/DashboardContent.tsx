@@ -25,7 +25,7 @@ import { createNotification } from "../../lib/notifications";
 
 function TripCardSkeleton() {
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-sm animate-pulse">
+        <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 space-y-4 shadow-sm animate-pulse">
             <div className="flex justify-between items-start">
                 <div className="space-y-3 w-full">
                     <div className="flex items-center gap-2">
@@ -756,7 +756,7 @@ export default function DashboardContent() {
 
 
             {/* TABS NAVIGATION */}
-            <div className="grid grid-cols-2 sm:flex w-full border border-slate-200 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
+            <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-300 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
                 <button
                     onClick={() => setActiveTab('solicitudes')}
                     className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
@@ -946,7 +946,7 @@ export default function DashboardContent() {
 
                     {/* Formulario de Creación / Edición */}
                     {showTripForm && (
-                        <div id="trip-form-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div id="trip-form-section" className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
                             {/* Background Decoration Container - Clipped */}
                             <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16"></div>
@@ -962,7 +962,7 @@ export default function DashboardContent() {
                                         {/* Option 2: Search (Secondary) */}
                                         <button
                                             onClick={handleSearchDirectly}
-                                            className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
+                                            className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-300 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
                                         >
                                             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-sky-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-slate-100">
                                                 <User size={32} />
@@ -1026,7 +1026,7 @@ export default function DashboardContent() {
                                                     Tipo de Servicio
                                                 </label>
                                                 <div className="flex flex-col gap-2 flex-1">
-                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
                                                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
                                                             {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
                                                         </div>
@@ -1036,8 +1036,8 @@ export default function DashboardContent() {
                                                             <span className="text-sm">Domicilio</span>
                                                         </div>
                                                     </label>
-                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
                                                             {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
                                                         </div>
                                                         <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
@@ -1090,7 +1090,7 @@ export default function DashboardContent() {
                                                     </div>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         {addresses.map(addr => (
-                                                            <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-emerald-300 bg-white'}`}>
+                                                            <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-300 hover:border-emerald-300 bg-white'}`}>
                                                                 <div className="mt-0.5">
                                                                     <input
                                                                         type="radio"
@@ -1121,7 +1121,7 @@ export default function DashboardContent() {
 
                                         </div>
 
-                                        <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-100 pt-6">
+                                        <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-300 pt-6">
 
                                             {!editingTripId && (
                                                 <div className="flex-1 w-full md:w-auto text-left">
@@ -1190,7 +1190,7 @@ export default function DashboardContent() {
             {/* TAB: DATOS PERSONALES */}
             {activeTab === 'datos' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 shadow-sm">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-lg font-bold text-slate-900">Datos Personales</h2>
@@ -1245,7 +1245,7 @@ export default function DashboardContent() {
                                         value={profileFormData.nombre}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
                                         placeholder="Tu nombre"
                                     />
                                 </div>
@@ -1257,7 +1257,7 @@ export default function DashboardContent() {
                                         value={profileFormData.apellido_p}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
                                         placeholder="Tu apellido"
                                     />
                                 </div>
@@ -1273,7 +1273,7 @@ export default function DashboardContent() {
                                         value={profileFormData.rut}
                                         onChange={handleRutChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-slate-100 text-slate-500' : 'bg-slate-50'}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-slate-100 text-slate-500' : 'bg-slate-50'}`}
                                         placeholder="12.345.678-9"
                                     />
                                     <p className="text-[10px] text-slate-400 mt-1">El RUT es único por cuenta.</p>
@@ -1288,7 +1288,7 @@ export default function DashboardContent() {
                                         value={profileFormData.telefono}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
+                                        className={`w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
                                         placeholder="+56 9 1234 5678"
                                     />
                                 </div>
@@ -1306,7 +1306,7 @@ export default function DashboardContent() {
             {/* TAB: DIRECCIONES */}
             {activeTab === 'direcciones' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 shadow-sm">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-slate-900">Mis Direcciones</h2>
                             <button onClick={handleAddAddress} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">+ Agregar</button>

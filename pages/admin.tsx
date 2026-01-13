@@ -27,7 +27,7 @@ function AdminDashboardSkeleton() {
                 <Skeleton className="h-10 w-full md:w-96 rounded-xl" />
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-slate-200">
+            <div className="bg-white rounded-3xl p-6 border-2 border-slate-300">
                 <div className="space-y-4">
                     {[...Array(5)].map((_, i) => (
                         <Skeleton key={i} className="h-20 w-full rounded-xl" />
@@ -537,7 +537,7 @@ export default function AdminDashboard() {
 
                 {/* RESUMEN */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-300">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Usuarios</p>
                         <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
                         <div className="flex gap-2 mt-2 text-[10px]">
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
                             <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesPendientes} Pend.</span>
                         </div>
                     </div>
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-300">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
                         <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
                         <div className="flex gap-2 mt-2 text-[10px]">
@@ -566,7 +566,7 @@ export default function AdminDashboard() {
                         <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-300">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
                         <p className="text-3xl font-bold text-sky-600 mt-1">{stats.serviciosRealizados}</p>
                         <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
@@ -577,7 +577,7 @@ export default function AdminDashboard() {
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
 
                     {/* Tabs */}
-                    <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 self-start xl:self-auto overflow-x-auto max-w-full">
+                    <div className="flex bg-white rounded-xl p-1 shadow-sm border-2 border-slate-300 self-start xl:self-auto overflow-x-auto max-w-full">
                         <button
                             onClick={() => setActiveTab("sitter")}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "sitter" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
@@ -605,7 +605,7 @@ export default function AdminDashboard() {
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value as any)}
-                            className="h-10 px-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
+                            className="h-10 px-3 rounded-xl border-2 border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
                         >
                             <option value="all">Todos los Estados</option>
                             {activeTab === "solicitudes" ? (
@@ -631,7 +631,7 @@ export default function AdminDashboard() {
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    className="h-10 px-2 rounded-lg border-2 border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
                                     placeholder="Desde"
                                 />
                             </div>
@@ -640,7 +640,7 @@ export default function AdminDashboard() {
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="h-10 px-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    className="h-10 px-2 rounded-lg border-2 border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
                                     placeholder="Hasta"
                                 />
                             </div>
@@ -660,7 +660,7 @@ export default function AdminDashboard() {
                                 placeholder="Buscar..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="h-10 w-full pl-10 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                                className="h-10 w-full pl-10 pr-4 rounded-xl border-2 border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                             />
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
                         </div>
@@ -668,7 +668,7 @@ export default function AdminDashboard() {
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value as any)}
-                            className="h-10 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
+                            className="h-10 px-4 rounded-xl border-2 border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
                         >
                             <option value="newest">Más recientes</option>
                             <option value="oldest">Más antiguos</option>
@@ -679,7 +679,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* TABLA DE RESULTADOS */}
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+                <div className="bg-white rounded-3xl shadow-sm border-2 border-slate-300 overflow-hidden mb-6">
 
                     {/* MOBILE CARDS VIEW (Visible < md) */}
                     <div className="md:hidden divide-y divide-slate-100">
@@ -764,7 +764,7 @@ export default function AdminDashboard() {
                                                         <span className="font-medium text-slate-700">{item.sitter?.nombre ? `${item.sitter.nombre} ${item.sitter.apellido_p}` : '--'}</span>
                                                     </div>
                                                 </div>
-                                                <div className="pt-2 border-t border-slate-200 mt-2">
+                                                <div className="pt-2 border-t border-slate-300 mt-2">
                                                     <span className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Fechas</span>
                                                     <div className="flex justify-between text-slate-700">
                                                         <span>{item.fecha_inicio}</span>
@@ -989,7 +989,7 @@ export default function AdminDashboard() {
                                                             <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
                                                         </div>
                                                         {item.rut && (
-                                                            <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-100 pt-1 mt-1">
+                                                            <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-300 pt-1 mt-1">
                                                                 <span className="text-slate-400">RUT:</span> {item.rut}
                                                             </div>
                                                         )}
@@ -1071,11 +1071,11 @@ export default function AdminDashboard() {
 
                     {/* PAGINACIÓN */}
                     {totalPages > 1 && (
-                        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
+                        <div className="px-6 py-4 border-t border-slate-300 flex items-center justify-between bg-white">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 border-2 border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Anterior
                             </button>
@@ -1085,7 +1085,7 @@ export default function AdminDashboard() {
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 border-2 border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Siguiente
                             </button>

@@ -131,8 +131,8 @@ export default function NotificationBell() {
                         onClick={() => setIsOpen(false)}
                     />
 
-                    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
                             <h3 className="font-bold text-slate-900">Notificaciones</h3>
                             {unreadCount > 0 && (
                                 <button
@@ -175,7 +175,7 @@ export default function NotificationBell() {
                             )}
                         </div>
 
-                        <div className="p-2 border-t border-slate-100 bg-slate-50/50 text-center">
+                        <div className="p-2 border-t border-slate-300 bg-slate-50/50 text-center">
                             <Link href="/notificaciones" className="text-xs font-bold text-slate-600 hover:text-emerald-600">
                                 Ver todas
                             </Link>

@@ -168,10 +168,10 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                                 <img
                                     src={other.foto_perfil}
                                     alt={other.nombre}
-                                    className="w-12 h-12 rounded-full object-cover border border-slate-200"
+                                    className="w-12 h-12 rounded-full object-cover border-2 border-slate-300"
                                 />
                             ) : (
-                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400">
+                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border-2 border-slate-300 text-slate-400">
                                     <User size={20} />
                                 </div>
                             )}

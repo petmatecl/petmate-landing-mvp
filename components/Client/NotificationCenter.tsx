@@ -132,8 +132,8 @@ export default function NotificationCenter({ userId }: Props) {
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-3 border-b border-slate-300 flex justify-between items-center bg-slate-50">
                             <h3 className="text-sm font-bold text-slate-900">Notificaciones</h3>
                             {unreadCount > 0 && (
                                 <button onClick={markAllAsRead} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">

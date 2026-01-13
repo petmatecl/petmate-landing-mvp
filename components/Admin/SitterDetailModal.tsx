@@ -73,7 +73,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative flex flex-col z-50">
                 {/* Header */}
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div className="p-4 border-b border-slate-300 flex justify-between items-center bg-slate-50">
                     <h3 className="font-bold text-lg text-slate-800">Detalle del Cuidador</h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,7 +110,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                         {/* Left Col: Photo & Main Info */}
                         <div className="md:col-span-4 space-y-6">
                             <div className="text-center">
-                                <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-slate-100 shadow-sm mb-3">
+                                <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-slate-300 shadow-sm mb-3">
                                     {sitter.foto_perfil ? (
                                         <Image
                                             src={sitter.foto_perfil}
@@ -135,7 +135,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 </div>
                             </div>
 
-                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3 text-sm">
+                            <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-300 space-y-3 text-sm">
                                 <div>
                                     <span className="block text-xs font-bold text-slate-400 uppercase">RUT</span>
                                     <span className="text-slate-700 font-medium">{sitter.rut || "No informado"}</span>
@@ -161,7 +161,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
                             {/* Social Media */}
                             {sitter.redes_sociales && Object.values(sitter.redes_sociales).some(v => v) && (
-                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-300">
                                     <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Redes Sociales</span>
                                     <div className="flex flex-col gap-2">
                                         {sitter.redes_sociales.instagram && (
@@ -215,7 +215,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
                             {/* Bio */}
                             <div>
-                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-100 pb-2 mb-3">Sobre mí</h4>
+                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Sobre mí</h4>
                                 <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
                                     {sitter.descripcion || "Sin descripción."}
                                 </p>
@@ -224,12 +224,12 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Occupation / Student */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-100 pb-2 mb-3">Ocupación</h4>
+                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Ocupación</h4>
                                     <p className="text-sm text-slate-600">{sitter.ocupacion}</p>
                                     {/* Student fields display removed */}
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-100 pb-2 mb-3">Mascotas</h4>
+                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Mascotas</h4>
                                     <p className="text-sm text-slate-600">
                                         {sitter.tiene_mascotas ? "Tiene mascotas propias" : "No tiene mascotas"}
                                     </p>
@@ -245,7 +245,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
                             {/* Services */}
                             <div>
-                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-100 pb-2 mb-3">Servicios & Tarifas</h4>
+                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Servicios & Tarifas</h4>
                                 <div className="flex flex-wrap gap-2">
                                     {sitter.cuida_perros && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">🐶 Perros</span>}
                                     {sitter.cuida_gatos && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">🐱 Gatos</span>}
@@ -269,10 +269,10 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Gallery */}
                             {sitter.galeria && sitter.galeria.length > 0 && (
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-100 pb-2 mb-3">Galería ({sitter.galeria.length})</h4>
+                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Galería ({sitter.galeria.length})</h4>
                                     <div className="grid grid-cols-4 gap-2">
                                         {sitter.galeria.map((img, idx) => (
-                                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300">
                                                 <Image src={img} alt="Galeria" fill className="object-cover" unoptimized />
                                             </div>
                                         ))}
@@ -285,10 +285,10 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
+                <div className="p-4 border-t border-slate-300 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 font-bold text-sm hover:bg-slate-50"
+                        className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-bold text-sm hover:bg-slate-50"
                     >
                         Cerrar
                     </button>

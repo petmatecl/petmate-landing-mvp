@@ -146,7 +146,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
                     <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <span className="p-2 bg-rose-100 text-rose-600 rounded-lg">
                             <Users size={20} />
@@ -212,7 +212,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                                                 </div>
 
                                                 {app.mensaje && (
-                                                    <div className="mt-3 bg-slate-50 p-3 rounded-lg text-sm text-slate-600 italic border border-slate-100 relative">
+                                                    <div className="mt-3 bg-slate-50 p-3 rounded-lg text-sm text-slate-600 italic border-2 border-slate-300 relative">
                                                         <MessageCircle size={14} className="absolute -top-2 -left-1 bg-white text-slate-400" />
                                                         &quot;{app.mensaje}&quot;
                                                     </div>
@@ -237,7 +237,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex flex-col justify-center gap-2 min-w-[140px] border-l border-slate-100 pl-0 md:pl-4 mt-4 md:mt-0">
+                                        <div className="flex flex-col justify-center gap-2 min-w-[140px] border-l border-slate-300 pl-0 md:pl-4 mt-4 md:mt-0">
                                             <button
                                                 onClick={() => confirmAccept(app)}
                                                 disabled={!!processingId}

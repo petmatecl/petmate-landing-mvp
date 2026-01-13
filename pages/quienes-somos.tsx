@@ -89,7 +89,7 @@ export default function QuienesSomos() {
                     </div>
 
                     {/* CTA */}
-                    <div className="mx-auto max-w-2xl text-center mt-16 pt-10 border-t border-slate-200">
+                    <div className="mx-auto max-w-2xl text-center mt-16 pt-10 border-t border-slate-300">
                         <h3 className="text-2xl font-bold text-slate-900">¿Te identificas con nuestra historia?</h3>
                         <div className="mt-6 flex items-center justify-center gap-x-6">
                             <Link

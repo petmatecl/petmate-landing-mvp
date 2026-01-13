@@ -101,7 +101,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
             <div className="relative">
                 <input
                     type="text"
-                    className="w-full text-sm rounded-lg px-3 py-2 border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all pl-9"
+                    className="w-full text-sm rounded-lg px-3 py-2 border-2 border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all pl-9"
                     placeholder={placeholder}
                     value={query}
                     onChange={handleInput}
@@ -123,7 +123,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
             </div>
 
             {isOpen && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white rounded-xl shadow-xl border border-slate-200 max-h-60 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white rounded-xl shadow-xl border-2 border-slate-300 max-h-60 overflow-y-auto">
                     {results.map((result, idx) => (
                         <button
                             key={idx}

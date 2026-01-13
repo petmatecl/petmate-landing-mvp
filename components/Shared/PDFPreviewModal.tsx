@@ -22,7 +22,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50">
                     <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                         <FileText className="text-emerald-600" size={20} />
                         {title}
@@ -55,7 +55,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                 </div>
                 {/* Mobile Footer for Download */}
                 {onDownload && (
-                    <div className="sm:hidden p-4 border-t border-slate-100 bg-white">
+                    <div className="sm:hidden p-4 border-t border-slate-300 bg-white">
                         <button
                             onClick={onDownload}
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors"

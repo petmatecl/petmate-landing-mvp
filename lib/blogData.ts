@@ -73,7 +73,7 @@ const RAW_POSTS: BlogPost[] = [
                 ¿Sabías que los animales de pelaje blanco o muy corto pueden sufrir quemaduras solares? Consulta con tu veterinario sobre protectores solares aptos para mascotas y aplícalos en <strong>orejas y nariz</strong>.
             </p>
 
-            <div class="bg-gray-50 border border-gray-200 p-5 rounded-xl my-8 flex gap-4 items-start">
+            <div class="bg-gray-50 border-2 border-slate-300 p-5 rounded-xl my-8 flex gap-4 items-start">
                 <svg class="w-6 h-6 text-emerald-600 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <div>
                     <strong class="block text-slate-900 text-lg mb-1">Consejo Profesional</strong> 
@@ -81,7 +81,7 @@ const RAW_POSTS: BlogPost[] = [
                 </div>
             </div>
 
-            <div class="mt-12 pt-8 border-t border-slate-200">
+            <div class="mt-12 pt-8 border-t border-slate-300">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
@@ -175,7 +175,7 @@ const RAW_POSTS: BlogPost[] = [
                 Los perros <strong>braquicéfalos</strong> (ñatos) como <em>Pugs, Bulldogs y Boxers</em> tienen mayor dificultad para jadear y enfriarse, por lo que requieren cuidados extremos y vigilancia constante en días calurosos.
             </p>
 
-            <div class="mt-12 pt-8 border-t border-slate-200">
+            <div class="mt-12 pt-8 border-t border-slate-300">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                  <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
@@ -312,7 +312,7 @@ const RAW_POSTS: BlogPost[] = [
                 </li>
             </ul>
 
-            <div class="mt-12 pt-8 border-t border-slate-200">
+            <div class="mt-12 pt-8 border-t border-slate-300">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
@@ -432,11 +432,11 @@ const RAW_POSTS: BlogPost[] = [
                 Especialmente en el caso de los perros, la necesidad de paseos diarios motiva a sus dueños a mantenerse activos. Estudios demuestran que los dueños de perros caminan en promedio <strong>30 minutos más a la semana</strong> que quienes no tienen mascota.
             </p>
             <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-600 mb-8">
-                <li class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                <li class="bg-white p-4 rounded-lg shadow-sm border-2 border-slate-300">
                     <strong class="block text-slate-900 mb-1">Presión Arterial</strong>
                     Tener mascota se asocia con niveles más bajos de presión arterial y colesterol.
                 </li>
-                <li class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                <li class="bg-white p-4 rounded-lg shadow-sm border-2 border-slate-300">
                     <strong class="block text-slate-900 mb-1">Inmunidad en Niños</strong>
                     Crecer con mascotas puede fortalecer el sistema inmune y reducir el riesgo de alergias futuras.
                 </li>
@@ -450,7 +450,7 @@ const RAW_POSTS: BlogPost[] = [
                 Las mascotas son excelentes "rompehielos". Salir a pasear o visitar el veterinario crea oportunidades naturales para interactuar con vecinos y otros dueños de mascotas, fortaleciendo el tejido social de la comunidad.
             </p>
 
-            <div class="mt-12 pt-8 border-t border-slate-200">
+            <div class="mt-12 pt-8 border-t border-slate-300">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
@@ -544,7 +544,7 @@ const RAW_POSTS: BlogPost[] = [
                 Si tu mascota no tiene problemas graves de ansiedad por separación que requieran vigilancia médica constante, <strong>la opción "en casa" es el estándar de oro para su bienestar mental y físico.</strong> Al regresar, encontrarás a un amigo relajado que te espera en su sillón favorito, no a uno estresado por una "vacaciones" forzadas en un lugar extraño.
             </p>
 
-            <div class="mt-12 pt-8 border-t border-slate-200">
+            <div class="mt-12 pt-8 border-t border-slate-300">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
@@ -630,7 +630,7 @@ const RAW_POSTS: BlogPost[] = [
                 Si buscas lo mejor de los dos mundos (seguridad y atención), un <strong>Pet Sitter verificado en Pawnecta</strong> ofrece la ventaja de mantener a tu mascota en su entorno (o en un hogar real), reduciendo el estrés a casi cero y garantizando atención exclusiva.
             </p>
 
-             <div class="mt-12 pt-8 border-t border-slate-200">
+             <div class="mt-12 pt-8 border-t border-slate-300">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">

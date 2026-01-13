@@ -213,7 +213,7 @@ export default function PetForm({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="relative space-y-6 max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+        <form onSubmit={handleSubmit} className="relative space-y-6 max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border-2 border-slate-300">
 
             {/* Close Button */}
             <button
@@ -228,7 +228,7 @@ export default function PetForm({
             {/* Header / Foto */}
             <div className="flex flex-col items-center gap-4 mb-6">
                 <div className="relative w-32 h-32">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-100 shadow-sm bg-slate-50 relative">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-300 shadow-sm bg-slate-50 relative">
                         {fotoMascota ? (
                             <img
                                 src={fotoMascota}
@@ -265,7 +265,7 @@ export default function PetForm({
                     <label className="block text-center text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Galería Adicional (Máx 3)</label>
                     <div className="flex justify-center gap-3">
                         {fotosGaleria.map((url, idx) => (
-                            <div key={idx} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                            <div key={idx} className="relative group w-20 h-20 rounded-lg overflow-hidden border-2 border-slate-300 shadow-sm">
                                 <img src={url} alt={`Galeria ${idx} `} className="w-full h-full object-cover" />
                                 <button
                                     type="button"
@@ -301,14 +301,14 @@ export default function PetForm({
                         <button
                             type="button"
                             onClick={() => setTipo("perro")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${tipo === "perro" ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-500" : "border-slate-200 text-slate-600 hover:bg-slate-50"} `}
+                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${tipo === "perro" ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
                         >
                             🐶 Perro
                         </button>
                         <button
                             type="button"
                             onClick={() => setTipo("gato")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${tipo === "gato" ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-500" : "border-slate-200 text-slate-600 hover:bg-slate-50"} `}
+                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${tipo === "gato" ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
                         >
                             🐱 Gato
                         </button>
@@ -322,14 +322,14 @@ export default function PetForm({
                         <button
                             type="button"
                             onClick={() => setSexo("macho")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${sexo === "macho" ? "border-blue-500 bg-blue-50 text-blue-700 font-bold ring-1 ring-blue-500" : "border-slate-200 text-slate-600 hover:bg-slate-50"} `}
+                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${sexo === "macho" ? "border-blue-500 bg-blue-50 text-blue-700 font-bold ring-1 ring-blue-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
                         >
                             ♂ Macho
                         </button>
                         <button
                             type="button"
                             onClick={() => setSexo("hembra")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${sexo === "hembra" ? "border-pink-500 bg-pink-50 text-pink-700 font-bold ring-1 ring-pink-500" : "border-slate-200 text-slate-600 hover:bg-slate-50"} `}
+                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${sexo === "hembra" ? "border-pink-500 bg-pink-50 text-pink-700 font-bold ring-1 ring-pink-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
                         >
                             ♀ Hembra
                         </button>
@@ -352,7 +352,7 @@ export default function PetForm({
                                     key={sizeOpt.id}
                                     type="button"
                                     onClick={() => setTamano(sizeOpt.id as any)}
-                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${tamano === sizeOpt.id ? "border-slate-800 bg-slate-100 text-slate-900 font-bold ring-1 ring-slate-800" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${tamano === sizeOpt.id ? "border-slate-800 bg-slate-100 text-slate-900 font-bold ring-1 ring-slate-800" : "border-slate-300 text-slate-500 hover:bg-slate-50"}`}
                                 >
                                     <div className="h-8 flex items-center justify-center mb-1">
                                         <Dog
@@ -376,14 +376,14 @@ export default function PetForm({
             {/* Nombre */}
             <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Nombre</label>
-                <input required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Firulais" className="w-full h-12 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                <input required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Firulais" className="w-full h-12 px-4 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
             </div>
 
             {/* Raza y F. Nacimiento */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Raza (Opcional)</label>
-                    <input value={raza} onChange={(e) => setRaza(e.target.value)} placeholder="Ej. Golden Retriever" className="w-full h-12 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                    <input value={raza} onChange={(e) => setRaza(e.target.value)} placeholder="Ej. Golden Retriever" className="w-full h-12 px-4 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
                 </div>
                 <div className="flex flex-col">
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Fecha de Nacimiento</label>
@@ -398,8 +398,8 @@ export default function PetForm({
             </div>
 
             {/* Salud y Chip */}
-            <div className="bg-slate-50 p-6 rounded-2xl space-y-6 border border-slate-100">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
+            <div className="bg-slate-50 p-6 rounded-2xl space-y-6 border-2 border-slate-300">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-300 pb-2">
                     🏥 Salud e Identificación
                 </h3>
 
@@ -428,7 +428,7 @@ export default function PetForm({
                             maxLength={15}
                             onChange={(e) => setChipId(e.target.value.slice(0, 15))}
                             placeholder="Ingrese ID del Chip (Obligatorio)"
-                            className="w-full h-11 px-3 bg-white rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none animate-in fade-in slide-in-from-top-1"
+                            className="w-full h-11 px-3 bg-white rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none animate-in fade-in slide-in-from-top-1"
                         />
                     )}
                 </div>
@@ -441,7 +441,7 @@ export default function PetForm({
                         onChange={(e) => setEnfermedades(e.target.value)}
                         placeholder="Alergias, condiciones crónicas, etc."
                         rows={3}
-                        className="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none resize-none text-sm bg-white"
+                        className="w-full p-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none resize-none text-sm bg-white"
                     />
                 </div>
             </div>
@@ -474,11 +474,11 @@ export default function PetForm({
                     onChange={(e) => setDescripcion(e.target.value)}
                     placeholder="Cuéntanos sobre su personalidad, gustos, etc."
                     rows={4}
-                    className="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
+                    className="w-full p-4 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
                 />
             </div>
 
-            <div className="flex gap-4 pt-6 border-t border-slate-100">
+            <div className="flex gap-4 pt-6 border-t border-slate-300">
 
                 <button
                     type="button"

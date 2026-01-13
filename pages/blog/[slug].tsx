@@ -85,10 +85,10 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                 </div>
 
                 {/* Article Card - Paper Style */}
-                <article className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100 overflow-hidden mb-16">
+                <article className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border-2 border-slate-300 overflow-hidden mb-16">
 
                     {/* Header */}
-                    <header className="mb-10 text-center md:text-left border-b border-slate-100 pb-10">
+                    <header className="mb-10 text-center md:text-left border-b border-slate-300 pb-10">
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
                             {post.tags.map(tag => (
                                 <span key={tag} className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 uppercase tracking-wide">
@@ -120,7 +120,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     </header>
 
                     {/* Featured Image */}
-                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-12 shadow-sm border border-slate-100">
+                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-12 shadow-sm border-2 border-slate-300">
                         <Image
                             src={post.coverImage}
                             alt={post.title}
@@ -144,7 +144,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     />
 
                     {/* Share / Footer of Article */}
-                    <div className="mt-16 pt-8 border-t border-slate-100 flex items-center justify-between text-slate-400 text-sm">
+                    <div className="mt-16 pt-8 border-t border-slate-300 flex items-center justify-between text-slate-400 text-sm">
                         <span>Compartir este artículo</span>
                         <div className="flex gap-4">
                             <ShareButton title={post.title} text={post.excerpt} />
@@ -154,12 +154,12 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
 
                 {/* Related Articles Section */}
                 {relatedPosts.length > 0 && (
-                    <section className="border-t border-slate-200 pt-16 mt-16">
+                    <section className="border-t border-slate-300 pt-16 mt-16">
                         <h2 className="text-2xl font-bold text-slate-900 mb-8">Te podría interesar</h2>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {relatedPosts.map((relatedPost) => (
                                 <Link href={`/blog/${relatedPost.slug}`} key={relatedPost.id} className="group">
-                                    <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300">
+                                    <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300">
                                         {/* Image */}
                                         <div className="relative h-48 overflow-hidden">
                                             <Image

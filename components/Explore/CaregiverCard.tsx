@@ -77,7 +77,7 @@ export default function CaregiverCard({
 
     return (
         <>
-            <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all hover:shadow-lg hover:border-emerald-200">
+            <div className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white transition-all hover:shadow-lg hover:border-emerald-200">
                 {/* Imagen */}
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <Image
@@ -128,7 +128,7 @@ export default function CaregiverCard({
                         {/* Simpler icons if desired, mostly text focused */}
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-300 pt-3">
                         <div className="flex flex-col">
                             <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Desde</span>
                             <span className="text-sm font-bold text-slate-900">
@@ -138,7 +138,7 @@ export default function CaregiverCard({
 
                         <button
                             onClick={handleProfileClick}
-                            className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all"
+                            className="rounded-lg border-2 border-slate-300 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all"
                         >
                             Ver perfil
                         </button>
@@ -190,7 +190,7 @@ export default function CaregiverCard({
 
                                 <Link
                                     href="/login"
-                                    className="flex w-full items-center justify-center rounded-xl border-2 border-slate-100 bg-white py-3.5 text-base font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-200 transition-all"
+                                    className="flex w-full items-center justify-center rounded-xl border-2 border-slate-300 bg-white py-3.5 text-base font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all"
                                 >
                                     Ya tengo cuenta, ingresar
                                 </Link>

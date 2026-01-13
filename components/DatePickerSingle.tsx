@@ -93,7 +93,7 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
 
                     {/* Popover posicionado */}
                     <div
-                        className="relative z-50 p-3 bg-white rounded-xl shadow-xl border border-slate-100 animate-in fade-in zoom-in-95 duration-100"
+                        className="relative z-50 p-3 bg-white rounded-xl shadow-xl border-2 border-slate-300 animate-in fade-in zoom-in-95 duration-100"
                         style={{
                             position: "absolute",
                             top: coords.top,
@@ -120,7 +120,7 @@ export default function DatePickerSingle({ value, onChange, disabled, maxDate, v
                                 caption: "flex justify-center pt-1 relative items-center mb-2 px-10",
                                 caption_label: "hidden",
                                 caption_dropdowns: "flex justify-center gap-1",
-                                dropdown: "bg-white border border-slate-200 text-slate-700 text-sm rounded p-1 cursor-pointer hover:bg-slate-50 outline-none",
+                                dropdown: "bg-white border-2 border-slate-300 text-slate-700 text-sm rounded p-1 cursor-pointer hover:bg-slate-50 outline-none",
                                 dropdown_month: "mr-1",
                                 dropdown_year: "ml-1",
                                 nav: "space-x-1 flex items-center",

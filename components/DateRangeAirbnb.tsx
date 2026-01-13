@@ -56,7 +56,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-left shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full rounded-xl border-2 border-slate-300 bg-white px-3 py-2 text-left shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         >
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="flex flex-col">
@@ -67,7 +67,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
                 {fmt(from) || "Añadir fecha"}
               </span>
             </div>
-            <div className="flex flex-col border-l border-slate-200 pl-3">
+            <div className="flex flex-col border-l border-slate-300 pl-3">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 Fin
               </span>
@@ -106,7 +106,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
               </div>
               <button
                 type="button"
-                className="h-8 w-8 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100"
+                className="h-8 w-8 rounded-full border-2 border-slate-300 text-slate-600 hover:bg-slate-100"
                 onClick={() => setOpen(false)}
                 aria-label="Cerrar"
               >
@@ -166,10 +166,10 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-2 pb-2 pt-1 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 px-2 pb-2 pt-1 border-t border-slate-300">
               <button
                 type="button"
-                className="h-9 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-700 hover:bg-slate-50"
+                className="h-9 rounded-lg border-2 border-slate-300 bg-white px-4 text-sm text-slate-700 hover:bg-slate-50"
                 onClick={clear}
               >
                 Limpiar

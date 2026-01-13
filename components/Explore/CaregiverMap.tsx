@@ -133,7 +133,7 @@ export default function CaregiverMap({ sitters, isAuthenticated }: CaregiverMapP
     if (!mounted) return null;
 
     return (
-        <div className={`h-[600px] w-full rounded-3xl overflow-hidden border border-slate-200 shadow-lg relative bg-slate-50 ${!isAuthenticated ? 'blur-sm' : ''}`}>
+        <div className={`h-[600px] w-full rounded-3xl overflow-hidden border-2 border-slate-300 shadow-lg relative bg-slate-50 ${!isAuthenticated ? 'blur-sm' : ''}`}>
             {!isAuthenticated && (
                 <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-white/30 backdrop-blur-sm pointer-events-none">
                     {/* Overlay handled by parent mostly, but let's keep interactions blocked */}

@@ -333,7 +333,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                         {/* Columna Izquierda: Tarjeta Principal (4 columnas) */}
                         <div className="md:col-span-4 lg:col-span-4">
                             {/* CARD 1: Identidad */}
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
+                            <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 mb-4">
                                 <div className="flex flex-col items-center text-center">
                                     <div className="relative w-32 h-32 mb-4 group">
                                         <Image
@@ -365,7 +365,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                             </div>
 
                             {/* CARD 2: Servicios y Acción */}
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-20">
+                            <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sticky top-20">
                                 <div className="text-left w-full space-y-3 text-sm">
                                     <div className="flex justify-between items-center border-b border-slate-50 pb-3 mb-3">
                                         <span className="text-slate-500 font-medium">Hospedaje</span>
@@ -393,7 +393,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                 <div className="mt-3">
                                     <ContactSitterButton
                                         sitterId={petmate.auth_user_id} // Use auth_user_id for chat, as conversations link to auth.users
-                                        className="w-full btn-secondary py-3 flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors rounded-xl font-bold text-slate-700"
+                                        className="w-full btn-secondary py-3 flex items-center justify-center gap-2 border-2 border-slate-300 hover:bg-slate-50 transition-colors rounded-xl font-bold text-slate-700"
                                         label="Enviar Mensaje"
                                         currentUserId={currentUserId}
                                     />
@@ -402,7 +402,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 
                                 {/* Redes Sociales */}
                                 {hasSocials && (
-                                    <div className="mt-6 pt-6 border-t border-slate-100 w-full text-center">
+                                    <div className="mt-6 pt-6 border-t border-slate-300 w-full text-center">
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Sígueme en</p>
                                         <div className="flex justify-center gap-4">
                                             {petmate.redes_sociales?.instagram && (
@@ -478,7 +478,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                             )}
 
                             {/* Sobre mí */}
-                            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
                                 <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                                     Sobre mí
                                 </h2>
@@ -492,7 +492,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 
                             {/* Videos Section */}
                             {petmate.videos && petmate.videos.length > 0 && (
-                                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
                                     <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                                         Videos
                                         <span className="text-xs font-normal text-white bg-rose-500 px-2 py-0.5 rounded-full">NUEVO</span>
@@ -527,7 +527,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 
                             {/* Detalles del Hogar (Solo si tiene hospedaje o cuidado en casa) */}
                             {(petmate.tipo_vivienda || petmate.dimensiones_vivienda) && (
-                                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
                                     <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                                         <Home className="text-emerald-500" />
                                         Espacio y Hogar
@@ -561,11 +561,11 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                         </div>
 
                                         <div className="space-y-3">
-                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-100 text-slate-400 opacity-60'}`}>
+                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
                                                 {petmate.tiene_patio ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
                                                 <span className="font-medium">Patio o Jardín</span>
                                             </div>
-                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-100 text-slate-400 opacity-60'}`}>
+                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
                                                 {petmate.tiene_malla ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
                                                 <span className="font-medium">Mallas de Seguridad</span>
                                             </div>
@@ -576,7 +576,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                     {petmate.fotos_vivienda && petmate.fotos_vivienda.length > 0 && (
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                                             {petmate.fotos_vivienda.map((foto, i) => (
-                                                <div key={i} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer group">
+                                                <div key={i} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border-2 border-slate-300 hover:shadow-md transition-shadow cursor-pointer group">
                                                     <Image src={foto} alt={`Foto hogar ${i}`} fill className="object-cover group-hover:scale-105 transition-transform" />
                                                 </div>
                                             ))}
@@ -586,12 +586,12 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                             )}
 
                             {/* Location Map Section */}
-                            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
                                 <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                                     Ubicación Aproximada
                                 </h2>
                                 {petmate.latitud && petmate.longitud ? (
-                                    <div className="rounded-xl overflow-hidden border border-slate-200">
+                                    <div className="rounded-xl overflow-hidden border-2 border-slate-300">
                                         <LocationMap
                                             lat={petmate.latitud}
                                             lng={petmate.longitud}
@@ -600,7 +600,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                         />
                                     </div>
                                 ) : (
-                                    <div className="p-8 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                                    <div className="p-8 bg-slate-50 rounded-xl border-2 border-slate-300 text-center">
                                         <p className="text-slate-500">
                                             {petmate.comuna ? `Este sitter se encuentra en ${petmate.comuna}, ${petmate.region || ''}.` : "Ubicación no especificada."}
                                         </p>
@@ -610,7 +610,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 
                             {/* Galería */}
                             {petmate.galeria && petmate.galeria.length > 0 && (
-                                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
                                     <h2 className="text-xl font-bold text-slate-900 mb-6">Galería de Fotos</h2>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {petmate.galeria.map((foto, index) => (
@@ -623,7 +623,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                             )}
 
                             {/* Información Adicional (Grid) */}
-                            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
                                 <h2 className="text-xl font-bold text-slate-900 mb-6">Detalles</h2>
                                 <div className="grid sm:grid-cols-2 gap-y-6 gap-x-12">
                                     <div>
@@ -649,7 +649,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                             </section>
 
                             {/* Sección de Reseñas */}
-                            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                         Reseñas <span className="text-sm font-normal text-slate-500">({reviews.length})</span>

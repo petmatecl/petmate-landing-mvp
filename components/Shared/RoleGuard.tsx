@@ -80,7 +80,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     if (!authorized) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-                <div className="bg-white max-w-md w-full rounded-2xl shadow-xl p-8 text-center border border-slate-200">
+                <div className="bg-white max-w-md w-full rounded-2xl shadow-xl p-8 text-center border-2 border-slate-300">
                     <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
                         ⚠️
                     </div>

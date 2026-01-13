@@ -160,7 +160,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                     <header className="mb-6 sm:mb-8 flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             {/* Mobile Avatar */}
-                            <div className="md:hidden relative w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-white shrink-0">
+                            <div className="md:hidden relative w-10 h-10 rounded-full overflow-hidden border-2 border-slate-300 bg-white shrink-0">
                                 {clientProfile?.foto_perfil ? (
                                     <Image
                                         src={clientProfile.foto_perfil}
@@ -198,7 +198,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
                         {/* SIDEBAR */}
                         <aside className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm overflow-hidden">
                                 <div className="h-24 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                                 <div className="px-6 pb-6 text-center -mt-12 relative">
                                     <div className="relative w-24 h-24 mx-auto">
@@ -221,7 +221,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                                             )}
                                         </div>
 
-                                        <label className="absolute bottom-0 right-0 p-1.5 bg-white border border-slate-200 rounded-full shadow-sm cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors z-10">
+                                        <label className="absolute bottom-0 right-0 p-1.5 bg-white border-2 border-slate-300 rounded-full shadow-sm cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors z-10">
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -260,7 +260,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                                 </div>
 
                                 {/* Navigation Links (Active state logic could be added) */}
-                                <nav className="border-t border-slate-100 p-2">
+                                <nav className="border-t border-slate-300 p-2">
                                     <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors">
                                         <LogOut size={18} />
                                         Cerrar Sesión

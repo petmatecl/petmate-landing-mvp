@@ -16,7 +16,7 @@ export default function BlogIndex() {
 
             <main className="pt-24 pb-20">
                 {/* Hero Section */}
-                <div className="bg-slate-50 py-16 mb-16 border-b border-slate-100">
+                <div className="bg-slate-50 py-16 mb-16 border-b border-slate-300">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                         <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm mb-4">
                             Blog Pawnecta
@@ -37,7 +37,7 @@ export default function BlogIndex() {
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
                         {BLOG_POSTS.map((post) => (
                             <Link href={`/blog/${post.slug}`} key={post.id} className="group">
-                                <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300">
+                                <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300">
                                     {/* Image */}
                                     <div className="relative h-64 overflow-hidden">
                                         <Image

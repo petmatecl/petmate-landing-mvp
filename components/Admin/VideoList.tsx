@@ -59,7 +59,7 @@ export default function VideoList() {
                         placeholder="Buscar sitter..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none w-full sm:w-64"
+                        className="pl-10 pr-4 py-2 border-2 border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none w-full sm:w-64"
                     />
                     <Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
                 </div>
@@ -68,7 +68,7 @@ export default function VideoList() {
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm animate-pulse">
+                        <div key={i} className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-sm animate-pulse">
                             <Skeleton className="h-40 w-full rounded-lg mb-4" />
                             <div className="flex items-center gap-3">
                                 <Skeleton className="h-10 w-10 rounded-full" />
@@ -83,13 +83,13 @@ export default function VideoList() {
             ) : (
                 <>
                     {filteredSitters.length === 0 ? (
-                        <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-slate-300">
                             <p className="text-slate-500">No se encontraron videos.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredSitters.map(sitter => (
-                                <div key={sitter.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+                                <div key={sitter.id} className="bg-white rounded-2xl border-2 border-slate-300 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
                                     {/* Video Thumbnail / Player */}
                                     <div className="relative bg-slate-900 aspect-video group">
                                         <video
@@ -119,7 +119,7 @@ export default function VideoList() {
                                     <div className="p-4">
                                         <div className="flex items-center gap-3 mb-2">
                                             {sitter.foto_perfil ? (
-                                                <img src={sitter.foto_perfil} alt={sitter.nombre} className="w-10 h-10 rounded-full object-cover border border-slate-100" />
+                                                <img src={sitter.foto_perfil} alt={sitter.nombre} className="w-10 h-10 rounded-full object-cover border-2 border-slate-300" />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                                                     <User size={20} />
