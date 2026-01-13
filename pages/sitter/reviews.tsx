@@ -121,7 +121,7 @@ export default function SitterReviewsPage() {
 
                                     <div className="pl-13 ml-13">
                                         <p className="text-slate-600 text-sm italic border-l-4 border-slate-100 pl-4 py-1">
-                                            "{review.comentario}"
+                                            &quot;{review.comentario}&quot;
                                         </p>
                                     </div>
                                 </div>

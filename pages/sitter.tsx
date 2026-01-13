@@ -1574,7 +1574,7 @@ export default function SitterDashboardPage() {
                                                                 })()}
                                                             </div>
                                                             {app.mensaje && (
-                                                                <p className="text-xs text-slate-600 italic">"{app.mensaje}"</p>
+                                                                <p className="text-xs text-slate-600 italic">&quot;{app.mensaje}&quot;</p>
                                                             )}
                                                         </div>
                                                         <div className="text-right">

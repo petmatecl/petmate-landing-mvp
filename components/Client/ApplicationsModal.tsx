@@ -214,7 +214,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                                                 {app.mensaje && (
                                                     <div className="mt-3 bg-slate-50 p-3 rounded-lg text-sm text-slate-600 italic border border-slate-100 relative">
                                                         <MessageCircle size={14} className="absolute -top-2 -left-1 bg-white text-slate-400" />
-                                                        "{app.mensaje}"
+                                                        &quot;{app.mensaje}&quot;
                                                     </div>
                                                 )}
 
