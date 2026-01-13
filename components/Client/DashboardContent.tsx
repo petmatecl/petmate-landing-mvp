@@ -16,7 +16,7 @@ import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
 import ApplicationsModal from "./ApplicationsModal"; // Import Modal
 import { useClientData } from "./ClientContext";
-import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X, CheckCircle2, Clock, Megaphone } from "lucide-react";
+import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X, CheckCircle2, Clock, Megaphone, Edit } from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
@@ -73,6 +73,9 @@ export default function DashboardContent() {
 
     // Profile Form State
     const [savingProfile, setSavingProfile] = useState(false);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [backupProfileData, setBackupProfileData] = useState<any>(null);
+
     const [profileFormData, setProfileFormData] = useState({
         nombre: '',
         apellido_p: '',
@@ -80,8 +83,6 @@ export default function DashboardContent() {
         telefono: '',
         latitud: null as number | null,
         longitud: null as number | null,
-        videos: [] as string[],
-        consentimiento_rrss: false,
         comuna: '',
         region: ''
     });
@@ -183,7 +184,7 @@ export default function DashboardContent() {
 
             setTrips(tripsWithStatus as Trip[]);
 
-            if (data.length === 0) setShowTripForm(true);
+            // if (data.length === 0) setShowTripForm(true); // Removed to enforce pet validation on button click
 
         } catch (err) {
             console.error("Error fetching trips:", err);
@@ -206,8 +207,6 @@ export default function DashboardContent() {
                 telefono: data.telefono || '',
                 latitud: data.latitud,
                 longitud: data.longitud,
-                videos: data.videos || [],
-                consentimiento_rrss: data.consentimiento_rrss || false,
                 comuna: data.comuna || '',
                 region: data.region || ''
             });
@@ -278,7 +277,10 @@ export default function DashboardContent() {
 
     // Privacy Notice State
     const [showSecurityNotice, setShowSecurityNotice] = useState(true);
-    const isClientIncomplete = !clientProfile?.nombre || !clientProfile?.apellido_p || !clientProfile?.telefono || !clientProfile?.region || !clientProfile?.comuna;
+    // COMPLETION CHECKS
+    const isProfileComplete = clientProfile?.nombre && clientProfile?.apellido_p && clientProfile?.telefono && clientProfile?.rut && clientProfile?.foto_perfil;
+    const isPetsComplete = myPets.length > 0;
+    const isAddressesComplete = addresses.length > 0;
 
     const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
         setAlertConfig({ isOpen: true, title, message, type });
@@ -365,6 +367,18 @@ export default function DashboardContent() {
         }
     };
 
+    const handleEditProfile = () => {
+        setBackupProfileData({ ...profileFormData });
+        setIsEditingProfile(true);
+    };
+
+    const handleCancelEdit = () => {
+        if (backupProfileData) {
+            setProfileFormData(backupProfileData);
+        }
+        setIsEditingProfile(false);
+    };
+
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         setSavingProfile(true);
@@ -377,16 +391,14 @@ export default function DashboardContent() {
                     apellido_p: profileFormData.apellido_p,
                     rut: profileFormData.rut,
                     telefono: profileFormData.telefono,
-                    latitud: profileFormData.latitud,
-                    longitud: profileFormData.longitud,
-                    videos: profileFormData.videos.filter(v => v.trim() !== ''),
-                    consentimiento_rrss: profileFormData.consentimiento_rrss
+                    // latitud & longitud managed by addresses now, preserving existing values if needed or handled separately
                 })
                 .eq('auth_user_id', userId);
 
             if (error) throw error;
 
             await fetchClientProfile(userId!); // Refresh data
+            setIsEditingProfile(false); // EXIT EDIT MODE
             showAlert('Perfil actualizado', 'Tus datos han sido guardados correctamente.', 'success');
         } catch (err: any) {
             console.error(err);
@@ -418,9 +430,7 @@ export default function DashboardContent() {
     };
 
     // Calculate Completion Status
-    const isProfileComplete = Boolean(profileFormData.nombre && profileFormData.apellido_p && profileFormData.rut && profileFormData.telefono && profileFormData.latitud && profileFormData.comuna);
-    const isPetsComplete = myPets.length > 0;
-    const isAddressesComplete = addresses.length > 0;
+
 
     const handleDeleteTrip = (id: string) => {
         setConfirmConfig({
@@ -758,7 +768,10 @@ export default function DashboardContent() {
                     className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                     <User size={18} /> Datos
-                    {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                    {isProfileComplete ?
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> :
+                        <div className="w-2 h-2 rounded-full bg-amber-400" title={!clientProfile?.foto_perfil ? "Falta Foto de Perfil" : "Pendiente"}></div>
+                    }
                 </button>
                 <button
                     onClick={() => setActiveTab('mascotas')}
@@ -789,7 +802,24 @@ export default function DashboardContent() {
                         </h2>
                         {!showTripForm && (
                             <button
-                                onClick={() => setShowTripForm(true)}
+                                onClick={() => {
+                                    if (!isProfileComplete) {
+                                        showAlert('Perfil Incompleto', 'Debes completar tus datos personales y agregar una foto de perfil antes de crear una solicitud.', 'warning');
+                                        setActiveTab('datos');
+                                        return;
+                                    }
+                                    if (!isPetsComplete) {
+                                        showAlert('Faltan Mascotas', 'Debes agregar al menos una mascota antes de solicitar cuidado.', 'warning');
+                                        setActiveTab('mascotas');
+                                        return;
+                                    }
+                                    if (!isAddressesComplete) {
+                                        showAlert('Faltan Direcciones', 'Debes agregar al menos una dirección antes de solicitar cuidado.', 'warning');
+                                        setActiveTab('direcciones');
+                                        return;
+                                    }
+                                    setShowTripForm(true);
+                                }}
                                 className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 transition-all flex items-center gap-2"
                             >
                                 <Plus size={16} /> Nueva Solicitud
@@ -1161,17 +1191,47 @@ export default function DashboardContent() {
             {activeTab === 'datos' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold text-slate-900">Datos Personales</h2>
-                            <button
-                                type="submit"
-                                form="profile-form-tab"
-                                disabled={savingProfile}
-                                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50 text-sm"
-                            >
-                                {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
-                                {!savingProfile && <Save size={16} />}
-                            </button>
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-900">Datos Personales</h2>
+                                {!clientProfile?.foto_perfil && (
+                                    <p className="text-xs text-amber-600 font-bold mt-1 flex items-center gap-1">
+                                        ⚠️ Falta tu foto de perfil. Súbela desde la barra lateral izquierda.
+                                    </p>
+                                )}
+                            </div>
+                            <div className="flex gap-2">
+                                {isEditingProfile ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelEdit}
+                                            disabled={savingProfile}
+                                            className="px-4 py-2 rounded-lg text-slate-500 hover:text-slate-800 font-bold transition-all text-sm"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            form="profile-form-tab"
+                                            disabled={savingProfile}
+                                            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50 text-sm"
+                                        >
+                                            {savingProfile ? 'Guardando...' : 'Guardar'}
+                                            {!savingProfile && <Save size={16} />}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleEditProfile}
+                                        className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-all flex items-center gap-2 text-sm"
+                                    >
+                                        Editar
+                                        <Edit size={16} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-6">
@@ -1184,7 +1244,8 @@ export default function DashboardContent() {
                                         name="nombre"
                                         value={profileFormData.nombre}
                                         onChange={handleProfileChange}
-                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                        disabled={!isEditingProfile}
+                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
                                         placeholder="Tu nombre"
                                     />
                                 </div>
@@ -1195,7 +1256,8 @@ export default function DashboardContent() {
                                         name="apellido_p"
                                         value={profileFormData.apellido_p}
                                         onChange={handleProfileChange}
-                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                        disabled={!isEditingProfile}
+                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
                                         placeholder="Tu apellido"
                                     />
                                 </div>
@@ -1210,7 +1272,8 @@ export default function DashboardContent() {
                                         name="rut"
                                         value={profileFormData.rut}
                                         onChange={handleRutChange}
-                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-slate-50 font-mono tracking-wide"
+                                        disabled={!isEditingProfile}
+                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-slate-100 text-slate-500' : 'bg-slate-50'}`}
                                         placeholder="12.345.678-9"
                                     />
                                     <p className="text-[10px] text-slate-400 mt-1">El RUT es único por cuenta.</p>
@@ -1224,103 +1287,17 @@ export default function DashboardContent() {
                                         name="telefono"
                                         value={profileFormData.telefono}
                                         onChange={handleProfileChange}
-                                        className="w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                        disabled={!isEditingProfile}
+                                        className={`w-full rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-slate-50 text-slate-600' : ''}`}
                                         placeholder="+56 9 1234 5678"
                                     />
                                 </div>
                             </div>
 
                             {/* Ubicación */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                                    Tu Ubicación Base (para el mapa)
-                                </label>
-                                <AddressAutocomplete
-                                    onSelect={(res) => {
-                                        if (res.lat && res.lon) {
-                                            setProfileFormData(prev => ({ ...prev, latitud: parseFloat(res.lat), longitud: parseFloat(res.lon) }));
-                                        }
-                                    }}
-                                    initialValue={profileFormData.comuna ? `${profileFormData.comuna}, ${profileFormData.region || ''}` : ''}
-                                    placeholder="Busca tu dirección o comuna..."
-                                    className="w-full"
-                                />
-                                {profileFormData.latitud && profileFormData.longitud && (
-                                    <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 h-48 animate-in fade-in zoom-in-95 duration-200">
-                                        <LocationMap
-                                            key={`${profileFormData.latitud}-${profileFormData.longitud}`}
-                                            lat={profileFormData.latitud}
-                                            lng={profileFormData.longitud}
-                                            approximate={false}
-                                        />
-                                    </div>
-                                )}
-                                {profileFormData.latitud && (
-                                    <p className="text-[10px] text-emerald-600 mt-1">✓ Ubicación georeferenciada lista</p>
-                                )}
-                            </div>
 
-                            {/* Videos */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                                    Videos (Enlaces de YouTube o TikTok)
-                                </label>
-                                <div className="space-y-2">
-                                    {profileFormData.videos.map((vid, idx) => (
-                                        <div key={idx} className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={vid}
-                                                onChange={(e) => {
-                                                    const newVideos = [...profileFormData.videos];
-                                                    newVideos[idx] = e.target.value;
-                                                    setProfileFormData({ ...profileFormData, videos: newVideos });
-                                                }}
-                                                className="w-full text-xs rounded-lg border-slate-200"
-                                                placeholder="https://youtube.com/watch?v=..."
-                                            />
-                                            {idx > 0 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newVideos = profileFormData.videos.filter((_, i) => i !== idx);
-                                                        setProfileFormData({ ...profileFormData, videos: newVideos });
-                                                    }}
-                                                    className="text-slate-400 hover:text-rose-500"
-                                                >
-                                                    <X size={16} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
-                                    {profileFormData.videos.length < 3 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setProfileFormData({ ...profileFormData, videos: [...profileFormData.videos, ''] })}
-                                            className="text-xs text-emerald-600 font-bold hover:underline"
-                                        >
-                                            + Agregar otro video
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
 
-                            {/* Consentimiento RRSS */}
-                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                                <label className="flex items-start gap-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={profileFormData.consentimiento_rrss}
-                                        onChange={(e) => setProfileFormData({ ...profileFormData, consentimiento_rrss: e.target.checked })}
-                                        className="mt-1 w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500"
-                                    />
-                                    <div className="text-sm text-emerald-800">
-                                        <span className="font-bold block text-emerald-900">Permitir uso en Redes Sociales</span>
-                                        Al marcar esto, permites que Pawnecta destaque tu perfil y videos en nuestras redes sociales.
-                                        <span className="block text-xs mt-1 font-bold text-emerald-700">🚀 ¡Esto aumenta tus probabilidades de match!</span>
-                                    </div>
-                                </label>
-                            </div>
+
                         </form>
                     </div>
                 </section>

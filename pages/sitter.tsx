@@ -213,6 +213,8 @@ export default function SitterDashboardPage() {
                         fotos_vivienda: profile.fotos_vivienda || [],
                         tiene_patio: profile.tiene_patio || false,
                         tiene_malla: profile.tiene_malla || false,
+                        video_presentacion: profile.video_presentacion || null,
+                        consentimiento_rrss: profile.consentimiento_rrss || false,
                         aprobado: profile.aprobado || false
                     });
                     setBackupProfileData(profile); // Save backup for cancel
@@ -356,6 +358,8 @@ export default function SitterDashboardPage() {
         fotos_vivienda: [],
         tiene_patio: false,
         tiene_malla: false,
+        video_presentacion: null,
+        consentimiento_rrss: false,
         aprobado: false // Initialize
     });
 
@@ -618,6 +622,60 @@ export default function SitterDashboardPage() {
         }
     };
 
+    const handleVideoPresentacionUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        setUploading(true);
+        try {
+            const file = e.target.files[0];
+
+            // Validation
+            if (file.size > 50 * 1024 * 1024) throw new Error("El video no puede superar los 50MB");
+            const fileType = file.type;
+            if (!['video/mp4', 'video/quicktime', 'video/webm'].includes(fileType)) {
+                throw new Error("Formato no soportado. Usa MP4, MOV o WEBM.");
+            }
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${userId}/presentacion_${Date.now()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // Upload
+            const { error: uploadError } = await supabase.storage
+                .from('videos')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('videos')
+                .getPublicUrl(filePath);
+
+            setProfileData({ ...profileData, video_presentacion: publicUrl });
+            setAlertState({
+                isOpen: true,
+                title: "Éxito", // Using escaped connection for unicode safety if needed but UTF8 is standard
+                message: "Video de presentación subido correctamente",
+                type: "success"
+            });
+
+        } catch (error: any) {
+            console.error("Error uploading video:", error);
+            setAlertState({
+                isOpen: true,
+                title: "Error",
+                message: error.message || "Error al subir el video",
+                type: "error"
+            });
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleDeleteVideoPresentacion = () => {
+        setProfileData({ ...profileData, video_presentacion: null });
+    };
+
     const handleSelectAddress = (address: any) => {
         // Simple mapping attempt
         const calle = address.address?.road || address.address?.pedestrian || address.address?.street || "";
@@ -802,8 +860,11 @@ export default function SitterDashboardPage() {
                     // New Housing Fields
                     dimensiones_vivienda: profileData.dimensiones_vivienda,
                     fotos_vivienda: profileData.fotos_vivienda,
+
                     tiene_patio: profileData.tiene_patio,
-                    tiene_malla: profileData.tiene_malla
+                    tiene_malla: profileData.tiene_malla,
+                    video_presentacion: profileData.video_presentacion,
+                    consentimiento_rrss: profileData.consentimiento_rrss
                 };
             } else if (section === 'services') {
                 updates = {
@@ -1671,7 +1732,16 @@ export default function SitterDashboardPage() {
                                                                                 </div>
                                                                                 <div>
                                                                                     <p className="text-sm font-medium text-slate-900 leading-snug">
-                                                                                        {book.direccion?.display_name || book.direccion_cliente || "Dirección no disponible"}
+                                                                                        {book.direccion ? (
+                                                                                            <>
+                                                                                                {book.direccion.calle} #{book.direccion.numero}
+                                                                                                {book.direccion.depto && <span className="text-slate-500">, Depto {book.direccion.depto}</span>}
+                                                                                                <br />
+                                                                                                <span className="text-xs text-slate-500">{book.direccion.comuna}, {book.direccion.region}</span>
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            book.direccion_cliente || "Dirección no disponible"
+                                                                                        )}
                                                                                     </p>
                                                                                     <p className="text-xs text-slate-500 mt-1">
                                                                                         {book.servicio === 'hospedaje' ? 'Tu Domicilio (Sitter)' : 'Domicilio del Cliente'}
@@ -2404,6 +2474,85 @@ export default function SitterDashboardPage() {
                                                     </div>
                                                 )}
 
+                                            </div>
+
+                                            {/* Video Presentacion Component */}
+                                            <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100 mt-8">
+                                                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
+                                                    <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100"><Play className="w-4 h-4 text-slate-500" /></div>
+                                                    Video de Presentación
+                                                </h4>
+
+                                                <div className="bg-white p-4 rounded-xl border border-slate-200">
+                                                    <p className="text-xs text-slate-500 mb-4">
+                                                        Sube un video corto presentándote a los dueños de mascotas. Esto aumenta significativamente tus posibilidades de ser contratado.
+                                                    </p>
+
+                                                    {profileData.video_presentacion ? (
+                                                        <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-w-sm mx-auto shadow-md group">
+                                                            <video
+                                                                src={profileData.video_presentacion}
+                                                                controls
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                            {activeSection === 'profile' && (
+                                                                <button
+                                                                    onClick={handleDeleteVideoPresentacion}
+                                                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                                    title="Eliminar Video"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        activeSection === 'profile' ? (
+                                                            <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
+                                                                <input
+                                                                    type="file"
+                                                                    accept="video/mp4,video/quicktime,video/webm"
+                                                                    onChange={handleVideoPresentacionUpload}
+                                                                    disabled={uploading}
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                />
+                                                                {uploading ? (
+                                                                    <Loader2 size={32} className="text-emerald-500 animate-spin mb-2" />
+                                                                ) : (
+                                                                    <Upload size={32} className="text-slate-300 mb-2" />
+                                                                )}
+                                                                <h5 className="text-sm font-bold text-slate-700">Sube tu video aquí</h5>
+                                                                <p className="text-xs text-slate-400 mt-1">MP4, MOV o WEBM (Máx 50MB)</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="border border-slate-100 bg-slate-50 rounded-xl p-8 text-center">
+                                                                <p className="text-sm text-slate-400 italic">No has subido un video de presentación.</p>
+                                                            </div>
+                                                        )
+                                                    )}
+
+                                                    {/* Consentimiento RRSS */}
+                                                    <div className="mt-4 pt-4 border-t border-slate-100">
+                                                        <label className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
+                                                            <div className="pt-0.5">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={profileData.consentimiento_rrss}
+                                                                    onChange={(e) => setProfileData({ ...profileData, consentimiento_rrss: e.target.checked })}
+                                                                    disabled={activeSection !== 'profile'}
+                                                                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <span className={`text-sm font-bold block ${profileData.consentimiento_rrss ? 'text-indigo-900' : 'text-slate-700'}`}>
+                                                                    Consentimiento para Redes Sociales
+                                                                </span>
+                                                                <p className="text-xs text-slate-500 mt-0.5">
+                                                                    Doy mi consentimiento para que Pawnecta pueda publicar este video en sus redes sociales (Instagram, TikTok) para promocionar mi perfil.
+                                                                </p>
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 

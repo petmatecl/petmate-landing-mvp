@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint } from 'lucide-react';
+import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Video } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -56,6 +56,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             }`}
                     >
                         <Bell size={20} /> Notificaciones
+                    </Link>
+
+                    <Link
+                        href="/admin/videos"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${isActive('/admin/videos')
+                            ? 'bg-emerald-50 text-emerald-700 font-bold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                    >
+                        <Video size={20} /> Videos
                     </Link>
 
                     <Link

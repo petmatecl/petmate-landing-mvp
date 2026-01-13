@@ -10,6 +10,7 @@ export type Address = {
     comuna: string;
     region: string;
     codigo_postal: string;
+    depto?: string; // New field
     notas: string;
     es_principal: boolean;
     latitud?: number;
@@ -43,7 +44,7 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
                             )}
                         </div>
                         <p className="text-sm text-slate-600 mt-0.5 line-clamp-2" title={address.direccion_completa}>
-                            {address.direccion_completa}
+                            {address.calle} #{address.numero} {address.depto ? `, Depto/Casa ${address.depto}` : ''}, {address.comuna}
                         </p>
 
                         {/* Inline Map Toggle */}

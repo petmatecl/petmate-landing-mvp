@@ -40,6 +40,7 @@ type SitterData = {
 
     // Docs
     certificado_antecedentes?: string;
+    video_presentacion?: string;
     aprobado: boolean;
 
     // Gallery
@@ -195,6 +196,17 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 >
                                     📄 Ver Certificado
                                 </button>
+                            )}
+                            {sitter.video_presentacion && (
+                                <a
+                                    href={sitter.video_presentacion}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    download
+                                    className="flex items-center justify-center gap-2 w-full py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors"
+                                >
+                                    🎥 Descargar Video Presentación
+                                </a>
                             )}
                         </div>
 

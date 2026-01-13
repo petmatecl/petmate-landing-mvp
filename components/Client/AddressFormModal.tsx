@@ -23,6 +23,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
     const [direccionCompleta, setDireccionCompleta] = useState("");
     const [calle, setCalle] = useState("");
     const [numero, setNumero] = useState("");
+    const [depto, setDepto] = useState(""); // New State
     const [comuna, setComuna] = useState("");
     const [region, setRegion] = useState("");
     const [notas, setNotas] = useState("");
@@ -34,7 +35,9 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                 setNombre(initialData.nombre);
                 setDireccionCompleta(initialData.direccion_completa);
                 setCalle(initialData.calle || "");
+                setCalle(initialData.calle || "");
                 setNumero(initialData.numero || "");
+                setDepto(initialData.depto || "");
                 setComuna(initialData.comuna || "");
                 setRegion(initialData.region || "");
                 setNotas(initialData.notas || "");
@@ -46,7 +49,9 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                 setNombre("Casa");
                 setDireccionCompleta("");
                 setCalle("");
+                setCalle("");
                 setNumero("");
+                setDepto("");
                 setComuna("");
                 setRegion("");
                 setNotas("");
@@ -74,7 +79,9 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                 nombre,
                 direccion_completa: direccionCompleta,
                 calle,
+
                 numero,
+                depto,
                 comuna,
                 region,
                 notas,
@@ -212,6 +219,18 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                                Depto / Casa
+                            </label>
+                            <input
+                                type="text"
+                                value={depto}
+                                onChange={(e) => setDepto(e.target.value)}
+                                placeholder="Ej: 404, Block B"
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                            />
+                        </div>
+                        <div className="col-span-2 sm:col-span-1">
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
                                 Comuna
                             </label>
                             <input
@@ -222,7 +241,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
                             />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-2 sm:col-span-1">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
                                 Región
                             </label>

@@ -176,7 +176,6 @@ export default function Header() {
                 className="inline-flex items-center rounded-xl bg-white border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2 relative"
               >
                 Mensajes
-                {session?.user?.id && <UnreadBadge userId={session.user.id} className="-top-2 -right-2 absolute" />}
               </Link>
               <Link
                 href={dashboardLink}
@@ -302,7 +301,6 @@ export default function Header() {
                   onClick={() => setOpen(false)}
                 >
                   Mensajes
-                  {session?.user?.id && <UnreadBadge userId={session.user.id} className="top-1 right-2 absolute" />}
                 </Link>
                 <Link
                   href={dashboardLink}

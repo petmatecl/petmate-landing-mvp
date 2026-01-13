@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search, FileText, Download } from "lucide-react";
 import ContactSitterButton from "../Shared/ContactSitterButton";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { PDFPreviewModal } from "../Shared/PDFPreviewModal";
 
 export type Trip = {
     id: string;
@@ -48,9 +51,7 @@ type Props = {
     serviceAddress?: string;
 };
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { Download } from 'lucide-react';
+
 
 export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onViewApplications, onConfirm, onRemoveSitter, onSearchSitter, serviceAddress }: Props) {
     // Other hooks ...
@@ -75,7 +76,14 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
         }
     };
 
-    const generatePDF = () => {
+
+
+
+    // ... inside component ...
+    const [showPdfPreview, setShowPdfPreview] = useState(false);
+    const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+
+    const getPDFDoc = () => {
         const doc = new jsPDF();
 
         // Brand Colors
@@ -139,6 +147,18 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
         doc.setTextColor(150);
         doc.text("Pawnecta - Cuidado de mascotas de confianza.", 14, 280);
 
+        return doc;
+    };
+
+    const handlePreviewPDF = () => {
+        const doc = getPDFDoc();
+        const pdfBlob = doc.output('bloburl');
+        setPdfPreviewUrl(pdfBlob.toString());
+        setShowPdfPreview(true);
+    };
+
+    const handleDownloadPDF = () => {
+        const doc = getPDFDoc();
         doc.save(`Ficha_Pawnecta_${trip.id.slice(0, 8)}.pdf`);
     };
 
@@ -303,10 +323,10 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                     />
                                 )}
                                 <button
-                                    onClick={generatePDF}
+                                    onClick={handlePreviewPDF}
                                     className="w-full bg-white text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 hover:text-emerald-600 transition-colors text-sm"
                                 >
-                                    <Download size={16} /> Descargar Ficha
+                                    <FileText size={16} /> Ver Ficha
                                 </button>
                             </div>
 
@@ -358,6 +378,14 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                     </div>
                 )}
             </div>
+
+            <PDFPreviewModal
+                isOpen={showPdfPreview}
+                onClose={() => setShowPdfPreview(false)}
+                pdfUrl={pdfPreviewUrl}
+                title={`Ficha - ${trip.servicio}`}
+                onDownload={handleDownloadPDF}
+            />
         </div >
     );
 }

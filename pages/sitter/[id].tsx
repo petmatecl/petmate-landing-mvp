@@ -395,6 +395,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                         sitterId={petmate.auth_user_id} // Use auth_user_id for chat, as conversations link to auth.users
                                         className="w-full btn-secondary py-3 flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors rounded-xl font-bold text-slate-700"
                                         label="Enviar Mensaje"
+                                        currentUserId={currentUserId}
                                     />
                                 </div>
                                 <p className="text-xs text-slate-400 mt-2 text-center">Sin compromiso de reserva</p>
