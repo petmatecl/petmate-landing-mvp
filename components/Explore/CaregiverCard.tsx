@@ -139,7 +139,7 @@ export default function CaregiverCard({
 
                         <button
                             onClick={handleProfileClick}
-                            className="rounded-lg border-2 border-slate-300 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all"
+                            className="rounded-lg border-2 border-slate-400 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-500 transition-all"
                         >
                             Ver perfil
                         </button>

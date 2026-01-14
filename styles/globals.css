@@ -94,7 +94,7 @@ body {
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-2xl border-2 border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-900 transition-all duration-300;
+  @apply inline-flex items-center justify-center rounded-2xl border-2 border-slate-400 bg-white px-6 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-500 hover:text-slate-900 transition-all duration-300;
 }
 
 /* Campos de formulario modernos */
