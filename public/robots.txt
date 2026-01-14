@@ -1,4 +1,26 @@
-# *
+# OpenAI SearchBot
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /usuario
+Disallow: /sitter
+Disallow: /sitter/explorar
+Disallow: /login
+Disallow: /register
+Disallow: /api/*
+
+# ChatGPT-User (Plugins/Actions)
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /usuario
+Disallow: /sitter
+Disallow: /sitter/explorar
+Disallow: /login
+Disallow: /register
+Disallow: /api/*
+
+# All others
 User-agent: *
 Allow: /
 Disallow: /admin
