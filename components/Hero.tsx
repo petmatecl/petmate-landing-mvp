@@ -1,6 +1,8 @@
 // components/Hero.tsx
 import Image from "next/image";
 import Link from "next/link";
+import { Card } from "./Shared/Card";
+import { Section } from "./Shared/Section";
 
 // Iconos monocromáticos, mismos del registro
 const HouseIcon = (p: any) => (
@@ -21,8 +23,8 @@ const BuildingIcon = (p: any) => (
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-slate-50">
-      {/* Background Decor */}
+    <Section variant="default" className="!pt-0 !pb-0" container={false}>
+      {/* Background Decor handled by Section variant="default" but we keep blobs */}
       <div className="absolute top-0 -left-64 h-96 w-96 rounded-full bg-emerald-100 mix-blend-multiply blur-3xl opacity-70 animate-blob"></div>
       <div className="absolute top-0 -right-64 h-96 w-96 rounded-full bg-teal-100 mix-blend-multiply blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
 
@@ -43,34 +45,32 @@ export function Hero() {
 
             {/* Elecciones rápidas */}
             <div className="mt-10 grid sm:grid-cols-2 gap-4">
-              <Link
-                href="/register?role=usuario&mode=domicilio"
-                className="group surface-card p-5"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
-                    <BuildingIcon className="h-6 w-6" />
+              <Link href="/register?role=usuario&mode=domicilio" className="group block h-full">
+                <Card hoverable padding="m" className="group-hover:border-emerald-500 transition-colors h-full">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+                      <BuildingIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">A domicilio</div>
+                      <div className="text-sm text-slate-500 mt-1">El cuidador va a tu casa.</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">A domicilio</div>
-                    <div className="text-sm text-slate-500 mt-1">El cuidador va a tu casa.</div>
-                  </div>
-                </div>
+                </Card>
               </Link>
 
-              <Link
-                href="/register?role=usuario&mode=estadia"
-                className="group surface-card p-5"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">
-                    <HouseIcon className="h-6 w-6" />
+              <Link href="/register?role=usuario&mode=estadia" className="group block h-full">
+                <Card hoverable padding="m" className="group-hover:border-teal-500 transition-colors h-full">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">
+                      <HouseIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 group-hover:text-teal-700 transition-colors">Hospedaje</div>
+                      <div className="text-sm text-slate-500 mt-1">En casa del cuidador.</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-slate-900 group-hover:text-teal-700 transition-colors">Hospedaje</div>
-                    <div className="text-sm text-slate-500 mt-1">En casa del cuidador.</div>
-                  </div>
-                </div>
+                </Card>
               </Link>
             </div>
 
@@ -123,7 +123,7 @@ export function Hero() {
           </div>
         </div >
       </div >
-    </section >
+    </Section >
   );
 }
 

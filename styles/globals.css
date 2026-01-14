@@ -5,19 +5,23 @@
 :root {
   --font-outfit: 'Outfit', sans-serif;
 
-  /* --- High Contrast Surface Tokens --- */
+  /* --- High Contrast Surface Tokens (Strict System) --- */
+  --page-bg: #f8fafc;
+  /* slate-50 */
+  --section-alt-bg: #ffffff;
+  /* white */
+
   --surface-bg: #ffffff;
-  --surface-border: #cbd5e1;
-  /* slate-300 */
-  --surface-ring: 0 0 0 1px rgba(15, 23, 42, 0.05);
-  /* slate-900/5 */
+  --surface-border: #94a3b8;
+  /* slate-400 (Much stronger than 300) */
+  --surface-ring: 0 0 0 1px rgba(15, 23, 42, 0.08);
+  /* slate-900/8% */
   --surface-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  /* shadow-sm equivalent */
 
   --surface-hover-border: #10b981;
   /* emerald-500 */
-  --surface-hover-ring: 0 0 0 1px rgba(16, 185, 129, 0.2);
-  --surface-hover-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --surface-hover-ring: 0 0 0 1px rgba(16, 185, 129, 0.4);
+  --surface-hover-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 body {

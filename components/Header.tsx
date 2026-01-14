@@ -95,7 +95,7 @@ export default function Header() {
   const dashboardLink = isSitter ? "/sitter" : "/usuario";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">
       {/* Franja superior lanzamiento */}
       {showBanner && (
         <div className="bg-black text-white text-sm">

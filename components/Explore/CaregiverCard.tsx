@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
+import { Card } from "../Shared/Card";
 
 interface CaregiverCardProps {
     id: string;
@@ -77,7 +78,7 @@ export default function CaregiverCard({
 
     return (
         <>
-            <div className="group relative surface-card flex flex-col overflow-hidden !rounded-2xl">
+            <Card className="group flex flex-col h-full" padding="none" hoverable>
                 {/* Imagen */}
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <Image
@@ -144,7 +145,7 @@ export default function CaregiverCard({
                         </button>
                     </div>
                 </div>
-            </div>
+            </Card>
 
             {/* Modal de Auth Requerida */}
             {showAuthModal && (
