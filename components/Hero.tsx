@@ -23,8 +23,8 @@ const BuildingIcon = (p: any) => (
 
 export function Hero() {
   return (
-    <Section variant="default" className="!pt-0 !pb-0" container={false}>
-      {/* Background Decor handled by Section variant="default" but we keep blobs */}
+    <Section variant="white" className="!pt-0 !pb-0" container={false}>
+      {/* Background Decor handled by Section variant="white" but we keep blobs */}
       <div className="absolute top-0 -left-64 h-96 w-96 rounded-full bg-emerald-100 mix-blend-multiply blur-3xl opacity-70 animate-blob"></div>
       <div className="absolute top-0 -right-64 h-96 w-96 rounded-full bg-teal-100 mix-blend-multiply blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
 

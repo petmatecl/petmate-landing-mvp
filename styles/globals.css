@@ -6,17 +6,18 @@
   --font-outfit: 'Outfit', sans-serif;
 
   /* --- High Contrast Surface Tokens (Strict System) --- */
-  --page-bg: #f8fafc;
-  /* slate-50 */
+  --page-bg: #f1f5f9;
+  /* slate-100 (Increased contrast) */
   --section-alt-bg: #ffffff;
   /* white */
 
   --surface-bg: #ffffff;
-  --surface-border: #94a3b8;
-  /* slate-400 (Much stronger than 300) */
+  --surface-border: #cbd5e1;
+  /* slate-300 */
   --surface-ring: 0 0 0 1px rgba(15, 23, 42, 0.08);
   /* slate-900/8% */
-  --surface-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --surface-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  /* strengthened shadow */
 
   --surface-hover-border: #10b981;
   /* emerald-500 */
@@ -26,8 +27,9 @@
 
 body {
   font-family: var(--font-outfit);
-  background-color: #f8fafc;
-  /* Slate-50 */
+  background-color: #f1f5f9;
+  /* Slate-100 */
+  /* Slate-50 was too light */
   color: #1e293b;
   /* Slate-800 */
   -webkit-font-smoothing: antialiased;
@@ -68,7 +70,7 @@ body {
 /* High Contrast Card Standard/Utility - Token Based */
 .surface-card {
   background-color: var(--surface-bg);
-  border: 1px solid var(--surface-border);
+  border: 2px solid var(--surface-border);
   box-shadow: var(--surface-shadow), var(--surface-ring);
   @apply rounded-3xl transition-all duration-300;
 }

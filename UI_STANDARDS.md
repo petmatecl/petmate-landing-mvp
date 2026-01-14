@@ -9,13 +9,14 @@ All styles are derived from `styles/globals.css`.
 | Token | Value (Ref) | Description |
 |-------|-------------|-------------|
 | `--surface-bg` | White | Card background |
-| `--surface-border` | Slate-400 | **Visible** solid border |
+| `--surface-border` | **Slate-300** | **2px SOLID** Border |
 | `--surface-ring` | Slate-900/8% | Edge reinforcement |
-| `--surface-shadow` | Custom | Soft separation |
+| `--page-bg` | **Slate-100** | Darker page background for contrast |
+| `--section-alt-bg` | Slate-200 | Secondary Section for separation |
 
 ## Components
 
-### 1. `<Card />`
+### 1. &lt;Card /&gt;
 **Path**: `components/Shared/Card.tsx`
 **Usage**: Any bounded content (Caregiver profiles, Benefits, Forms, Stats).
 
@@ -26,21 +27,25 @@ All styles are derived from `styles/globals.css`.
 </Card>
 ```
 
-**DO NOT** write `<div className="border rounded shadow...">`. Use `<Card>`.
+**DO NOT** write &lt;div className="border rounded shadow..."&gt;. Use &lt;Card&gt;.
+**ENFORCED**: Styles are `border: 2px solid var(--surface-border)`.
 
-### 2. `<Section />`
+### 2. &lt;Section /&gt;
 **Path**: `components/Shared/Section.tsx`
 **Usage**: Top-level page blocks.
 
 ```tsx
-<Section variant="default"> <!-- Slate-50 -->
+<Section variant="default"> {/* Slate-100 (Default Base) */}
   <Content />
 </Section>
-<Section variant="white"> <!-- White (Alternating) -->
+<Section variant="white"> {/* White (Highlight) */}
+  <Content />
+</Section>
+<Section variant="alt"> {/* Slate-200 (Separation) */}
   <Content />
 </Section>
 ```
 
 ## Rules
-1.  **Always Alternate**: Never place a White Card on a White Section without strict checking. Prefer `Card` on `Section(variant="default")`.
-2.  **No Ad-Hoc Borders**: If you need a border, ask "Is this a Card?". If yes, use `<Card>`. If no, use `border-slate-300` minimal.
+1.  **Always Alternate**: Flow should be `White -> Slate-200 -> Slate-100 -> Dark`. Avoid `Default -> Default`.
+2.  **No Ad-Hoc Borders**: If you need a border, ask "Is this a Card?". If yes, use &lt;Card&gt;. If no, use `border-state-400 border-2`.

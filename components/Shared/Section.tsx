@@ -22,9 +22,9 @@ export const Section = ({
 }: SectionProps) => {
 
     const bgClass = {
-        default: "bg-slate-50",     // --page-bg
+        default: "bg-slate-100",     // --page-bg (was 50)
         white: "bg-white",          // --section-alt-bg
-        alt: "bg-slate-100",
+        alt: "bg-slate-200",        // Increased contrast
         dark: "bg-slate-900",
     }[variant];
 
