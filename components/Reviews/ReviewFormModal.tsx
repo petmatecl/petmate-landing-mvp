@@ -144,7 +144,7 @@ export default function ReviewFormModal({ isOpen, onClose, sitterId, onReviewSub
                             Tu opinión
                         </label>
                         <textarea
-                            className="w-full border border-slate-400 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all min-h-[100px] resize-none"
+                            className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all min-h-[100px] resize-none"
                             placeholder="Cuéntanos cómo fue tu experiencia con este cuidador..."
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}

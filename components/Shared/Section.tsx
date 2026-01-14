@@ -18,8 +18,9 @@ interface SectionContainerProps {
 /**
  * SOURCE OF TRUTH: Section Container (Visual Block)
  * Wraps main page sections in a consistent "Surface" block.
+ * - Style: Soft Modern SaaS
  * - Bg: White
- * - Border: Slate-400 (High Contrast)
+ * - Border: None (Ring 1px 5%)
  * - Radius: 24px
  * - Shadow: Soft
  */

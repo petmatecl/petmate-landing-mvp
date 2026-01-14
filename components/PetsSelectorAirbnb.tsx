@@ -95,7 +95,7 @@ export default function PetsSelectorAirbnb({ value, onChange, className, hideLab
                   disabled={value.dogs === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-full border text-lg ${value.dogs === 0
                     ? "border-slate-300 text-slate-300 cursor-not-allowed"
-                    : "border-slate-400 text-slate-700 hover:border-slate-600"
+                    : "border-slate-200 text-slate-700 hover:border-slate-600"
                     }`}
                 >
                   −
@@ -106,7 +106,7 @@ export default function PetsSelectorAirbnb({ value, onChange, className, hideLab
                 <button
                   type="button"
                   onClick={() => updateDogs(1)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-400 text-lg text-slate-700 hover:border-slate-600"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-lg text-slate-700 hover:border-slate-600"
                 >
                   +
                 </button>
@@ -130,7 +130,7 @@ export default function PetsSelectorAirbnb({ value, onChange, className, hideLab
                   disabled={value.cats === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-full border text-lg ${value.cats === 0
                     ? "border-slate-300 text-slate-300 cursor-not-allowed"
-                    : "border-slate-400 text-slate-700 hover:border-slate-600"
+                    : "border-slate-200 text-slate-700 hover:border-slate-600"
                     }`}
                 >
                   −
@@ -141,7 +141,7 @@ export default function PetsSelectorAirbnb({ value, onChange, className, hideLab
                 <button
                   type="button"
                   onClick={() => updateCats(1)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-400 text-lg text-slate-700 hover:border-slate-600"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-lg text-slate-700 hover:border-slate-600"
                 >
                   +
                 </button>

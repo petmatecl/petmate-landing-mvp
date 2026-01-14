@@ -36,9 +36,11 @@ export const Card = ({
         <div
             onClick={onClick}
             className={`
-        surface-card relative overflow-hidden
+        surface-card relative overflow-hidden text-slate-900
+        bg-white rounded-2xl
+        border border-slate-200 shadow-sm
         ${paddingClass}
-        ${hoverable ? 'cursor-pointer hover:-translate-y-1 transition-transform duration-300' : ''}
+        ${hoverable ? 'cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-300' : ''}
         ${className}
       `}
         >

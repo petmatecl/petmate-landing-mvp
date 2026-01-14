@@ -7,15 +7,21 @@
 
   /* --- High Contrast Surface Tokens (Definitive System) --- */
   --page-bg: #f8fafc;
-  /* Slate-50: Softer global background */
+  /* Slate-50 */
   --section-bg: #ffffff;
   /* White */
 
-  --section-border: #94a3b8;
-  /* Slate-400: Strict Standard */
-  --section-ring: 0 0 0 1px rgba(15, 23, 42, 0.08);
-  /* Slate-900/8% */
+  /* Soft Block Standard (Modern SaaS) */
+  --section-border: transparent;
+  /* No hard border */
+  --section-ring: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  /* Subtle ring 5% */
   --section-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+
+  /* Inner Card Standard (Distinct) */
+  --card-border: #e2e8f0;
+  /* Slate-200 */
+  --card-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 
   --section-radius: 1.5rem;
   /* 24px */
@@ -49,16 +55,15 @@ body {
 
 .section-container {
   background-color: var(--section-bg);
-  border: 2px solid var(--section-border);
+  /* No physical border, just ring via shadow */
+  border: 0px solid transparent;
   border-radius: var(--section-radius);
   padding: var(--section-padding-y) var(--section-padding-x);
   box-shadow: var(--section-shadow), var(--section-ring);
   margin-bottom: 2rem;
-  /* Spacing between blocks */
   width: 100%;
   position: relative;
   overflow: hidden;
-  /* Ensure content respects radius */
 }
 
 @media (min-width: 768px) {

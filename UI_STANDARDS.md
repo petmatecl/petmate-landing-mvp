@@ -10,7 +10,8 @@ All styles are derived from `styles/globals.css`.
 |-------|-------------|-------------|
 | `--page-bg` | **Slate-50 (#f8fafc)** | Global page background. |
 | `--section-bg` | **White (#ffffff)** | Background for Sections and Cards. |
-| `--section-border` | **Slate-400 (#94a3b8)** | **High Contrast** Solid Border for Sections. |
+| `--section-border` | **None** | **Soft Block** (Ring 1px 5% Black). |
+| `--card-border` | **Slate-200 (#e2e8f0)** | Distinct border for internal Cards. |
 | `--section-radius` | **24px** | Standard radius for main sections. |
 | `--section-padding`| **py-16 px-6** | Standard internal spacing. |
 
@@ -18,28 +19,15 @@ All styles are derived from `styles/globals.css`.
 
 ### 1. <SectionContainer />
 **Path**: `components/Shared/Section.tsx` (Export: `SectionContainer`)
-**Usage**: The PRIMARY wrapper for all page content blocks (Hero, Features, etc).
+**Usage**: The PRIMARY wrapper for all page content blocks.
 
-```tsx
-<SectionContainer>
-  <h2>Title</h2>
-  <Content />
-</SectionContainer>
-```
-
-**Style**: White Block, Slate-400 Border, Rounded-3xl, Shadow-sm.
+**Style**: **Soft Block** (White, Soft Shadow, Ring, No Border).
 
 ### 2. <Card />
 **Path**: `components/Shared/Card.tsx`
-**Usage**: Smaller distinct blocks *inside* a Section or Layout (e.g., Dashboard widgets, Caregiver profiles).
+**Usage**: Smaller distinct blocks *inside* a Section.
 
-```tsx
-<Card padding="m">
-  <h3>Title</h3>
-</Card>
-```
-
-**Style**: Matches SectionContainer visual language (White, Border Slate-400, Rounded).
+**Style**: Distinct (White, Border Slate-200, Rounded).
 
 ## Rules
 1.  **Page Background**: Must be `bg-slate-50` (or `var(--page-bg)`). Use global `body` style or `.page` class.
