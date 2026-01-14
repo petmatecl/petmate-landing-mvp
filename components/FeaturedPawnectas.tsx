@@ -49,17 +49,17 @@ export function FeaturedPawnectas({ caregivers }: FeaturedPawnectasProps) {
     const displayCaregivers = MOCK_CAREGIVERS;
 
     return (
-        <SectionContainer band="slate">
+        <SectionContainer band="none">
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
 
                 {/* Columna Izquierda: Texto (más compacta) */}
                 <div className="lg:col-span-3 flex flex-col gap-6 mb-12 lg:mb-0">
                     <div>
                         <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl text-pretty">
-                            Encuentra al <span className="text-emerald-600">compañero ideal</span> para tu mascota
+                            Cuidadores destacados <span className="text-emerald-600">en tu sector</span>
                         </h2>
                         <p className="mt-4 text-base text-slate-600 leading-relaxed">
-                            Miles de <strong>reseñas reales</strong>. Mira sus fotos, conoce su experiencia y encuentra disponibilidad inmediata para tu próximo viaje. ❤️
+                            Personas reales, verificadas y apasionadas por los animales. Revisa sus perfiles y encuentra el match perfecto cerca de ti. ❤️
                         </p>
 
                         <div className="mt-6">

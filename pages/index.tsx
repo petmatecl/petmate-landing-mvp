@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { Hero } from "../components/Hero";
-import { ValueProps, HowItWorks, CTASection } from "../components/HomeSections";
+import { HowItWorks, CTASection, TrustSection, SitterCTA, FAQSection } from "../components/HomeSections";
 import { FeaturedPawnectas } from "../components/FeaturedPawnectas";
 import { supabase } from "../lib/supabaseClient";
 
@@ -42,10 +42,35 @@ export default function HomePage({ caregivers }: HomePageProps) {
         />
       </Head>
 
+      {/* BLOQUE 1: Hero (Band: Mint) */}
       <Hero />
-      <FeaturedPawnectas caregivers={caregivers} />
-      <ValueProps />
+
+      {/* BLOQUE 2: Cómo Funciona (Band: None) */}
       <HowItWorks />
+
+      {/* BLOQUE 3: Confianza / Value Props (Band: Slate) */}
+      <TrustSection />
+
+      {/* BLOQUE 4: Cuidadores Destacados (Band: Slate -> FeaturedPawnectas defined internal band='slate' but wait, let's check. 
+          FeaturedPawnectas has band='slate'. 
+          TrustSection has band='slate'.
+          We need rhythm. 
+          Hero (Mint) -> HowItWorks (None) -> Trust (Slate) -> Featured (??) -> Sitter (Mint) -> FAQ (Slate) -> CTA (None)
+          
+          Let's adjust Bands in Component calls? No, styles are internal.
+          TrustSection is 'slate'.
+          FeaturedPawnectas is 'slate'. Two slates together?
+          Let's change FeaturedPawnectas to 'none' to break it up.
+      */}
+      <FeaturedPawnectas caregivers={caregivers} />
+
+      {/* BLOQUE 5: Sitter CTA (Band: Mint) */}
+      <SitterCTA />
+
+      {/* BLOQUE 6: FAQ (Band: Slate) */}
+      <FAQSection />
+
+      {/* BLOQUE 7: CTA Final (Band: None) */}
       <CTASection />
     </>
   );
