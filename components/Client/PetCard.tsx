@@ -1,4 +1,5 @@
 import React from "react";
+import { Card } from "../Shared/Card";
 
 export type Pet = {
     id: string;
@@ -67,7 +68,7 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
     const ageDisplay = calculateAge(pet.fecha_nacimiento);
 
     return (
-        <div className="flex items-center justify-between p-4 bg-white border-2 border-slate-300 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+        <Card hoverable padding="m" onClick={() => onEdit(pet)} className="flex items-center justify-between cursor-pointer">
             <div className="flex items-center gap-4">
                 {/* Icono / Avatar */}
                 <div className="w-12 h-12 flex-shrink-0">
@@ -102,11 +103,10 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
                 </div>
             </div>
             <button
-                onClick={() => onEdit(pet)}
                 className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors ml-2 flex-shrink-0"
             >
                 Editar
             </button>
-        </div>
+        </Card>
     );
 }

@@ -24,11 +24,17 @@ type Props = {
     onSetDefault: (id: string) => void;
 };
 
+import { Card } from "../Shared/Card";
+
 export default function AddressCard({ address, onEdit, onDelete, onSetDefault }: Props) {
     const [showMap, setShowMap] = useState(false);
 
     return (
-        <div className={`group relative rounded-2xl p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${address.es_principal ? 'bg-emerald-50/60 border-2 border-emerald-200 shadow-md shadow-emerald-100/40' : 'glass-panel hover:border-slate-400'}`}>
+        <Card
+            hoverable
+            padding="m"
+            className={`${address.es_principal ? '!bg-emerald-50/60 !border-emerald-200 ring-2 ring-emerald-100' : ''}`}
+        >
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 w-full">
                     <div className={`mt-1 p-2 rounded-full shrink-0 ${address.es_principal ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
@@ -107,6 +113,6 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
                     </button>
                 </div>
             )}
-        </div>
+        </Card>
     );
 }

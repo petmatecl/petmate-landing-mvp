@@ -9,7 +9,7 @@ All styles are derived from `styles/globals.css`.
 | Token | Value (Ref) | Description |
 |-------|-------------|-------------|
 | `--surface-bg` | White | Card background |
-| `--surface-border` | **Slate-300** | **2px SOLID** Border |
+| `--surface-border` | **Slate-400** | **High Contrast** Solid Border |
 | `--surface-ring` | Slate-900/8% | Edge reinforcement |
 | `--page-bg` | **Slate-100** | Darker page background for contrast |
 | `--section-alt-bg` | Slate-200 | Secondary Section for separation |

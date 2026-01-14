@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Card } from "../Shared/Card";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -162,13 +163,19 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
         doc.save(`Ficha_Pawnecta_${trip.id.slice(0, 8)}.pdf`);
     };
 
+
+
     return (
-        <div className={`bg-white rounded-2xl p-5 border-2 transition-all hover:shadow-lg relative overflow-hidden ${['reservado'].includes(trip.estado)
-            ? 'border-amber-200 bg-amber-50/10 shadow-md ring-1 ring-amber-100'
-            : ['confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
-                ? 'border-slate-300 shadow-sm'
-                : 'border-slate-300'
-            }`}>
+        <Card
+            padding="m"
+            hoverable
+            className={`relative overflow-hidden ${['reservado'].includes(trip.estado)
+                ? '!border-amber-200 !bg-amber-50/10 ring-1 ring-amber-100'
+                : ['confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
+                    ? ''
+                    : ''
+                }`}
+        >
 
             {/* ID Badge */}
             <div className="absolute top-0 left-0 bg-slate-100 text-slate-500 text-[10px] font-mono px-2 py-0.5 rounded-br-lg border-b border-r border-slate-300">
@@ -386,6 +393,6 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                 title={`Ficha - ${trip.servicio}`}
                 onDownload={handleDownloadPDF}
             />
-        </div >
+        </Card >
     );
 }

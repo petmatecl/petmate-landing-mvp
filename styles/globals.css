@@ -5,19 +5,18 @@
 :root {
   --font-outfit: 'Outfit', sans-serif;
 
-  /* --- High Contrast Surface Tokens (Strict System) --- */
+  /* --- High Contrast Surface Tokens (Definitive System) --- */
   --page-bg: #f1f5f9;
-  /* slate-100 (Increased contrast) */
+  /* slate-100 */
   --section-alt-bg: #ffffff;
   /* white */
 
   --surface-bg: #ffffff;
-  --surface-border: #cbd5e1;
-  /* slate-300 */
+  --surface-border: #94a3b8;
+  /* slate-400 (STANDARD FOR HIGH BRIGHTNESS) */
   --surface-ring: 0 0 0 1px rgba(15, 23, 42, 0.08);
   /* slate-900/8% */
   --surface-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  /* strengthened shadow */
 
   --surface-hover-border: #10b981;
   /* emerald-500 */
