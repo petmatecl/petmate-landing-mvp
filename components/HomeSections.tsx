@@ -11,11 +11,11 @@ import {
   CheckCircleIcon
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { SectionContainer } from "./Shared/Section";
+import { Band } from "./Shared/Band"; // Updated Import
 import { Card } from "./Shared/Card";
 import { useState } from "react";
 
-// --- SECCIÓN 2: CÓMO FUNCIONA (Band: None) ---
+// --- SECCIÓN 2: CÓMO FUNCIONA (Band: White) ---
 export function HowItWorks() {
   const steps = [
     {
@@ -39,7 +39,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <SectionContainer band="none">
+    <Band variant="white">
       <div className="mx-auto max-w-2xl lg:text-center mb-16">
         <h2 className="text-emerald-600 font-bold tracking-wide uppercase text-sm">Simple y Rápido</h2>
         <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
@@ -70,11 +70,11 @@ export function HowItWorks() {
           </div>
         ))}
       </div>
-    </SectionContainer>
+    </Band>
   );
 }
 
-// --- SECCIÓN 3: CONFIANZA / VALUE PROPS (Band: Slate) ---
+// --- SECCIÓN 3: CONFIANZA / VALUE PROPS (Band: Soft / Slate) ---
 export function TrustSection() {
   const features = [
     {
@@ -95,7 +95,7 @@ export function TrustSection() {
   ];
 
   return (
-    <SectionContainer band="slate">
+    <Band variant="soft">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div className="max-w-2xl">
           <h2 className="text-base font-semibold leading-7 text-emerald-600">Tranquilidad Total</h2>
@@ -142,14 +142,14 @@ export function TrustSection() {
           </div>
         </div>
       </div>
-    </SectionContainer>
+    </Band>
   );
 }
 
-// --- SECCIÓN 5: Sitter CTA (Band: Mint) ---
+// --- SECCIÓN 5: Sitter CTA (Band: Soft) ---
 export function SitterCTA() {
   return (
-    <SectionContainer band="mint">
+    <Band variant="soft">
       <div className="mx-auto max-w-4xl bg-slate-900 rounded-3xl p-8 sm:p-12 lg:p-16 text-center lg:text-left relative overflow-hidden flex flex-col lg:flex-row items-center gap-12">
 
         {/* Decoración Fondo */}
@@ -183,11 +183,11 @@ export function SitterCTA() {
           </Link>
         </div>
       </div>
-    </SectionContainer>
+    </Band>
   );
 }
 
-// --- SECCIÓN 6: FAQ (Band: Slate) ---
+// --- SECCIÓN 6: FAQ (Band: White) ---
 export function FAQSection() {
   const faqs = [
     { q: "¿Cómo elijo al cuidador adecuado?", a: "Recomendamos leer detalladamente su perfil, revisar las fotos de su hogar y leer las reseñas de otros usuarios. También puedes contactarlo antes de reservar para aclarar dudas." },
@@ -197,7 +197,7 @@ export function FAQSection() {
   ];
 
   return (
-    <SectionContainer band="slate">
+    <Band variant="white">
       <div className="mx-auto max-w-3xl">
         <h2 className="text-2xl font-bold tracking-tight text-slate-900 text-center mb-10">
           Preguntas Frecuentes
@@ -216,14 +216,14 @@ export function FAQSection() {
           ))}
         </div>
       </div>
-    </SectionContainer>
+    </Band>
   );
 }
 
-// --- SECCIÓN 7: CTA FINAL (Band: None or Mint) ---
+// --- SECCIÓN 7: CTA FINAL (Band: Brand) ---
 export function CTASection() {
   return (
-    <SectionContainer band="none">
+    <Band variant="brand">
       <div className="mx-auto max-w-2xl text-center py-10">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl text-pretty">
           Tu mascota merece lo mejor.<br />
@@ -244,6 +244,6 @@ export function CTASection() {
           </Link>
         </div>
       </div>
-    </SectionContainer>
+    </Band>
   );
 }

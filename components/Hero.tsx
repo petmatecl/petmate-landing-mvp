@@ -2,9 +2,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Card } from "./Shared/Card";
-import { SectionContainer } from "./Shared/Section";
+import { Band } from "./Shared/Band"; // Updated import
 
-// Iconos monocromáticos, mismos del registro
+// Iconos monocromáticos
 const HouseIcon = (p: any) => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
     <path d="M3 11.5l9-7 9 7" />
@@ -21,12 +21,15 @@ const BuildingIcon = (p: any) => (
   </svg>
 );
 
+// Icons for Hero
+import { ShieldCheckIcon, StarIcon } from "@heroicons/react/24/solid";
+
 export function Hero() {
   return (
-    <SectionContainer band="mint" className="!pt-8 !pb-16 lg:!pt-12 lg:!pb-24 overflow-visible">
-      {/* Blobs background */}
-      <div className="absolute top-0 -left-64 h-96 w-96 rounded-full bg-emerald-100 mix-blend-multiply blur-3xl opacity-70 animate-blob"></div>
-      <div className="absolute top-0 -right-64 h-96 w-96 rounded-full bg-teal-100 mix-blend-multiply blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+    <Band variant="brand" className="overflow-hidden relative">
+      {/* Blobs background (Positioned relative to Band) */}
+      <div className="absolute top-0 -left-64 h-96 w-96 rounded-full bg-emerald-100 mix-blend-multiply blur-3xl opacity-70 animate-blob pointer-events-none"></div>
+      <div className="absolute top-0 -right-64 h-96 w-96 rounded-full bg-teal-100 mix-blend-multiply blur-3xl opacity-70 animate-blob animation-delay-2000 pointer-events-none"></div>
 
       <div className="relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -95,11 +98,8 @@ export function Hero() {
           </div>
         </div>
       </div>
-    </SectionContainer>
+    </Band>
   );
 }
-
-// Icons for Hero
-import { ShieldCheckIcon, StarIcon } from "@heroicons/react/24/solid";
 
 export default Hero;
