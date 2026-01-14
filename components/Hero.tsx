@@ -23,7 +23,7 @@ const BuildingIcon = (p: any) => (
 
 export function Hero() {
   return (
-    <SectionContainer className="!pt-8 !pb-16 lg:!pt-12 lg:!pb-24 overflow-visible">
+    <SectionContainer band="mint" className="!pt-8 !pb-16 lg:!pt-12 lg:!pb-24 overflow-visible">
       {/* Blobs stay inside the relative section container - might need adjustment for overflow if we want them to bleed out, 
            but SectionContainer has overflow-hidden by default.
            The requirement is "Main sections are BLOCKS". So Hero should be a white block.

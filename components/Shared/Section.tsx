@@ -23,22 +23,35 @@ interface SectionContainerProps {
  * - Border: None (Ring 1px 5%)
  * - Radius: 24px
  * - Shadow: Soft
+ * 
+ * @param band - Optional visual band (full width background) around the container
  */
 export const SectionContainer = ({
     children,
     className = "",
     id,
-    // Deprecated props consumed to prevent spreading
+    band = "none",
+    // Deprecated props consumed
     variant,
     container
-}: SectionContainerProps) => {
+}: SectionContainerProps & { band?: "none" | "slate" | "mint" }) => {
+
+    // Determine Band Class
+    const bandClass = {
+        none: "band-none",
+        slate: "band-slate py-12", // Add vertical padding to bands to let the box "float"
+        mint: "band-mint py-12"
+    }[band];
+
     return (
-        <section
-            id={id}
-            className={`section-container mx-auto max-w-7xl ${className}`}
-        >
-            {children}
-        </section>
+        <div className={`w-full ${bandClass}`}>
+            <section
+                id={id}
+                className={`section-container mx-auto max-w-7xl ${className} ${band !== 'none' ? '!mb-0' : ''}`}
+            >
+                {children}
+            </section>
+        </div>
     );
 };
 

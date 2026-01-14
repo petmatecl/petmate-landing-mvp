@@ -31,7 +31,7 @@ export function ValueProps() {
   ];
 
   return (
-    <SectionContainer>
+    <SectionContainer band="none">
       <div className="mx-auto max-w-2xl lg:text-center">
         <h2 className="text-base font-semibold leading-7 text-emerald-600">Beneficios</h2>
         <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl text-pretty">
@@ -88,7 +88,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <SectionContainer>
+    <SectionContainer band="slate">
       {/* Decoración de fondo suave en lugar de Dark Mode */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-50 blur-3xl"></div>
@@ -135,7 +135,7 @@ export function HowItWorks() {
 // --- SECCIÓN 3: CTA FINAL ---
 export function CTASection() {
   return (
-    <SectionContainer>
+    <SectionContainer band="mint">
       <div className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl text-pretty">
           ¿Listo para encontrar al Pawnecta Sitter ideal?
