@@ -43,7 +43,7 @@ export function ValueProps() {
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
           <div className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.name} className="flex flex-col bg-white p-8 rounded-3xl shadow-sm border-2 border-slate-300 transition-all hover:shadow-md hover:border-emerald-100">
+              <div key={feature.name} className="flex flex-col bg-white p-8 rounded-3xl shadow-sm border border-slate-200 transition-all hover:shadow-lg hover:border-emerald-200 hover:-translate-y-1">
                 <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                   <feature.icon className="h-8 w-8" aria-hidden="true" />
                 </div>

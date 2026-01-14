@@ -37,7 +37,7 @@ export function Hero() {
               <span className="text-gradient">de confianza.</span>
             </h1>
 
-            <p className="mt-6 text-lg leading-8 text-slate-600">
+            <p className="mt-6 text-lg leading-8 text-slate-700">
               El match perfecto existe. Revisa <strong>reseñas reales</strong>, explora sus <strong>experiencias en fotos</strong> y confirma su <strong>disponibilidad</strong> inmediata.
             </p>
 
@@ -45,7 +45,7 @@ export function Hero() {
             <div className="mt-10 grid sm:grid-cols-2 gap-4">
               <Link
                 href="/register?role=usuario&mode=domicilio"
-                className="group bg-white rounded-3xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 transition-all duration-300 p-5 hover:border-emerald-400 hover:shadow-emerald-100"
+                className="group bg-white rounded-3xl border border-slate-200 shadow-lg shadow-slate-200/60 transition-all duration-300 p-5 hover:border-emerald-400 hover:shadow-emerald-100/50 hover:-translate-y-1"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
@@ -60,7 +60,7 @@ export function Hero() {
 
               <Link
                 href="/register?role=usuario&mode=estadia"
-                className="group bg-white rounded-3xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 transition-all duration-300 p-5 hover:border-teal-400 hover:shadow-teal-100"
+                className="group bg-white rounded-3xl border border-slate-200 shadow-lg shadow-slate-200/60 transition-all duration-300 p-5 hover:border-teal-400 hover:shadow-teal-100/50 hover:-translate-y-1"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">
@@ -79,7 +79,7 @@ export function Hero() {
               <span className="text-sm text-slate-500 font-medium">¿Ya eres parte de nuestra comunidad?</span>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center rounded-2xl border-2 border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-300 transition-all"
               >
                 Iniciar sesión
               </Link>

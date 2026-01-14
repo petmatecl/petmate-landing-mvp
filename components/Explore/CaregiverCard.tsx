@@ -77,7 +77,7 @@ export default function CaregiverCard({
 
     return (
         <>
-            <div className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white transition-all hover:shadow-lg hover:border-slate-400">
+            <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-xl hover:border-emerald-300/50 hover:ring-2 hover:ring-emerald-100 hover:-translate-y-1">
                 {/* Imagen */}
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <Image
