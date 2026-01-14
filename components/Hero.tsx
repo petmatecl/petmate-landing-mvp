@@ -45,7 +45,7 @@ export function Hero() {
             <div className="mt-10 grid sm:grid-cols-2 gap-4">
               <Link
                 href="/register?role=usuario&mode=domicilio"
-                className="group bg-white rounded-3xl border border-slate-200 shadow-lg shadow-slate-200/60 transition-all duration-300 p-5 hover:border-emerald-400 hover:shadow-emerald-100/50 hover:-translate-y-1"
+                className="group surface-card p-5"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
@@ -60,7 +60,7 @@ export function Hero() {
 
               <Link
                 href="/register?role=usuario&mode=estadia"
-                className="group bg-white rounded-3xl border border-slate-200 shadow-lg shadow-slate-200/60 transition-all duration-300 p-5 hover:border-teal-400 hover:shadow-teal-100/50 hover:-translate-y-1"
+                className="group surface-card p-5"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">

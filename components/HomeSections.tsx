@@ -43,7 +43,7 @@ export function ValueProps() {
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
           <div className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.name} className="flex flex-col bg-white p-8 rounded-3xl shadow-sm border border-slate-200 transition-all hover:shadow-lg hover:border-emerald-200 hover:-translate-y-1">
+              <div key={feature.name} className="flex flex-col surface-card p-8">
                 <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                   <feature.icon className="h-8 w-8" aria-hidden="true" />
                 </div>
@@ -108,19 +108,19 @@ export function HowItWorks() {
           <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-slate-700/50 -z-10"></div>
 
           {steps.map((step) => (
-            <div key={step.name} className="relative flex flex-col items-center text-center">
-              {/* Círculo del número/ícono */}
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-800 border-4 border-slate-900 shadow-xl mb-6 group transition-transform hover:scale-110 duration-300">
-                <step.icon className="h-10 w-10 text-emerald-400" aria-hidden="true" />
+            <div key={step.name} className="relative flex flex-col items-center text-center surface-card p-8 z-10">
+              {/* Círculo del número/ícono - Adjusted for light card */}
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-6 group-hover:scale-110 transition-transform duration-300">
+                <step.icon className="h-8 w-8" aria-hidden="true" />
               </div>
 
               <div className="flex flex-col items-center text-center">
-                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 mb-2">
                   Paso {step.id}
                 </span>
 
-                <h3 className="mt-3 text-lg font-bold text-white">{step.name}</h3>
-                <p className="mt-1 text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
+                <h3 className="mt-2 text-lg font-bold text-slate-900">{step.name}</h3>
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
                   {step.description}
                 </p>
               </div>

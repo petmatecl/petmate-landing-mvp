@@ -4,6 +4,20 @@
 
 :root {
   --font-outfit: 'Outfit', sans-serif;
+
+  /* --- High Contrast Surface Tokens --- */
+  --surface-bg: #ffffff;
+  --surface-border: #cbd5e1;
+  /* slate-300 */
+  --surface-ring: 0 0 0 1px rgba(15, 23, 42, 0.05);
+  /* slate-900/5 */
+  --surface-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  /* shadow-sm equivalent */
+
+  --surface-hover-border: #10b981;
+  /* emerald-500 */
+  --surface-hover-ring: 0 0 0 1px rgba(16, 185, 129, 0.2);
+  --surface-hover-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 body {
@@ -47,7 +61,21 @@ body {
   @apply bg-white rounded-3xl border-2 border-slate-300 shadow-xl shadow-slate-200/60 transition-all duration-300;
 }
 
-/* High Contrast Card Standard/Utility */
+/* High Contrast Card Standard/Utility - Token Based */
+.surface-card {
+  background-color: var(--surface-bg);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--surface-shadow), var(--surface-ring);
+  @apply rounded-3xl transition-all duration-300;
+}
+
+.surface-card:hover {
+  border-color: var(--surface-hover-border);
+  box-shadow: var(--surface-hover-shadow), var(--surface-hover-ring);
+  transform: translateY(-4px);
+}
+
+/* Legacy/Fallback */
 .card-high-contrast {
   @apply bg-white border-2 border-slate-300 shadow-md shadow-slate-200/50 rounded-2xl;
 }
