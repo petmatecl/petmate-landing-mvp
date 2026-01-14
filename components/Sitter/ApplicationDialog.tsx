@@ -80,7 +80,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-4 border-b border-slate-400 flex items-center justify-between bg-slate-50/50">
                     <h2 className="text-lg font-bold text-slate-800">
                         Postular al Viaje
                     </h2>
@@ -95,7 +95,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     {/* Trip Summary */}
-                    <div className="bg-slate-50 border-2 border-slate-300 rounded-xl p-4 text-sm space-y-2">
+                    <div className="bg-slate-50 border-2 border-slate-400 rounded-xl p-4 text-sm space-y-2">
                         <div className="flex justify-between">
                             <span className="text-slate-500">Fecha:</span>
                             <span className="font-bold text-slate-800">
@@ -133,7 +133,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                             value={mensaje}
                             onChange={(e) => setMensaje(e.target.value)}
                             placeholder="Hola, me encantaría cuidar a tus mascotas. Tengo experiencia con..."
-                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"
+                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"
                             required
                         />
                     </div>
@@ -152,7 +152,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                                 value={precio}
                                 onChange={(e) => setPrecio(e.target.value)}
                                 placeholder="Si deseas proponer un precio específico"
-                                className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
                             />
                         </div>
                         <p className="text-[10px] text-slate-400 mt-1">Si lo dejas en blanco, se discutirá después.</p>

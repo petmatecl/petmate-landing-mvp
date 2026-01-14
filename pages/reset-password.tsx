@@ -3,6 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import { Card } from "../components/Shared/Card";
 
 // ==== Íconos mono (inline SVG) ====
 const LockIcon = (props: any) => (
@@ -104,7 +105,7 @@ export default function ResetPasswordPage() {
             <main className="pmLogin page">
                 <div className="wrap">
                     {/* Card */}
-                    <div className="card">
+                    <Card padding="l">
                         <h1 className="title">Nueva contraseña</h1>
                         <p className="subtitle">
                             Ingresa tu nueva contraseña para acceder a tu cuenta.
@@ -173,7 +174,7 @@ export default function ResetPasswordPage() {
                                 {loading ? "Actualizando..." : "Actualizar contraseña"}
                             </button>
                         </form>
-                    </div>
+                    </Card>
                 </div>
             </main>
 
@@ -181,7 +182,7 @@ export default function ResetPasswordPage() {
         :root {
           --brand: #111827;
           --muted: #f6f7f9;
-          --border: #e5e7eb;
+          --border: #94a3b8; /* slate-400 */
         }
 
         .page {
@@ -190,21 +191,15 @@ export default function ResetPasswordPage() {
           align-items: flex-start;
           justify-content: center;
           padding: 24px;
-          background: linear-gradient(180deg, #fafafa, #fff);
+          background: var(--page-bg);
         }
         .wrap {
           width: 100%;
           max-width: 480px; 
         }
 
-        /* Card */
-        .card {
-          background: #fff;
-          border: 1px solid var(--border);
-          border-radius: 16px;
-          padding: 24px;
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
-        }
+        /* Card styles removed - using component */
+        
         .title {
           font-size: 1.8rem;
           margin: 0 0 4px;
@@ -239,7 +234,7 @@ export default function ResetPasswordPage() {
           width: 100%;
           padding: 0 12px;
           padding-left: 12px;
-          border: 1.5px solid #cbd5e1;
+          border: 2px solid #94a3b8;
           border-radius: 10px;
           background: #fff;
         }

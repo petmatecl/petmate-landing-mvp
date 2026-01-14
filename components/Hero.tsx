@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Card } from "./Shared/Card";
-import { Section } from "./Shared/Section";
+import { SectionContainer } from "./Shared/Section";
 
 // Iconos monocromáticos, mismos del registro
 const HouseIcon = (p: any) => (
@@ -23,17 +23,19 @@ const BuildingIcon = (p: any) => (
 
 export function Hero() {
   return (
-    <Section variant="white" className="!pt-0 !pb-0" container={false}>
-      {/* Background Decor handled by Section variant="white" but we keep blobs */}
+    <SectionContainer className="!pt-8 !pb-16 lg:!pt-12 lg:!pb-24 overflow-visible">
+      {/* Blobs stay inside the relative section container - might need adjustment for overflow if we want them to bleed out, 
+           but SectionContainer has overflow-hidden by default.
+           The requirement is "Main sections are BLOCKS". So Hero should be a white block.
+           We can keep the blobs INSIDE the block for a contained clean look.
+       */}
       <div className="absolute top-0 -left-64 h-96 w-96 rounded-full bg-emerald-100 mix-blend-multiply blur-3xl opacity-70 animate-blob"></div>
       <div className="absolute top-0 -right-64 h-96 w-96 rounded-full bg-teal-100 mix-blend-multiply blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:pt-12 lg:pb-24 relative z-10">
+      <div className="relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Copy + CTAs */}
           <div>
-
-
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
               Encuentra un Sitter <br className="hidden lg:block" />
               <span className="text-gradient">de confianza.</span>
@@ -123,7 +125,7 @@ export function Hero() {
           </div>
         </div >
       </div >
-    </Section >
+    </SectionContainer >
   );
 }
 

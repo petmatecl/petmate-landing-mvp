@@ -3,6 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import { Card } from "../components/Shared/Card";
 
 export default function EmailConfirmadoPage() {
     const router = useRouter();
@@ -34,7 +35,7 @@ export default function EmailConfirmadoPage() {
             </Head>
 
             <main className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-emerald-50 to-white">
-                <div className="w-full max-w-[520px] bg-white rounded-2xl p-8 shadow-xl border border-emerald-100 text-center relative overflow-hidden">
+                <Card padding="l" className="w-full max-w-[520px] text-center relative">
                     {/* Decoración de fondo */}
                     <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
 
@@ -42,11 +43,11 @@ export default function EmailConfirmadoPage() {
                         🎉
                     </div>
 
-                    <h1 className="text-3xl font-extrabold text-gray-900 m-0 mb-2">
+                    <h1 className="text-3xl font-extrabold text-slate-900 m-0 mb-2">
                         ¡Sesión iniciada!
                     </h1>
 
-                    <p className="text-lg text-gray-600 mb-6">
+                    <p className="text-lg text-slate-600 mb-6">
                         Te estamos redirigiendo a tu cuenta...
                     </p>
 
@@ -58,7 +59,7 @@ export default function EmailConfirmadoPage() {
                             Ir a Iniciar Sesión
                         </Link>
                     </div>
-                </div>
+                </Card>
             </main>
         </>
     );

@@ -8,6 +8,7 @@ import type { DateRange } from "react-day-picker";
 import DateRangeAirbnb from "../components/DateRangeAirbnb";
 import { supabase } from "../lib/supabaseClient";
 import GoogleAuthButton from "../components/GoogleAuthButton";
+import { Card } from "../components/Shared/Card";
 
 type Role = "cliente" | "petmate";
 
@@ -430,7 +431,7 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          <div className="card">
+          <Card padding="m">
             {tab === "cliente" ? (
               <form className="grid" onSubmit={submitCliente}>
                 <h1>Regístrate como usuario</h1>
@@ -684,7 +685,7 @@ export default function RegisterPage() {
                 </p>
               </form>
             )}
-          </div>
+          </Card>
         </div>
       </main >
 
@@ -693,14 +694,14 @@ export default function RegisterPage() {
           --brand: #059669;
           --brand-dark: #047857;
           --muted: #ecfdf5;
-          --border: #cbd5e1; /* reinforced */
+          --border: #94a3b8; /* reinforced */
         }
         .page {
           min-height: calc(100vh - 200px);
           display: flex;
           justify-content: center;
           padding: 24px;
-          background: linear-gradient(180deg, #fafafa, #fff);
+          background: var(--page-bg);
         }
         .wrap {
           width: 100%;
@@ -714,7 +715,7 @@ export default function RegisterPage() {
         }
         .tab {
           appearance: none;
-          border: 2px solid #cbd5e1; /* reinforced */
+          border: 2px solid #94a3b8; /* reinforced */
           padding: 1rem;
           border-radius: 12px;
           background: #fff;
@@ -743,7 +744,7 @@ export default function RegisterPage() {
         }
         .card {
           background: #fff;
-          border: 2px solid #cbd5e1; /* Global Standard: Slate-300 */
+          border: 2px solid #94a3b8; /* Global Standard: Slate-300 */
           border-radius: 16px;
           padding: 20px;
           box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
@@ -779,7 +780,7 @@ export default function RegisterPage() {
         select {
           height: 44px;
           padding: 0 12px;
-          border: 2px solid #cbd5e1; /* reinforced */
+          border: 2px solid #94a3b8; /* reinforced Slate-400 */
           border-radius: 10px;
         }
         input:focus,

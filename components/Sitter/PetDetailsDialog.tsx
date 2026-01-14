@@ -75,8 +75,8 @@ const PetDetailsDialog: React.FC<PetDetailsDialogProps> = ({ pets, isOpen, onClo
                                     key={p.id}
                                     onClick={() => setCurrentIndex(idx)}
                                     className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all whitespace-nowrap ${idx === currentIndex
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'bg-white/20 text-white hover:bg-white/30'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'bg-white/20 text-white hover:bg-white/30'
                                         }`}
                                 >
                                     {p.nombre}
@@ -88,7 +88,7 @@ const PetDetailsDialog: React.FC<PetDetailsDialogProps> = ({ pets, isOpen, onClo
 
                 <div className="p-6 space-y-4">
                     <div className="flex gap-4">
-                        <div className="flex-1 bg-slate-50 p-3 rounded-xl border-2 border-slate-300">
+                        <div className="flex-1 bg-slate-50 p-3 rounded-xl border-2 border-slate-400">
                             <div className="flex items-center gap-2 text-slate-500 text-xs uppercase font-bold mb-1">
                                 <Calendar size={14} /> Edad
                             </div>
@@ -98,7 +98,7 @@ const PetDetailsDialog: React.FC<PetDetailsDialogProps> = ({ pets, isOpen, onClo
                                     : 'Desconocida'}
                             </p>
                         </div>
-                        <div className="flex-1 bg-slate-50 p-3 rounded-xl border-2 border-slate-300">
+                        <div className="flex-1 bg-slate-50 p-3 rounded-xl border-2 border-slate-400">
                             <div className="flex items-center gap-2 text-slate-500 text-xs uppercase font-bold mb-1">
                                 <Activity size={14} /> Tamaño
                             </div>
@@ -109,7 +109,7 @@ const PetDetailsDialog: React.FC<PetDetailsDialogProps> = ({ pets, isOpen, onClo
                     </div>
 
                     {pet.descripcion && (
-                        <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-300">
+                        <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-400">
                             <div className="flex items-center gap-2 text-slate-500 text-xs uppercase font-bold mb-2">
                                 <Info size={14} /> Sobre {pet.nombre}
                             </div>

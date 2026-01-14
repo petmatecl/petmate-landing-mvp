@@ -1,45 +1,45 @@
 import React, { ReactNode } from 'react';
 
-interface SectionProps {
+interface SectionContainerProps {
     children: ReactNode;
-    variant?: 'default' | 'white' | 'dark' | 'alt';
     className?: string; // Additional layout classes
-    container?: boolean; // Whether to wrap in max-w-7xl
+    id?: string;
+    /**
+     * @deprecated Variants are removed in favor of strict SectionContainer styling.
+     */
+    variant?: any;
+    /**
+     * @deprecated Container prop is now implicit or handled by layout. 
+     * SectionContainer IS the container.
+     */
+    container?: boolean;
 }
 
 /**
- * SOURCE OF TRUTH: Page Sections
- * Enforces:
- * - Correct background alternation
- * - Vertical spacing
- * - Container alignment
+ * SOURCE OF TRUTH: Section Container (Visual Block)
+ * Wraps main page sections in a consistent "Surface" block.
+ * - Bg: White
+ * - Border: Slate-400 (High Contrast)
+ * - Radius: 24px
+ * - Shadow: Soft
  */
-export const Section = ({
+export const SectionContainer = ({
     children,
-    variant = 'default',
     className = "",
-    container = true
-}: SectionProps) => {
-
-    const bgClass = {
-        default: "bg-slate-100",     // --page-bg (was 50)
-        white: "bg-white",          // --section-alt-bg
-        alt: "bg-slate-200",        // Increased contrast
-        dark: "bg-slate-900",
-    }[variant];
-
-    // Slate-900 sections need text-white usually, handled by children or global context
-    const textClass = variant === 'dark' ? 'text-white' : 'text-slate-900';
-
+    id,
+    // Deprecated props consumed to prevent spreading
+    variant,
+    container
+}: SectionContainerProps) => {
     return (
-        <section className={`${bgClass} ${textClass} py-24 sm:py-32 relative overflow-hidden ${className}`}>
-            {container ? (
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-                    {children}
-                </div>
-            ) : (
-                children
-            )}
+        <section
+            id={id}
+            className={`section-container mx-auto max-w-7xl ${className}`}
+        >
+            {children}
         </section>
     );
 };
+
+// Backwards compatibility alias
+export const Section = SectionContainer;

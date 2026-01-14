@@ -4,6 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import { Card } from "../components/Shared/Card";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 
 type Role = "client" | "sitter";
@@ -223,7 +224,7 @@ export default function LoginPage() {
           </div>
 
           {/* Card */}
-          <div className="card">
+          <Card padding="l" className="login-card">
             <h1 className="title">Iniciar sesión</h1>
             <p className="subtitle">
               Accede como {tab === "client" ? "usuario" : "Sitter"} para reservar y gestionar
@@ -320,7 +321,7 @@ export default function LoginPage() {
                 </Link>
               </div>
             </form>
-          </div>
+          </Card>
         </div>
       </main >
 
@@ -328,7 +329,7 @@ export default function LoginPage() {
         :root {
           --brand: #111827;
           --muted: #f6f7f9;
-          --border: #cbd5e1; /* slate-300 matches global reinforcement */
+          --border: #94a3b8; /* slate-300 matches global reinforcement */
         }
 
         .page {
@@ -337,7 +338,7 @@ export default function LoginPage() {
           align-items: flex-start;
           justify-content: center;
           padding: 24px;
-          background: linear-gradient(180deg, #fafafa, #fff);
+          background: var(--page-bg);
         }
         .wrap {
           width: 100%;
@@ -353,7 +354,7 @@ export default function LoginPage() {
         }
         .tab {
           appearance: none;
-          border: 2px solid #cbd5e1; /* reinforced */
+          border: 2px solid #94a3b8; /* reinforced */
           padding: 1rem;
           border-radius: 12px;
           background: #fff;
@@ -384,7 +385,7 @@ export default function LoginPage() {
         /* Card */
         .card {
           background: #fff;
-          border: 2px solid #cbd5e1; /* Global Standard: Slate-300 */
+          border: 2px solid #94a3b8; /* Global Standard: Slate-300 */
           border-radius: 16px;
           padding: 24px;
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
@@ -421,7 +422,7 @@ export default function LoginPage() {
           height: 46px;
           width: 100%;
           padding: 0 44px 0 12px;
-          border: 2px solid #cbd5e1; /* reinforced thickness */
+          border: 2px solid #94a3b8; /* Slate-400 */
           border-radius: 10px;
           background: #fff;
         }

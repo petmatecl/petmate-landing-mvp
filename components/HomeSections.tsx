@@ -7,7 +7,7 @@ import {
   ChatBubbleLeftRightIcon,
   BriefcaseIcon
 } from "@heroicons/react/24/outline";
-import { Section } from "./Shared/Section";
+import { SectionContainer } from "./Shared/Section";
 import { Card } from "./Shared/Card";
 
 // --- SECCIÓN 1: PROPUETA DE VALOR (Fondo Claro) ---
@@ -31,7 +31,7 @@ export function ValueProps() {
   ];
 
   return (
-    <Section variant="default">
+    <SectionContainer>
       <div className="mx-auto max-w-2xl lg:text-center">
         <h2 className="text-base font-semibold leading-7 text-emerald-600">Beneficios</h2>
         <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl text-pretty">
@@ -60,11 +60,11 @@ export function ValueProps() {
           ))}
         </div>
       </div>
-    </Section>
+    </SectionContainer>
   );
 }
 
-// --- SECCIÓN 2: CÓMO FUNCIONA (Fondo Oscuro para contraste) ---
+// --- SECCIÓN 2: CÓMO FUNCIONA (Standardized Block) ---
 export function HowItWorks() {
   const steps = [
     {
@@ -88,28 +88,28 @@ export function HowItWorks() {
   ];
 
   return (
-    <Section variant="dark">
-      {/* Decoración de fondo */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-500 blur-3xl"></div>
-        <div className="absolute top-1/2 right-0 w-64 h-64 rounded-full bg-emerald-700 blur-3xl"></div>
+    <SectionContainer>
+      {/* Decoración de fondo suave en lugar de Dark Mode */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-50 blur-3xl"></div>
+        <div className="absolute top-1/2 right-0 w-64 h-64 rounded-full bg-teal-50 blur-3xl"></div>
       </div>
 
       <div className="relative z-10">
         <div className="mx-auto max-w-2xl lg:text-center mb-16">
-          <h2 className="text-emerald-400 font-bold tracking-wide uppercase text-sm">Paso a paso</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-emerald-600 font-bold tracking-wide uppercase text-sm">Paso a paso</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Tu tranquilidad en 3 pasos
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
           {/* Línea conectora (visible solo en desktop) */}
-          <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-slate-700/50 -z-10"></div>
+          <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
 
           {steps.map((step) => (
             <Card key={step.name} className="relative flex flex-col items-center text-center z-10" padding="l">
-              {/* Círculo del número/ícono - Adjusted for light card */}
+              {/* Círculo del número/ícono */}
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-6 group-hover:scale-110 transition-transform duration-300">
                 <step.icon className="h-8 w-8" aria-hidden="true" />
               </div>
@@ -128,14 +128,14 @@ export function HowItWorks() {
           ))}
         </div>
       </div>
-    </Section>
+    </SectionContainer>
   );
 }
 
 // --- SECCIÓN 3: CTA FINAL ---
 export function CTASection() {
   return (
-    <Section variant="white">
+    <SectionContainer>
       <div className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl text-pretty">
           ¿Listo para encontrar al Pawnecta Sitter ideal?
@@ -157,6 +157,6 @@ export function CTASection() {
           </Link>
         </div>
       </div>
-    </Section>
+    </SectionContainer>
   );
 }

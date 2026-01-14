@@ -1,51 +1,47 @@
 # UI Standards - Pawnecta System
 
 ## Core Philosophy
-**High Contrast & Visibility**. Every component must be distinct even on high-brightness screens. We do not use subtle gray-on-gray borders.
+**High Contrast & Visibility**. Every component must be distinct even on high-brightness screens. We use a **"Section Container"** pattern where content lives in clearly defined white blocks against a soft page background.
 
 ## Design Tokens (Global CSS)
 All styles are derived from `styles/globals.css`.
 
 | Token | Value (Ref) | Description |
 |-------|-------------|-------------|
-| `--surface-bg` | White | Card background |
-| `--surface-border` | **Slate-400** | **High Contrast** Solid Border |
-| `--surface-ring` | Slate-900/8% | Edge reinforcement |
-| `--page-bg` | **Slate-100** | Darker page background for contrast |
-| `--section-alt-bg` | Slate-200 | Secondary Section for separation |
+| `--page-bg` | **Slate-50 (#f8fafc)** | Global page background. |
+| `--section-bg` | **White (#ffffff)** | Background for Sections and Cards. |
+| `--section-border` | **Slate-400 (#94a3b8)** | **High Contrast** Solid Border for Sections. |
+| `--section-radius` | **24px** | Standard radius for main sections. |
+| `--section-padding`| **py-16 px-6** | Standard internal spacing. |
 
 ## Components
 
-### 1. &lt;Card /&gt;
-**Path**: `components/Shared/Card.tsx`
-**Usage**: Any bounded content (Caregiver profiles, Benefits, Forms, Stats).
+### 1. <SectionContainer />
+**Path**: `components/Shared/Section.tsx` (Export: `SectionContainer`)
+**Usage**: The PRIMARY wrapper for all page content blocks (Hero, Features, etc).
 
 ```tsx
-<Card hoverable padding="m">
+<SectionContainer>
+  <h2>Title</h2>
+  <Content />
+</SectionContainer>
+```
+
+**Style**: White Block, Slate-400 Border, Rounded-3xl, Shadow-sm.
+
+### 2. <Card />
+**Path**: `components/Shared/Card.tsx`
+**Usage**: Smaller distinct blocks *inside* a Section or Layout (e.g., Dashboard widgets, Caregiver profiles).
+
+```tsx
+<Card padding="m">
   <h3>Title</h3>
-  <p>Content</p>
 </Card>
 ```
 
-**DO NOT** write &lt;div className="border rounded shadow..."&gt;. Use &lt;Card&gt;.
-**ENFORCED**: Styles are `border: 2px solid var(--surface-border)`.
-
-### 2. &lt;Section /&gt;
-**Path**: `components/Shared/Section.tsx`
-**Usage**: Top-level page blocks.
-
-```tsx
-<Section variant="default"> {/* Slate-100 (Default Base) */}
-  <Content />
-</Section>
-<Section variant="white"> {/* White (Highlight) */}
-  <Content />
-</Section>
-<Section variant="alt"> {/* Slate-200 (Separation) */}
-  <Content />
-</Section>
-```
+**Style**: Matches SectionContainer visual language (White, Border Slate-400, Rounded).
 
 ## Rules
-1.  **Always Alternate**: Flow should be `White -> Slate-200 -> Slate-100 -> Dark`. Avoid `Default -> Default`.
-2.  **No Ad-Hoc Borders**: If you need a border, ask "Is this a Card?". If yes, use &lt;Card&gt;. If no, use `border-state-400 border-2`.
+1.  **Page Background**: Must be `bg-slate-50` (or `var(--page-bg)`). Use global `body` style or `.page` class.
+2.  **No Naked Content**: Text and forms should live inside a `SectionContainer` or `Card`.
+3.  **Borders**: Always use `border-slate-400` (or `var(--section-border)`) for structural lines.

@@ -15,7 +15,7 @@ interface FilterBarProps {
 
 export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
     return (
-        <div className="sticky top-[64px] z-30 w-full bg-white/80 backdrop-blur-md border-b border-slate-300 py-3 mb-6">
+        <div className="sticky top-[64px] z-30 w-full bg-white/80 backdrop-blur-md border-b border-slate-400 py-3 mb-6">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
@@ -33,7 +33,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                             className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors
                                 ${filters.petType === "dogs" || filters.petType === "both"
                                     ? "bg-slate-900 border-slate-900 text-white"
-                                    : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"}`}
+                                    : "bg-white border-slate-400 text-slate-700 hover:bg-slate-50"}`}
                         >
                             <PawPrint size={16} /> Perros
                         </button>
@@ -42,7 +42,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                             className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors
                                 ${filters.petType === "cats" || filters.petType === "both"
                                     ? "bg-slate-900 border-slate-900 text-white"
-                                    : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"}`}
+                                    : "bg-white border-slate-400 text-slate-700 hover:bg-slate-50"}`}
                             onClick={() => {
                                 // Logic: cats -> any, dogs -> both, both -> dogs, any -> cats
                                 if (filters.petType === "cats") onFilterChange("petType", "any");
@@ -70,7 +70,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                             className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
                                 ${filters.serviceType === "hospedaje"
                                     ? "bg-emerald-600 border-emerald-600 text-white"
-                                    : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"}`}
+                                    : "bg-white border-slate-400 text-slate-700 hover:bg-slate-50"}`}
                             onClick={() => onFilterChange("serviceType", filters.serviceType === "hospedaje" ? "all" : "hospedaje")}
                         >
                             <Home size={16} /> En casa del Sitter
@@ -80,7 +80,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                             className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
                                 ${filters.serviceType === "a_domicilio"
                                     ? "bg-emerald-600 border-emerald-600 text-white"
-                                    : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"}`}
+                                    : "bg-white border-slate-400 text-slate-700 hover:bg-slate-50"}`}
                             onClick={() => onFilterChange("serviceType", filters.serviceType === "a_domicilio" ? "all" : "a_domicilio")}
                         >
                             <Car size={16} /> A domicilio
@@ -92,7 +92,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                                 <div className="relative">
                                     <select
                                         className={`appearance-none rounded-full border pl-10 pr-4 py-2 text-sm font-bold transition-colors outline-none cursor-pointer
-                                        ${filters.dogSize ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}
+                                        ${filters.dogSize ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-400 hover:bg-slate-50"}`}
                                         value={filters.dogSize || ""}
                                         onChange={(e) => onFilterChange("dogSize", e.target.value || null)}
                                     >

@@ -6,16 +6,26 @@
   --font-outfit: 'Outfit', sans-serif;
 
   /* --- High Contrast Surface Tokens (Definitive System) --- */
-  --page-bg: #f1f5f9;
-  /* slate-100 */
-  --section-alt-bg: #ffffff;
-  /* white */
+  --page-bg: #f8fafc;
+  /* Slate-50: Softer global background */
+  --section-bg: #ffffff;
+  /* White */
 
+  --section-border: #94a3b8;
+  /* Slate-400: Strict Standard */
+  --section-ring: 0 0 0 1px rgba(15, 23, 42, 0.08);
+  /* Slate-900/8% */
+  --section-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+
+  --section-radius: 1.5rem;
+  /* 24px */
+  --section-padding-x: 1.5rem;
+  --section-padding-y: 2rem;
+
+  /* Legacy/Compat Tokens */
   --surface-bg: #ffffff;
   --surface-border: #94a3b8;
-  /* slate-400 (STANDARD FOR HIGH BRIGHTNESS) */
   --surface-ring: 0 0 0 1px rgba(15, 23, 42, 0.08);
-  /* slate-900/8% */
   --surface-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 
   --surface-hover-border: #10b981;
@@ -26,12 +36,36 @@
 
 body {
   font-family: var(--font-outfit);
-  background-color: #f1f5f9;
-  /* Slate-100 */
-  /* Slate-50 was too light */
+  background-color: var(--page-bg);
   color: #1e293b;
   /* Slate-800 */
   -webkit-font-smoothing: antialiased;
+}
+
+/* --- Section Container Standard --- */
+.page-bg {
+  background-color: var(--page-bg);
+}
+
+.section-container {
+  background-color: var(--section-bg);
+  border: 2px solid var(--section-border);
+  border-radius: var(--section-radius);
+  padding: var(--section-padding-y) var(--section-padding-x);
+  box-shadow: var(--section-shadow), var(--section-ring);
+  margin-bottom: 2rem;
+  /* Spacing between blocks */
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  /* Ensure content respects radius */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --section-padding-x: 2.5rem;
+    --section-padding-y: 3rem;
+  }
 }
 
 /* --- Premium Utilities --- */
@@ -39,27 +73,23 @@ body {
 /* Option A: High Contrast Legacy (Default for Glass Panel) */
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);
-  /* Increased opacity for solid look */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 2px solid #cbd5e1;
-  /* Slate-300: High visibility */
+  border: 2px solid #94a3b8;
+  /* Enforced Slate-400 */
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  /* Shadow-md */
 }
 
 /* Option B: Elevated/Soft Shadow */
 .card-elevated {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  /* Slate-200 */
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  /* Shadow-xl */
 }
 
 .ambient-bg {
   background: radial-gradient(circle at 0% 0%, #ecfdf5 0%, transparent 50%), radial-gradient(circle at 100% 100%, #f0f9ff 0%, transparent 50%);
-  background-color: #f8fafc;
+  background-color: var(--page-bg);
 }
 
 .card-premium {
@@ -82,7 +112,7 @@ body {
 
 /* Legacy/Fallback */
 .card-high-contrast {
-  @apply bg-white border-2 border-slate-300 shadow-md shadow-slate-200/50 rounded-2xl;
+  @apply bg-white border-2 border-slate-400 shadow-md shadow-slate-200/50 rounded-2xl;
 }
 
 .card-premium:hover {
@@ -99,7 +129,7 @@ body {
 
 /* Campos de formulario modernos */
 .form-input {
-  @apply w-full rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 shadow-sm;
+  @apply w-full rounded-xl border-2 border-slate-400 bg-white px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 shadow-sm;
 }
 
 .form-label {
@@ -132,14 +162,11 @@ h6 {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
-  /* slate-300 */
   border-radius: 20px;
 }
 
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
-  /* slate-400 */
 }
 
 /* Fix Leaflet Map Height */

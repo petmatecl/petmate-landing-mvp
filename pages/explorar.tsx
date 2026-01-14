@@ -137,7 +137,7 @@ export default function ExplorarPage() {
     }, [filters]); // Re-ejecutar cuando cambien los filtros
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-slate-50">
             <Head>
                 <title>Explorar Cuidadores | Pawnecta</title>
                 <meta name="description" content="Busca y encuentra cuidadores de mascotas verificados en tu comuna. Filtra por servicios de hospedaje o a domicilio. Reserva con confianza en Pawnecta." />
@@ -162,7 +162,7 @@ export default function ExplorarPage() {
                         isApproved={true}
                     />
                 ) : petmates.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-300">
+                    <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-400">
                         <h3 className="text-lg font-semibold text-slate-900">No encontramos Sitters con estos filtros</h3>
                         <p className="text-slate-500 mt-2">Intenta cambiar los criterios de búsqueda.</p>
                         <div className="flex flex-col items-center gap-3 mt-6">
@@ -188,7 +188,7 @@ export default function ExplorarPage() {
                                 {petmates.length} cuidador{petmates.length !== 1 ? 'es' : ''} encontrado{petmates.length !== 1 ? 's' : ''}
                             </p>
 
-                            <div className="bg-white p-1.5 rounded-xl flex gap-1 border-2 border-slate-300 shadow-sm">
+                            <div className="bg-white p-1.5 rounded-xl flex gap-1 border-2 border-slate-400 shadow-sm">
                                 <button
                                     onClick={() => setViewMode("list")}
                                     className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${viewMode === "list"
@@ -271,7 +271,7 @@ export default function ExplorarPage() {
                                                 </Link>
                                                 <Link
                                                     href="/login"
-                                                    className="block w-full py-3.5 px-6 bg-white text-slate-700 font-bold rounded-xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
+                                                    className="block w-full py-3.5 px-6 bg-white text-slate-700 font-bold rounded-xl border-2 border-slate-400 hover:bg-slate-50 transition-colors"
                                                 >
                                                     Iniciar sesión
                                                 </Link>

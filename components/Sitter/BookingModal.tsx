@@ -136,7 +136,7 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
                 ) : (
                     /* NORMAL STATE */
                     <>
-                        <div className="px-6 py-4 border-b border-slate-300 flex justify-between items-center">
+                        <div className="px-6 py-4 border-b border-slate-400 flex justify-between items-center">
                             <h3 className="font-bold text-lg text-slate-900">Solicitar Reserva</h3>
                             <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
                         </div>
@@ -149,7 +149,7 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
                             {loading ? (
                                 <div className="py-8 text-center text-emerald-600">Cargando tus viajes...</div>
                             ) : trips.length === 0 ? (
-                                <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                                <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-400">
                                     <p className="text-slate-500 mb-3">No tienes viajes disponibles para asignar.</p>
                                     <Link href="/usuario" className="text-emerald-600 font-bold hover:underline text-sm">
                                         + Crear Nuevo Viaje
@@ -163,7 +163,7 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
                                             onClick={() => setSelectedTripId(trip.id)}
                                             className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedTripId === trip.id
                                                 ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
-                                                : "border-slate-300 hover:border-emerald-200 hover:bg-slate-50"
+                                                : "border-slate-400 hover:border-emerald-200 hover:bg-slate-50"
                                                 }`}
                                         >
                                             <div className="flex justify-between items-start">
@@ -193,7 +193,7 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
                             )}
                         </div>
 
-                        <div className="px-6 py-4 bg-slate-50 border-t border-slate-300 flex justify-end gap-3">
+                        <div className="px-6 py-4 bg-slate-50 border-t border-slate-400 flex justify-end gap-3">
                             <button
                                 onClick={onClose}
                                 className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"

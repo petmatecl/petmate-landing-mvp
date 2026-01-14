@@ -1,6 +1,6 @@
 import Link from "next/link";
 import CaregiverCard from "./Explore/CaregiverCard";
-import { Section } from "./Shared/Section";
+import { SectionContainer } from "./Shared/Section";
 
 interface FeaturedPawnectasProps {
     caregivers: any[];
@@ -49,7 +49,7 @@ export function FeaturedPawnectas({ caregivers }: FeaturedPawnectasProps) {
     const displayCaregivers = MOCK_CAREGIVERS;
 
     return (
-        <Section variant="alt">
+        <SectionContainer>
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
 
                 {/* Columna Izquierda: Texto (más compacta) */}
@@ -93,6 +93,6 @@ export function FeaturedPawnectas({ caregivers }: FeaturedPawnectasProps) {
                     </div>
                 </div>
             </div>
-        </Section>
+        </SectionContainer>
     );
 }

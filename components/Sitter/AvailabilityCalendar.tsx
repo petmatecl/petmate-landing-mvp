@@ -132,7 +132,7 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props)
     };
 
     return (
-        <div className="bg-white rounded-2xl p-6 border-2 border-slate-300 shadow-sm w-full">
+        <div className="bg-white rounded-2xl p-6 border-2 border-slate-400 shadow-sm w-full">
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -193,7 +193,7 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props)
             </div>
 
             {/* Footer / Helpers */}
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center border-t border-slate-300 pt-4">
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-center border-t border-slate-400 pt-4">
 
                 {/* Legend */}
                 <div className="flex items-center gap-3 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
