@@ -66,6 +66,35 @@ body {
   overflow: hidden;
 }
 
+/* --- Band System (Full Width Backgrounds) --- */
+.band-brand {
+  background-color: #ecfdf5;
+  /* Emerald-50 */
+  border-top: 1px solid rgba(16, 185, 129, 0.1);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.band-soft {
+  background-color: #f8fafc;
+  /* Slate-50 */
+}
+
+.band-white {
+  background-color: #ffffff;
+  /* White */
+  border-top: 1px solid #f1f5f9;
+  /* Slate-100 for separation */
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.band-dark {
+  background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+  /* Slate-900 Gradient */
+  color: white;
+  border-top: 1px solid #334155;
+  border-bottom: 1px solid #334155;
+}
+
 @media (min-width: 768px) {
   :root {
     --section-padding-x: 2.5rem;

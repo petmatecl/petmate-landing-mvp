@@ -15,7 +15,7 @@ import { Band } from "./Shared/Band"; // Updated Import
 import { Card } from "./Shared/Card";
 import { useState } from "react";
 
-// --- SECCIÓN 2: CÓMO FUNCIONA (Band: White) ---
+// --- SECCIÓN 2: CÓMO FUNCIONA (Band: Soft) ---
 export function HowItWorks() {
   const steps = [
     {
@@ -39,7 +39,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <Band variant="white">
+    <Band variant="soft">
       <div className="mx-auto max-w-2xl lg:text-center mb-16">
         <h2 className="text-emerald-600 font-bold tracking-wide uppercase text-sm">Simple y Rápido</h2>
         <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
@@ -74,7 +74,7 @@ export function HowItWorks() {
   );
 }
 
-// --- SECCIÓN 3: CONFIANZA / VALUE PROPS (Band: Soft / Slate) ---
+// --- SECCIÓN 3: CONFIANZA / VALUE PROPS (Band: White) ---
 export function TrustSection() {
   const features = [
     {
@@ -95,7 +95,7 @@ export function TrustSection() {
   ];
 
   return (
-    <Band variant="soft">
+    <Band variant="white">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div className="max-w-2xl">
           <h2 className="text-base font-semibold leading-7 text-emerald-600">Tranquilidad Total</h2>
@@ -146,16 +146,16 @@ export function TrustSection() {
   );
 }
 
-// --- SECCIÓN 5: Sitter CTA (Band: Soft) ---
+// --- SECCIÓN 5: Sitter CTA (Band: Dark Full-Width) ---
 export function SitterCTA() {
   return (
-    <Band variant="soft">
-      <div className="mx-auto max-w-4xl bg-slate-900 rounded-3xl p-8 sm:p-12 lg:p-16 text-center lg:text-left relative overflow-hidden flex flex-col lg:flex-row items-center gap-12">
+    <Band variant="dark">
+      <div className="mx-auto max-w-4xl flex flex-col lg:flex-row items-center gap-12 relative overflow-hidden">
 
         {/* Decoración Fondo */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
-        <div className="relative z-10 flex-1">
+        <div className="relative z-10 flex-1 text-center lg:text-left">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Convierte tu amor por los animales en ingresos extra
           </h2>
@@ -163,11 +163,11 @@ export function SitterCTA() {
             Únete a la red de cuidadores de Pawnecta. Tú eliges tus horarios, tus tarifas y las mascotas que quieres cuidar.
           </p>
           <div className="mt-8 flex flex-wrap gap-4 justify-center lg:justify-start">
-            <div className="flex items-center gap-2 text-white bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-white bg-white/5 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
               <CurrencyDollarIcon className="w-5 h-5 text-emerald-400" />
               <span className="font-medium text-sm">Define tus precios</span>
             </div>
-            <div className="flex items-center gap-2 text-white bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-white bg-white/5 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
               <ClockIcon className="w-5 h-5 text-emerald-400" />
               <span className="font-medium text-sm">Gestiona tu tiempo</span>
             </div>

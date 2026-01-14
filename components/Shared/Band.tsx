@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-type BandVariant = "brand" | "soft" | "white";
+type BandVariant = "brand" | "soft" | "white" | "dark";
 
 interface BandProps {
     children: ReactNode;
@@ -20,6 +20,7 @@ export const Band = ({ children, variant = "white", className = "", id }: BandPr
         brand: "band-brand",
         soft: "band-soft",
         white: "band-white",
+        dark: "band-dark",
     }[variant];
 
     // Default padding is py-16 or py-20, can be overridden by className if needed

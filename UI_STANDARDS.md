@@ -23,19 +23,18 @@ All styles are derived from `styles/globals.css`.
 
 **Style**: **Soft Block** (White, Soft Shadow, Ring, No Border).
 
-### 2. Band System (Backgrounds)
-Sections are separated by full-width background bands to create visual rhythm without heavy borders.
--   `.band-none`: Transparent (Default).
--   `.band-slate`: `bg-slate-200` (Structure/Step separation).
--   `.band-mint`: `bg-emerald-50` (Brand/Hero/CTA).
+### 2. Band System (Full Width)
+Sections are separated by full-width background bands (`<Band />`) to create clear visual blocks.
+-   **.band-brand**: `bg-emerald-50` (Mint). Used for Hero and key CTAs.
+-   **.band-soft**: `bg-slate-50`. Used for secondary content and trust signals.
+-   **.band-white**: `bg-white`. Used for main content steps and card grids.
 
-Usage in `SectionContainer`:
+Usage with `<Band>` component:
 ```tsx
-<SectionContainer band="slate">
+<Band variant="brand">
   <Content />
-</SectionContainer>
+</Band>
 ```
-*Note: Using a band automatically adds vertical padding (`py-12`) and removes the default bottom margin of the container to center it.*
 
 ### 3. <Card />
 **Path**: `components/Shared/Card.tsx`
