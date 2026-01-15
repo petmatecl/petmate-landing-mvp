@@ -1209,7 +1209,7 @@ export default function SitterDashboardPage() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('mensajes')}
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mensajes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                                    className={`relative flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mensajes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                                 >
                                     <Inbox size={16} /> Mensajes
                                     {userId && <UnreadBadge userId={userId} className="-top-1 -right-1 absolute" />}
