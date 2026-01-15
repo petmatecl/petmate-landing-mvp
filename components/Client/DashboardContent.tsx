@@ -858,7 +858,7 @@ export default function DashboardContent() {
                                                     onRemoveSitter={handleRemoveSitter}
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
+                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
                                                     serviceAddress={getFormattedAddress(trip.direccion_id)}
                                                 />
                                             ))}
@@ -885,7 +885,7 @@ export default function DashboardContent() {
                                                     onRemoveSitter={handleRemoveSitter}
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
+                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
                                                     serviceAddress={getFormattedAddress(trip.direccion_id)}
                                                 />
                                             ))}
@@ -912,7 +912,7 @@ export default function DashboardContent() {
                                                     onRemoveSitter={handleRemoveSitter}
                                                     onSearchSitter={handleSearchSitter}
                                                     petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => ({ name: p.nombre, type: p.tipo }))}
+                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
                                                     serviceAddress={getFormattedAddress(trip.direccion_id)}
                                                 />
                                             ))}

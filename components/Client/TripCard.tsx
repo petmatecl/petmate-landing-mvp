@@ -43,7 +43,7 @@ export type Trip = {
 type Props = {
     trip: Trip;
     petNames?: string; // Keep for fallback or legacy
-    pets?: { name: string; type: string }[]; // New structured prop
+    pets?: any[]; // Allow full pet objects for details modal
     onEdit: (trip: Trip) => void;
     onDelete: (id: string) => void;
     onViewApplications?: (trip: Trip) => void;
