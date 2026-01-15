@@ -67,24 +67,28 @@ body {
 }
 
 /* --- Band System (Full Width Backgrounds) --- */
+/* --- Band System (Full Width Backgrounds) --- */
 .band-brand {
-  background-color: #ecfdf5;
-  /* Emerald-50 */
+  background: radial-gradient(circle at 50% -20%, #ecfdf5 0%, #d1fae5 100%);
+  /* Emerald-50 to Emerald-100 */
   border-top: 1px solid rgba(16, 185, 129, 0.1);
   border-bottom: 1px solid rgba(16, 185, 129, 0.1);
 }
 
 .band-soft {
-  background-color: #f8fafc;
-  /* Slate-50 */
+  background-color: #f1f5f9;
+  /* Slate-100 (Was Slate-50, too light) */
+  border-top: 1px solid #e2e8f0;
+  /* Slate-200 */
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .band-white {
   background-color: #ffffff;
   /* White */
-  border-top: 1px solid #f1f5f9;
-  /* Slate-100 for separation */
-  border-bottom: 1px solid #f1f5f9;
+  /* No borders needed for white if adjacent bands have them, or use very subtle ones */
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
 }
 
 .band-dark {

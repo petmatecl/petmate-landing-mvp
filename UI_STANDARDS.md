@@ -26,8 +26,9 @@ All styles are derived from `styles/globals.css`.
 ### 2. Band System (Full Width)
 Sections are separated by full-width background bands (`<Band />`) to create clear visual blocks.
 -   **.band-brand**: `bg-emerald-50` (Mint). Used for Hero and key CTAs.
--   **.band-soft**: `bg-slate-50`. Used for secondary content and trust signals.
--   **.band-white**: `bg-white`. Used for main content steps and card grids.
+-   **.band-soft**: `bg-slate-100` (Visible separation). Secondary content.
+-   **.band-white**: `bg-white`. Used for main content steps.
+-   **.band-dark**: `Slate-900` (Gradient). Used for high-impact breaks.
 
 Usage with `<Band>` component:
 ```tsx

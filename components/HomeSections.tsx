@@ -49,7 +49,7 @@ export function HowItWorks() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
         {/* Línea conectora (visible solo en desktop) */}
-        <div className="hidden md:block absolute top-[3.5rem] left-[16%] right-[16%] h-0.5 bg-slate-200 -z-10"></div>
+        <div className="hidden md:block absolute top-[3.5rem] left-[16%] right-[16%] h-0.5 bg-slate-300/50 -z-10"></div>
 
         {steps.map((step) => (
           <div key={step.name} className="relative flex flex-col items-center text-center z-10">
