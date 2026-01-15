@@ -382,7 +382,7 @@ export default function LoginPage() {
           stroke-width: 2.5;
         }
 
-        /* Card styles kept minimal or removed if handled by component */
+        /* Card styles removed to rely on component */
         .title {
           font-size: 1.9rem;
           margin: 0 0 4px;

@@ -35,16 +35,21 @@ export const Card = ({
     }[padding];
 
     const variantClasses = {
-        surface: "border border-slate-200 shadow-sm", // Standard
-        elevated: "border border-slate-200 shadow-xl shadow-slate-200/50 ring-1 ring-black/5 rounded-3xl", // Premium Login Look
-    }[variant] || "border border-slate-200 shadow-sm"; // Fallback
+        surface: "surface-card border border-slate-200 shadow-sm", // Standard (keeps surface-card class if needed for other overrides, but ideally surface-card should be its own thing)
+        // actually, surface-card in globals has border: 2px. We want to avoid that for elevated.
+        // So for elevated, we DO NOT include "surface-card".
+        elevated: "bg-white border border-slate-200 shadow-xl shadow-slate-200/50 ring-1 ring-black/5 rounded-3xl",
+    }[variant] || "surface-card border border-slate-200 shadow-sm";
+
+    // "surface-card" class in globals.css forces border: 2px. 
+    // We only want it if the variant implies it (or if it's the default legacy behavior).
+    // The variantClasses logic above handles the separation, assuming we remove "surface-card" from the base string below.
 
     return (
         <div
             onClick={onClick}
             className={`
-        surface-card relative overflow-hidden text-slate-900
-        bg-white rounded-2xl
+        relative overflow-hidden text-slate-900
         ${variantClasses}
         ${paddingClass}
         ${hoverable ? 'cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-300' : ''}
