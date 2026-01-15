@@ -1,49 +1,31 @@
-# UI Standards - Pawnecta System
+# UI Standards (High Contrast Surface System)
 
-## Core Philosophy
-**High Contrast & Visibility**. Every component must be distinct even on high-brightness screens. We use a **"Section Container"** pattern where content lives in clearly defined white blocks against a soft page background.
+## 1. High Contrast Principles
+- **Borders are Mandatory**: Every functional container must have a `border-slate-400` (for inputs/internal) or `border-slate-200` (for elevated cards).
+- **No Invisible Containers**: Avoid white-on-white sections. Use full-width bands (Mint/Soft/White/Dark) for separation.
+- **Rhythm**: Strict Alternating Bands (Brand -> Soft -> White -> Soft -> Dark -> Brand).
 
-## Design Tokens (Global CSS)
-All styles are derived from `styles/globals.css`.
+## 2. Card Variance System
+### A. "Surface" (Standard)
+- **Use Case**: Internal dashboards, content blocks, forms.
+- **Visuals**: `border border-slate-200 shadow-sm rounded-2xl`.
 
-| Token | Value (Ref) | Description |
-|-------|-------------|-------------|
-| `--page-bg` | **Slate-50 (#f8fafc)** | Global page background. |
-| `--section-bg` | **White (#ffffff)** | Background for Sections and Cards. |
-| `--section-border` | **None** | **Soft Block** (Ring 1px 5% Black). |
-| `--card-border` | **Slate-200 (#e2e8f0)** | Distinct border for internal Cards. |
-| `--section-radius` | **24px** | Standard radius for main sections. |
-| `--section-padding`| **py-16 px-6** | Standard internal spacing. |
+### B. "Elevated" (Premium/Listing)
+- **Use Case**: **Login**, **Search Results**, **Sitter Cards**.
+- **Visuals**:
+    - `rounded-3xl`
+    - `border border-slate-200` (Subtle 1px)
+    - `shadow-xl shadow-slate-200/50` (Float)
+    - `ring-1 ring-black/5` (Definition)
 
-## Components
+## 3. Band System (Full Width)
+- **Separators**: Every band has an absolute `1px` divider (`.band-separator`) and gradient fade (`.band-fade`) at the bottom.
+- **Variants**:
+    - `Brand` (Mint)
+    - `Soft` (Slate-100)
+    - `White`
+    - `Dark` (Slate-900)
 
-### 1. <SectionContainer />
-**Path**: `components/Shared/Section.tsx` (Export: `SectionContainer`)
-**Usage**: The PRIMARY wrapper for all page content blocks.
-
-**Style**: **Soft Block** (White, Soft Shadow, Ring, No Border).
-
-### 2. Band System (Full Width)
-Sections are separated by full-width background bands (`<Band />`) to create clear visual blocks.
--   **.band-brand**: `bg-emerald-50` (Mint). Used for Hero and key CTAs.
--   **.band-soft**: `bg-slate-100` (Visible separation). Secondary content.
--   **.band-white**: `bg-white`. Used for main content steps.
--   **.band-dark**: `Slate-900` (Gradient). Used for high-impact breaks.
-
-Usage with `<Band>` component:
-```tsx
-<Band variant="brand">
-  <Content />
-</Band>
-```
-
-### 3. <Card />
-**Path**: `components/Shared/Card.tsx`
-**Usage**: Smaller distinct blocks *inside* a Section.
-
-**Style**: Distinct (White, Border Slate-200, Rounded).
-
-## Rules
-1.  **Page Background**: Must be `bg-slate-50` (or `var(--page-bg)`). Use global `body` style or `.page` class.
-2.  **No Naked Content**: Text and forms should live inside a `SectionContainer` or `Card`.
-3.  **Borders**: Always use `border-slate-400` (or `var(--section-border)`) for structural lines.
+## 4. Input Fields
+- **Border**: `border-2 border-slate-300` (Minimum contrast 3:1).
+- **Focus**: Brand Ring `ring-emerald-500`.
