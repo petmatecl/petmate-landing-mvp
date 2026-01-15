@@ -1,5 +1,5 @@
 import { Card } from "../Shared/Card";
-import { Edit2 } from "lucide-react";
+import { Edit2, Mars, Venus } from "lucide-react";
 
 export type Pet = {
     id: string;
@@ -97,8 +97,13 @@ export default function PetCard({ pet, onEdit, ...props }: PetCardProps) {
                             <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm ring-1 ring-white" title="Requiere trato especial"></span>
                         )}
                     </h3>
-                    <p className="text-sm text-slate-500 truncate mt-0.5">
+                    <p className="text-sm text-slate-500 truncate mt-0.5 flex items-center gap-1.5">
                         <span className="font-medium text-slate-700">{isDog ? "Perro" : "Gato"}</span>
+                        {pet.sexo && (
+                            <span className="flex items-center gap-1 text-slate-400" title={pet.sexo === "macho" ? "Macho" : "Hembra"}>
+                                • {pet.sexo === "macho" ? <Mars size={14} /> : <Venus size={14} />}
+                            </span>
+                        )}
                         {pet.raza && <span className="text-slate-400"> • {pet.raza}</span>}
                     </p>
                     <div className="flex gap-2 mt-2.5">
