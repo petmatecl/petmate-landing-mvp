@@ -884,34 +884,37 @@ export default function DashboardContent() {
                 {/* MAIN CONTENT: Reservas y Datos (Col-span-8) */}
                 <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
 
-                    {/* TAB NAVIGATION */}
-                    <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-400 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
+                    {/* TAB NAVIGATION (Soft Green Pill Style) */}
+                    <div className="flex flex-wrap gap-2 sm:gap-4 w-full mb-8 overflow-x-auto pb-2 scrollbar-hide">
                         <button
                             onClick={() => setActiveTab('solicitudes')}
-                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'solicitudes' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
                         >
-                            <Calendar size={18} /> Solicitudes
+                            <Calendar size={16} /> Solicitudes
                         </button>
-                        <button
-                            onClick={() => setActiveTab('mascotas')}
-                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
-                        >
-                            <PawPrint size={18} /> Mascotas
-                            {!isPetsComplete && <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
-                        </button>
+
                         <button
                             onClick={() => setActiveTab('datos')}
-                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'datos' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
                         >
-                            <User size={18} /> Perfil
-                            {!isProfileComplete && <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                            <User size={16} /> Datos Personales
+                            {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
                         </button>
+
+                        <button
+                            onClick={() => setActiveTab('mascotas')}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mascotas' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
+                        >
+                            <PawPrint size={16} /> Mascotas
+                            {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
+                        </button>
+
                         <button
                             onClick={() => setActiveTab('direcciones')}
-                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'direcciones' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
                         >
-                            <MapPin size={18} /> Direcciones
-                            {!isAddressesComplete && <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                            <MapPin size={16} /> Direcciones
+                            {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
                         </button>
                     </div>
 
