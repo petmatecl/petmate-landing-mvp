@@ -354,13 +354,15 @@ export default function LoginPage() {
         }
         .tab {
           appearance: none;
-          border: 2px solid #94a3b8; /* reinforced */
+          /* Premium Inactive State */
+          border: 1px solid #e2e8f0; /* Slate-200 */
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0,0,0,0.05); /* shadow-sm + ring-1 black/5 */
           padding: 1rem;
-          border-radius: 12px;
+          border-radius: 16px; /* rounded-2xl */
           background: #fff;
-          font-weight: 800;
+          font-weight: 700;
           cursor: pointer;
-          color: #6b7280;
+          color: #374151; /* Slate-700 */
           display: flex;
           align-items: center;
           justify-content: center;
@@ -369,14 +371,15 @@ export default function LoginPage() {
           font-size: 1rem;
         }
         .tab:hover {
-          border-color: #94a3b8; /* darker on hover */
-          background: #f9fafb;
+          background: #f8fafc; /* Slate-50 */
+          border-color: #cbd5e1; /* Slate-300 */
         }
         .tab.active {
           background: #10b981;
-          border-color: #10b981;
+          border-color: transparent;
           color: #fff;
-          box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+          /* Shadow-sm only, no ring */
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
         }
         .tab.active svg {
           stroke-width: 2.5;
