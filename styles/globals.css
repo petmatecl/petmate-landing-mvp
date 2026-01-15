@@ -69,8 +69,11 @@ body {
 /* --- Band System (Full Width Backgrounds) --- */
 /* --- Band System (Full Width Backgrounds) --- */
 .band-brand {
-  background: radial-gradient(circle at 50% -20%, #ecfdf5 0%, #d1fae5 100%);
-  /* Emerald-50 to Emerald-100 */
+  /* Premium Mint Gradient (Radial + Linear) */
+  background:
+    radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.12), transparent 55%),
+    radial-gradient(circle at 80% 40%, rgba(16, 185, 129, 0.08), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, #f6fffb 100%);
   border: none;
 }
 

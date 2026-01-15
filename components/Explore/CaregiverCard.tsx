@@ -78,14 +78,14 @@ export default function CaregiverCard({
 
     return (
         <>
-            <Card variant="elevated" className="group flex flex-col h-full" padding="none" hoverable>
+            <Card variant="elevated" className="group flex flex-col h-full !rounded-3xl !overflow-hidden transform-gpu" padding="none" hoverable>
                 {/* Imagen */}
-                <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
+                <div className="aspect-[4/3] w-full bg-slate-100 relative overflow-hidden rounded-t-3xl isolate">
                     <Image
                         src={imgSrc}
                         alt={`${nombre} ${apellido}`}
                         fill
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
                         onError={() => setImgSrc(fallbackImage)}
                         unoptimized
                     />
