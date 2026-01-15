@@ -1170,12 +1170,11 @@ export default function DashboardContent() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {myPets.length > 0 ? (
-                                myPets.map((pet, index) => (
+                                myPets.map((pet) => (
                                     <PetCard
                                         key={pet.id}
                                         pet={pet}
                                         onEdit={handleEdit}
-                                        className={index === myPets.length - 1 && myPets.length % 2 !== 0 ? "sm:col-span-2" : ""}
                                     />
                                 ))
                             ) : (
