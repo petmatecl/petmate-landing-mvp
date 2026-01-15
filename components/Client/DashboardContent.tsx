@@ -884,18 +884,18 @@ export default function DashboardContent() {
                 {/* MAIN CONTENT: Reservas y Datos (Col-span-8) */}
                 <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
 
-                    {/* TAB NAVIGATION (Soft Green Pill Style) */}
-                    <div className="flex flex-wrap gap-2 sm:gap-4 w-full mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                    {/* TAB NAVIGATION (Soft Green Pill Style + Container) */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 mb-8 flex flex-wrap gap-2">
                         <button
                             onClick={() => setActiveTab('solicitudes')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'solicitudes' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'solicitudes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                         >
                             <Calendar size={16} /> Solicitudes
                         </button>
 
                         <button
                             onClick={() => setActiveTab('datos')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'datos' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'datos' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                         >
                             <User size={16} /> Datos Personales
                             {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
@@ -903,7 +903,7 @@ export default function DashboardContent() {
 
                         <button
                             onClick={() => setActiveTab('mascotas')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mascotas' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mascotas' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                         >
                             <PawPrint size={16} /> Mascotas
                             {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
@@ -911,7 +911,7 @@ export default function DashboardContent() {
 
                         <button
                             onClick={() => setActiveTab('direcciones')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'direcciones' ? 'bg-white text-emerald-700 border-2 border-emerald-400 shadow-sm ring-4 ring-emerald-50/50' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:border-emerald-200'}`}
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'direcciones' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                         >
                             <MapPin size={16} /> Direcciones
                             {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
