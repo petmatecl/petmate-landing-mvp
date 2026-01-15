@@ -15,7 +15,7 @@ import { Band } from "./Shared/Band"; // Updated Import
 import { Card } from "./Shared/Card";
 import { useState } from "react";
 
-// --- SECCIÓN 2: CÓMO FUNCIONA (Band: White) ---
+// --- SECCIÓN 2: CÓMO FUNCIONA (Band: Soft) ---
 export function HowItWorks() {
   const steps = [
     {
@@ -39,7 +39,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <Band variant="white">
+    <Band variant="soft">
       <div className="mx-auto max-w-2xl lg:text-center mb-16">
         <h2 className="text-emerald-600 font-bold tracking-wide uppercase text-sm">Simple y Rápido</h2>
         <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
@@ -49,7 +49,7 @@ export function HowItWorks() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
         {/* Línea conectora (visible solo en desktop) */}
-        <div className="hidden md:block absolute top-[3.5rem] left-[16%] right-[16%] h-0.5 bg-slate-200 -z-10"></div>
+        <div className="hidden md:block absolute top-[3.5rem] left-[16%] right-[16%] h-0.5 bg-slate-300/50 -z-10"></div>
 
         {steps.map((step) => (
           <div key={step.name} className="relative flex flex-col items-center text-center z-10">
@@ -74,7 +74,7 @@ export function HowItWorks() {
   );
 }
 
-// --- SECCIÓN 3: CONFIANZA / VALUE PROPS (Band: Soft / Slate) ---
+// --- SECCIÓN 3: CONFIANZA / VALUE PROPS (Band: White) ---
 export function TrustSection() {
   const features = [
     {
@@ -95,7 +95,7 @@ export function TrustSection() {
   ];
 
   return (
-    <Band variant="soft">
+    <Band variant="white">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div className="max-w-2xl">
           <h2 className="text-base font-semibold leading-7 text-emerald-600">Tranquilidad Total</h2>
@@ -187,7 +187,7 @@ export function SitterCTA() {
   );
 }
 
-// --- SECCIÓN 6: FAQ (Band: White) ---
+// --- SECCIÓN 6: FAQ (Band: Soft) ---
 export function FAQSection() {
   const faqs = [
     { q: "¿Cómo elijo al cuidador adecuado?", a: "Recomendamos leer detalladamente su perfil, revisar las fotos de su hogar y leer las reseñas de otros usuarios. También puedes contactarlo antes de reservar para aclarar dudas." },
@@ -197,7 +197,7 @@ export function FAQSection() {
   ];
 
   return (
-    <Band variant="white">
+    <Band variant="soft">
       <div className="mx-auto max-w-3xl">
         <h2 className="text-2xl font-bold tracking-tight text-slate-900 text-center mb-10">
           Preguntas Frecuentes
