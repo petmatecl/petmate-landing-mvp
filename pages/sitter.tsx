@@ -1000,17 +1000,15 @@ export default function SitterDashboardPage() {
                         {/* SIDEBAR: Identidad y Verificación (Col-span-4) - Order 2 on Mobile */}
                         <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
 
-                            {/* Tarjeta de Identidad Consolidada */}
-                            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-xl shadow-slate-200/50 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300">
-                                {/* Header con gradiente premium */}
-                                <div className="h-32 bg-slate-800 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                                </div>
+                            {/* Tarjeta de Identidad Consolidada (CLEAN WHITE STYLE) */}
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
+                                {/* Header Sutil */}
+                                <div className="h-24 bg-gradient-to-b from-slate-50 to-white"></div>
 
-                                <div className="px-6 pb-6 text-center -mt-16 relative">
-                                    <div className="relative w-32 h-32 mx-auto mb-4">
+                                <div className="px-6 pb-6 text-center -mt-16 relative flex flex-col items-center">
+                                    <div className="relative w-32 h-32 mb-4">
                                         <div
-                                            className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white cursor-pointer group-avatar"
+                                            className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center cursor-pointer group-avatar"
                                             onClick={() => setIsLightboxOpen(true)}
                                         >
                                             {profileData.foto_perfil ? (
@@ -1045,23 +1043,30 @@ export default function SitterDashboardPage() {
                                         </label>
                                     </div>
 
-                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">{displayName}</h2>
-                                    <p className="text-sm text-slate-500 font-medium">{email}</p>
+                                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">{displayName}</h2>
+
+                                    {/* Email Pill */}
+                                    <div className="flex flex-col items-center gap-2 mb-4">
+                                        <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 text-sm">
+                                            <Mail size={14} className="text-slate-400" />
+                                            {email}
+                                        </div>
+                                    </div>
 
                                     {/* Estado de Verificación UNIFICADO */}
-                                    <div className="mt-6 flex flex-col items-center justify-center gap-2">
+                                    <div className="mt-2 flex flex-col items-center justify-center gap-2">
                                         {profileData.aprobado ? (
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border-2 border-slate-400 text-xs font-semibold">
-                                                <ShieldCheck size={14} className="text-slate-600" />
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold shadow-sm">
+                                                <ShieldCheck size={14} strokeWidth={2.5} />
                                                 <span>Verificado</span>
                                             </div>
                                         ) : profileData.certificado_antecedentes ? (
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 border-2 border-slate-400 text-xs font-semibold">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-semibold">
                                                 <Clock size={14} />
                                                 <span>En Revisión</span>
                                             </div>
                                         ) : (
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-400 border-2 border-slate-400 text-xs font-semibold">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-xs font-semibold">
                                                 <ShieldAlert size={14} />
                                                 <span>No Verificado</span>
                                             </div>
@@ -1075,10 +1080,11 @@ export default function SitterDashboardPage() {
                                 </div>
 
                                 {/* Stats & Documents Section */}
-                                <div className="bg-slate-50/50 border-t border-slate-400 p-6 space-y-6">
+                                <div className="bg-slate-50/50 border-t border-slate-100 p-6 space-y-6">
 
                                     {/* Reviews Stats */}
-                                    <div className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-slate-400 shadow-sm">
+                                    {/* Reviews Stats */}
+                                    <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
                                                 <Star size={18} fill="currentColor" />
@@ -1172,39 +1178,40 @@ export default function SitterDashboardPage() {
                             {/* TAB NAVIGATION */}
                             {/* TABS NAVIGATION */}
                             {/* TABS NAVIGATION */}
-                            <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-400 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
+                            {/* TABS NAVIGATION (Soft Pill Style + Container) */}
+                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 mb-8 flex flex-wrap gap-2">
                                 <button
                                     onClick={() => setActiveTab('solicitudes')}
-                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'solicitudes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                                 >
-                                    <BarChart size={18} /> Solicitudes
+                                    <BarChart size={16} /> Solicitudes
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('servicios')}
-                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'servicios' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'servicios' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                                 >
-                                    <Briefcase size={18} /> Servicios
-                                    {isServicesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                                    <Briefcase size={16} /> Servicios
+                                    {isServicesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('disponibilidad')}
-                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'disponibilidad' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'disponibilidad' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                                 >
-                                    <Calendar size={18} /> Calendario
-                                    {isAvailabilityComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                                    <Calendar size={16} /> Calendario
+                                    {isAvailabilityComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('perfil')}
-                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'perfil' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'perfil' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                                 >
-                                    <User size={18} /> Mi Perfil
-                                    {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-500" title="Completo"></div> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                                    <User size={16} /> Mi Perfil
+                                    {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('mensajes')}
-                                    className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all relative ${activeTab === 'mensajes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mensajes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
                                 >
-                                    <Inbox size={18} /> Mensajes
+                                    <Inbox size={16} /> Mensajes
                                     {userId && <UnreadBadge userId={userId} className="-top-1 -right-1 absolute" />}
                                 </button>
                             </div>
