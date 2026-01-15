@@ -3,11 +3,12 @@ import { Card } from "../Shared/Card";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search, FileText, Download } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search, FileText, Download, Info } from "lucide-react";
 import ContactSitterButton from "../Shared/ContactSitterButton";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PDFPreviewModal } from "../Shared/PDFPreviewModal";
+import TripDetailsModal from "./TripDetailsModal";
 
 export type Trip = {
     id: string;
@@ -67,7 +68,9 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
     const days = endDate ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1 : 1;
 
     // State for inline map visibility
+    // State for inline map visibility
     const [activeMap, setActiveMap] = useState<'sitter' | 'client' | null>(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
 
     const toggleMap = (type: 'sitter' | 'client') => {
         if (activeMap === type) {
@@ -235,10 +238,11 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                         </div>
                     </div>
 
-                    {/* Top Actions: Edit/Delete */}
+                    {/* Top Actions: Edit/Delete/Info */}
                     <div className="flex gap-1">
-                        <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors hover:bg-emerald-50 rounded-xl"><Edit2 size={18} /></button>
-                        <button onClick={() => onDelete(trip.id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors hover:bg-rose-50 rounded-xl"><Trash2 size={18} /></button>
+                        <button onClick={() => setShowDetailsModal(true)} className="p-2 text-slate-300 hover:text-sky-600 transition-colors hover:bg-sky-50 rounded-xl" title="Ver Detalles"><Info size={18} /></button>
+                        <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors hover:bg-emerald-50 rounded-xl" title="Editar Solicitud"><Edit2 size={18} /></button>
+                        <button onClick={() => onDelete(trip.id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors hover:bg-rose-50 rounded-xl" title="Eliminar"><Trash2 size={18} /></button>
                     </div>
                 </div>
 
@@ -389,6 +393,15 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                     </div>
                 )}
             </div>
+
+            {/* Modal de Detalles */}
+            <TripDetailsModal
+                isOpen={showDetailsModal}
+                onClose={() => setShowDetailsModal(false)}
+                trip={trip}
+                pets={pets || []} // Pass pets array if available
+                serviceAddress={serviceAddress}
+            />
 
             <PDFPreviewModal
                 isOpen={showPdfPreview}
