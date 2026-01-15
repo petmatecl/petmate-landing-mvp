@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Pet } from "./PetCard";
-import { Camera, Loader2, Upload, X, Check, AlertCircle, Dog, Save, Trash2, ChevronRight, Mars, Venus, Info } from 'lucide-react';
+import { Camera, Loader2, Upload, X, Check, AlertCircle, Dog, Cat, Save, Trash2, ChevronRight, Mars, Venus, Info } from 'lucide-react';
 import DatePickerSingle from "../DatePickerSingle";
 import { format } from "date-fns";
 
@@ -36,8 +36,8 @@ export default function PetForm({
     const [tratoEspecialDesc, setTratoEspecialDesc] = useState("");
     const [fotoMascota, setFotoMascota] = useState<string | null>(null);
 
-    const [uploading, setUploading] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [uploading, setLoading] = useState(false);
+    const [loading, setUploading] = useState(false);
 
     const [fotosGaleria, setFotosGaleria] = useState<string[]>([]);
 
@@ -217,8 +217,8 @@ export default function PetForm({
                         {fotoMascota ? (
                             <img src={fotoMascota} alt="Foto mascota" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="flex items-center justify-center h-full text-slate-300 text-5xl bg-slate-50">
-                                {tipo === 'perro' ? '🐶' : '🐱'}
+                            <div className="flex items-center justify-center h-full text-slate-300 bg-slate-50">
+                                {tipo === 'perro' ? <Dog size={48} strokeWidth={1.5} /> : <Cat size={48} strokeWidth={1.5} />}
                             </div>
                         )}
                     </div>
@@ -311,14 +311,14 @@ export default function PetForm({
                                     onClick={() => setTipo("perro")}
                                     className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${tipo === "perro" ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
                                 >
-                                    🐶 Perro
+                                    <Dog size={16} /> Perro
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setTipo("gato")}
                                     className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${tipo === "gato" ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
                                 >
-                                    🐱 Gato
+                                    <Cat size={16} /> Gato
                                 </button>
                             </div>
                         </div>
