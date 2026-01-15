@@ -49,7 +49,7 @@ export function FeaturedPawnectas({ caregivers }: FeaturedPawnectasProps) {
     const displayCaregivers = MOCK_CAREGIVERS;
 
     return (
-        <Band variant="soft">
+        <Band variant="white">
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
 
                 {/* Columna Izquierda: Texto (más compacta) */}
