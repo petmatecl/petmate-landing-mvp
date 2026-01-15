@@ -33,7 +33,8 @@ import {
     MapPin,
     Calendar,
     FileText,
-    Phone
+    Phone,
+    Lock
 } from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
@@ -1190,116 +1191,166 @@ export default function DashboardContent() {
             {activeTab === 'datos' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
-                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+
+                        {/* HEADER */}
+                        <div className="flex justify-between items-start mb-8 pb-6 border-b border-slate-100">
                             <div>
-                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Datos Personales</h2>
+                                <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-2">Datos Personales</h2>
+                                <p className="text-sm text-slate-500 max-w-lg">
+                                    Gestiona tu información personal para verificar tu identidad y generar confianza.
+                                </p>
                                 {!clientProfile?.foto_perfil && (
-                                    <p className="text-xs text-amber-600 font-bold mt-2 flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 w-fit">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Falta tu foto de perfil. Súbela desde la barra lateral.
-                                    </p>
+                                    <div className="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-2 rounded-xl text-xs font-bold border border-amber-100">
+                                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                                        Falta tu foto de perfil. Súbela desde la barra lateral.
+                                    </div>
                                 )}
                             </div>
-                            <div className="flex gap-2">
-                                {isEditingProfile ? (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={handleCancelEdit}
-                                            disabled={savingProfile}
-                                            className="px-4 py-2.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-bold transition-all text-sm"
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            form="profile-form-tab"
-                                            disabled={savingProfile}
-                                            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-900/10 transition-all flex items-center gap-2 disabled:opacity-50 text-sm active:scale-95"
-                                        >
-                                            {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={handleEditProfile}
-                                        className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-emerald-200 hover:text-emerald-700 hover:shadow-md font-bold transition-all flex items-center gap-2 text-sm group"
-                                    >
-                                        Editar
-                                        <Edit2 size={16} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                                    </button>
-                                )}
-                            </div>
+
+                            {!isEditingProfile && (
+                                <button
+                                    onClick={handleEditProfile}
+                                    className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-md font-bold transition-all flex items-center gap-2 text-sm group"
+                                >
+                                    Editar Datos
+                                    <Edit2 size={16} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                                </button>
+                            )}
                         </div>
 
-                        <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Nombre y Apellido */}
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1">Nombre</label>
-                                    <input
-                                        type="text"
-                                        name="nombre"
-                                        value={profileFormData.nombre}
-                                        onChange={handleProfileChange}
-                                        disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all duration-200 outline-none ${!isEditingProfile
-                                            ? 'bg-transparent border-none px-0 text-xl text-slate-900 font-bold p-0 shadow-none -mt-1 ring-0'
-                                            : 'border border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 text-sm shadow-sm'}`}
-                                        placeholder="Tu nombre"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1">Apellido</label>
-                                    <input
-                                        type="text"
-                                        name="apellido_p"
-                                        value={profileFormData.apellido_p}
-                                        onChange={handleProfileChange}
-                                        disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all duration-200 outline-none ${!isEditingProfile
-                                            ? 'bg-transparent border-none px-0 text-xl text-slate-900 font-bold p-0 shadow-none -mt-1 ring-0'
-                                            : 'border border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 text-sm shadow-sm'}`}
-                                        placeholder="Tu apellido"
-                                    />
+                        {isEditingProfile ? (
+                            /* --- MODE: EDIT --- */
+                            <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-8 animate-in fade-in duration-300">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Nombre */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Nombre</label>
+                                        <input
+                                            type="text"
+                                            name="nombre"
+                                            value={profileFormData.nombre}
+                                            onChange={handleProfileChange}
+                                            className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
+                                            placeholder="Tu nombre"
+                                        />
+                                    </div>
+                                    {/* Apellido */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Apellido</label>
+                                        <input
+                                            type="text"
+                                            name="apellido_p"
+                                            value={profileFormData.apellido_p}
+                                            onChange={handleProfileChange}
+                                            className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
+                                            placeholder="Tu apellido"
+                                        />
+                                    </div>
+
+                                    {/* RUT (Disabled in Edit) */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
+                                            <FileText size={14} /> RUT <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 normal-case font-normal ml-auto">No editable</span>
+                                        </label>
+                                        <div className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-sm font-medium rounded-2xl px-4 py-3 cursor-not-allowed flex items-center justify-between">
+                                            <span>{profileFormData.rut || 'Sin RUT'}</span>
+                                            <Lock size={14} className="text-slate-400" />
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Para cambiar tu RUT, contacta a soporte.</p>
+                                    </div>
+
+                                    {/* Teléfono */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
+                                            <Phone size={14} /> Teléfono
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            name="telefono"
+                                            value={profileFormData.telefono}
+                                            onChange={handleProfileChange}
+                                            className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
+                                            placeholder="+56 9 1234 5678"
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* RUT y Teléfono */}
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
+                                {/* Acciones Guardar/Cancelar */}
+                                <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+                                    <button
+                                        type="button"
+                                        onClick={handleCancelEdit}
+                                        disabled={savingProfile}
+                                        className="px-6 py-3 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-bold transition-all text-sm"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={savingProfile}
+                                        className="px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm active:scale-95"
+                                    >
+                                        {savingProfile ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Guardando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Guardar Cambios
+                                                <Save size={16} />
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            /* --- MODE: VIEW (READ ONLY) --- */
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                                {/* Nombre */}
+                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Nombre</label>
+                                    <div className="text-lg font-bold text-slate-900 break-words">
+                                        {profileFormData.nombre || <span className="text-slate-300 italic">No definido</span>}
+                                    </div>
+                                </div>
+
+                                {/* Apellido */}
+                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Apellido</label>
+                                    <div className="text-lg font-bold text-slate-900 break-words">
+                                        {profileFormData.apellido_p || <span className="text-slate-300 italic">No definido</span>}
+                                    </div>
+                                </div>
+
+                                {/* RUT */}
+                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group relative overflow-hidden">
+                                    {/* Lock Indicator */}
+                                    <div className="absolute top-3 right-3 text-slate-300 group-hover:text-slate-400 transition-colors">
+                                        <Lock size={16} />
+                                    </div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
                                         <FileText size={14} /> RUT
                                     </label>
-                                    <input
-                                        type="text"
-                                        name="rut"
-                                        value={profileFormData.rut}
-                                        onChange={handleRutChange}
-                                        disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all duration-200 font-mono tracking-wide outline-none ${!isEditingProfile
-                                            ? 'bg-transparent border-none px-0 text-lg text-slate-700 font-bold p-0 shadow-none -mt-1 ring-0'
-                                            : 'bg-slate-50 border border-slate-200 px-4 py-3 text-slate-500 cursor-not-allowed text-sm'}`}
-                                        placeholder="12.345.678-9"
-                                    />
-                                    {isEditingProfile && <p className="text-[10px] text-slate-400 mt-1.5 ml-1">El RUT no se puede modificar.</p>}
+                                    <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
+                                        {profileFormData.rut || <span className="text-slate-300 italic">No registrado</span>}
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Identificador único de cuenta
+                                    </p>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
+
+                                {/* Teléfono */}
+                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
                                         <Phone size={14} /> Teléfono
                                     </label>
-                                    <input
-                                        type="tel"
-                                        name="telefono"
-                                        value={profileFormData.telefono}
-                                        onChange={handleProfileChange}
-                                        disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all duration-200 outline-none ${!isEditingProfile
-                                            ? 'bg-transparent border-none px-0 text-lg text-slate-700 font-bold p-0 shadow-none -mt-1 ring-0'
-                                            : 'border border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 text-sm shadow-sm'}`}
-                                        placeholder="+56 9 1234 5678"
-                                    />
+                                    <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
+                                        {profileFormData.telefono || <span className="text-slate-300 italic">No registrado</span>}
+                                    </div>
                                 </div>
                             </div>
-                        </form>
+                        )}
                     </div>
                 </section>
             )}
