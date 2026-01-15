@@ -106,12 +106,12 @@ export default function PetCard({ pet, onEdit, ...props }: PetCardProps) {
                         )}
                         {pet.raza && <span className="text-slate-400"> • {pet.raza}</span>}
                     </p>
-                    <div className="flex gap-2 mt-2.5">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                    <div className="flex gap-2 mt-3 text-center">
+                        <span className="flex-1 min-w-[80px] h-9 inline-flex items-center justify-center px-2 rounded-xl text-xs font-bold bg-slate-50 text-slate-600 border border-slate-200">
                             {ageDisplay}
                         </span>
                         {pet.vacunas_al_dia && (
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100/50">
+                            <span className="flex-1 min-w-[80px] h-9 inline-flex items-center justify-center px-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100/50">
                                 Vacunas OK
                             </span>
                         )}
