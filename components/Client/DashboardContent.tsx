@@ -1,5 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import DateRangeAirbnb from "../DateRangeAirbnb";
@@ -34,7 +35,18 @@ import {
     Calendar,
     FileText,
     Phone,
-    Lock
+    Lock,
+    ShieldCheck,
+    ShieldAlert,
+    ImagePlus,
+    BarChart,
+    Briefcase,
+    Inbox,
+    ChevronDown,
+    ChevronUp,
+    Trash2,
+    Camera,
+    Upload
 } from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
@@ -731,715 +743,762 @@ export default function DashboardContent() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
+                {/* SIDEBAR: Identidad y Verificación (Col-span-4) */}
+                <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
 
-            {/* Mensaje de Seguridad / Privacidad */}
-
-
-            {/* TABS NAVIGATION (Segmented Control) */}
-            <div className="bg-slate-100 p-1 rounded-2xl flex flex-wrap sm:flex-nowrap gap-1">
-                <button
-                    onClick={() => setActiveTab('solicitudes')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-200 ${activeTab === 'solicitudes'
-                        ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-black/5'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                        }`}
-                >
-                    <Calendar size={18} className={activeTab === 'solicitudes' ? 'text-emerald-500' : 'text-slate-400'} />
-                    <span>Solicitudes</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab('datos')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-200 ${activeTab === 'datos'
-                        ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-black/5'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                        }`}
-                >
-                    <User size={18} className={activeTab === 'datos' ? 'text-emerald-500' : 'text-slate-400'} />
-                    <span>Datos Personales</span>
-                    <div className={`w-2 h-2 rounded-full ${isProfileComplete ? 'bg-emerald-400' : 'bg-amber-400'}`}></div>
-                </button>
-                <button
-                    onClick={() => setActiveTab('mascotas')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-200 ${activeTab === 'mascotas'
-                        ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-black/5'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                        }`}
-                >
-                    <PawPrint size={18} className={activeTab === 'mascotas' ? 'text-emerald-500' : 'text-slate-400'} />
-                    <span>Mascotas</span>
-                    <div className={`w-2 h-2 rounded-full ${isPetsComplete ? 'bg-emerald-400' : 'bg-amber-400'}`}></div>
-                </button>
-                <button
-                    onClick={() => setActiveTab('direcciones')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-200 ${activeTab === 'direcciones'
-                        ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-black/5'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                        }`}
-                >
-                    <MapPin size={18} className={activeTab === 'direcciones' ? 'text-emerald-500' : 'text-slate-400'} />
-                    <span>Direcciones</span>
-                    <div className={`w-2 h-2 rounded-full ${isAddressesComplete ? 'bg-emerald-400' : 'bg-amber-400'}`}></div>
-                </button>
-            </div>
-
-
-            {/* TAB: SOLICITUDES */}
-            {activeTab === 'solicitudes' && (
-                <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-
-                    {/* COMPLETION WARNING BANNER */}
-
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                            Mis Solicitudes
-                        </h2>
-                        {!showTripForm && (
-                            <button
-                                onClick={() => {
-                                    if (!isProfileComplete) {
-                                        showAlert('Perfil Incompleto', 'Debes completar tus datos personales y agregar una foto de perfil antes de crear una solicitud.', 'warning');
-                                        setActiveTab('datos');
-                                        return;
-                                    }
-                                    if (!isPetsComplete) {
-                                        showAlert('Faltan Mascotas', 'Debes agregar al menos una mascota antes de solicitar cuidado.', 'warning');
-                                        setActiveTab('mascotas');
-                                        return;
-                                    }
-                                    if (!isAddressesComplete) {
-                                        showAlert('Faltan Direcciones', 'Debes agregar al menos una dirección antes de solicitar cuidado.', 'warning');
-                                        setActiveTab('direcciones');
-                                        return;
-                                    }
-                                    setShowTripForm(true);
-                                }}
-                                className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all flex items-center gap-2"
-                            >
-                                <Plus size={18} strokeWidth={2.5} /> Nueva Solicitud
-                            </button>
-                        )}
-                    </div>
-
-
-                    {/* Loading State */}
-                    {loadingTrips && (
-                        <div className="space-y-8 mb-8 animate-in fade-in duration-500">
-                            <div className="grid grid-cols-1 gap-4">
-                                <TripCardSkeleton />
-                                <TripCardSkeleton />
-                                <TripCardSkeleton />
-                            </div>
+                    {/* Tarjeta de Identidad Consolidada */}
+                    <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-xl shadow-slate-200/50 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300">
+                        {/* Header con gradiente premium */}
+                        <div className="h-32 bg-slate-800 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                         </div>
-                    )}
 
-                    {/* Lista de Viajes */}
-                    {!loadingTrips && !showTripForm && trips.length > 0 && (
-                        <div className="space-y-8 mb-8">
-
-                            {/* Section 0: REQUIRES ACTION (Reservado) */}
-                            {trips.filter(t => t.estado === 'reservado').length > 0 && (
-                                <div className="animate-in slide-in-from-left-4 duration-500">
-                                    <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wide mb-3 pl-1 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100 flex items-center gap-2">
-                                        <Clock size={16} /> Requiere tu Atención
-                                    </h3>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {trips
-                                            .filter(t => t.estado === 'reservado')
-                                            .map(trip => (
-                                                <TripCard
-                                                    key={trip.id}
-                                                    trip={trip}
-                                                    onEdit={handleEditTripNew}
-                                                    onDelete={handleDeleteTrip}
-                                                    onConfirm={handleConfirmBooking}
-                                                    onViewApplications={handleViewApplications}
-                                                    onRemoveSitter={handleRemoveSitter}
-                                                    onSearchSitter={handleSearchSitter}
-                                                    petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
-                                                    serviceAddress={getFormattedAddress(trip.direccion_id)}
-                                                />
-                                            ))}
-                                    </div>
+                        <div className="px-6 pb-6 text-center -mt-16 relative">
+                            <div className="relative w-32 h-32 mx-auto mb-4">
+                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center">
+                                    {clientProfile?.foto_perfil ? (
+                                        <Image
+                                            src={clientProfile.foto_perfil}
+                                            alt="Foto perfil"
+                                            fill
+                                            className="object-cover"
+                                            unoptimized
+                                        />
+                                    ) : (
+                                        <User size={48} className="text-slate-300" />
+                                    )}
                                 </div>
-                            )}
-
-                            {/* Section 1: Confirmed / Active Trips */}
-                            {trips.filter(t => ['confirmado', 'completado'].includes(t.estado)).length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
-                                        <CheckCircle2 size={16} /> Solicitudes Confirmadas
-                                    </h3>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {trips
-                                            .filter(t => ['confirmado', 'completado'].includes(t.estado))
-                                            .map(trip => (
-                                                <TripCard
-                                                    key={trip.id}
-                                                    trip={trip}
-                                                    onEdit={handleEditTripNew}
-                                                    onDelete={handleDeleteTrip} // No confirm needed here
-                                                    onViewApplications={handleViewApplications}
-                                                    onRemoveSitter={handleRemoveSitter}
-                                                    onSearchSitter={handleSearchSitter}
-                                                    petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
-                                                    serviceAddress={getFormattedAddress(trip.direccion_id)}
-                                                />
-                                            ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Section 2: Pending / Published / Draft Trips */}
-                            {trips.filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado)).length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3 pl-1 flex items-center gap-2">
-                                        <Clock size={16} /> Solicitudes Pendientes
-                                    </h3>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {trips
-                                            .filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado))
-                                            .map(trip => (
-                                                <TripCard
-                                                    key={trip.id}
-                                                    trip={trip}
-                                                    onEdit={handleEditTripNew}
-                                                    onDelete={handleDeleteTrip}
-                                                    onViewApplications={handleViewApplications}
-                                                    onRemoveSitter={handleRemoveSitter}
-                                                    onSearchSitter={handleSearchSitter}
-                                                    petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                    pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
-                                                    serviceAddress={getFormattedAddress(trip.direccion_id)}
-                                                />
-                                            ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Empty State */}
-                    {!loadingTrips && trips.length === 0 && !showTripForm && (
-                        <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center mb-8">
-                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">✈️</div>
-                            <h3 className="text-lg font-bold text-slate-900">Aún no tienes viajes planeados</h3>
-                            <p className="text-slate-500 mb-6 max-w-md mx-auto">Crea un viaje para que los sitters disponibles puedan postular y cuidar a tus mascotas.</p>
-                            <button
-
-                                onClick={() => setShowTripForm(true)}
-                                className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg"
-                            >
-                                Planear mi primer viaje
-                            </button>
-                        </div>
-                    )}
-
-
-                    {/* Formulario de Creación / Edición */}
-                    {showTripForm && (
-                        <div id="trip-form-section" className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {/* Background Decoration Container - Clipped */}
-                            <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16"></div>
                             </div>
 
-                            {/* STRATEGY SELECTION VIEW */}
-                            {showStrategySelection ? (
-                                <div className="relative z-10 p-6 lg:p-12 text-center animate-in zoom-in-95 duration-300">
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-2">¿Cómo deseas continuar?</h3>
-                                    <p className="text-slate-500 mb-8 max-w-lg mx-auto">Ya tenemos los detalles de tu solicitud. Ahora elige la mejor opción para ti.</p>
+                            <h2 className="text-xl font-bold text-slate-900 tracking-tight">{nombre || 'Usuario'} {clientProfile?.apellido_p || ''}</h2>
+                            <p className="text-sm text-slate-500 font-medium">Cliente PetMate</p>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                                        {/* Option 2: Search (Secondary) */}
-                                        <button
-                                            onClick={handleSearchDirectly}
-                                            className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-300 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
-                                        >
-                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-sky-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-slate-100">
-                                                <User size={32} />
-                                            </div>
-                                            <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-sky-700 transition-colors">Elegir Sitter</h4>
-                                            <p className="text-sm text-slate-500 leading-relaxed">
-                                                Explora el catálogo y elige manualmente.<br />(Recomendado si buscas algo muy específico)
-                                            </p>
-                                        </button>
-
-                                        {/* Option 1: Publish (Recommended) */}
-                                        <button
-                                            onClick={handleSaveTrip}
-                                            className="group relative flex flex-col items-center p-8 rounded-2xl border-2 border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 text-center"
-                                        >
-                                            <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                                                Recomendado
-                                            </div>
-                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-emerald-100">
-                                                <Megaphone size={32} />
-                                            </div>
-                                            <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">Publicar Solicitud</h4>
-                                            <p className="text-sm text-slate-500 leading-relaxed">
-                                                Deja que los sitters postulen a tu viaje.<br />Recibirás ofertas de cuidadores disponibles.
-                                            </p>
-                                        </button>
+                            {/* Estado de Verificación */}
+                            <div className="mt-4 flex flex-col items-center justify-center gap-2">
+                                {clientProfile?.aprobado ? (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border-2 border-slate-400 text-xs font-semibold">
+                                        <ShieldCheck size={14} className="text-slate-600" />
+                                        <span>Verificado</span>
                                     </div>
-
-                                    <button
-                                        onClick={() => setShowStrategySelection(false)}
-                                        className="mt-8 text-sm text-slate-400 hover:text-slate-600 font-medium underline decoration-slate-300 underline-offset-4"
-                                    >
-                                        Volver a editar solicitud
-                                    </button>
-                                </div>
-                            ) : (
-                                /* FORM VIEW */
-                                <div className="relative z-10 p-6 lg:p-8">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-lg font-bold text-slate-900">
-                                            {rango ? 'Editando Solicitud' : 'Nueva Solicitud'}
-                                        </h3>
-                                        <button onClick={() => setShowTripForm(false)} className="text-sm text-slate-500 hover:text-slate-800 underline">
-                                            Cancelar
-                                        </button>
+                                ) : (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-400 border-2 border-slate-400 text-xs font-semibold">
+                                        <ShieldAlert size={14} />
+                                        <span>No Verificado</span>
                                     </div>
+                                )}
+                            </div>
+                        </div>
 
+                        {/* Stats Section */}
+                        <div className="bg-slate-50/50 border-t border-slate-400 p-6 space-y-6">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-slate-400 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                                        <PawPrint size={18} fill="currentColor" />
+                                    </div>
                                     <div>
-                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                            {/* Fecha */}
-                                            <div className="md:col-span-12 xl:col-span-5 flex flex-col h-full">
-                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                    Fechas del viaje
-                                                </label>
-                                                <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
-                                            </div>
-
-                                            {/* Servicio */}
-                                            <div className="md:col-span-12 xl:col-span-3 flex flex-col h-full">
-                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                    Tipo de Servicio
-                                                </label>
-                                                <div className="flex flex-col gap-2 flex-1">
-                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
-                                                            {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                                        </div>
-                                                        <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                                        <div className="flex items-center gap-2">
-                                                            <Home size={18} />
-                                                            <span className="text-sm">Domicilio</span>
-                                                        </div>
-                                                    </label>
-                                                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                            {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                                        </div>
-                                                        <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                                        <div className="flex items-center gap-2">
-                                                            <Hotel size={18} />
-                                                            <span className="text-sm">Hospedaje</span>
-                                                        </div>
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <div className="md:col-span-12 xl:col-span-4 flex flex-col h-full">
-                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                    Mascotas
-                                                </label>
-                                                {hasPets ? (
-                                                    <MyPetsSelector
-                                                        myPets={myPets}
-                                                        selectedIds={selectedPetIds}
-                                                        onChange={(ids, counts) => {
-                                                            setSelectedPetIds(ids);
-                                                            setMascotas(counts);
-                                                        }}
-                                                        hideLabel
-                                                    />
-                                                ) : (
-                                                    <PetsSelectorAirbnb
-                                                        value={mascotas}
-                                                        onChange={setMascotas}
-                                                        className="w-full"
-                                                        hideLabel
-                                                    />
-                                                )}
-                                            </div>
-
-
-                                            {/* Dirección (Solo Domicilio) */}
-                                            {servicio === 'domicilio' && (
-                                                <div className="md:col-span-12">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                                                            Dirección del Servicio
-                                                        </label>
-                                                        <button
-                                                            onClick={handleAddAddress}
-                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 hover:underline"
-                                                        >
-                                                            <Plus size={14} /> Nueva Dirección
-                                                        </button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                        {addresses.map(addr => (
-                                                            <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-300 hover:border-emerald-300 bg-white'}`}>
-                                                                <div className="mt-0.5">
-                                                                    <input
-                                                                        type="radio"
-                                                                        name="tripAddress"
-                                                                        value={addr.id}
-                                                                        checked={selectedAddressId === addr.id}
-                                                                        onChange={(e) => setSelectedAddressId(e.target.value)}
-                                                                        className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
-                                                                    />
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="font-bold text-slate-900 text-sm">{addr.nombre}</span>
-                                                                        {addr.es_principal && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
-                                                                    </div>
-                                                                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{addr.direccion_completa}</p>
-                                                                </div>
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                    {addresses.length === 0 && (
-                                                        <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                                                            ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                        </div>
-
-                                        <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-300 pt-6">
-
-                                            {!editingTripId && (
-                                                <div className="flex-1 w-full md:w-auto text-left">
-                                                    <p className="text-xs text-slate-400">
-                                                        Completa los datos para continuar.
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                                                {/* Primary Action: Continuar (New Flow) or Save (Edit Mode) */}
-                                                {editingTripId ? (
-                                                    <button
-                                                        onClick={handleSaveTrip}
-                                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
-                                                    >
-                                                        {loadingTrips ? 'Guardando...' : 'Guardar Cambios'}
-                                                        <Save size={14} />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={handleContinue}
-                                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 group"
-                                                    >
-                                                        Continuar
-                                                        <div className="group-hover:translate-x-1 transition-transform">→</div>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mascotas</p>
+                                        <p className="text-sm font-bold text-slate-900">{myPets.length}</p>
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
-                    )}
-                </section>
-            )}
+                    </div>
+                </div>
 
-            {/* TAB: MIS MASCOTAS */}
-            {activeTab === 'mascotas' && (
-                <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Mascotas</h2>
-                        <button onClick={handleAdd} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
-                            <Plus size={16} strokeWidth={3} /> Agregar mascota
+                {/* MAIN CONTENT: Reservas y Datos (Col-span-8) */}
+                <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
+
+                    {/* TAB NAVIGATION */}
+                    <div className="grid grid-cols-2 sm:flex w-full border-2 border-slate-400 rounded-xl p-1 bg-white shadow-sm mb-6 gap-1">
+                        <button
+                            onClick={() => setActiveTab('solicitudes')}
+                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'solicitudes' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                        >
+                            <Calendar size={18} /> Solicitudes
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('mascotas')}
+                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'mascotas' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                        >
+                            <PawPrint size={18} /> Mascotas
+                            {!isPetsComplete && <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('datos')}
+                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'datos' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                        >
+                            <User size={18} /> Perfil
+                            {!isProfileComplete && <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('direcciones')}
+                            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'direcciones' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                        >
+                            <MapPin size={18} /> Direcciones
+                            {!isAddressesComplete && <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente"></div>}
                         </button>
                     </div>
 
-                    {loadingPets ? (
-                        <ItemsSkeleton />
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {myPets.length > 0 ? (
-                                myPets.map((pet) => (
-                                    <PetCard
-                                        key={pet.id}
-                                        pet={pet}
-                                        onEdit={handleEdit}
-                                    />
-                                ))
-                            ) : (
-                                <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                    <PawPrint className="w-12 h-12 text-slate-300 mb-3" />
-                                    <p className="text-sm font-medium text-slate-500">Aún no tienes mascotas registradas.</p>
-                                    <button onClick={handleAdd} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">
-                                        Registrar mi primera mascota
+
+                    {/* TAB: SOLICITUDES */}
+                    {activeTab === 'solicitudes' && (
+                        <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+
+                            {/* COMPLETION WARNING BANNER */}
+
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                    Mis Solicitudes
+                                </h2>
+                                {!showTripForm && (
+                                    <button
+                                        onClick={() => {
+                                            if (!isProfileComplete) {
+                                                showAlert('Perfil Incompleto', 'Debes completar tus datos personales y agregar una foto de perfil antes de crear una solicitud.', 'warning');
+                                                setActiveTab('datos');
+                                                return;
+                                            }
+                                            if (!isPetsComplete) {
+                                                showAlert('Faltan Mascotas', 'Debes agregar al menos una mascota antes de solicitar cuidado.', 'warning');
+                                                setActiveTab('mascotas');
+                                                return;
+                                            }
+                                            if (!isAddressesComplete) {
+                                                showAlert('Faltan Direcciones', 'Debes agregar al menos una dirección antes de solicitar cuidado.', 'warning');
+                                                setActiveTab('direcciones');
+                                                return;
+                                            }
+                                            setShowTripForm(true);
+                                        }}
+                                        className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all flex items-center gap-2"
+                                    >
+                                        <Plus size={18} strokeWidth={2.5} /> Nueva Solicitud
+                                    </button>
+                                )}
+                            </div>
+
+
+                            {/* Loading State */}
+                            {loadingTrips && (
+                                <div className="space-y-8 mb-8 animate-in fade-in duration-500">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <TripCardSkeleton />
+                                        <TripCardSkeleton />
+                                        <TripCardSkeleton />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Lista de Viajes */}
+                            {!loadingTrips && !showTripForm && trips.length > 0 && (
+                                <div className="space-y-8 mb-8">
+
+                                    {/* Section 0: REQUIRES ACTION (Reservado) */}
+                                    {trips.filter(t => t.estado === 'reservado').length > 0 && (
+                                        <div className="animate-in slide-in-from-left-4 duration-500">
+                                            <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wide mb-3 pl-1 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100 flex items-center gap-2">
+                                                <Clock size={16} /> Requiere tu Atención
+                                            </h3>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {trips
+                                                    .filter(t => t.estado === 'reservado')
+                                                    .map(trip => (
+                                                        <TripCard
+                                                            key={trip.id}
+                                                            trip={trip}
+                                                            onEdit={handleEditTripNew}
+                                                            onDelete={handleDeleteTrip}
+                                                            onConfirm={handleConfirmBooking}
+                                                            onViewApplications={handleViewApplications}
+                                                            onRemoveSitter={handleRemoveSitter}
+                                                            onSearchSitter={handleSearchSitter}
+                                                            petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                            pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
+                                                            serviceAddress={getFormattedAddress(trip.direccion_id)}
+                                                        />
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Section 1: Confirmed / Active Trips */}
+                                    {trips.filter(t => ['confirmado', 'completado'].includes(t.estado)).length > 0 && (
+                                        <div>
+                                            <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
+                                                <CheckCircle2 size={16} /> Solicitudes Confirmadas
+                                            </h3>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {trips
+                                                    .filter(t => ['confirmado', 'completado'].includes(t.estado))
+                                                    .map(trip => (
+                                                        <TripCard
+                                                            key={trip.id}
+                                                            trip={trip}
+                                                            onEdit={handleEditTripNew}
+                                                            onDelete={handleDeleteTrip} // No confirm needed here
+                                                            onViewApplications={handleViewApplications}
+                                                            onRemoveSitter={handleRemoveSitter}
+                                                            onSearchSitter={handleSearchSitter}
+                                                            petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                            pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
+                                                            serviceAddress={getFormattedAddress(trip.direccion_id)}
+                                                        />
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Section 2: Pending / Published / Draft Trips */}
+                                    {trips.filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado)).length > 0 && (
+                                        <div>
+                                            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3 pl-1 flex items-center gap-2">
+                                                <Clock size={16} /> Solicitudes Pendientes
+                                            </h3>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {trips
+                                                    .filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado))
+                                                    .map(trip => (
+                                                        <TripCard
+                                                            key={trip.id}
+                                                            trip={trip}
+                                                            onEdit={handleEditTripNew}
+                                                            onDelete={handleDeleteTrip}
+                                                            onViewApplications={handleViewApplications}
+                                                            onRemoveSitter={handleRemoveSitter}
+                                                            onSearchSitter={handleSearchSitter}
+                                                            petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
+                                                            pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
+                                                            serviceAddress={getFormattedAddress(trip.direccion_id)}
+                                                        />
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Empty State */}
+                            {!loadingTrips && trips.length === 0 && !showTripForm && (
+                                <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center mb-8">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">✈️</div>
+                                    <h3 className="text-lg font-bold text-slate-900">Aún no tienes viajes planeados</h3>
+                                    <p className="text-slate-500 mb-6 max-w-md mx-auto">Crea un viaje para que los sitters disponibles puedan postular y cuidar a tus mascotas.</p>
+                                    <button
+
+                                        onClick={() => setShowTripForm(true)}
+                                        className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg"
+                                    >
+                                        Planear mi primer viaje
                                     </button>
                                 </div>
                             )}
-                        </div>
+
+
+                            {/* Formulario de Creación / Edición */}
+                            {showTripForm && (
+                                <div id="trip-form-section" className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    {/* Background Decoration Container - Clipped */}
+                                    <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16"></div>
+                                    </div>
+
+                                    {/* STRATEGY SELECTION VIEW */}
+                                    {showStrategySelection ? (
+                                        <div className="relative z-10 p-6 lg:p-12 text-center animate-in zoom-in-95 duration-300">
+                                            <h3 className="text-2xl font-bold text-slate-900 mb-2">¿Cómo deseas continuar?</h3>
+                                            <p className="text-slate-500 mb-8 max-w-lg mx-auto">Ya tenemos los detalles de tu solicitud. Ahora elige la mejor opción para ti.</p>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                                                {/* Option 2: Search (Secondary) */}
+                                                <button
+                                                    onClick={handleSearchDirectly}
+                                                    className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-300 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
+                                                >
+                                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-sky-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-slate-100">
+                                                        <User size={32} />
+                                                    </div>
+                                                    <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-sky-700 transition-colors">Elegir Sitter</h4>
+                                                    <p className="text-sm text-slate-500 leading-relaxed">
+                                                        Explora el catálogo y elige manualmente.<br />(Recomendado si buscas algo muy específico)
+                                                    </p>
+                                                </button>
+
+                                                {/* Option 1: Publish (Recommended) */}
+                                                <button
+                                                    onClick={handleSaveTrip}
+                                                    className="group relative flex flex-col items-center p-8 rounded-2xl border-2 border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 text-center"
+                                                >
+                                                    <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                                        Recomendado
+                                                    </div>
+                                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-emerald-100">
+                                                        <Megaphone size={32} />
+                                                    </div>
+                                                    <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">Publicar Solicitud</h4>
+                                                    <p className="text-sm text-slate-500 leading-relaxed">
+                                                        Deja que los sitters postulen a tu viaje.<br />Recibirás ofertas de cuidadores disponibles.
+                                                    </p>
+                                                </button>
+                                            </div>
+
+                                            <button
+                                                onClick={() => setShowStrategySelection(false)}
+                                                className="mt-8 text-sm text-slate-400 hover:text-slate-600 font-medium underline decoration-slate-300 underline-offset-4"
+                                            >
+                                                Volver a editar solicitud
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        /* FORM VIEW */
+                                        <div className="relative z-10 p-6 lg:p-8">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <h3 className="text-lg font-bold text-slate-900">
+                                                    {rango ? 'Editando Solicitud' : 'Nueva Solicitud'}
+                                                </h3>
+                                                <button onClick={() => setShowTripForm(false)} className="text-sm text-slate-500 hover:text-slate-800 underline">
+                                                    Cancelar
+                                                </button>
+                                            </div>
+
+                                            <div>
+                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                                    {/* Fecha */}
+                                                    <div className="md:col-span-12 xl:col-span-5 flex flex-col h-full">
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                                            Fechas del viaje
+                                                        </label>
+                                                        <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
+                                                    </div>
+
+                                                    {/* Servicio */}
+                                                    <div className="md:col-span-12 xl:col-span-3 flex flex-col h-full">
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                                            Tipo de Servicio
+                                                        </label>
+                                                        <div className="flex flex-col gap-2 flex-1">
+                                                            <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
+                                                                    {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                                                                </div>
+                                                                <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                                                                <div className="flex items-center gap-2">
+                                                                    <Home size={18} />
+                                                                    <span className="text-sm">Domicilio</span>
+                                                                </div>
+                                                            </label>
+                                                            <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
+                                                                    {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                                                                </div>
+                                                                <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
+                                                                <div className="flex items-center gap-2">
+                                                                    <Hotel size={18} />
+                                                                    <span className="text-sm">Hospedaje</span>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="md:col-span-12 xl:col-span-4 flex flex-col h-full">
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
+                                                            Mascotas
+                                                        </label>
+                                                        {hasPets ? (
+                                                            <MyPetsSelector
+                                                                myPets={myPets}
+                                                                selectedIds={selectedPetIds}
+                                                                onChange={(ids, counts) => {
+                                                                    setSelectedPetIds(ids);
+                                                                    setMascotas(counts);
+                                                                }}
+                                                                hideLabel
+                                                            />
+                                                        ) : (
+                                                            <PetsSelectorAirbnb
+                                                                value={mascotas}
+                                                                onChange={setMascotas}
+                                                                className="w-full"
+                                                                hideLabel
+                                                            />
+                                                        )}
+                                                    </div>
+
+
+                                                    {/* Dirección (Solo Domicilio) */}
+                                                    {servicio === 'domicilio' && (
+                                                        <div className="md:col-span-12">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                                                    Dirección del Servicio
+                                                                </label>
+                                                                <button
+                                                                    onClick={handleAddAddress}
+                                                                    className="text-xs text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 hover:underline"
+                                                                >
+                                                                    <Plus size={14} /> Nueva Dirección
+                                                                </button>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                {addresses.map(addr => (
+                                                                    <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-300 hover:border-emerald-300 bg-white'}`}>
+                                                                        <div className="mt-0.5">
+                                                                            <input
+                                                                                type="radio"
+                                                                                name="tripAddress"
+                                                                                value={addr.id}
+                                                                                checked={selectedAddressId === addr.id}
+                                                                                onChange={(e) => setSelectedAddressId(e.target.value)}
+                                                                                className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="font-bold text-slate-900 text-sm">{addr.nombre}</span>
+                                                                                {addr.es_principal && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
+                                                                            </div>
+                                                                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{addr.direccion_completa}</p>
+                                                                        </div>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                            {addresses.length === 0 && (
+                                                                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                                                                    ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                </div>
+
+                                                <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-300 pt-6">
+
+                                                    {!editingTripId && (
+                                                        <div className="flex-1 w-full md:w-auto text-left">
+                                                            <p className="text-xs text-slate-400">
+                                                                Completa los datos para continuar.
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                                                        {/* Primary Action: Continuar (New Flow) or Save (Edit Mode) */}
+                                                        {editingTripId ? (
+                                                            <button
+                                                                onClick={handleSaveTrip}
+                                                                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
+                                                            >
+                                                                {loadingTrips ? 'Guardando...' : 'Guardar Cambios'}
+                                                                <Save size={14} />
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={handleContinue}
+                                                                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 group"
+                                                            >
+                                                                Continuar
+                                                                <div className="group-hover:translate-x-1 transition-transform">→</div>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </section>
                     )}
-                </section>
-            )}
 
-            {/* TAB: DATOS PERSONALES */}
-            {activeTab === 'datos' && (
-                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
-
-                        {/* HEADER */}
-                        <div className="flex justify-between items-start mb-8 pb-6 border-b border-slate-100">
-                            <div>
-                                <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-2">Datos Personales</h2>
-                                <p className="text-sm text-slate-500 max-w-lg">
-                                    Gestiona tu información personal para verificar tu identidad y generar confianza.
-                                </p>
-                                {!clientProfile?.foto_perfil && (
-                                    <div className="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-2 rounded-xl text-xs font-bold border border-amber-100">
-                                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                                        Falta tu foto de perfil. Súbela desde la barra lateral.
-                                    </div>
-                                )}
-                            </div>
-
-                            {!isEditingProfile && (
-                                <button
-                                    onClick={handleEditProfile}
-                                    className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-md font-bold transition-all flex items-center gap-2 text-sm group"
-                                >
-                                    Editar Datos
-                                    <Edit2 size={16} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    {/* TAB: MIS MASCOTAS */}
+                    {activeTab === 'mascotas' && (
+                        <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Mascotas</h2>
+                                <button onClick={handleAdd} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
+                                    <Plus size={16} strokeWidth={3} /> Agregar mascota
                                 </button>
-                            )}
-                        </div>
-
-                        {isEditingProfile ? (
-                            /* --- MODE: EDIT --- */
-                            <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-8 animate-in fade-in duration-300">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Nombre */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Nombre</label>
-                                        <input
-                                            type="text"
-                                            name="nombre"
-                                            value={profileFormData.nombre}
-                                            onChange={handleProfileChange}
-                                            className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
-                                            placeholder="Tu nombre"
-                                        />
-                                    </div>
-                                    {/* Apellido */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Apellido</label>
-                                        <input
-                                            type="text"
-                                            name="apellido_p"
-                                            value={profileFormData.apellido_p}
-                                            onChange={handleProfileChange}
-                                            className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
-                                            placeholder="Tu apellido"
-                                        />
-                                    </div>
-
-                                    {/* RUT (Disabled in Edit) */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
-                                            <FileText size={14} /> RUT <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 normal-case font-normal ml-auto">No editable</span>
-                                        </label>
-                                        <div className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-sm font-medium rounded-2xl px-4 py-3 cursor-not-allowed flex items-center justify-between">
-                                            <span>{profileFormData.rut || 'Sin RUT'}</span>
-                                            <Lock size={14} className="text-slate-400" />
-                                        </div>
-                                        <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Para cambiar tu RUT, contacta a soporte.</p>
-                                    </div>
-
-                                    {/* Teléfono */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
-                                            <Phone size={14} /> Teléfono
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            name="telefono"
-                                            value={profileFormData.telefono}
-                                            onChange={handleProfileChange}
-                                            className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
-                                            placeholder="+56 9 1234 5678"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Acciones Guardar/Cancelar */}
-                                <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                                    <button
-                                        type="button"
-                                        onClick={handleCancelEdit}
-                                        disabled={savingProfile}
-                                        className="px-6 py-3 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-bold transition-all text-sm"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={savingProfile}
-                                        className="px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm active:scale-95"
-                                    >
-                                        {savingProfile ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Guardando...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Guardar Cambios
-                                                <Save size={16} />
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </form>
-                        ) : (
-                            /* --- MODE: VIEW (READ ONLY) --- */
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
-                                {/* Nombre */}
-                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Nombre</label>
-                                    <div className="text-lg font-bold text-slate-900 break-words">
-                                        {profileFormData.nombre || <span className="text-slate-300 italic">No definido</span>}
-                                    </div>
-                                </div>
-
-                                {/* Apellido */}
-                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Apellido</label>
-                                    <div className="text-lg font-bold text-slate-900 break-words">
-                                        {profileFormData.apellido_p || <span className="text-slate-300 italic">No definido</span>}
-                                    </div>
-                                </div>
-
-                                {/* RUT */}
-                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group relative overflow-hidden">
-                                    {/* Lock Indicator */}
-                                    <div className="absolute top-3 right-3 text-slate-300 group-hover:text-slate-400 transition-colors">
-                                        <Lock size={16} />
-                                    </div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
-                                        <FileText size={14} /> RUT
-                                    </label>
-                                    <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
-                                        {profileFormData.rut || <span className="text-slate-300 italic">No registrado</span>}
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        Identificador único de cuenta
-                                    </p>
-                                </div>
-
-                                {/* Teléfono */}
-                                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
-                                        <Phone size={14} /> Teléfono
-                                    </label>
-                                    <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
-                                        {profileFormData.telefono || <span className="text-slate-300 italic">No registrado</span>}
-                                    </div>
-                                </div>
                             </div>
-                        )}
-                    </div>
-                </section>
-            )}
 
-            {/* TAB: DIRECCIONES */}
-            {activeTab === 'direcciones' && (
-                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
-                        <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Direcciones</h2>
-                            <button onClick={handleAddAddress} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
-                                <Plus size={16} strokeWidth={3} /> Agregar
-                            </button>
-                        </div>
-
-                        {loadingAddresses ? (
-                            <ItemsSkeleton />
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {addresses.map(addr => (
-                                    <AddressCard
-                                        key={addr.id}
-                                        address={addr}
-                                        onEdit={handleEditAddress}
-                                        onDelete={handleDeleteAddress}
-                                        onSetDefault={handleSetDefaultAddress}
-                                    />
-                                ))}
-                                {addresses.length === 0 && (
-                                    <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm text-slate-300">
-                                            <MapPin size={32} />
+                            {loadingPets ? (
+                                <ItemsSkeleton />
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {myPets.length > 0 ? (
+                                        myPets.map((pet) => (
+                                            <PetCard
+                                                key={pet.id}
+                                                pet={pet}
+                                                onEdit={handleEdit}
+                                            />
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                            <PawPrint className="w-12 h-12 text-slate-300 mb-3" />
+                                            <p className="text-sm font-medium text-slate-500">Aún no tienes mascotas registradas.</p>
+                                            <button onClick={handleAdd} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">
+                                                Registrar mi primera mascota
+                                            </button>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-500 mb-2">No tienes direcciones registradas.</p>
-                                        <button onClick={handleAddAddress} className="text-emerald-600 font-bold text-sm hover:underline">
-                                            Agregar mi primera dirección
+                                    )}
+                                </div>
+                            )}
+                        </section>
+                    )}
+
+                    {/* TAB: DATOS PERSONALES */}
+                    {activeTab === 'datos' && (
+                        <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
+
+                                {/* HEADER */}
+                                <div className="flex justify-between items-start mb-8 pb-6 border-b border-slate-100">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-2">Datos Personales</h2>
+                                        <p className="text-sm text-slate-500 max-w-lg">
+                                            Gestiona tu información personal para verificar tu identidad y generar confianza.
+                                        </p>
+                                        {!clientProfile?.foto_perfil && (
+                                            <div className="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-2 rounded-xl text-xs font-bold border border-amber-100">
+                                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                                                Falta tu foto de perfil. Súbela desde la barra lateral.
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {!isEditingProfile && (
+                                        <button
+                                            onClick={handleEditProfile}
+                                            className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-md font-bold transition-all flex items-center gap-2 text-sm group"
+                                        >
+                                            Editar Datos
+                                            <Edit2 size={16} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
                                         </button>
+                                    )}
+                                </div>
+
+                                {isEditingProfile ? (
+                                    /* --- MODE: EDIT --- */
+                                    <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-8 animate-in fade-in duration-300">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Nombre */}
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Nombre</label>
+                                                <input
+                                                    type="text"
+                                                    name="nombre"
+                                                    value={profileFormData.nombre}
+                                                    onChange={handleProfileChange}
+                                                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
+                                                    placeholder="Tu nombre"
+                                                />
+                                            </div>
+                                            {/* Apellido */}
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Apellido</label>
+                                                <input
+                                                    type="text"
+                                                    name="apellido_p"
+                                                    value={profileFormData.apellido_p}
+                                                    onChange={handleProfileChange}
+                                                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
+                                                    placeholder="Tu apellido"
+                                                />
+                                            </div>
+
+                                            {/* RUT (Disabled in Edit) */}
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
+                                                    <FileText size={14} /> RUT <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 normal-case font-normal ml-auto">No editable</span>
+                                                </label>
+                                                <div className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-sm font-medium rounded-2xl px-4 py-3 cursor-not-allowed flex items-center justify-between">
+                                                    <span>{profileFormData.rut || 'Sin RUT'}</span>
+                                                    <Lock size={14} className="text-slate-400" />
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Para cambiar tu RUT, contacta a soporte.</p>
+                                            </div>
+
+                                            {/* Teléfono */}
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
+                                                    <Phone size={14} /> Teléfono
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    name="telefono"
+                                                    value={profileFormData.telefono}
+                                                    onChange={handleProfileChange}
+                                                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
+                                                    placeholder="+56 9 1234 5678"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Acciones Guardar/Cancelar */}
+                                        <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+                                            <button
+                                                type="button"
+                                                onClick={handleCancelEdit}
+                                                disabled={savingProfile}
+                                                className="px-6 py-3 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-bold transition-all text-sm"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={savingProfile}
+                                                className="px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm active:scale-95"
+                                            >
+                                                {savingProfile ? (
+                                                    <>
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                        Guardando...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Guardar Cambios
+                                                        <Save size={16} />
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    /* --- MODE: VIEW (READ ONLY) --- */
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                                        {/* Nombre */}
+                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Nombre</label>
+                                            <div className="text-lg font-bold text-slate-900 break-words">
+                                                {profileFormData.nombre || <span className="text-slate-300 italic">No definido</span>}
+                                            </div>
+                                        </div>
+
+                                        {/* Apellido */}
+                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Apellido</label>
+                                            <div className="text-lg font-bold text-slate-900 break-words">
+                                                {profileFormData.apellido_p || <span className="text-slate-300 italic">No definido</span>}
+                                            </div>
+                                        </div>
+
+                                        {/* RUT */}
+                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group relative overflow-hidden">
+                                            {/* Lock Indicator */}
+                                            <div className="absolute top-3 right-3 text-slate-300 group-hover:text-slate-400 transition-colors">
+                                                <Lock size={16} />
+                                            </div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
+                                                <FileText size={14} /> RUT
+                                            </label>
+                                            <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
+                                                {profileFormData.rut || <span className="text-slate-300 italic">No registrado</span>}
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                Identificador único de cuenta
+                                            </p>
+                                        </div>
+
+                                        {/* Teléfono */}
+                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
+                                                <Phone size={14} /> Teléfono
+                                            </label>
+                                            <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
+                                                {profileFormData.telefono || <span className="text-slate-300 italic">No registrado</span>}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
-                        )}
-                    </div>
-                </section>
-            )}
+                        </section>
+                    )}
 
-            {/* Modal Dirección */}
-            {userId && (
-                <AddressFormModal
-                    isOpen={isAddressModalOpen}
-                    onClose={() => setIsAddressModalOpen(false)}
-                    onSaved={handleAddressSaved}
-                    initialData={editingAddress}
-                    userId={userId}
-                />
-            )}
+                    {/* TAB: DIRECCIONES */}
+                    {activeTab === 'direcciones' && (
+                        <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Direcciones</h2>
+                                    <button onClick={handleAddAddress} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
+                                        <Plus size={16} strokeWidth={3} /> Agregar
+                                    </button>
+                                </div>
 
-            {/* Modal Postulaciones */}
-            {userId && selectedTripAppsId && (
-                <ApplicationsModal
-                    isOpen={isAppsModalOpen}
-                    onClose={() => setIsAppsModalOpen(false)}
-                    tripId={selectedTripAppsId}
-                    onAccepted={handleAppAccepted}
-                />
-            )}
+                                {loadingAddresses ? (
+                                    <ItemsSkeleton />
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {addresses.map(addr => (
+                                            <AddressCard
+                                                key={addr.id}
+                                                address={addr}
+                                                onEdit={handleEditAddress}
+                                                onDelete={handleDeleteAddress}
+                                                onSetDefault={handleSetDefaultAddress}
+                                            />
+                                        ))}
+                                        {addresses.length === 0 && (
+                                            <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm text-slate-300">
+                                                    <MapPin size={32} />
+                                                </div>
+                                                <p className="text-sm font-medium text-slate-500 mb-2">No tienes direcciones registradas.</p>
+                                                <button onClick={handleAddAddress} className="text-emerald-600 font-bold text-sm hover:underline">
+                                                    Agregar mi primera dirección
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
 
-            <ModalAlert
-                isOpen={alertConfig.isOpen}
-                onClose={closeAlert}
-                title={alertConfig.title}
-                message={alertConfig.message}
-                type={alertConfig.type}
-            />
+                    {/* Modal Dirección */}
+                    {userId && (
+                        <AddressFormModal
+                            isOpen={isAddressModalOpen}
+                            onClose={() => setIsAddressModalOpen(false)}
+                            onSaved={handleAddressSaved}
+                            initialData={editingAddress}
+                            userId={userId}
+                        />
+                    )}
 
-            {/* Confirmation Modal */}
-            <ModalConfirm
-                isOpen={confirmConfig.isOpen}
-                onClose={closeConfirm}
-                onConfirm={confirmConfig.onConfirm}
-                title={confirmConfig.title}
-                message={confirmConfig.message}
-                confirmText={confirmConfig.confirmText}
-                cancelText={confirmConfig.cancelText}
-                isDestructive={confirmConfig.isDestructive}
-            />
-        </div>
+                    {/* Modal Postulaciones */}
+                    {userId && selectedTripAppsId && (
+                        <ApplicationsModal
+                            isOpen={isAppsModalOpen}
+                            onClose={() => setIsAppsModalOpen(false)}
+                            tripId={selectedTripAppsId}
+                            onAccepted={handleAppAccepted}
+                        />
+                    )}
+
+                    <ModalAlert
+                        isOpen={alertConfig.isOpen}
+                        onClose={closeAlert}
+                        title={alertConfig.title}
+                        message={alertConfig.message}
+                        type={alertConfig.type}
+                    />
+
+                    {/* Confirmation Modal */}
+                    <ModalConfirm
+                        isOpen={confirmConfig.isOpen}
+                        onClose={closeConfirm}
+                        onConfirm={confirmConfig.onConfirm}
+                        title={confirmConfig.title}
+                        message={confirmConfig.message}
+                        confirmText={confirmConfig.confirmText}
+                        cancelText={confirmConfig.cancelText}
+                        isDestructive={confirmConfig.isDestructive}
+                    />
+                </div></div></div>
     );
 }
