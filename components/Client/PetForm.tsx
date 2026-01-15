@@ -452,7 +452,22 @@ export default function PetForm({
                     </div>
                 </section>
 
-                {/* 4. CUIDADOS ESPECIALES */}
+                {/* 4. DESCRIPCION */}
+                <section className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Sobre tu mascota</label>
+                        <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{descripcion.length} caracteres</span>
+                    </div>
+                    <textarea
+                        value={descripcion}
+                        onChange={(e) => setDescripcion(e.target.value)}
+                        placeholder="Cuéntanos sobre su personalidad, gustos, rutinas..."
+                        rows={4}
+                        className="w-full p-4 rounded-xl border border-slate-300 bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none resize-none text-sm text-slate-900 placeholder:text-slate-400"
+                    />
+                </section>
+
+                {/* 5. CUIDADOS ESPECIALES */}
                 <section className="space-y-4">
                     <div className="bg-amber-50/50 rounded-2xl p-6 border border-amber-100/60">
                         <div className="flex items-center justify-between mb-4">
@@ -481,21 +496,6 @@ export default function PetForm({
                             />
                         )}
                     </div>
-                </section>
-
-                {/* 5. DESCRIPCION */}
-                <section className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Sobre tu mascota</label>
-                        <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{descripcion.length} caracteres</span>
-                    </div>
-                    <textarea
-                        value={descripcion}
-                        onChange={(e) => setDescripcion(e.target.value)}
-                        placeholder="Cuéntanos sobre su personalidad, gustos, rutinas..."
-                        rows={4}
-                        className="w-full p-4 rounded-xl border border-slate-300 bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none resize-none text-sm text-slate-900 placeholder:text-slate-400"
-                    />
                 </section>
             </div>
 
