@@ -33,37 +33,42 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
         <Card
             hoverable
             padding="m"
-            className={`${address.es_principal ? '!bg-emerald-50/60 !border-emerald-200 ring-2 ring-emerald-100' : ''}`}
+            className={`transition-all duration-300 ${address.es_principal
+                ? '!bg-emerald-50/40 border-emerald-200/60 ring-1 ring-emerald-100/50'
+                : 'border-slate-200 hover:shadow-md'}`}
         >
-            <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 w-full">
-                    <div className={`mt-1 p-2 rounded-full shrink-0 ${address.es_principal ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                        <MapPin size={18} />
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4 w-full">
+                    <div className={`mt-1 p-2.5 rounded-xl shrink-0 border shadow-sm ${address.es_principal
+                        ? 'bg-emerald-100 text-emerald-600 border-emerald-200'
+                        : 'bg-white text-slate-400 border-slate-100'}`}>
+                        <MapPin size={20} />
                     </div>
                     <div className="w-full">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-slate-900">{address.nombre}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-slate-900 text-lg">{address.nombre}</h3>
                             {address.es_principal && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg">
                                     Principal
                                 </span>
                             )}
                         </div>
-                        <p className="text-sm text-slate-600 mt-0.5 line-clamp-2" title={address.direccion_completa}>
-                            {address.calle} #{address.numero} {address.depto ? `, Depto/Casa ${address.depto}` : ''}, {address.comuna}
+                        <p className="text-sm text-slate-600 leading-relaxed" title={address.direccion_completa}>
+                            {address.calle} #{address.numero} {address.depto ? `, Depto/Casa ${address.depto}` : ''}<br />
+                            <span className="text-slate-500">{address.comuna}, {address.region}</span>
                         </p>
 
                         {/* Inline Map Toggle */}
-                        <div className="mt-1">
+                        <div className="mt-3">
                             <button
                                 onClick={() => setShowMap(!showMap)}
-                                className="text-[10px] text-emerald-600 font-bold hover:underline flex items-center gap-1"
+                                className="text-xs text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 transition-colors"
                             >
                                 {showMap ? 'Ocultar mapa' : 'Ver mapa'}
-                                {showMap ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                {showMap ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             </button>
                             {showMap && (
-                                <div className="mt-2 rounded-lg overflow-hidden border-2 border-slate-300">
+                                <div className="mt-3 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
                                     <iframe
                                         width="100%"
                                         height="150"
@@ -77,38 +82,40 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
                         </div>
 
                         {address.notas && (
-                            <p className="text-xs text-slate-400 mt-2 italic flex items-start gap-1">
-                                <span className="not-italic">📝</span> {address.notas}
-                            </p>
+                            <div className="mt-3 bg-slate-50 border border-slate-100 rounded-lg p-2.5">
+                                <p className="text-xs text-slate-500 italic flex items-start gap-2">
+                                    <span className="not-italic opacity-60">📝</span> {address.notas}
+                                </p>
+                            </div>
                         )}
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <div className="flex flex-col gap-1">
                     <button
                         onClick={() => onEdit(address)}
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
                         title="Editar"
                     >
-                        <Edit2 size={16} />
+                        <Edit2 size={18} />
                     </button>
                     <button
                         onClick={() => onDelete(address.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                         title="Eliminar"
                     >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                     </button>
                 </div>
             </div>
 
             {!address.es_principal && (
-                <div className="mt-4 pt-3 border-t border-slate-300 flex justify-end">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
                     <button
                         onClick={() => onSetDefault(address.id)}
-                        className="text-xs font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1.5 px-2 py-1 rounded hover:bg-emerald-50 transition-colors"
+                        className="text-xs font-bold text-slate-500 hover:text-emerald-600 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
                     >
-                        <CheckCircle2 size={14} />
+                        <CheckCircle2 size={16} />
                         Establecer como principal
                     </button>
                 </div>

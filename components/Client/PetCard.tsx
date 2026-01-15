@@ -1,5 +1,5 @@
-import React from "react";
 import { Card } from "../Shared/Card";
+import { Edit2 } from "lucide-react";
 
 export type Pet = {
     id: string;
@@ -68,17 +68,17 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
     const ageDisplay = calculateAge(pet.fecha_nacimiento);
 
     return (
-        <Card hoverable padding="m" onClick={() => onEdit(pet)} className="flex items-center justify-between cursor-pointer">
-            <div className="flex items-center gap-4">
+        <Card hoverable padding="m" onClick={() => onEdit(pet)} className="flex items-center justify-between cursor-pointer border-slate-200 hover:shadow-md transition-all">
+            <div className="flex items-center gap-5">
                 {/* Icono / Avatar */}
-                <div className="w-12 h-12 flex-shrink-0">
+                <div className="w-14 h-14 flex-shrink-0">
                     {pet.foto_mascota ? (
-                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-300 shadow-sm relative">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
                             <img src={pet.foto_mascota} alt={pet.nombre} className="w-full h-full object-cover" />
                         </div>
                     ) : (
                         <div
-                            className={`w-12 h-12 flex items-center justify-center rounded-full text-2xl ${isDog ? "bg-orange-50 text-orange-500" : "bg-emerald-50 text-emerald-500"
+                            className={`w-14 h-14 flex items-center justify-center rounded-2xl text-2xl border ${isDog ? "bg-orange-50 text-orange-500 border-orange-100" : "bg-emerald-50 text-emerald-500 border-emerald-100"
                                 }`}
                         >
                             {isDog ? "🐶" : "🐱"}
@@ -87,25 +87,29 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
                 </div>
 
                 <div className="min-w-0">
-                    <h3 className="font-bold text-slate-900 truncate flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900 text-lg truncate flex items-center gap-2">
                         {pet.nombre}
                         {pet.trato_especial && (
-                            <span className="inline-block w-2 h-2 rounded-full bg-amber-500" title="Requiere trato especial"></span>
+                            <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm ring-1 ring-white" title="Requiere trato especial"></span>
                         )}
                     </h3>
-                    <p className="text-xs text-slate-500 truncate">
-                        {isDog ? "Perro" : "Gato"} • {pet.sexo === "macho" ? "Macho" : "Hembra"} • {pet.tamano && <span className="capitalize">{pet.tamano} • </span>} {ageDisplay}
+                    <p className="text-sm text-slate-500 truncate mt-0.5">
+                        <span className="font-medium text-slate-700">{isDog ? "Perro" : "Gato"}</span> • {pet.sexo === "macho" ? "Macho" : "Hembra"}
+                        {pet.raza && <span className="text-slate-400"> • {pet.raza}</span>}
                     </p>
-                    <div className="flex gap-1 mt-1">
-                        {pet.vacunas_al_dia && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">Vacunas ✅</span>}
-                        {pet.tiene_chip && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">Chip</span>}
+                    <div className="flex gap-2 mt-2">
+                        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            {ageDisplay}
+                        </span>
+                        {pet.vacunas_al_dia && <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">Vacunas OK</span>}
                     </div>
                 </div>
             </div>
             <button
-                className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors ml-2 flex-shrink-0"
+                className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all ml-2 flex-shrink-0"
+                title="Editar Mascota"
             >
-                Editar
+                <Edit2 size={20} />
             </button>
         </Card>
     );

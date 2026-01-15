@@ -16,47 +16,28 @@ import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
 import ApplicationsModal from "./ApplicationsModal"; // Import Modal
 import { useClientData } from "./ClientContext";
-import { Home, Hotel, Calendar, MapPin, Plus, PawPrint, User, FileText, Save, Phone, X, CheckCircle2, Clock, Megaphone, Edit } from "lucide-react";
+import { TripCardSkeleton, ItemsSkeleton, Skeleton } from "../Shared/Skeleton";
+import { createNotification } from "../../lib/notifications";
+import {
+    Clock,
+    CheckCircle2,
+    User,
+    Megaphone,
+    Home,
+    Hotel,
+    Plus,
+    PawPrint,
+    Edit,
+    Edit2,
+    Save,
+    MapPin,
+    Calendar,
+    FileText,
+    Phone
+} from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
-import { Skeleton } from "../Shared/Skeleton";
-import { createNotification } from "../../lib/notifications";
-
-function TripCardSkeleton() {
-    return (
-        <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 space-y-4 shadow-sm animate-pulse">
-            <div className="flex justify-between items-start">
-                <div className="space-y-3 w-full">
-                    <div className="flex items-center gap-2">
-                        <Skeleton className="h-4 w-24 rounded" />
-                        <Skeleton className="h-4 w-4 rounded-full" />
-                        <Skeleton className="h-4 w-24 rounded" />
-                    </div>
-                    <Skeleton className="h-6 w-3/4 rounded" />
-                </div>
-                <Skeleton className="h-8 w-8 rounded-full" />
-            </div>
-            <div className="space-y-2 pt-2">
-                <Skeleton className="h-4 w-full max-w-md rounded" />
-                <Skeleton className="h-4 w-1/2 rounded" />
-            </div>
-            <div className="pt-4 flex justify-end gap-3 border-t border-slate-50 mt-2">
-                <Skeleton className="h-10 w-24 rounded-xl" />
-                <Skeleton className="h-10 w-32 rounded-xl" />
-            </div>
-        </div>
-    );
-}
-
-function ItemsSkeleton() {
-    return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-pulse">
-            <Skeleton className="h-40 w-full rounded-2xl" />
-            <Skeleton className="h-40 w-full rounded-2xl" />
-        </div>
-    );
-}
 
 export default function DashboardContent() {
     const router = useRouter();
@@ -1175,24 +1156,29 @@ export default function DashboardContent() {
 
             {/* TAB: MIS MASCOTAS */}
             {activeTab === 'mascotas' && (
-                <section className="glass-panel rounded-3xl p-8 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Mascotas</h2>
-                        <button onClick={handleAdd} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors tracking-wide uppercase">+ Agregar</button>
+                        <button onClick={handleAdd} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
+                            <Plus size={16} strokeWidth={3} /> Agregar
+                        </button>
                     </div>
 
                     {loadingPets ? (
                         <ItemsSkeleton />
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {myPets.length > 0 ? (
                                 myPets.map(pet => (
                                     <PetCard key={pet.id} pet={pet} onEdit={handleEdit} />
                                 ))
                             ) : (
-                                <div className="text-center py-6 col-span-2 flex flex-col items-center justify-center">
-                                    <PawPrint className="w-12 h-12 text-slate-200 mb-2" />
-                                    <p className="text-xs text-slate-500">Agrega a tus peludos aquí.</p>
+                                <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                    <PawPrint className="w-12 h-12 text-slate-300 mb-3" />
+                                    <p className="text-sm font-medium text-slate-500">Aún no tienes mascotas registradas.</p>
+                                    <button onClick={handleAdd} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">
+                                        Registrar mi primera mascota
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -1203,13 +1189,13 @@ export default function DashboardContent() {
             {/* TAB: DATOS PERSONALES */}
             {activeTab === 'datos' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="glass-panel rounded-3xl p-8 shadow-xl shadow-slate-200/50">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
                             <div>
-                                <h2 className="text-lg font-bold text-slate-900">Datos Personales</h2>
+                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Datos Personales</h2>
                                 {!clientProfile?.foto_perfil && (
-                                    <p className="text-xs text-amber-600 font-bold mt-1 flex items-center gap-1">
-                                        ⚠️ Falta tu foto de perfil. Súbela desde la barra lateral izquierda.
+                                    <p className="text-xs text-amber-600 font-bold mt-2 flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 w-fit">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Falta tu foto de perfil. Súbela desde la barra lateral.
                                     </p>
                                 )}
                             </div>
@@ -1220,7 +1206,7 @@ export default function DashboardContent() {
                                             type="button"
                                             onClick={handleCancelEdit}
                                             disabled={savingProfile}
-                                            className="px-4 py-2 rounded-lg text-slate-500 hover:text-slate-800 font-bold transition-all text-sm"
+                                            className="px-4 py-2.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-bold transition-all text-sm"
                                         >
                                             Cancelar
                                         </button>
@@ -1228,56 +1214,59 @@ export default function DashboardContent() {
                                             type="submit"
                                             form="profile-form-tab"
                                             disabled={savingProfile}
-                                            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50 text-sm"
+                                            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-900/10 transition-all flex items-center gap-2 disabled:opacity-50 text-sm active:scale-95"
                                         >
-                                            {savingProfile ? 'Guardando...' : 'Guardar'}
-                                            {!savingProfile && <Save size={16} />}
+                                            {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
                                         </button>
                                     </>
                                 ) : (
                                     <button
                                         type="button"
                                         onClick={handleEditProfile}
-                                        className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-all flex items-center gap-2 text-sm"
+                                        className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-emerald-200 hover:text-emerald-700 hover:shadow-md font-bold transition-all flex items-center gap-2 text-sm group"
                                     >
                                         Editar
-                                        <Edit size={16} />
+                                        <Edit2 size={16} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
                                     </button>
                                 )}
                             </div>
                         </div>
 
-                        <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Nombre y Apellido */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Nombre</label>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1">Nombre</label>
                                     <input
                                         type="text"
                                         name="nombre"
                                         value={profileFormData.nombre}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'border-slate-300 bg-slate-50 text-slate-600'}`}
+                                        className={`w-full rounded-xl transition-all duration-200 outline-none ${!isEditingProfile
+                                            ? 'bg-transparent border-none px-0 text-xl text-slate-900 font-bold p-0 shadow-none -mt-1 ring-0'
+                                            : 'border border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 text-sm shadow-sm'}`}
                                         placeholder="Tu nombre"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Apellido</label>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1">Apellido</label>
                                     <input
                                         type="text"
                                         name="apellido_p"
                                         value={profileFormData.apellido_p}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'border-slate-300 bg-slate-50 text-slate-600'}`}
+                                        className={`w-full rounded-xl transition-all duration-200 outline-none ${!isEditingProfile
+                                            ? 'bg-transparent border-none px-0 text-xl text-slate-900 font-bold p-0 shadow-none -mt-1 ring-0'
+                                            : 'border border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 text-sm shadow-sm'}`}
                                         placeholder="Tu apellido"
                                     />
                                 </div>
 
                                 {/* RUT y Teléfono */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
                                         <FileText size={14} /> RUT
                                     </label>
                                     <input
@@ -1286,13 +1275,15 @@ export default function DashboardContent() {
                                         value={profileFormData.rut}
                                         onChange={handleRutChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 font-mono tracking-wide ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'bg-slate-50 border-slate-300'}`}
+                                        className={`w-full rounded-xl transition-all duration-200 font-mono tracking-wide outline-none ${!isEditingProfile
+                                            ? 'bg-transparent border-none px-0 text-lg text-slate-700 font-bold p-0 shadow-none -mt-1 ring-0'
+                                            : 'bg-slate-50 border border-slate-200 px-4 py-3 text-slate-500 cursor-not-allowed text-sm'}`}
                                         placeholder="12.345.678-9"
                                     />
-                                    <p className="text-[10px] text-slate-400 mt-1">El RUT es único por cuenta.</p>
+                                    {isEditingProfile && <p className="text-[10px] text-slate-400 mt-1.5 ml-1">El RUT no se puede modificar.</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
                                         <Phone size={14} /> Teléfono
                                     </label>
                                     <input
@@ -1301,16 +1292,13 @@ export default function DashboardContent() {
                                         value={profileFormData.telefono}
                                         onChange={handleProfileChange}
                                         disabled={!isEditingProfile}
-                                        className={`w-full rounded-xl transition-all focus:border-emerald-500 focus:ring-emerald-500 ${!isEditingProfile ? 'bg-transparent border-transparent px-0 text-slate-900 font-bold cursor-default shadow-none -mt-1' : 'border-slate-300 bg-slate-50 text-slate-600'}`}
+                                        className={`w-full rounded-xl transition-all duration-200 outline-none ${!isEditingProfile
+                                            ? 'bg-transparent border-none px-0 text-lg text-slate-700 font-bold p-0 shadow-none -mt-1 ring-0'
+                                            : 'border border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 text-sm shadow-sm'}`}
                                         placeholder="+56 9 1234 5678"
                                     />
                                 </div>
                             </div>
-
-                            {/* Ubicación */}
-
-
-
                         </form>
                     </div>
                 </section>
@@ -1319,16 +1307,18 @@ export default function DashboardContent() {
             {/* TAB: DIRECCIONES */}
             {activeTab === 'direcciones' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="glass-panel rounded-3xl p-8 shadow-xl shadow-slate-200/50">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                        <div className="flex justify-between items-center mb-8">
                             <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Direcciones</h2>
-                            <button onClick={handleAddAddress} className="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors tracking-wide uppercase">+ Agregar</button>
+                            <button onClick={handleAddAddress} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
+                                <Plus size={16} strokeWidth={3} /> Agregar
+                            </button>
                         </div>
 
                         {loadingAddresses ? (
                             <ItemsSkeleton />
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {addresses.map(addr => (
                                     <AddressCard
                                         key={addr.id}
@@ -1339,11 +1329,14 @@ export default function DashboardContent() {
                                     />
                                 ))}
                                 {addresses.length === 0 && (
-                                    <div className="text-center py-10 col-span-2 flex flex-col items-center justify-center">
-                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 text-slate-300">
+                                    <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm text-slate-300">
                                             <MapPin size={32} />
                                         </div>
-                                        <p className="text-sm font-medium text-slate-500">Agrega tus direcciones para solicitar servicios a domicilio.</p>
+                                        <p className="text-sm font-medium text-slate-500 mb-2">No tienes direcciones registradas.</p>
+                                        <button onClick={handleAddAddress} className="text-emerald-600 font-bold text-sm hover:underline">
+                                            Agregar mi primera dirección
+                                        </button>
                                     </div>
                                 )}
                             </div>
