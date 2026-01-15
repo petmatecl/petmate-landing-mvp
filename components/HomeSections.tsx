@@ -121,24 +121,51 @@ export function TrustSection() {
           </div>
         </div>
 
-        {/* Visual de Confianza (Grid de fotos) */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-4 pt-12">
-            <img className="rounded-2xl shadow-lg w-full h-48 object-cover" src="https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Perro feliz" />
-            <Card padding="m" className="!bg-emerald-600 !border-none text-white">
-              <div className="text-3xl font-bold">100%</div>
-              <div className="text-sm opacity-90">Amor por los animales</div>
-            </Card>
-          </div>
-          <div className="space-y-4">
-            <Card padding="m">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircleIcon className="w-5 h-5 text-emerald-500" />
-                <span className="font-bold text-slate-800">Verificado</span>
+        {/* Visual de Confianza (Single Hero + Badges) */}
+        <div className="relative h-[500px] w-full isolate rounded-3xl shadow-xl overflow-hidden group">
+          <img
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            src="/home/trust_hero.jpg"
+            alt="Perro descansando en hogar"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+
+          {/* Badge 1: Verificado */}
+          <div className="absolute top-6 left-6 animate-fade-in-up md:delay-100">
+            <div className="flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-lg border border-white/50">
+              <div className="bg-emerald-100 p-2 rounded-full">
+                <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
               </div>
-              <p className="text-xs text-slate-500">Cada perfil es revisado manualmente por nuestro equipo.</p>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Seguridad</span>
+                <span className="text-sm font-bold text-slate-900">Perfiles 100% Verificados</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Badge 2: Comunidad (Bottom Right) */}
+          <div className="absolute bottom-6 right-6 animate-fade-in-up md:delay-200">
+            <Card padding="s" className="!bg-white/95 !backdrop-blur-md !border-white/50 shadow-2xl">
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-3">
+                  {[1, 2, 3].map((i) => (
+                    <img
+                      key={i}
+                      className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                      src={`https://images.pexels.com/photos/${1000 + i}/pexels-photo-1000${i}.jpeg?auto=compress&cs=tinysrgb&w=100`}
+                      alt="Usuario"
+                    />
+                  ))}
+                  <div className="w-10 h-10 rounded-full border-2 border-white bg-emerald-600 flex items-center justify-center text-xs text-white font-bold">
+                    +1k
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Comunidad Feliz</div>
+                  <div className="text-xs text-slate-500">Reseñas reales</div>
+                </div>
+              </div>
             </Card>
-            <img className="rounded-2xl shadow-lg w-full h-64 object-cover" src="https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Gatos jugando" />
           </div>
         </div>
       </div>
