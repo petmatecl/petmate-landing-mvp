@@ -330,14 +330,14 @@ export default function PetForm({
                                 <button
                                     type="button"
                                     onClick={() => setSexo("macho")}
-                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${sexo === "macho" ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
+                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${sexo === "macho" ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
                                 >
                                     <Mars size={16} /> Macho
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setSexo("hembra")}
-                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${sexo === "hembra" ? "bg-white text-pink-600 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
+                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${sexo === "hembra" ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
                                 >
                                     <Venus size={16} /> Hembra
                                 </button>
