@@ -51,6 +51,7 @@ import {
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
+import ImageLightbox from "../ImageLightbox";
 
 export default function DashboardContent() {
     const router = useRouter();
@@ -69,6 +70,8 @@ export default function DashboardContent() {
     const [savingProfile, setSavingProfile] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [backupProfileData, setBackupProfileData] = useState<any>(null);
+    const [uploading, setUploading] = useState(false);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
     const [profileFormData, setProfileFormData] = useState({
         nombre: '',
@@ -256,7 +259,48 @@ export default function DashboardContent() {
         router.push("/usuario/mascotas/nueva");
     };
 
-    // Modal Alert State
+
+
+    const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!userId) return;
+        try {
+            setUploading(true);
+            if (!event.target.files || event.target.files.length === 0) {
+                throw new Error('Debes seleccionar una imagen.');
+            }
+
+            const file = event.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${userId}-${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('registro_petmate')
+                .update({ foto_perfil: publicUrl })
+                .eq('auth_user_id', userId);
+
+            if (updateError) throw updateError;
+
+            setClientProfile((prev: any) => ({ ...prev, foto_perfil: publicUrl }));
+            showAlert('¡Foto actualizada!', 'Tu foto de perfil ha sido actualizada correctamente.', 'success');
+
+        } catch (error: any) {
+            console.error('Error uploading photo:', error);
+            showAlert('Error', error.message || 'Error subiendo la imagen.', 'error');
+        } finally {
+            setUploading(false);
+        }
+    };
     const [alertConfig, setAlertConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -758,7 +802,7 @@ export default function DashboardContent() {
 
                         <div className="px-6 pb-6 text-center -mt-16 relative">
                             <div className="relative w-32 h-32 mx-auto mb-4">
-                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center">
+                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center cursor-pointer group-avatar" onClick={() => setIsLightboxOpen(true)}>
                                     {clientProfile?.foto_perfil ? (
                                         <Image
                                             src={clientProfile.foto_perfil}
@@ -771,6 +815,20 @@ export default function DashboardContent() {
                                         <User size={48} className="text-slate-300" />
                                     )}
                                 </div>
+                                <label className="absolute bottom-1 right-1 p-2 bg-white/90 backdrop-blur-sm border-2 border-slate-400 rounded-full shadow-lg cursor-pointer hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all z-10 hover:scale-110 active:scale-95">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handlePhotoUpload}
+                                        disabled={uploading}
+                                    />
+                                    {uploading ? (
+                                        <div className="animate-spin w-4 h-4 border-2 border-slate-400 border-t-emerald-600 rounded-full" />
+                                    ) : (
+                                        <Edit2 size={16} />
+                                    )}
+                                </label>
                             </div>
 
                             <h2 className="text-xl font-bold text-slate-900 tracking-tight">{nombre || 'Usuario'} {clientProfile?.apellido_p || ''}</h2>
@@ -1487,6 +1545,16 @@ export default function DashboardContent() {
                         message={alertConfig.message}
                         type={alertConfig.type}
                     />
+
+                    {/* Lightbox */}
+                    {clientProfile?.foto_perfil && (
+                        <ImageLightbox
+                            src={clientProfile.foto_perfil}
+                            alt="Foto de perfil"
+                            isOpen={isLightboxOpen}
+                            onClose={() => setIsLightboxOpen(false)}
+                        />
+                    )}
 
                     {/* Confirmation Modal */}
                     <ModalConfirm

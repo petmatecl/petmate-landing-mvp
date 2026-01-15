@@ -194,89 +194,9 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                         {userId && <NotificationCenter userId={userId} />}
                     </header>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-                        {/* SIDEBAR */}
-                        <aside className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative group hover:shadow-md transition-all duration-300">
-                                {/* Subtle Accent Header instead of harsh gradient */}
-                                <div className="h-24 bg-gradient-to-b from-emerald-50/80 to-white"></div>
-
-                                <div className="px-6 pb-6 text-center -mt-12 relative flex flex-col items-center">
-                                    <div className="relative w-24 h-24 mb-3">
-                                        <div
-                                            className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white cursor-pointer group-hover:scale-105 transition-transform duration-300"
-                                            onClick={() => setIsLightboxOpen(true)}
-                                        >
-                                            {clientProfile?.foto_perfil ? (
-                                                <Image
-                                                    src={clientProfile.foto_perfil}
-                                                    alt="Foto perfil"
-                                                    fill
-                                                    className="object-cover"
-                                                    unoptimized
-                                                />
-                                            ) : (
-                                                <div className="flex items-center justify-center h-full text-slate-200 bg-slate-50 text-3xl">
-                                                    <User size={32} />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <label className="absolute bottom-0 right-0 p-2 bg-white border border-slate-200 rounded-full shadow-md cursor-pointer hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 transition-all z-10">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handlePhotoUpload}
-                                                disabled={uploading}
-                                            />
-                                            {uploading ? (
-                                                <span className="block w-4 h-4 border-2 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></span>
-                                            ) : (
-                                                <Edit2 size={14} /> // Using Lucide Edit2 icon if available, or fallback
-                                            )}
-                                        </label>
-                                    </div>
-
-                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                                        {displayName}
-                                    </h2>
-
-                                    <div className="flex flex-col items-center gap-1 mt-2 text-sm">
-                                        <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                            <Mail size={14} className="text-slate-400" />
-                                            {email}
-                                        </div>
-                                        {clientProfile?.telefono && (
-                                            <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 mt-1">
-                                                <Phone size={14} className="text-slate-400" />
-                                                {clientProfile.telefono}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="hidden md:inline-flex mt-4 items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100/50 shadow-sm">
-                                        <CheckCircle2 size={12} strokeWidth={3} />
-                                        Usuario Verificado
-                                    </div>
-                                </div>
-
-                                {/* Navigation Links */}
-                                <nav className="border-t border-slate-100 p-2">
-                                    <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-slate-500 rounded-xl hover:bg-slate-50 hover:text-rose-600 transition-all group/logout">
-                                        <LogOut size={18} className="text-slate-400 group-hover/logout:text-rose-500 transition-colors" />
-                                        Cerrar Sesión
-                                    </button>
-                                </nav>
-                            </div>
-                        </aside>
-
-                        {/* MAIN CONTENT */}
-                        <div className="lg:col-span-8 order-1 lg:order-2">
-                            {children}
-                        </div>
-
+                    {/* CLEAN LAYOUT: Just render children (DashboardContent handles the grid) */}
+                    <div>
+                        {children}
                     </div>
                 </div>
 
