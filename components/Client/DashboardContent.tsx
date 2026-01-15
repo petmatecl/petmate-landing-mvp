@@ -46,7 +46,9 @@ import {
     ChevronUp,
     Trash2,
     Camera,
-    Upload
+    Upload,
+    Mail,
+    LogOut
 } from "lucide-react";
 import { useRouter } from "next/router";
 import AddressAutocomplete from "../AddressAutocomplete";
@@ -64,6 +66,7 @@ export default function DashboardContent() {
     });
 
     const [nombre, setNombre] = useState<string | null>(null);
+    const [email, setEmail] = useState<string | null>(null);
     const [clientProfile, setClientProfile] = useState<any>(null);
 
     // Profile Form State
@@ -121,6 +124,10 @@ export default function DashboardContent() {
             fetchPets(userId);
             fetchClientProfile(userId);
             fetchTrips(userId);
+            // Fetch Email
+            supabase.auth.getUser().then(({ data }) => {
+                if (data.user) setEmail(data.user.email || null);
+            });
         }
     }, [userId]);
 
@@ -793,15 +800,13 @@ export default function DashboardContent() {
                 {/* SIDEBAR: Identidad y Verificación (Col-span-4) */}
                 <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
 
-                    {/* Tarjeta de Identidad Consolidada */}
-                    <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-xl shadow-slate-200/50 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300">
-                        {/* Header con gradiente premium */}
-                        <div className="h-32 bg-slate-800 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                        </div>
+                    {/* Tarjeta de Identidad Consolidada (CLEAN STYLE) */}
+                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative group hover:shadow-md transition-all duration-300">
+                        {/* Subtle Accent Header (Optional, kept minimal/white as per request "Volvamos a esto") */}
+                        <div className="h-24 bg-gradient-to-b from-slate-50 to-white"></div>
 
-                        <div className="px-6 pb-6 text-center -mt-16 relative">
-                            <div className="relative w-32 h-32 mx-auto mb-4">
+                        <div className="px-6 pb-6 text-center -mt-16 relative flex flex-col items-center">
+                            <div className="relative w-32 h-32 mb-4">
                                 <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center cursor-pointer group-avatar" onClick={() => setIsLightboxOpen(true)}>
                                     {clientProfile?.foto_perfil ? (
                                         <Image
@@ -831,38 +836,47 @@ export default function DashboardContent() {
                                 </label>
                             </div>
 
-                            <h2 className="text-xl font-bold text-slate-900 tracking-tight">{nombre || 'Usuario'} {clientProfile?.apellido_p || ''}</h2>
-                            <p className="text-sm text-slate-500 font-medium">Cliente PetMate</p>
+                            <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">{nombre || 'Usuario'} {clientProfile?.apellido_p || ''}</h2>
+
+                            {/* Datos de Contacto */}
+                            <div className="flex flex-col items-center gap-2 mb-4">
+                                {email && (
+                                    <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 text-sm">
+                                        <Mail size={14} className="text-slate-400" />
+                                        {email}
+                                    </div>
+                                )}
+                                {clientProfile?.telefono && (
+                                    <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 text-sm">
+                                        <Phone size={14} className="text-slate-400" />
+                                        {clientProfile.telefono}
+                                    </div>
+                                )}
+                            </div>
+
 
                             {/* Estado de Verificación */}
-                            <div className="mt-4 flex flex-col items-center justify-center gap-2">
+                            <div className="mt-2 flex flex-col items-center justify-center gap-2">
                                 {clientProfile?.aprobado ? (
-                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border-2 border-slate-400 text-xs font-semibold">
-                                        <ShieldCheck size={14} className="text-slate-600" />
-                                        <span>Verificado</span>
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold shadow-sm">
+                                        <CheckCircle2 size={14} strokeWidth={2.5} />
+                                        <span>Usuario Verificado</span>
                                     </div>
                                 ) : (
-                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-400 border-2 border-slate-400 text-xs font-semibold">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-xs font-semibold">
                                         <ShieldAlert size={14} />
-                                        <span>No Verificado</span>
+                                        <span>Pendiente Verificación</span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Stats Section */}
-                        <div className="bg-slate-50/50 border-t border-slate-400 p-6 space-y-6">
-                            <div className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-slate-400 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-                                        <PawPrint size={18} fill="currentColor" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mascotas</p>
-                                        <p className="text-sm font-bold text-slate-900">{myPets.length}</p>
-                                    </div>
-                                </div>
-                            </div>
+                        {/* Navigation / Actions */}
+                        <div className="border-t border-slate-100 p-4">
+                            <button onClick={async () => { await supabase.auth.signOut(); router.push("/login"); }} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-slate-500 rounded-xl hover:bg-slate-50 hover:text-rose-600 transition-all group">
+                                <LogOut size={18} className="text-slate-400 group-hover:text-rose-500 transition-colors" />
+                                Cerrar Sesión
+                            </button>
                         </div>
                     </div>
                 </div>
