@@ -23,8 +23,8 @@ export const Band = ({
     variant = "white",
     className = "",
     id,
-    withDivider = true, // Default to true per v6 requirement
-    withFade = true     // Default to true per v6 requirement
+    withDivider = false, // Default to false (Clean Look v11)
+    withFade = false     // Default to false (Clean Look v11) - Optional per usage
 }: BandProps) => {
     const variantClasses = {
         brand: "band-brand",
@@ -42,9 +42,8 @@ export const Band = ({
                 {children}
             </div>
 
-            {/* Visual Separators (v6) */}
+            {/* Visual Separators (v11: Clean Look - Divider line removed) */}
             {withFade && <div className="band-fade" aria-hidden="true" />}
-            {withDivider && <div className="band-separator" aria-hidden="true" />}
         </section>
     );
 };
