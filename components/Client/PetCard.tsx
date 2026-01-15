@@ -26,9 +26,10 @@ export type Pet = {
 type PetCardProps = {
     pet: Pet;
     onEdit: (pet: Pet) => void;
+    className?: string;
 };
 
-export default function PetCard({ pet, onEdit }: PetCardProps) {
+export default function PetCard({ pet, onEdit, ...props }: PetCardProps) {
     const isDog = pet.tipo === "perro";
 
     // Calcular edad si hay fecha de nacimiento
@@ -68,8 +69,8 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
     const ageDisplay = calculateAge(pet.fecha_nacimiento);
 
     return (
-        <Card hoverable padding="m" onClick={() => onEdit(pet)} className="flex items-center justify-between cursor-pointer border-slate-200 hover:shadow-md transition-all">
-            <div className="flex items-center gap-5">
+        <Card hoverable padding="m" onClick={() => onEdit(pet)} className={`flex items-center justify-between cursor-pointer border-slate-200 hover:shadow-md transition-all group ${props.className || ''}`}>
+            <div className="flex items-center gap-5 min-w-0">
                 {/* Icono / Avatar */}
                 <div className="w-14 h-14 flex-shrink-0">
                     {pet.foto_mascota ? (
@@ -78,15 +79,18 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
                         </div>
                     ) : (
                         <div
-                            className={`w-14 h-14 flex items-center justify-center rounded-2xl text-2xl border ${isDog ? "bg-orange-50 text-orange-500 border-orange-100" : "bg-emerald-50 text-emerald-500 border-emerald-100"
+                            className={`w-14 h-14 flex items-center justify-center rounded-2xl text-xl font-bold border ${isDog
+                                ? "bg-orange-50 text-orange-600 border-orange-100"
+                                : "bg-emerald-50 text-emerald-600 border-emerald-100"
                                 }`}
                         >
-                            {isDog ? "🐶" : "🐱"}
+                            {/* Initials or Icon */}
+                            {pet.nombre ? pet.nombre.charAt(0).toUpperCase() : (isDog ? "🐶" : "🐱")}
                         </div>
                     )}
                 </div>
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                     <h3 className="font-bold text-slate-900 text-lg truncate flex items-center gap-2">
                         {pet.nombre}
                         {pet.trato_especial && (
@@ -94,22 +98,28 @@ export default function PetCard({ pet, onEdit }: PetCardProps) {
                         )}
                     </h3>
                     <p className="text-sm text-slate-500 truncate mt-0.5">
-                        <span className="font-medium text-slate-700">{isDog ? "Perro" : "Gato"}</span> • {pet.sexo === "macho" ? "Macho" : "Hembra"}
+                        <span className="font-medium text-slate-700">{isDog ? "Perro" : "Gato"}</span>
                         {pet.raza && <span className="text-slate-400"> • {pet.raza}</span>}
                     </p>
-                    <div className="flex gap-2 mt-2">
-                        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                    <div className="flex gap-2 mt-2.5">
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                             {ageDisplay}
                         </span>
-                        {pet.vacunas_al_dia && <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">Vacunas OK</span>}
+                        {pet.vacunas_al_dia && (
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100/50">
+                                Vacunas OK
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
+
             <button
-                className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all ml-2 flex-shrink-0"
+                className="p-2.5 text-slate-400 hover:text-white hover:bg-emerald-500 rounded-xl transition-all ml-4 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
                 title="Editar Mascota"
+                aria-label={`Editar a ${pet.nombre}`}
             >
-                <Edit2 size={20} />
+                <Edit2 size={18} />
             </button>
         </Card>
     );

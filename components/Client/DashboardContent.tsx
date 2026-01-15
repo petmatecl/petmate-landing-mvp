@@ -1161,7 +1161,7 @@ export default function DashboardContent() {
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Mascotas</h2>
                         <button onClick={handleAdd} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
-                            <Plus size={16} strokeWidth={3} /> Agregar
+                            <Plus size={16} strokeWidth={3} /> Agregar mascota
                         </button>
                     </div>
 
@@ -1170,8 +1170,13 @@ export default function DashboardContent() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {myPets.length > 0 ? (
-                                myPets.map(pet => (
-                                    <PetCard key={pet.id} pet={pet} onEdit={handleEdit} />
+                                myPets.map((pet, index) => (
+                                    <PetCard
+                                        key={pet.id}
+                                        pet={pet}
+                                        onEdit={handleEdit}
+                                        className={index === myPets.length - 1 && myPets.length % 2 !== 0 ? "sm:col-span-2" : ""}
+                                    />
                                 ))
                             ) : (
                                 <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
