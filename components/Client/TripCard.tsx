@@ -169,34 +169,32 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
         <Card
             padding="m"
             hoverable
-            className={`relative overflow-hidden ${['reservado'].includes(trip.estado)
-                ? '!border-amber-200 !bg-amber-50/10 ring-1 ring-amber-100'
-                : ['confirmado', 'aceptado', 'pagado', 'en_curso'].includes(trip.estado)
-                    ? ''
-                    : ''
+            className={`relative overflow-hidden transition-all duration-300 ${['reservado'].includes(trip.estado)
+                ? '!border-amber-200 bg-amber-50/30'
+                : 'border-slate-200 hover:shadow-md'
                 }`}
         >
 
             {/* ID Badge */}
-            <div className="absolute top-0 left-0 bg-slate-100 text-slate-500 text-[10px] font-mono px-2 py-0.5 rounded-br-lg border-b border-r border-slate-300">
+            <div className="absolute top-0 left-0 bg-slate-100/80 backdrop-blur-sm text-slate-500 text-[10px] font-mono px-3 py-1 rounded-br-xl border-b border-r border-slate-200">
                 #{trip.id.slice(0, 8).toUpperCase()}
             </div>
 
             {/* Application Badge */}
             {!trip.sitter_asignado && hasApplications && (
-                <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10 animate-pulse">
+                <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10 shadow-sm animate-pulse">
                     {trip.postulaciones_count} {trip.postulaciones_count === 1 ? 'Postulación' : 'Postulaciones'}
                 </div>
             )}
 
-            <div className="flex flex-col gap-4 pt-3">
+            <div className="flex flex-col gap-6 pt-4">
                 {/* Header Section: Icon + Date + Basic Info */}
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-full shrink-0 ${trip.servicio === 'hospedaje' ? 'bg-emerald-50 text-emerald-600' :
+                        <div className={`p-3.5 rounded-2xl shrink-0 shadow-sm border border-slate-100 ${trip.servicio === 'hospedaje' ? 'bg-emerald-50 text-emerald-600' :
                             trip.servicio === 'domicilio' ? 'bg-emerald-50 text-emerald-600' :
                                 trip.servicio === 'paseo' ? 'bg-orange-50 text-orange-600' :
-                                    'bg-slate-100 text-slate-600'
+                                    'bg-slate-50 text-slate-600'
                             }`}>
                             {trip.servicio === 'hospedaje' && <Hotel size={24} />}
                             {trip.servicio === 'domicilio' && <Home size={24} />}
@@ -204,23 +202,26 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             {trip.servicio === 'guarderia' && <Calendar size={24} />}
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-900 text-lg">
+                            <h3 className="font-bold text-slate-900 text-lg tracking-tight">
                                 {format(startDate, "d 'de' MMMM", { locale: es })}
                                 {endDate && ` – ${format(endDate, "d 'de' MMMM", { locale: es })}`}
                             </h3>
-                            <div className="flex items-center gap-3 text-sm text-slate-500">
-                                <span className="bg-slate-50 px-2 py-0.5 rounded border-2 border-slate-300 capitalize font-medium">
+                            <div className="flex items-center gap-3 text-sm text-slate-500 mt-1">
+                                <span className="bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 capitalize font-medium text-xs text-slate-700">
                                     {trip.servicio}
                                 </span>
-                                <span className="flex items-center gap-1">
+                                <span className="flex items-center gap-1 text-slate-400">
+                                    •
+                                </span>
+                                <span className="flex items-center gap-1 font-medium">
                                     {days} {days === 1 ? 'noche' : 'noches'}
                                 </span>
                                 <span className="text-slate-300">|</span>
                                 <span className="flex items-center flex-wrap gap-2">
                                     {pets && pets.length > 0 ? (
                                         pets.map((pet, idx) => (
-                                            <span key={idx} className="flex items-center gap-1 text-slate-600 font-medium">
-                                                {pet.type === 'perro' ? <Dog size={14} className="text-slate-400" /> : <Cat size={14} className="text-slate-400" />}
+                                            <span key={idx} className="flex items-center gap-1 text-slate-600 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100 text-xs">
+                                                {pet.type === 'perro' ? <Dog size={12} className="text-slate-400" /> : <Cat size={12} className="text-slate-400" />}
                                                 {pet.name}
                                             </span>
                                         ))
@@ -234,14 +235,14 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                         </div>
                     </div>
 
-                    {/* Top Actions: Edit/Delete (Only if not active/completed to avoid accidents, or always keep them small) */}
+                    {/* Top Actions: Edit/Delete */}
                     <div className="flex gap-1">
-                        <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors"><Edit2 size={16} /></button>
-                        <button onClick={() => onDelete(trip.id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
+                        <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors hover:bg-emerald-50 rounded-xl"><Edit2 size={18} /></button>
+                        <button onClick={() => onDelete(trip.id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors hover:bg-rose-50 rounded-xl"><Trash2 size={18} /></button>
                     </div>
                 </div>
 
-                <hr className="border-slate-300" />
+                <div className="h-px bg-slate-100 w-full"></div>
 
                 {/* 3-Column Layout for Confirmed/Assigned Trips */}
                 {trip.sitter_asignado && trip.sitter ? (
@@ -250,42 +251,46 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
 
                             {/* Column 1: Sitter Data */}
                             <div className="flex flex-col gap-3">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos del Sitter</p>
-                                <div className="flex items-center gap-3">
-                                    <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 overflow-hidden shrink-0 flex items-center justify-center">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sitter Asignado</p>
+                                <div className="flex items-center gap-3 group">
+                                    <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-12 h-12 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0 flex items-center justify-center group-hover:ring-2 ring-emerald-100 transition-all">
                                         {trip.sitter?.foto_perfil ? <img src={trip.sitter.foto_perfil} className="w-full h-full object-cover" /> : <User size={20} className="text-emerald-700" />}
                                     </Link>
                                     <div>
-                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="font-bold text-slate-900 hover:text-emerald-700 hover:underline">
+                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="font-bold text-slate-900 hover:text-emerald-700 transition-colors">
                                             {trip.sitter?.nombre} {trip.sitter?.apellido_p}
                                         </Link>
-                                        <p className="text-xs text-slate-500">Sitter Certificado</p>
+                                        <div className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
+                                            <CheckCircle2 size={10} strokeWidth={3} /> Certificado
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="space-y-2 pl-1">
-                                    <a href={`tel:${trip.sitter?.telefono}`} className="text-xs text-slate-600 hover:text-emerald-600 flex items-center gap-2">
-                                        <Phone size={14} className="text-slate-400" /> {trip.sitter?.telefono || 'No registrado'}
+                                <div className="space-y-1.5 pl-1">
+                                    <a href={`tel:${trip.sitter?.telefono}`} className="text-xs text-slate-500 hover:text-emerald-600 flex items-center gap-2 transition-colors">
+                                        <Phone size={14} className="text-slate-300" /> {trip.sitter?.telefono || 'No registrado'}
                                     </a>
-                                    <a href={`mailto:${trip.sitter?.email}`} className="text-xs text-slate-600 hover:text-emerald-600 flex items-center gap-2">
-                                        <Mail size={14} className="text-slate-400" /> {trip.sitter?.email || 'No registrado'}
+                                    <a href={`mailto:${trip.sitter?.email}`} className="text-xs text-slate-500 hover:text-emerald-600 flex items-center gap-2 transition-colors">
+                                        <Mail size={14} className="text-slate-300" /> {trip.sitter?.email || 'No registrado'}
                                     </a>
                                 </div>
                             </div>
 
                             {/* Column 2: Location */}
-                            <div className="flex flex-col gap-3 md:border-l md:border-slate-300 md:pl-6">
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-100 md:pl-6">
                                 <div className="flex justify-between items-center">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ubicación</p>
                                     {((trip.servicio === 'hospedaje' && (trip.sitter?.direccion_completa || trip.sitter?.comuna)) || (trip.servicio === 'domicilio' && serviceAddress)) && (
                                         <button onClick={() => toggleMap(trip.servicio === 'hospedaje' ? 'sitter' : 'client')} className="text-[10px] text-emerald-600 font-bold hover:underline flex items-center gap-1">
                                             Ver Mapa {activeMap ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
                                         </button>
                                     )}
                                 </div>
-                                <div className="flex items-start gap-2">
-                                    <MapPin size={16} className="text-emerald-600 mt-0.5 shrink-0" />
+                                <div className="flex items-start gap-2.5">
+                                    <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100 shrink-0">
+                                        <MapPin size={16} className="text-emerald-600" />
+                                    </div>
                                     <div>
-                                        <p className="text-sm text-slate-800 leading-snug">
+                                        <p className="text-sm font-medium text-slate-900 leading-snug">
                                             {(() => {
                                                 const originalAddress = trip.servicio === 'hospedaje'
                                                     ? (trip.sitter?.calle && trip.sitter?.numero && trip.sitter?.comuna
@@ -293,22 +298,21 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                                         : (trip.sitter?.direccion_completa || 'Dirección no disponible'))
                                                     : (serviceAddress || 'Dirección no disponible');
 
-                                                // Clean up address: Remove generic suffixes like "Región Metrop...", "Chile", Zip Codes
                                                 return originalAddress
                                                     .replace(/, Región Metropolitana.*$/, '')
                                                     .replace(/, Provincia de.*$/, '')
-                                                    .replace(/, \d{7}.*$/, '') // Remove zip + ending
+                                                    .replace(/, \d{7}.*$/, '')
                                                     .replace(/, Chile$/, '');
                                             })()}
                                         </p>
-                                        <p className="text-xs text-slate-500 mt-1">
-                                            {trip.servicio === 'hospedaje' ? 'Debes llevar a tu mascota aquí' : 'El Sitter vendrá a esta dirección'}
+                                        <p className="text-xs text-slate-500 mt-1 bg-slate-50 inline-block px-2 py-0.5 rounded border border-slate-100">
+                                            {trip.servicio === 'hospedaje' ? 'Sitter (Hospedaje)' : 'Tu Domicilio'}
                                         </p>
                                     </div>
                                 </div>
                                 {/* Map */}
                                 {activeMap && (
-                                    <div className="rounded-lg overflow-hidden border-2 border-slate-300 shadow-inner h-32 w-full">
+                                    <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm h-32 w-full mt-2">
                                         <iframe
                                             width="100%" height="100%" frameBorder="0" style={{ border: 0 }}
                                             src={`https://maps.google.com/maps?q=${encodeURIComponent(
@@ -320,18 +324,18 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             </div>
 
                             {/* Column 3: Actions */}
-                            <div className="flex flex-col gap-3 md:border-l md:border-slate-300 md:pl-6 justify-center">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider md:hidden">Acciones</p>
+                            <div className="flex flex-col gap-3 md:border-l md:border-slate-100 md:pl-6 justify-center">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider md:hidden">Acciones</p>
                                 {trip.sitter?.auth_user_id && (
                                     <ContactSitterButton
                                         sitterId={trip.sitter.auth_user_id}
-                                        className="w-full bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-sm text-sm"
+                                        className="w-full bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-sm shadow-emerald-900/10 text-sm transition-all active:scale-95"
                                         label="Chat con Sitter"
                                     />
                                 )}
                                 <button
                                     onClick={handlePreviewPDF}
-                                    className="w-full bg-white text-slate-700 border-2 border-slate-300 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 hover:text-emerald-600 transition-colors text-sm"
+                                    className="w-full bg-white text-slate-700 border border-slate-200 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 hover:text-emerald-700 transition-all text-sm shadow-sm"
                                 >
                                     <FileText size={16} /> Ver Ficha
                                 </button>

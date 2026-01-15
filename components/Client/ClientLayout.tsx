@@ -9,7 +9,7 @@ import ImageLightbox from '../ImageLightbox';
 import ModalAlert from '../ModalAlert';
 // import AddressFormModal from './AddressFormModal'; // Removed
 import { Address } from './AddressCard';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Edit2, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import ClientContext from './ClientContext';
 
@@ -198,12 +198,14 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
                         {/* SIDEBAR */}
                         <aside className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-                            <div className="bg-white rounded-xl border-2 border-slate-300 shadow-sm overflow-hidden">
-                                <div className="h-24 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
-                                <div className="px-6 pb-6 text-center -mt-12 relative">
-                                    <div className="relative w-24 h-24 mx-auto">
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative group hover:shadow-md transition-all duration-300">
+                                {/* Subtle Accent Header instead of harsh gradient */}
+                                <div className="h-24 bg-gradient-to-b from-emerald-50/80 to-white"></div>
+
+                                <div className="px-6 pb-6 text-center -mt-12 relative flex flex-col items-center">
+                                    <div className="relative w-24 h-24 mb-3">
                                         <div
-                                            className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md bg-white cursor-pointer group"
+                                            className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white cursor-pointer group-hover:scale-105 transition-transform duration-300"
                                             onClick={() => setIsLightboxOpen(true)}
                                         >
                                             {clientProfile?.foto_perfil ? (
@@ -211,17 +213,17 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                                                     src={clientProfile.foto_perfil}
                                                     alt="Foto perfil"
                                                     fill
-                                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    className="object-cover"
                                                     unoptimized
                                                 />
                                             ) : (
-                                                <div className="flex items-center justify-center h-full text-slate-300 text-3xl">
-                                                    👤
+                                                <div className="flex items-center justify-center h-full text-slate-200 bg-slate-50 text-3xl">
+                                                    <User size={32} />
                                                 </div>
                                             )}
                                         </div>
 
-                                        <label className="absolute bottom-0 right-0 p-1.5 bg-white border-2 border-slate-300 rounded-full shadow-sm cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors z-10">
+                                        <label className="absolute bottom-0 right-0 p-2 bg-white border border-slate-200 rounded-full shadow-md cursor-pointer hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 transition-all z-10">
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -230,39 +232,40 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                                                 disabled={uploading}
                                             />
                                             {uploading ? (
-                                                <span className="block w-3.5 h-3.5 border-2 border-slate-300 border-t-emerald-500 rounded-full animate-spin"></span>
+                                                <span className="block w-4 h-4 border-2 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></span>
                                             ) : (
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                                <Edit2 size={14} /> // Using Lucide Edit2 icon if available, or fallback
                                             )}
                                         </label>
                                     </div>
 
-                                    <h2 className="mt-3 text-lg font-bold text-slate-900">
+                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                                         {displayName}
                                     </h2>
-                                    <div className="flex flex-col items-center gap-1 mt-1">
-                                        <p className="text-sm text-slate-500 flex items-center gap-1.5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+
+                                    <div className="flex flex-col items-center gap-1 mt-2 text-sm">
+                                        <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                            <Mail size={14} className="text-slate-400" />
                                             {email}
-                                        </p>
+                                        </div>
                                         {clientProfile?.telefono && (
-                                            <p className="text-sm text-slate-500 flex items-center gap-1.5">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                                            <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 mt-1">
+                                                <Phone size={14} className="text-slate-400" />
                                                 {clientProfile.telefono}
-                                            </p>
+                                            </div>
                                         )}
                                     </div>
 
-                                    <div className="hidden md:inline-flex mt-3 items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /></svg>
+                                    <div className="hidden md:inline-flex mt-4 items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100/50 shadow-sm">
+                                        <CheckCircle2 size={12} strokeWidth={3} />
                                         Usuario Verificado
                                     </div>
                                 </div>
 
-                                {/* Navigation Links (Active state logic could be added) */}
-                                <nav className="border-t border-slate-300 p-2">
-                                    <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors">
-                                        <LogOut size={18} />
+                                {/* Navigation Links */}
+                                <nav className="border-t border-slate-100 p-2">
+                                    <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-slate-500 rounded-xl hover:bg-slate-50 hover:text-rose-600 transition-all group/logout">
+                                        <LogOut size={18} className="text-slate-400 group-hover/logout:text-rose-500 transition-colors" />
                                         Cerrar Sesión
                                     </button>
                                 </nav>

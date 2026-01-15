@@ -150,15 +150,18 @@ body {
 /* High Contrast Card Standard/Utility - Token Based */
 .surface-card {
   background-color: var(--surface-bg);
-  border: 2px solid var(--surface-border);
-  box-shadow: var(--surface-shadow), var(--surface-ring);
+  /* REFACTORED: Premium Standard (1px Slate-200) */
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow), var(--section-ring);
   @apply rounded-3xl transition-all duration-300;
 }
 
 .surface-card:hover {
-  border-color: var(--surface-hover-border);
-  box-shadow: var(--surface-hover-shadow), var(--surface-hover-ring);
-  transform: translateY(-4px);
+  /* Subtle hover */
+  border-color: #cbd5e1;
+  /* Slate-300 */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  transform: translateY(-2px);
 }
 
 /* Legacy/Fallback */
