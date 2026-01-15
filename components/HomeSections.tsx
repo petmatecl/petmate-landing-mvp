@@ -148,11 +148,15 @@ export function TrustSection() {
             <Card padding="s" className="!bg-white/95 !backdrop-blur-md !border-white/50 shadow-2xl">
               <div className="flex items-center gap-4">
                 <div className="flex -space-x-3">
-                  {[1, 2, 3].map((i) => (
+                  {[
+                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&h=64",
+                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&h=64",
+                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=64&h=64"
+                  ].map((url, i) => (
                     <img
                       key={i}
                       className="w-10 h-10 rounded-full border-2 border-white object-cover"
-                      src={`https://images.pexels.com/photos/${1000 + i}/pexels-photo-1000${i}.jpeg?auto=compress&cs=tinysrgb&w=100`}
+                      src={url}
                       alt="Usuario"
                     />
                   ))}
