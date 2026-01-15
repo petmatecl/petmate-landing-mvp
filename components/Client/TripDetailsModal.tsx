@@ -77,43 +77,53 @@ export default function TripDetailsModal({ isOpen, onClose, trip, pets, serviceA
                                     <div className="space-y-3">
                                         {pets && pets.length > 0 ? (
                                             pets.map((pet, idx) => (
-                                                <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 shadow-sm">
+                                                <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 shadow-sm items-start">
                                                     <div className="shrink-0">
                                                         {pet.foto_mascota ? (
-                                                            <img src={pet.foto_mascota} className="w-12 h-12 rounded-full object-cover border border-slate-100" alt={pet.nombre} />
+                                                            <img src={pet.foto_mascota} className="w-14 h-14 rounded-2xl object-cover border border-slate-100 shadow-sm" alt={pet.nombre} />
                                                         ) : (
-                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${pet.tipo === 'perro' ? 'bg-orange-50 text-orange-500 border-orange-100' : 'bg-emerald-50 text-emerald-500 border-emerald-100'}`}>
-                                                                {pet.tipo === 'perro' ? <Dog size={20} /> : <Cat size={20} />}
+                                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border text-xl font-bold ${pet.tipo === 'perro' ? 'bg-orange-50 text-orange-500 border-orange-100' : 'bg-emerald-50 text-emerald-500 border-emerald-100'}`}>
+                                                                {pet.nombre ? pet.nombre.charAt(0).toUpperCase() : (pet.tipo === 'perro' ? <Dog size={24} /> : <Cat size={24} />)}
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex justify-between items-start">
-                                                            <h5 className="font-bold text-slate-900">{pet.nombre}</h5>
-                                                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full border border-slate-200 capitalize">
-                                                                {pet.raza || pet.tipo}
-                                                            </span>
+                                                            <div>
+                                                                <h5 className="font-bold text-slate-900 text-lg leading-tight">{pet.nombre}</h5>
+                                                                <p className="text-xs text-slate-500 font-medium mt-0.5 capitalize">
+                                                                    {pet.tipo} • {pet.raza || 'Raza no esp.'}
+                                                                </p>
+                                                            </div>
+                                                            {pet.edad && (
+                                                                <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-lg border border-slate-200 shadow-sm">
+                                                                    {pet.edad} años
+                                                                </span>
+                                                            )}
                                                         </div>
 
                                                         {/* Special Care Note */}
                                                         {pet.trato_especial && pet.trato_especial_desc ? (
-                                                            <div className="mt-2 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 flex gap-2 items-start">
-                                                                <AlertCircle size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                                                                <p className="text-xs text-amber-800 leading-relaxed">
-                                                                    <span className="font-bold block text-amber-900/80 mb-0.5">Cuidados Especiales:</span>
-                                                                    {pet.trato_especial_desc}
-                                                                </p>
+                                                            <div className="mt-3 bg-amber-50 p-3 rounded-xl border border-amber-100/60 flex gap-2.5 items-start">
+                                                                <AlertCircle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                                                                <div className="text-xs text-amber-900">
+                                                                    <span className="font-bold block text-amber-950 mb-0.5">Cuidados Especiales:</span>
+                                                                    <p className="leading-relaxed opacity-90">{pet.trato_especial_desc}</p>
+                                                                </div>
                                                             </div>
                                                         ) : (
-                                                            <div className="mt-2 text-xs text-slate-400 flex items-center gap-1">
-                                                                <CheckCircle2 size={12} /> Sin cuidados especiales registrados
+                                                            <div className="mt-3 text-xs text-slate-400 flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 border-dashed">
+                                                                <CheckCircle2 size={14} className="text-slate-300" />
+                                                                <span>Sin cuidados especiales registrados</span>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
                                             ))
                                         ) : (
-                                            <p className="text-sm text-slate-500 italic">No se encontraron detalles de las mascotas.</p>
+                                            <p className="text-sm text-slate-500 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                                No se encontraron detalles de las mascotas.
+                                            </p>
                                         )}
                                     </div>
                                 </div>
@@ -126,7 +136,14 @@ export default function TripDetailsModal({ isOpen, onClose, trip, pets, serviceA
                                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm text-slate-700">
                                         {trip.servicio === 'hospedaje'
                                             ? 'En domicilio del Cuidador (dirección se revelará al confirmar)'
-                                            : (serviceAddress || 'Tu dirección registrada')
+                                            : (serviceAddress ? (() => {
+                                                // Clean Address Logic
+                                                return serviceAddress
+                                                    .replace(/, Región Metropolitana.*$/, '')
+                                                    .replace(/, Provincia de.*$/, '')
+                                                    .replace(/, \d{7}.*$/, '')
+                                                    .replace(/, Chile$/, '');
+                                            })() : 'Tu dirección registrada')
                                         }
                                     </div>
                                 </div>

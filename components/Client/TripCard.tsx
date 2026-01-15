@@ -3,7 +3,7 @@ import { Card } from "../Shared/Card";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search, FileText, Download, Info } from "lucide-react";
+import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search, FileText, Download, Info, Eye } from "lucide-react";
 import ContactSitterButton from "../Shared/ContactSitterButton";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -240,7 +240,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
 
                     {/* Top Actions: Edit/Delete/Info */}
                     <div className="flex gap-1">
-                        <button onClick={() => setShowDetailsModal(true)} className="p-2 text-slate-300 hover:text-sky-600 transition-colors hover:bg-sky-50 rounded-xl" title="Ver Detalles"><Info size={18} /></button>
+                        <button onClick={() => setShowDetailsModal(true)} className="p-2 text-slate-300 hover:text-sky-600 transition-colors hover:bg-sky-50 rounded-xl" title="Ver Detalles"><Eye size={18} /></button>
                         <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors hover:bg-emerald-50 rounded-xl" title="Editar Solicitud"><Edit2 size={18} /></button>
                         <button onClick={() => onDelete(trip.id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors hover:bg-rose-50 rounded-xl" title="Eliminar"><Trash2 size={18} /></button>
                     </div>
