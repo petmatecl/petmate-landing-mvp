@@ -211,7 +211,7 @@ export default function PetForm({
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
 
             {/* 1. SECCIÓN DE FOTOS */}
-            <div className="bg-slate-50/50 p-8 border-b border-slate-100 flex flex-col items-center gap-6">
+            <div className="bg-slate-50/50 p-8 border-b border-slate-100 flex flex-col md:flex-row items-center justify-center gap-8">
                 <div className="relative group">
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-white relative ring-1 ring-slate-200">
                         {fotoMascota ? (
@@ -232,7 +232,7 @@ export default function PetForm({
                     </label>
                 </div>
 
-                <div className="w-full max-w-md">
+                <div className="flex flex-col items-center md:items-start gap-4">
                     <div className="flex items-center justify-center gap-3">
                         {fotosGaleria.map((url, idx) => (
                             <div key={idx} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
@@ -253,7 +253,7 @@ export default function PetForm({
                             </label>
                         )}
                     </div>
-                    <p className="text-center text-xs text-slate-400 mt-3 font-medium">Foto de perfil y hasta 3 fotos adicionales</p>
+                    <p className="text-xs text-slate-400 font-medium">Foto de perfil y hasta 3 fotos adicionales</p>
                 </div>
             </div>
 

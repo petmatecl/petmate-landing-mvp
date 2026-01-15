@@ -72,14 +72,14 @@ export default function PetCard({ pet, onEdit, ...props }: PetCardProps) {
         <Card hoverable padding="m" onClick={() => onEdit(pet)} className={`flex items-center justify-between cursor-pointer border-slate-200 hover:shadow-md transition-all group ${props.className || ''}`}>
             <div className="flex items-center gap-5 min-w-0">
                 {/* Icono / Avatar */}
-                <div className="w-14 h-14 flex-shrink-0">
+                <div className="w-20 h-20 flex-shrink-0">
                     {pet.foto_mascota ? (
-                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
+                        <div className="w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
                             <img src={pet.foto_mascota} alt={pet.nombre} className="w-full h-full object-cover" />
                         </div>
                     ) : (
                         <div
-                            className={`w-14 h-14 flex items-center justify-center rounded-2xl text-xl font-bold border ${isDog
+                            className={`w-20 h-20 flex items-center justify-center rounded-2xl text-3xl font-bold border ${isDog
                                 ? "bg-orange-50 text-orange-600 border-orange-100"
                                 : "bg-emerald-50 text-emerald-600 border-emerald-100"
                                 }`}
