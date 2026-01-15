@@ -33,7 +33,7 @@ export function HowItWorks() {
     {
       id: "03",
       name: "Reserva",
-      description: "Coordina los detalles por chat y presiona reservar. Tu mascota queda en buenas manos.",
+      description: "Coordina detalles por chat y acuerda el servicio. El pago es directo con el sitter.",
       icon: BriefcaseIcon,
     },
   ];
@@ -192,7 +192,7 @@ export function FAQSection() {
   const faqs = [
     { q: "¿Cómo elijo al cuidador adecuado?", a: "Recomendamos leer detalladamente su perfil, revisar las fotos de su hogar y leer las reseñas de otros usuarios. También puedes contactarlo antes de reservar para aclarar dudas." },
     { q: "¿Es seguro dejar a mi mascota?", a: "En Pawnecta verificamos la identidad de los cuidadores y fomentamos las reseñas reales. Además, siempre recomendamos un encuentro previo ('Meet & Greet') para ver cómo se lleva tu mascota con el cuidador." },
-    { q: "¿Cuándo debo pagar?", a: "El pago se realiza a través de la plataforma al momento de confirmar la reserva. Esto asegura tu cupo y activa el respaldo de soporte de Pawnecta." },
+    { q: "¿Cuándo y cómo se paga?", a: "Por ahora, Pawnecta no procesa pagos dentro de la plataforma. El pago se coordina directamente con el sitter (por ejemplo, transferencia o efectivo) y el detalle se acuerda por chat antes de confirmar el cuidado." },
     { q: "¿Qué pasa si mi mascota necesita cuidados especiales?", a: "Puedes usar los filtros para buscar cuidadores con experiencia en necesidades especiales (medicación, cachorros, seniors) y detallarlo en el chat antes de reservar." },
   ];
 

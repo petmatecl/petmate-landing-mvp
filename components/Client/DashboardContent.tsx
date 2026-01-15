@@ -564,7 +564,7 @@ export default function DashboardContent() {
         setConfirmConfig({
             isOpen: true,
             title: "Confirmar Reserva",
-            message: "Al confirmar, notificaremos al Sitter que estás listo para comenzar. Revisa que los detalles sean correctos.",
+            message: "Al confirmar, notificaremos al Sitter que estás listo para comenzar. Recuerda que el pago se coordina directamente con el Sitter fuera de la plataforma.",
             confirmText: "Sí, Confirmar Reserva",
             isDestructive: false,
             onConfirm: async () => {

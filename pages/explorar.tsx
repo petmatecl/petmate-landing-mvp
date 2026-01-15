@@ -140,7 +140,7 @@ export default function ExplorarPage() {
         <div className="min-h-screen bg-slate-50">
             <Head>
                 <title>Explorar Cuidadores | Pawnecta</title>
-                <meta name="description" content="Busca y encuentra cuidadores de mascotas verificados en tu comuna. Filtra por servicios de hospedaje o a domicilio. Reserva con confianza en Pawnecta." />
+                <meta name="description" content="Busca y encuentra cuidadores de mascotas verificados en tu comuna. Filtra por servicios de hospedaje o a domicilio. Contacta con confianza en Pawnecta." />
             </Head>
 
             {/* Barra de Filtros */}
@@ -154,8 +154,8 @@ export default function ExplorarPage() {
                     </div>
                 ) : (isAuthenticated && clientMissingFields.length > 0) ? (
                     <CompletionBlocker
-                        title="Completa tu perfil para reservar"
-                        message="Para ver cuidadores y gestionar reservas, necesitamos que completes tu información básica."
+                        title="Completa tu perfil para contactar"
+                        message="Para ver cuidadores y gestionar solicitudes, necesitamos que completes tu información básica."
                         missingFields={clientMissingFields}
                         redirectUrl="/usuario"
                         redirectText="Ir a mi Perfil"
@@ -259,7 +259,7 @@ export default function ExplorarPage() {
                                                 Descubre a nuestros cuidadores
                                             </h3>
                                             <p className="text-slate-600 mb-8 leading-relaxed">
-                                                Regístrate gratuitamente para ver los perfiles completos, fotos y reseñas de la comunidad de Pawnecta.
+                                                Regístrate gratuitamente para ver perfiles completos y contactar a la comunidad de Pawnecta.
                                             </p>
 
                                             <div className="space-y-3">

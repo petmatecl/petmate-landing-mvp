@@ -388,7 +388,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                     }}
                                     className="w-full mt-2 btn-primary py-3 shadow-lg shadow-emerald-100 hover:shadow-xl transition-shadow"
                                 >
-                                    Solicitar Reserva
+                                    Solicitar Cuidado / Contactar
                                 </button>
                                 <div className="mt-3">
                                     <ContactSitterButton
@@ -398,7 +398,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                         currentUserId={currentUserId}
                                     />
                                 </div>
-                                <p className="text-xs text-slate-400 mt-2 text-center">Sin compromiso de reserva</p>
+                                <p className="text-xs text-slate-400 mt-2 text-center">Coordinación directa - Sin cobro online</p>
 
                                 {/* Redes Sociales */}
                                 {hasSocials && (

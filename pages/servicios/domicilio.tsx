@@ -125,7 +125,7 @@ export default function ServicioDomicilio() {
                                         2. Conoce y Reserva
                                     </dt>
                                     <dd className="mt-2 text-base leading-7 text-slate-600">
-                                        Chatea gratis para coordinar detalles y reserva de forma segura a través de nuestra plataforma.
+                                        Chatea gratis para coordinar detalles y acuerda el pago directamente con el sitter.
                                     </dd>
                                 </div>
                                 <div className="relative pl-16">

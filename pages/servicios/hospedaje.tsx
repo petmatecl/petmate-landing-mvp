@@ -133,7 +133,7 @@ export default function ServicioHospedaje() {
                                 ¿Mi perro se llevará bien con las mascotas del Sitter?
                             </h2>
                             <p className="text-lg text-slate-600 mb-12">
-                                Entendemos tu preocupación. Por eso, en <b>Pawnecta</b> promovemos un encuentro previo (Meet & Greet) gratuito para asegurar que haya química entre todos antes de confirmar la reserva.
+                                Entendemos tu preocupación. Por eso, en <b>Pawnecta</b> promovemos un encuentro previo (Meet & Greet) gratuito para asegurar que haya química entre todos antes de confirmar.
                             </p>
 
                             <Link

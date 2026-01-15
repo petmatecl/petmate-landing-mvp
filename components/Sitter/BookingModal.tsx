@@ -208,6 +208,11 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
                                 {sending ? "Enviando..." : "Enviar Solicitud"}
                             </button>
                         </div>
+                        <div className="px-6 pb-4 text-center">
+                            <p className="text-[10px] text-slate-400">
+                                * El pago se coordina directamente con el Sitter fuera de la plataforma.
+                            </p>
+                        </div>
                     </>
                 )}
             </div>

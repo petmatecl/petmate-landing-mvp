@@ -227,7 +227,7 @@ export default function LoginPage() {
           <Card variant="elevated" padding="l" className="login-card">
             <h1 className="title">Iniciar sesión</h1>
             <p className="subtitle">
-              Accede como {tab === "client" ? "usuario" : "Sitter"} para reservar y gestionar
+              Accede como {tab === "client" ? "usuario" : "Sitter"} para contactar y gestionar
               servicios.
             </p>
 
