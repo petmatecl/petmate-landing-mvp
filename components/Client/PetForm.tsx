@@ -2,10 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Pet } from "./PetCard";
-import { Camera, Loader2, Upload, X, Check, AlertCircle, Dog } from 'lucide-react';
+import { Camera, Loader2, Upload, X, Check, AlertCircle, Dog, Save, Trash2, ChevronRight, Mars, Venus, Info } from 'lucide-react';
 import DatePickerSingle from "../DatePickerSingle";
 import { format } from "date-fns";
-import { useRouter } from "next/router";
 
 type PetFormProps = {
     initialData?: Pet | null;
@@ -72,12 +71,11 @@ export default function PetForm({
             const file = event.target.files[0];
             const fileExt = file.name.split('.').pop();
             const timestamp = Date.now();
-            // Sanitize filename: remove spaces and special chars
             const fileName = `pet-${timestamp}-${Math.random().toString(36).substring(7)}.${fileExt}`;
             const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage
-                .from('avatars') // Using avatars bucket for now
+                .from('avatars')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
@@ -147,7 +145,6 @@ export default function PetForm({
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
-        // Validación Chip
         if (tieneChip && !chipId.trim()) {
             alert("Si la mascota tiene chip, debes ingresar el ID.");
             return;
@@ -176,14 +173,12 @@ export default function PetForm({
 
         try {
             if (initialData?.id) {
-                // Update
                 const { error } = await supabase
                     .from("mascotas")
                     .update(payload)
                     .eq("id", initialData.id);
                 if (error) throw error;
             } else {
-                // Insert
                 const { error } = await supabase.from("mascotas").insert([payload]);
                 if (error) throw error;
             }
@@ -213,302 +208,329 @@ export default function PetForm({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="relative space-y-6 max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border-2 border-slate-300">
+        <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
 
-            {/* Close Button */}
-            <button
-                type="button"
-                onClick={onCancel}
-                className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                title="Cerrar"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-
-            {/* Header / Foto */}
-            <div className="flex flex-col items-center gap-4 mb-6">
-                <div className="relative w-32 h-32">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-300 shadow-sm bg-slate-50 relative">
+            {/* 1. SECCIÓN DE FOTOS */}
+            <div className="bg-slate-50/50 p-8 border-b border-slate-100 flex flex-col items-center gap-6">
+                <div className="relative group">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-white relative ring-1 ring-slate-200">
                         {fotoMascota ? (
-                            <img
-                                src={fotoMascota}
-                                alt="Foto mascota"
-                                className="w-full h-full object-cover"
-                            />
+                            <img src={fotoMascota} alt="Foto mascota" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="flex items-center justify-center h-full text-slate-300 text-5xl">
+                            <div className="flex items-center justify-center h-full text-slate-300 text-5xl bg-slate-50">
                                 {tipo === 'perro' ? '🐶' : '🐱'}
                             </div>
                         )}
                     </div>
-                    <label className="absolute bottom-0 right-0 p-2.5 bg-emerald-600 rounded-full shadow-lg cursor-pointer hover:bg-emerald-700 text-white transition-all z-10 hover:scale-105 active:scale-95">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handlePhotoUpload}
-                            disabled={uploading}
-                        />
+                    <label className="absolute bottom-0 right-0 p-2.5 bg-emerald-600 rounded-full shadow-lg cursor-pointer hover:bg-emerald-700 text-white transition-all z-10 hover:scale-105 active:scale-95 ring-2 ring-white">
+                        <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
                         {uploading ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <Loader2 size={16} className="animate-spin" />
                         ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            <Camera size={16} />
                         )}
                     </label>
                 </div>
-                <div className="text-center">
-                    <p className="text-sm text-slate-500">Haz clic en el ícono para subir una foto de perfil</p>
-                </div>
 
-                {/* Galería de fotos extra */}
-                <div className="w-full max-w-md mt-2">
-                    <label className="block text-center text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Galería Adicional (Máx 3)</label>
-                    <div className="flex justify-center gap-3">
+                <div className="w-full max-w-md">
+                    <div className="flex items-center justify-center gap-3">
                         {fotosGaleria.map((url, idx) => (
-                            <div key={idx} className="relative group w-20 h-20 rounded-lg overflow-hidden border-2 border-slate-300 shadow-sm">
+                            <div key={idx} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
                                 <img src={url} alt={`Galeria ${idx} `} className="w-full h-full object-cover" />
                                 <button
                                     type="button"
                                     onClick={() => removeGalleryPhoto(idx)}
                                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
-                                    <span className="text-white text-xs font-bold">Eliminar</span>
+                                    <Trash2 size={16} className="text-white" />
                                 </button>
                             </div>
                         ))}
                         {fotosGaleria.length < 3 && (
-                            <label className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 hover:border-emerald-500 hover:text-emerald-500 text-slate-400 transition-colors">
-                                <span className="text-2xl">+</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={handleGalleryUpload}
-                                    disabled={uploading}
-                                />
+                            <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 hover:border-emerald-400 hover:text-emerald-500 text-slate-300 transition-all bg-white">
+                                <Upload size={20} />
+                                <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} disabled={uploading} />
                             </label>
                         )}
                     </div>
+                    <p className="text-center text-xs text-slate-400 mt-3 font-medium">Foto de perfil y hasta 3 fotos adicionales</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Tipo */}
-                <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">¿Es Perro o Gato?</label>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setTipo("perro")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${tipo === "perro" ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
-                        >
-                            🐶 Perro
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setTipo("gato")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${tipo === "gato" ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
-                        >
-                            🐱 Gato
-                        </button>
-                    </div>
-                </div>
+            <div className="p-8 space-y-10">
 
-                {/* Sexo */}
-                <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Sexo</label>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setSexo("macho")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${sexo === "macho" ? "border-blue-500 bg-blue-50 text-blue-700 font-bold ring-1 ring-blue-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
-                        >
-                            ♂ Macho
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setSexo("hembra")}
-                            className={`flex items - center justify - center gap - 2 h - 12 rounded - xl border transition - all ${sexo === "hembra" ? "border-pink-500 bg-pink-50 text-pink-700 font-bold ring-1 ring-pink-500" : "border-slate-300 text-slate-600 hover:bg-slate-50"} `}
-                        >
-                            ♀ Hembra
-                        </button>
+                {/* 2. DATOS BÁSICOS */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-bold text-slate-900">Datos Básicos</h3>
+                        <div className="h-px bg-slate-100 flex-1"></div>
                     </div>
-                </div>
 
-                {/* Tamaño */}
-                {/* Tamaño (Solo para Perros) */}
-                {tipo === 'perro' && (
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tamaño</label>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                            {[
-                                { id: "pequeño", label: "Pequeño", range: "0 - 10 kg", scale: 0.75 },
-                                { id: "mediano", label: "Mediano", range: "11 - 25 kg", scale: 0.9 },
-                                { id: "grande", label: "Grande", range: "26 - 45 kg", scale: 1.1 },
-                                { id: "gigante", label: "Gigante", range: "+45 kg", scale: 1.25 }
-                            ].map((sizeOpt) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Nombre */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Nombre</label>
+                            <input
+                                required
+                                value={nombre}
+                                onChange={(e) => setNombre(e.target.value)}
+                                placeholder="Ej. Firulais"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-300 bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all placeholder:text-slate-400 text-slate-900 font-medium"
+                            />
+                        </div>
+
+                        {/* Raza */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Raza <span className="text-slate-300 font-normal normal-case">(Opcional)</span></label>
+                            <input
+                                value={raza}
+                                onChange={(e) => setRaza(e.target.value)}
+                                placeholder="Ej. Golden Retriever"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-300 bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all placeholder:text-slate-400 text-slate-900 font-medium"
+                            />
+                        </div>
+
+                        {/* Fecha Nacimiento */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Fecha de Nacimiento</label>
+                            <div className="relative z-20">
+                                <DatePickerSingle
+                                    value={fechaNacimiento}
+                                    onChange={setFechaNacimiento}
+                                    maxDate={new Date()}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Tipo (Segmented Control) */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Tipo de Mascota</label>
+                            <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
                                 <button
-                                    key={sizeOpt.id}
                                     type="button"
-                                    onClick={() => setTamano(sizeOpt.id as any)}
-                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${tamano === sizeOpt.id ? "border-slate-800 bg-slate-100 text-slate-900 font-bold ring-1 ring-slate-800" : "border-slate-300 text-slate-500 hover:bg-slate-50"}`}
+                                    onClick={() => setTipo("perro")}
+                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${tipo === "perro" ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
                                 >
-                                    <div className="h-8 flex items-center justify-center mb-1">
-                                        <Dog
-                                            strokeWidth={2}
-                                            style={{
-                                                width: `${20 * sizeOpt.scale}px`,
-                                                height: `${20 * sizeOpt.scale}px`
-                                            }}
-                                        />
-                                    </div>
-                                    <span className="capitalize text-sm font-medium">{sizeOpt.label}</span>
-                                    <span className="text-[10px] text-slate-400 font-normal">{sizeOpt.range}</span>
+                                    🐶 Perro
                                 </button>
-                            ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setTipo("gato")}
+                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${tipo === "gato" ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
+                                >
+                                    🐱 Gato
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Sexo (Segmented Control) */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Sexo</label>
+                            <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setSexo("macho")}
+                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${sexo === "macho" ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
+                                >
+                                    <Mars size={16} /> Macho
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSexo("hembra")}
+                                    className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-bold transition-all ${sexo === "hembra" ? "bg-white text-pink-600 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-700"}`}
+                                >
+                                    <Venus size={16} /> Hembra
+                                </button>
+                            </div>
                         </div>
                     </div>
-                )}
-            </div>
 
+                    {/* Tamaño (Solo Perros) - Full Width Grid */}
+                    {tipo === 'perro' && (
+                        <div className="space-y-3 pt-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Tamaño</label>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                {[
+                                    { id: "pequeño", label: "Pequeño", range: "0 - 10 kg", scale: 0.75 },
+                                    { id: "mediano", label: "Mediano", range: "11 - 25 kg", scale: 0.9 },
+                                    { id: "grande", label: "Grande", range: "26 - 45 kg", scale: 1.1 },
+                                    { id: "gigante", label: "Gigante", range: "+45 kg", scale: 1.25 }
+                                ].map((sizeOpt) => (
+                                    <button
+                                        key={sizeOpt.id}
+                                        type="button"
+                                        onClick={() => setTamano(sizeOpt.id as any)}
+                                        className={`relative overflow-hidden flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 ${tamano === sizeOpt.id
+                                            ? "border-emerald-500 bg-emerald-50/50 text-emerald-900 ring-1 ring-emerald-500"
+                                            : "border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:bg-slate-50"
+                                            }`}
+                                    >
+                                        <div className="h-8 flex items-center justify-center mb-1">
+                                            <Dog
+                                                strokeWidth={2}
+                                                className={tamano === sizeOpt.id ? "text-emerald-600" : "text-slate-400"}
+                                                style={{ width: `${20 * sizeOpt.scale}px`, height: `${20 * sizeOpt.scale}px` }}
+                                            />
+                                        </div>
+                                        <span className="capitalize text-sm font-bold">{sizeOpt.label}</span>
+                                        <span className="text-[10px] opacity-70 mt-0.5">{sizeOpt.range}</span>
 
-            {/* Nombre */}
-            <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Nombre</label>
-                <input required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Firulais" className="w-full h-12 px-4 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
-            </div>
-
-            {/* Raza y F. Nacimiento */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Raza (Opcional)</label>
-                    <input value={raza} onChange={(e) => setRaza(e.target.value)} placeholder="Ej. Golden Retriever" className="w-full h-12 px-4 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
-                </div>
-                <div className="flex flex-col">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Fecha de Nacimiento</label>
-                    <div className="relative">
-                        <DatePickerSingle
-                            value={fechaNacimiento}
-                            onChange={setFechaNacimiento}
-                            maxDate={new Date()}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Salud y Chip */}
-            <div className="bg-slate-50 p-6 rounded-2xl space-y-6 border-2 border-slate-300">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-300 pb-2">
-                    🏥 Salud e Identificación
-                </h3>
-
-                {/* Vacunas */}
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-700">¿Vacunas al día?</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={vacunasAlDia} onChange={(e) => setVacunasAlDia(e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                </div>
-
-                {/* Chip */}
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-700">¿Tiene Chip?</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={tieneChip} onChange={(e) => setTieneChip(e.target.checked)} className="sr-only peer" />
-                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                        </label>
-                    </div>
-                    {tieneChip && (
-                        <input
-                            required={tieneChip}
-                            value={chipId}
-                            maxLength={15}
-                            onChange={(e) => setChipId(e.target.value.slice(0, 15))}
-                            placeholder="Ingrese ID del Chip (Obligatorio)"
-                            className="w-full h-11 px-3 bg-white rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none animate-in fade-in slide-in-from-top-1"
-                        />
+                                        {tamano === sizeOpt.id && (
+                                            <div className="absolute top-2 right-2 text-emerald-500">
+                                                <Check size={14} strokeWidth={3} />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     )}
-                </div>
+                </section>
 
-                {/* Enfermedades */}
-                <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Enfermedades / Condiciones</label>
+                {/* 3. SALUD E IDENTIFICACIÓN */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-bold text-slate-900">Salud e Identificación</h3>
+                        <div className="h-px bg-slate-100 flex-1"></div>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-6">
+
+                        {/* Toggles Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Vacunas */}
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <span className="block text-sm font-bold text-slate-900">¿Vacunas al día?</span>
+                                    <p className="text-xs text-slate-500 mt-0.5">Fundamental para la seguridad.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked={vacunasAlDia} onChange={(e) => setVacunasAlDia(e.target.checked)} className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                </label>
+                            </div>
+
+                            {/* Chip Toggle */}
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <span className="block text-sm font-bold text-slate-900">¿Tiene Chip?</span>
+                                    <p className="text-xs text-slate-500 mt-0.5">Registro nacional de mascotas.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked={tieneChip} onChange={(e) => setTieneChip(e.target.checked)} className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Chip Input (Conditional) */}
+                        {tieneChip && (
+                            <div className="animate-in fade-in slide-in-from-top-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 block">ID del Chip</label>
+                                <input
+                                    required={tieneChip}
+                                    value={chipId}
+                                    maxLength={15}
+                                    onChange={(e) => setChipId(e.target.value.slice(0, 15))}
+                                    placeholder="Ingrese los 15 dígitos"
+                                    className="w-full h-11 px-4 rounded-xl border border-slate-300 bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all placeholder:text-slate-400 font-mono text-slate-900"
+                                />
+                            </div>
+                        )}
+
+                        {/* Enfermedades */}
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 block">Enfermedades o Alergias</label>
+                            <textarea
+                                value={enfermedades}
+                                onChange={(e) => setEnfermedades(e.target.value)}
+                                placeholder="Ej. Alérgico al pollo, necesita tomar medicamento X..."
+                                rows={2}
+                                className="w-full p-4 rounded-xl border border-slate-300 bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none resize-none text-sm text-slate-900 placeholder:text-slate-400"
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                {/* 4. CUIDADOS ESPECIALES */}
+                <section className="space-y-4">
+                    <div className="bg-amber-50/50 rounded-2xl p-6 border border-amber-100/60">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                                    <AlertCircle size={20} />
+                                </div>
+                                <div>
+                                    <span className="block text-sm font-bold text-slate-900">¿Requiere trato o cuidados especiales?</span>
+                                    <p className="text-xs text-slate-500 mt-0.5">Miedo a otros perros, ansiedad, reactividad, etc.</p>
+                                </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked={tratoEspecial} onChange={(e) => setTratoEspecial(e.target.checked)} className="sr-only peer" />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+
+                        {tratoEspecial && (
+                            <textarea
+                                value={tratoEspecialDesc}
+                                onChange={(e) => setTratoEspecialDesc(e.target.value)}
+                                placeholder="Describe detalladamente los cuidados que necesita..."
+                                rows={3}
+                                className="w-full p-4 rounded-xl border border-amber-200 bg-white focus:ring-4 focus:ring-amber-100 focus:border-amber-400 outline-none resize-none text-sm animate-in fade-in"
+                            />
+                        )}
+                    </div>
+                </section>
+
+                {/* 5. DESCRIPCION */}
+                <section className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Sobre tu mascota</label>
+                        <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{descripcion.length} caracteres</span>
+                    </div>
                     <textarea
-                        value={enfermedades}
-                        onChange={(e) => setEnfermedades(e.target.value)}
-                        placeholder="Alergias, condiciones crónicas, etc."
-                        rows={3}
-                        className="w-full p-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none resize-none text-sm bg-white"
+                        value={descripcion}
+                        onChange={(e) => setDescripcion(e.target.value)}
+                        placeholder="Cuéntanos sobre su personalidad, gustos, rutinas..."
+                        rows={4}
+                        className="w-full p-4 rounded-xl border border-slate-300 bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none resize-none text-sm text-slate-900 placeholder:text-slate-400"
                     />
-                </div>
+                </section>
             </div>
 
-            {/* Trato Especial */}
-            <div className="space-y-3 p-6 bg-amber-50/50 rounded-2xl border border-amber-100/50">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-slate-900">¿Necesita trato especial?</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={tratoEspecial} onChange={(e) => setTratoEspecial(e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                    </label>
-                </div>
-                {tratoEspecial && (
-                    <textarea
-                        value={tratoEspecialDesc}
-                        onChange={(e) => setTratoEspecialDesc(e.target.value)}
-                        placeholder="Describe el cuidado especial que necesita..."
-                        rows={3}
-                        className="w-full p-3 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none resize-none text-sm animate-in fade-in"
-                    />
-                )}
-            </div>
-
-            {/* Descripcion General */}
-            <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Descripción General</label>
-                <textarea
-                    value={descripcion}
-                    onChange={(e) => setDescripcion(e.target.value)}
-                    placeholder="Cuéntanos sobre su personalidad, gustos, etc."
-                    rows={4}
-                    className="w-full p-4 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
-                />
-            </div>
-
-            <div className="flex gap-4 pt-6 border-t border-slate-300">
-
+            {/* ACTION BAR */}
+            <div className="bg-slate-50 border-t border-slate-200 p-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                    disabled={loading}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 transition-colors text-sm"
                 >
                     Cancelar
                 </button>
 
-                <div className="flex-1 flex gap-3 justify-end">
-                    {initialData && (
+                <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+                    {initialData?.id && (
                         <button
                             type="button"
                             onClick={handleDelete}
                             disabled={loading}
-                            className="px-4 py-3 rounded-xl border border-red-200 text-red-600 font-bold hover:bg-red-50 transition-colors"
+                            className="w-full sm:w-auto px-6 py-3 rounded-xl border border-red-200 text-red-600 font-bold hover:bg-red-50 transition-colors text-sm flex items-center justify-center gap-2"
                         >
-                            Eliminar
+                            <Trash2 size={16} /> Eliminar
                         </button>
                     )}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-8 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-900/10 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="w-full sm:w-auto px-8 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm active:scale-95"
                     >
-                        {loading ? <span className="animate-spin"><Loader2 size={20} /></span> : "Guardar Mascota"}
+                        {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                        {initialData?.id ? 'Guardar Cambios' : 'Registrar Mascota'}
                     </button>
                 </div>
             </div>
-
-        </form >
+        </form>
     );
 }

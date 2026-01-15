@@ -140,18 +140,14 @@ export default function EditarMascotaPage() {
     return (
         <ClientLayout userId={userId} title={`Editar ${pet.nombre} — Pawnecta`}>
             <div className="max-w-3xl mx-auto">
-                <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Editar Mascota</h1>
-                        <p className="text-slate-600 text-sm">Actualiza la información de {pet.nombre}.</p>
-                    </div>
-                    <button
-                        onClick={() => router.push('/usuario')}
-                        className="text-sm text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1"
-                    >
-                        <ArrowLeft size={16} />
-                        Volver al Panel
+                <div className="mb-8 flex items-center gap-4">
+                    <button onClick={() => router.push('/usuario')} className="p-2 -ml-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all">
+                        <ArrowLeft size={24} />
                     </button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Editar Mascota</h1>
+                        <p className="text-slate-500 text-sm">Actualiza la información de {pet.nombre}.</p>
+                    </div>
                 </div>
 
                 <PetForm
