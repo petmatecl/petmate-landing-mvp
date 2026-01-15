@@ -224,7 +224,7 @@ export default function LoginPage() {
           </div>
 
           {/* Card */}
-          <Card padding="l" className="login-card">
+          <Card variant="elevated" padding="l" className="login-card">
             <h1 className="title">Iniciar sesión</h1>
             <p className="subtitle">
               Accede como {tab === "client" ? "usuario" : "Sitter"} para reservar y gestionar
@@ -382,14 +382,7 @@ export default function LoginPage() {
           stroke-width: 2.5;
         }
 
-        /* Card */
-        .card {
-          background: #fff;
-          border: 2px solid #94a3b8; /* Global Standard: Slate-300 */
-          border-radius: 16px;
-          padding: 24px;
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
-        }
+        /* Card styles kept minimal or removed if handled by component */
         .title {
           font-size: 1.9rem;
           margin: 0 0 4px;
