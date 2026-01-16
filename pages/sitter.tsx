@@ -1169,676 +1169,680 @@ export default function SitterDashboardPage() {
 
                                 </div>
                             </div>
-                        </div>
 
+                            {/* MAIN CONTENT: Reservas y Datos (Col-span-8) - Order 1 on Mobile */}
+                            <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
 
-                        {/* MAIN CONTENT: Reservas y Datos (Col-span-8) - Order 1 on Mobile */}
-                        <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
-
-                            {/* TAB NAVIGATION */}
-                            {/* TABS NAVIGATION */}
-                            {/* TABS NAVIGATION */}
-                            {/* TABS NAVIGATION (Soft Pill Style + Container) */}
-                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 mb-8 flex flex-wrap gap-2">
-                                <button
-                                    onClick={() => setActiveTab('solicitudes')}
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'solicitudes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                                >
-                                    <BarChart size={16} /> Solicitudes
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('servicios')}
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'servicios' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                                >
-                                    <Briefcase size={16} /> Servicios
-                                    {isServicesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('disponibilidad')}
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'disponibilidad' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                                >
-                                    <Calendar size={16} /> Calendario
-                                    {isAvailabilityComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('perfil')}
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'perfil' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                                >
-                                    <User size={16} /> Mi Perfil
-                                    {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('mensajes')}
-                                    className={`relative flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mensajes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                                >
-                                    <Inbox size={16} /> Mensajes
-                                    {userId && <UnreadBadge userId={userId} className="-top-1 -right-1 absolute" />}
-                                </button>
-                            </div>
-
-
-
-                            {/* MESSAGES TAB */}
-                            {activeTab === 'mensajes' && (
-                                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                    <ChatLayout
-                                        userId={userId}
-                                        onBack={() => {
-                                            setActiveTab('solicitudes');
-                                            setSelectedChatUser(null);
-                                        }}
-                                        initialClientUserId={selectedChatUser}
-                                    />
+                                {/* TAB NAVIGATION */}
+                                {/* TABS NAVIGATION */}
+                                {/* TABS NAVIGATION */}
+                                {/* TABS NAVIGATION (Soft Pill Style + Container) */}
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 mb-8 flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => setActiveTab('solicitudes')}
+                                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'solicitudes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                                    >
+                                        <BarChart size={16} /> Solicitudes
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('servicios')}
+                                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'servicios' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                                    >
+                                        <Briefcase size={16} /> Servicios
+                                        {isServicesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('disponibilidad')}
+                                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'disponibilidad' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                                    >
+                                        <Calendar size={16} /> Calendario
+                                        {isAvailabilityComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('perfil')}
+                                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'perfil' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                                    >
+                                        <User size={16} /> Mi Perfil
+                                        {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('mensajes')}
+                                        className={`relative flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mensajes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                                    >
+                                        <Inbox size={16} /> Mensajes
+                                        {userId && <UnreadBadge userId={userId} className="-top-1 -right-1 absolute" />}
+                                    </button>
                                 </div>
-                            )}
 
-                            {/* BLOQUE NUEVO: Solicitudes Pendientes (Prioridad Alta) */}
 
-                            {/* DISPONIBILIDAD TAB */}
-                            {activeTab === 'disponibilidad' && (
-                                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                    {profileId ? (
-                                        <AvailabilityCalendar
-                                            sitterId={profileId}
-                                            onSaveSuccess={() => {
-                                                const fetchAvailabilityCount = async () => {
-                                                    const { count: availCount } = await supabase
-                                                        .from('sitter_availability')
-                                                        .select('*', { count: 'exact', head: true })
-                                                        .eq('sitter_id', profileId)
-                                                        .gte('available_date', new Date().toISOString().split('T')[0]);
-                                                    setAvailabilityCount(availCount || 0);
-                                                };
-                                                fetchAvailabilityCount();
+
+                                {/* MESSAGES TAB */}
+                                {activeTab === 'mensajes' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <ChatLayout
+                                            userId={userId}
+                                            onBack={() => {
+                                                setActiveTab('solicitudes');
+                                                setSelectedChatUser(null);
                                             }}
+                                            initialClientUserId={selectedChatUser}
                                         />
-                                    ) : (
-                                        <div className="p-8 text-center text-slate-500">Cargando perfil...</div>
-                                    )}
-                                </div>
-                            )}
+                                    </div>
+                                )}
 
-                            {/* BLOQUE 0: Preferencias y Servicios (MOVIDO AL TOP) */}
-                            {activeTab === 'servicios' && (
+                                {/* BLOQUE NUEVO: Solicitudes Pendientes (Prioridad Alta) */}
 
-                                <Card padding="m">
-                                    <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <button
-                                                onClick={() => toggleSection('services')}
-                                                className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
-                                            >
-                                                {expandedSections.services ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                            </button>
-                                            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                                ⚙️ Mis Servicios y Tarifas
-                                            </h3>
-                                        </div>
-                                        {activeSection === 'services' ? (
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                        setActiveSection(null);
-                                                    }}
-                                                    className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
-                                                >
-                                                    Cancelar
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSaveSection('services')}
-                                                    disabled={saving}
-                                                    className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                                                >
-                                                    {saving ? "..." : "Guardar"}
-                                                </button>
-                                            </div>
+                                {/* DISPONIBILIDAD TAB */}
+                                {activeTab === 'disponibilidad' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        {profileId ? (
+                                            <AvailabilityCalendar
+                                                sitterId={profileId}
+                                                onSaveSuccess={() => {
+                                                    const fetchAvailabilityCount = async () => {
+                                                        const { count: availCount } = await supabase
+                                                            .from('sitter_availability')
+                                                            .select('*', { count: 'exact', head: true })
+                                                            .eq('sitter_id', profileId)
+                                                            .gte('available_date', new Date().toISOString().split('T')[0]);
+                                                        setAvailabilityCount(availCount || 0);
+                                                    };
+                                                    fetchAvailabilityCount();
+                                                }}
+                                            />
                                         ) : (
-                                            <button
-                                                onClick={() => setActiveSection('services')}
-                                                disabled={activeSection !== null && activeSection !== 'services'}
-                                                className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                                            >
-                                                Editar
-                                            </button>
+                                            <div className="p-8 text-center text-slate-500">Cargando perfil...</div>
                                         )}
                                     </div>
+                                )}
 
-                                    {expandedSections.services && (
-                                        <div>
-                                            <div className="mb-6 space-y-6">
-                                                {/* Group 1: Mascotas */}
-                                                <div>
-                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Qué mascotas cuidas?</h5>
-                                                    <div className="grid grid-cols-2 gap-3 mb-3">
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
-                                                        </label>
-                                                    </div>
+                                {/* BLOQUE 0: Preferencias y Servicios (MOVIDO AL TOP) */}
+                                {activeTab === 'servicios' && (
 
-                                                    {/* Dog Sizes Selector (Conditional) */}
-                                                    {profileData.cuida_perros && (
-                                                        <div className="pl-2 border-l-2 border-slate-400 ml-1">
-                                                            <label className="block text-xs font-bold text-slate-500 mb-2">¿Qué tamaños de perro aceptas?</label>
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {['Pequeño', 'Mediano', 'Grande', 'Gigante'].map((size) => (
-                                                                    <label key={size} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${activeSection === 'services' ? "cursor-pointer" : "opacity-75 cursor-not-allowed"} ${profileData.tamanos_perros?.includes(size) ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-400 text-slate-600 hover:border-slate-400"}`}>
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            disabled={activeSection !== 'services'}
-                                                                            className="hidden"
-                                                                            checked={profileData.tamanos_perros?.includes(size) || false}
-                                                                            onChange={(e) => {
-                                                                                const current = profileData.tamanos_perros || [];
-                                                                                const newSizes = e.target.checked
-                                                                                    ? [...current, size]
-                                                                                    : current.filter((s: string) => s !== size);
-                                                                                setProfileData({ ...profileData, tamanos_perros: newSizes });
-                                                                            }}
-                                                                        />
-                                                                        {size}
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Group 2: Ubicación */}
-                                                <div>
-                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Dónde las cuidas?</h5>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
+                                    <Card padding="m">
+                                        <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <button
+                                                    onClick={() => toggleSection('services')}
+                                                    className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                >
+                                                    {expandedSections.services ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                </button>
+                                                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                                                    ⚙️ Mis Servicios y Tarifas
+                                                </h3>
                                             </div>
-
-                                            {/* Tarifas */}
-                                            {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
-                                                <div className="mt-4 pt-4 border-t border-slate-400">
-                                                    <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas (CLP)</h5>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        {profileData.servicio_a_domicilio && (
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5">A Domicilio (por visita)</label>
-                                                                <div className="relative">
-                                                                    <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled={activeSection !== 'services'}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                        value={formatPrice(profileData.tarifa_servicio_a_domicilio)}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parsePrice(e.target.value) })}
-                                                                        placeholder="Ej: 15.000"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        {profileData.servicio_en_casa && (
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5">En mi Casa (por noche)</label>
-                                                                <div className="relative">
-                                                                    <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled={activeSection !== 'services'}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                        value={formatPrice(profileData.tarifa_servicio_en_casa)}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parsePrice(e.target.value) })}
-                                                                        placeholder="Ej: 20.000"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                            {activeSection === 'services' ? (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                            setActiveSection(null);
+                                                        }}
+                                                        className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSaveSection('services')}
+                                                        disabled={saving}
+                                                        className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {saving ? "..." : "Guardar"}
+                                                    </button>
                                                 </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setActiveSection('services')}
+                                                    disabled={activeSection !== null && activeSection !== 'services'}
+                                                    className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    Editar
+                                                </button>
                                             )}
                                         </div>
-                                    )}
-                                </Card>
-                            )}
 
-                            {activeTab === 'solicitudes' && (
-                                <>
-                                    {/* BLOQUE NUEVO: Solicitudes por Aceptar (Entrantes) */}
-                                    {bookings.some(b => b.estado === 'publicado') && (
-                                        <Card padding="m" className="mb-6">
-                                            <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                                <Inbox size={18} /> Solicitudes por Aceptar
-                                            </h3>
-                                            <div className="grid gap-3">
-                                                {bookings.filter(b => b.estado === 'publicado').map(booking => (
-                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-400 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                                        <div>
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
-                                                                <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold uppercase border-2 border-slate-400">Nueva Solicitud</span>
-                                                            </div>
-                                                            <div className="text-xs text-slate-500 flex flex-col gap-1">
-                                                                <span className="flex items-center gap-1 font-medium text-slate-700">
-                                                                    <Calendar size={12} /> {format(new Date(booking.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(booking.fecha_fin), "d MMM", { locale: es })}
-                                                                </span>
-                                                                {/* Pet Summary for this request */}
-                                                                {(() => {
-                                                                    const petIds = booking.mascotas_ids || [];
-                                                                    const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
-                                                                    const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
-                                                                    const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
-                                                                    const otherCount = pets.length - dogCount - catCount;
-
-                                                                    let textParts = [];
-                                                                    if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
-                                                                    if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
-                                                                    if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
-
-                                                                    const text = textParts.join(', ') || "Sin mascotas";
-
-                                                                    return (
-                                                                        <div className="flex gap-1 mt-1">
-                                                                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 font-medium">
-                                                                                <PawPrint size={10} /> {text}
-                                                                            </span>
-                                                                        </div>
-                                                                    )
-                                                                })()}
-                                                            </div>
+                                        {expandedSections.services && (
+                                            <div>
+                                                <div className="mb-6 space-y-6">
+                                                    {/* Group 1: Mascotas */}
+                                                    <div>
+                                                        <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Qué mascotas cuidas?</h5>
+                                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                                            <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                                <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
+                                                            </label>
+                                                            <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                                <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
+                                                            </label>
                                                         </div>
-                                                        <div className="flex gap-2 w-full sm:w-auto">
-                                                            <button
-                                                                onClick={() => handleAcceptClick(booking.id, `${booking.cliente.nombre} ${booking.cliente.apellido_p}`)}
-                                                                className="flex-1 sm:flex-none bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-2"
-                                                            >
-                                                                <Check size={14} /> Aceptar
-                                                            </button>
+
+                                                        {/* Dog Sizes Selector (Conditional) */}
+                                                        {profileData.cuida_perros && (
+                                                            <div className="pl-2 border-l-2 border-slate-400 ml-1">
+                                                                <label className="block text-xs font-bold text-slate-500 mb-2">¿Qué tamaños de perro aceptas?</label>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {['Pequeño', 'Mediano', 'Grande', 'Gigante'].map((size) => (
+                                                                        <label key={size} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${activeSection === 'services' ? "cursor-pointer" : "opacity-75 cursor-not-allowed"} ${profileData.tamanos_perros?.includes(size) ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-400 text-slate-600 hover:border-slate-400"}`}>
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                disabled={activeSection !== 'services'}
+                                                                                className="hidden"
+                                                                                checked={profileData.tamanos_perros?.includes(size) || false}
+                                                                                onChange={(e) => {
+                                                                                    const current = profileData.tamanos_perros || [];
+                                                                                    const newSizes = e.target.checked
+                                                                                        ? [...current, size]
+                                                                                        : current.filter((s: string) => s !== size);
+                                                                                    setProfileData({ ...profileData, tamanos_perros: newSizes });
+                                                                                }}
+                                                                            />
+                                                                            {size}
+                                                                        </label>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Group 2: Ubicación */}
+                                                    <div>
+                                                        <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Dónde las cuidas?</h5>
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                                <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
+                                                            </label>
+                                                            <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                                <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
+                                                            </label>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </Card>
-                                    )}
+                                                </div>
 
-                                    {/* BLOQUE: Esperando Confirmación (Reservado) */}
-                                    {bookings.some(b => b.estado === 'reservado') && (
-                                        <Card padding="m" className="mb-6">
-                                            <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                                <Clock size={18} /> Esperando Confirmación
-                                            </h3>
-                                            <div className="grid gap-3">
-                                                {bookings.filter(b => b.estado === 'reservado').map(booking => (
-                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-400 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                                        <div>
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
-                                                                <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase border border-amber-200">Por Confirmar</span>
-                                                            </div>
-                                                            <div className="text-xs text-slate-500 flex flex-col gap-1">
-                                                                <span className="flex items-center gap-1 font-medium text-slate-700">
-                                                                    <Calendar size={12} /> {format(new Date(booking.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(booking.fecha_fin), "d MMM", { locale: es })}
-                                                                </span>
-                                                                {(() => {
-                                                                    const petIds = booking.mascotas_ids || [];
-                                                                    const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
-                                                                    const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
-                                                                    const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
-                                                                    const otherCount = pets.length - dogCount - catCount;
-
-                                                                    let textParts = [];
-                                                                    if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
-                                                                    if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
-                                                                    if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
-
-                                                                    const text = textParts.join(', ') || "Sin mascotas";
-
-                                                                    return (
-                                                                        <div className="flex gap-1 mt-1">
-                                                                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 font-medium">
-                                                                                <PawPrint size={10} /> {text}
-                                                                            </span>
-                                                                        </div>
-                                                                    )
-                                                                })()}
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-xs text-slate-500 font-medium bg-slate-50 px-3 py-2 rounded-lg border-2 border-slate-400 max-w-[200px] text-center">
-                                                            Has aceptado esta solicitud. Esperando confirmación final.
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </Card>
-                                    )}
-
-                                    {/* Existing Pending Logic (kept for 'pendiente' status if any remain) */}
-                                    {bookings.some(b => b.estado === 'pendiente') && (
-                                        <Card padding="m" className="mb-6">
-                                            <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                                <Inbox size={18} /> Solicitudes Pendientes (Otros Estados)
-                                            </h3>
-                                            <div className="grid gap-3">
-                                                {bookings.filter(b => b.estado === 'pendiente').map(booking => (
-                                                    <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-400 shadow-sm">
-                                                        <span className="text-sm font-bold">{booking.cliente.nombre} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </Card>
-                                    )}
-
-                                    {/* BLOQUE NUEVO: Mis Postulaciones (Oportunidades) */}
-                                    <Card padding="m" className="mb-4">
-                                        <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                            <Send size={18} /> Mis Postulaciones
-                                        </h3>
-                                        {applications.filter(app => app.estado !== 'aceptada').length > 0 ? (
-                                            <div className="grid gap-3">
-                                                {applications.filter(app => app.estado !== 'aceptada').map((app) => (
-                                                    <div key={app.id} className="p-4 bg-slate-50 rounded-lg border-2 border-slate-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                                        <div>
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className="text-sm font-bold text-slate-900">
-                                                                    {app.viaje?.cliente?.nombre || "Cliente"} {app.viaje?.cliente?.apellido_p || ""}
-                                                                    {app.viaje?.id && <span className="font-mono text-xs text-slate-400 font-normal ml-1">#{app.viaje.id.slice(0, 6).toUpperCase()}</span>}
-                                                                </span>
-                                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase
-                                                                    ${app.estado === 'pendiente' ? 'bg-slate-100 text-slate-700' :
-                                                                        'bg-slate-100 text-slate-500'}`}>
-                                                                    {app.estado}
-                                                                </span>
-                                                            </div>
-                                                            <div className="text-xs text-slate-500 mb-2 flex flex-wrap gap-2">
-                                                                <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><MapPin size={12} /> {app.viaje?.comuna || "Santiago"}</span>
-                                                                <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><Calendar size={12} /> {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}</span>
-                                                                {/* Pets Display */}
-                                                                {(() => {
-                                                                    const petIds = app.viaje?.mascotas_ids || [];
-                                                                    const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
-                                                                    const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
-                                                                    const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
-                                                                    const otherCount = pets.length - dogCount - catCount;
-
-                                                                    let textParts = [];
-                                                                    if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
-                                                                    if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
-                                                                    if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
-
-                                                                    const text = textParts.join(', ') || "Sin mascotas";
-                                                                    return (
-                                                                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">
-                                                                            <PawPrint size={12} /> {text}
-                                                                        </span>
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                            {app.mensaje && (
-                                                                <p className="text-xs text-slate-600 italic">&quot;{app.mensaje}&quot;</p>
+                                                {/* Tarifas */}
+                                                {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-400">
+                                                        <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas (CLP)</h5>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            {profileData.servicio_a_domicilio && (
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">A Domicilio (por visita)</label>
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled={activeSection !== 'services'}
+                                                                            className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                            value={formatPrice(profileData.tarifa_servicio_a_domicilio)}
+                                                                            onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parsePrice(e.target.value) })}
+                                                                            placeholder="Ej: 15.000"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {profileData.servicio_en_casa && (
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">En mi Casa (por noche)</label>
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-3 top-2 text-slate-400">$</span>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled={activeSection !== 'services'}
+                                                                            className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                            value={formatPrice(profileData.tarifa_servicio_en_casa)}
+                                                                            onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parsePrice(e.target.value) })}
+                                                                            placeholder="Ej: 20.000"
+                                                                        />
+                                                                    </div>
+                                                                </div>
                                                             )}
                                                         </div>
-                                                        <div className="text-right">
-                                                            <span className="block text-xs text-slate-400 font-medium">Oferta</span>
-                                                            <span className="text-sm font-bold text-slate-900">
-                                                                ${formatPrice(app.precio_oferta || app.viaje?.presupuesto_total || 0)}
-                                                            </span>
-                                                        </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-6 text-slate-400 text-sm">
-                                                No has postulado a ninguna oportunidad aún.
+                                                )}
                                             </div>
                                         )}
                                     </Card>
+                                )}
 
-                                    {/* BLOQUE 1: Próximas Reservas (Confirmadas) - CARD LAYOUT */}
-                                    <Card padding="m">
-                                        <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                            <CheckCircle2 size={20} className="text-emerald-600" /> Solicitudes Confirmadas
-                                        </h3>
+                                {activeTab === 'solicitudes' && (
+                                    <>
+                                        {/* BLOQUE NUEVO: Solicitudes por Aceptar (Entrantes) */}
+                                        {bookings.some(b => b.estado === 'publicado') && (
+                                            <Card padding="m" className="mb-6">
+                                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                    <Inbox size={18} /> Solicitudes por Aceptar
+                                                </h3>
+                                                <div className="grid gap-3">
+                                                    {bookings.filter(b => b.estado === 'publicado').map(booking => (
+                                                        <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-400 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                            <div>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
+                                                                    <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold uppercase border-2 border-slate-400">Nueva Solicitud</span>
+                                                                </div>
+                                                                <div className="text-xs text-slate-500 flex flex-col gap-1">
+                                                                    <span className="flex items-center gap-1 font-medium text-slate-700">
+                                                                        <Calendar size={12} /> {format(new Date(booking.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(booking.fecha_fin), "d MMM", { locale: es })}
+                                                                    </span>
+                                                                    {/* Pet Summary for this request */}
+                                                                    {(() => {
+                                                                        const petIds = booking.mascotas_ids || [];
+                                                                        const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                        const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
+                                                                        const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
+                                                                        const otherCount = pets.length - dogCount - catCount;
 
-                                        {(() => {
-                                            const acceptedAppsAsBookings = applications
-                                                .filter(app => app.estado === 'aceptada')
-                                                .map(app => ({
-                                                    id: app.viaje?.id || app.id,
-                                                    cliente: app.viaje?.cliente,
-                                                    mascotas_ids: app.viaje?.mascotas_ids,
-                                                    fecha_inicio: app.viaje?.fecha_inicio,
-                                                    fecha_fin: app.viaje?.fecha_fin,
-                                                    estado: 'confirmada',
-                                                    servicio: app.viaje?.servicio,
-                                                    direccion: app.viaje?.direccion,
-                                                    direccion_cliente: app.viaje?.direccion_cliente,
-                                                    cliente_id: app.viaje?.cliente?.auth_user_id || app.viaje?.user_id // Ensure we have ID for chat
-                                                }));
+                                                                        let textParts = [];
+                                                                        if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
+                                                                        if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
+                                                                        if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
 
-                                            const confirmedServices = bookings
-                                                .filter(b => b.estado === 'confirmado' || b.estado === 'confirmada')
-                                                .concat(acceptedAppsAsBookings.filter(app => !bookings.some(b => b.id === app.id)))
-                                                .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime());
+                                                                        const text = textParts.join(', ') || "Sin mascotas";
 
-                                            return confirmedServices.length > 0 ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
-                                                    {confirmedServices.map((book: any) => {
-                                                        const clientUserId = book.cliente_id || book.cliente?.auth_user_id || book.user_id; // Try multiple paths
-                                                        const petIds = book.mascotas_ids || [];
-                                                        const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
-                                                        const petNames = pets.map((p: any) => p.nombre).join(", ");
-                                                        const startDate = new Date(book.fecha_inicio);
-                                                        const endDate = new Date(book.fecha_fin);
-                                                        const duration = differenceInDays(endDate, startDate) + 1; // Include end date
-
-                                                        return (
-                                                            <Card key={book.id} padding="l" className="hover:shadow-md transition-shadow relative overflow-hidden group">
-                                                                {/* Decorative Top Border */}
-                                                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
-
-                                                                <div className="flex flex-col gap-6 pt-2">
-
-                                                                    {/* Header section with Dates and Actions */}
-                                                                    <div className="flex justify-between items-start">
-                                                                        <div className="space-y-2">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <span className="bg-slate-100 text-slate-500 font-mono text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">#{book.id.slice(0, 8)}</span>
-                                                                                {book.servicio && (
-                                                                                    <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-100">
-                                                                                        {book.servicio === 'hospedaje' ? <Home size={10} /> : <MapPin size={10} />}
-                                                                                        {book.servicio === 'hospedaje' ? 'Hospedaje' : 'Domicilio'}
-                                                                                    </span>
-                                                                                )}
+                                                                        return (
+                                                                            <div className="flex gap-1 mt-1">
+                                                                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 font-medium">
+                                                                                    <PawPrint size={10} /> {text}
+                                                                                </span>
                                                                             </div>
-                                                                            <h4 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                                                                {format(startDate, "d 'de' MMMM", { locale: es })} – {format(endDate, "d 'de' MMMM", { locale: es })}
-                                                                            </h4>
-                                                                            <p className="text-sm text-slate-500 font-medium ml-1">
-                                                                                {duration} noche{duration !== 1 ? 's' : ''} · {pets.length} mascota{pets.length !== 1 ? 's' : ''} {petNames && <span className="text-slate-400 font-normal">({petNames})</span>}
-                                                                            </p>
-                                                                        </div>
+                                                                        )
+                                                                    })()}
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                                <button
+                                                                    onClick={() => handleAcceptClick(booking.id, `${booking.cliente.nombre} ${booking.cliente.apellido_p}`)}
+                                                                    className="flex-1 sm:flex-none bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-2"
+                                                                >
+                                                                    <Check size={14} /> Aceptar
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </Card>
+                                        )}
 
-                                                                        {/* Top Right Actions */}
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setPrintBooking({ booking: book, pets: pets });
-                                                                                setTimeout(() => window.print(), 100);
-                                                                            }}
-                                                                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all"
-                                                                            title="Imprimir Ficha"
-                                                                        >
-                                                                            <Printer size={18} />
-                                                                        </button>
-                                                                    </div>
+                                        {/* BLOQUE: Esperando Confirmación (Reservado) */}
+                                        {bookings.some(b => b.estado === 'reservado') && (
+                                            <Card padding="m" className="mb-6">
+                                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                    <Clock size={18} /> Esperando Confirmación
+                                                </h3>
+                                                <div className="grid gap-3">
+                                                    {bookings.filter(b => b.estado === 'reservado').map(booking => (
+                                                        <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-400 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                            <div>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="text-sm font-bold text-slate-900">{booking.cliente.nombre} {booking.cliente.apellido_p} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
+                                                                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase border border-amber-200">Por Confirmar</span>
+                                                                </div>
+                                                                <div className="text-xs text-slate-500 flex flex-col gap-1">
+                                                                    <span className="flex items-center gap-1 font-medium text-slate-700">
+                                                                        <Calendar size={12} /> {format(new Date(booking.fecha_inicio), "d MMM", { locale: es })} - {format(new Date(booking.fecha_fin), "d MMM", { locale: es })}
+                                                                    </span>
+                                                                    {(() => {
+                                                                        const petIds = booking.mascotas_ids || [];
+                                                                        const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                        const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
+                                                                        const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
+                                                                        const otherCount = pets.length - dogCount - catCount;
 
-                                                                    {/* Details Grid */}
-                                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                                        let textParts = [];
+                                                                        if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
+                                                                        if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
+                                                                        if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
 
-                                                                        {/* Contact Card */}
-                                                                        <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-400 flex flex-col justify-between h-full gap-4">
-                                                                            <div className="space-y-3">
-                                                                                <div className="flex justify-between items-start">
-                                                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos de Contacto</p>
-                                                                                    {clientUserId && (
-                                                                                        <div className={`w-2 h-2 rounded-full ${selectedChatUser === clientUserId ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} title="Estado chat"></div>
+                                                                        const text = textParts.join(', ') || "Sin mascotas";
+
+                                                                        return (
+                                                                            <div className="flex gap-1 mt-1">
+                                                                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 font-medium">
+                                                                                    <PawPrint size={10} /> {text}
+                                                                                </span>
+                                                                            </div>
+                                                                        )
+                                                                    })()}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-slate-500 font-medium bg-slate-50 px-3 py-2 rounded-lg border-2 border-slate-400 max-w-[200px] text-center">
+                                                                Has aceptado esta solicitud. Esperando confirmación final.
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </Card>
+                                        )}
+
+                                        {/* Existing Pending Logic (kept for 'pendiente' status if any remain) */}
+                                        {bookings.some(b => b.estado === 'pendiente') && (
+                                            <Card padding="m" className="mb-6">
+                                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                    <Inbox size={18} /> Solicitudes Pendientes (Otros Estados)
+                                                </h3>
+                                                <div className="grid gap-3">
+                                                    {bookings.filter(b => b.estado === 'pendiente').map(booking => (
+                                                        <div key={booking.id} className="p-4 bg-white rounded-lg border-2 border-slate-400 shadow-sm">
+                                                            <span className="text-sm font-bold">{booking.cliente.nombre} <span className="font-mono text-xs text-slate-400 font-normal">#{booking.id.slice(0, 6).toUpperCase()}</span></span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </Card>
+                                        )}
+
+                                        {/* BLOQUE NUEVO: Mis Postulaciones (Oportunidades) */}
+                                        <Card padding="m" className="mb-4">
+                                            <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                <Send size={18} /> Mis Postulaciones
+                                            </h3>
+                                            {applications.filter(app => app.estado !== 'aceptada').length > 0 ? (
+                                                <div className="grid gap-3">
+                                                    {applications.filter(app => app.estado !== 'aceptada').map((app) => (
+                                                        <div key={app.id} className="p-4 bg-slate-50 rounded-lg border-2 border-slate-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                            <div>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="text-sm font-bold text-slate-900">
+                                                                        {app.viaje?.cliente?.nombre || "Cliente"} {app.viaje?.cliente?.apellido_p || ""}
+                                                                        {app.viaje?.id && <span className="font-mono text-xs text-slate-400 font-normal ml-1">#{app.viaje.id.slice(0, 6).toUpperCase()}</span>}
+                                                                    </span>
+                                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase
+                                                                    ${app.estado === 'pendiente' ? 'bg-slate-100 text-slate-700' :
+                                                                            'bg-slate-100 text-slate-500'}`}>
+                                                                        {app.estado}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="text-xs text-slate-500 mb-2 flex flex-wrap gap-2">
+                                                                    <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><MapPin size={12} /> {app.viaje?.comuna || "Santiago"}</span>
+                                                                    <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded"><Calendar size={12} /> {app.viaje?.fecha_inicio ? format(new Date(app.viaje.fecha_inicio), "d MMM", { locale: es }) : "?"}</span>
+                                                                    {/* Pets Display */}
+                                                                    {(() => {
+                                                                        const petIds = app.viaje?.mascotas_ids || [];
+                                                                        const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                                        const dogCount = pets.filter((p: any) => p.tipo === 'perro').length;
+                                                                        const catCount = pets.filter((p: any) => p.tipo === 'gato').length;
+                                                                        const otherCount = pets.length - dogCount - catCount;
+
+                                                                        let textParts = [];
+                                                                        if (dogCount > 0) textParts.push(`${dogCount} Perro${dogCount > 1 ? 's' : ''}`);
+                                                                        if (catCount > 0) textParts.push(`${catCount} Gato${catCount > 1 ? 's' : ''}`);
+                                                                        if (otherCount > 0) textParts.push(`${otherCount} Otro${otherCount > 1 ? 's' : ''}`);
+
+                                                                        const text = textParts.join(', ') || "Sin mascotas";
+                                                                        return (
+                                                                            <span className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">
+                                                                                <PawPrint size={12} /> {text}
+                                                                            </span>
+                                                                        );
+                                                                    })()}
+                                                                </div>
+                                                                {app.mensaje && (
+                                                                    <p className="text-xs text-slate-600 italic">&quot;{app.mensaje}&quot;</p>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <span className="block text-xs text-slate-400 font-medium">Oferta</span>
+                                                                <span className="text-sm font-bold text-slate-900">
+                                                                    ${formatPrice(app.precio_oferta || app.viaje?.presupuesto_total || 0)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-6 text-slate-400 text-sm">
+                                                    No has postulado a ninguna oportunidad aún.
+                                                </div>
+                                            )}
+                                        </Card>
+
+                                        {/* BLOQUE 1: Próximas Reservas (Confirmadas) - CARD LAYOUT */}
+                                        <Card padding="m">
+                                            <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                                <CheckCircle2 size={20} className="text-emerald-600" /> Solicitudes Confirmadas
+                                            </h3>
+
+                                            {(() => {
+                                                const acceptedAppsAsBookings = applications
+                                                    .filter(app => app.estado === 'aceptada')
+                                                    .map(app => ({
+                                                        id: app.viaje?.id || app.id,
+                                                        cliente: app.viaje?.cliente,
+                                                        mascotas_ids: app.viaje?.mascotas_ids,
+                                                        fecha_inicio: app.viaje?.fecha_inicio,
+                                                        fecha_fin: app.viaje?.fecha_fin,
+                                                        estado: 'confirmada',
+                                                        servicio: app.viaje?.servicio,
+                                                        direccion: app.viaje?.direccion,
+                                                        direccion_cliente: app.viaje?.direccion_cliente,
+                                                        cliente_id: app.viaje?.cliente?.auth_user_id || app.viaje?.user_id // Ensure we have ID for chat
+                                                    }));
+
+                                                const confirmedServices = bookings
+                                                    .filter(b => b.estado === 'confirmado' || b.estado === 'confirmada')
+                                                    .concat(acceptedAppsAsBookings.filter(app => !bookings.some(b => b.id === app.id)))
+                                                    .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime());
+
+                                                return confirmedServices.length > 0 ? (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                                                        {confirmedServices.map((book: any) => {
+                                                            const clientUserId = book.cliente_id || book.cliente?.auth_user_id || book.user_id; // Try multiple paths
+                                                            const petIds = book.mascotas_ids || [];
+                                                            const pets = petIds.map((pid: string) => petsCache[pid]).filter(Boolean);
+                                                            const petNames = pets.map((p: any) => p.nombre).join(", ");
+                                                            const startDate = new Date(book.fecha_inicio);
+                                                            const endDate = new Date(book.fecha_fin);
+                                                            const duration = differenceInDays(endDate, startDate) + 1; // Include end date
+
+                                                            return (
+                                                                <Card key={book.id} padding="l" className="hover:shadow-md transition-shadow relative overflow-hidden group">
+                                                                    {/* Decorative Top Border */}
+                                                                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
+
+                                                                    <div className="flex flex-col gap-6 pt-2">
+
+                                                                        {/* Header section with Dates and Actions */}
+                                                                        <div className="flex justify-between items-start">
+                                                                            <div className="space-y-2">
+                                                                                <div className="flex items-center gap-3">
+                                                                                    <span className="bg-slate-100 text-slate-500 font-mono text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">#{book.id.slice(0, 8)}</span>
+                                                                                    {book.servicio && (
+                                                                                        <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-100">
+                                                                                            {book.servicio === 'hospedaje' ? <Home size={10} /> : <MapPin size={10} />}
+                                                                                            {book.servicio === 'hospedaje' ? 'Hospedaje' : 'Domicilio'}
+                                                                                        </span>
                                                                                     )}
                                                                                 </div>
-
-                                                                                <div className="flex items-center gap-3">
-                                                                                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg border border-emerald-200">
-                                                                                        {book.cliente?.nombre?.[0] || <User size={18} />}
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <p className="text-sm font-bold text-slate-900">{book.cliente?.nombre} {book.cliente?.apellido_p}</p>
-                                                                                        <p className="text-xs text-slate-500">Cliente</p>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                <div className="space-y-1.5 pl-1">
-                                                                                    <a href={`tel:${book.cliente?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
-                                                                                        <div className="w-6 flex justify-center"><Phone size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
-                                                                                        {book.cliente?.telefono || "No registrado"}
-                                                                                    </a>
-                                                                                    <a href={`mailto:${book.cliente?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
-                                                                                        <div className="w-6 flex justify-center"><Mail size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
-                                                                                        {book.cliente?.email}
-                                                                                    </a>
-                                                                                </div>
+                                                                                <h4 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                                                                    {format(startDate, "d 'de' MMMM", { locale: es })} – {format(endDate, "d 'de' MMMM", { locale: es })}
+                                                                                </h4>
+                                                                                <p className="text-sm text-slate-500 font-medium ml-1">
+                                                                                    {duration} noche{duration !== 1 ? 's' : ''} · {pets.length} mascota{pets.length !== 1 ? 's' : ''} {petNames && <span className="text-slate-400 font-normal">({petNames})</span>}
+                                                                                </p>
                                                                             </div>
 
+                                                                            {/* Top Right Actions */}
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    if (clientUserId) {
-                                                                                        setSelectedChatUser(clientUserId);
-                                                                                        setActiveTab('mensajes');
-                                                                                    } else {
-                                                                                        alert("No se pudo identificar al usuario para el chat.");
-                                                                                    }
+                                                                                    setPrintBooking({ booking: book, pets: pets });
+                                                                                    setTimeout(() => window.print(), 100);
                                                                                 }}
-                                                                                className="w-full bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-600/20 transition-all active:scale-95"
+                                                                                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all"
+                                                                                title="Imprimir Ficha"
                                                                             >
-                                                                                <MessageSquare size={16} />
-                                                                                Enviar Mensaje
+                                                                                <Printer size={18} />
                                                                             </button>
                                                                         </div>
 
-                                                                        {/* Location Card */}
-                                                                        <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-400 flex flex-col h-full gap-2">
-                                                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
+                                                                        {/* Details Grid */}
+                                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                                                                            <div className="flex-1 flex items-start gap-3 mt-1">
-                                                                                <div className="mt-1 bg-white p-1.5 rounded-full border-2 border-slate-400 text-emerald-600 shadow-sm">
-                                                                                    <MapPin size={16} />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="text-sm font-medium text-slate-900 leading-snug">
-                                                                                        {book.direccion ? (
-                                                                                            <>
-                                                                                                {book.direccion.calle} #{book.direccion.numero}
-                                                                                                {book.direccion.depto && <span className="text-slate-500">, Depto {book.direccion.depto}</span>}
-                                                                                                <br />
-                                                                                                <span className="text-xs text-slate-500">{book.direccion.comuna}, {book.direccion.region}</span>
-                                                                                            </>
-                                                                                        ) : (
-                                                                                            book.direccion_cliente || "Dirección no disponible"
+                                                                            {/* Contact Card */}
+                                                                            <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-400 flex flex-col justify-between h-full gap-4">
+                                                                                <div className="space-y-3">
+                                                                                    <div className="flex justify-between items-start">
+                                                                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos de Contacto</p>
+                                                                                        {clientUserId && (
+                                                                                            <div className={`w-2 h-2 rounded-full ${selectedChatUser === clientUserId ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} title="Estado chat"></div>
                                                                                         )}
-                                                                                    </p>
-                                                                                    <p className="text-xs text-slate-500 mt-1">
-                                                                                        {book.servicio === 'hospedaje' ? 'Tu Domicilio (Sitter)' : 'Domicilio del Cliente'}
-                                                                                    </p>
+                                                                                    </div>
+
+                                                                                    <div className="flex items-center gap-3">
+                                                                                        <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg border border-emerald-200">
+                                                                                            {book.cliente?.nombre?.[0] || <User size={18} />}
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <p className="text-sm font-bold text-slate-900">{book.cliente?.nombre} {book.cliente?.apellido_p}</p>
+                                                                                            <p className="text-xs text-slate-500">Cliente</p>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    <div className="space-y-1.5 pl-1">
+                                                                                        <a href={`tel:${book.cliente?.telefono}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
+                                                                                            <div className="w-6 flex justify-center"><Phone size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                                                            {book.cliente?.telefono || "No registrado"}
+                                                                                        </a>
+                                                                                        <a href={`mailto:${book.cliente?.email}`} className="text-sm text-slate-600 hover:text-emerald-600 flex items-center gap-2 group/link">
+                                                                                            <div className="w-6 flex justify-center"><Mail size={14} className="text-slate-400 group-hover/link:text-emerald-500" /></div>
+                                                                                            {book.cliente?.email}
+                                                                                        </a>
+                                                                                    </div>
                                                                                 </div>
+
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        if (clientUserId) {
+                                                                                            setSelectedChatUser(clientUserId);
+                                                                                            setActiveTab('mensajes');
+                                                                                        } else {
+                                                                                            alert("No se pudo identificar al usuario para el chat.");
+                                                                                        }
+                                                                                    }}
+                                                                                    className="w-full bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-600/20 transition-all active:scale-95"
+                                                                                >
+                                                                                    <MessageSquare size={16} />
+                                                                                    Enviar Mensaje
+                                                                                </button>
                                                                             </div>
 
-                                                                            {(book.direccion || book.direccion_cliente) && (
-                                                                                <a
-                                                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(book.direccion?.display_name || book.direccion_cliente || "")}`}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="mt-auto w-full bg-white border-2 border-slate-400 text-slate-600 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-emerald-300 hover:text-emerald-600 transition-all text-sm"
-                                                                                >
-                                                                                    Ver en Mapa <ChevronDown size={14} className="-rotate-90" />
-                                                                                </a>
-                                                                            )}
-                                                                            {(!book.direccion && !book.direccion_cliente) && (
-                                                                                <div className="mt-auto w-full py-2.5 px-4 text-center text-xs text-slate-400 italic">
-                                                                                    Sin ubicación registrada
+                                                                            {/* Location Card */}
+                                                                            <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-400 flex flex-col h-full gap-2">
+                                                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ubicación del Cuidado</p>
+
+                                                                                <div className="flex-1 flex items-start gap-3 mt-1">
+                                                                                    <div className="mt-1 bg-white p-1.5 rounded-full border-2 border-slate-400 text-emerald-600 shadow-sm">
+                                                                                        <MapPin size={16} />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-sm font-medium text-slate-900 leading-snug">
+                                                                                            {book.direccion ? (
+                                                                                                <>
+                                                                                                    {book.direccion.calle} #{book.direccion.numero}
+                                                                                                    {book.direccion.depto && <span className="text-slate-500">, Depto {book.direccion.depto}</span>}
+                                                                                                    <br />
+                                                                                                    <span className="text-xs text-slate-500">{book.direccion.comuna}, {book.direccion.region}</span>
+                                                                                                </>
+                                                                                            ) : (
+                                                                                                book.direccion_cliente || "Dirección no disponible"
+                                                                                            )}
+                                                                                        </p>
+                                                                                        <p className="text-xs text-slate-500 mt-1">
+                                                                                            {book.servicio === 'hospedaje' ? 'Tu Domicilio (Sitter)' : 'Domicilio del Cliente'}
+                                                                                        </p>
+                                                                                    </div>
                                                                                 </div>
-                                                                            )}
+
+                                                                                {(book.direccion || book.direccion_cliente) && (
+                                                                                    <a
+                                                                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(book.direccion?.display_name || book.direccion_cliente || "")}`}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="mt-auto w-full bg-white border-2 border-slate-400 text-slate-600 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-emerald-300 hover:text-emerald-600 transition-all text-sm"
+                                                                                    >
+                                                                                        Ver en Mapa <ChevronDown size={14} className="-rotate-90" />
+                                                                                    </a>
+                                                                                )}
+                                                                                {(!book.direccion && !book.direccion_cliente) && (
+                                                                                    <div className="mt-auto w-full py-2.5 px-4 text-center text-xs text-slate-400 italic">
+                                                                                        Sin ubicación registrada
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            </Card>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-400 rounded-xl">
-                                                    <CalendarCheck size={48} className="mx-auto text-slate-300 mb-3" />
-                                                    <p className="text-slate-500 font-medium">No tienes solicitudes confirmadas próximas.</p>
-                                                </div>
-                                            );
-                                        })()}
-                                    </Card>
+                                                                </Card>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-400 rounded-xl">
+                                                        <CalendarCheck size={48} className="mx-auto text-slate-300 mb-3" />
+                                                        <p className="text-slate-500 font-medium">No tienes solicitudes confirmadas próximas.</p>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </Card>
 
-                                </>
-                            )
-                            }
+                                    </>
+                                )
+                                }
 
-                            {
-                                activeTab === 'perfil' && (
-                                    <Card padding="m">
+                                {
+                                    activeTab === 'perfil' && (
+                                        <Card padding="m">
 
 
-                                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-400">
-                                            <h3 className="text-base font-bold text-slate-900">Perfil</h3>
-                                        </div>
-
-                                        {/* Alerta de Perfil Incompleto */}
-                                        {(!profileData.fecha_nacimiento || !profileData.ocupacion || !profileData.descripcion) && (
-                                            <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
-                                                <div className="text-orange-500 mt-0.5">
-                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-orange-800">Completa tu Perfil</h4>
-                                                    <p className="text-xs text-orange-700 mt-1">
-                                                        Para activar tu cuenta y recibir reservas, es necesario que completes tu información personal (Fecha de Nacimiento, Ocupación y Sobre mí).
-                                                    </p>
-                                                </div>
+                                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+                                                <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Mi Perfil</h3>
+                                                <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                                    Gestiona tu información pública
+                                                </span>
                                             </div>
-                                        )}
 
-                                        <div className="space-y-8">
+                                            {/* Alerta de Perfil Incompleto */}
+                                            {(!profileData.fecha_nacimiento || !profileData.ocupacion || !profileData.descripcion) && (
+                                                <div className="mb-8 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                                                    <div className="text-amber-500 mt-0.5 bg-amber-100 p-1.5 rounded-full">
+                                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-sm font-bold text-amber-900">Completa tu Perfil</h4>
+                                                        <p className="text-sm text-amber-800/80 mt-1 leading-relaxed">
+                                                            Para activar tu cuenta y recibir reservas, es necesario que completes tu información personal (Fecha de Nacimiento, Ocupación y Sobre mí).
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                            {/* BLOQUE 1: Datos de Contacto */}
-                                            <div className="bg-slate-50/50 p-5 rounded-xl border-2 border-slate-400">
-                                                <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
-                                                    <div className="flex items-center gap-2 flex-1">
-                                                        <button
-                                                            onClick={() => toggleSection('contact')}
-                                                            className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
-                                                        >
-                                                            {expandedSections.contact ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                                        </button>
-                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                            <div className="bg-white p-1 rounded-md shadow-sm border-2 border-slate-400"><Mail className="w-4 h-4 text-slate-500" /></div>
-                                                            Datos de Contacto
-                                                            {contactComplete ? (
-                                                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
-                                                            ) : (
-                                                                <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Incompleto</span>
-                                                            )}
-                                                        </h4>
+                                            <div className="space-y-6">
+
+                                                {/* BLOQUE 1: Datos de Contacto (Clean White) */}
+                                                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                                        <div className="flex items-center gap-3 flex-1">
+                                                            <button
+                                                                onClick={() => toggleSection('contact')}
+                                                                className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                                                            >
+                                                                {expandedSections.contact ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                            </button>
+                                                            <div>
+                                                                <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                                    Datos de Contacto
+                                                                    {contactComplete ? (
+                                                                        <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                                    ) : (
+                                                                        <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
+                                                                    )}
+                                                                </h4>
+                                                                <p className="text-xs text-slate-400 font-medium">Email, teléfono y redes sociales</p>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     {activeSection === 'contact' ? (
                                                         <div className="flex gap-2">
@@ -1847,23 +1851,23 @@ export default function SitterDashboardPage() {
                                                                     if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
                                                                     setActiveSection(null);
                                                                 }}
-                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
                                                             >
                                                                 Cancelar
                                                             </button>
                                                             <button
                                                                 onClick={() => handleSaveSection('contact')}
                                                                 disabled={saving}
-                                                                className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                                                className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
                                                             >
-                                                                {saving ? "..." : "Guardar"}
+                                                                {saving ? "Guardando..." : "Guardar Cambios"}
                                                             </button>
                                                         </div>
                                                     ) : (
                                                         <button
                                                             onClick={() => setActiveSection('contact')}
                                                             disabled={activeSection !== null && activeSection !== 'contact'}
-                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                            className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
                                                         >
                                                             Editar
                                                         </button>
@@ -1877,7 +1881,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="email"
                                                                     disabled
-                                                                    className="w-full text-sm bg-white border-2 border-slate-400 rounded-lg px-3 py-2 text-slate-500 cursor-not-allowed"
+                                                                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-500 font-medium cursor-not-allowed"
                                                                     value={email || ""}
                                                                 />
                                                             </div>
@@ -1887,7 +1891,7 @@ export default function SitterDashboardPage() {
                                                                     type="tel"
                                                                     disabled={activeSection !== 'contact'}
                                                                     maxLength={12}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"
+                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"
                                                                         }`}
                                                                     value={profileData.telefono}
                                                                     onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
@@ -1898,7 +1902,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Región</label>
                                                                 <select
                                                                     disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
                                                                         }`}
                                                                     value={profileData.region}
                                                                     onChange={(e) => setProfileData({ ...profileData, region: e.target.value })}
@@ -1910,7 +1914,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Comuna</label>
                                                                 <select
                                                                     disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
                                                                         }`}
                                                                     value={profileData.comuna}
                                                                     onChange={(e) => setProfileData({ ...profileData, comuna: e.target.value })}
@@ -1922,7 +1926,7 @@ export default function SitterDashboardPage() {
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-400">
+                                                        <div className="sm:col-span-2 mt-2 pt-4 border-t border-slate-100">
                                                             <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Redes Sociales (Opcional)</h5>
                                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                                 <div>
@@ -1932,7 +1936,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
                                                                         value={profileData.redes_sociales?.linkedin || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, linkedin: e.target.value } })}
                                                                         placeholder="URL Perfil"
@@ -1945,7 +1949,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
                                                                         value={profileData.redes_sociales?.tiktok || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, tiktok: e.target.value } })}
                                                                         placeholder="@usuario"
@@ -1958,7 +1962,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
                                                                         value={profileData.redes_sociales?.instagram || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, instagram: e.target.value } })}
                                                                         placeholder="@usuario"
@@ -1971,7 +1975,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="text"
                                                                         disabled={activeSection !== 'contact'}
-                                                                        className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'contact' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
                                                                         value={profileData.redes_sociales?.facebook || ""}
                                                                         onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, facebook: e.target.value } })}
                                                                         placeholder="URL Perfil"
@@ -1984,207 +1988,207 @@ export default function SitterDashboardPage() {
                                             </div>
 
 
-                                            {/* BLOQUE 2: Información Personal */}
-                                            <div className="bg-slate-50/50 p-5 rounded-xl border-2 border-slate-400">
-                                                <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
-                                                    <div className="flex items-center gap-2 flex-1">
+                                            {/* BLOQUE 2: Información Personal (Clean White) */}
+                                            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                                    <div className="flex items-center gap-3 flex-1">
                                                         <button
                                                             onClick={() => toggleSection('personal')}
-                                                            className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                            className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
                                                         >
                                                             {expandedSections.personal ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
-                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                            <div className="bg-white p-1 rounded-md shadow-sm border-2 border-slate-400"><User className="w-4 h-4 text-slate-500" /></div>
-                                                            Información Personal
-                                                            {personalComplete ? (
-                                                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
-                                                            ) : (
-                                                                <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Incompleto</span>
-                                                            )}
-                                                        </h4>
-                                                    </div>
-                                                    {activeSection === 'personal' ? (
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                                    setActiveSection(null);
-                                                                }}
-                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleSaveSection('personal')}
-                                                                disabled={saving}
-                                                                className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                                                            >
-                                                                {saving ? "..." : "Guardar"}
-                                                            </button>
+                                                        <div>
+                                                            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                                Información Personal
+                                                                {personalComplete ? (
+                                                                    <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                                ) : (
+                                                                    <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
+                                                                )}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-400 font-medium">Datos básicos de identificación</p>
                                                         </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => setActiveSection('personal')}
-                                                            disabled={activeSection !== null && activeSection !== 'personal'}
-                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                        >
-                                                            Editar
-                                                        </button>
-                                                    )}
+                                                    </div>
                                                 </div>
-                                                {expandedSections.personal && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                                                        <div className="sm:col-span-4">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Nombres</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                value={profileData.nombre}
-                                                                onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
-                                                            />
-                                                        </div>
-                                                        <div className="sm:col-span-4">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Paterno</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                value={profileData.apellido_p}
-                                                                onChange={(e) => setProfileData({ ...profileData, apellido_p: e.target.value })}
-                                                            />
-                                                        </div>
-                                                        <div className="sm:col-span-4">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Materno</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                value={profileData.apellido_m}
-                                                                onChange={(e) => setProfileData({ ...profileData, apellido_m: e.target.value })}
-                                                            />
-                                                        </div>
-                                                        <div className="sm:col-span-6">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">RUT {activeSection === 'personal' && <span className="text-slate-400 font-normal normal-case">(Ej: 12.345.678-9)</span>}</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"
-                                                                    } ${activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) ? "border-red-300 focus:border-red-500 focus:ring-red-200" : ""}`}
-                                                                value={profileData.rut}
-                                                                onChange={handleRutChange}
-                                                                placeholder="12.345.678-9"
-                                                                maxLength={12}
-                                                            />
-                                                            {activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) && (
-                                                                <p className="text-xs text-red-500 mt-1">RUT inválido</p>
-                                                            )}
-                                                        </div>
-                                                        <div className="sm:col-span-3">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Fecha de Nacimiento</label>
-                                                            <div className={activeSection !== 'personal' ? "opacity-60 pointer-events-none" : ""}>
-                                                                <DatePickerSingle
-                                                                    value={profileData.fecha_nacimiento ? new Date(profileData.fecha_nacimiento + "T12:00:00") : undefined}
-                                                                    onChange={(d) => setProfileData({ ...profileData, fecha_nacimiento: d ? format(d, "yyyy-MM-dd") : "" })}
-                                                                    disabled={activeSection !== 'personal'}
-                                                                    // Solo deshabilitar fechas futuras
-                                                                    maxDate={new Date()}
-                                                                    // Validar que sea mayor de 18 años al seleccionar
-                                                                    validateDate={(d) => differenceInYears(new Date(), d) >= 18}
-                                                                    onValidationFail={() => setAgeAlertOpen(true)}
-                                                                    defaultMonth={subYears(new Date(), 20)}
-                                                                    fromYear={1940}
-                                                                    toYear={new Date().getFullYear()}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="sm:col-span-3">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Sexo</label>
-                                                            <select
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
-                                                                    }`}
-                                                                value={profileData.sexo}
-                                                                onChange={(e) => setProfileData({ ...profileData, sexo: e.target.value })}
-                                                            >
-                                                                <option value="masculino">Masculino</option>
-                                                                <option value="femenino">Femenino</option>
-                                                                <option value="otro">Otro</option>
-                                                            </select>
-                                                        </div>
-                                                        <div className="sm:col-span-6">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Ocupación</label>
-                                                            <select
-                                                                disabled={activeSection !== 'personal'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'personal' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
-                                                                    }`}
-                                                                value={profileData.ocupacion}
-                                                                onChange={(e) => setProfileData({ ...profileData, ocupacion: e.target.value })}
-                                                            >
-                                                                <option value="" disabled>Selecciona tu ocupación</option>
-                                                                {OCUPACIONES.map(op => (
-                                                                    <option key={op} value={op}>{op}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                        {/* Campos condicionales para Estudiantes */}
-                                                        {/* Student fields removed */}
-
+                                                {activeSection === 'personal' ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                                setActiveSection(null);
+                                                            }}
+                                                            className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleSaveSection('personal')}
+                                                            disabled={saving}
+                                                            className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
+                                                        >
+                                                            {saving ? "Guardando..." : "Guardar Cambios"}
+                                                        </button>
                                                     </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setActiveSection('personal')}
+                                                        disabled={activeSection !== null && activeSection !== 'personal'}
+                                                        className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
+                                                    >
+                                                        Editar
+                                                    </button>
                                                 )}
                                             </div>
+                                            {expandedSections.personal && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                                                    <div className="sm:col-span-4">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Nombres</label>
+                                                        <input
+                                                            type="text"
+                                                            disabled={activeSection !== 'personal'}
+                                                            className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                            value={profileData.nombre}
+                                                            onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div className="sm:col-span-4">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Paterno</label>
+                                                        <input
+                                                            type="text"
+                                                            disabled={activeSection !== 'personal'}
+                                                            className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                            value={profileData.apellido_p}
+                                                            onChange={(e) => setProfileData({ ...profileData, apellido_p: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div className="sm:col-span-4">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Materno</label>
+                                                        <input
+                                                            type="text"
+                                                            disabled={activeSection !== 'personal'}
+                                                            className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                            value={profileData.apellido_m}
+                                                            onChange={(e) => setProfileData({ ...profileData, apellido_m: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div className="sm:col-span-6">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">RUT {activeSection === 'personal' && <span className="text-slate-400 font-normal normal-case">(Ej: 12.345.678-9)</span>}</label>
+                                                        <input
+                                                            type="text"
+                                                            disabled={activeSection !== 'personal'}
+                                                            className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"
+                                                                } ${activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) ? "border-red-300 focus:border-red-500 focus:ring-red-200" : ""}`}
+                                                            value={profileData.rut}
+                                                            onChange={handleRutChange}
+                                                            placeholder="12.345.678-9"
+                                                            maxLength={12}
+                                                        />
+                                                        {activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) && (
+                                                            <p className="text-xs text-red-500 mt-1">RUT inválido</p>
+                                                        )}
+                                                    </div>
+                                                    <div className="sm:col-span-3">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Fecha de Nacimiento</label>
+                                                        <div className={activeSection !== 'personal' ? "opacity-60 pointer-events-none" : ""}>
+                                                            <DatePickerSingle
+                                                                value={profileData.fecha_nacimiento ? new Date(profileData.fecha_nacimiento + "T12:00:00") : undefined}
+                                                                onChange={(d) => setProfileData({ ...profileData, fecha_nacimiento: d ? format(d, "yyyy-MM-dd") : "" })}
+                                                                disabled={activeSection !== 'personal'}
+                                                                // Solo deshabilitar fechas futuras
+                                                                maxDate={new Date()}
+                                                                // Validar que sea mayor de 18 años al seleccionar
+                                                                validateDate={(d) => differenceInYears(new Date(), d) >= 18}
+                                                                onValidationFail={() => setAgeAlertOpen(true)}
+                                                                defaultMonth={subYears(new Date(), 20)}
+                                                                fromYear={1940}
+                                                                toYear={new Date().getFullYear()}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="sm:col-span-3">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Sexo</label>
+                                                        <select
+                                                            disabled={activeSection !== 'personal'}
+                                                            className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
+                                                                }`}
+                                                            value={profileData.sexo}
+                                                            onChange={(e) => setProfileData({ ...profileData, sexo: e.target.value })}
+                                                        >
+                                                            <option value="masculino">Masculino</option>
+                                                            <option value="femenino">Femenino</option>
+                                                            <option value="otro">Otro</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="sm:col-span-6">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Ocupación</label>
+                                                        <select
+                                                            disabled={activeSection !== 'personal'}
+                                                            className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
+                                                                }`}
+                                                            value={profileData.ocupacion}
+                                                            onChange={(e) => setProfileData({ ...profileData, ocupacion: e.target.value })}
+                                                        >
+                                                            <option value="" disabled>Selecciona tu ocupación</option>
+                                                            {OCUPACIONES.map(op => (
+                                                                <option key={op} value={op}>{op}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                            {/* BLOQUE 3: Perfil */}
-                                            <div className="bg-slate-50/50 p-5 rounded-xl border-2 border-slate-400">
-                                                <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
-
-                                                    <div className="flex items-center gap-2 flex-1">
+                                            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                                    <div className="flex items-center gap-3 flex-1">
                                                         <button
                                                             onClick={() => toggleSection('profile')}
-                                                            className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                            className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
                                                         >
                                                             {expandedSections.profile ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
-                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                            <div className="bg-white p-1 rounded-md shadow-sm border-2 border-slate-400"><PawPrint className="w-4 h-4 text-slate-500" /></div>
-                                                            Perfil Sitter
-                                                            {profileComplete ? (
-                                                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
-                                                            ) : (
-                                                                <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Incompleto</span>
-                                                            )}
-                                                        </h4>
-                                                    </div>
-                                                    {activeSection === 'profile' ? (
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                                    setActiveSection(null);
-                                                                }}
-                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleSaveSection('profile')}
-                                                                disabled={saving}
-                                                                className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                                                            >
-                                                                {saving ? "..." : "Guardar"}
-                                                            </button>
+                                                        <div>
+                                                            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                                Perfil Sitter
+                                                                {profileComplete ? (
+                                                                    <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                                ) : (
+                                                                    <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
+                                                                )}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-400 font-medium">Descripción y ubicación</p>
                                                         </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => setActiveSection('profile')}
-                                                            disabled={activeSection !== null && activeSection !== 'profile'}
-                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                        >
-                                                            Editar
-                                                        </button>
-                                                    )}
+                                                    </div>
                                                 </div>
+                                                {activeSection === 'profile' ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                                setActiveSection(null);
+                                                            }}
+                                                            className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleSaveSection('profile')}
+                                                            disabled={saving}
+                                                            className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
+                                                        >
+                                                            {saving ? "Guardando..." : "Guardar Cambios"}
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setActiveSection('profile')}
+                                                        disabled={activeSection !== null && activeSection !== 'profile'}
+                                                        className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                )}
+
                                                 {expandedSections.profile && (
                                                     <div>
 
@@ -2192,9 +2196,8 @@ export default function SitterDashboardPage() {
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
 
                                                             {/* Búsqueda de Dirección (Solo Edición) */}
-                                                            {/* Búsqueda de Dirección (Solo Edición) */}
                                                             {activeSection === 'profile' && (
-                                                                <div className="sm:col-span-2 bg-slate-50 p-3 rounded-lg border-2 border-slate-400 mb-2">
+                                                                <div className="sm:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-2">
                                                                     <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Buscar Dirección (OpenStreetMap)</label>
                                                                     <AddressAutocomplete
                                                                         onSelect={handleSelectAddress}
@@ -2562,165 +2565,168 @@ export default function SitterDashboardPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* BLOQUE 4: Documentación */}
-                                        <div className="bg-slate-50/50 p-5 rounded-xl border-2 border-slate-400 mt-8">
-                                            <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
-                                                <div className="flex items-center gap-2 flex-1">
-                                                    <button
-                                                        onClick={() => toggleSection('documents')}
-                                                        className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
-                                                    >
-                                                        {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                                    </button>
-                                                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                        <div className="bg-white p-1 rounded-md shadow-sm border-2 border-slate-400"><FileCheck className="w-4 h-4 text-slate-500" /></div>
-                                                        Documentación
-                                                        {profileData.certificado_antecedentes ? (
-                                                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
-                                                        ) : (
-                                                            <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Pendiente</span>
-                                                        )}
-                                                    </h4>
-                                                </div>
-                                                {activeSection === 'documents' ? (
-                                                    <div className="flex gap-2">
+
+                                            {/* BLOQUE 4: Documentación */}
+                                            <div className="bg-slate-50/50 p-5 rounded-xl border-2 border-slate-400 mt-8">
+                                                <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
+                                                    <div className="flex items-center gap-2 flex-1">
                                                         <button
-                                                            onClick={() => setActiveSection(null)}
-                                                            className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                            onClick={() => toggleSection('documents')}
+                                                            className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                         >
-                                                            Listo
+                                                            {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
+                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                            <div className="bg-white p-1 rounded-md shadow-sm border-2 border-slate-400"><FileCheck className="w-4 h-4 text-slate-500" /></div>
+                                                            Documentación
+                                                            {profileData.certificado_antecedentes ? (
+                                                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
+                                                            ) : (
+                                                                <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Pendiente</span>
+                                                            )}
+                                                        </h4>
                                                     </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setActiveSection('documents')}
-                                                        disabled={activeSection !== null && activeSection !== 'documents'}
-                                                        className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {expandedSections.documents && (
-                                                <div>
-                                                    {profileData.certificado_antecedentes ? (
-                                                        <div className="flex items-start gap-3 p-4 bg-white border-2 border-slate-400 rounded-xl shadow-sm group/file transition-colors max-w-md">
-                                                            <div className="p-3 bg-slate-100 text-slate-500 rounded-lg transition-colors">
-                                                                <FileText size={24} />
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-sm font-bold text-slate-700 truncate">Antecedentes.pdf</p>
-                                                                <p className="text-xs text-slate-400 mt-0.5">Certificado de Antecedentes</p>
-                                                                <div className="flex gap-3 mt-3">
-                                                                    <button
-                                                                        onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
-                                                                        className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border-2 border-slate-400 hover:bg-white"
-                                                                    >
-                                                                        <Eye size={12} /> Ver Documento
-                                                                    </button>
-                                                                    {activeSection === 'documents' && (
-                                                                        <button
-                                                                            onClick={handleDeleteDocument}
-                                                                            disabled={uploading}
-                                                                            className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors px-2 py-1 bg-red-50 rounded border border-red-100 hover:bg-white"
-                                                                        >
-                                                                            {uploading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Eliminar
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            <div className="text-emerald-500">
-                                                                <CheckCircle2 size={20} />
-                                                            </div>
+                                                    {activeSection === 'documents' ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => setActiveSection(null)}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                            >
+                                                                Listo
+                                                            </button>
                                                         </div>
                                                     ) : (
-                                                        <div className="max-w-md">
-                                                            <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-400 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-400 opacity-60 cursor-not-allowed"}`}>
-                                                                <div className={`p-4 rounded-full transition-colors ${activeSection === 'documents' ? "bg-slate-50 text-slate-400 group-hover/upload:text-emerald-600 group-hover/upload:bg-emerald-100" : "bg-slate-50 text-slate-300"}`}>
-                                                                    <Upload size={24} />
-                                                                </div>
-                                                                <div className="text-center mt-2">
-                                                                    <p className={`text-sm font-bold ${activeSection === 'documents' ? "text-slate-600 group-hover/upload:text-emerald-700" : "text-slate-400"}`}>Subir Certificado de Antecedentes</p>
-                                                                    <p className="text-xs text-slate-400 mt-1">Sube tu archivo PDF o Imagen</p>
-                                                                </div>
-                                                                <input
-                                                                    type="file"
-                                                                    accept="image/*,.pdf"
-                                                                    className="hidden"
-                                                                    onChange={handleCertUpload}
-                                                                    disabled={activeSection !== 'documents' || uploading}
-                                                                />
-                                                            </label>
-                                                            {activeSection !== 'documents' && (
-                                                                <p className="text-xs text-slate-400 mt-2 text-center text-balance">
-                                                                    Haz clic en <span className="font-bold">Editar</span> para gestionar tus documentos.
-                                                                </p>
-                                                            )}
-                                                        </div>
+                                                        <button
+                                                            onClick={() => setActiveSection('documents')}
+                                                            disabled={activeSection !== null && activeSection !== 'documents'}
+                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        >
+                                                            Editar
+                                                        </button>
                                                     )}
                                                 </div>
-                                            )}
+
+                                                {expandedSections.documents && (
+                                                    <div>
+                                                        {profileData.certificado_antecedentes ? (
+                                                            <div className="flex items-start gap-3 p-4 bg-white border-2 border-slate-400 rounded-xl shadow-sm group/file transition-colors max-w-md">
+                                                                <div className="p-3 bg-slate-100 text-slate-500 rounded-lg transition-colors">
+                                                                    <FileText size={24} />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-bold text-slate-700 truncate">Antecedentes.pdf</p>
+                                                                    <p className="text-xs text-slate-400 mt-0.5">Certificado de Antecedentes</p>
+                                                                    <div className="flex gap-3 mt-3">
+                                                                        <button
+                                                                            onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
+                                                                            className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border-2 border-slate-400 hover:bg-white"
+                                                                        >
+                                                                            <Eye size={12} /> Ver Documento
+                                                                        </button>
+                                                                        {activeSection === 'documents' && (
+                                                                            <button
+                                                                                onClick={handleDeleteDocument}
+                                                                                disabled={uploading}
+                                                                                className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors px-2 py-1 bg-red-50 rounded border border-red-100 hover:bg-white"
+                                                                            >
+                                                                                {uploading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Eliminar
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-emerald-500">
+                                                                    <CheckCircle2 size={20} />
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="max-w-md">
+                                                                <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-400 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-400 opacity-60 cursor-not-allowed"}`}>
+                                                                    <div className={`p-4 rounded-full transition-colors ${activeSection === 'documents' ? "bg-slate-50 text-slate-400 group-hover/upload:text-emerald-600 group-hover/upload:bg-emerald-100" : "bg-slate-50 text-slate-300"}`}>
+                                                                        <Upload size={24} />
+                                                                    </div>
+                                                                    <div className="text-center mt-2">
+                                                                        <p className={`text-sm font-bold ${activeSection === 'documents' ? "text-slate-600 group-hover/upload:text-emerald-700" : "text-slate-400"}`}>Subir Certificado de Antecedentes</p>
+                                                                        <p className="text-xs text-slate-400 mt-1">Sube tu archivo PDF o Imagen</p>
+                                                                    </div>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*,.pdf"
+                                                                        className="hidden"
+                                                                        onChange={handleCertUpload}
+                                                                        disabled={activeSection !== 'documents' || uploading}
+                                                                    />
+                                                                </label>
+                                                                {activeSection !== 'documents' && (
+                                                                    <p className="text-xs text-slate-400 mt-2 text-center text-balance">
+                                                                        Haz clic en <span className="font-bold">Editar</span> para gestionar tus documentos.
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </Card>
+                                    )}
+
+
+
+
+
+                                {/* SECCIÃ“N DERECHA: RESERVAS Y REVIEWS (Solo visible fuera de modo edición para "ver" como queda, o siempre visible para gestión) */}
+                                {/* En este dashboard de Sitter (autoadministrable), mostramos las solicitudes y reservas reales */}
+
+
+
+                                {/* TOAST SUCCESS */}
+                                <div className={`fixed bottom-5 right-5 z-50 transition-all duration-300 transform ${showToast ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}>
+                                    <div className="bg-emerald-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3">
+                                        <div className="bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center text-xs text-slate-900 font-bold">
+                                            âœ“
                                         </div>
-                                    </Card>
-
-                                )
-                            }
-
-
-
-
-
-                            {/* SECCIÃ“N DERECHA: RESERVAS Y REVIEWS (Solo visible fuera de modo edición para "ver" como queda, o siempre visible para gestión) */}
-                            {/* En este dashboard de Sitter (autoadministrable), mostramos las solicitudes y reservas reales */}
-
-
-
-                            {/* TOAST SUCCESS */}
-                            <div className={`fixed bottom-5 right-5 z-50 transition-all duration-300 transform ${showToast ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}>
-                                <div className="bg-emerald-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3">
-                                    <div className="bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center text-xs text-slate-900 font-bold">
-                                        âœ“
+                                        <span className="font-medium text-sm">Cambios guardados correctamente</span>
                                     </div>
-                                    <span className="font-medium text-sm">Cambios guardados correctamente</span>
                                 </div>
+
+                                {/* LIGHTBOX DE GALERÃA */}
+                                {
+                                    selectedImage && (
+                                        <ImageLightbox
+                                            src={selectedImage}
+                                            alt="Galería completa"
+                                            isOpen={!!selectedImage}
+                                            onClose={() => setSelectedImage(null)}
+                                        />
+                                    )
+                                }
+
+                                {/* LIGHTBOX DE FOTO PERFIL */}
+                                {
+                                    profileData.foto_perfil && (
+                                        <ImageLightbox
+                                            src={profileData.foto_perfil}
+                                            alt="Foto de perfil"
+                                            isOpen={isLightboxOpen}
+                                            onClose={() => setIsLightboxOpen(false)}
+                                        />
+                                    )
+                                }
+                                <ModalAlert
+                                    isOpen={alertState.isOpen}
+                                    onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                                    title={alertState.title}
+                                    message={alertState.message}
+                                    type={alertState.type}
+                                />
                             </div>
 
-                            {/* LIGHTBOX DE GALERÃA */}
-                            {
-                                selectedImage && (
-                                    <ImageLightbox
-                                        src={selectedImage}
-                                        alt="Galería completa"
-                                        isOpen={!!selectedImage}
-                                        onClose={() => setSelectedImage(null)}
-                                    />
-                                )
-                            }
 
-                            {/* LIGHTBOX DE FOTO PERFIL */}
-                            {
-                                profileData.foto_perfil && (
-                                    <ImageLightbox
-                                        src={profileData.foto_perfil}
-                                        alt="Foto de perfil"
-                                        isOpen={isLightboxOpen}
-                                        onClose={() => setIsLightboxOpen(false)}
-                                    />
-                                )
-                            }
-                            <ModalAlert
-                                isOpen={alertState.isOpen}
-                                onClose={() => setAlertState({ ...alertState, isOpen: false })}
-                                title={alertState.title}
-                                message={alertState.message}
-                                type={alertState.type}
-                            />
+
+
                         </div>
                     </div>
-                </div >
+                </div>
             </main >
 
             <ClientDetailsDialog
