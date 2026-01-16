@@ -219,6 +219,23 @@ export default function SitterDashboardPage() {
                         aprobado: profile.aprobado || false
                     });
                     setBackupProfileData(profile); // Save backup for cancel
+
+                    // Determine collapsed state based on completion (COLLAPSE if complete)
+                    const isContactComplete = Boolean(profile.telefono && profile.region && profile.comuna);
+                    const isPersonalComplete = Boolean(profile.nombre && profile.apellido_p && profile.rut && profile.fecha_nacimiento && profile.ocupacion && profile.sexo);
+                    const isProfileComplete = Boolean(profile.descripcion && profile.descripcion.length >= 100 && profile.tipo_vivienda && profile.tiene_mascotas);
+                    const isServicesComplete = Boolean(profile.tarifa_servicio_a_domicilio !== null || profile.tarifa_servicio_en_casa !== null);
+                    const isDocsComplete = Boolean(profile.certificado_antecedentes);
+                    const isVideoComplete = Boolean(profile.video_presentacion);
+
+                    setExpandedSections({
+                        contact: !isContactComplete,
+                        personal: !isPersonalComplete,
+                        profile: !isProfileComplete,
+                        services: !isServicesComplete,
+                        documents: !isDocsComplete,
+                        video: !isVideoComplete
+                    });
                 }
             } else {
                 // Not logged in
@@ -301,7 +318,8 @@ export default function SitterDashboardPage() {
         personal: true,
         profile: true,
         services: true,
-        documents: true
+        documents: true,
+        video: true
     });
 
     const toggleSection = (section: string) => {
@@ -2507,9 +2525,9 @@ export default function SitterDashboardPage() {
                                                             <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><FileCheck className="w-4 h-4 text-slate-400" /></div>
                                                             Documentación
                                                             {profileData.certificado_antecedentes ? (
-                                                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
+                                                                <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
                                                             ) : (
-                                                                <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Pendiente</span>
+                                                                <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente" />
                                                             )}
                                                         </h4>
                                                     </div>
@@ -2596,81 +2614,116 @@ export default function SitterDashboardPage() {
 
                                             {/* Video Presentacion Component */}
                                             <div className="bg-white p-5 rounded-2xl border border-slate-200">
-                                                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
-                                                    <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><Play className="w-4 h-4 text-slate-400" /></div>
-                                                    Video de Presentación
-                                                </h4>
-
-                                                <div className="bg-white p-4 rounded-xl border border-slate-200">
-                                                    <p className="text-xs text-slate-500 mb-4">
-                                                        Sube un video corto presentándote a los dueños de mascotas. Esto aumenta significativamente tus posibilidades de ser contratado.
-                                                    </p>
-
-                                                    {profileData.video_presentacion ? (
-                                                        <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-w-sm mx-auto shadow-md group">
-                                                            <video
-                                                                src={profileData.video_presentacion}
-                                                                controls
-                                                                className="w-full h-full object-contain"
-                                                            />
-                                                            {activeSection === 'profile' && (
-                                                                <button
-                                                                    onClick={handleDeleteVideoPresentacion}
-                                                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                                                                    title="Eliminar Video"
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </button>
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                                                    <div className="flex items-center gap-2 flex-1">
+                                                        <button
+                                                            onClick={() => toggleSection('video')}
+                                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                        >
+                                                            {expandedSections.video ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                        </button>
+                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                            <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><Play className="w-4 h-4 text-slate-400" /></div>
+                                                            Video de Presentación
+                                                            {profileData.video_presentacion ? (
+                                                                <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                            ) : (
+                                                                <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente" />
                                                             )}
+                                                        </h4>
+                                                    </div>
+                                                    {activeSection === 'video' ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => setActiveSection(null)}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                            >
+                                                                Listo
+                                                            </button>
                                                         </div>
                                                     ) : (
-                                                        activeSection === 'profile' ? (
-                                                            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
-                                                                <input
-                                                                    type="file"
-                                                                    accept="video/mp4,video/quicktime,video/webm"
-                                                                    onChange={handleVideoPresentacionUpload}
-                                                                    disabled={uploading}
-                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        <button
+                                                            onClick={() => setActiveSection('video')}
+                                                            disabled={activeSection !== null && activeSection !== 'video'}
+                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {expandedSections.video && (
+                                                    <div className="bg-white p-4 rounded-xl border border-slate-200">
+                                                        <p className="text-xs text-slate-500 mb-4">
+                                                            Sube un video corto presentándote a los dueños de mascotas. Esto aumenta significativamente tus posibilidades de ser contratado.
+                                                        </p>
+
+                                                        {profileData.video_presentacion ? (
+                                                            <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-w-sm mx-auto shadow-md group">
+                                                                <video
+                                                                    src={profileData.video_presentacion}
+                                                                    controls
+                                                                    className="w-full h-full object-contain"
                                                                 />
-                                                                {uploading ? (
-                                                                    <Loader2 size={32} className="text-emerald-500 animate-spin mb-2" />
-                                                                ) : (
-                                                                    <Upload size={32} className="text-slate-300 mb-2" />
+                                                                {activeSection === 'video' && (
+                                                                    <button
+                                                                        onClick={handleDeleteVideoPresentacion}
+                                                                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                                        title="Eliminar Video"
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </button>
                                                                 )}
-                                                                <h5 className="text-sm font-bold text-slate-700">Sube tu video aquí</h5>
-                                                                <p className="text-xs text-slate-400 mt-1">MP4, MOV o WEBM (Máx 50MB)</p>
                                                             </div>
                                                         ) : (
-                                                            <div className="border border-slate-200 bg-slate-50 rounded-2xl p-8 text-center">
-                                                                <p className="text-sm text-slate-400 italic">No has subido un video de presentación.</p>
-                                                            </div>
-                                                        )
-                                                    )}
+                                                            activeSection === 'video' ? (
+                                                                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="video/mp4,video/quicktime,video/webm"
+                                                                        onChange={handleVideoPresentacionUpload}
+                                                                        disabled={uploading}
+                                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                    />
+                                                                    {uploading ? (
+                                                                        <Loader2 size={32} className="text-emerald-500 animate-spin mb-2" />
+                                                                    ) : (
+                                                                        <Upload size={32} className="text-slate-300 mb-2" />
+                                                                    )}
+                                                                    <h5 className="text-sm font-bold text-slate-700">Sube tu video aquí</h5>
+                                                                    <p className="text-xs text-slate-400 mt-1">MP4, MOV o WEBM (Máx 50MB)</p>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="border border-slate-200 bg-slate-50 rounded-2xl p-8 text-center">
+                                                                    <p className="text-sm text-slate-400 italic">No has subido un video de presentación.</p>
+                                                                </div>
+                                                            )
+                                                        )}
 
-                                                    {/* Consentimiento RRSS */}
-                                                    <div className="mt-4 pt-4 border-t border-slate-100">
-                                                        <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
-                                                            <div className="pt-0.5">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={profileData.consentimiento_rrss}
-                                                                    onChange={(e) => setProfileData({ ...profileData, consentimiento_rrss: e.target.checked })}
-                                                                    disabled={activeSection !== 'profile'}
-                                                                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <span className={`text-sm font-bold block ${profileData.consentimiento_rrss ? 'text-indigo-900' : 'text-slate-700'}`}>
-                                                                    Consentimiento para Redes Sociales
-                                                                </span>
-                                                                <p className="text-xs text-slate-500 mt-0.5">
-                                                                    Doy mi consentimiento para que Pawnecta pueda publicar este video en sus redes sociales (Instagram, TikTok) para promocionar mi perfil.
-                                                                </p>
-                                                            </div>
-                                                        </label>
+                                                        {/* Consentimiento RRSS */}
+                                                        <div className="mt-4 pt-4 border-t border-slate-100">
+                                                            <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
+                                                                <div className="pt-0.5">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={profileData.consentimiento_rrss}
+                                                                        onChange={(e) => setProfileData({ ...profileData, consentimiento_rrss: e.target.checked })}
+                                                                        disabled={activeSection !== 'video'}
+                                                                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <span className={`text-sm font-bold block ${profileData.consentimiento_rrss ? 'text-indigo-900' : 'text-slate-700'}`}>
+                                                                        Consentimiento para Redes Sociales
+                                                                    </span>
+                                                                    <p className="text-xs text-slate-500 mt-0.5">
+                                                                        Doy mi consentimiento para que Pawnecta pueda publicar este video en sus redes sociales (Instagram, TikTok) para promocionar mi perfil.
+                                                                    </p>
+                                                                </div>
+                                                            </label>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     </Card>
