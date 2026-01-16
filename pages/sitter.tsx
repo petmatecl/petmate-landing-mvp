@@ -1051,6 +1051,12 @@ export default function SitterDashboardPage() {
                                             <Mail size={14} className="text-slate-400" />
                                             {email}
                                         </div>
+                                        {profileData.telefono && (
+                                            <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 text-sm">
+                                                <Phone size={14} className="text-slate-400" />
+                                                {profileData.telefono}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Estado de Verificación UNIFICADO */}
@@ -1820,7 +1826,7 @@ export default function SitterDashboardPage() {
                                             </div>
                                         )}
 
-                                        <div className="space-y-6">
+                                        <div className="space-y-9">
 
                                             {/* BLOQUE 1: Datos de Contacto (Clean White) */}
                                             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
@@ -2569,7 +2575,7 @@ export default function SitterDashboardPage() {
 
 
                                         {/* BLOQUE 4: Documentación */}
-                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 mt-8">
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200">
                                             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                                                 <div className="flex items-center gap-2 flex-1">
                                                     <button
