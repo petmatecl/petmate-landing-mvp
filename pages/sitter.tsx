@@ -20,7 +20,7 @@ import {
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
     Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
     PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler,
-    MessageSquare, AlertCircle, RefreshCw
+    MessageSquare, AlertCircle, RefreshCw, Search
 } from 'lucide-react';
 import UnreadBadge from "../components/Shared/UnreadBadge";
 import ApplicationDialog from "../components/Sitter/ApplicationDialog";
@@ -984,8 +984,8 @@ export default function SitterDashboardPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-3 mt-4 sm:mt-0">
-                            <Link href="/sitter/explorar" className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">
-                                🔍 Buscar Oportunidades
+                            <Link href="/sitter/explorar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">
+                                <Search size={18} /> Buscar Oportunidades
                             </Link>
                             <Link href={profileId ? `/sitter/${profileId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border-2 border-slate-400 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                                 Ver perfil público ↗
@@ -2218,7 +2218,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="text"
                                                                     disabled={true}
-                                                                    className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border-2 border-slate-400 text-slate-600 cursor-not-allowed"
+                                                                    className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border border-slate-300 text-slate-600 cursor-not-allowed"
                                                                     value={profileData.direccion_completa || "No definida"}
                                                                     readOnly
                                                                 />
@@ -2229,7 +2229,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="text"
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-300 text-slate-500"}`}
                                                                     value={profileData.calle || ""}
                                                                     onChange={(e) => setProfileData({ ...profileData, calle: e.target.value })}
                                                                 />
@@ -2239,7 +2239,7 @@ export default function SitterDashboardPage() {
                                                                 <input
                                                                     type="text"
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-300 text-slate-500"}`}
                                                                     value={profileData.numero || ""}
                                                                     onChange={(e) => setProfileData({ ...profileData, numero: e.target.value })}
                                                                 />
@@ -2249,7 +2249,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Vivienda</label>
                                                                 <select
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.tipo_vivienda}
                                                                     onChange={(e) => setProfileData({ ...profileData, tipo_vivienda: e.target.value })}
@@ -2263,7 +2263,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dimensiones</label>
                                                                 <select
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.dimensiones_vivienda || ""}
                                                                     onChange={(e) => setProfileData({ ...profileData, dimensiones_vivienda: e.target.value })}
@@ -2277,7 +2277,7 @@ export default function SitterDashboardPage() {
                                                             </div>
 
                                                             <div className="sm:col-span-2 grid grid-cols-2 gap-4">
-                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_patio ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-400 text-slate-500'}`}>
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_patio ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
                                                                     <input
                                                                         type="checkbox"
                                                                         disabled={activeSection !== 'profile'}
@@ -2288,7 +2288,7 @@ export default function SitterDashboardPage() {
                                                                     <span className="text-sm font-bold">Tiene Patio/Jardín</span>
                                                                 </label>
 
-                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_malla ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-400 text-slate-500'}`}>
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_malla ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
                                                                     <input
                                                                         type="checkbox"
                                                                         disabled={activeSection !== 'profile'}
@@ -2300,7 +2300,7 @@ export default function SitterDashboardPage() {
                                                                 </label>
                                                             </div>
 
-                                                            <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-400">
+                                                            <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-200">
                                                                 <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide flex justify-between items-center">
                                                                     Fotos del Hogar (Máx 4)
                                                                     <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{(profileData.fotos_vivienda?.length || 0)}/4</span>
@@ -2308,7 +2308,7 @@ export default function SitterDashboardPage() {
 
                                                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                                     {(profileData.fotos_vivienda || []).map((foto: string, idx: number) => (
-                                                                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm border-2 border-slate-400">
+                                                                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm border border-slate-200">
                                                                             <Image src={foto} alt={`Hogar ${idx}`} fill className="object-cover" />
                                                                             {activeSection === 'profile' && (
                                                                                 <button
@@ -2322,7 +2322,7 @@ export default function SitterDashboardPage() {
                                                                     ))}
 
                                                                     {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 4 && (
-                                                                        <label className="aspect-square rounded-lg border-2 border-dashed border-slate-400 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
+                                                                        <label className="aspect-square rounded-lg border border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
                                                                             {uploading ? (
                                                                                 <Loader2 size={20} className="animate-spin" />
                                                                             ) : (
@@ -2348,7 +2348,7 @@ export default function SitterDashboardPage() {
                                                                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">¿Tienes mascotas?</label>
                                                                 <select
                                                                     disabled={activeSection !== 'profile'}
-                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-300 text-slate-500 appearance-none"
                                                                         }`}
                                                                     value={profileData.tiene_mascotas}
                                                                     onChange={(e) => setProfileData({ ...profileData, tiene_mascotas: e.target.value })}
