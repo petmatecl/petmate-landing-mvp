@@ -1879,526 +1879,597 @@ export default function SitterDashboardPage() {
                                                         Editar
                                                     </button>
                                                 )}
+                                                {expandedSections.contact && (
+                                                    <>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Email</label>
+                                                                <input
+                                                                    type="email"
+                                                                    disabled
+                                                                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-500 font-medium cursor-not-allowed"
+                                                                    value={email || ""}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Teléfono</label>
+                                                                <input
+                                                                    type="tel"
+                                                                    disabled={activeSection !== 'contact'}
+                                                                    maxLength={12}
+                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"
+                                                                        }`}
+                                                                    value={profileData.telefono}
+                                                                    onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
+                                                                    placeholder="+569 1234 5678"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Región</label>
+                                                                <select
+                                                                    disabled={activeSection !== 'contact'}
+                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
+                                                                        }`}
+                                                                    value={profileData.region}
+                                                                    onChange={(e) => setProfileData({ ...profileData, region: e.target.value })}
+                                                                >
+                                                                    <option value="RM">Metropolitana</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Comuna</label>
+                                                                <select
+                                                                    disabled={activeSection !== 'contact'}
+                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
+                                                                        }`}
+                                                                    value={profileData.comuna}
+                                                                    onChange={(e) => setProfileData({ ...profileData, comuna: e.target.value })}
+                                                                >
+                                                                    <option value="" disabled>Seleccionar</option>
+                                                                    {COMUNAS_SANTIAGO.map(c => (
+                                                                        <option key={c} value={c}>{c}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div className="sm:col-span-2 mt-2 pt-4 border-t border-slate-100">
+                                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Redes Sociales (Opcional)</h5>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                        <Linkedin className="w-4 h-4 text-slate-500" /> LinkedIn
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        disabled={activeSection !== 'contact'}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                                        value={profileData.redes_sociales?.linkedin || ""}
+                                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, linkedin: e.target.value } })}
+                                                                        placeholder="URL Perfil"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                        <Music className="w-4 h-4 text-slate-500" /> TikTok
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        disabled={activeSection !== 'contact'}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                                        value={profileData.redes_sociales?.tiktok || ""}
+                                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, tiktok: e.target.value } })}
+                                                                        placeholder="@usuario"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                        <Instagram className="w-4 h-4 text-slate-500" /> Instagram
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        disabled={activeSection !== 'contact'}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                                        value={profileData.redes_sociales?.instagram || ""}
+                                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, instagram: e.target.value } })}
+                                                                        placeholder="@usuario"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                                                        <Facebook className="w-4 h-4 text-slate-500" /> Facebook
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        disabled={activeSection !== 'contact'}
+                                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                                        value={profileData.redes_sociales?.facebook || ""}
+                                                                        onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, facebook: e.target.value } })}
+                                                                        placeholder="URL Perfil"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
-                                            {expandedSections.contact && (
-                                                <>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+
+                                            {/* BLOQUE 2: Información Personal (Clean White) */}
+                                            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <button
+                                                            onClick={() => toggleSection('personal')}
+                                                            className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                                                        >
+                                                            {expandedSections.personal ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                        </button>
                                                         <div>
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Email</label>
+                                                            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                                Información Personal
+                                                                {personalComplete ? (
+                                                                    <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                                ) : (
+                                                                    <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
+                                                                )}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-400 font-medium">Datos básicos de identificación</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {activeSection === 'personal' ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                                setActiveSection(null);
+                                                            }}
+                                                            className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleSaveSection('personal')}
+                                                            disabled={saving}
+                                                            className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
+                                                        >
+                                                            {saving ? "Guardando..." : "Guardar Cambios"}
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setActiveSection('personal')}
+                                                        disabled={activeSection !== null && activeSection !== 'personal'}
+                                                        className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                )}
+                                                {expandedSections.personal && (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                                                        <div className="sm:col-span-4">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Nombres</label>
                                                             <input
-                                                                type="email"
-                                                                disabled
-                                                                className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-500 font-medium cursor-not-allowed"
-                                                                value={email || ""}
+                                                                type="text"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                                value={profileData.nombre}
+                                                                onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Teléfono</label>
+                                                        <div className="sm:col-span-4">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Paterno</label>
                                                             <input
-                                                                type="tel"
-                                                                disabled={activeSection !== 'contact'}
+                                                                type="text"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                                value={profileData.apellido_p}
+                                                                onChange={(e) => setProfileData({ ...profileData, apellido_p: e.target.value })}
+                                                            />
+                                                        </div>
+                                                        <div className="sm:col-span-4">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Materno</label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
+                                                                value={profileData.apellido_m}
+                                                                onChange={(e) => setProfileData({ ...profileData, apellido_m: e.target.value })}
+                                                            />
+                                                        </div>
+                                                        <div className="sm:col-span-6">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">RUT {activeSection === 'personal' && <span className="text-slate-400 font-normal normal-case">(Ej: 12.345.678-9)</span>}</label>
+                                                            <input
+                                                                type="text"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"
+                                                                    } ${activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) ? "border-red-300 focus:border-red-500 focus:ring-red-200" : ""}`}
+                                                                value={profileData.rut}
+                                                                onChange={handleRutChange}
+                                                                placeholder="12.345.678-9"
                                                                 maxLength={12}
-                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"
-                                                                    }`}
-                                                                value={profileData.telefono}
-                                                                onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
-                                                                placeholder="+569 1234 5678"
                                                             />
+                                                            {activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) && (
+                                                                <p className="text-xs text-red-500 mt-1">RUT inválido</p>
+                                                            )}
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Región</label>
+                                                        <div className="sm:col-span-3">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Fecha de Nacimiento</label>
+                                                            <div className={activeSection !== 'personal' ? "opacity-60 pointer-events-none" : ""}>
+                                                                <DatePickerSingle
+                                                                    value={profileData.fecha_nacimiento ? new Date(profileData.fecha_nacimiento + "T12:00:00") : undefined}
+                                                                    onChange={(d) => setProfileData({ ...profileData, fecha_nacimiento: d ? format(d, "yyyy-MM-dd") : "" })}
+                                                                    disabled={activeSection !== 'personal'}
+                                                                    // Solo deshabilitar fechas futuras
+                                                                    maxDate={new Date()}
+                                                                    // Validar que sea mayor de 18 años al seleccionar
+                                                                    validateDate={(d) => differenceInYears(new Date(), d) >= 18}
+                                                                    onValidationFail={() => setAgeAlertOpen(true)}
+                                                                    defaultMonth={subYears(new Date(), 20)}
+                                                                    fromYear={1940}
+                                                                    toYear={new Date().getFullYear()}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="sm:col-span-3">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Sexo</label>
                                                             <select
-                                                                disabled={activeSection !== 'contact'}
-                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
                                                                     }`}
-                                                                value={profileData.region}
-                                                                onChange={(e) => setProfileData({ ...profileData, region: e.target.value })}
+                                                                value={profileData.sexo}
+                                                                onChange={(e) => setProfileData({ ...profileData, sexo: e.target.value })}
                                                             >
-                                                                <option value="RM">Metropolitana</option>
+                                                                <option value="masculino">Masculino</option>
+                                                                <option value="femenino">Femenino</option>
+                                                                <option value="otro">Otro</option>
                                                             </select>
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Comuna</label>
+                                                        <div className="sm:col-span-6">
+                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Ocupación</label>
                                                             <select
-                                                                disabled={activeSection !== 'contact'}
-                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
+                                                                disabled={activeSection !== 'personal'}
+                                                                className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
                                                                     }`}
-                                                                value={profileData.comuna}
-                                                                onChange={(e) => setProfileData({ ...profileData, comuna: e.target.value })}
+                                                                value={profileData.ocupacion}
+                                                                onChange={(e) => setProfileData({ ...profileData, ocupacion: e.target.value })}
                                                             >
-                                                                <option value="" disabled>Seleccionar</option>
-                                                                {COMUNAS_SANTIAGO.map(c => (
-                                                                    <option key={c} value={c}>{c}</option>
+                                                                <option value="" disabled>Selecciona tu ocupación</option>
+                                                                {OCUPACIONES.map(op => (
+                                                                    <option key={op} value={op}>{op}</option>
                                                                 ))}
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div className="sm:col-span-2 mt-2 pt-4 border-t border-slate-100">
-                                                        <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Redes Sociales (Opcional)</h5>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                                    <Linkedin className="w-4 h-4 text-slate-500" /> LinkedIn
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
-                                                                    value={profileData.redes_sociales?.linkedin || ""}
-                                                                    onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, linkedin: e.target.value } })}
-                                                                    placeholder="URL Perfil"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                                    <Music className="w-4 h-4 text-slate-500" /> TikTok
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
-                                                                    value={profileData.redes_sociales?.tiktok || ""}
-                                                                    onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, tiktok: e.target.value } })}
-                                                                    placeholder="@usuario"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                                    <Instagram className="w-4 h-4 text-slate-500" /> Instagram
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
-                                                                    value={profileData.redes_sociales?.instagram || ""}
-                                                                    onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, instagram: e.target.value } })}
-                                                                    placeholder="@usuario"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                                                                    <Facebook className="w-4 h-4 text-slate-500" /> Facebook
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    disabled={activeSection !== 'contact'}
-                                                                    className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'contact' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
-                                                                    value={profileData.redes_sociales?.facebook || ""}
-                                                                    onChange={(e) => setProfileData({ ...profileData, redes_sociales: { ...profileData.redes_sociales, facebook: e.target.value } })}
-                                                                    placeholder="URL Perfil"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-
-
-                                        {/* BLOQUE 2: Información Personal (Clean White) */}
-                                        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
-                                            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-                                                <div className="flex items-center gap-3 flex-1">
-                                                    <button
-                                                        onClick={() => toggleSection('personal')}
-                                                        className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
-                                                    >
-                                                        {expandedSections.personal ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                                    </button>
-                                                    <div>
-                                                        <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                                                            Información Personal
-                                                            {personalComplete ? (
-                                                                <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
-                                                            ) : (
-                                                                <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
-                                                            )}
-                                                        </h4>
-                                                        <p className="text-xs text-slate-400 font-medium">Datos básicos de identificación</p>
-                                                    </div>
-                                                </div>
+                                                )}
                                             </div>
-                                            {activeSection === 'personal' ? (
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                            setActiveSection(null);
-                                                        }}
-                                                        className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleSaveSection('personal')}
-                                                        disabled={saving}
-                                                        className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
-                                                    >
-                                                        {saving ? "Guardando..." : "Guardar Cambios"}
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setActiveSection('personal')}
-                                                    disabled={activeSection !== null && activeSection !== 'personal'}
-                                                    className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
-                                                >
-                                                    Editar
-                                                </button>
-                                            )}
-                                        </div>
-                                        {expandedSections.personal && (
-                                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                                                <div className="sm:col-span-4">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Nombres</label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={activeSection !== 'personal'}
-                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
-                                                        value={profileData.nombre}
-                                                        onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="sm:col-span-4">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Paterno</label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={activeSection !== 'personal'}
-                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
-                                                        value={profileData.apellido_p}
-                                                        onChange={(e) => setProfileData({ ...profileData, apellido_p: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="sm:col-span-4">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Apellido Materno</label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={activeSection !== 'personal'}
-                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"}`}
-                                                        value={profileData.apellido_m}
-                                                        onChange={(e) => setProfileData({ ...profileData, apellido_m: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="sm:col-span-6">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">RUT {activeSection === 'personal' && <span className="text-slate-400 font-normal normal-case">(Ej: 12.345.678-9)</span>}</label>
-                                                    <input
-                                                        type="text"
-                                                        disabled={activeSection !== 'personal'}
-                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600"
-                                                            } ${activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) ? "border-red-300 focus:border-red-500 focus:ring-red-200" : ""}`}
-                                                        value={profileData.rut}
-                                                        onChange={handleRutChange}
-                                                        placeholder="12.345.678-9"
-                                                        maxLength={12}
-                                                    />
-                                                    {activeSection === 'personal' && profileData.rut && !validateRut(profileData.rut) && (
-                                                        <p className="text-xs text-red-500 mt-1">RUT inválido</p>
-                                                    )}
-                                                </div>
-                                                <div className="sm:col-span-3">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Fecha de Nacimiento</label>
-                                                    <div className={activeSection !== 'personal' ? "opacity-60 pointer-events-none" : ""}>
-                                                        <DatePickerSingle
-                                                            value={profileData.fecha_nacimiento ? new Date(profileData.fecha_nacimiento + "T12:00:00") : undefined}
-                                                            onChange={(d) => setProfileData({ ...profileData, fecha_nacimiento: d ? format(d, "yyyy-MM-dd") : "" })}
-                                                            disabled={activeSection !== 'personal'}
-                                                            // Solo deshabilitar fechas futuras
-                                                            maxDate={new Date()}
-                                                            // Validar que sea mayor de 18 años al seleccionar
-                                                            validateDate={(d) => differenceInYears(new Date(), d) >= 18}
-                                                            onValidationFail={() => setAgeAlertOpen(true)}
-                                                            defaultMonth={subYears(new Date(), 20)}
-                                                            fromYear={1940}
-                                                            toYear={new Date().getFullYear()}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="sm:col-span-3">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Sexo</label>
-                                                    <select
-                                                        disabled={activeSection !== 'personal'}
-                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
-                                                            }`}
-                                                        value={profileData.sexo}
-                                                        onChange={(e) => setProfileData({ ...profileData, sexo: e.target.value })}
-                                                    >
-                                                        <option value="masculino">Masculino</option>
-                                                        <option value="femenino">Femenino</option>
-                                                        <option value="otro">Otro</option>
-                                                    </select>
-                                                </div>
-                                                <div className="sm:col-span-6">
-                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Ocupación</label>
-                                                    <select
-                                                        disabled={activeSection !== 'personal'}
-                                                        className={`w-full text-sm rounded-xl px-4 py-2.5 outline-none transition-all ${activeSection === 'personal' ? "border border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 bg-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 appearance-none"
-                                                            }`}
-                                                        value={profileData.ocupacion}
-                                                        onChange={(e) => setProfileData({ ...profileData, ocupacion: e.target.value })}
-                                                    >
-                                                        <option value="" disabled>Selecciona tu ocupación</option>
-                                                        {OCUPACIONES.map(op => (
-                                                            <option key={op} value={op}>{op}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        )}
 
-                                        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
-                                            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-                                                <div className="flex items-center gap-3 flex-1">
-                                                    <button
-                                                        onClick={() => toggleSection('profile')}
-                                                        className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
-                                                    >
-                                                        {expandedSections.profile ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                                    </button>
-                                                    <div>
-                                                        <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                                                            Perfil Sitter
-                                                            {profileComplete ? (
-                                                                <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
-                                                            ) : (
-                                                                <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
-                                                            )}
-                                                        </h4>
-                                                        <p className="text-xs text-slate-400 font-medium">Descripción y ubicación</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {activeSection === 'profile' ? (
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                            setActiveSection(null);
-                                                        }}
-                                                        className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleSaveSection('profile')}
-                                                        disabled={saving}
-                                                        className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
-                                                    >
-                                                        {saving ? "Guardando..." : "Guardar Cambios"}
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setActiveSection('profile')}
-                                                    disabled={activeSection !== null && activeSection !== 'profile'}
-                                                    className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
-                                                >
-                                                    Editar
-                                                </button>
-                                            )}
-
-                                            {expandedSections.profile && (
-                                                <div>
-
-
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-
-                                                        {/* Búsqueda de Dirección (Solo Edición) */}
-                                                        {activeSection === 'profile' && (
-                                                            <div className="sm:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-2">
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Buscar Dirección (OpenStreetMap)</label>
-                                                                <AddressAutocomplete
-                                                                    onSelect={handleSelectAddress}
-                                                                    placeholder="Ej: Av Providencia 1234"
-                                                                />
-                                                                <p className="text-[10px] text-slate-400 mt-1">Busca tu dirección y selecciónala para autocompletar.</p>
-                                                            </div>
-                                                        )}
-
-                                                        <div className="sm:col-span-2">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dirección Completa</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={true}
-                                                                className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border-2 border-slate-400 text-slate-600 cursor-not-allowed"
-                                                                value={profileData.direccion_completa || "No definida"}
-                                                                readOnly
-                                                            />
-                                                        </div>
-
-                                                        <div className="sm:col-span-1">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Calle</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'profile'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                value={profileData.calle || ""}
-                                                                onChange={(e) => setProfileData({ ...profileData, calle: e.target.value })}
-                                                            />
-                                                        </div>
-                                                        <div className="sm:col-span-1">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Número / Depto / Casa</label>
-                                                            <input
-                                                                type="text"
-                                                                disabled={activeSection !== 'profile'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                value={profileData.numero || ""}
-                                                                onChange={(e) => setProfileData({ ...profileData, numero: e.target.value })}
-                                                            />
-                                                        </div>
-
+                                            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <button
+                                                            onClick={() => toggleSection('profile')}
+                                                            className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                                                        >
+                                                            {expandedSections.profile ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                        </button>
                                                         <div>
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Vivienda</label>
-                                                            <select
-                                                                disabled={activeSection !== 'profile'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
-                                                                    }`}
-                                                                value={profileData.tipo_vivienda}
-                                                                onChange={(e) => setProfileData({ ...profileData, tipo_vivienda: e.target.value })}
-                                                            >
-                                                                <option value="casa">Casa</option>
-                                                                <option value="departamento">Depto</option>
-                                                                <option value="parcela">Parcela</option>
-                                                            </select>
+                                                            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                                Perfil Sitter
+                                                                {profileComplete ? (
+                                                                    <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                                ) : (
+                                                                    <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
+                                                                )}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-400 font-medium">Descripción y ubicación</p>
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dimensiones</label>
-                                                            <select
-                                                                disabled={activeSection !== 'profile'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
-                                                                    }`}
-                                                                value={profileData.dimensiones_vivienda || ""}
-                                                                onChange={(e) => setProfileData({ ...profileData, dimensiones_vivienda: e.target.value })}
-                                                            >
-                                                                <option value="" disabled>Seleccionar</option>
-                                                                <option value="Menos de 30m2">Menos de 30m²</option>
-                                                                <option value="30-70m2">30 - 70m²</option>
-                                                                <option value="70-130m2">70 - 130m²</option>
-                                                                <option value="Más de 130m2">Más de 130m²</option>
-                                                            </select>
-                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {activeSection === 'profile' ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                                setActiveSection(null);
+                                                            }}
+                                                            className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleSaveSection('profile')}
+                                                            disabled={saving}
+                                                            className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
+                                                        >
+                                                            {saving ? "Guardando..." : "Guardar Cambios"}
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setActiveSection('profile')}
+                                                        disabled={activeSection !== null && activeSection !== 'profile'}
+                                                        className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                )}
 
-                                                        <div className="sm:col-span-2 grid grid-cols-2 gap-4">
-                                                            <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_patio ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-400 text-slate-500'}`}>
+                                                {expandedSections.profile && (
+                                                    <div>
+
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+
+                                                            {/* Búsqueda de Dirección (Solo Edición) */}
+                                                            {activeSection === 'profile' && (
+                                                                <div className="sm:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-2">
+                                                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Buscar Dirección (OpenStreetMap)</label>
+                                                                    <AddressAutocomplete
+                                                                        onSelect={handleSelectAddress}
+                                                                        placeholder="Ej: Av Providencia 1234"
+                                                                    />
+                                                                    <p className="text-[10px] text-slate-400 mt-1">Busca tu dirección y selecciónala para autocompletar.</p>
+                                                                </div>
+                                                            )}
+
+                                                            <div className="sm:col-span-2">
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dirección Completa</label>
                                                                 <input
-                                                                    type="checkbox"
-                                                                    disabled={activeSection !== 'profile'}
-                                                                    checked={profileData.tiene_patio || false}
-                                                                    onChange={(e) => setProfileData({ ...profileData, tiene_patio: e.target.checked })}
-                                                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    type="text"
+                                                                    disabled={true}
+                                                                    className="w-full text-sm bg-slate-100 rounded-lg px-3 py-2 border-2 border-slate-400 text-slate-600 cursor-not-allowed"
+                                                                    value={profileData.direccion_completa || "No definida"}
+                                                                    readOnly
                                                                 />
-                                                                <span className="text-sm font-bold">Tiene Patio/Jardín</span>
-                                                            </label>
+                                                            </div>
 
-                                                            <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_malla ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-400 text-slate-500'}`}>
+                                                            <div className="sm:col-span-1">
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Calle</label>
                                                                 <input
-                                                                    type="checkbox"
+                                                                    type="text"
                                                                     disabled={activeSection !== 'profile'}
-                                                                    checked={profileData.tiene_malla || false}
-                                                                    onChange={(e) => setProfileData({ ...profileData, tiene_malla: e.target.checked })}
-                                                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                    value={profileData.calle || ""}
+                                                                    onChange={(e) => setProfileData({ ...profileData, calle: e.target.value })}
                                                                 />
-                                                                <span className="text-sm font-bold">Mallas de Seguridad</span>
-                                                            </label>
+                                                            </div>
+                                                            <div className="sm:col-span-1">
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Número / Depto / Casa</label>
+                                                                <input
+                                                                    type="text"
+                                                                    disabled={activeSection !== 'profile'}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                    value={profileData.numero || ""}
+                                                                    onChange={(e) => setProfileData({ ...profileData, numero: e.target.value })}
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Vivienda</label>
+                                                                <select
+                                                                    disabled={activeSection !== 'profile'}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                        }`}
+                                                                    value={profileData.tipo_vivienda}
+                                                                    onChange={(e) => setProfileData({ ...profileData, tipo_vivienda: e.target.value })}
+                                                                >
+                                                                    <option value="casa">Casa</option>
+                                                                    <option value="departamento">Depto</option>
+                                                                    <option value="parcela">Parcela</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Dimensiones</label>
+                                                                <select
+                                                                    disabled={activeSection !== 'profile'}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                        }`}
+                                                                    value={profileData.dimensiones_vivienda || ""}
+                                                                    onChange={(e) => setProfileData({ ...profileData, dimensiones_vivienda: e.target.value })}
+                                                                >
+                                                                    <option value="" disabled>Seleccionar</option>
+                                                                    <option value="Menos de 30m2">Menos de 30m²</option>
+                                                                    <option value="30-70m2">30 - 70m²</option>
+                                                                    <option value="70-130m2">70 - 130m²</option>
+                                                                    <option value="Más de 130m2">Más de 130m²</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div className="sm:col-span-2 grid grid-cols-2 gap-4">
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_patio ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-400 text-slate-500'}`}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        disabled={activeSection !== 'profile'}
+                                                                        checked={profileData.tiene_patio || false}
+                                                                        onChange={(e) => setProfileData({ ...profileData, tiene_patio: e.target.checked })}
+                                                                        className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    />
+                                                                    <span className="text-sm font-bold">Tiene Patio/Jardín</span>
+                                                                </label>
+
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_malla ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-400 text-slate-500'}`}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        disabled={activeSection !== 'profile'}
+                                                                        checked={profileData.tiene_malla || false}
+                                                                        onChange={(e) => setProfileData({ ...profileData, tiene_malla: e.target.checked })}
+                                                                        className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    />
+                                                                    <span className="text-sm font-bold">Mallas de Seguridad</span>
+                                                                </label>
+                                                            </div>
+
+                                                            <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-400">
+                                                                <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide flex justify-between items-center">
+                                                                    Fotos del Hogar (Máx 4)
+                                                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{(profileData.fotos_vivienda?.length || 0)}/4</span>
+                                                                </h5>
+
+                                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                                    {(profileData.fotos_vivienda || []).map((foto: string, idx: number) => (
+                                                                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm border-2 border-slate-400">
+                                                                            <Image src={foto} alt={`Hogar ${idx}`} fill className="object-cover" />
+                                                                            {activeSection === 'profile' && (
+                                                                                <button
+                                                                                    onClick={() => handleDeleteHousingPhoto(idx)}
+                                                                                    className="absolute top-1 right-1 bg-white/90 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-red-600"
+                                                                                >
+                                                                                    <Trash2 size={14} />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+
+                                                                    {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 4 && (
+                                                                        <label className="aspect-square rounded-lg border-2 border-dashed border-slate-400 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
+                                                                            {uploading ? (
+                                                                                <Loader2 size={20} className="animate-spin" />
+                                                                            ) : (
+                                                                                <>
+                                                                                    <ImagePlus size={20} className="mb-1" />
+                                                                                    <span className="text-[10px] font-bold">Agregar</span>
+                                                                                </>
+                                                                            )}
+                                                                            <input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                multiple
+                                                                                className="hidden"
+                                                                                onChange={handleHousingGalleryUpload}
+                                                                                disabled={uploading}
+                                                                            />
+                                                                        </label>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">¿Tienes mascotas?</label>
+                                                                <select
+                                                                    disabled={activeSection !== 'profile'}
+                                                                    className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                        }`}
+                                                                    value={profileData.tiene_mascotas}
+                                                                    onChange={(e) => setProfileData({ ...profileData, tiene_mascotas: e.target.value })}
+                                                                >
+                                                                    <option value="no">No</option>
+                                                                    <option value="si">Sí</option>
+                                                                </select>
+                                                            </div>
                                                         </div>
 
-                                                        <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-400">
-                                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide flex justify-between items-center">
-                                                                Fotos del Hogar (Máx 4)
-                                                                <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{(profileData.fotos_vivienda?.length || 0)}/4</span>
-                                                            </h5>
+                                                        {/* Detalles de mascotas si selecciona "Sí" */}
+                                                        {profileData.tiene_mascotas === "si" && (
+                                                            <div className="mb-4 bg-slate-100 rounded-lg p-3">
+                                                                <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Cuéntanos sobre tus mascotas</label>
 
-                                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                                {(profileData.fotos_vivienda || []).map((foto: string, idx: number) => (
-                                                                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm border-2 border-slate-400">
-                                                                        <Image src={foto} alt={`Hogar ${idx}`} fill className="object-cover" />
+                                                                {(profileData.detalles_mascotas || []).map((mascota: any, idx: number) => (
+                                                                    <div key={idx} className="flex gap-2 mb-2 items-center">
+                                                                        <select
+                                                                            className="text-sm rounded-lg px-2 py-1 border border-slate-200 flex-1 outline-none"
+                                                                            value={mascota.tipo}
+                                                                            onChange={(e) => {
+                                                                                const newDetails = [...(profileData.detalles_mascotas || [])];
+                                                                                newDetails[idx].tipo = e.target.value;
+                                                                                setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                            }}
+                                                                            disabled={activeSection !== 'profile'}
+                                                                        >
+                                                                            <option value="perro">Perro</option>
+                                                                            <option value="gato">Gato</option>
+                                                                            <option value="otro">Otro</option>
+                                                                        </select>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            className="w-16 text-sm rounded-lg px-2 py-1 border border-slate-200 outline-none"
+                                                                            value={mascota.cantidad}
+                                                                            onChange={(e) => {
+                                                                                const newDetails = [...(profileData.detalles_mascotas || [])];
+                                                                                newDetails[idx].cantidad = parseInt(e.target.value) || 1;
+                                                                                setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                            }}
+                                                                            disabled={activeSection !== 'profile'}
+                                                                        />
                                                                         {activeSection === 'profile' && (
                                                                             <button
-                                                                                onClick={() => handleDeleteHousingPhoto(idx)}
-                                                                                className="absolute top-1 right-1 bg-white/90 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-red-600"
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    const newDetails = (profileData.detalles_mascotas || []).filter((_: any, i: number) => i !== idx);
+                                                                                    setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                                }}
+                                                                                className="text-red-500 hover:text-red-700 p-1"
                                                                             >
-                                                                                <Trash2 size={14} />
+                                                                                âœ•
                                                                             </button>
                                                                         )}
                                                                     </div>
                                                                 ))}
 
-                                                                {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 4 && (
-                                                                    <label className="aspect-square rounded-lg border-2 border-dashed border-slate-400 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
-                                                                        {uploading ? (
-                                                                            <Loader2 size={20} className="animate-spin" />
-                                                                        ) : (
-                                                                            <>
-                                                                                <ImagePlus size={20} className="mb-1" />
-                                                                                <span className="text-[10px] font-bold">Agregar</span>
-                                                                            </>
-                                                                        )}
-                                                                        <input
-                                                                            type="file"
-                                                                            accept="image/*"
-                                                                            multiple
-                                                                            className="hidden"
-                                                                            onChange={handleHousingGalleryUpload}
-                                                                            disabled={uploading}
-                                                                        />
-                                                                    </label>
+                                                                {activeSection === 'profile' && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setProfileData({
+                                                                                ...profileData,
+                                                                                detalles_mascotas: [...profileData.detalles_mascotas, { tipo: "perro", cantidad: 1 }]
+                                                                            });
+                                                                        }}
+                                                                        className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
+                                                                    >
+                                                                        + Agregar otra mascota
+                                                                    </button>
                                                                 )}
                                                             </div>
-                                                        </div>
+                                                        )}
 
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">¿Tienes mascotas?</label>
-                                                            <select
+                                                        <div className="mb-4">
+                                                            <div className="flex justify-between items-end mb-1.5">
+                                                                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
+                                                                    <AlignLeft className="w-4 h-4 text-slate-500" /> Sobre mí
+                                                                </label>
+                                                                <span className={`text-xs ${profileData.descripcion.length >= 100 ? 'text-emerald-600 font-medium' : 'text-slate-400'
+                                                                    }`}>
+                                                                    {profileData.descripcion.length} / 100 caracteres mín.
+                                                                </span>
+                                                            </div>
+                                                            <textarea
+                                                                rows={4}
                                                                 disabled={activeSection !== 'profile'}
-                                                                className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500 appearance-none"
+                                                                className={`w-full text-sm rounded-xl px-3 py-2 outline-none resize-none transition-all ${activeSection === 'profile' ? "border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
                                                                     }`}
-                                                                value={profileData.tiene_mascotas}
-                                                                onChange={(e) => setProfileData({ ...profileData, tiene_mascotas: e.target.value })}
-                                                            >
-                                                                <option value="no">No</option>
-                                                                <option value="si">Sí</option>
-                                                            </select>
+                                                                value={profileData.descripcion}
+                                                                onChange={(e) => setProfileData({ ...profileData, descripcion: e.target.value })}
+                                                                placeholder="Cuéntanos por qué eres el mejor sitter..."
+                                                            />
                                                         </div>
-                                                    </div>
 
-                                                    {/* Detalles de mascotas si selecciona "Sí" */}
-                                                    {profileData.tiene_mascotas === "si" && (
-                                                        <div className="mb-4 bg-slate-100 rounded-lg p-3">
-                                                            <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Cuéntanos sobre tus mascotas</label>
 
-                                                            {(profileData.detalles_mascotas || []).map((mascota: any, idx: number) => (
+
+                                                        {/* Videos */}
+                                                        <div className="mt-4 pt-4 border-t border-slate-100">
+                                                            <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Videos (YouTube/TikTok)</h5>
+                                                            {(profileData.videos || []).map((video: string, idx: number) => (
                                                                 <div key={idx} className="flex gap-2 mb-2 items-center">
-                                                                    <select
-                                                                        className="text-sm rounded-lg px-2 py-1 border border-slate-200 flex-1 outline-none"
-                                                                        value={mascota.tipo}
-                                                                        onChange={(e) => {
-                                                                            const newDetails = [...(profileData.detalles_mascotas || [])];
-                                                                            newDetails[idx].tipo = e.target.value;
-                                                                            setProfileData({ ...profileData, detalles_mascotas: newDetails });
-                                                                        }}
-                                                                        disabled={activeSection !== 'profile'}
-                                                                    >
-                                                                        <option value="perro">Perro</option>
-                                                                        <option value="gato">Gato</option>
-                                                                        <option value="otro">Otro</option>
-                                                                    </select>
                                                                     <input
-                                                                        type="number"
-                                                                        min="1"
-                                                                        className="w-16 text-sm rounded-lg px-2 py-1 border border-slate-200 outline-none"
-                                                                        value={mascota.cantidad}
-                                                                        onChange={(e) => {
-                                                                            const newDetails = [...(profileData.detalles_mascotas || [])];
-                                                                            newDetails[idx].cantidad = parseInt(e.target.value) || 1;
-                                                                            setProfileData({ ...profileData, detalles_mascotas: newDetails });
-                                                                        }}
+                                                                        type="text"
+                                                                        value={video}
                                                                         disabled={activeSection !== 'profile'}
+                                                                        onChange={(e) => {
+                                                                            const newVideos = [...(profileData.videos || [])];
+                                                                            newVideos[idx] = e.target.value;
+                                                                            setProfileData({ ...profileData, videos: newVideos });
+                                                                        }}
+                                                                        className={`flex-1 text-sm rounded-xl px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
+                                                                        placeholder="Ej: https://youtube.com/..."
                                                                     />
                                                                     {activeSection === 'profile' && (
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => {
-                                                                                const newDetails = (profileData.detalles_mascotas || []).filter((_: any, i: number) => i !== idx);
-                                                                                setProfileData({ ...profileData, detalles_mascotas: newDetails });
+                                                                                const newVideos = profileData.videos.filter((_: any, i: number) => i !== idx);
+                                                                                setProfileData({ ...profileData, videos: newVideos });
                                                                             }}
                                                                             className="text-red-500 hover:text-red-700 p-1"
                                                                         >
@@ -2407,272 +2478,201 @@ export default function SitterDashboardPage() {
                                                                     )}
                                                                 </div>
                                                             ))}
-
-                                                            {activeSection === 'profile' && (
+                                                            {activeSection === 'profile' && (profileData.videos?.length || 0) < 3 && (
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => {
-                                                                        setProfileData({
-                                                                            ...profileData,
-                                                                            detalles_mascotas: [...profileData.detalles_mascotas, { tipo: "perro", cantidad: 1 }]
-                                                                        });
-                                                                    }}
+                                                                    onClick={() => setProfileData({ ...profileData, videos: [...(profileData.videos || []), ""] })}
                                                                     className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
                                                                 >
-                                                                    + Agregar otra mascota
+                                                                    + Agregar Video
                                                                 </button>
                                                             )}
                                                         </div>
-                                                    )}
-
-                                                    <div className="mb-4">
-                                                        <div className="flex justify-between items-end mb-1.5">
-                                                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
-                                                                <AlignLeft className="w-4 h-4 text-slate-500" /> Sobre mí
-                                                            </label>
-                                                            <span className={`text-xs ${profileData.descripcion.length >= 100 ? 'text-emerald-600 font-medium' : 'text-slate-400'
-                                                                }`}>
-                                                                {profileData.descripcion.length} / 100 caracteres mín.
-                                                            </span>
-                                                        </div>
-                                                        <textarea
-                                                            rows={4}
-                                                            disabled={activeSection !== 'profile'}
-                                                            className={`w-full text-sm rounded-xl px-3 py-2 outline-none resize-none transition-all ${activeSection === 'profile' ? "border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
-                                                                }`}
-                                                            value={profileData.descripcion}
-                                                            onChange={(e) => setProfileData({ ...profileData, descripcion: e.target.value })}
-                                                            placeholder="Cuéntanos por qué eres el mejor sitter..."
-                                                        />
                                                     </div>
+                                                )}
 
+                                            </div>
 
+                                            {/* Video Presentacion Component */}
+                                            <div className="bg-white p-5 rounded-2xl border border-slate-200 mt-8">
+                                                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
+                                                    <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><Play className="w-4 h-4 text-slate-400" /></div>
+                                                    Video de Presentación
+                                                </h4>
 
-                                                    {/* Videos */}
-                                                    <div className="mt-4 pt-4 border-t border-slate-100">
-                                                        <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Videos (YouTube/TikTok)</h5>
-                                                        {(profileData.videos || []).map((video: string, idx: number) => (
-                                                            <div key={idx} className="flex gap-2 mb-2 items-center">
-                                                                <input
-                                                                    type="text"
-                                                                    value={video}
-                                                                    disabled={activeSection !== 'profile'}
-                                                                    onChange={(e) => {
-                                                                        const newVideos = [...(profileData.videos || [])];
-                                                                        newVideos[idx] = e.target.value;
-                                                                        setProfileData({ ...profileData, videos: newVideos });
-                                                                    }}
-                                                                    className={`flex-1 text-sm rounded-xl px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
-                                                                    placeholder="Ej: https://youtube.com/..."
-                                                                />
-                                                                {activeSection === 'profile' && (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            const newVideos = profileData.videos.filter((_: any, i: number) => i !== idx);
-                                                                            setProfileData({ ...profileData, videos: newVideos });
-                                                                        }}
-                                                                        className="text-red-500 hover:text-red-700 p-1"
-                                                                    >
-                                                                        âœ•
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                        {activeSection === 'profile' && (profileData.videos?.length || 0) < 3 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setProfileData({ ...profileData, videos: [...(profileData.videos || []), ""] })}
-                                                                className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
-                                                            >
-                                                                + Agregar Video
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
+                                                <div className="bg-white p-4 rounded-xl border border-slate-200">
+                                                    <p className="text-xs text-slate-500 mb-4">
+                                                        Sube un video corto presentándote a los dueños de mascotas. Esto aumenta significativamente tus posibilidades de ser contratado.
+                                                    </p>
 
-                                        </div>
-
-                                        {/* Video Presentacion Component */}
-                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 mt-8">
-                                            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
-                                                <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><Play className="w-4 h-4 text-slate-400" /></div>
-                                                Video de Presentación
-                                            </h4>
-
-                                            <div className="bg-white p-4 rounded-xl border border-slate-200">
-                                                <p className="text-xs text-slate-500 mb-4">
-                                                    Sube un video corto presentándote a los dueños de mascotas. Esto aumenta significativamente tus posibilidades de ser contratado.
-                                                </p>
-
-                                                {profileData.video_presentacion ? (
-                                                    <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-w-sm mx-auto shadow-md group">
-                                                        <video
-                                                            src={profileData.video_presentacion}
-                                                            controls
-                                                            className="w-full h-full object-contain"
-                                                        />
-                                                        {activeSection === 'profile' && (
-                                                            <button
-                                                                onClick={handleDeleteVideoPresentacion}
-                                                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                                                                title="Eliminar Video"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    activeSection === 'profile' ? (
-                                                        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
-                                                            <input
-                                                                type="file"
-                                                                accept="video/mp4,video/quicktime,video/webm"
-                                                                onChange={handleVideoPresentacionUpload}
-                                                                disabled={uploading}
-                                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    {profileData.video_presentacion ? (
+                                                        <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-w-sm mx-auto shadow-md group">
+                                                            <video
+                                                                src={profileData.video_presentacion}
+                                                                controls
+                                                                className="w-full h-full object-contain"
                                                             />
-                                                            {uploading ? (
-                                                                <Loader2 size={32} className="text-emerald-500 animate-spin mb-2" />
-                                                            ) : (
-                                                                <Upload size={32} className="text-slate-300 mb-2" />
+                                                            {activeSection === 'profile' && (
+                                                                <button
+                                                                    onClick={handleDeleteVideoPresentacion}
+                                                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                                    title="Eliminar Video"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
                                                             )}
-                                                            <h5 className="text-sm font-bold text-slate-700">Sube tu video aquí</h5>
-                                                            <p className="text-xs text-slate-400 mt-1">MP4, MOV o WEBM (Máx 50MB)</p>
                                                         </div>
                                                     ) : (
-                                                        <div className="border border-slate-200 bg-slate-50 rounded-2xl p-8 text-center">
-                                                            <p className="text-sm text-slate-400 italic">No has subido un video de presentación.</p>
-                                                        </div>
-                                                    )
-                                                )}
-
-                                                {/* Consentimiento RRSS */}
-                                                <div className="mt-4 pt-4 border-t border-slate-100">
-                                                    <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
-                                                        <div className="pt-0.5">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={profileData.consentimiento_rrss}
-                                                                onChange={(e) => setProfileData({ ...profileData, consentimiento_rrss: e.target.checked })}
-                                                                disabled={activeSection !== 'profile'}
-                                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <span className={`text-sm font-bold block ${profileData.consentimiento_rrss ? 'text-indigo-900' : 'text-slate-700'}`}>
-                                                                Consentimiento para Redes Sociales
-                                                            </span>
-                                                            <p className="text-xs text-slate-500 mt-0.5">
-                                                                Doy mi consentimiento para que Pawnecta pueda publicar este video en sus redes sociales (Instagram, TikTok) para promocionar mi perfil.
-                                                            </p>
-                                                        </div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-
-                                        {/* BLOQUE 4: Documentación */}
-                                        <div className="bg-white p-5 rounded-2xl border border-slate-200">
-                                            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                                                <div className="flex items-center gap-2 flex-1">
-                                                    <button
-                                                        onClick={() => toggleSection('documents')}
-                                                        className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
-                                                    >
-                                                        {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                                    </button>
-                                                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                        <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><FileCheck className="w-4 h-4 text-slate-400" /></div>
-                                                        Documentación
-                                                        {profileData.certificado_antecedentes ? (
-                                                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
-                                                        ) : (
-                                                            <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Pendiente</span>
-                                                        )}
-                                                    </h4>
-                                                </div>
-                                                {activeSection === 'documents' ? (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => setActiveSection(null)}
-                                                            className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
-                                                        >
-                                                            Listo
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setActiveSection('documents')}
-                                                        disabled={activeSection !== null && activeSection !== 'documents'}
-                                                        className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {expandedSections.documents && (
-                                                <div>
-                                                    {profileData.certificado_antecedentes ? (
-                                                        <div className="flex items-start gap-3 p-4 bg-white border border-slate-200 rounded-xl shadow-sm group/file transition-colors max-w-md">
-                                                            <div className="p-3 bg-slate-100 text-slate-500 rounded-lg transition-colors">
-                                                                <FileText size={24} />
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-sm font-bold text-slate-700 truncate">Antecedentes.pdf</p>
-                                                                <p className="text-xs text-slate-400 mt-0.5">Certificado de Antecedentes</p>
-                                                                <div className="flex gap-3 mt-3">
-                                                                    <button
-                                                                        onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
-                                                                        className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border border-slate-200 hover:bg-white"
-                                                                    >
-                                                                        <Eye size={12} /> Ver Documento
-                                                                    </button>
-                                                                    {activeSection === 'documents' && (
-                                                                        <button
-                                                                            onClick={handleDeleteDocument}
-                                                                            disabled={uploading}
-                                                                            className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors px-2 py-1 bg-red-50 rounded border border-red-100 hover:bg-white"
-                                                                        >
-                                                                            {uploading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Eliminar
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            <div className="text-emerald-500">
-                                                                <CheckCircle2 size={20} />
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="max-w-md">
-                                                            <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-2xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-200 opacity-60 cursor-not-allowed"}`}>
-                                                                <div className={`p-4 rounded-full transition-colors ${activeSection === 'documents' ? "bg-slate-50 text-slate-400 group-hover/upload:text-emerald-600 group-hover/upload:bg-emerald-100" : "bg-slate-50 text-slate-300"}`}>
-                                                                    <Upload size={24} />
-                                                                </div>
-                                                                <div className="text-center mt-2">
-                                                                    <p className={`text-sm font-bold ${activeSection === 'documents' ? "text-slate-600 group-hover/upload:text-emerald-700" : "text-slate-400"}`}>Subir Certificado de Antecedentes</p>
-                                                                    <p className="text-xs text-slate-400 mt-1">Sube tu archivo PDF o Imagen</p>
-                                                                </div>
+                                                        activeSection === 'profile' ? (
+                                                            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
                                                                 <input
                                                                     type="file"
-                                                                    accept="image/*,.pdf"
-                                                                    className="hidden"
-                                                                    onChange={handleCertUpload}
-                                                                    disabled={activeSection !== 'documents' || uploading}
+                                                                    accept="video/mp4,video/quicktime,video/webm"
+                                                                    onChange={handleVideoPresentacionUpload}
+                                                                    disabled={uploading}
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
                                                                 />
-                                                            </label>
-                                                            {activeSection !== 'documents' && (
-                                                                <p className="text-xs text-slate-400 mt-2 text-center text-balance">
-                                                                    Haz clic en <span className="font-bold">Editar</span> para gestionar tus documentos.
+                                                                {uploading ? (
+                                                                    <Loader2 size={32} className="text-emerald-500 animate-spin mb-2" />
+                                                                ) : (
+                                                                    <Upload size={32} className="text-slate-300 mb-2" />
+                                                                )}
+                                                                <h5 className="text-sm font-bold text-slate-700">Sube tu video aquí</h5>
+                                                                <p className="text-xs text-slate-400 mt-1">MP4, MOV o WEBM (Máx 50MB)</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="border border-slate-200 bg-slate-50 rounded-2xl p-8 text-center">
+                                                                <p className="text-sm text-slate-400 italic">No has subido un video de presentación.</p>
+                                                            </div>
+                                                        )
+                                                    )}
+
+                                                    {/* Consentimiento RRSS */}
+                                                    <div className="mt-4 pt-4 border-t border-slate-100">
+                                                        <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
+                                                            <div className="pt-0.5">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={profileData.consentimiento_rrss}
+                                                                    onChange={(e) => setProfileData({ ...profileData, consentimiento_rrss: e.target.checked })}
+                                                                    disabled={activeSection !== 'profile'}
+                                                                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <span className={`text-sm font-bold block ${profileData.consentimiento_rrss ? 'text-indigo-900' : 'text-slate-700'}`}>
+                                                                    Consentimiento para Redes Sociales
+                                                                </span>
+                                                                <p className="text-xs text-slate-500 mt-0.5">
+                                                                    Doy mi consentimiento para que Pawnecta pueda publicar este video en sus redes sociales (Instagram, TikTok) para promocionar mi perfil.
                                                                 </p>
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            {/* BLOQUE 4: Documentación */}
+                                            <div className="bg-white p-5 rounded-2xl border border-slate-200">
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                                                    <div className="flex items-center gap-2 flex-1">
+                                                        <button
+                                                            onClick={() => toggleSection('documents')}
+                                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                        >
+                                                            {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                        </button>
+                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                            <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><FileCheck className="w-4 h-4 text-slate-400" /></div>
+                                                            Documentación
+                                                            {profileData.certificado_antecedentes ? (
+                                                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
+                                                            ) : (
+                                                                <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Pendiente</span>
                                                             )}
+                                                        </h4>
+                                                    </div>
+                                                    {activeSection === 'documents' ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => setActiveSection(null)}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                            >
+                                                                Listo
+                                                            </button>
                                                         </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => setActiveSection('documents')}
+                                                            disabled={activeSection !== null && activeSection !== 'documents'}
+                                                            className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        >
+                                                            Editar
+                                                        </button>
                                                     )}
                                                 </div>
-                                            )}
+
+                                                {expandedSections.documents && (
+                                                    <div>
+                                                        {profileData.certificado_antecedentes ? (
+                                                            <div className="flex items-start gap-3 p-4 bg-white border border-slate-200 rounded-xl shadow-sm group/file transition-colors max-w-md">
+                                                                <div className="p-3 bg-slate-100 text-slate-500 rounded-lg transition-colors">
+                                                                    <FileText size={24} />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-bold text-slate-700 truncate">Antecedentes.pdf</p>
+                                                                    <p className="text-xs text-slate-400 mt-0.5">Certificado de Antecedentes</p>
+                                                                    <div className="flex gap-3 mt-3">
+                                                                        <button
+                                                                            onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
+                                                                            className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border border-slate-200 hover:bg-white"
+                                                                        >
+                                                                            <Eye size={12} /> Ver Documento
+                                                                        </button>
+                                                                        {activeSection === 'documents' && (
+                                                                            <button
+                                                                                onClick={handleDeleteDocument}
+                                                                                disabled={uploading}
+                                                                                className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors px-2 py-1 bg-red-50 rounded border border-red-100 hover:bg-white"
+                                                                            >
+                                                                                {uploading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Eliminar
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-emerald-500">
+                                                                    <CheckCircle2 size={20} />
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="max-w-md">
+                                                                <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-2xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-200 opacity-60 cursor-not-allowed"}`}>
+                                                                    <div className={`p-4 rounded-full transition-colors ${activeSection === 'documents' ? "bg-slate-50 text-slate-400 group-hover/upload:text-emerald-600 group-hover/upload:bg-emerald-100" : "bg-slate-50 text-slate-300"}`}>
+                                                                        <Upload size={24} />
+                                                                    </div>
+                                                                    <div className="text-center mt-2">
+                                                                        <p className={`text-sm font-bold ${activeSection === 'documents' ? "text-slate-600 group-hover/upload:text-emerald-700" : "text-slate-400"}`}>Subir Certificado de Antecedentes</p>
+                                                                        <p className="text-xs text-slate-400 mt-1">Sube tu archivo PDF o Imagen</p>
+                                                                    </div>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*,.pdf"
+                                                                        className="hidden"
+                                                                        onChange={handleCertUpload}
+                                                                        disabled={activeSection !== 'documents' || uploading}
+                                                                    />
+                                                                </label>
+                                                                {activeSection !== 'documents' && (
+                                                                    <p className="text-xs text-slate-400 mt-2 text-center text-balance">
+                                                                        Haz clic en <span className="font-bold">Editar</span> para gestionar tus documentos.
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </Card>
                                 )}
@@ -2731,8 +2731,8 @@ export default function SitterDashboardPage() {
 
 
 
-                    </div>
-                </div>
+                    </div >
+                </div >
             </main >
 
             <ClientDetailsDialog
