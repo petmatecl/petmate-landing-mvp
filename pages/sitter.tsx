@@ -2519,7 +2519,7 @@ export default function SitterDashboardPage() {
                                                     </div>
                                                 ) : (
                                                     activeSection === 'profile' ? (
-                                                        <div className="border-2 border-dashed border-slate-400 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
+                                                        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-emerald-400 hover:bg-emerald-50/10 transition-all cursor-pointer relative">
                                                             <input
                                                                 type="file"
                                                                 accept="video/mp4,video/quicktime,video/webm"
@@ -2536,15 +2536,15 @@ export default function SitterDashboardPage() {
                                                             <p className="text-xs text-slate-400 mt-1">MP4, MOV o WEBM (Máx 50MB)</p>
                                                         </div>
                                                     ) : (
-                                                        <div className="border-2 border-slate-400 bg-slate-50 rounded-xl p-8 text-center">
+                                                        <div className="border border-slate-200 bg-slate-50 rounded-2xl p-8 text-center">
                                                             <p className="text-sm text-slate-400 italic">No has subido un video de presentación.</p>
                                                         </div>
                                                     )
                                                 )}
 
                                                 {/* Consentimiento RRSS */}
-                                                <div className="mt-4 pt-4 border-t border-slate-400">
-                                                    <label className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-400'}`}>
+                                                <div className="mt-4 pt-4 border-t border-slate-100">
+                                                    <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${profileData.consentimiento_rrss ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
                                                         <div className="pt-0.5">
                                                             <input
                                                                 type="checkbox"
@@ -2569,17 +2569,17 @@ export default function SitterDashboardPage() {
 
 
                                         {/* BLOQUE 4: Documentación */}
-                                        <div className="bg-slate-50/50 p-5 rounded-xl border-2 border-slate-400 mt-8">
-                                            <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 mt-8">
+                                            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                                                 <div className="flex items-center gap-2 flex-1">
                                                     <button
                                                         onClick={() => toggleSection('documents')}
-                                                        className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                        className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
                                                     >
                                                         {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                     </button>
                                                     <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                        <div className="bg-white p-1 rounded-md shadow-sm border-2 border-slate-400"><FileCheck className="w-4 h-4 text-slate-500" /></div>
+                                                        <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><FileCheck className="w-4 h-4 text-slate-400" /></div>
                                                         Documentación
                                                         {profileData.certificado_antecedentes ? (
                                                             <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase ml-2">Completo</span>
@@ -2611,7 +2611,7 @@ export default function SitterDashboardPage() {
                                             {expandedSections.documents && (
                                                 <div>
                                                     {profileData.certificado_antecedentes ? (
-                                                        <div className="flex items-start gap-3 p-4 bg-white border-2 border-slate-400 rounded-xl shadow-sm group/file transition-colors max-w-md">
+                                                        <div className="flex items-start gap-3 p-4 bg-white border border-slate-200 rounded-xl shadow-sm group/file transition-colors max-w-md">
                                                             <div className="p-3 bg-slate-100 text-slate-500 rounded-lg transition-colors">
                                                                 <FileText size={24} />
                                                             </div>
@@ -2621,7 +2621,7 @@ export default function SitterDashboardPage() {
                                                                 <div className="flex gap-3 mt-3">
                                                                     <button
                                                                         onClick={() => handleViewDocument(profileData.certificado_antecedentes)}
-                                                                        className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border-2 border-slate-400 hover:bg-white"
+                                                                        className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 bg-slate-50 rounded border border-slate-200 hover:bg-white"
                                                                     >
                                                                         <Eye size={12} /> Ver Documento
                                                                     </button>
@@ -2642,7 +2642,7 @@ export default function SitterDashboardPage() {
                                                         </div>
                                                     ) : (
                                                         <div className="max-w-md">
-                                                            <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-400 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-400 opacity-60 cursor-not-allowed"}`}>
+                                                            <label className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-2xl transition-all group/upload ${activeSection === 'documents' ? "border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/10 cursor-pointer" : "border-slate-200 opacity-60 cursor-not-allowed"}`}>
                                                                 <div className={`p-4 rounded-full transition-colors ${activeSection === 'documents' ? "bg-slate-50 text-slate-400 group-hover/upload:text-emerald-600 group-hover/upload:bg-emerald-100" : "bg-slate-50 text-slate-300"}`}>
                                                                     <Upload size={24} />
                                                                 </div>
