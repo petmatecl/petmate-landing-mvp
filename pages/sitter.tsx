@@ -2362,7 +2362,7 @@ export default function SitterDashboardPage() {
                                                             {(profileData.detalles_mascotas || []).map((mascota: any, idx: number) => (
                                                                 <div key={idx} className="flex gap-2 mb-2 items-center">
                                                                     <select
-                                                                        className="text-sm rounded-lg px-2 py-1 border-2 border-slate-400 flex-1 outline-none"
+                                                                        className="text-sm rounded-lg px-2 py-1 border border-slate-200 flex-1 outline-none"
                                                                         value={mascota.tipo}
                                                                         onChange={(e) => {
                                                                             const newDetails = [...(profileData.detalles_mascotas || [])];
@@ -2378,7 +2378,7 @@ export default function SitterDashboardPage() {
                                                                     <input
                                                                         type="number"
                                                                         min="1"
-                                                                        className="w-16 text-sm rounded-lg px-2 py-1 border-2 border-slate-400 outline-none"
+                                                                        className="w-16 text-sm rounded-lg px-2 py-1 border border-slate-200 outline-none"
                                                                         value={mascota.cantidad}
                                                                         onChange={(e) => {
                                                                             const newDetails = [...(profileData.detalles_mascotas || [])];
@@ -2432,7 +2432,7 @@ export default function SitterDashboardPage() {
                                                         <textarea
                                                             rows={4}
                                                             disabled={activeSection !== 'profile'}
-                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none resize-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"
+                                                            className={`w-full text-sm rounded-xl px-3 py-2 outline-none resize-none transition-all ${activeSection === 'profile' ? "border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"
                                                                 }`}
                                                             value={profileData.descripcion}
                                                             onChange={(e) => setProfileData({ ...profileData, descripcion: e.target.value })}
@@ -2443,7 +2443,7 @@ export default function SitterDashboardPage() {
 
 
                                                     {/* Videos */}
-                                                    <div className="mt-4 pt-4 border-t border-slate-400">
+                                                    <div className="mt-4 pt-4 border-t border-slate-100">
                                                         <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Videos (YouTube/TikTok)</h5>
                                                         {(profileData.videos || []).map((video: string, idx: number) => (
                                                             <div key={idx} className="flex gap-2 mb-2 items-center">
@@ -2456,7 +2456,7 @@ export default function SitterDashboardPage() {
                                                                         newVideos[idx] = e.target.value;
                                                                         setProfileData({ ...profileData, videos: newVideos });
                                                                     }}
-                                                                    className={`flex-1 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
+                                                                    className={`flex-1 text-sm rounded-xl px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-200 text-slate-500"}`}
                                                                     placeholder="Ej: https://youtube.com/..."
                                                                 />
                                                                 {activeSection === 'profile' && (
@@ -2489,13 +2489,13 @@ export default function SitterDashboardPage() {
                                         </div>
 
                                         {/* Video Presentacion Component */}
-                                        <div className="bg-slate-50/50 p-5 rounded-xl border-2 border-slate-400 mt-8">
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 mt-8">
                                             <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
-                                                <div className="bg-white p-1 rounded-md shadow-sm border-2 border-slate-400"><Play className="w-4 h-4 text-slate-500" /></div>
+                                                <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><Play className="w-4 h-4 text-slate-400" /></div>
                                                 Video de Presentación
                                             </h4>
 
-                                            <div className="bg-white p-4 rounded-xl border-2 border-slate-400">
+                                            <div className="bg-white p-4 rounded-xl border border-slate-200">
                                                 <p className="text-xs text-slate-500 mb-4">
                                                     Sube un video corto presentándote a los dueños de mascotas. Esto aumenta significativamente tus posibilidades de ser contratado.
                                                 </p>
