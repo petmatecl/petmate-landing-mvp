@@ -938,6 +938,8 @@ export default function SitterDashboardPage() {
     const contactComplete = Boolean(profileData.telefono && profileData.region && profileData.comuna);
     const personalComplete = Boolean(profileData.nombre && profileData.apellido_p && profileData.rut && profileData.fecha_nacimiento && profileData.sexo && profileData.ocupacion);
     const profileComplete = Boolean(profileData.descripcion && profileData.descripcion.length >= 100 && profileData.tipo_vivienda && profileData.tiene_mascotas);
+    const docsComplete = Boolean(profileData.certificado_antecedentes);
+    const videoComplete = Boolean(profileData.video_presentacion);
 
 
     if (loading) {
@@ -1821,7 +1823,26 @@ export default function SitterDashboardPage() {
 
 
                                         <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-                                            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Mi Perfil</h3>
+                                            <div>
+                                                <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Mi Perfil</h3>
+                                                {(() => {
+                                                    const missing = [];
+                                                    if (!contactComplete) missing.push("Datos de Contacto");
+                                                    if (!personalComplete) missing.push("Información Personal");
+                                                    if (!profileComplete) missing.push("Perfil Sitter");
+                                                    if (!docsComplete) missing.push("Documentación");
+                                                    if (!videoComplete) missing.push("Video de Presentación");
+
+                                                    if (missing.length > 0) {
+                                                        return (
+                                                            <p className="text-red-500 font-bold text-xs mt-1">
+                                                                Falta: {missing.join(', ')}
+                                                            </p>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
+                                            </div>
                                             <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
                                                 Gestiona tu información pública
                                             </span>
@@ -1868,35 +1889,35 @@ export default function SitterDashboardPage() {
                                                             <p className="text-xs text-slate-400 font-medium">Email, teléfono y redes sociales</p>
                                                         </div>
                                                     </div>
+                                                    {activeSection === 'contact' ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                                    setActiveSection(null);
+                                                                }}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleSaveSection('contact')}
+                                                                disabled={saving}
+                                                                className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
+                                                            >
+                                                                {saving ? "Guardando..." : "Guardar Cambios"}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => setActiveSection('contact')}
+                                                            disabled={activeSection !== null && activeSection !== 'contact'}
+                                                            className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                {activeSection === 'contact' ? (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => {
-                                                                if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                                setActiveSection(null);
-                                                            }}
-                                                            className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                                                        >
-                                                            Cancelar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleSaveSection('contact')}
-                                                            disabled={saving}
-                                                            className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
-                                                        >
-                                                            {saving ? "Guardando..." : "Guardar Cambios"}
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setActiveSection('contact')}
-                                                        disabled={activeSection !== null && activeSection !== 'contact'}
-                                                        className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                )}
                                                 {expandedSections.contact && (
                                                     <>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2034,35 +2055,35 @@ export default function SitterDashboardPage() {
                                                             <p className="text-xs text-slate-400 font-medium">Datos básicos de identificación</p>
                                                         </div>
                                                     </div>
+                                                    {activeSection === 'personal' ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                                    setActiveSection(null);
+                                                                }}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleSaveSection('personal')}
+                                                                disabled={saving}
+                                                                className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
+                                                            >
+                                                                {saving ? "Guardando..." : "Guardar Cambios"}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => setActiveSection('personal')}
+                                                            disabled={activeSection !== null && activeSection !== 'personal'}
+                                                            className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                {activeSection === 'personal' ? (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => {
-                                                                if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                                setActiveSection(null);
-                                                            }}
-                                                            className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                                                        >
-                                                            Cancelar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleSaveSection('personal')}
-                                                            disabled={saving}
-                                                            className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
-                                                        >
-                                                            {saving ? "Guardando..." : "Guardar Cambios"}
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setActiveSection('personal')}
-                                                        disabled={activeSection !== null && activeSection !== 'personal'}
-                                                        className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                )}
                                                 {expandedSections.personal && (
                                                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                                                         <div className="sm:col-span-4">
@@ -2183,35 +2204,35 @@ export default function SitterDashboardPage() {
                                                             <p className="text-xs text-slate-400 font-medium">Descripción y ubicación</p>
                                                         </div>
                                                     </div>
+                                                    {activeSection === 'profile' ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
+                                                                    setActiveSection(null);
+                                                                }}
+                                                                className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleSaveSection('profile')}
+                                                                disabled={saving}
+                                                                className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
+                                                            >
+                                                                {saving ? "Guardando..." : "Guardar Cambios"}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => setActiveSection('profile')}
+                                                            disabled={activeSection !== null && activeSection !== 'profile'}
+                                                            className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                {activeSection === 'profile' ? (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => {
-                                                                if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
-                                                                setActiveSection(null);
-                                                            }}
-                                                            className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                                                        >
-                                                            Cancelar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleSaveSection('profile')}
-                                                            disabled={saving}
-                                                            className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
-                                                        >
-                                                            {saving ? "Guardando..." : "Guardar Cambios"}
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setActiveSection('profile')}
-                                                        disabled={activeSection !== null && activeSection !== 'profile'}
-                                                        className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                )}
 
                                                 {expandedSections.profile && (
                                                     <div>
