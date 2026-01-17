@@ -989,6 +989,7 @@ export default function SitterDashboardPage() {
                     servicio_en_casa: profileData.servicio_en_casa,
                     tarifa_servicio_a_domicilio: profileData.tarifa_servicio_a_domicilio,
                     tarifa_servicio_en_casa: profileData.tarifa_servicio_en_casa,
+                    price: profileData.tarifa_servicio_en_casa, // Sync legacy 'price' column with 'tarifa_servicio_en_casa'
                     tamanos_perros: profileData.tamanos_perros
                 };
             } else {
