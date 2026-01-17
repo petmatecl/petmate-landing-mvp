@@ -14,7 +14,7 @@ import ModalConfirm from "../components/ModalConfirm";
 import BookingDatasheet from "../components/Sitter/BookingDatasheet";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import {
-    MapPin, Calendar, Clock, DollarSign, Star, Menu, X, Check,
+    MapPin, Calendar, Clock, DollarSign, Star, Menu, X, Check, Info,
     User, Mail, Phone, Home, FileText, Upload, Plus, Trash2,
     ChevronDown, ChevronUp, Dog, Cat, Play, Linkedin, Facebook,
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
@@ -417,7 +417,11 @@ export default function SitterDashboardPage() {
     const handleDeleteDocument = async () => {
         setProfileData({ ...profileData, certificado_antecedentes: null });
         if (userId) {
-            await supabase.from('registro_petmate').update({ certificado_antecedentes: null }).eq('auth_user_id', userId);
+            if (profileId) {
+                await supabase.from('registro_petmate').update({ certificado_antecedentes: null }).eq('id', profileId);
+            } else if (userId) {
+                await supabase.from('registro_petmate').update({ certificado_antecedentes: null }).eq('auth_user_id', userId);
+            }
         }
     };
 
@@ -436,19 +440,24 @@ export default function SitterDashboardPage() {
 
         try {
             const { error: uploadError } = await supabase.storage
-                .from('sitter-images')
+                .from('avatars')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
             const { data: publicUrlData } = supabase.storage
-                .from('sitter-images')
+                .from('avatars')
                 .getPublicUrl(filePath);
 
             setProfileData({ ...profileData, certificado_antecedentes: publicUrlData.publicUrl });
 
             // Auto-save
-            await supabase.from('registro_petmate').update({ certificado_antecedentes: publicUrlData.publicUrl }).eq('auth_user_id', userId);
+            // Auto-save
+            if (profileId) {
+                await supabase.from('registro_petmate').update({ certificado_antecedentes: publicUrlData.publicUrl }).eq('id', profileId);
+            } else {
+                await supabase.from('registro_petmate').update({ certificado_antecedentes: publicUrlData.publicUrl }).eq('auth_user_id', userId);
+            }
 
         } catch (error: any) {
             setAlertState({ isOpen: true, title: "Error", message: 'Error al subir documento: ' + error.message, type: "error" });
@@ -497,19 +506,24 @@ export default function SitterDashboardPage() {
 
         try {
             const { error: uploadError } = await supabase.storage
-                .from('sitter-images')
+                .from('avatars')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
             const { data: publicUrlData } = supabase.storage
-                .from('sitter-images')
+                .from('avatars')
                 .getPublicUrl(filePath);
 
             setProfileData({ ...profileData, foto_perfil: publicUrlData.publicUrl });
 
             // Auto-save
-            await supabase.from('registro_petmate').update({ foto_perfil: publicUrlData.publicUrl }).eq('auth_user_id', userId);
+            // Auto-save
+            if (profileId) {
+                await supabase.from('registro_petmate').update({ foto_perfil: publicUrlData.publicUrl }).eq('id', profileId);
+            } else {
+                await supabase.from('registro_petmate').update({ foto_perfil: publicUrlData.publicUrl }).eq('auth_user_id', userId);
+            }
 
         } catch (error: any) {
             alert('Error al subir imagen: ' + error.message);
@@ -538,13 +552,13 @@ export default function SitterDashboardPage() {
                 const filePath = `${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
-                    .from('sitter-images')
+                    .from('avatars')
                     .upload(filePath, file);
 
                 if (uploadError) throw uploadError;
 
                 const { data: publicUrlData } = supabase.storage
-                    .from('sitter-images')
+                    .from('avatars')
                     .getPublicUrl(filePath);
 
                 return publicUrlData.publicUrl;
@@ -556,11 +570,28 @@ export default function SitterDashboardPage() {
             setProfileData({ ...profileData, galeria: newGallery });
 
             // Auto-save
-            if (userId) {
-                await supabase.from('registro_petmate').update({ galeria: newGallery }).eq('auth_user_id', userId);
+            if (profileId) {
+                const { error: dbError } = await supabase
+                    .from('registro_petmate')
+                    .update({ galeria: newGallery })
+                    .eq('id', profileId);
+
+                if (dbError) {
+                    throw new Error("Error al guardar en base de datos (ID): " + dbError.message);
+                }
+            } else if (userId) {
+                const { error: dbError } = await supabase
+                    .from('registro_petmate')
+                    .update({ galeria: newGallery })
+                    .eq('auth_user_id', userId);
+
+                if (dbError) {
+                    throw new Error("Error al guardar en base de datos (Auth): " + dbError.message);
+                }
             }
 
         } catch (error: any) {
+            console.error("Upload error:", error);
             alert('Error al subir imagenes: ' + (error.message || error));
         } finally {
             setUploading(false);
@@ -570,12 +601,31 @@ export default function SitterDashboardPage() {
     };
 
     const handleDeletePhoto = async (index: number) => {
-        const newGallery = [...profileData.galeria];
-        newGallery.splice(index, 1);
-        setProfileData({ ...profileData, galeria: newGallery });
+        try {
+            const newGallery = [...profileData.galeria];
+            newGallery.splice(index, 1);
+            setProfileData({ ...profileData, galeria: newGallery });
 
-        if (userId) {
-            await supabase.from('registro_petmate').update({ galeria: newGallery }).eq('auth_user_id', userId);
+            if (profileId) {
+                const { error } = await supabase
+                    .from('registro_petmate')
+                    .update({ galeria: newGallery })
+                    .eq('id', profileId);
+                if (error) throw error;
+            } else if (userId) {
+                const { error } = await supabase
+                    .from('registro_petmate')
+                    .update({ galeria: newGallery })
+                    .eq('auth_user_id', userId);
+
+                if (error) {
+                    throw error;
+                }
+            }
+        } catch (error: any) {
+            console.error("Delete error:", error);
+            alert("Error al eliminar foto: " + error.message);
+            // Revert state if needed, but for simplicity we keep it as is or reload
         }
     };
 
@@ -587,8 +637,8 @@ export default function SitterDashboardPage() {
         const files = Array.from(e.target.files);
         const currentCount = profileData.fotos_vivienda?.length || 0;
 
-        if (currentCount + files.length > 4) { // Limit to 4 for housing
-            setAlertState({ isOpen: true, title: "Límite excedido", message: `Solo puedes subir hasta 4 fotos de tu hogar.`, type: "warning" });
+        if (currentCount + files.length > 10) { // Limit to 10 for housing
+            setAlertState({ isOpen: true, title: "Límite excedido", message: `Solo puedes subir hasta 10 fotos de tu hogar.`, type: "warning" });
             return;
         }
 
@@ -601,13 +651,13 @@ export default function SitterDashboardPage() {
                 const filePath = `${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
-                    .from('sitter-images')
+                    .from('avatars')
                     .upload(filePath, file);
 
                 if (uploadError) throw uploadError;
 
                 const { data: publicUrlData } = supabase.storage
-                    .from('sitter-images')
+                    .from('avatars')
                     .getPublicUrl(filePath);
 
                 return publicUrlData.publicUrl;
@@ -619,11 +669,28 @@ export default function SitterDashboardPage() {
             setProfileData({ ...profileData, fotos_vivienda: newGallery });
 
             // Auto-save
-            if (userId) {
-                await supabase.from('registro_petmate').update({ fotos_vivienda: newGallery }).eq('auth_user_id', userId);
+            if (profileId) {
+                const { error: dbError } = await supabase
+                    .from('registro_petmate')
+                    .update({ fotos_vivienda: newGallery })
+                    .eq('id', profileId);
+
+                if (dbError) {
+                    throw new Error("Error al guardar (ID): " + dbError.message);
+                }
+            } else if (userId) {
+                const { error: dbError } = await supabase
+                    .from('registro_petmate')
+                    .update({ fotos_vivienda: newGallery })
+                    .eq('auth_user_id', userId);
+
+                if (dbError) {
+                    throw new Error("Error al guardar en base de datos: " + dbError.message);
+                }
             }
 
         } catch (error: any) {
+            console.error("Housing upload error:", error);
             alert('Error al subir fotos del hogar: ' + (error.message || error));
         } finally {
             setUploading(false);
@@ -632,12 +699,28 @@ export default function SitterDashboardPage() {
     };
 
     const handleDeleteHousingPhoto = async (index: number) => {
-        const newGallery = [...(profileData.fotos_vivienda || [])];
-        newGallery.splice(index, 1);
-        setProfileData({ ...profileData, fotos_vivienda: newGallery });
+        try {
+            const newGallery = [...(profileData.fotos_vivienda || [])];
+            newGallery.splice(index, 1);
+            setProfileData({ ...profileData, fotos_vivienda: newGallery });
 
-        if (userId) {
-            await supabase.from('registro_petmate').update({ fotos_vivienda: newGallery }).eq('auth_user_id', userId);
+            if (profileId) {
+                const { error } = await supabase
+                    .from('registro_petmate')
+                    .update({ fotos_vivienda: newGallery })
+                    .eq('id', profileId);
+                if (error) throw error;
+            } else if (userId) {
+                const { error } = await supabase
+                    .from('registro_petmate')
+                    .update({ fotos_vivienda: newGallery })
+                    .eq('auth_user_id', userId);
+
+                if (error) throw error;
+            }
+        } catch (error: any) {
+            console.error("Delete housing error:", error);
+            alert("Error al eliminar foto del hogar: " + error.message);
         }
     };
 
@@ -886,6 +969,18 @@ export default function SitterDashboardPage() {
                     consentimiento_rrss: profileData.consentimiento_rrss
                 };
             } else if (section === 'services') {
+                // Validation: If Cuida Perros is checked, must have sizes
+                if (profileData.cuida_perros && (!profileData.tamanos_perros || profileData.tamanos_perros.length === 0)) {
+                    setAlertState({
+                        isOpen: true,
+                        title: "Faltan Tamaños",
+                        message: "Si cuidas perros, debes seleccionar al menos un tamaño de perro aceptado.",
+                        type: "warning"
+                    });
+                    setSaving(false);
+                    return;
+                }
+
                 updates = {
                     ...updates,
                     cuida_perros: profileData.cuida_perros,
@@ -1007,7 +1102,7 @@ export default function SitterDashboardPage() {
                             <Link href="/sitter/explorar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">
                                 <Search size={18} /> Buscar Oportunidades
                             </Link>
-                            <Link href={profileId ? `/sitter/${profileId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-lg border-2 border-slate-400 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                            <Link href={profileId ? `/sitter/${profileId}` : '/explorar'} target="_blank" className="hidden sm:inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-100 transition-colors">
                                 Ver perfil público ↗
                             </Link>
                         </div>
@@ -1082,9 +1177,12 @@ export default function SitterDashboardPage() {
                                     {/* Estado de Verificación UNIFICADO */}
                                     <div className="mt-2 flex flex-col items-center justify-center gap-2">
                                         {profileData.aprobado ? (
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold shadow-sm">
-                                                <ShieldCheck size={14} strokeWidth={2.5} />
-                                                <span>Verificado</span>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold shadow-sm">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                    <span>Perfil Activo</span>
+                                                </div>
+                                                <span className="text-[10px] text-emerald-600 font-medium">Recibiendo Pedidos</span>
                                             </div>
                                         ) : profileData.certificado_antecedentes ? (
                                             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-semibold">
@@ -1129,14 +1227,13 @@ export default function SitterDashboardPage() {
 
                                     {/* Documentación MOVED TO MI PERFIL TAB */}
 
-                                    {/* Galería */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-3">
+                                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-4">
+                                        <div className="flex items-center justify-between mb-4">
                                             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                                <ImagePlus size={14} className="text-slate-400" /> Galería
+                                                <ImagePlus size={14} className="text-slate-400" /> Galería con Mascotas
                                             </h4>
                                             <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
-                                                {profileData.galeria.length}/6
+                                                {profileData.galeria?.length || 0}/6
                                             </span>
                                         </div>
 
@@ -1170,10 +1267,10 @@ export default function SitterDashboardPage() {
                                             ))}
 
                                             {/* Add Button */}
-                                            {profileData.galeria.length < 6 && (
-                                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-400 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-slate-400 hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-all">
-                                                    <Plus size={24} />
-                                                    <span className="text-[10px] font-bold">Añadir</span>
+                                            {(profileData.galeria?.length || 0) < 6 && (
+                                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 text-slate-300 hover:text-emerald-600 transition-all group/add">
+                                                    <Plus size={20} className="group-hover/add:scale-110 transition-transform" />
+                                                    <span className="text-[10px] font-semibold">Añadir</span>
                                                     <input
                                                         type="file"
                                                         accept="image/*"
@@ -1186,6 +1283,66 @@ export default function SitterDashboardPage() {
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Housing Gallery (Check valid variable name for 'En mi Casa' service) */}
+                                    {profileData.servicio_en_casa && (
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                                    <Home size={14} className="text-slate-400" /> Galería de mi hogar
+                                                </h4>
+                                                <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
+                                                    {profileData.fotos_vivienda?.length || 0}/10
+                                                </span>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {(profileData.fotos_vivienda || []).map((photo: string, index: number) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group/photo shadow-sm hover:shadow-md transition-all"
+                                                        onClick={() => setSelectedImage(photo)}
+                                                    >
+                                                        <Image
+                                                            src={photo}
+                                                            alt={`Espacio ${index + 1}`}
+                                                            fill
+                                                            className="object-cover transition-transform duration-500 group-hover/photo:scale-110"
+                                                            unoptimized
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteHousingPhoto(index);
+                                                                }}
+                                                                className="p-1 bg-white/20 hover:bg-red-500 backdrop-blur-md rounded-full text-white transition-colors"
+                                                                title="Eliminar"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                                {/* Add Button */}
+                                                {(profileData.fotos_vivienda || []).length < 10 && (
+                                                    <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 text-slate-300 hover:text-emerald-600 transition-all group/add">
+                                                        <Plus size={20} className="group-hover/add:scale-110 transition-transform" />
+                                                        <span className="text-[10px] font-semibold">Añadir</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            multiple
+                                                            className="hidden"
+                                                            onChange={handleHousingGalleryUpload}
+                                                            disabled={uploading}
+                                                        />
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="pt-2 sm:hidden text-center">
                                         <Link href={userId ? `/sitter/${userId}` : '/explorar'} target="_blank" className="text-xs font-bold text-emerald-600 hover:underline">
@@ -1287,17 +1444,25 @@ export default function SitterDashboardPage() {
                             {activeTab === 'servicios' && (
 
                                 <Card padding="m">
-                                    <div className="flex items-center justify-between border-b border-slate-400 pb-3 mb-4">
-                                        <div className="flex items-center gap-2 flex-1">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                        <div className="flex items-center gap-3 flex-1">
                                             <button
                                                 onClick={() => toggleSection('services')}
-                                                className="p-1.5 bg-white border-2 border-slate-400 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
                                             >
                                                 {expandedSections.services ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                             </button>
-                                            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                                ⚙️ Mis Servicios y Tarifas
-                                            </h3>
+                                            <div>
+                                                <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                    Mis Servicios y Tarifas
+                                                    {(profileData.cuida_perros || profileData.cuida_gatos) ? (
+                                                        <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                    ) : (
+                                                        <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />
+                                                    )}
+                                                </h4>
+                                                <p className="text-xs text-slate-400 font-medium">Gestiona los servicios que ofreces y sus precios</p>
+                                            </div>
                                         </div>
                                         {activeSection === 'services' ? (
                                             <div className="flex gap-2">
@@ -1306,23 +1471,23 @@ export default function SitterDashboardPage() {
                                                         if (backupProfileData) setProfileData(JSON.parse(JSON.stringify(backupProfileData)));
                                                         setActiveSection(null);
                                                     }}
-                                                    className="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1"
+                                                    className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
                                                 >
                                                     Cancelar
                                                 </button>
                                                 <button
                                                     onClick={() => handleSaveSection('services')}
                                                     disabled={saving}
-                                                    className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                                    className="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:shadow-none"
                                                 >
-                                                    {saving ? "..." : "Guardar"}
+                                                    {saving ? "Guardando..." : "Guardar Cambios"}
                                                 </button>
                                             </div>
                                         ) : (
                                             <button
                                                 onClick={() => setActiveSection('services')}
                                                 disabled={activeSection !== null && activeSection !== 'services'}
-                                                className="text-xs text-emerald-600 font-bold hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-30 disabled:bg-transparent"
                                             >
                                                 Editar
                                             </button>
@@ -1330,33 +1495,58 @@ export default function SitterDashboardPage() {
                                     </div>
 
                                     {expandedSections.services && (
-                                        <div>
-                                            <div className="mb-6 space-y-6">
-                                                {/* Group 1: Mascotas */}
-                                                <div>
-                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Qué mascotas cuidas?</h5>
-                                                    <div className="grid grid-cols-2 gap-3 mb-3">
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Dog className="w-4 h-4 text-slate-500" /> Perros</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Cat className="w-4 h-4 text-slate-500" /> Gatos</span>
-                                                        </label>
+                                        <>
+                                            {/* Read-Only Notice */}
+                                            {activeSection !== 'services' && (
+                                                <div className="mx-6 mt-4 mb-2 p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2 text-xs text-slate-500">
+                                                    <Info size={16} className="text-slate-400" />
+                                                    <span>Estás en modo visualización. Para modificar tus servicios y tarifas, haz clic en el botón <b>Editar</b> de arriba.</span>
+                                                </div>
+                                            )}
+
+                                            <div className={`grid md:grid-cols-2 gap-8 md:divide-x md:divide-slate-100 p-6 ${activeSection !== 'services' ? 'opacity-80 pointer-events-none grayscale-[0.5]' : ''}`}>
+                                                {/* Column 1: Pets & Sizes */}
+                                                <div className="space-y-8">
+                                                    {/* Pets */}
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wide">¿Qué mascotas cuidas?</h5>
+                                                            {(profileData.cuida_perros || profileData.cuida_gatos) && (
+                                                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Completado</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <label className={`relative group cursor-pointer rounded-2xl border transition-all p-4 flex items-center gap-4 ${profileData.cuida_perros ? "border-slate-800 bg-slate-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_perros} onChange={(e) => setProfileData({ ...profileData, cuida_perros: e.target.checked })} className="hidden" />
+                                                                <div className={`p-2 rounded-full transition-colors ${profileData.cuida_perros ? "bg-white border border-slate-100 text-slate-700 shadow-sm" : "bg-slate-100 text-slate-400"}`}>
+                                                                    <Dog size={20} />
+                                                                </div>
+                                                                <span className={`font-semibold ${profileData.cuida_perros ? "text-slate-800" : "text-slate-500"}`}>Perros</span>
+                                                                {profileData.cuida_perros && <CheckCircle2 size={20} className="absolute top-4 right-4 text-emerald-500" />}
+                                                            </label>
+
+                                                            <label className={`relative group cursor-pointer rounded-2xl border transition-all p-4 flex items-center gap-4 ${profileData.cuida_gatos ? "border-slate-800 bg-slate-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.cuida_gatos} onChange={(e) => setProfileData({ ...profileData, cuida_gatos: e.target.checked })} className="hidden" />
+                                                                <div className={`p-2 rounded-full transition-colors ${profileData.cuida_gatos ? "bg-white border border-slate-100 text-slate-700 shadow-sm" : "bg-slate-100 text-slate-400"}`}>
+                                                                    <Cat size={20} />
+                                                                </div>
+                                                                <span className={`font-semibold ${profileData.cuida_gatos ? "text-slate-800" : "text-slate-500"}`}>Gatos</span>
+                                                                {profileData.cuida_gatos && <CheckCircle2 size={20} className="absolute top-4 right-4 text-emerald-500" />}
+                                                            </label>
+                                                        </div>
                                                     </div>
 
-                                                    {/* Dog Sizes Selector (Conditional) */}
+                                                    {/* Dog Sizes */}
                                                     {profileData.cuida_perros && (
-                                                        <div className="pl-2 border-l-2 border-slate-400 ml-1">
-                                                            <label className="block text-xs font-bold text-slate-500 mb-2">¿Qué tamaños de perro aceptas?</label>
-                                                            <div className="flex flex-wrap gap-2">
+                                                        <div className="animate-in fade-in slide-in-from-top-2">
+                                                            <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">¿Qué tamaños de perro aceptas?</h5>
+                                                            <div className="flex flex-wrap gap-3">
                                                                 {['Pequeño', 'Mediano', 'Grande', 'Gigante'].map((size) => (
-                                                                    <label key={size} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${activeSection === 'services' ? "cursor-pointer" : "opacity-75 cursor-not-allowed"} ${profileData.tamanos_perros?.includes(size) ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-400 text-slate-600 hover:border-slate-400"}`}>
+                                                                    <label key={size} className={`cursor-pointer px-4 py-2 rounded-full border text-sm font-semibold transition-all ${activeSection !== 'services' && !profileData.tamanos_perros?.includes(size) ? "opacity-50 cursor-not-allowed" : ""} ${profileData.tamanos_perros?.includes(size) ? "bg-slate-100 border-slate-400 text-slate-800" : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"}`}>
                                                                         <input
                                                                             type="checkbox"
-                                                                            disabled={activeSection !== 'services'}
                                                                             className="hidden"
+                                                                            disabled={activeSection !== 'services'}
                                                                             checked={profileData.tamanos_perros?.includes(size) || false}
                                                                             onChange={(e) => {
                                                                                 const current = profileData.tamanos_perros || [];
@@ -1374,63 +1564,79 @@ export default function SitterDashboardPage() {
                                                     )}
                                                 </div>
 
-                                                {/* Group 2: Ubicación */}
-                                                <div>
-                                                    <h5 className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">¿Dónde las cuidas?</h5>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-500" /> A Domicilio</span>
-                                                        </label>
-                                                        <label className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${activeSection === 'services' ? "bg-white border-slate-400 cursor-pointer hover:border-emerald-300" : "bg-white border-transparent opacity-75"}`}>
-                                                            <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
-                                                            <span className="flex items-center gap-1"><Home className="w-4 h-4 text-slate-500" /> En mi Casa</span>
-                                                        </label>
+                                                {/* Column 2: Services & Rates */}
+                                                <div className="md:pl-8 space-y-6">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wide">¿Dónde las cuidas?</h5>
+                                                        <span className="text-xs font-medium text-slate-400 italic">Configura tus tarifas</span>
+                                                    </div>
+
+                                                    {/* Service 1: A Domicilio */}
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
+                                                                    <MapPin size={20} />
+                                                                </div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-semibold text-slate-700 text-sm">A Domicilio</span>
+                                                                    <span className="text-xs text-slate-400 font-normal">por noche</span>
+                                                                </div>
+                                                            </div>
+                                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_a_domicilio} onChange={(e) => setProfileData({ ...profileData, servicio_a_domicilio: e.target.checked })} className="sr-only peer" />
+                                                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                            </label>
+                                                        </div>
+                                                        {profileData.servicio_a_domicilio && (
+                                                            <div className="relative animate-in fade-in slide-in-from-top-1 ml-12">
+                                                                <span className="absolute left-4 top-3.5 text-slate-400 font-bold">$</span>
+                                                                <input
+                                                                    type="text"
+                                                                    disabled={activeSection !== 'services'}
+                                                                    className={`w-full bg-slate-50 border-none rounded-xl py-3 pl-8 text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:ring-2 focus:ring-emerald-500/50 transition-all ${activeSection !== 'services' ? "opacity-75" : ""}`}
+                                                                    value={formatPrice(profileData.tarifa_servicio_a_domicilio)}
+                                                                    onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parsePrice(e.target.value) })}
+                                                                    placeholder="35.000"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Service 2: En mi Casa */}
+                                                    <div className="space-y-3 pt-4 border-t border-slate-50">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
+                                                                    <Home size={20} />
+                                                                </div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-semibold text-slate-700 text-sm">En mi Casa</span>
+                                                                    <span className="text-xs text-slate-400 font-normal">por noche</span>
+                                                                </div>
+                                                            </div>
+                                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                                <input type="checkbox" disabled={activeSection !== 'services'} checked={profileData.servicio_en_casa} onChange={(e) => setProfileData({ ...profileData, servicio_en_casa: e.target.checked })} className="sr-only peer" />
+                                                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                            </label>
+                                                        </div>
+                                                        {profileData.servicio_en_casa && (
+                                                            <div className="relative animate-in fade-in slide-in-from-top-1 ml-12">
+                                                                <span className="absolute left-4 top-3.5 text-slate-400 font-bold">$</span>
+                                                                <input
+                                                                    type="text"
+                                                                    disabled={activeSection !== 'services'}
+                                                                    className={`w-full bg-slate-50 border-none rounded-xl py-3 pl-8 text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:ring-2 focus:ring-emerald-500/50 transition-all ${activeSection !== 'services' ? "opacity-75" : ""}`}
+                                                                    value={formatPrice(profileData.tarifa_servicio_en_casa)}
+                                                                    onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parsePrice(e.target.value) })}
+                                                                    placeholder="20.000"
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            {/* Tarifas */}
-                                            {(profileData.servicio_a_domicilio || profileData.servicio_en_casa) && (
-                                                <div className="mt-4 pt-4 border-t border-slate-400">
-                                                    <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Tarifas (CLP)</h5>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        {profileData.servicio_a_domicilio && (
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5">A Domicilio (por visita)</label>
-                                                                <div className="relative">
-                                                                    <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled={activeSection !== 'services'}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                        value={formatPrice(profileData.tarifa_servicio_a_domicilio)}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_a_domicilio: parsePrice(e.target.value) })}
-                                                                        placeholder="Ej: 15.000"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        {profileData.servicio_en_casa && (
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-slate-700 mb-1.5">En mi Casa (por noche)</label>
-                                                                <div className="relative">
-                                                                    <span className="absolute left-3 top-2 text-slate-400">$</span>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled={activeSection !== 'services'}
-                                                                        className={`w-full pl-6 text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'services' ? "border-2 border-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border-2 border-slate-400 text-slate-500"}`}
-                                                                        value={formatPrice(profileData.tarifa_servicio_en_casa)}
-                                                                        onChange={(e) => setProfileData({ ...profileData, tarifa_servicio_en_casa: parsePrice(e.target.value) })}
-                                                                        placeholder="Ej: 20.000"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                        </>
                                     )}
                                 </Card>
                             )}
@@ -2341,8 +2547,8 @@ export default function SitterDashboardPage() {
 
                                                             <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-200">
                                                                 <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide flex justify-between items-center">
-                                                                    Fotos del Hogar (Máx 4)
-                                                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{(profileData.fotos_vivienda?.length || 0)}/4</span>
+                                                                    Fotos del Hogar (Máx 10)
+                                                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{(profileData.fotos_vivienda?.length || 0)}/10</span>
                                                                 </h5>
 
                                                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -2360,14 +2566,14 @@ export default function SitterDashboardPage() {
                                                                         </div>
                                                                     ))}
 
-                                                                    {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 4 && (
-                                                                        <label className="aspect-square rounded-lg border border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-400 hover:text-emerald-600">
+                                                                    {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 10 && (
+                                                                        <label className="aspect-square rounded-lg border border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-300 hover:text-emerald-600 group/add">
                                                                             {uploading ? (
-                                                                                <Loader2 size={20} className="animate-spin" />
+                                                                                <Loader2 size={16} className="animate-spin" />
                                                                             ) : (
                                                                                 <>
-                                                                                    <ImagePlus size={20} className="mb-1" />
-                                                                                    <span className="text-[10px] font-bold">Agregar</span>
+                                                                                    <ImagePlus size={18} className="mb-1 group-hover/add:scale-110 transition-transform" />
+                                                                                    <span className="text-[10px] font-semibold">Agregar</span>
                                                                                 </>
                                                                             )}
                                                                             <input
@@ -2534,23 +2740,25 @@ export default function SitterDashboardPage() {
 
                                             {/* BLOQUE 4: Documentación */}
                                             <div className="bg-white p-5 rounded-2xl border border-slate-200">
-                                                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                                                    <div className="flex items-center gap-2 flex-1">
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                                    <div className="flex items-center gap-3 flex-1">
                                                         <button
                                                             onClick={() => toggleSection('documents')}
-                                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                            className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
                                                         >
                                                             {expandedSections.documents ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
-                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                            <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><FileCheck className="w-4 h-4 text-slate-400" /></div>
-                                                            Documentación
-                                                            {profileData.certificado_antecedentes ? (
-                                                                <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
-                                                            ) : (
-                                                                <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente" />
-                                                            )}
-                                                        </h4>
+                                                        <div>
+                                                            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                                Documentación
+                                                                {profileData.certificado_antecedentes ? (
+                                                                    <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                                ) : (
+                                                                    <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente" />
+                                                                )}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-400 font-medium">Gestiona tus documentos legales</p>
+                                                        </div>
                                                     </div>
                                                     {activeSection === 'documents' ? (
                                                         <div className="flex gap-2">
@@ -2635,23 +2843,25 @@ export default function SitterDashboardPage() {
 
                                             {/* Video Presentacion Component */}
                                             <div className="bg-white p-5 rounded-2xl border border-slate-200">
-                                                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                                                    <div className="flex items-center gap-2 flex-1">
+                                                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                                                    <div className="flex items-center gap-3 flex-1">
                                                         <button
                                                             onClick={() => toggleSection('video')}
-                                                            className="p-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all mr-1"
+                                                            className="p-2 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
                                                         >
                                                             {expandedSections.video ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                                         </button>
-                                                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                            <div className="bg-white p-1 rounded-md shadow-sm border border-slate-200"><Play className="w-4 h-4 text-slate-400" /></div>
-                                                            Video de Presentación
-                                                            {profileData.video_presentacion ? (
-                                                                <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
-                                                            ) : (
-                                                                <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente" />
-                                                            )}
-                                                        </h4>
+                                                        <div>
+                                                            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                                Video de Presentación
+                                                                {profileData.video_presentacion ? (
+                                                                    <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" />
+                                                                ) : (
+                                                                    <div className="w-2 h-2 rounded-full bg-amber-400" title="Pendiente" />
+                                                                )}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-400 font-medium">Sube un video presentándote</p>
+                                                        </div>
                                                     </div>
                                                     {activeSection === 'video' ? (
                                                         <div className="flex gap-2">
@@ -2804,9 +3014,9 @@ export default function SitterDashboardPage() {
 
 
 
-                    </div >
-                </div >
-            </main >
+                    </div>
+                </div>
+            </main>
 
             <ClientDetailsDialog
                 isOpen={showClientDialog}
