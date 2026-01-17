@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { LayoutDashboard, MapPin, Calendar, Home, Hotel, Filter, Dog, Ruler, Check } from "lucide-react";
+import { LayoutDashboard, MapPin, Calendar, Home, Hotel, Filter, Dog, Ruler, Check, Inbox } from "lucide-react";
 
 import ApplicationDialog from "../../components/Sitter/ApplicationDialog";
 import ModalAlert from "../../components/ModalAlert";
@@ -277,24 +277,25 @@ export default function SitterExplorarPage() {
                         <div className="w-10 h-10 border-4 border-slate-300 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
                         Cargando oportunidades...
                     </div>
-                ) : (!sitterProfile || !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna && sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion && sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) || !sitterProfile.roles?.includes('sitter')) ? (
+                ) : (!sitterProfile || !Boolean(sitterProfile.telefono && (sitterProfile.region || sitterProfile.comuna)) || !Boolean(sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut) || !((sitterProfile.roles || [sitterProfile.rol]).includes('sitter'))) ? (
                     <CompletionBlocker
                         title="Oportunidades Restringidas"
                         message="Para ver y postular a trabajos de cuidado, necesitas completar tu perfil y activar tu cuenta."
                         missingFields={[
                             !sitterProfile ? "Perfil no cargado" : null,
-                            sitterProfile && !Boolean(sitterProfile.telefono && sitterProfile.region && sitterProfile.comuna) ? "Datos de Contacto" : null,
-                            sitterProfile && !Boolean(sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut && sitterProfile.fecha_nacimiento && sitterProfile.sexo && sitterProfile.ocupacion) ? "Información Personal" : null,
-                            sitterProfile && !Boolean(sitterProfile.descripcion && sitterProfile.descripcion.length >= 100 && sitterProfile.tipo_vivienda && (sitterProfile.tiene_mascotas !== null)) ? "Perfil y Preferencias" : null,
-                            sitterProfile && (!sitterProfile.roles?.includes('sitter')) ? "Activar Perfil Sitter" : null
+                            sitterProfile && !Boolean(sitterProfile.telefono && (sitterProfile.region || sitterProfile.comuna)) ? "Datos de Contacto" : null,
+                            sitterProfile && !Boolean(sitterProfile.nombre && sitterProfile.apellido_p && sitterProfile.rut) ? "Información Personal" : null,
+                            sitterProfile && !((sitterProfile.roles || [sitterProfile.rol]).includes('sitter')) ? "Activar Perfil Sitter" : null
                         ].filter(Boolean) as string[]}
                         redirectUrl="/sitter"
                         redirectText="Ir a mi Dashboard"
-                        isApproved={true} // We handle "Activar Sitter" as a missing field here slightly differently than strict approval
+                        isApproved={true}
                     />
                 ) : filteredTrips.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-                        <div className="text-4xl mb-4">📭</div>
+                        <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                            <Inbox size={32} className="text-slate-400" />
+                        </div>
                         <h3 className="text-lg font-bold text-slate-900">No hay solicitudes disponibles</h3>
                         <p className="text-slate-500 max-w-sm mx-auto mt-2">
                             Por ahora no hay clientes buscando sitters. Vuelve a revisar más tarde.

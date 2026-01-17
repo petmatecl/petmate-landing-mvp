@@ -41,6 +41,8 @@ interface PublicProfileProps {
         fotos_vivienda?: string[];
         tiene_patio?: boolean;
         tiene_malla?: boolean;
+        tiene_ninos?: boolean;
+        fumador?: boolean;
         dimensiones_vivienda?: string;
         auth_user_id: string;
         aprobado: boolean;
@@ -52,6 +54,9 @@ interface PublicProfileProps {
         videos?: string[];
         cuida_perros?: boolean;
         cuida_gatos?: boolean;
+        tarifa_servicio_a_domicilio?: number;
+        servicio_a_domicilio?: boolean;
+        servicio_en_casa?: boolean;
     } | null;
     error?: string;
     id?: string;
@@ -143,6 +148,9 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         if (data) setReviews(data);
         setLoadingReviews(false);
     };
+
+    // Tab State
+    const [activeTab, setActiveTab] = useState<'profile' | 'requests'>('profile');
 
     // Estado para "Mis Viajes con este Sitter"
     const [myTripsWithSitter, setMyTripsWithSitter] = useState<any[]>([]);
@@ -333,15 +341,15 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                         {/* Columna Izquierda: Tarjeta Principal (4 columnas) */}
                         <div className="md:col-span-4 lg:col-span-4">
                             {/* CARD 1: Identidad */}
-                            <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 mb-4">
+                            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 mb-4">
                                 <div className="flex flex-col items-center text-center">
                                     <div className="relative w-32 h-32 mb-4 group">
                                         <Image
                                             src={avatarSrc}
                                             alt={displayName}
                                             fill
-                                            className="rounded-full object-cover border-4 border-emerald-50 shadow-sm"
-                                        // unoptimized removed for better performance
+                                            className="rounded-full object-cover border-4 border-white shadow-sm"
+                                            unoptimized
                                         />
                                         <div className="absolute bottom-1 right-1 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm" title="Verificado">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -365,16 +373,28 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                             </div>
 
                             {/* CARD 2: Servicios y Acción */}
-                            <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sticky top-20">
+                            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sticky top-20">
                                 <div className="text-left w-full space-y-3 text-sm">
-                                    <div className="flex justify-between items-center border-b border-slate-50 pb-3 mb-3">
-                                        <span className="text-slate-500 font-medium">Hospedaje</span>
-                                        <span className="font-bold text-slate-900 text-lg">
-                                            ${petmate.price ? petmate.price.toLocaleString('es-CL') : "15.000"}
-                                            <span className="text-xs font-normal text-slate-500">/ noche</span>
-                                        </span>
-                                    </div>
-                                    {/* Aquí podríamos agregar más servicios si existieran en la data */}
+                                    {/* Servicios Domicilio y Hospedaje */}
+                                    {petmate.servicio_en_casa !== false && (
+                                        <div className="flex justify-between items-center border-b border-slate-50 pb-3 mb-3">
+                                            <span className="text-slate-500 font-medium">Hospedaje</span>
+                                            <span className="font-bold text-slate-900 text-lg">
+                                                ${petmate.price ? petmate.price.toLocaleString('es-CL') : "15.000"}
+                                                <span className="text-xs font-normal text-slate-500">/ noche</span>
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {petmate.servicio_a_domicilio && (
+                                        <div className="flex justify-between items-center border-b border-slate-50 pb-3 mb-3">
+                                            <span className="text-slate-500 font-medium">A Domicilio</span>
+                                            <span className="font-bold text-slate-900 text-lg">
+                                                ${petmate.tarifa_servicio_a_domicilio ? petmate.tarifa_servicio_a_domicilio.toLocaleString('es-CL') : "15.000"}
+                                                <span className="text-xs font-normal text-slate-500">/ noche</span>
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <button
@@ -393,7 +413,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                 <div className="mt-3">
                                     <ContactSitterButton
                                         sitterId={petmate.auth_user_id} // Use auth_user_id for chat, as conversations link to auth.users
-                                        className="w-full btn-secondary py-3 flex items-center justify-center gap-2 border-2 border-slate-300 hover:bg-slate-50 transition-colors rounded-xl font-bold text-slate-700"
+                                        className="w-full btn-secondary py-3 flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors rounded-xl font-bold text-slate-700"
                                         label="Enviar Mensaje"
                                         currentUserId={currentUserId}
                                     />
@@ -421,264 +441,324 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                             </div>
                         </div>
 
-                        {/* Columna Derecha: Detalles (8 columnas) */}
-                        <div className="md:col-span-8 lg:col-span-8 space-y-8">
+                        {/* Columna Derecha: Detalles (8 columnas) con TABS */}
+                        <div className="md:col-span-8 lg:col-span-8">
 
-                            {/* Nuevas: Mis Solicitudes con este Sitter */}
-                            {currentUserId && (myTripsWithSitter.length > 0 || loadingTrips) && (
-                                <section className="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-100 p-6 sm:p-8">
-                                    <h2 className="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">
-                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        Mis Solicitudes con {petmate.nombre}
-                                    </h2>
+                            {/* Tabs Header */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 mb-6 flex gap-2">
+                                <button
+                                    onClick={() => setActiveTab('profile')}
+                                    className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'profile'
+                                        ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
+                                        : 'bg-transparent text-slate-500 hover:bg-slate-50'
+                                        }`}
+                                >
+                                    Perfil del Sitter
+                                </button>
+                                {currentUserId && (
+                                    <button
+                                        onClick={() => setActiveTab('requests')}
+                                        className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'requests'
+                                            ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
+                                            : 'bg-transparent text-slate-500 hover:bg-slate-50'
+                                            }`}
+                                    >
+                                        Mis Solicitudes
+                                        {myTripsWithSitter.length > 0 && (
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${activeTab === 'requests' ? 'bg-emerald-400/30 text-white' : 'bg-emerald-100 text-emerald-600'
+                                                }`}>
+                                                {myTripsWithSitter.length}
+                                            </span>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
 
-                                    {loadingTrips ? (
-                                        <div className="animate-pulse space-y-2">
-                                            <div className="h-10 bg-emerald-100 rounded w-full"></div>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {myTripsWithSitter.map(trip => (
-                                                <div key={trip.id} className="bg-white p-4 rounded-xl border border-emerald-100 flex items-center justify-between">
-                                                    <div>
-                                                        <div className="font-bold text-emerald-900">
-                                                            {trip.fecha_inicio && new Date(trip.fecha_inicio + "T12:00:00").toLocaleDateString("es-CL", { day: 'numeric', month: 'long' })}
-                                                            {" - "}
-                                                            {trip.fecha_fin && new Date(trip.fecha_fin + "T12:00:00").toLocaleDateString("es-CL", { day: 'numeric', month: 'long' })}
-                                                        </div>
-                                                        <div className="text-xs text-emerald-700 flex items-center gap-2 mt-1">
-                                                            <span className="bg-emerald-100 px-2 py-0.5 rounded-full uppercase text-[10px] font-bold tracking-wide">
-                                                                {trip.servicio}
-                                                            </span>
-                                                            {trip.perros > 0 && <span>{trip.perros} 🐶</span>}
-                                                            {trip.gatos > 0 && <span>{trip.gatos} 🐱</span>}
-                                                        </div>
+                            {/* Contenido TABS */}
+                            <div className="space-y-8">
+
+                                {/* TAB 1: PERFIL */}
+                                {activeTab === 'profile' && (
+                                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        {/* Galería (Prioridad solicitada por el usuario) */}
+                                        {petmate.galeria && petmate.galeria.length > 0 && (
+                                            <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                                    <div className="p-1.5 bg-rose-100 rounded-lg text-rose-500">
+                                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                                     </div>
-                                                    <div className="text-right flex flex-col items-end gap-2">
-                                                        <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold ${trip.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
-                                                            'bg-emerald-100 text-emerald-700'
-                                                            }`}>
-                                                            {trip.estado === 'pendiente' || trip.estado === 'solicitado' ? 'ASIGNADO' : trip.estado.toUpperCase()}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => handleDeleteTrip(trip.id)}
-                                                            className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
-                                                            title="Eliminar solicitud"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                                    Galería de Fotos
+                                                </h2>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                                    {petmate.galeria.map((foto, index) => (
+                                                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+                                                            <Image src={foto} alt={`Galería ${index}`} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {/* Sobre mí */}
+                                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                Sobre mí
+                                            </h2>
+                                            <div className="prose prose-slate text-slate-600 leading-relaxed">
+                                                <p>
+                                                    {petmate.descripcion ||
+                                                        "¡Hola! Soy un Sitter apasionado por los animales. Aún estoy completando mi perfil, pero me encantaría cuidar de tu mascota con todo el cariño y responsabilidad que se merece."}
+                                                </p>
+                                            </div>
+                                        </section>
+
+                                        {/* Videos Section */}
+                                        {petmate.videos && petmate.videos.length > 0 && (
+                                            <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                                    Videos
+                                                    <span className="text-xs font-normal text-white bg-rose-500 px-2 py-0.5 rounded-full">NUEVO</span>
+                                                </h2>
+                                                <div className="grid sm:grid-cols-2 gap-4">
+                                                    {petmate.videos.map((vid, i) => (
+                                                        <div key={i} className="rounded-xl overflow-hidden bg-slate-100 aspect-video relative group">
+                                                            {(vid.includes('youtube') || vid.includes('youtu.be')) ? (
+                                                                <iframe
+                                                                    src={`https://www.youtube.com/embed/${vid.split('v=')[1]?.split('&')[0] || vid.split('/').pop()}`}
+                                                                    className="w-full h-full"
+                                                                    allowFullScreen
+                                                                    title={`Video ${i}`}
+                                                                />
+                                                            ) : (vid.includes('tiktok')) ? (
+                                                                <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                                                    <a href={vid} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-rose-500">
+                                                                        <span>Ver en TikTok</span> <span className="text-lg">↗</span>
+                                                                    </a>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                                                    <a href={vid} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600">Ver Video</a>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {/* Detalles del Hogar */}
+                                        {(petmate.tipo_vivienda || petmate.dimensiones_vivienda) && (
+                                            <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                                    <Home className="text-emerald-500" />
+                                                    Espacio y Hogar
+                                                </h2>
+
+                                                <div className="grid sm:grid-cols-2 gap-6 mb-6">
+                                                    <div className="space-y-4">
+                                                        {petmate.tipo_vivienda && (
+                                                            <div className="flex items-start gap-3">
+                                                                <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                                                                    {petmate.tipo_vivienda === 'casa' ? <Home size={20} /> : <Hotel size={20} />}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-bold text-slate-400 uppercase">Tipo de Vivienda</p>
+                                                                    <p className="text-slate-900 font-medium capitalize">{petmate.tipo_vivienda}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {petmate.dimensiones_vivienda && (
+                                                            <div className="flex items-start gap-3">
+                                                                <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                                                                    <Maximize size={20} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-bold text-slate-400 uppercase">Dimensiones / Espacio</p>
+                                                                    <p className="text-slate-900 font-medium">{petmate.dimensiones_vivienda}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                            {petmate.tiene_patio ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
+                                                            <span className="font-medium">Patio o Jardín</span>
+                                                        </div>
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                            {petmate.tiene_malla ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
+                                                            <span className="font-medium">Mallas de Seguridad</span>
+                                                        </div>
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_ninos ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                            {petmate.tiene_ninos ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
+                                                            <span className="font-medium">Niños en Casa</span>
+                                                        </div>
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.fumador ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                            {petmate.fumador ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
+                                                            <span className="font-medium">Fumador en Casa</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </section>
-                            )}
 
-                            {/* Sobre mí */}
-                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
-                                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                    Sobre mí
-                                </h2>
-                                <div className="prose prose-slate text-slate-600 leading-relaxed">
-                                    <p>
-                                        {petmate.descripcion ||
-                                            "¡Hola! Soy un Sitter apasionado por los animales. Aún estoy completando mi perfil, pero me encantaría cuidar de tu mascota con todo el cariño y responsabilidad que se merece."}
-                                    </p>
-                                </div>
-                            </section>
-
-                            {/* Videos Section */}
-                            {petmate.videos && petmate.videos.length > 0 && (
-                                <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
-                                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                        Videos
-                                        <span className="text-xs font-normal text-white bg-rose-500 px-2 py-0.5 rounded-full">NUEVO</span>
-                                    </h2>
-                                    <div className="grid sm:grid-cols-2 gap-4">
-                                        {petmate.videos.map((vid, i) => (
-                                            <div key={i} className="rounded-xl overflow-hidden bg-slate-100 aspect-video relative group">
-                                                {/* Simple Video Embed detection */}
-                                                {(vid.includes('youtube') || vid.includes('youtu.be')) ? (
-                                                    <iframe
-                                                        src={`https://www.youtube.com/embed/${vid.split('v=')[1]?.split('&')[0] || vid.split('/').pop()}`}
-                                                        className="w-full h-full"
-                                                        allowFullScreen
-                                                        title={`Video ${i}`}
-                                                    />
-                                                ) : (vid.includes('tiktok')) ? (
-                                                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-                                                        <a href={vid} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-rose-500">
-                                                            <span>Ver en TikTok</span> <span className="text-lg">↗</span>
-                                                        </a>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-                                                        <a href={vid} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600">Ver Video</a>
+                                                {/* Fotos del Hogar */}
+                                                {petmate.fotos_vivienda && petmate.fotos_vivienda.length > 0 && (
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                                                        {petmate.fotos_vivienda.map((foto, i) => (
+                                                            <div key={i} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer group">
+                                                                <Image src={foto} alt={`Foto hogar ${i}`} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+                                            </section>
+                                        )}
 
-                            {/* Detalles del Hogar (Solo si tiene hospedaje o cuidado en casa) */}
-                            {(petmate.tipo_vivienda || petmate.dimensiones_vivienda) && (
-                                <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
-                                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                        <Home className="text-emerald-500" />
-                                        Espacio y Hogar
-                                    </h2>
-
-                                    <div className="grid sm:grid-cols-2 gap-6 mb-6">
-                                        <div className="space-y-4">
-                                            {petmate.tipo_vivienda && (
-                                                <div className="flex items-start gap-3">
-                                                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                                                        {petmate.tipo_vivienda === 'casa' ? <Home size={20} /> : <Hotel size={20} />}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs font-bold text-slate-400 uppercase">Tipo de Vivienda</p>
-                                                        <p className="text-slate-900 font-medium capitalize">{petmate.tipo_vivienda}</p>
-                                                    </div>
+                                        {/* Location Map Section */}
+                                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                Ubicación Aproximada
+                                            </h2>
+                                            {petmate.latitud && petmate.longitud ? (
+                                                <div className="rounded-xl overflow-hidden border border-slate-200">
+                                                    <LocationMap
+                                                        lat={petmate.latitud}
+                                                        lng={petmate.longitud}
+                                                        approximate={true}
+                                                        radius={800}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="p-8 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                                                    <p className="text-slate-500">
+                                                        {petmate.comuna ? `Este sitter se encuentra en ${petmate.comuna}, ${petmate.region || ''}.` : "Ubicación no especificada."}
+                                                    </p>
                                                 </div>
                                             )}
+                                        </section>
 
-                                            {petmate.dimensiones_vivienda && (
-                                                <div className="flex items-start gap-3">
-                                                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                                                        <Maximize size={20} />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs font-bold text-slate-400 uppercase">Dimensiones / Espacio</p>
-                                                        <p className="text-slate-900 font-medium">{petmate.dimensiones_vivienda}</p>
-                                                    </div>
+                                        {/* Información Adicional (Grid) */}
+                                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                            <h2 className="text-xl font-bold text-slate-900 mb-6">Detalles</h2>
+                                            <div className="grid sm:grid-cols-2 gap-y-6 gap-x-12">
+                                                <div>
+                                                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Edad</h3>
+                                                    <p className="text-slate-900 font-medium">{petmate.edad ? `${petmate.edad} años` : "No especificada"}</p>
                                                 </div>
+                                                <div>
+                                                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Ocupación</h3>
+                                                    <p className="text-slate-900 font-medium">{petmate.ocupacion || "No especificada"}</p>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Mascotas propias</h3>
+                                                    <p className="text-slate-900 font-medium">
+                                                        {petmate.tiene_mascotas === true ? "Sí, tengo mascotas 🐶" :
+                                                            petmate.tiene_mascotas === undefined ? "No especificado" : "No tengo mascotas actualmente"}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Vivienda</h3>
+                                                    <p className="text-slate-900 font-medium capitalize">{petmate.tipo_vivienda || "No especificado"}</p>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        {/* Sección de Reseñas */}
+                                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                                    Reseñas <span className="text-sm font-normal text-slate-500">({reviews.length})</span>
+                                                </h2>
+                                                <button
+                                                    onClick={() => setIsReviewModalOpen(true)}
+                                                    className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors border border-emerald-100"
+                                                >
+                                                    Escribir una reseña
+                                                </button>
+                                            </div>
+
+                                            {loadingReviews ? (
+                                                <div className="space-y-4">
+                                                    {[1, 2].map(i => (
+                                                        <div key={i} className="animate-pulse flex space-x-4">
+                                                            <div className="rounded-full bg-slate-200 h-10 w-10"></div>
+                                                            <div className="flex-1 space-y-2 py-1">
+                                                                <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                                                                <div className="h-3 bg-slate-200 rounded w-3/4"></div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <ReviewList reviews={reviews} />
                                             )}
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
-                                                {petmate.tiene_patio ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
-                                                <span className="font-medium">Patio o Jardín</span>
-                                            </div>
-                                            <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
-                                                {petmate.tiene_malla ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
-                                                <span className="font-medium">Mallas de Seguridad</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Fotos del Hogar */}
-                                    {petmate.fotos_vivienda && petmate.fotos_vivienda.length > 0 && (
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-                                            {petmate.fotos_vivienda.map((foto, i) => (
-                                                <div key={i} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border-2 border-slate-300 hover:shadow-md transition-shadow cursor-pointer group">
-                                                    <Image src={foto} alt={`Foto hogar ${i}`} fill className="object-cover group-hover:scale-105 transition-transform" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </section>
-                            )}
-
-                            {/* Location Map Section */}
-                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
-                                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                    Ubicación Aproximada
-                                </h2>
-                                {petmate.latitud && petmate.longitud ? (
-                                    <div className="rounded-xl overflow-hidden border-2 border-slate-300">
-                                        <LocationMap
-                                            lat={petmate.latitud}
-                                            lng={petmate.longitud}
-                                            approximate={true}
-                                            radius={800}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="p-8 bg-slate-50 rounded-xl border-2 border-slate-300 text-center">
-                                        <p className="text-slate-500">
-                                            {petmate.comuna ? `Este sitter se encuentra en ${petmate.comuna}, ${petmate.region || ''}.` : "Ubicación no especificada."}
-                                        </p>
+                                        </section>
                                     </div>
                                 )}
-                            </section>
 
-                            {/* Galería */}
-                            {petmate.galeria && petmate.galeria.length > 0 && (
-                                <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
-                                    <h2 className="text-xl font-bold text-slate-900 mb-6">Galería de Fotos</h2>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                        {petmate.galeria.map((foto, index) => (
-                                            <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                                <Image src={foto} alt={`Galería ${index}`} fill className="object-cover" />
+                                {/* TAB 2: MIS SOLICITUDES */}
+                                {activeTab === 'requests' && currentUserId && (
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        {(myTripsWithSitter.length > 0 || loadingTrips) ? (
+                                            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                                    <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                                        </svg>
+                                                    </div>
+                                                    Mis Solicitudes con {petmate.nombre}
+                                                </h2>
+
+                                                {loadingTrips ? (
+                                                    <div className="animate-pulse space-y-2">
+                                                        <div className="h-10 bg-slate-100 rounded w-full"></div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {myTripsWithSitter.map(trip => (
+                                                            <div key={trip.id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between hover:border-slate-300 transition-colors">
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800">
+                                                                        {trip.fecha_inicio && new Date(trip.fecha_inicio + "T12:00:00").toLocaleDateString("es-CL", { day: 'numeric', month: 'long' })}
+                                                                        {" - "}
+                                                                        {trip.fecha_fin && new Date(trip.fecha_fin + "T12:00:00").toLocaleDateString("es-CL", { day: 'numeric', month: 'long' })}
+                                                                    </div>
+                                                                    <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
+                                                                        <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-md uppercase text-[10px] font-bold tracking-wide text-slate-600">
+                                                                            {trip.servicio}
+                                                                        </span>
+                                                                        {trip.perros > 0 && <span>{trip.perros} 🐶</span>}
+                                                                        {trip.gatos > 0 && <span>{trip.gatos} 🐱</span>}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-right flex flex-col items-end gap-2">
+                                                                    <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold ${trip.estado === 'completado' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                                                        'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                                                        }`}>
+                                                                        {trip.estado === 'pendiente' || trip.estado === 'solicitado' ? 'ASIGNADO' : trip.estado.toUpperCase()}
+                                                                    </span>
+                                                                    <button
+                                                                        onClick={() => handleDeleteTrip(trip.id)}
+                                                                        className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                                                        title="Eliminar solicitud"
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </section>
+                                        ) : (
+                                            <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                                                <p className="text-slate-500">No tienes solicitudes activas con este cuidador.</p>
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
-                                </section>
-                            )}
-
-                            {/* Información Adicional (Grid) */}
-                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
-                                <h2 className="text-xl font-bold text-slate-900 mb-6">Detalles</h2>
-                                <div className="grid sm:grid-cols-2 gap-y-6 gap-x-12">
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Edad</h3>
-                                        <p className="text-slate-900 font-medium">{petmate.edad ? `${petmate.edad} años` : "No especificada"}</p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Ocupación</h3>
-                                        <p className="text-slate-900 font-medium">{petmate.ocupacion || "No especificada"}</p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Mascotas propias</h3>
-                                        <p className="text-slate-900 font-medium">
-                                            {petmate.tiene_mascotas === true ? "Sí, tengo mascotas 🐶" :
-                                                petmate.tiene_mascotas === undefined ? "No especificado" : "No tengo mascotas actualmente"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">Vivienda</h3>
-                                        <p className="text-slate-900 font-medium capitalize">{petmate.tipo_vivienda || "No especificado"}</p>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Sección de Reseñas */}
-                            <section className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 p-6 sm:p-8">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                        Reseñas <span className="text-sm font-normal text-slate-500">({reviews.length})</span>
-                                    </h2>
-                                    <button
-                                        onClick={() => setIsReviewModalOpen(true)}
-                                        className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors border border-emerald-100"
-                                    >
-                                        Escribir una reseña
-                                    </button>
-                                </div>
-
-                                {loadingReviews ? (
-                                    <div className="space-y-4">
-                                        {[1, 2].map(i => (
-                                            <div key={i} className="animate-pulse flex space-x-4">
-                                                <div className="rounded-full bg-slate-200 h-10 w-10"></div>
-                                                <div className="flex-1 space-y-2 py-1">
-                                                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                                                    <div className="h-3 bg-slate-200 rounded w-3/4"></div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <ReviewList reviews={reviews} />
                                 )}
-                            </section>
-
+                            </div>
                         </div>
                     </div >
                 </main >

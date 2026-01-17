@@ -75,6 +75,18 @@ export default function MessageThread({ conversationId, userId }: Props) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    const markAsRead = async (unreadMessages: Message[]) => {
+        if (unreadMessages.length === 0) return;
+
+        const ids = unreadMessages.map(m => m.id);
+        const { error } = await supabase
+            .from('messages')
+            .update({ read: true })
+            .in('id', ids);
+
+        if (error) console.error("Error marking messages as read:", error);
+    };
+
     async function fetchMessages() {
         try {
             setLoading(true);
@@ -86,6 +98,14 @@ export default function MessageThread({ conversationId, userId }: Props) {
 
             if (error) throw error;
             setMessages(data as Message[]);
+
+            // Mark unread messages as read
+            if (userId && data) {
+                const unread = (data as Message[]).filter(m => !m.read && m.sender_id !== userId);
+                if (unread.length > 0) {
+                    markAsRead(unread);
+                }
+            }
         } catch (err) {
             console.error('Error fetching messages:', err);
             toast.error('Error al cargar mensajes');
@@ -108,6 +128,11 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     if (prev.some(m => m.id === newMsg.id)) return prev;
                     return [...prev, newMsg];
                 });
+
+                // Mark as read if it's from the other person
+                if (userId && newMsg.sender_id !== userId && !newMsg.read) {
+                    markAsRead([newMsg]);
+                }
             })
             .subscribe();
 

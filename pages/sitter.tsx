@@ -214,6 +214,8 @@ export default function SitterDashboardPage() {
                         fotos_vivienda: profile.fotos_vivienda || [],
                         tiene_patio: profile.tiene_patio || false,
                         tiene_malla: profile.tiene_malla || false,
+                        tiene_ninos: profile.tiene_ninos || false,
+                        fumador: profile.fumador || false,
                         video_presentacion: profile.video_presentacion || null,
                         consentimiento_rrss: profile.consentimiento_rrss || false,
                         aprobado: profile.aprobado || false
@@ -965,6 +967,8 @@ export default function SitterDashboardPage() {
 
                     tiene_patio: profileData.tiene_patio,
                     tiene_malla: profileData.tiene_malla,
+                    tiene_ninos: profileData.tiene_ninos,
+                    fumador: profileData.fumador,
                     video_presentacion: profileData.video_presentacion,
                     consentimiento_rrss: profileData.consentimiento_rrss
                 };
@@ -2543,6 +2547,28 @@ export default function SitterDashboardPage() {
                                                                         className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
                                                                     />
                                                                     <span className="text-sm font-bold">Mallas de Seguridad</span>
+                                                                </label>
+
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.tiene_ninos ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        disabled={activeSection !== 'profile'}
+                                                                        checked={profileData.tiene_ninos || false}
+                                                                        onChange={(e) => setProfileData({ ...profileData, tiene_ninos: e.target.checked })}
+                                                                        className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    />
+                                                                    <span className="text-sm font-bold">Niños en Casa</span>
+                                                                </label>
+
+                                                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.fumador ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        disabled={activeSection !== 'profile'}
+                                                                        checked={profileData.fumador || false}
+                                                                        onChange={(e) => setProfileData({ ...profileData, fumador: e.target.checked })}
+                                                                        className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                                                    />
+                                                                    <span className="text-sm font-bold">Fumador</span>
                                                                 </label>
                                                             </div>
 

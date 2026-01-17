@@ -24,3 +24,5 @@ stdout.txt
 stderr.txt
 push_output.txt
 .antigravity/
+.vercel
+.env*.local
