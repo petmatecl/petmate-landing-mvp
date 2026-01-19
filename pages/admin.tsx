@@ -7,6 +7,7 @@ import SitterDetailModal from "../components/Admin/SitterDetailModal";
 import { ConfirmationModal } from "../components/Shared/ConfirmationModal";
 import { Skeleton } from "../components/Shared/Skeleton";
 import AdminLayout from "../components/Admin/AdminLayout";
+import { Search, Bell, Users, Star, Handshake, CheckCircle, Trash2, FileText, Download, AlertTriangle, MapPin, Phone, Mail, User } from "lucide-react";
 
 function AdminDashboardSkeleton() {
     return (
@@ -529,7 +530,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between mt-1">
                         <p className="text-slate-500">Gestión de usuarios y solicitudes</p>
                         <Link href="/admin/notificaciones" className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-colors">
-                            🔔 <span className="hidden sm:inline">Notificaciones</span>
+                            <Bell className="w-4 h-4" /> <span className="hidden sm:inline">Notificaciones</span>
                             {stats.solicitudesPendientes + stats.sittersPendientes > 0 && (
                                 <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                                     {stats.solicitudesPendientes + stats.sittersPendientes}
@@ -544,7 +545,7 @@ export default function AdminDashboard() {
                     <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
                         <div className="flex justify-between items-start mb-2">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Usuarios</p>
-                            <span className="text-lg">👥</span>
+                            <Users className="w-5 h-5 text-slate-300" />
                         </div>
                         <p className="text-3xl font-bold text-slate-900">{stats.clientes}</p>
                         <div className="flex gap-2 mt-2 text-[10px]">
@@ -555,7 +556,7 @@ export default function AdminDashboard() {
                     <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
                         <div className="flex justify-between items-start mb-2">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
-                            <span className="text-lg">⭐️</span>
+                            <Star className="w-5 h-5 text-slate-300" />
                         </div>
                         <p className="text-3xl font-bold text-emerald-600">{stats.sitters}</p>
                         <div className="flex gap-2 mt-2 text-[10px]">
@@ -567,7 +568,7 @@ export default function AdminDashboard() {
                     <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 bg-gradient-to-br from-white to-amber-50/20">
                         <div className="flex justify-between items-start mb-2">
                             <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
-                            <span className="text-lg">🔍</span>
+                            <Search className="w-5 h-5 text-amber-400" />
                         </div>
                         <p className="text-3xl font-bold text-amber-600">{stats.solicitudesPendientes}</p>
                         <p className="text-[10px] text-amber-600/70 mt-1">Sin Sitter</p>
@@ -575,7 +576,7 @@ export default function AdminDashboard() {
                     <div className="bg-white p-5 rounded-3xl shadow-sm border border-indigo-100 bg-gradient-to-br from-white to-indigo-50/20">
                         <div className="flex justify-between items-start mb-2">
                             <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
-                            <span className="text-lg">🤝</span>
+                            <Handshake className="w-5 h-5 text-indigo-400" />
                         </div>
                         <p className="text-3xl font-bold text-indigo-600">{stats.solicitudesAsignadas}</p>
                         <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
@@ -584,7 +585,7 @@ export default function AdminDashboard() {
                     <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
                         <div className="flex justify-between items-start mb-2">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
-                            <span className="text-lg">✅</span>
+                            <CheckCircle className="w-5 h-5 text-sky-400" />
                         </div>
                         <p className="text-3xl font-bold text-sky-600">{stats.serviciosRealizados}</p>
                         <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
@@ -635,10 +636,10 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Buscador y Filtros Row */}
-                        <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
+                        <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col xl:flex-row gap-4 xl:items-center justify-between">
 
                             {/* Search Left */}
-                            <div className="relative w-full lg:w-96">
+                            <div className="relative w-full xl:w-96">
                                 <input
                                     type="text"
                                     placeholder="Buscar por nombre, email, rut..."
@@ -646,7 +647,7 @@ export default function AdminDashboard() {
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="h-11 w-full pl-11 pr-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 text-sm transition-all"
                                 />
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔍</span>
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                             </div>
 
                             {/* Filters Right */}
@@ -709,7 +710,7 @@ export default function AdminDashboard() {
                                     onClick={handleExport}
                                     className="h-10 bg-slate-900 hover:bg-slate-800 text-white px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-slate-900/10"
                                 >
-                                    <span>📊</span> <span className="hidden xl:inline">Exportar</span>
+                                    <Download className="w-4 h-4" /> <span className="hidden xl:inline">Exportar</span>
                                 </button>
                             </div>
                         </div>
@@ -815,13 +816,13 @@ export default function AdminDashboard() {
                                             <>
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
+                                                        <Phone className="w-3 h-3 text-emerald-500" /> {item.telefono || "N/A"}
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-emerald-500">🆔</span> {item.rut || "N/A"}
+                                                        <User className="w-3 h-3 text-emerald-500" /> {item.rut || "N/A"}
                                                     </div>
                                                     <div className="flex items-center gap-2 line-clamp-1">
-                                                        <span className="text-emerald-500">📍</span> {item.direccion_completa || "Sin dirección"}
+                                                        <MapPin className="w-3 h-3 text-emerald-500" /> {item.direccion_completa || "Sin dirección"}
                                                     </div>
                                                 </div>
                                             </>
@@ -1011,7 +1012,11 @@ export default function AdminDashboard() {
                                                                 {item.nombre} {item.apellido_p}
                                                                 {(() => {
                                                                     const missing = checkProfileCompleteness(item, activeTab === "sitter" ? "sitter" : "cliente");
-                                                                    return missing.length > 0 ? <span title={`Faltan datos: ${missing.join(', ')}`} className="cursor-help text-lg">⚠️</span> : null;
+                                                                    return missing.length > 0 ? (
+                                                                        <span title={`Faltan datos: ${missing.join(', ')}`} className="flex items-center">
+                                                                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                                                        </span>
+                                                                    ) : null;
                                                                 })()}
                                                             </div>
                                                             <span className="block text-xs font-normal text-slate-400">ID: {item.id.slice(0, 8)}...</span>
@@ -1021,10 +1026,10 @@ export default function AdminDashboard() {
                                                 <td className="px-6 py-4 w-1/4">
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-2 text-xs truncate max-w-[200px]" title={item.email}>
-                                                            <span className="text-emerald-500">✉</span> {item.email}
+                                                            <Mail className="w-3 h-3 text-emerald-500" /> {item.email}
                                                         </div>
                                                         <div className="flex items-center gap-2 text-xs">
-                                                            <span className="text-emerald-500">📞</span> {item.telefono || "N/A"}
+                                                            <Phone className="w-3 h-3 text-emerald-500" /> {item.telefono || "N/A"}
                                                         </div>
                                                         {item.rut && (
                                                             <div className="flex items-center gap-2 text-xs text-slate-700 font-bold border-t border-slate-300 pt-1 mt-1">
@@ -1039,7 +1044,10 @@ export default function AdminDashboard() {
                                                             <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]" title={item.direccion_completa}>
                                                                 {item.calle ? `${item.calle} ${item.numero}` : item.direccion_completa}
                                                             </span>
-                                                            <span className="text-xs text-slate-500">{item.comuna}, {item.region}</span>
+                                                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                                                                <MapPin className="w-3 h-3" />
+                                                                {item.comuna}, {item.region}
+                                                            </span>
                                                         </div>
                                                     ) : (
                                                         <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
@@ -1054,7 +1062,7 @@ export default function AdminDashboard() {
                                                                 onClick={() => handleViewDocument(item.certificado_antecedentes)}
                                                                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
                                                             >
-                                                                📄 Ver Antecedentes
+                                                                <FileText className="w-3 h-3" /> Ver Antecedentes
                                                             </button>
                                                         ) : activeTab === "sitter" ? (
                                                             <span className="text-xs text-slate-400 italic">Sin antecedentes</span>
@@ -1094,7 +1102,7 @@ export default function AdminDashboard() {
                                                                 className="text-xs text-red-500 hover:text-red-700 font-medium bg-red-50 px-2 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
                                                                 title="Eliminar usuario"
                                                             >
-                                                                🗑️
+                                                                <Trash2 className="w-4 h-4" />
                                                             </button>
                                                         </div>
                                                     </div>
