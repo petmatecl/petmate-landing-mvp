@@ -45,6 +45,7 @@ type SitterData = {
 
     // Gallery
     galeria?: string[];
+    fotos_vivienda?: string[];
 
     // Social
     redes_sociales?: { linkedin?: string; tiktok?: string; instagram?: string; facebook?: string };
@@ -269,11 +270,25 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Gallery */}
                             {sitter.galeria && sitter.galeria.length > 0 && (
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Galería ({sitter.galeria.length})</h4>
+                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Galería Mascotas ({sitter.galeria.length})</h4>
                                     <div className="grid grid-cols-4 gap-2">
                                         {sitter.galeria.map((img, idx) => (
                                             <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300">
                                                 <Image src={img} alt="Galeria" fill className="object-cover" unoptimized />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Housing Gallery */}
+                            {sitter.fotos_vivienda && sitter.fotos_vivienda.length > 0 && (
+                                <div className="mt-6">
+                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Galería Hogar ({sitter.fotos_vivienda.length})</h4>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {sitter.fotos_vivienda.map((img, idx) => (
+                                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300">
+                                                <Image src={img} alt="Galeria Hogar" fill className="object-cover" unoptimized />
                                             </div>
                                         ))}
                                     </div>
