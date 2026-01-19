@@ -636,10 +636,10 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Buscador y Filtros Row */}
-                        <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col xl:flex-row gap-4 xl:items-center justify-between">
+                        <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
 
                             {/* Search Left */}
-                            <div className="relative w-full xl:w-96">
+                            <div className="relative w-full lg:w-72 xl:w-96">
                                 <input
                                     type="text"
                                     placeholder="Buscar por nombre, email, rut..."
@@ -651,7 +651,7 @@ export default function AdminDashboard() {
                             </div>
 
                             {/* Filters Right */}
-                            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+                            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
 
                                 {/* Status Filter */}
                                 <select
@@ -682,14 +682,14 @@ export default function AdminDashboard() {
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-32"
+                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-28 sm:w-32"
                                     />
                                     <span className="text-slate-400">-</span>
                                     <input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-32"
+                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-28 sm:w-32"
                                     />
                                 </div>
 
