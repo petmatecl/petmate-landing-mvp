@@ -316,7 +316,19 @@ export default function AdminDashboard() {
         setIsModalOpen(true);
     };
 
+    // --- ACTIONS ---
+
     const handleViewDocument = async (path: string) => {
+        if (!path) return;
+
+        // Si es una URL completa (http/https), abrirla directamente
+        // Esto maneja los archivos subidos al bucket público 'avatars'
+        if (path.startsWith('http')) {
+            window.open(path, "_blank");
+            return;
+        }
+
+        // Fallback para paths relativos en bucket privado 'documents'
         try {
             const { data, error } = await supabase.storage
                 .from("documents")
@@ -369,11 +381,6 @@ export default function AdminDashboard() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, loading]);
-
-    // Stats are fetched in checkAuth, no need for separate effect unless we want auto-refresh mechanism
-    // but for now let's keep it simple.
-
-    // Remove the previous checkAuth dependency on activeTab
 
 
     // --- FILTRADO Y ORDENAMIENTO ---
@@ -447,6 +454,13 @@ export default function AdminDashboard() {
         return 0;
     });
 
+    // --- PAGINACIÓN ---
+    const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+    const paginatedItems = filteredItems.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
     // --- EXPORTAR ---
     const handleExport = () => {
         if (filteredItems.length === 0) {
@@ -457,6 +471,7 @@ export default function AdminDashboard() {
         let dataToExport = [];
 
         if (activeTab === "solicitudes") {
+            // ... (export logic logic same as before, abbreviated here if unchanged, but need to keep it for replace)
             dataToExport = filteredItems.map(item => ({
                 ID: item.id,
                 Estado: item.estado,
@@ -471,7 +486,6 @@ export default function AdminDashboard() {
                 "Creado en": new Date(item.created_at).toLocaleString("es-CL")
             }));
         } else {
-            // Clientes o Sitters
             dataToExport = filteredItems.map(item => ({
                 ID: item.id,
                 Nombre: item.nombre,
@@ -484,7 +498,6 @@ export default function AdminDashboard() {
                 Direccion: item.direccion_completa,
                 Estado: item.aprobado ? "Aprobado" : "Pendiente",
                 "Registrado en": new Date(item.created_at).toLocaleString("es-CL"),
-                // Extras para Sitters
                 ...(activeTab === "sitter" ? {
                     Ocupacion: item.ocupacion,
                     Edad: item.edad,
@@ -499,13 +512,6 @@ export default function AdminDashboard() {
         XLSX.utils.book_append_sheet(workbook, worksheet, activeTab.toUpperCase());
         XLSX.writeFile(workbook, `PetMate_Export_${activeTab}_${new Date().toISOString().slice(0, 10)}.xlsx`);
     };
-
-    // --- PAGINACIÓN ---
-    const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
-    const paginatedItems = filteredItems.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
 
     return (
         <AdminLayout>
@@ -533,153 +539,185 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-
-
                 {/* RESUMEN */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-300">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Usuarios</p>
-                        <p className="text-3xl font-bold text-slate-900 mt-1">{stats.clientes}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Usuarios</p>
+                            <span className="text-lg">👥</span>
+                        </div>
+                        <p className="text-3xl font-bold text-slate-900">{stats.clientes}</p>
                         <div className="flex gap-2 mt-2 text-[10px]">
-                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesAprobados} OK</span>
-                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.clientesPendientes} Pend.</span>
+                            <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">{stats.clientesAprobados} OK</span>
+                            <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">{stats.clientesPendientes} Pend.</span>
                         </div>
                     </div>
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-300">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
-                        <p className="text-3xl font-bold text-emerald-600 mt-1">{stats.sitters}</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sitters</p>
+                            <span className="text-lg">⭐️</span>
+                        </div>
+                        <p className="text-3xl font-bold text-emerald-600">{stats.sitters}</p>
                         <div className="flex gap-2 mt-2 text-[10px]">
-                            <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersAprobados} OK</span>
-                            <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">{stats.sittersPendientes} Pend.</span>
+                            <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">{stats.sittersAprobados} OK</span>
+                            <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">{stats.sittersPendientes} Pend.</span>
                         </div>
                     </div>
 
-                    {/* Tarjetas de Solicitudes Desglosadas */}
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 bg-amber-50/30">
-                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
-                        <p className="text-3xl font-bold text-amber-600 mt-1">{stats.solicitudesPendientes}</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 bg-gradient-to-br from-white to-amber-50/20">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">En Búsqueda</p>
+                            <span className="text-lg">🔍</span>
+                        </div>
+                        <p className="text-3xl font-bold text-amber-600">{stats.solicitudesPendientes}</p>
                         <p className="text-[10px] text-amber-600/70 mt-1">Sin Sitter</p>
                     </div>
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100 bg-indigo-50/30">
-                        <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
-                        <p className="text-3xl font-bold text-indigo-600 mt-1">{stats.solicitudesAsignadas}</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-indigo-100 bg-gradient-to-br from-white to-indigo-50/20">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Asignadas</p>
+                            <span className="text-lg">🤝</span>
+                        </div>
+                        <p className="text-3xl font-bold text-indigo-600">{stats.solicitudesAsignadas}</p>
                         <p className="text-[10px] text-indigo-600/70 mt-1">Con Sitter</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-300">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
-                        <p className="text-3xl font-bold text-sky-600 mt-1">{stats.serviciosRealizados}</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Servicios OK</p>
+                            <span className="text-lg">✅</span>
+                        </div>
+                        <p className="text-3xl font-bold text-sky-600">{stats.serviciosRealizados}</p>
                         <p className="text-[10px] text-slate-400 mt-1">Histórico</p>
                     </div>
                 </div>
 
-                {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+                <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                    {/* CONTROLES SUPERIORES (Tabs, Buscador, Orden) */}
+                    <div className="flex flex-col gap-6 mb-8">
 
-                    {/* Tabs */}
-                    <div className="flex bg-white rounded-xl p-1 shadow-sm border-2 border-slate-300 self-start xl:self-auto overflow-x-auto max-w-full">
-                        <button
-                            onClick={() => setActiveTab("sitter")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "sitter" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                        >
-                            Sitters
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("cliente")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "cliente" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                        >
-                            Usuarios
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("solicitudes")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "solicitudes" ? "bg-emerald-100 text-emerald-700" : "text-slate-600 hover:bg-slate-50"}`}
-                        >
-                            Solicitudes
-                        </button>
-                    </div>
-
-                    {/* Buscador y Filtros */}
-                    <div className="flex flex-col lg:flex-row gap-3 w-full xl:w-auto items-stretch lg:items-center">
-
-                        {/* Filtro Estado (Solo usuarios) */}
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value as any)}
-                            className="h-10 px-3 rounded-xl border-2 border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
-                        >
-                            <option value="all">Todos los Estados</option>
-                            {activeTab === "solicitudes" ? (
-                                <>
-                                    <option value="pending">Pendientes / Buscando</option>
-                                    <option value="confirmed">Confirmados / En Curso</option>
-                                    <option value="reserved">Por Confirmar (Reservado)</option>
-                                    <option value="completed">Completados</option>
-                                    <option value="cancelled">Cancelados</option>
-                                </>
-                            ) : (
-                                <>
-                                    <option value="pending">Pendientes de Aprobación</option>
-                                    <option value="approved">Aprobados</option>
-                                </>
-                            )}
-                        </select>
-
-                        {/* Filtros de Fecha */}
-                        <div className="flex gap-2">
-                            <div className="flex flex-col justify-center">
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="h-10 px-2 rounded-lg border-2 border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                                    placeholder="Desde"
-                                />
-                            </div>
-                            <div className="flex flex-col justify-center">
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="h-10 px-2 rounded-lg border-2 border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                                    placeholder="Hasta"
-                                />
-                            </div>
+                        {/* Modern Tabs */}
+                        <div className="border-b border-slate-200">
+                            <nav className="-mb-px flex gap-6" aria-label="Tabs">
+                                <button
+                                    onClick={() => setActiveTab("sitter")}
+                                    className={`
+                                        whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all
+                                        ${activeTab === "sitter"
+                                            ? "border-emerald-500 text-emerald-600"
+                                            : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"}
+                                    `}
+                                >
+                                    Sitters
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("cliente")}
+                                    className={`
+                                        whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all
+                                        ${activeTab === "cliente"
+                                            ? "border-emerald-500 text-emerald-600"
+                                            : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"}
+                                    `}
+                                >
+                                    Usuarios
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("solicitudes")}
+                                    className={`
+                                        whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all
+                                        ${activeTab === "solicitudes"
+                                            ? "border-emerald-500 text-emerald-600"
+                                            : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"}
+                                    `}
+                                >
+                                    Solicitudes
+                                </button>
+                            </nav>
                         </div>
 
-                        {/* Botón Exportar */}
-                        <button
-                            onClick={handleExport}
-                            className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                        >
-                            <span>📊</span> <span className="hidden lg:inline">Exportar</span>
-                        </button>
+                        {/* Buscador y Filtros Row */}
+                        <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
 
-                        <div className="relative flex-1 lg:w-64">
-                            <input
-                                type="text"
-                                placeholder="Buscar..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="h-10 w-full pl-10 pr-4 rounded-xl border-2 border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                            />
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                            {/* Search Left */}
+                            <div className="relative w-full lg:w-96">
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre, email, rut..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="h-11 w-full pl-11 pr-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 text-sm transition-all"
+                                />
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔍</span>
+                            </div>
+
+                            {/* Filters Right */}
+                            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+
+                                {/* Status Filter */}
+                                <select
+                                    value={filterStatus}
+                                    onChange={(e) => setFilterStatus(e.target.value as any)}
+                                    className="h-10 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer text-slate-600"
+                                >
+                                    <option value="all">Todos los Estados</option>
+                                    {activeTab === "solicitudes" ? (
+                                        <>
+                                            <option value="pending">Pendientes / Buscando</option>
+                                            <option value="confirmed">Confirmados / En Curso</option>
+                                            <option value="reserved">Por Confirmar (Reservado)</option>
+                                            <option value="completed">Completados</option>
+                                            <option value="cancelled">Cancelados</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="pending">Pendientes de Aprobación</option>
+                                            <option value="approved">Aprobados</option>
+                                        </>
+                                    )}
+                                </select>
+
+                                {/* Date Range */}
+                                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200">
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-32"
+                                    />
+                                    <span className="text-slate-400">-</span>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-32"
+                                    />
+                                </div>
+
+                                {/* Sort */}
+                                <select
+                                    value={sortOrder}
+                                    onChange={(e) => setSortOrder(e.target.value as any)}
+                                    className="h-10 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer text-slate-600"
+                                >
+                                    <option value="newest">Más recientes</option>
+                                    <option value="oldest">Más antiguos</option>
+                                    <option value="name_asc">Nombre A-Z</option>
+                                    <option value="name_desc">Nombre Z-A</option>
+                                </select>
+
+                                {/* Export */}
+                                <button
+                                    onClick={handleExport}
+                                    className="h-10 bg-slate-900 hover:bg-slate-800 text-white px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-slate-900/10"
+                                >
+                                    <span>📊</span> <span className="hidden xl:inline">Exportar</span>
+                                </button>
+                            </div>
                         </div>
-
-                        <select
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value as any)}
-                            className="h-10 px-4 rounded-xl border-2 border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white cursor-pointer"
-                        >
-                            <option value="newest">Más recientes</option>
-                            <option value="oldest">Más antiguos</option>
-                            <option value="name_asc">Nombre A-Z</option>
-                            <option value="name_desc">Nombre Z-A</option>
-                        </select>
                     </div>
                 </div>
 
                 {/* TABLA DE RESULTADOS */}
-                <div className="bg-white rounded-3xl shadow-sm border-2 border-slate-300 overflow-hidden mb-6">
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
 
                     {/* MOBILE CARDS VIEW (Visible < md) */}
                     <div className="md:hidden divide-y divide-slate-100">
