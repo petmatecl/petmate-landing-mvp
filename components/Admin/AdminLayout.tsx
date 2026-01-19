@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Head>
 
             {/* Sidebar / Mobile Nav */}
-            <aside className="bg-white border-b md:border-b-0 md:border-r border-slate-300 w-full md:w-64 flex-shrink-0">
+            <aside className="bg-white border-b md:border-b-0 md:border-r border-slate-300 w-full md:w-64 flex-shrink-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto no-scrollbar">
                 <div className="p-6 border-b border-slate-300 flex items-center justify-between md:block">
                     <Link href="/admin" className="text-xl font-extrabold text-emerald-600 flex items-center gap-2">
                         <PawPrint size={24} /> PAWNECTA <span className="text-slate-400 font-normal text-xs">Admin</span>
@@ -78,7 +78,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen">
+            <main className="flex-1 p-4 md:p-8">
                 <div className="max-w-7xl mx-auto">
                     {children}
                 </div>
