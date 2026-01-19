@@ -597,7 +597,7 @@ export default function AdminDashboard() {
                     <div className="flex flex-col gap-6 mb-8">
 
                         {/* Modern Tabs */}
-                        <div className="border-b border-slate-200">
+                        <div className="border-b border-slate-200 flex justify-between items-center">
                             <nav className="-mb-px flex gap-6" aria-label="Tabs">
                                 <button
                                     onClick={() => setActiveTab("sitter")}
@@ -633,6 +633,14 @@ export default function AdminDashboard() {
                                     Solicitudes
                                 </button>
                             </nav>
+
+                            {/* Export Button Moved Here */}
+                            <button
+                                onClick={handleExport}
+                                className="h-9 bg-slate-900 hover:bg-slate-800 text-white px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-slate-900/10 mb-2"
+                            >
+                                <Download className="w-3 h-3" /> <span className="hidden sm:inline">Exportar</span>
+                            </button>
                         </div>
 
                         {/* Buscador y Filtros Row */}
@@ -705,13 +713,6 @@ export default function AdminDashboard() {
                                     <option value="name_desc">Nombre Z-A</option>
                                 </select>
 
-                                {/* Export */}
-                                <button
-                                    onClick={handleExport}
-                                    className="h-10 bg-slate-900 hover:bg-slate-800 text-white px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-slate-900/10"
-                                >
-                                    <Download className="w-4 h-4" /> <span className="hidden xl:inline">Exportar</span>
-                                </button>
                             </div>
                         </div>
                     </div>
