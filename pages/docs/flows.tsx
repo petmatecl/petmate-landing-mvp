@@ -55,7 +55,7 @@ const DIAGRAMS: FlowDiagram[] = [
     },
     {
         title: "3. Interacción End-to-End (Búsqueda a Confirmación)",
-        description: "El viaje completo desde buscar servicio hasta el final (MVP: Sin Pagos).",
+        description: "El viaje completo desde buscar servicio hasta el final (MVP).",
         code: `sequenceDiagram
     actor Owner as Dueño
     participant App as Plataforma
@@ -63,26 +63,29 @@ const DIAGRAMS: FlowDiagram[] = [
 
     Owner->>App: Busca Sitter (Fechas/Comuna)
     App-->>Owner: Muestra Resultados
-    Owner->>Sitter: Envía Solicitud (Estado: Pendiente)
+    Owner->>Sitter: Envía Solicitud (Estado: Postulado)
     
-    alt Sitter Acepta
+    alt Sitter Acepta (Happy Path)
         Sitter->>App: Clic "Aceptar Solicitud"
         App->>App: Cambia estado a "Confirmado"
         App-->>Owner: Notificar "Solicitud Aceptada"
-        App-->>Owner: Enviar Datos de Contacto (Ficha)
-        App-->>Sitter: Enviar Datos de Contacto (Ficha)
-        Note over Owner,Sitter: Pago/Coordinación final ocurre fuera (MVP)
+        App-->>Owner: Liberar Datos de Contacto
+        App-->>Sitter: Liberar Datos de Contacto
     else Sitter Rechaza
         Sitter->>App: Clic "Rechazar"
+        App->>App: Cambia estado a "Rechazado" (Final)
         App-->>Owner: Notificar "No disponible"
     else No Responde (Timeout 24h)
-        App->>App: Expirar Solicitud
+        App->>App: Cron Job: Expirar Solicitud
+        App->>App: Cambia estado a "Cancelado/Expirado"
         App-->>Owner: Notificar "Sin respuesta"
     end
 
-    opt Cancelación Previa
-        Owner->>App: Cancelar Servicio
-        App-->>Sitter: Notificar Cancelación
+    opt Cancelación Post-Confirmación
+        Owner->>App: Clic "Cancelar Servicio"
+        App->>App: Cambia estado a "Cancelado"
+        App-->>Sitter: Email de Cancelación
+        Note right of App: Aunque no haya reembolso (MVP),<br/>se libera la agenda del Sitter.
     end`
     },
     {
@@ -96,7 +99,7 @@ const DIAGRAMS: FlowDiagram[] = [
     B -- Sí --> E[Revisar Detalles]
     E --> F{¿Acepta el trabajo?}
     F -- Sí --> G[Clic 'Aceptar Solicitud']
-    G --> H[Viaje Confirmado]
+    G --> H[Estado: Confirmado]
     G --> I[Intercambio de Contactos]
     
     F -- No --> C`
@@ -121,7 +124,7 @@ const DIAGRAMS: FlowDiagram[] = [
         title: "6. Flujo de Reseñas Post-Servicio",
         description: "Proceso de calificación activado por email.",
         code: `graph LR
-    A[Fin del Servicio] --> B(Espera del Sistema 1 día)
+    A[Fin del Servicio (Confirmado)] --> B(Espera del Sistema 1 día)
     B --> C[Enviar Email de Reseña]
     C --> D[Clic en Enlace]
     D --> E[Formulario de Reseña]
@@ -131,31 +134,30 @@ const DIAGRAMS: FlowDiagram[] = [
     },
     {
         title: "7. Ciclo de Vida y Visibilidad de Datos",
-        description: "Muestra exactamente qué datos ve cada parte en cada etapa.",
+        description: "Estados unificados y reglas de privacidad.",
         code: `stateDiagram-v2
     direction LR
     
-    state "1. Solicitud Abierta (Publicado)" as Open {
+    state "1. PUBLICADO<br/>(Solicitud Abierta)" as Open {
         state "Vista Dueño<br/>(Ve detalles completos)" as OV1
-        
-        state "Vista Sitter (Explorar)<br/>❌ Sin Contacto<br/>❌ Sin Dirección Exacta<br/>✅ Nombre Dueño (Solo Pila)<br/>✅ Comuna (Aprox)<br/>✅ Datos Mascotas<br/>✅ Fechas Servicio" as SV1
+        state "Vista Sitter<br/>❌ Sin Privacidad<br/>✅ Datos Básicos" as SV1
     }
 
-    state "2. Negociación (Postulado)" as Applied {
-        state "Vista Dueño<br/>✅ Perfil Sitter (Público)<br/>✅ Precio Propuesto<br/>❌ Tel/Email Sitter oculto" as OV2
-        
-        state "Vista Sitter<br/>Estado: Postulado<br/>Chat Abierto<br/>✅ Nombre Dueño (Solo Pila)" as SV2
+    state "2. POSTULADO<br/>(Negociación)" as Applied {
+        state "Vista Dueño<br/>✅ Perfil Público Sitter<br/>❌ Sin Contacto Directo" as OV2
+        state "Vista Sitter<br/>✅ Chat Habilitado" as SV2
     }
 
-    state "3. Confirmado (Programado)" as Confirmed {
-        state "Vista de Ambos<br/>✅ Nombres Legales Completos<br/>✅ Teléfono y Email<br/>✅ Dirección Exacta<br/>✅ Ficha de Servicio (PDF)" as BV3
+    state "3. CONFIRMADO<br/>(Servicio Agendado)" as Confirmed {
+        state "Vista de Ambos<br/>✅ Nombres Completos<br/>✅ Teléfono y Email<br/>✅ Dirección Exacta<br/>✅ Ficha de Servicio" as BV3
     }
 
     [*] --> Open : Usuario Publica
     Open --> Applied : Sitter Postula
-    Applied --> Confirmed : Dueño Acepta
-    Applied --> Open : Dueño Rechaza
-    Confirmed --> [*] : Servicio Completado`
+    Applied --> Confirmed : Sitter Acepta
+    Applied --> Open : Sitter Rechaza / Expira
+    Confirmed --> [*] : Servicio Completado
+    Confirmed --> Open : Cancelación (Reset)`
     }
 ];
 
@@ -212,12 +214,28 @@ export default function DocsFlowsPage() {
             <div className="container mx-auto px-4 py-12 max-w-5xl">
                 <div className="mb-12 text-center">
                     <h1 className="text-3xl font-bold text-slate-900 mb-4">Documentación de Flujos de Usuario</h1>
-                    <p className="text-slate-600 max-w-2xl mx-auto">
+                    <p className="text-slate-600 max-w-2xl mx-auto mb-6">
                         Referencia visual de los procesos core de la plataforma (MVP).
-                        Estos diagramas representan el comportamiento implementado actualmente.
                     </p>
-                    <div className="mt-4 inline-block px-4 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold border border-amber-200">
-                        CONFIDENCIAL / USO INTERNO
+
+                    {/* Metadata de Control */}
+                    <div className="inline-flex flex-col sm:flex-row gap-4 sm:gap-8 bg-white px-6 py-3 rounded-xl border border-slate-200 shadow-sm text-xs text-left">
+                        <div>
+                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Versión</span>
+                            <span className="font-mono text-slate-700">v1.2.0 (MVP Launch)</span>
+                        </div>
+                        <div>
+                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Última Act.</span>
+                            <span className="font-mono text-slate-700">20 Ene 2026</span>
+                        </div>
+                        <div>
+                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Owner</span>
+                            <span className="font-mono text-slate-700">Product Team</span>
+                        </div>
+                        <div>
+                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Changelog</span>
+                            <span className="font-mono text-slate-700">Unificación de Estados</span>
+                        </div>
                     </div>
                 </div>
 
@@ -242,6 +260,16 @@ export default function DocsFlowsPage() {
                                     {diagram.code}
                                 </div>
                             </div>
+                            {/* Privacy / Security Note for Data Visibility Diagram */}
+                            {index === 6 && (
+                                <div className="bg-blue-50 px-6 py-3 border-t border-blue-100 flex items-start gap-3">
+                                    <div className="mt-0.5 text-blue-500">ℹ️</div>
+                                    <p className="text-xs text-blue-800">
+                                        <strong>Política de Privacidad:</strong> Los datos de contacto sensibles (teléfono, email, dirección exacta)
+                                        se comparten <u>únicamente</u> cuando ambas partes han confirmado el servicio. En etapas previas, la plataforma actúa como intermediario ciego para proteger la privacidad.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
