@@ -39,6 +39,7 @@ export default function SitterExplorarPage() {
     // Filters
     const [filterService, setFilterService] = useState("");
     const [filterComuna, setFilterComuna] = useState("");
+    const [filterPetType, setFilterPetType] = useState(""); // New Pet Type Filter
     // Replaced separate date states with DateRange
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
@@ -199,7 +200,12 @@ export default function SitterExplorarPage() {
     // Filter Logic
     const filteredTrips = trips.filter(t => {
         if (filterService && t.servicio !== filterService) return false;
+        if (filterService && t.servicio !== filterService) return false;
         if (filterComuna && t.cliente?.comuna !== filterComuna) return false;
+
+        // Pet Type Logic
+        if (filterPetType === 'perro' && t.perros === 0) return false; // Must have at least 1 dog
+        if (filterPetType === 'gato' && t.gatos === 0) return false;   // Must have at least 1 cat
 
         // Date Logic
         // If user selected a "from" date, filtered trips must start ON or AFTER that date
@@ -276,6 +282,16 @@ export default function SitterExplorarPage() {
                         {COMUNAS_SANTIAGO.map(c => (
                             <option key={c} value={c}>{c}</option>
                         ))}
+                    </select>
+
+                    <select
+                        value={filterPetType}
+                        onChange={(e) => setFilterPetType(e.target.value)}
+                        className="px-3 py-2 rounded-lg border-2 border-slate-300 text-sm focus:border-emerald-500 outline-none"
+                    >
+                        <option value="">Cualquier Mascota</option>
+                        <option value="perro">Solo Perros</option>
+                        <option value="gato">Solo Gatos</option>
                     </select>
 
                     {/* Airbnb DateRange Component */}
