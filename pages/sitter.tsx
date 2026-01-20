@@ -1789,49 +1789,7 @@ export default function SitterDashboardPage() {
                                                     </label>
                                                 </div>
 
-                                                <div className="sm:col-span-2 mt-2 pt-2 border-t border-slate-200">
-                                                    <h5 className="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide flex justify-between items-center">
-                                                        Fotos del Hogar (Máx 10)
-                                                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{(profileData.fotos_vivienda?.length || 0)}/10</span>
-                                                    </h5>
 
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                        {(profileData.fotos_vivienda || []).map((foto: string, idx: number) => (
-                                                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm border border-slate-200">
-                                                                <Image src={foto} alt={`Hogar ${idx}`} fill className="object-cover" />
-                                                                {activeSection === 'profile' && (
-                                                                    <button
-                                                                        onClick={() => handleDeleteHousingPhoto(idx)}
-                                                                        className="absolute top-1 right-1 bg-white/90 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-red-600"
-                                                                    >
-                                                                        <Trash2 size={14} />
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        ))}
-
-                                                        {activeSection === 'profile' && (profileData.fotos_vivienda?.length || 0) < 10 && (
-                                                            <label className="aspect-square rounded-lg border border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 transition-colors text-slate-300 hover:text-emerald-600 group/add">
-                                                                {uploading ? (
-                                                                    <Loader2 size={16} className="animate-spin" />
-                                                                ) : (
-                                                                    <>
-                                                                        <ImagePlus size={18} className="mb-1 group-hover/add:scale-110 transition-transform" />
-                                                                        <span className="text-[10px] font-semibold">Agregar</span>
-                                                                    </>
-                                                                )}
-                                                                <input
-                                                                    type="file"
-                                                                    accept="image/*"
-                                                                    multiple
-                                                                    className="hidden"
-                                                                    onChange={handleHousingGalleryUpload}
-                                                                    disabled={uploading}
-                                                                />
-                                                            </label>
-                                                        )}
-                                                    </div>
-                                                </div>
 
                                             </div>
 
@@ -2564,7 +2522,7 @@ export default function SitterDashboardPage() {
                                                     if (!docsComplete) missing.push("Documentación");
                                                     if (!profileData.foto_perfil) missing.push("Foto de Perfil");
                                                     if (!profileData.galeria || profileData.galeria.length === 0) missing.push("Galería con Mascotas");
-                                                    if (!profileData.fotos_vivienda || profileData.fotos_vivienda.length === 0) missing.push("Galería de mi Hogar");
+
                                                     if (!videoComplete) missing.push("Video de Presentación (Opcional pero recomendado)");
 
                                                     if (missing.length > 0) {

@@ -74,7 +74,7 @@ export default function SitterExplorarPage() {
             // 1. Fetch published trips (remove invalid mascotas join)
             let query = supabase
                 .from("viajes")
-                .select("*, cliente:user_id(comuna, nombre)")
+                .select("*")
                 .eq("estado", "publicado")
                 .order("created_at", { ascending: false });
 
@@ -101,6 +101,19 @@ export default function SitterExplorarPage() {
                     petsData.forEach(p => {
                         petsMap[p.id] = p;
                     });
+                }
+            }
+
+            // 2.5 Fetch Clients manually
+            const userIds = Array.from(new Set(tripsData.map((t: any) => t.user_id)));
+            let clientsMap: Record<string, any> = {};
+            if (userIds.length > 0) {
+                const { data: clients } = await supabase
+                    .from("registro_petmate")
+                    .select("auth_user_id, comuna, nombre")
+                    .in("auth_user_id", userIds);
+                if (clients) {
+                    clients.forEach(c => clientsMap[c.auth_user_id] = c);
                 }
             }
 
@@ -131,6 +144,7 @@ export default function SitterExplorarPage() {
                     ...t,
                     mascotas: firstPet, // Backward compatibility for UI
                     all_pets: tripPets, // New field if we want to improve UI later
+                    cliente: clientsMap[t.user_id] || {},
                     hasApplied: myAppTripIds.has(t.id)
                 };
             });
@@ -267,6 +281,8 @@ export default function SitterExplorarPage() {
                             value={dateRange}
                             onChange={setDateRange}
                             className="w-full sm:w-auto"
+                            label="Tu Disponibilidad"
+                            helperText="Selecciona las fechas en que puedes prestar servicios."
                         />
                     </div>
                 </div>

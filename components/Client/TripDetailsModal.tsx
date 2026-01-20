@@ -150,6 +150,37 @@ export default function TripDetailsModal({ isOpen, onClose, trip, pets, serviceA
 
                             </div>
 
+                            {/* 4. Sitter Info (If available) */}
+                            {trip.sitter && (
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <CheckCircle2 size={14} /> Sitter Asignado / Solicitado
+                                    </h4>
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+                                            {trip.sitter.foto_perfil ? (
+                                                <img src={trip.sitter.foto_perfil} alt={trip.sitter.nombre} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="font-bold text-slate-400 text-lg">{trip.sitter.nombre.charAt(0)}</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900">{trip.sitter.nombre} {trip.sitter.apellido_p}</p>
+                                            {trip.estado === 'pendiente' || trip.estado === 'publicado' ? (
+                                                <p className="text-xs text-slate-500 font-medium bg-slate-200/50 px-2 py-0.5 rounded-lg inline-block mt-0.5">
+                                                    Esperando respuesta...
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                                                    <CheckCircle2 size={12} /> Confirmado
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+
                             {/* Footer */}
                             <div className="bg-slate-50 p-4 border-t border-slate-100 text-center">
                                 <p className="text-xs text-slate-400">Esta es la información que verán los cuidadores al postular.</p>
@@ -158,6 +189,6 @@ export default function TripDetailsModal({ isOpen, onClose, trip, pets, serviceA
                     </Transition.Child>
                 </div>
             </Dialog>
-        </Transition>
+        </Transition >
     );
 }

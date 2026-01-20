@@ -4,6 +4,7 @@ import WelcomeEmail from '../../components/Emails/WelcomeEmail';
 import NewRequestEmail from '../../components/Emails/NewRequestEmail';
 import RequestStatusEmail from '../../components/Emails/RequestStatusEmail';
 import NewMessageEmail from '../../components/Emails/NewMessageEmail';
+import TripCancellationEmail from '../../components/Emails/TripCancellationEmail';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -37,6 +38,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             case 'new_message':
                 subject = `Nuevo mensaje de ${data.senderName}`;
                 emailComponent = <NewMessageEmail {...data} />;
+                break;
+            case 'trip_cancellation':
+                subject = `Cancelación de servicio #${data.tripId.slice(0, 8).toUpperCase()}`;
+                emailComponent = <TripCancellationEmail recipientName={data.recipientName} tripId={data.tripId} cancelledBy={data.cancelledBy} serviceType={data.serviceType} startDate={data.startDate} endDate={data.endDate} />;
                 break;
             default:
                 return res.status(400).json({ error: 'Invalid email type' });

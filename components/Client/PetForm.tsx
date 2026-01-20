@@ -1,10 +1,12 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 import { Pet } from "./PetCard";
 import { Camera, Loader2, Upload, X, Check, AlertCircle, Dog, Cat, Save, Trash2, ChevronRight, Mars, Venus, Info } from 'lucide-react';
 import DatePickerSingle from "../DatePickerSingle";
 import { format } from "date-fns";
+import { ConfirmationModal } from "../Shared/ConfirmationModal";
 
 type PetFormProps = {
     initialData?: Pet | null;
@@ -19,6 +21,7 @@ export default function PetForm({
     onSaved,
     onCancel,
 }: PetFormProps) {
+    const router = useRouter();
     const [nombre, setNombre] = useState("");
     const [tipo, setTipo] = useState<"perro" | "gato">("perro");
     const [raza, setRaza] = useState("");
@@ -40,6 +43,12 @@ export default function PetForm({
     const [loading, setUploading] = useState(false);
 
     const [fotosGaleria, setFotosGaleria] = useState<string[]>([]);
+
+    // Navigation block state
+    const [isDirty, setIsDirty] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+    const bypassDirty = useRef(false);
 
     // Cargar datos al abrir (si es edición)
     useEffect(() => {
@@ -63,6 +72,95 @@ export default function PetForm({
             setFotosGaleria(initialData.fotos_galeria || []);
         }
     }, [initialData]);
+
+    // Check Is Dirty
+    useEffect(() => {
+        const getCurrentState = () => ({
+            nombre, tipo, raza, descripcion, sexo, tamano,
+            fechaNacimiento: fechaNacimiento?.toISOString(),
+            tieneChip, chipId, vacunasAlDia, enfermedades,
+            tratoEspecial, tratoEspecialDesc, fotoMascota,
+            fotosGaleria: [...fotosGaleria].sort()
+        });
+
+        const currentState = getCurrentState();
+
+        if (initialData) {
+            const initialState = {
+                nombre: initialData.nombre,
+                tipo: initialData.tipo,
+                raza: initialData.raza || "",
+                descripcion: initialData.descripcion || "",
+                sexo: initialData.sexo || "macho",
+                tamano: initialData.tamano || "pequeño",
+                fechaNacimiento: initialData.fecha_nacimiento ? new Date(initialData.fecha_nacimiento + 'T00:00:00').toISOString() : undefined,
+                tieneChip: initialData.tiene_chip || false,
+                chipId: initialData.chip_id || "",
+                vacunasAlDia: initialData.vacunas_al_dia || false,
+                enfermedades: initialData.enfermedades || "",
+                tratoEspecial: initialData.trato_especial || false,
+                tratoEspecialDesc: initialData.trato_especial_desc || "",
+                fotoMascota: initialData.foto_mascota || null,
+                fotosGaleria: [...(initialData.fotos_galeria || [])].sort()
+            };
+            // Simple stringify comparison
+            const isModified = JSON.stringify(currentState) !== JSON.stringify(initialState);
+            setIsDirty(isModified);
+        } else {
+            // If new, dirty if key fields are filled
+            const isModified = nombre.length > 0 || raza.length > 0 || descripcion.length > 0 || fotoMascota !== null;
+            setIsDirty(isModified);
+        }
+    }, [nombre, tipo, raza, descripcion, sexo, tamano, fechaNacimiento, tieneChip, chipId, vacunasAlDia, enfermedades, tratoEspecial, tratoEspecialDesc, fotoMascota, fotosGaleria, initialData]);
+
+    // Intercept Navigation
+    useEffect(() => {
+        const handleBrowseAway = (url: string) => {
+            // Allow if bypassing (saved/deleted)
+            if (bypassDirty.current) return;
+            // Allow if not dirty
+            if (!isDirty) return;
+            // Allow if staying on same page (e.g. hash change or query param update that doesn't matter)
+            // Actually, any route change usually implies leaving.
+            // Check matching paths
+            const currentPath = router.asPath.split('?')[0];
+            const targetPath = url.split('?')[0];
+            if (currentPath === targetPath) return;
+
+            // Stop navigation
+            router.events.emit('routeChangeError');
+            setPendingUrl(url);
+            setShowConfirmModal(true);
+
+            // This throws an error to the router, cancelling the route change.
+            // It will cause a console error "Route Cancelled" which is expected in Next.js Pages router interception.
+            throw 'Route Cancelled by Unsaved Guard';
+        };
+
+        const handleWindowClose = (e: BeforeUnloadEvent) => {
+            if (bypassDirty.current) return;
+            if (!isDirty) return;
+            e.preventDefault();
+            e.returnValue = ''; // Standard for Chrome/Firefox
+        };
+
+        router.events.on('routeChangeStart', handleBrowseAway);
+        window.addEventListener('beforeunload', handleWindowClose);
+
+        return () => {
+            router.events.off('routeChangeStart', handleBrowseAway);
+            window.removeEventListener('beforeunload', handleWindowClose);
+        };
+    }, [isDirty, router]);
+
+    const confirmExit = () => {
+        bypassDirty.current = true;
+        setIsDirty(false); // Reset dirty so logic allows pass
+        setShowConfirmModal(false);
+        if (pendingUrl) {
+            router.push(pendingUrl);
+        }
+    };
 
     async function handlePhotoUpload(event: React.ChangeEvent<HTMLInputElement>) {
         try {
@@ -182,6 +280,7 @@ export default function PetForm({
                 const { error } = await supabase.from("mascotas").insert([payload]);
                 if (error) throw error;
             }
+            bypassDirty.current = true;
             onSaved();
         } catch (error) {
             console.error("Error saving pet:", error);
@@ -198,6 +297,7 @@ export default function PetForm({
         try {
             const { error } = await supabase.from("mascotas").delete().eq("id", initialData.id);
             if (error) throw error;
+            bypassDirty.current = true;
             onSaved();
         } catch (error) {
             console.error("Error deleting pet:", error);
@@ -531,6 +631,16 @@ export default function PetForm({
                     </button>
                 </div>
             </div>
+            <ConfirmationModal
+                isOpen={showConfirmModal}
+                onClose={() => setShowConfirmModal(false)}
+                onConfirm={confirmExit}
+                title="¿Salir sin guardar?"
+                message="Tienes cambios sin guardar. Si sales ahora, se perderán los cambios."
+                confirmText="Salir sin guardar"
+                cancelText="Continuar editando"
+                isDestructive={true}
+            />
         </form>
     );
 }

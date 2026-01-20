@@ -241,7 +241,16 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                     {/* Top Actions: Edit/Delete/Info */}
                     <div className="flex gap-1">
                         <button onClick={() => setShowDetailsModal(true)} className="p-2 text-slate-300 hover:text-sky-600 transition-colors hover:bg-sky-50 rounded-xl" title="Ver Detalles"><Eye size={18} /></button>
-                        <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors hover:bg-emerald-50 rounded-xl" title="Editar Solicitud"><Edit2 size={18} /></button>
+                        {['confirmado', 'aceptado', 'pagado', 'en_curso', 'completado'].includes(trip.estado) ? (
+                            <div className="group relative">
+                                <button className="p-2 text-slate-200 cursor-not-allowed rounded-xl" disabled><Edit2 size={18} /></button>
+                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                                    No se puede editar una reserva confirmada
+                                </div>
+                            </div>
+                        ) : (
+                            <button onClick={() => onEdit(trip)} className="p-2 text-slate-300 hover:text-emerald-600 transition-colors hover:bg-emerald-50 rounded-xl" title="Editar Solicitud"><Edit2 size={18} /></button>
+                        )}
                         <button onClick={() => onDelete(trip.id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors hover:bg-rose-50 rounded-xl" title="Eliminar"><Trash2 size={18} /></button>
                     </div>
                 </div>
@@ -369,8 +378,30 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             </div>
                         ) : (
                             // PENDING STATE
-                            <div className="bg-slate-50 rounded-lg p-4 text-center text-slate-500 text-sm">
-                                Esperando respuesta del sitter...
+                            // PENDING STATE
+                            <div className="bg-white rounded-xl p-4 border border-slate-200 flex flex-col md:flex-row items-center gap-4 relative overflow-hidden group hover:border-emerald-200 transition-all shadow-sm">
+                                {/* Gradient Status Strip */}
+                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-slate-300 to-slate-400 group-hover:from-emerald-400 group-hover:to-emerald-500 transition-colors"></div>
+
+                                <div className="flex items-center gap-4 pl-2 w-full md:w-auto">
+                                    <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold border-2 border-slate-100 overflow-hidden shadow-sm shrink-0">
+                                        {trip.sitter?.foto_perfil ? <img src={trip.sitter.foto_perfil} className="w-full h-full object-cover" /> : <User size={24} />}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Solicitud Enviada a</p>
+                                        <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="font-bold text-slate-900 text-lg hover:text-emerald-700 transition-colors truncate block">
+                                            {trip.sitter?.nombre} {trip.sitter?.apellido_p}
+                                        </Link>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 md:border-l md:border-slate-100 md:pl-6 flex flex-col justify-center gap-1 w-full md:w-auto">
+                                    <div className="flex items-center gap-2 text-slate-600 font-medium text-sm">
+                                        <Clock size={16} className="text-slate-400" />
+                                        <span>Esperando respuesta...</span>
+                                    </div>
+                                    <p className="text-xs text-slate-400">Te notificaremos cuando el sitter responda.</p>
+                                </div>
                             </div>
                         )
                     )

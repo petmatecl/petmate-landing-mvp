@@ -9,6 +9,8 @@ type Props = {
   minDate?: Date;
   className?: string;
   hideLabel?: boolean;
+  label?: string;
+  helperText?: string;
 };
 
 function fmt(d?: Date | null) {
@@ -19,7 +21,7 @@ function fmt(d?: Date | null) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-export default function DateRangeAirbnb({ value, onChange, minDate, className, hideLabel }: Props) {
+export default function DateRangeAirbnb({ value, onChange, minDate, className, hideLabel, label = "Fechas del viaje", helperText = "Selecciona la fecha de inicio y fin." }: Props) {
   const [open, setOpen] = React.useState(false);
   const [range, setRange] = React.useState<DateRange | undefined>(value);
 
@@ -50,7 +52,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
       <div className="space-y-1 max-w-3xl">
         {!hideLabel && (
           <label className="block text-sm font-medium text-slate-900">
-            Fechas del viaje
+            {label}
           </label>
         )}
         <button
@@ -78,7 +80,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
           </div>
         </button>
         <p className="text-xs text-slate-500">
-          Selecciona la fecha de inicio y fin de tu viaje.
+          {helperText}
         </p>
       </div>
 

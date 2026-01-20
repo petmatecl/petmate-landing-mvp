@@ -478,14 +478,65 @@ export default function DashboardContent() {
 
 
     const handleDeleteTrip = (id: string) => {
+        const trip = trips.find(t => t.id === id);
+
         setConfirmConfig({
             isOpen: true,
             title: "Eliminar Solicitud",
-            message: "¿Estás seguro de que deseas eliminar este viaje? Si ya tienes un sitter asigando, se le notificará la cancelación.",
+            message: trip && ['confirmado', 'aceptado', 'pagado'].includes(trip.estado)
+                ? "Esta reserva está confirmada. Al eliminarla, se notificará al sitter de la cancelación. ¿Deseas continuar?"
+                : "¿Estás seguro de que deseas eliminar este viaje? Si ya tienes un sitter asignado, se le notificará la cancelación.",
             confirmText: "Eliminar",
             isDestructive: true,
             onConfirm: async () => {
                 try {
+                    // Send Cancellation Emails if confirmed
+                    if (trip && ['confirmado', 'aceptado', 'pagado'].includes(trip.estado)) {
+                        try {
+                            // 1. Notify Client (Confirmation)
+                            await fetch('/api/send-email', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    type: 'trip_cancellation',
+                                    to: email, // Current user email
+                                    data: {
+                                        recipientName: nombre || 'Usuario',
+                                        tripId: trip.id.slice(0, 8),
+                                        cancelledBy: 'Tú (Cliente)',
+                                        serviceType: trip.servicio,
+                                        startDate: trip.fecha_inicio,
+                                        endDate: trip.fecha_fin
+                                    }
+                                })
+                            });
+
+                            // 2. Notify Sitter
+                            if (trip.sitter && trip.sitter.email) {
+                                await fetch('/api/send-email', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        type: 'trip_cancellation',
+                                        to: trip.sitter.email,
+                                        data: {
+                                            recipientName: trip.sitter.nombre,
+                                            tripId: trip.id.slice(0, 8),
+                                            cancelledBy: 'El Cliente',
+                                            serviceType: trip.servicio,
+                                            startDate: trip.fecha_inicio,
+                                            endDate: trip.fecha_fin
+                                        }
+                                    })
+                                });
+                            }
+                        } catch (emailError) {
+                            console.error("Error sending cancellation emails:", emailError);
+                            // Ensure we still delete even if email fails? Yes, usually better to proceed or warn?
+                            // Proceeding silently for MVP but logging error.
+                        }
+                    }
+
                     const { error } = await supabase.from("viajes").delete().eq("id", id);
                     if (error) throw error;
                     if (userId) fetchTrips(userId);
