@@ -119,13 +119,40 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                 .neq("id", app.id);
 
             // [NEW] Notification to Sitter
-            await createNotification({
+            createNotification({
                 userId: app.sitter_id,
                 type: 'acceptance',
                 title: '¡Postulación Aceptada!',
                 message: 'El cliente ha aceptado tu postulación. ¡Tienes una nueva reserva!',
                 link: '/sitter'
-            });
+            }).catch(console.error);
+
+            // [NEW] Send Email to Sitter
+            if (app.sitter?.id) { // This is the public ID, we need auth_user_id which is app.sitter_id
+                supabase
+                    .from('registro_petmate')
+                    .select('email, nombre')
+                    .eq('auth_user_id', app.sitter_id)
+                    .single()
+                    .then(({ data: sitterData }) => {
+                        if (sitterData?.email) {
+                            fetch('/api/send-email', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    type: 'request_status',
+                                    to: sitterData.email,
+                                    data: {
+                                        sitterName: sitterData.nombre,
+                                        clientName: "Cliente Pawnecta", // Could fetch client name from context
+                                        status: 'Aceptada',
+                                        dashboardUrl: `${window.location.origin}/sitter`
+                                    }
+                                })
+                            }).catch(err => console.error('Failed to send status email:', err));
+                        }
+                    });
+            }
 
             // Success
             onAccepted();

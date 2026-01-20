@@ -278,6 +278,19 @@ export default function RegisterPage() {
         })
       }).catch(console.error);
 
+      // [NEW] Send Welcome Email
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'welcome',
+          to: correo,
+          data: {
+            firstName: nombre
+          }
+        })
+      }).catch(err => console.error('Failed to send welcome email:', err));
+
       router.push("/registro-exitoso?role=cliente");
     } finally {
       setSubmitting(false);
@@ -392,6 +405,19 @@ export default function RegisterPage() {
           documentVersion: "v1.0 - Dic 2025"
         })
       }).catch(console.error);
+
+      // [NEW] Send Welcome Email
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'welcome',
+          to: correo,
+          data: {
+            firstName: nombre
+          }
+        })
+      }).catch(err => console.error('Failed to send welcome email:', err));
 
       router.push("/registro-exitoso?role=sitter");
     } finally {

@@ -54,13 +54,42 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
 
             // [NEW] Notify Client
             if (trip.user_id) {
-                await createNotification({
+                // 1. Create In-App Notification
+                createNotification({
                     userId: trip.user_id,
                     type: 'message', // or 'application' if we add that type later
                     title: '¡Nueva Postulación!',
                     message: `Un sitter ha postulado a tu viaje de ${trip.servicio}. ¡Reísala ahora!`,
                     link: '/usuario'
-                });
+                }).catch(console.error);
+
+                // 2. Send Email
+                // Fetch Client Email first
+                supabase
+                    .from('registro_petmate')
+                    .select('email, nombre')
+                    .eq('auth_user_id', trip.user_id)
+                    .single()
+                    .then(({ data: clientData }) => {
+                        if (clientData?.email) {
+                            fetch('/api/send-email', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    type: 'new_request', // Using 'new_request' template for Application
+                                    to: clientData.email,
+                                    data: {
+                                        sitterName: "Un Sitter", // Ideally we fetch Sitter name too, or pass it as prop
+                                        clientName: clientData.nombre,
+                                        serviceType: trip.servicio,
+                                        startDate: format(new Date(trip.fecha_inicio), "d MMM", { locale: es }),
+                                        endDate: trip.fecha_fin ? format(new Date(trip.fecha_fin), "d MMM", { locale: es }) : "Indefinido",
+                                        dashboardUrl: `${window.location.origin}/usuario`
+                                    }
+                                })
+                            }).catch(err => console.error('Failed to send email:', err));
+                        }
+                    });
             }
 
             onClose();

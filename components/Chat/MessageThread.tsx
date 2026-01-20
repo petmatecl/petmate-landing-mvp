@@ -17,7 +17,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
-    const [otherUser, setOtherUser] = useState<{ auth_user_id: string; nombre: string; apellido_p?: string; foto_perfil?: string } | null>(null);
+    const [otherUser, setOtherUser] = useState<{ auth_user_id: string; nombre: string; apellido_p?: string; foto_perfil?: string; email?: string } | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -38,8 +38,8 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 .select(`
                     client_id,
                     sitter_id,
-                    client:registro_petmate!client_id(auth_user_id, nombre, apellido_p, foto_perfil),
-                    sitter:registro_petmate!sitter_id(auth_user_id, nombre, apellido_p, foto_perfil)
+                    client:registro_petmate!client_id(auth_user_id, nombre, apellido_p, foto_perfil, email),
+                    sitter:registro_petmate!sitter_id(auth_user_id, nombre, apellido_p, foto_perfil, email)
                 `)
                 .eq('id', conversationId)
                 .single();
@@ -173,6 +173,28 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 .single();
 
             if (error) throw error;
+
+            // [NEW] Send Email Notification to Recipient
+            // Check if user is offline or just send always? For MVP send always or if we had online status.
+            // Using onlineUsers from context:
+            const isRecipientOnline = otherUser && onlineUsers.has(otherUser.auth_user_id);
+
+            if (otherUser?.email && !isRecipientOnline) {
+                fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'new_message',
+                        to: otherUser.email,
+                        data: {
+                            recipientName: otherUser.nombre,
+                            senderName: "Un usuario", // Or my name if available
+                            messagePreview: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
+                            chatUrl: `${window.location.origin}/mensajes?id=${conversationId}`
+                        }
+                    })
+                }).catch(console.error);
+            }
 
             // Replace optimistic message with real one
             if (data) {
