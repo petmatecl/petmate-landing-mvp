@@ -49,7 +49,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
 
             if (insertError) {
                 if (insertError.code === '23505') { // Unique violation
-                    throw new Error("Ya has postulado a este viaje.");
+                    throw new Error("Ya has postulado a esta solicitud.");
                 }
                 throw insertError;
             }
@@ -63,7 +63,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                     userId: trip.user_id,
                     type: 'message', // or 'application' if we add that type later
                     title: '¡Nueva Postulación!',
-                    message: `Un sitter ha postulado a tu viaje de ${trip.servicio}. ¡Reísala ahora!`,
+                    message: `Un sitter ha postulado a tu solicitud de ${trip.servicio}. ¡Revísala ahora!`,
                     link: '/usuario'
                 }).catch(console.error);
 
@@ -115,7 +115,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
                     <h2 className="text-lg font-bold text-slate-800">
-                        Postular al Viaje
+                        Postular a la Solicitud
                     </h2>
                     <button
                         onClick={onClose}

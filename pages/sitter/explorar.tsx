@@ -240,7 +240,7 @@ export default function SitterExplorarPage() {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Oportunidades Disponibles</h1>
+                        <h1 className="text-2xl font-bold text-slate-900">Solicitudes Disponibles</h1>
                         <p className="text-slate-500">Encuentra y postula a servicios de cuidado.</p>
                     </div>
                     <div className="flex gap-2">

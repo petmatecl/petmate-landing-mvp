@@ -200,7 +200,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">📭</div>
                             <h3 className="text-lg font-bold text-slate-900">Aún no hay postulantes</h3>
                             <p className="text-slate-500 max-w-xs mx-auto mt-2">
-                                Tu viaje está publicado. Notificaremos a los sitters para que envíen sus propuestas.
+                                Tu solicitud está publicada. Notificaremos a los sitters para que envíen sus propuestas.
                             </p>
                         </div>
                     ) : (

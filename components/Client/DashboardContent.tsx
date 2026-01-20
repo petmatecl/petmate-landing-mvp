@@ -494,7 +494,7 @@ export default function DashboardContent() {
             title: "Eliminar Solicitud",
             message: trip && ['confirmado', 'aceptado', 'pagado'].includes(trip.estado)
                 ? "Esta reserva está confirmada. Al eliminarla, se notificará al sitter de la cancelación. ¿Deseas continuar?"
-                : "¿Estás seguro de que deseas eliminar este viaje? Si ya tienes un sitter asignado, se le notificará la cancelación.",
+                : "¿Estás seguro de que deseas eliminar esta solicitud? Si ya tienes un sitter asignado, se le notificará la cancelación.",
             confirmText: "Eliminar",
             isDestructive: true,
             onConfirm: async () => {
@@ -549,7 +549,7 @@ export default function DashboardContent() {
                     const { error } = await supabase.from("viajes").delete().eq("id", id);
                     if (error) throw error;
                     if (userId) fetchTrips(userId);
-                    showAlert("Viaje eliminado", "El viaje ha sido eliminado correctamente.", "success");
+                    showAlert("Solicitud eliminada", "La solicitud ha sido eliminada correctamente.", "success");
                 } catch (err: any) {
                     console.error(err);
                     showAlert("Error", "No se pudo eliminar el viaje.", "error");
@@ -744,7 +744,7 @@ export default function DashboardContent() {
 
             if (error) {
                 console.error("Error saving trip:", error);
-                showAlert('Error', `Error guardando el viaje: ${error.message}`, 'error');
+                showAlert('Error', `Error guardando la solicitud: ${error.message}`, 'error');
             } else {
                 await fetchTrips(userId);
                 setRango(undefined);
@@ -755,7 +755,7 @@ export default function DashboardContent() {
                 setShowTripForm(false);
                 setShowStrategySelection(false);
                 showAlert(
-                    editingTripId ? '¡Viaje Actualizado!' : '¡Solicitud Publicada!',
+                    editingTripId ? '¡Solicitud Actualizada!' : '¡Solicitud Publicada!',
                     editingTripId ? 'Los cambios se han guardado correctamente.' : 'Los sitters recibirán tu solicitud y podrás ver sus postulaciones aquí.',
                     'success'
                 );
