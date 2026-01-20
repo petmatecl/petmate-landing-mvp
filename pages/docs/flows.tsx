@@ -53,18 +53,20 @@ const diagrams = [
     
     D -- No --> E[Redirect to 'Add Pet']
     E --> F[User Creates Pet]
-    F --> A
+    F --> G[Redirect back to Booking]
+    G --> A
     
-    D -- Yes --> G{Has Address?}
-    G -- No --> H[Redirect to 'Profile/Address']
-    H --> I[User Adds Address]
-    I --> A
+    D -- Yes --> H{Has Address?}
+    H -- No --> I[Redirect to 'Profile/Address']
+    I --> J[User Adds Address]
+    J --> K[Redirect back to Booking]
+    K --> A
     
-    G -- Yes --> J[Open Booking Modal]`
+    H -- Yes --> L[Open Booking Modal]`
     },
     {
-        title: "3. End-to-End Interaction (Owner <-> Sitter)",
-        description: "From request creation to acceptance sequence.",
+        title: "3. End-to-End Interaction (Ideal Flow)",
+        description: "Complete lifecycle including Pay, Cancel, and Rejection paths.",
         code: `sequenceDiagram
     actor Owner as Pet Owner
     participant System
@@ -72,29 +74,45 @@ const diagrams = [
 
     Owner->>System: Post Request (Trip)
     System->>Sitter: Notify Recommended Sitters
-    Sitter->>System: View Request Details
     
-    alt Sitter is Interested
-        Sitter->>System: Apply (Postular)
-        System->>Owner: Notify "New Application"
+    alt No Response / Timeout
+        System->>Owner: Notify "No sitters found"
+        System->>Owner: Suggest "Expand Search"
+    else Sitter Responds
+        Sitter->>System: View Request
         
-        Owner->>System: View Sitter Profile
-        
-        opt Negotiation
-            Owner->>Sitter: Chat Message
-            Sitter->>Owner: Response
+        alt Sitter Applied
+            Sitter->>System: Apply (Postular)
+            System->>Owner: Notify "New Application"
+            
+            opt Chat Negotiation
+                Owner->>Sitter: Message
+                Sitter->>Owner: Response
+            end
+            
+            alt Owner Accepts
+                Owner->>System: Click "Accept"
+                System->>Owner: Redirect to Checkout (MercadoPago)
+                Owner->>System: Complete Payment
+                System->>System: Hold Funds (Escrow)
+                System->>System: Update Trip -> Scheduled
+                System->>Sitter: Notify "Confirmed & Paid"
+                System->>Owner: Send Service Sheet
+                
+                opt Cancellation (Pre-Service)
+                    Owner->>System: Cancel Trip
+                    System->>Owner: Refund (Policy dependent)
+                    System->>Sitter: Notify Cancellation
+                end
+                
+            else Owner Rejects
+                Owner->>System: Reject Application
+                System->>Sitter: Notify Rejection
+            end
+            
+        else Sitter Not Interested
+            Sitter->>System: Ignore/Hide
         end
-        
-        alt Owner Accepts
-            Owner->>System: Click "Accept Application"
-            System->>System: Update Trip -> Scheduled
-            System->>Sitter: Notify "Application Accepted"
-            System->>Owner: Show Contact Info
-        else Owner Rejects/Ignores
-            Owner->>System: No Action / Reject
-        end
-    else Sitter Not Interested
-        Sitter->>System: Ignore
     end`
     },
     {
