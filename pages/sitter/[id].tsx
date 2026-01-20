@@ -560,47 +560,49 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                                     Espacio y Hogar
                                                 </h2>
 
-                                                <div className="grid sm:grid-cols-2 gap-6 mb-6">
-                                                    <div className="space-y-4">
+                                                <div className="space-y-6 mb-6">
+                                                    {/* Row 1: Key Specs (Vivienda & Dimensiones) */}
+                                                    <div className="grid sm:grid-cols-2 gap-4">
                                                         {petmate.tipo_vivienda && (
-                                                            <div className="flex items-start gap-3">
-                                                                <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                                                                    {petmate.tipo_vivienda === 'casa' ? <Home size={20} /> : <Hotel size={20} />}
+                                                            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                                <div className="p-3 bg-white rounded-xl text-emerald-600 shadow-sm border border-slate-100">
+                                                                    {petmate.tipo_vivienda === 'casa' ? <Home size={24} /> : <Hotel size={24} />}
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-xs font-bold text-slate-400 uppercase">Tipo de Vivienda</p>
-                                                                    <p className="text-slate-900 font-medium capitalize">{petmate.tipo_vivienda}</p>
+                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo de Vivienda</p>
+                                                                    <p className="text-slate-900 font-bold capitalize text-lg">{petmate.tipo_vivienda}</p>
                                                                 </div>
                                                             </div>
                                                         )}
 
                                                         {petmate.dimensiones_vivienda && (
-                                                            <div className="flex items-start gap-3">
-                                                                <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                                                                    <Maximize size={20} />
+                                                            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                                <div className="p-3 bg-white rounded-xl text-emerald-600 shadow-sm border border-slate-100">
+                                                                    <Maximize size={24} />
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-xs font-bold text-slate-400 uppercase">Dimensiones / Espacio</p>
-                                                                    <p className="text-slate-900 font-medium">{petmate.dimensiones_vivienda}</p>
+                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dimensiones</p>
+                                                                    <p className="text-slate-900 font-bold text-lg">{petmate.dimensiones_vivienda}</p>
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
 
-                                                    <div className="space-y-3">
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                    {/* Row 2: Features Grid (2x2) */}
+                                                    <div className="grid sm:grid-cols-2 gap-3">
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
                                                             {petmate.tiene_patio ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
                                                             <span className="font-medium">Patio o Jardín</span>
                                                         </div>
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
                                                             {petmate.tiene_malla ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
                                                             <span className="font-medium">Mallas de Seguridad</span>
                                                         </div>
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_ninos ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_ninos ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
                                                             {petmate.tiene_ninos ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
                                                             <span className="font-medium">Niños en Casa</span>
                                                         </div>
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.fumador ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'}`}>
+                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.fumador ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
                                                             {petmate.fumador ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
                                                             <span className="font-medium">Fumador en Casa</span>
                                                         </div>
