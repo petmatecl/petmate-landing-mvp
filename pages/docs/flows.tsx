@@ -66,7 +66,7 @@ const diagrams = [
     },
     {
         title: "3. End-to-End Interaction (Ideal Flow)",
-        description: "Complete lifecycle including Pay, Cancel, and Rejection paths.",
+        description: "Complete lifecycle including Cancel and Rejection paths.",
         code: `sequenceDiagram
     actor Owner as Pet Owner
     participant System
@@ -92,11 +92,8 @@ const diagrams = [
             
             alt Owner Accepts
                 Owner->>System: Click "Accept"
-                System->>Owner: Redirect to Checkout (MercadoPago)
-                Owner->>System: Complete Payment
-                System->>System: Hold Funds (Escrow)
                 System->>System: Update Trip -> Scheduled
-                System->>Sitter: Notify "Confirmed & Paid"
+                System->>Sitter: Notify "Confirmed"
                 System->>Owner: Send Service Sheet
                 
                 opt Cancellation (Pre-Service)
