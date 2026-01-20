@@ -105,13 +105,13 @@ const DIAGRAMS: FlowDiagram[] = [
         title: "5. Gestión del Dashboard",
         description: "Vistas principales para cada rol.",
         code: `graph LR
-    subgraph Owner Dashboard
+    subgraph "Owner Dashboard"
     A[Mis Mascotas]
     B[Buscar Sitters]
-    C[Mis Solicitudes (Estados)]
+    C[Mis Solicitudes]
     end
     
-    subgraph Sitter Dashboard
+    subgraph "Sitter Dashboard"
     D[Mi Perfil Publico]
     E[Solicitudes Recibidas]
     F[Calendario/Disponibilidad]
@@ -140,33 +140,20 @@ const DIAGRAMS: FlowDiagram[] = [
         OV1 : Ve detalles completos
         
         state "Vista Sitter (Explorar)" as SV1
-        SV1 : ❌ Sin Contacto
-        SV1 : ❌ Sin Dirección Exacta
-        SV1 : ✅ Nombre Dueño (Solo Pila)
-        SV1 : ✅ Comuna (Aprox)
-        SV1 : ✅ Datos Mascotas
-        SV1 : ✅ Fechas Servicio
+        SV1 : ❌ Sin Contacto<br/>❌ Sin Dirección Exacta<br/>✅ Nombre Dueño (Solo Pila)<br/>✅ Comuna (Aprox)<br/>✅ Datos Mascotas<br/>✅ Fechas Servicio
     }
 
     state "2. Negociación (Postulado)" as Applied {
         state "Vista Dueño" as OV2
-        OV2 : ✅ Perfil Sitter (Público)
-        OV2 : ✅ Precio Propuesto
-        OV2 : ❌ Tel/Email Sitter oculto
+        OV2 : ✅ Perfil Sitter (Público)<br/>✅ Precio Propuesto<br/>❌ Tel/Email Sitter oculto
         
         state "Vista Sitter" as SV2
-        SV2 : Estado: Postulado
-        SV2 : Chat Abierto
-        SV2 : ✅ Nombre Dueño (Solo Pila)
+        SV2 : Estado: Postulado<br/>Chat Abierto<br/>✅ Nombre Dueño (Solo Pila)
     }
 
     state "3. Confirmado (Programado)" as Confirmed {
         state "Vista de Ambos" as BV3
-        BV3 : ✅ Nombres Legales Completos
-        BV3 : ✅ Teléfono
-        BV3 : ✅ Email
-        BV3 : ✅ Dirección Exacta
-        BV3 : ✅ Ficha de Servicio (PDF)
+        BV3 : ✅ Nombres Legales Completos<br/>✅ Teléfono y Email<br/>✅ Dirección Exacta<br/>✅ Ficha de Servicio (PDF)
     }
 
     [*] --> Open : Usuario Publica
