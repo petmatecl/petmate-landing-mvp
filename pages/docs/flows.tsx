@@ -170,7 +170,7 @@ const diagrams = [
         state "Sitter View (Explorer)" as SV1
         SV1 : ❌ No Contact Info
         SV1 : ❌ No Exact Address
-        SV1 : ✅ First Name only
+        SV1 : ✅ Owner Name (First Only)
         SV1 : ✅ Commune (Fuzzy Loc)
         SV1 : ✅ Pet Details
         SV1 : ✅ Service Dates
@@ -178,18 +178,19 @@ const diagrams = [
 
     state "2. Negotiation (Postulado)" as Applied {
         state "Owner View" as OV2
-        OV2 : ✅ Sitter Profile (Public)
+        OV2 : ✅ Sitter Name (Public Profile)
         OV2 : ✅ Proposed Price
         OV2 : ❌ Sitter Phone/Email hidden
         
         state "Sitter View" as SV2
         SV2 : Status: Applied
         SV2 : Chat Open
+        SV2 : ✅ Owner Name (First Only)
     }
 
     state "3. Confirmed (Programado)" as Confirmed {
         state "Both Parties View" as BV3
-        BV3 : ✅ Full Name (Last Name)
+        BV3 : ✅ Full Legal Names
         BV3 : ✅ Phone Number
         BV3 : ✅ Email Address
         BV3 : ✅ Exact Home Address
