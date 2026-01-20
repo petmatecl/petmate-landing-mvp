@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { Dog, Cat } from 'lucide-react';
 import { Pet } from "./PetCard";
 import { PetsValue } from "../PetsSelectorAirbnb";
 
@@ -110,7 +111,7 @@ export default function MyPetsSelector({ myPets, selectedIds, onChange, hideLabe
                                         </div>
 
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 ${pet.tipo === 'perro' ? "bg-orange-50 text-orange-500" : "bg-emerald-50 text-emerald-500"}`}>
-                                            {pet.tipo === 'perro' ? '🐶' : '🐱'}
+                                            {pet.tipo === 'perro' ? <Dog size={16} /> : <Cat size={16} />}
                                         </div>
 
                                         <div className="flex-1">
