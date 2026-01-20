@@ -105,14 +105,14 @@ const DIAGRAMS: FlowDiagram[] = [
         title: "5. Gestión del Dashboard",
         description: "Vistas principales para cada rol.",
         code: `graph LR
-    subgraph "Owner Dashboard"
+    subgraph OwnerDash ["Owner Dashboard"]
     A[Mis Mascotas]
     B[Buscar Sitters]
     C[Mis Solicitudes]
     end
     
-    subgraph "Sitter Dashboard"
-    D[Mi Perfil Publico]
+    subgraph SitterDash ["Sitter Dashboard"]
+    D[Mi Perfil Público]
     E[Solicitudes Recibidas]
     F[Calendario/Disponibilidad]
     end`
@@ -136,24 +136,19 @@ const DIAGRAMS: FlowDiagram[] = [
     direction LR
     
     state "1. Solicitud Abierta (Publicado)" as Open {
-        state "Vista Dueño" as OV1
-        OV1 : Ve detalles completos
+        state "Vista Dueño<br/>(Ve detalles completos)" as OV1
         
-        state "Vista Sitter (Explorar)" as SV1
-        SV1 : ❌ Sin Contacto<br/>❌ Sin Dirección Exacta<br/>✅ Nombre Dueño (Solo Pila)<br/>✅ Comuna (Aprox)<br/>✅ Datos Mascotas<br/>✅ Fechas Servicio
+        state "Vista Sitter (Explorar)<br/>❌ Sin Contacto<br/>❌ Sin Dirección Exacta<br/>✅ Nombre Dueño (Solo Pila)<br/>✅ Comuna (Aprox)<br/>✅ Datos Mascotas<br/>✅ Fechas Servicio" as SV1
     }
 
     state "2. Negociación (Postulado)" as Applied {
-        state "Vista Dueño" as OV2
-        OV2 : ✅ Perfil Sitter (Público)<br/>✅ Precio Propuesto<br/>❌ Tel/Email Sitter oculto
+        state "Vista Dueño<br/>✅ Perfil Sitter (Público)<br/>✅ Precio Propuesto<br/>❌ Tel/Email Sitter oculto" as OV2
         
-        state "Vista Sitter" as SV2
-        SV2 : Estado: Postulado<br/>Chat Abierto<br/>✅ Nombre Dueño (Solo Pila)
+        state "Vista Sitter<br/>Estado: Postulado<br/>Chat Abierto<br/>✅ Nombre Dueño (Solo Pila)" as SV2
     }
 
     state "3. Confirmado (Programado)" as Confirmed {
-        state "Vista de Ambos" as BV3
-        BV3 : ✅ Nombres Legales Completos<br/>✅ Teléfono y Email<br/>✅ Dirección Exacta<br/>✅ Ficha de Servicio (PDF)
+        state "Vista de Ambos<br/>✅ Nombres Legales Completos<br/>✅ Teléfono y Email<br/>✅ Dirección Exacta<br/>✅ Ficha de Servicio (PDF)" as BV3
     }
 
     [*] --> Open : Usuario Publica
