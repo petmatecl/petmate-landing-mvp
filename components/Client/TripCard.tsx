@@ -21,6 +21,7 @@ export type Trip = {
     direccion_id?: string;
     sitter_id?: string;
     estado: 'borrador' | 'publicado' | 'reservado' | 'confirmado' | 'en_curso' | 'completado' | 'cancelado' | 'pagado' | 'aceptado';
+    comuna?: string; // New preferred commune field for hosting
     sitter_asignado?: boolean; // Derivado o cargado
     sitter?: { // Perfil del sitter
         id: string;
@@ -139,7 +140,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
 
         // Location Details
         const locationText = trip.servicio === 'hospedaje'
-            ? (trip.sitter?.direccion_completa || 'Dirección del Sitter')
+            ? (trip.sitter?.direccion_completa || trip.sitter?.comuna || trip.comuna || 'Ubicación preferida por el cliente')
             : (serviceAddress || 'Domicilio del Cliente');
 
         doc.text("Ubicación del Cuidado:", 14, (doc as any).lastAutoTable.finalY + 10);
@@ -308,7 +309,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                                 const originalAddress = trip.servicio === 'hospedaje'
                                                     ? (trip.sitter?.calle && trip.sitter?.numero && trip.sitter?.comuna
                                                         ? `${trip.sitter.calle} ${trip.sitter.numero}, ${trip.sitter.comuna}`
-                                                        : (trip.sitter?.direccion_completa || 'Dirección no disponible'))
+                                                        : (trip.sitter?.direccion_completa || trip.sitter?.comuna || trip.comuna || 'Hospedaje en Comuna por definir'))
                                                     : (serviceAddress || 'Dirección no disponible');
 
                                                 return originalAddress

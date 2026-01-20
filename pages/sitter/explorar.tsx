@@ -329,7 +329,7 @@ export default function SitterExplorarPage() {
 
                                 <div className="p-5 flex flex-col h-full">
                                     {/* Header */}
-                                    <div className="flex justify-between items-start mb-3">
+                                    <div className="mb-3">
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded text-white uppercase tracking-wider
@@ -342,13 +342,8 @@ export default function SitterExplorarPage() {
                                             </div>
                                             <h3 className="text-lg font-bold text-slate-900 leading-tight flex items-center gap-1">
                                                 <MapPin size={16} className="text-slate-400" />
-                                                {trip.cliente?.comuna || "Santiago"}
+                                                {trip.comuna || trip.cliente?.comuna || "Santiago"}
                                             </h3>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-xl font-bold text-slate-900">
-                                                ${(trip.total || 0).toLocaleString('es-CL')}
-                                            </div>
                                         </div>
                                     </div>
 
@@ -357,13 +352,27 @@ export default function SitterExplorarPage() {
 
                                     {/* Details */}
                                     <div className="space-y-2 mb-4 flex-1">
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <Calendar size={16} className="text-slate-400" />
-                                            <span className="font-medium">
-                                                {format(new Date(trip.fecha_inicio), "d MMM", { locale: es })}
-                                                {trip.fecha_fin && ` - ${format(new Date(trip.fecha_fin), "d MMM", { locale: es })}`}
-                                            </span>
+                                        <div className="flex flex-col gap-1 text-sm text-slate-600">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar size={16} className="text-slate-400 shrink-0" />
+                                                <span className="font-medium">
+                                                    {format(new Date(trip.fecha_inicio), "d MMM", { locale: es })}
+                                                    {trip.fecha_fin && ` - ${format(new Date(trip.fecha_fin), "d MMM", { locale: es })}`}
+                                                </span>
+                                            </div>
+                                            {/* Duration Logic */}
+                                            {(() => {
+                                                const start = new Date(trip.fecha_inicio);
+                                                const end = trip.fecha_fin ? new Date(trip.fecha_fin) : null;
+                                                const nights = end ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : 1;
+                                                return (
+                                                    <div className="ml-6 text-xs text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-md inline-block w-fit">
+                                                        {nights} {nights === 1 ? 'noche' : 'noches'} | {format(start, 'yyyy')}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
+
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
                                             <Dog size={16} className="text-slate-400" />
                                             <span>
@@ -373,8 +382,8 @@ export default function SitterExplorarPage() {
                                             </span>
                                         </div>
 
-                                        {/* Optional Pet Details */}
-                                        {trip.mascotas?.tamano && (
+                                        {/* Optional Pet Details - Only for Dogs */}
+                                        {trip.perros > 0 && trip.mascotas?.tamano && (
                                             <div className="flex items-center gap-2 text-xs text-slate-500 ml-6">
                                                 <span className="bg-slate-100 px-2 py-0.5 rounded">
                                                     Tamaño {trip.mascotas.tamano}

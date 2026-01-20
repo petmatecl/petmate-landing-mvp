@@ -55,6 +55,14 @@ import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
 import ImageLightbox from "../ImageLightbox";
 
+const COMUNAS_SANTIAGO = [
+    "Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia",
+    "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo",
+    "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel",
+    "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Santiago",
+    "Vitacura"
+];
+
 export default function DashboardContent() {
     const router = useRouter();
     const { userId, addresses, loadingAddresses, refreshAddresses } = useClientData();
@@ -90,6 +98,7 @@ export default function DashboardContent() {
     // Estado del buscador
     const [rango, setRango] = useState<DateRange | undefined>();
     const [servicio, setServicio] = useState("domicilio");
+    const [hospedajeComuna, setHospedajeComuna] = useState("");
     const [mascotas, setMascotas] = useState<PetsValue>({ dogs: 0, cats: 0 });
 
     // Nueva lógica: Selección de mascotas específicas
@@ -1296,6 +1305,35 @@ export default function DashboardContent() {
                                                                     ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
                                                                 </p>
                                                             )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Comuna Preferida (Solo Hospedaje) */}
+                                                    {servicio === 'hospedaje' && (
+                                                        <div className="md:col-span-12">
+                                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+                                                                ¿En qué comuna prefieres dejar a tu mascota?
+                                                            </label>
+                                                            <div className="relative">
+                                                                <select
+                                                                    className="w-full appearance-none bg-white border border-slate-300 text-slate-900 rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                                                    value={hospedajeComuna}
+                                                                    onChange={(e) => setHospedajeComuna(e.target.value)}
+                                                                >
+                                                                    <option value="">Selecciona una comuna...</option>
+                                                                    {COMUNAS_SANTIAGO.map((comuna) => (
+                                                                        <option key={comuna} value={comuna}>
+                                                                            {comuna}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                                                                    <ChevronDown size={16} />
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs text-slate-400 mt-2">
+                                                                Te mostraremos cuidadores disponibles en esta zona.
+                                                            </p>
                                                         </div>
                                                     )}
 
