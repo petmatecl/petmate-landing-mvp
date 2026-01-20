@@ -84,7 +84,13 @@ export default function MessageThread({ conversationId, userId }: Props) {
             .update({ read: true })
             .in('id', ids);
 
-        if (error) console.error("Error marking messages as read:", error);
+
+
+        if (!error) {
+            window.dispatchEvent(new Event('messages-read'));
+        } else {
+            console.error("Error marking messages as read:", error);
+        }
     };
 
     async function fetchMessages() {

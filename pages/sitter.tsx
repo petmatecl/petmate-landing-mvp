@@ -319,7 +319,7 @@ export default function SitterDashboardPage() {
                 .from('sitter_availability')
                 .select('*', { count: 'exact', head: true })
                 .eq('sitter_id', profileId) // Use profileId, not userId
-                .gte('available_date', new Date().toISOString().split('T')[0]);
+                .gte('available_date', format(new Date(), 'yyyy-MM-dd'));
 
             setAvailabilityCount(availCount || 0);
         };
@@ -1057,6 +1057,7 @@ export default function SitterDashboardPage() {
     const videoComplete = Boolean(profileData.video_presentacion);
 
 
+
     if (loading) {
         return (
             <>
@@ -1275,7 +1276,9 @@ export default function SitterDashboardPage() {
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                handleDeletePhoto(index);
+                                                                if (window.confirm("¿Seguro que deseas eliminar esta imagen?")) {
+                                                                    handleDeletePhoto(index);
+                                                                }
                                                             }}
                                                             className="p-1 bg-white/20 hover:bg-red-500 backdrop-blur-md rounded-full text-white transition-colors"
                                                             title="Eliminar"
@@ -1285,23 +1288,23 @@ export default function SitterDashboardPage() {
                                                     </div>
                                                 </div>
                                             ))}
-
-                                            {/* Add Button */}
-                                            {(profileData.galeria?.length || 0) < 6 && (
-                                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 text-slate-300 hover:text-emerald-600 transition-all group/add">
-                                                    <Plus size={20} className="group-hover/add:scale-110 transition-transform" />
-                                                    <span className="text-[10px] font-semibold">Añadir</span>
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        multiple
-                                                        className="hidden"
-                                                        onChange={handleGalleryUpload}
-                                                        disabled={uploading}
-                                                    />
-                                                </label>
-                                            )}
                                         </div>
+
+                                        {/* Add Button - Moved outside grid */}
+                                        {(profileData.galeria?.length || 0) < 6 && (
+                                            <label className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50 hover:bg-emerald-50 text-slate-500 hover:text-emerald-700 font-bold text-sm cursor-pointer transition-all group">
+                                                <Plus size={18} className="group-hover:scale-110 transition-transform" />
+                                                Añadir foto
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    className="hidden"
+                                                    onChange={handleGalleryUpload}
+                                                    disabled={uploading}
+                                                />
+                                            </label>
+                                        )}
                                     </div>
 
                                     {/* Housing Gallery (Check valid variable name for 'En mi Casa' service) */}
@@ -1334,7 +1337,9 @@ export default function SitterDashboardPage() {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleDeleteHousingPhoto(index);
+                                                                    if (window.confirm("¿Seguro que deseas eliminar esta imagen de tu hogar?")) {
+                                                                        handleDeleteHousingPhoto(index);
+                                                                    }
                                                                 }}
                                                                 className="p-1 bg-white/20 hover:bg-red-500 backdrop-blur-md rounded-full text-white transition-colors"
                                                                 title="Eliminar"
@@ -1344,23 +1349,23 @@ export default function SitterDashboardPage() {
                                                         </div>
                                                     </div>
                                                 ))}
-
-                                                {/* Add Button */}
-                                                {(profileData.fotos_vivienda || []).length < 10 && (
-                                                    <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/10 text-slate-300 hover:text-emerald-600 transition-all group/add">
-                                                        <Plus size={20} className="group-hover/add:scale-110 transition-transform" />
-                                                        <span className="text-[10px] font-semibold">Añadir</span>
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            multiple
-                                                            className="hidden"
-                                                            onChange={handleHousingGalleryUpload}
-                                                            disabled={uploading}
-                                                        />
-                                                    </label>
-                                                )}
                                             </div>
+
+                                            {/* Add Button - Moved outside grid */}
+                                            {(profileData.fotos_vivienda || []).length < 10 && (
+                                                <label className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50 hover:bg-emerald-50 text-slate-500 hover:text-emerald-700 font-bold text-sm cursor-pointer transition-all group">
+                                                    <Plus size={18} className="group-hover:scale-110 transition-transform" />
+                                                    Añadir foto
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        multiple
+                                                        className="hidden"
+                                                        onChange={handleHousingGalleryUpload}
+                                                        disabled={uploading}
+                                                    />
+                                                </label>
+                                            )}
                                         </div>
                                     )}
 
@@ -1520,7 +1525,7 @@ export default function SitterDashboardPage() {
                                                         <div className="p-5">
                                                             <div className="flex justify-between items-start">
                                                                 <div>
-                                                                    <h4 className="font-bold text-slate-700">Reserva #{app.viaje?.id?.slice(0, 6)}</h4>
+                                                                    <h4 className="font-bold text-slate-700">Solicitud #{app.viaje?.id?.slice(0, 6)}</h4>
                                                                     <span className="text-xs text-indigo-600 font-medium bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
                                                                         Esperando respuesta
                                                                     </span>
@@ -1596,7 +1601,7 @@ export default function SitterDashboardPage() {
                                                         .from('sitter_availability')
                                                         .select('*', { count: 'exact', head: true })
                                                         .eq('sitter_id', profileId)
-                                                        .gte('available_date', new Date().toISOString().split('T')[0]);
+                                                        .gte('available_date', format(new Date(), 'yyyy-MM-dd'));
                                                     setAvailabilityCount(availCount || 0);
                                                 };
                                                 fetchAvailabilityCount();

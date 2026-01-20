@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import { Card } from "../components/Shared/Card";
 import GoogleAuthButton from "../components/GoogleAuthButton";
+import LinkedInAuthButton from "../components/LinkedInAuthButton";
 
 type Role = "client" | "sitter";
 
@@ -306,6 +307,7 @@ export default function LoginPage() {
 
               <div style={{ marginTop: 12 }}>
                 <GoogleAuthButton role={tab} />
+                <LinkedInAuthButton role={tab} />
               </div>
 
               {/* Links */}

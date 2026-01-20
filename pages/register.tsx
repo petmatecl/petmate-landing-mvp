@@ -8,6 +8,7 @@ import type { DateRange } from "react-day-picker";
 import DateRangeAirbnb from "../components/DateRangeAirbnb";
 import { supabase } from "../lib/supabaseClient";
 import GoogleAuthButton from "../components/GoogleAuthButton";
+import LinkedInAuthButton from "../components/LinkedInAuthButton";
 import { Card } from "../components/Shared/Card";
 
 type Role = "cliente" | "petmate";
@@ -575,7 +576,8 @@ export default function RegisterPage() {
                 </button>
 
                 <div style={{ marginTop: 12 }}>
-                  <GoogleAuthButton role="cliente" text="Registrarse con Google" />
+                  <GoogleAuthButton role={tab === "cliente" ? "cliente" : "sitter"} text="Registrarse con Google" />
+                  <LinkedInAuthButton role={tab === "cliente" ? "cliente" : "sitter"} text="Registrarse con LinkedIn" />
                 </div>
 
                 <p className="muted">
@@ -701,6 +703,7 @@ export default function RegisterPage() {
 
                 <div style={{ marginTop: 12 }}>
                   <GoogleAuthButton role="sitter" text="Registrarse con Google" />
+                  <LinkedInAuthButton role="sitter" text="Registrarse con LinkedIn" />
                 </div>
 
                 <p className="muted">

@@ -492,7 +492,13 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                                     {petmate.galeria.map((foto, index) => (
                                                         <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                                                            <Image src={foto} alt={`Galería ${index}`} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                                            <Image
+                                                                src={foto}
+                                                                alt={`Galería ${index}`}
+                                                                fill
+                                                                className="object-cover group-hover:scale-105 transition-transform"
+                                                                unoptimized
+                                                            />
                                                         </div>
                                                     ))}
                                                 </div>
@@ -606,7 +612,13 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                                                         {petmate.fotos_vivienda.map((foto, i) => (
                                                             <div key={i} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer group">
-                                                                <Image src={foto} alt={`Foto hogar ${i}`} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                                                <Image
+                                                                    src={foto}
+                                                                    alt={`Foto hogar ${i}`}
+                                                                    fill
+                                                                    className="object-cover group-hover:scale-105 transition-transform"
+                                                                    unoptimized
+                                                                />
                                                             </div>
                                                         ))}
                                                     </div>

@@ -15,8 +15,11 @@ export default function UnreadBadge({ userId, className }: Props) {
         fetchUnreadCount();
         const unsubscribe = subscribeToMessages();
 
+        window.addEventListener('messages-read', fetchUnreadCount);
+
         return () => {
             unsubscribe();
+            window.removeEventListener('messages-read', fetchUnreadCount);
         };
     }, [userId]);
 
