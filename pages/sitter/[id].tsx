@@ -57,6 +57,8 @@ interface PublicProfileProps {
         tarifa_servicio_a_domicilio?: number;
         servicio_a_domicilio?: boolean;
         servicio_en_casa?: boolean;
+        telefono?: string;
+        email?: string;
     } | null;
     error?: string;
     id?: string;
@@ -147,6 +149,111 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         const { data } = await getReviewsBySitterId(profileData.id);
         if (data) setReviews(data);
         setLoadingReviews(false);
+    };
+
+    // --- NEW LOGIC: Check for Pending Applications from Sitter ---
+    const [pendingApplication, setPendingApplication] = useState<any>(null);
+
+    useEffect(() => {
+        if (currentUserId && profileData?.auth_user_id) {
+            checkPendingApplication();
+        }
+    }, [currentUserId, profileData?.auth_user_id]);
+
+    const checkPendingApplication = async () => {
+        // Find if THERE IS an application from this sitter TO me (the user)
+        // Linking postulaciones -> viajes -> user_id = me
+        const { data, error } = await supabase
+            .from('postulaciones')
+            .select(`
+                *,
+                viajes!inner(*)
+            `)
+            .eq('sitter_id', profileData?.auth_user_id) // The sitter applying
+            .eq('viajes.user_id', currentUserId)    // Me receiving
+            .eq('estado', 'pendiente')
+            .maybeSingle();
+
+        if (data) {
+            setPendingApplication(data);
+        }
+    };
+
+    const handleAcceptApplication = async () => {
+        if (!pendingApplication) return;
+
+        triggerConfirm(
+            "Aceptar Solicitud",
+            `¿Deseas aceptar la postulación de ${profileData?.nombre} por $${pendingApplication.precio_oferta.toLocaleString('es-CL')} / noche?`,
+            async () => {
+                try {
+                    // 1. Update Postulacion -> aceptada
+                    const { error: postError } = await supabase
+                        .from('postulaciones')
+                        .update({ estado: 'aceptada' })
+                        .eq('id', pendingApplication.id);
+
+                    if (postError) throw postError;
+
+                    // 2. Update Viaje -> asigando/programado + set sitter_id
+                    const { error: tripError } = await supabase
+                        .from('viajes')
+                        .update({
+                            estado: 'programado',
+                            sitter_id: profileData?.auth_user_id
+                        })
+                        .eq('id', pendingApplication.viaje_id);
+
+                    if (tripError) throw tripError;
+
+                    // 3. Fetch Client Info for Email
+                    const { data: clientData, error: clientError } = await supabase
+                        .from('profiles') // Assuming profiles table stores user info
+                        .select('nombre, apellido_p, email') // Assuming columns
+                        .eq('auth_user_id', pendingApplication.viajes.user_id)
+                        .single();
+
+                    if (!clientError && clientData) {
+                        // 4. Send Booking Confirmation Email
+                        const sitterName = `${profileData?.nombre} ${profileData?.apellido_p || ''}`;
+                        const clientName = `${clientData.nombre} ${clientData.apellido_p || ''}`;
+
+                        await fetch('/api/send-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'booking_confirmation',
+                                to: clientData.email,
+                                data: {
+                                    applicationId: pendingApplication.id,
+                                    serviceType: pendingApplication.viajes.servicio,
+                                    startDate: new Date(pendingApplication.viajes.fecha_inicio).toLocaleDateString('es-CL'),
+                                    endDate: pendingApplication.viajes.fecha_fin ? new Date(pendingApplication.viajes.fecha_fin).toLocaleDateString('es-CL') : null,
+                                    price: pendingApplication.precio_oferta || 0,
+                                    clientName: clientName,
+                                    sitterName: sitterName,
+                                    sitterPhone: profileData?.telefono || 'No registrado',
+                                    sitterEmail: profileData?.email || 'No registrado',
+                                    dashboardUrl: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'https://www.pawnecta.com/dashboard',
+                                }
+                            }),
+                        });
+                    }
+
+
+                    // Refresh
+                    setPendingApplication(null);
+                    fetchMyTripsWithSitter();
+                    closeConfirm();
+                    // Optional toast
+                    alert("¡Solicitud aceptada exitosamente! Se ha enviado la ficha del servicio al cliente.");
+
+                } catch (err) {
+                    console.error("Error accepting application:", err);
+                    alert("Hubo un error al aceptar la solicitud.");
+                }
+            }
+        );
     };
 
     // Tab State
@@ -397,19 +504,33 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                     )}
                                 </div>
 
-                                <button
-                                    onClick={() => {
-                                        if (currentUserId) {
-                                            setIsBookingModalOpen(true);
-                                        } else {
-                                            // Redirigir a login si no está logueado
-                                            window.location.href = `/login?redirect=/sitter/${petmate.id}`;
-                                        }
-                                    }}
-                                    className="w-full mt-2 btn-primary py-3 shadow-lg shadow-emerald-100 hover:shadow-xl transition-shadow"
-                                >
-                                    Solicitar Cuidado / Contactar
-                                </button>
+                                {pendingApplication ? (
+                                    <div className="w-full mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                                        <p className="text-sm text-emerald-800 mb-2 font-medium">
+                                            Este cuidador te ha enviado una solicitud.
+                                        </p>
+                                        <button
+                                            onClick={handleAcceptApplication}
+                                            className="w-full btn-primary py-3 bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200"
+                                        >
+                                            Aceptar Solicitud <span className="font-normal text-sm ml-1">(${pendingApplication.precio_oferta?.toLocaleString('es-CL')})</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            if (currentUserId) {
+                                                setIsBookingModalOpen(true);
+                                            } else {
+                                                // Redirigir a login si no está logueado
+                                                window.location.href = `/login?redirect=/sitter/${petmate.id}`;
+                                            }
+                                        }}
+                                        className="w-full mt-2 btn-primary py-3 shadow-lg shadow-emerald-100 hover:shadow-xl transition-shadow"
+                                    >
+                                        Solicitar Cuidado / Contactar
+                                    </button>
+                                )}
                                 <div className="mt-3">
                                     <ContactSitterButton
                                         sitterId={petmate.auth_user_id} // Use auth_user_id for chat, as conversations link to auth.users
@@ -683,12 +804,15 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                                     Reseñas <span className="text-sm font-normal text-slate-500">({reviews.length})</span>
                                                 </h2>
+                                                {/* Button removed by user request: Reviews only after service */}
+                                                {/* 
                                                 <button
                                                     onClick={() => setIsReviewModalOpen(true)}
                                                     className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors border border-emerald-100"
                                                 >
                                                     Escribir una reseña
-                                                </button>
+                                                </button> 
+                                                */}
                                             </div>
 
                                             {loadingReviews ? (
@@ -908,6 +1032,24 @@ export async function getServerSideProps(context: any) {
                 error: null
             }
         };
+    }
+
+    // 4. Calculate Age if missing
+    if (data && !data.edad && data.fecha_nacimiento) {
+        try {
+            const birthDate = new Date(data.fecha_nacimiento);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (!isNaN(age)) {
+                data.edad = age;
+            }
+        } catch (e) {
+            console.error("Error calculating age:", e);
+        }
     }
 
     return {

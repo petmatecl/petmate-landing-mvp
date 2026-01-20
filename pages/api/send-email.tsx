@@ -5,6 +5,7 @@ import NewRequestEmail from '../../components/Emails/NewRequestEmail';
 import RequestStatusEmail from '../../components/Emails/RequestStatusEmail';
 import NewMessageEmail from '../../components/Emails/NewMessageEmail';
 import TripCancellationEmail from '../../components/Emails/TripCancellationEmail';
+import BookingConfirmationEmail from '../../components/Emails/BookingConfirmationEmail';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -34,6 +35,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             case 'request_status':
                 subject = `Actualización de solicitud: ${data.status}`;
                 emailComponent = <RequestStatusEmail {...data} />;
+                break;
+            case 'booking_confirmation':
+                subject = `Ficha de Servicio Confirmado - Pawnecta #${data.applicationId.slice(0, 8).toUpperCase()}`;
+                emailComponent = <BookingConfirmationEmail {...data} />;
                 break;
             case 'new_message':
                 subject = `Nuevo mensaje de ${data.senderName}`;
