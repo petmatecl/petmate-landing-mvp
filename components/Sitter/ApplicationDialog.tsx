@@ -31,11 +31,15 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                 throw new Error("Por favor escribe un mensaje para el cliente.");
             }
 
+            if (!precio) {
+                throw new Error("Debes ofertar un precio por noche.");
+            }
+
             const payload = {
                 viaje_id: trip.id,
                 sitter_id: sitterId,
                 mensaje: mensaje.trim(),
-                precio_oferta: precio ? parseInt(precio) : null,
+                precio_oferta: precio ? parseInt(precio.replace(/\./g, '')) : null,
                 estado: 'pendiente'
             };
 
@@ -167,24 +171,35 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                         />
                     </div>
 
-                    {/* Precio (Opcional) */}
+                    {/* Precio (Obligatorio) */}
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ">
-                            Oferta de Precio (Opcional)
+                            Oferta de Precio (Valor por noche)
                         </label>
                         <div className="relative">
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                                 <DollarSign size={16} />
                             </div>
                             <input
-                                type="number"
+                                type="text"
                                 value={precio}
-                                onChange={(e) => setPrecio(e.target.value)}
-                                placeholder="Si deseas proponer un precio específico"
+                                onChange={(e) => {
+                                    // Remove existing dots and non-numeric chars
+                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                    if (!rawValue) {
+                                        setPrecio("");
+                                        return;
+                                    }
+                                    // Format with thousands separator
+                                    const formatted = new Intl.NumberFormat('es-CL').format(parseInt(rawValue));
+                                    setPrecio(formatted);
+                                }}
+                                placeholder="Ej: 25.000"
                                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                required
                             />
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-1">Si lo dejas en blanco, se discutirá después.</p>
+                        <p className="text-[10px] text-slate-400 mt-1">Este es el valor que cobrarás por cada noche de servicio.</p>
                     </div>
 
                     {/* Submit */}
@@ -204,7 +219,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
