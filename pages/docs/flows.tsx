@@ -148,18 +148,17 @@ export default function UserFlowsDocs() {
     const router = useRouter();
 
     useEffect(() => {
-        mermaid.contentLoaded();
+        // Run mermaid diagram generation
+        mermaid.run({
+            querySelector: '.mermaid',
+        });
     }, []);
-
-    // Re-render mermaid when switching tabs or loading
-    // Since this is a static list, just running on mount is enough usually
-    // But specific react-mermaid quirks might require reset. 
-    // For now, simpler is better.
 
     return (
         <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
             <Head>
                 <title>User Flows Documentation | Pawnecta</title>
+                <meta name="robots" content="noindex" />
             </Head>
 
             <div className="max-w-7xl mx-auto">
