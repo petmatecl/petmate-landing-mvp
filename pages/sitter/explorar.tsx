@@ -72,10 +72,13 @@ export default function SitterExplorarPage() {
         setLoading(true);
         try {
             // 1. Fetch published trips (remove invalid mascotas join)
+            const today = new Date().toISOString().split('T')[0];
+
             let query = supabase
                 .from("viajes")
                 .select("*")
                 .eq("estado", "publicado")
+                .gte("fecha_inicio", today)
                 .order("created_at", { ascending: false });
 
             const { data: tripsData, error } = await query;
