@@ -1,260 +1,273 @@
-import React, { useEffect, useState } from 'react';
-import Head from 'next/head';
-import mermaid from 'mermaid';
-import { useRouter } from 'next/router';
+import React, { useEffect, useState } from "react";
+import Head from "next/head";
+import mermaid from "mermaid";
+import { X, ZoomIn } from "lucide-react";
 
-// Initialize Mermaid
-mermaid.initialize({
-    startOnLoad: false,
-    theme: 'base',
-    themeVariables: {
-        primaryColor: '#ecfdf5', // emerald-50
-        primaryTextColor: '#064e3b', // emerald-900
-        primaryBorderColor: '#10b981', // emerald-500
-        lineColor: '#6b7280', // gray-500
-        secondaryColor: '#fef2f2', // red-50
-        tertiaryColor: '#f0f9ff', // sky-50
-    },
-    securityLevel: 'loose',
-});
+// Diagram Definition Type
+type FlowDiagram = {
+    title: string;
+    description: string;
+    code: string;
+};
 
-// Diagram Definitions (Copied from user_flows.md)
-// In a real app we might fetch this from the md file, but hardcoding for simplicity here.
-const diagrams = [
+const DIAGRAMS: FlowDiagram[] = [
     {
-        title: "1. Authentication Flow",
-        description: "Includes Email/Password, Google, and LinkedIn login paths.",
+        title: "1. Autenticación y Registro",
+        description: "Flujo de inicio de sesión, registro (dueño vs sitter) y recuperación de contraseña.",
         code: `graph TD
-    A[User Arrives] --> B{Has Account?}
-    B -- Yes --> C[Login Page]
-    B -- No --> D[Register Page]
-
-    C --> E{Auth Method}
-    D --> E
-
-    E -- Email/Pass --> F[Supabase Auth]
-    E -- Google --> G[Google OAuth]
-    E -- LinkedIn --> H[LinkedIn OAuth]
-
-    F --> I{Success?}
-    G --> I
-    H --> I
-
-    I -- Yes --> J[Redirect to Dashboard/Home]
-    I -- No --> K[Show Error Message]`
-    },
-    {
-        title: "2. Booking Prerequisites (Onboarding Check)",
-        description: "Ensures users have necessary data (Pets, Address) before initiating a request.",
-        code: `graph TD
-    A[User Clicks 'Contact/Book'] --> B{Is Logged In?}
-    B -- No --> C[Login/Register] --> B
-    B -- Yes --> D{Has Pets?}
+    A[Inicio] --> B{¿Tiene Cuenta?}
+    B -- Sí --> C[Login]
+    B -- No --> D[Seleccionar Rol]
+    D --> E[Registro Dueño]
+    D --> F[Registro Sitter]
     
-    D -- No --> E[Redirect to 'Add Pet']
-    E --> F[User Creates Pet]
-    F --> G[Redirect back to Booking]
-    G --> A
-    
-    D -- Yes --> H{Has Address?}
-    H -- No --> I[Redirect to 'Profile/Address']
-    I --> J[User Adds Address]
-    J --> K[Redirect back to Booking]
-    K --> A
-    
-    H -- Yes --> L[Open Booking Modal]`
-    },
-    {
-        title: "3. End-to-End Interaction (Ideal Flow)",
-        description: "Complete lifecycle including Cancel and Rejection paths.",
-        code: `sequenceDiagram
-    actor Owner as Pet Owner
-    participant System
-    actor Sitter
+    C --> G{¿Credenciales Válidas?}
+    G -- No --> C
+    G -- Sí --> H[Dashboard]
 
-    Owner->>System: Post Request (Trip)
-    System->>Sitter: Notify Recommended Sitters
+    E --> I[Completar Perfil Dueño]
+    F --> J[Completar Perfil Sitter]
     
-    alt No Response / Timeout
-        System->>Owner: Notify "No sitters found"
-        System->>Owner: Suggest "Expand Search"
-    else Sitter Responds
-        Sitter->>System: View Request
-        
-        alt Sitter Applied
-            Sitter->>System: Apply (Postular)
-            System->>Owner: Notify "New Application"
-            
-            opt Chat Negotiation
-                Owner->>Sitter: Message
-                Sitter->>Owner: Response
-            end
-            
-            alt Owner Accepts
-                Owner->>System: Click "Accept"
-                System->>System: Update Trip -> Scheduled
-                System->>Sitter: Notify "Confirmed"
-                System->>Owner: Send Service Sheet
-                
-                opt Cancellation (Pre-Service)
-                    Owner->>System: Cancel Trip
-                    System->>Owner: Refund (Policy dependent)
-                    System->>Sitter: Notify Cancellation
-                end
-                
-            else Owner Rejects
-                Owner->>System: Reject Application
-                System->>Sitter: Notify Rejection
-            end
-            
-        else Sitter Not Interested
-            Sitter->>System: Ignore/Hide
-        end
+    subgraph Sitter Onboarding
+    J --> K[Datos Personales]
+    K --> L[Experiencia y Tarifas]
+    L --> M[Fotos y Descripción]
+    M --> N[Estado: Pendiente Aprobación]
     end`
     },
     {
-        title: "4. Sitter Application Flow (Sitter View)",
-        description: "How sitters find and apply to jobs.",
+        title: "2. Prerrequisitos de Reserva (Onboarding)",
+        description: "Verifica que el usuario tenga mascotas y dirección antes de reservar.",
         code: `graph TD
-    A[Sitter Dashboard] --> B["Explore Requests (Tab)"]
-    B --> C[View Open Care Requests]
-    C --> D[Select Request]
-    D --> E[View Details]
+    A[Usuario intenta Reservar] --> B{¿Tiene Mascotas?}
+    B -- No --> C[Redirigir: Agregar Mascota]
+    C --> C1{¿Mascota Guardada?}
+    C1 -- Sí --> B
+    C1 -- Cancelar --> Z[Volver al Dashboard]
     
-    E --> F{"Interested?"}
-    F -- Yes --> G[Click 'Apply']
-    G --> H[Create Postulation]
-    H --> I[Notify Pet Owner]
+    B -- Sí --> D{¿Tiene Dirección?}
+    D -- No --> E[Redirigir: Agregar Dirección]
+    E --> E1{¿Dirección Guardada?}
+    E1 -- Sí --> A
+    E1 -- Cancelar --> Z
     
-    F -- No --> J[Ignore/Back]`
+    D -- Sí --> F[Permitir Flujo de Reserva]`
     },
     {
-        title: "5. Dashboard Management",
-        description: "High-level dashboard structure based on user role.",
-        code: `graph TD
-    A[Dashboard] --> B{User Type}
+        title: "3. Interacción End-to-End (Búsqueda a Confirmación)",
+        description: "El viaje completo desde buscar servicio hasta el final (MVP: Sin Pagos).",
+        code: `sequenceDiagram
+    actor Owner as Dueño
+    participant App as Plataforma
+    actor Sitter as Sitter
+
+    Owner->>App: Busca Sitter (Fechas/Comuna)
+    App-->>Owner: Muestra Resultados
+    Owner->>Sitter: Envía Solicitud (Estado: Pendiente)
     
-    B -- Pet Owner --> C[My Pets]
-    C --> C1[Add/Edit Pet]
-    
-    B -- Sitter --> D[Sitter Profile]
-    D --> D1[Edit Services]
-    D --> D2[Edit Gallery]
-    D --> D3[Edit Availability]
-    
-    B -- Both --> E[Messages]
-    B -- Both --> F[My Trips/Bookings]`
+    alt Sitter Acepta
+        Sitter->>App: Clic "Aceptar Solicitud"
+        App->>App: Cambia estado a "Confirmado"
+        App-->>Owner: Notificar "Solicitud Aceptada"
+        App-->>Owner: Enviar Datos de Contacto (Ficha)
+        App-->>Sitter: Enviar Datos de Contacto (Ficha)
+        Note over Owner,Sitter: Pago/Coordinación final ocurre fuera (MVP)
+    else Sitter Rechaza
+        Sitter->>App: Clic "Rechazar"
+        App-->>Owner: Notificar "No disponible"
+    else No Responde (Timeout 24h)
+        App->>App: Expirar Solicitud
+        App-->>Owner: Notificar "Sin respuesta"
+    end
+
+    opt Cancelación Previa
+        Owner->>App: Cancelar Servicio
+        App-->>Sitter: Notificar Cancelación
+    end`
     },
     {
-        title: "6. Post-Service Review Flow",
-        description: "Email-triggered review process.",
+        title: "4. Lógica de Aplicación del Sitter",
+        description: "Cómo maneja el Sitter las nuevas solicitudes.",
+        code: `graph TD
+    A[Nueva Solicitud Recibida] --> B{¿Está Disponible?}
+    B -- No --> C[Rechazar / Ignorar]
+    C --> D[Estado: Rechazado]
+    
+    B -- Sí --> E[Revisar Detalles]
+    E --> F{¿Acepta el trabajo?}
+    F -- Sí --> G[Clic 'Aceptar Solicitud']
+    G --> H[Viaje Confirmado]
+    G --> I[Intercambio de Contactos]
+    
+    F -- No --> C`
+    },
+    {
+        title: "5. Gestión del Dashboard",
+        description: "Vistas principales para cada rol.",
         code: `graph LR
-    A[Trip Ends] --> B(System Wait 1 Day)
-    B --> C[Send Review Email]
-    C --> D[User Clicks Link]
-    D --> E[Review Form]
-    E --> F[Submit Star Rating]
-    F --> G[Update Sitter DB Stats]
-    G --> H[Show on Public Profile]`
+    subgraph Owner Dashboard
+    A[Mis Mascotas]
+    B[Buscar Sitters]
+    C[Mis Solicitudes (Estados)]
+    end
+    
+    subgraph Sitter Dashboard
+    D[Mi Perfil Publico]
+    E[Solicitudes Recibidas]
+    F[Calendario/Disponibilidad]
+    end`
     },
     {
-        title: "7. Request Lifecycle & Data Visibility",
-        description: "Shows exactly what data is visible to each party at every stage.",
+        title: "6. Flujo de Reseñas Post-Servicio",
+        description: "Proceso de calificación activado por email.",
+        code: `graph LR
+    A[Fin del Servicio] --> B(Espera del Sistema 1 día)
+    B --> C[Enviar Email de Reseña]
+    C --> D[Clic en Enlace]
+    D --> E[Formulario de Reseña]
+    E --> F[Enviar Estrellas/Comentario]
+    F --> G[Actualizar Promedio Sitter]
+    G --> H[Mostrar en Perfil Público]`
+    },
+    {
+        title: "7. Ciclo de Vida y Visibilidad de Datos",
+        description: "Muestra exactamente qué datos ve cada parte en cada etapa.",
         code: `stateDiagram-v2
     direction LR
     
-    state "1. Open Request (Publicado)" as Open {
-        state "Owner View" as OV1
-        OV1 : Sees full request details
+    state "1. Solicitud Abierta (Publicado)" as Open {
+        state "Vista Dueño" as OV1
+        OV1 : Ve detalles completos
         
-        state "Sitter View (Explorer)" as SV1
-        SV1 : ❌ No Contact Info
-        SV1 : ❌ No Exact Address
-        SV1 : ✅ Owner Name (First Only)
-        SV1 : ✅ Commune (Fuzzy Loc)
-        SV1 : ✅ Pet Details
-        SV1 : ✅ Service Dates
+        state "Vista Sitter (Explorar)" as SV1
+        SV1 : ❌ Sin Contacto
+        SV1 : ❌ Sin Dirección Exacta
+        SV1 : ✅ Nombre Dueño (Solo Pila)
+        SV1 : ✅ Comuna (Aprox)
+        SV1 : ✅ Datos Mascotas
+        SV1 : ✅ Fechas Servicio
     }
 
-    state "2. Negotiation (Postulado)" as Applied {
-        state "Owner View" as OV2
-        OV2 : ✅ Sitter Name (Public Profile)
-        OV2 : ✅ Proposed Price
-        OV2 : ❌ Sitter Phone/Email hidden
+    state "2. Negociación (Postulado)" as Applied {
+        state "Vista Dueño" as OV2
+        OV2 : ✅ Perfil Sitter (Público)
+        OV2 : ✅ Precio Propuesto
+        OV2 : ❌ Tel/Email Sitter oculto
         
-        state "Sitter View" as SV2
-        SV2 : Status: Applied
-        SV2 : Chat Open
-        SV2 : ✅ Owner Name (First Only)
+        state "Vista Sitter" as SV2
+        SV2 : Estado: Postulado
+        SV2 : Chat Abierto
+        SV2 : ✅ Nombre Dueño (Solo Pila)
     }
 
-    state "3. Confirmed (Programado)" as Confirmed {
-        state "Both Parties View" as BV3
-        BV3 : ✅ Full Legal Names
-        BV3 : ✅ Phone Number
-        BV3 : ✅ Email Address
-        BV3 : ✅ Exact Home Address
-        BV3 : ✅ Service Sheet PDF
+    state "3. Confirmado (Programado)" as Confirmed {
+        state "Vista de Ambos" as BV3
+        BV3 : ✅ Nombres Legales Completos
+        BV3 : ✅ Teléfono
+        BV3 : ✅ Email
+        BV3 : ✅ Dirección Exacta
+        BV3 : ✅ Ficha de Servicio (PDF)
     }
 
-    [*] --> Open : User Posts Request
-    Open --> Applied : Sitter Applies
-    Applied --> Confirmed : Owner Accepts
-    Applied --> Open : Owner Rejects
-    Confirmed --> [*] : Service Completed`
+    [*] --> Open : Usuario Publica
+    Open --> Applied : Sitter Postula
+    Applied --> Confirmed : Dueño Acepta
+    Applied --> Open : Dueño Rechaza
+    Confirmed --> [*] : Servicio Completado`
     }
 ];
 
-export default function UserFlowsDocs() {
-    const router = useRouter();
+export default function DocsFlowsPage() {
+    const [selectedDiagram, setSelectedDiagram] = useState<FlowDiagram | null>(null);
 
     useEffect(() => {
-        // Run mermaid diagram generation
-        mermaid.run({
-            querySelector: '.mermaid',
-        });
-    }, []);
+        mermaid.run({ querySelector: '.mermaid' });
+    }, [selectedDiagram]);
+
+    // Re-render mermaid when modal opens too
+    useEffect(() => {
+        if (selectedDiagram) {
+            setTimeout(() => {
+                mermaid.run({ querySelector: '.mermaid-modal' });
+            }, 100);
+        }
+    }, [selectedDiagram]);
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="font-outfit min-h-screen bg-slate-50">
             <Head>
-                <title>User Flows Documentation | Pawnecta</title>
+                <title>Documentación de Flujos | Pawnecta</title>
                 <meta name="robots" content="noindex" />
             </Head>
 
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900">Pawnecta User Flows</h1>
-                    <button
-                        onClick={() => router.push('/')}
-                        className="text-emerald-600 hover:text-emerald-700 font-medium"
-                    >
-                        &larr; Back to App
-                    </button>
+            {/* Modal for Zoom */}
+            {selectedDiagram && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                    onClick={() => setSelectedDiagram(null)}>
+                    <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200"
+                        onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center p-4 border-b">
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-800">{selectedDiagram.title}</h3>
+                                <p className="text-sm text-slate-500">{selectedDiagram.description}</p>
+                            </div>
+                            <button
+                                onClick={() => setSelectedDiagram(null)}
+                                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="p-8 overflow-auto flex-1 bg-white cursor-move flex items-center justify-center">
+                            <div className="mermaid mermaid-modal w-full h-full flex items-center justify-center text-center">
+                                {selectedDiagram.code}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="container mx-auto px-4 py-12 max-w-5xl">
+                <div className="mb-12 text-center">
+                    <h1 className="text-3xl font-bold text-slate-900 mb-4">Documentación de Flujos de Usuario</h1>
+                    <p className="text-slate-600 max-w-2xl mx-auto">
+                        Referencia visual de los procesos core de la plataforma (MVP).
+                        Estos diagramas representan el comportamiento implementado actualmente.
+                    </p>
+                    <div className="mt-4 inline-block px-4 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold border border-amber-200">
+                        CONFIDENCIAL / USO INTERNO
+                    </div>
                 </div>
 
-                <p className="text-slate-600 mb-12 max-w-3xl">
-                    Visual documentation of key user journeys within the platform.
-                    Generated dynamically using Mermaid.js.
-                </p>
-
-                <div className="space-y-16">
-                    {diagrams.map((diagram, index) => (
+                <div className="space-y-12">
+                    {DIAGRAMS.map((diagram, index) => (
                         <div key={index} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                                <h2 className="text-xl font-semibold text-slate-800">{diagram.title}</h2>
-                                <p className="text-sm text-slate-500 mt-1">{diagram.description}</p>
+                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-gray-50">
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-800">{diagram.title}</h2>
+                                    <p className="text-sm text-slate-500">{diagram.description}</p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedDiagram(diagram)}
+                                    className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-white hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 transition-all shadow-sm"
+                                >
+                                    <ZoomIn size={16} />
+                                    Ampliar
+                                </button>
                             </div>
-                            <div className="p-6 flex justify-center bg-white overflow-x-auto">
-                                <div className="mermaid">
+                            <div className="p-8 overflow-x-auto flex justify-center bg-white min-h-[200px] items-center">
+                                <div className="mermaid w-full text-center">
                                     {diagram.code}
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
+
+                <div className="mt-12 text-center text-slate-400 text-sm">
+                    Generado con Mermaid.js • Pawnecta MVP
+                </div>
             </div>
         </div>
     );
 }
-
