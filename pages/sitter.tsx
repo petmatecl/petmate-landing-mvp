@@ -1595,6 +1595,17 @@ export default function SitterDashboardPage() {
                                     {profileId ? (
                                         <AvailabilityCalendar
                                             sitterId={profileId}
+                                            confirmedBookings={bookings.map(b => ({
+                                                start: b.fecha_inicio,
+                                                end: b.fecha_fin
+                                            }))}
+                                            pendingBookings={applications
+                                                .filter(a => a.status === 'pending')
+                                                .map(a => ({
+                                                    start: a.fecha_inicio,
+                                                    end: a.fecha_fin
+                                                }))
+                                            }
                                             onSaveSuccess={() => {
                                                 const fetchAvailabilityCount = async () => {
                                                     const { count: availCount } = await supabase

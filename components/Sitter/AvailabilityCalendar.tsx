@@ -10,9 +10,11 @@ import { Save, Loader2, Calendar as CalendarIcon } from "lucide-react";
 interface Props {
     sitterId: string;
     onSaveSuccess?: () => void;
+    confirmedBookings?: { start: string; end: string }[];
+    pendingBookings?: { start: string; end: string }[];
 }
 
-export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props) {
+export default function AvailabilityCalendar({ sitterId, onSaveSuccess, confirmedBookings = [], pendingBookings = [] }: Props) {
     // State management
     const [selectedDays, setSelectedDays] = useState<Date[]>([]);
     const [month, setMonth] = useState<Date>(new Date());
@@ -131,6 +133,17 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props)
         setSelectedDays(newDays);
     };
 
+    // Convert Ranges to Matchers
+    const pendingMatchers = pendingBookings.map(range => ({
+        from: parseISO(range.start),
+        to: parseISO(range.end)
+    }));
+
+    const confirmedMatchers = confirmedBookings.map(range => ({
+        from: parseISO(range.start),
+        to: parseISO(range.end)
+    }));
+
     return (
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm w-full">
 
@@ -141,7 +154,7 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props)
                         <CalendarIcon className="text-emerald-600" /> Disponibilidad
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">
-                        Marca tus días disponibles para aceptar servicios. Se guardarán todos los cambios.
+                        Marca tus días disponibles. Los días con solicitudes o reservas se indican en color.
                     </p>
                 </div>
 
@@ -176,12 +189,32 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props)
                     month={month}
                     onMonthChange={setMonth}
                     locale={es}
+                    modifiers={{
+                        pending: pendingMatchers,
+                        confirmed: confirmedMatchers
+                    }}
                     modifiersStyles={{
                         selected: {
                             backgroundColor: '#10b981', // emerald-500
                             color: 'white',
                             borderRadius: '50%',
-                            fontWeight: 'bold'
+                            fontWeight: 'bold',
+                            border: '2px solid white'
+                        },
+                        pending: {
+                            backgroundColor: '#f59e0b', // amber-500
+                            color: 'white',
+                            borderRadius: '50%',
+                            fontWeight: 'bold',
+                            opacity: 0.8
+                        },
+                        confirmed: {
+                            backgroundColor: '#3b82f6', // blue-500
+                            color: 'white',
+                            borderRadius: '50%',
+                            fontWeight: 'bold',
+                            opacity: 0.9,
+                            border: '2px solid #2563eb'
                         }
                     }}
                     styles={{
@@ -193,21 +226,33 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess }: Props)
             </div>
 
             {/* Footer / Helpers */}
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center border-t border-slate-100 pt-4">
+            <div className="flex flex-col gap-4 border-t border-slate-100 pt-4">
 
                 {/* Legend */}
-                <div className="flex items-center gap-3 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                    <span className="text-sm font-medium text-emerald-900">Días Habilitados (Visibles para clientes)</span>
+                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600"></div>
+                        <span className="text-xs font-medium text-slate-600">Disponible</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-amber-500 border border-amber-600"></div>
+                        <span className="text-xs font-medium text-slate-600">Solicitud Pendiente</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600"></div>
+                        <span className="text-xs font-medium text-slate-600">Reserva Confirmada</span>
+                    </div>
                 </div>
 
                 {/* Actions */}
-                <button
-                    onClick={handleSelectNext30Days}
-                    className="text-sm font-bold text-slate-600 hover:text-slate-900 hover:underline"
-                >
-                    Marcar próximos 30 días
-                </button>
+                <div className="flex justify-end">
+                    <button
+                        onClick={handleSelectNext30Days}
+                        className="text-sm font-bold text-slate-600 hover:text-slate-900 hover:underline"
+                    >
+                        Marcar próximos 30 días
+                    </button>
+                </div>
             </div>
         </div>
     );

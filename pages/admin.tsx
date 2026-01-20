@@ -653,7 +653,7 @@ export default function AdminDashboard() {
                                     placeholder="Buscar por nombre, email, rut..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="h-11 w-full pl-11 pr-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 text-sm transition-all"
+                                    className="h-10 w-full pl-11 pr-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 text-sm transition-all"
                                 />
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                             </div>
@@ -685,19 +685,19 @@ export default function AdminDashboard() {
                                 </select>
 
                                 {/* Date Range */}
-                                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200">
+                                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200 h-10 box-border">
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-28 sm:w-32"
+                                        className="h-full px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-28 sm:w-32"
                                     />
                                     <span className="text-slate-400">-</span>
                                     <input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="h-9 px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-28 sm:w-32"
+                                        className="h-full px-2 rounded-lg bg-white border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none w-28 sm:w-32"
                                     />
                                 </div>
 

@@ -124,13 +124,13 @@ const DIAGRAMS: FlowDiagram[] = [
         title: "6. Flujo de Reseñas Post-Servicio",
         description: "Proceso de calificación activado por email.",
         code: `graph LR
-    A[Fin del Servicio (Confirmado)] --> B(Espera del Sistema 1 día)
-    B --> C[Enviar Email de Reseña]
-    C --> D[Clic en Enlace]
-    D --> E[Formulario de Reseña]
-    E --> F[Enviar Estrellas/Comentario]
-    F --> G[Actualizar Promedio Sitter]
-    G --> H[Mostrar en Perfil Público]`
+    A["Fin del Servicio (Confirmado)"] --> B("Espera del Sistema 1 día")
+    B --> C["Enviar Email de Reseña"]
+    C --> D["Clic en Enlace"]
+    D --> E["Formulario de Reseña"]
+    E --> F["Enviar Estrellas/Comentario"]
+    F --> G["Actualizar Promedio Sitter"]
+    G --> H["Mostrar en Perfil Público"]`
     },
     {
         title: "7. Ciclo de Vida y Visibilidad de Datos",
