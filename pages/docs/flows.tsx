@@ -156,6 +156,51 @@ const diagrams = [
     E --> F[Submit Star Rating]
     F --> G[Update Sitter DB Stats]
     G --> H[Show on Public Profile]`
+    },
+    {
+        title: "7. Request Lifecycle & Data Visibility",
+        description: "Shows exactly what data is visible to each party at every stage.",
+        code: `stateDiagram-v2
+    direction LR
+    
+    state "1. Open Request (Publicado)" as Open {
+        state "Owner View" as OV1
+        OV1 : Sees full request details
+        
+        state "Sitter View (Explorer)" as SV1
+        SV1 : ❌ No Contact Info
+        SV1 : ❌ No Exact Address
+        SV1 : ✅ First Name only
+        SV1 : ✅ Commune (Fuzzy Loc)
+        SV1 : ✅ Pet Details
+        SV1 : ✅ Service Dates
+    }
+
+    state "2. Negotiation (Postulado)" as Applied {
+        state "Owner View" as OV2
+        OV2 : ✅ Sitter Profile (Public)
+        OV2 : ✅ Proposed Price
+        OV2 : ❌ Sitter Phone/Email hidden
+        
+        state "Sitter View" as SV2
+        SV2 : Status: Applied
+        SV2 : Chat Open
+    }
+
+    state "3. Confirmed (Programado)" as Confirmed {
+        state "Both Parties View" as BV3
+        BV3 : ✅ Full Name (Last Name)
+        BV3 : ✅ Phone Number
+        BV3 : ✅ Email Address
+        BV3 : ✅ Exact Home Address
+        BV3 : ✅ Service Sheet PDF
+    }
+
+    [*] --> Open : User Posts Request
+    Open --> Applied : Sitter Applies
+    Applied --> Confirmed : Owner Accepts
+    Applied --> Open : Owner Rejects
+    Confirmed --> [*] : Service Completed`
     }
 ];
 
