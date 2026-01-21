@@ -106,8 +106,14 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
         }
     };
 
-    const startDate = new Date(trip.fecha_inicio);
-    const endDate = trip.fecha_fin ? new Date(trip.fecha_fin) : null;
+    const parseDateSafe = (dateStr: string) => {
+        if (!dateStr) return null;
+        // Append T12:00:00 to avoid timezone shift from midnight
+        return new Date(`${dateStr}T12:00:00`);
+    };
+
+    const startDate = parseDateSafe(trip.fecha_inicio);
+    const endDate = trip.fecha_fin ? parseDateSafe(trip.fecha_fin) : null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -132,7 +138,7 @@ export default function ApplicationDialog({ isOpen, onClose, trip, sitterId, onA
                         <div className="flex justify-between">
                             <span className="text-slate-500">Fecha:</span>
                             <span className="font-bold text-slate-800">
-                                {format(startDate, "d MMM", { locale: es })}
+                                {startDate && format(startDate, "d MMM", { locale: es })}
                                 {endDate && ` - ${format(endDate, "d MMM", { locale: es })}`}
                             </span>
                         </div>

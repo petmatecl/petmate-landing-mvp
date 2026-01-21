@@ -440,7 +440,10 @@ export default function RegisterPage() {
               role="tab"
               aria-selected={tab === "cliente"}
               className={`tab ${tab === "cliente" ? "active" : ""} `}
-              onClick={() => setTab("cliente")}
+              onClick={() => {
+                setTab("cliente");
+                router.replace({ pathname: router.pathname, query: { role: 'usuario' } }, undefined, { shallow: true });
+              }}
               type="button"
             >
               <UserIcon />
@@ -450,7 +453,10 @@ export default function RegisterPage() {
               role="tab"
               aria-selected={tab === "petmate"}
               className={`tab ${tab === "petmate" ? "active" : ""} `}
-              onClick={() => setTab("petmate")}
+              onClick={() => {
+                setTab("petmate");
+                router.replace({ pathname: router.pathname, query: { role: 'sitter' } }, undefined, { shallow: true });
+              }}
               type="button"
             >
               <PawIcon />

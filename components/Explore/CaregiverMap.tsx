@@ -155,58 +155,74 @@ export default function CaregiverMap({ sitters, isAuthenticated }: CaregiverMapP
                 {/* Default Zoom Control */}
                 <ZoomControl position="topleft" />
 
-                <MapUpdater sitters={sitters} />
+                {markers.map((sitter) => {
+                    const price = sitter.tarifa_servicio_en_casa || sitter.tarifa_servicio_a_domicilio || 15000;
+                    const formattedPrice = `$${(price / 1000).toLocaleString('es-CL', { maximumFractionDigits: 0 })}k`;
 
-                {markers.map((sitter) => (
-                    <div key={sitter.id}>
-                        {/* Area de Servicio (Radio Aproximado) */}
-                        <Circle
-                            center={[sitter.lat, sitter.lng]}
-                            radius={800} // 800 meters approximate radius
-                            pathOptions={{
-                                color: '#059669', // emerald-600 (Darker border)
-                                fillColor: '#10b981', // emerald-500 (Vivid fill)
-                                fillOpacity: 0.3, // Increased from 0.1
-                                weight: 2, // Thicker border
-                                dashArray: '5, 5'
-                            }}
-                        />
-
-                        {/* Anchor Point (Blurred location) */}
-                        <CircleMarker
-                            center={[sitter.lat, sitter.lng]}
-                            radius={6}
-                            pathOptions={{
-                                color: '#059669', // emerald-600
-                                fillColor: '#fff',
-                                fillOpacity: 1,
-                                weight: 2
-                            }}
-                        >
-                            <Popup className="custom-popup">
-                                <div className="min-w-[200px]">
-                                    <h3 className="font-bold text-slate-800 text-base">{sitter.nombre} {sitter.apellido_p?.charAt(0)}.</h3>
-                                    <p className="text-xs text-slate-500 mb-2">{sitter.comuna}</p>
-                                    <div className="flex items-center gap-1 mb-2">
-                                        <span className="text-emerald-500 font-bold">★ {sitter.promedio_calificacion || 5.0}</span>
-                                        <span className="text-slate-400 text-xs">({sitter.total_reviews || 0})</span>
-                                    </div>
-                                    <p className="font-bold text-slate-900 mb-3">
-                                        ${(sitter.tarifa_servicio_en_casa || 15000).toLocaleString('es-CL')}
-                                        <span className="text-xs font-normal text-slate-400">/noche</span>
-                                    </p>
-
-                                    <Link
-                                        href={isAuthenticated ? `/sitter/${sitter.id}` : "/register"}
-                                        className="block w-full py-2 bg-emerald-600 !text-white text-center rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors"
-                                    >
-                                        {isAuthenticated ? "Ver Perfil" : "Regístrate para ver"}
-                                    </Link>
+                    const priceIcon = L.divIcon({
+                        className: 'bg-transparent border-none',
+                        html: `
+                            <div class="relative group cursor-pointer transform transition-transform hover:scale-110 hover:z-50">
+                                <div class="bg-white text-slate-900 font-bold text-xs px-2.5 py-1.5 rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.2)] border border-slate-200 flex items-center justify-center whitespace-nowrap hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors">
+                                    ${formattedPrice}
                                 </div>
-                            </Popup>
-                        </CircleMarker>
-                    </div>
-                ))}
+                                <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-b border-r border-slate-200 group-hover:bg-slate-900 group-hover:border-slate-900 transition-colors"></div>
+                            </div>
+                        `,
+                        iconSize: [50, 40], // Enough space for the pill
+                        iconAnchor: [25, 40], // Tip of the "arrow" (bottom center approx)
+                    });
+
+                    return (
+                        <div key={sitter.id}>
+                            {/* Area de Servicio (Radio Aproximado) */}
+                            <Circle
+                                center={[sitter.lat, sitter.lng]}
+                                radius={800} // 800 meters approximate radius
+                                pathOptions={{
+                                    color: '#059669', // emerald-600 (Darker border)
+                                    fillColor: '#10b981', // emerald-500 (Vivid fill)
+                                    fillOpacity: 0.1, // Reduced for cleaner look with pills
+                                    weight: 1, // Thinner border
+                                    dashArray: '5, 5'
+                                }}
+                            />
+
+                            {/* Price Pill Marker */}
+                            <Marker
+                                position={[sitter.lat, sitter.lng]}
+                                icon={priceIcon}
+                            >
+                                <Popup className="custom-popup" closeButton={false} offset={[0, -30]}>
+                                    <div className="min-w-[200px]">
+                                        <h3 className="font-bold text-slate-900 text-base mb-0.5">{sitter.nombre} {sitter.apellido_p?.charAt(0)}.</h3>
+                                        <p className="text-xs text-slate-500 mb-2 truncate max-w-[180px]">{sitter.comuna}</p>
+
+                                        <div className="flex items-center gap-1.5 mb-3">
+                                            <div className="flex items-center text-xs font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                <span className="text-emerald-500 mr-1">★</span>
+                                                {sitter.promedio_calificacion || 5.0}
+                                            </div>
+                                            <span className="text-xs text-slate-400">({sitter.total_reviews || 0} reseñas)</span>
+                                        </div>
+
+                                        <div className="flex items-end gap-1 mb-3">
+                                            <span className="font-bold text-lg text-slate-900">${price.toLocaleString('es-CL')}</span>
+                                            <span className="text-xs text-slate-500 mb-1">/noche</span>
+                                        </div>
+
+                                        <Link
+                                            href={isAuthenticated ? `/sitter/${sitter.id}` : "/register"}
+                                            className="block w-full py-2.5 bg-slate-900 text-white text-center rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-sm"
+                                        >
+                                            {isAuthenticated ? "Ver Perfil" : "Regístrate"}
+                                        </Link>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        </div>
+                    );
+                })}
             </MapContainer>
 
             <style jsx global>{`

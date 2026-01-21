@@ -105,16 +105,16 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
 
             if (tripError) throw tripError;
 
-            // 2. Update this application to 'aceptada'
+            // 2. Update this application to 'aceptado'
             await supabase
                 .from("postulaciones")
-                .update({ estado: 'aceptada' })
+                .update({ estado: 'aceptado' })
                 .eq("id", app.id);
 
-            // 3. Update others to 'rechazada' (optional, but good practice)
+            // 3. Update others to 'rechazado' (optional, but good practice)
             await supabase
                 .from("postulaciones")
-                .update({ estado: 'rechazada' })
+                .update({ estado: 'rechazado' })
                 .eq("viaje_id", tripId)
                 .neq("id", app.id);
 
