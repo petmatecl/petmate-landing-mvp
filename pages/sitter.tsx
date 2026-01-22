@@ -296,7 +296,7 @@ export default function SitterDashboardPage() {
                 .from('viajes')
                 .select('*, cliente:user_id(*)')
                 .is('sitter_id', null)
-                .in('estado', ['pendiente', 'pendiente_pago']) // Check valid states
+                .in('estado', ['pendiente', 'pendiente_pago', 'publicado']) // Check valid states
                 .neq('user_id', userId) // Don't show own trips if any
                 .order('created_at', { ascending: false });
 
