@@ -185,17 +185,12 @@ export default function MessageThread({ conversationId, userId }: Props) {
 
             if (error) throw error;
 
-            // [NEW] Send Standard Notification (now working with fixed RLS)
-            if (otherUser) {
-                createNotification({
-                    userId: otherUser.auth_user_id,
-                    type: 'message',
-                    title: `Mensaje de ${myUser?.nombre || 'Usuario'}`, // Use my name
-                    message: content.substring(0, 50),
-                    link: `/mensajes?id=${conversationId}`,
-                    metadata: { conversationId }
-                }).catch(console.error);
-            }
+            if (error) throw error;
+
+            // [REMOVED] Manual Notification (Handled by DB Trigger now)
+            // if (otherUser) {
+            //     createNotification({...})
+            // }
 
             // [NEW] Send Email Notification to Recipient
             // Check if user is offline or just send always? For MVP send always or if we had online status.

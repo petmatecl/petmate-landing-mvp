@@ -93,14 +93,8 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
             // Non-critical, but good to know
         }
 
-        // [NEW] Notification to Sitter
-        await createNotification({
-            userId: sitterAuthId,
-            type: 'request',
-            title: 'Nueva Solicitud de Reserva',
-            message: 'Un usuario te ha enviado una solicitud directa para un servicio.',
-            link: '/sitter?tab=solicitudes' // Lead them to requests tab
-        });
+        // [REMOVED] Notification (Handled by DB Trigger)
+        // await createNotification({...});
 
         setIsSuccess(true);
         onSuccess();
