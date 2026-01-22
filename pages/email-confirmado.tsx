@@ -206,22 +206,11 @@ export default function EmailConfirmadoPage() {
                         </div>
                     </Card>
                 ) : (
-                    <Card padding="l" className="w-full max-w-[520px] text-center relative">
-                        {/* Decoración de fondo */}
-                        <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
-
-                        <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-emerald-100 text-emerald-600 text-4xl shadow-sm">
-                            🎉
-                        </div>
-
-                        <h1 className="text-3xl font-extrabold text-slate-900 m-0 mb-2">
-                            ¡Sesión iniciada!
-                        </h1>
-
-                        <p className="text-lg text-slate-600 mb-6">
-                            Te estamos redirigiendo a tu cuenta...
-                        </p>
-                    </Card>
+                    <div className="flex flex-col items-center justify-center animate-pulse">
+                         <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin mb-6"></div>
+                         <h2 className="text-xl font-bold text-slate-700">Iniciando sesión...</h2>
+                         <p className="text-slate-500">Te estamos redirigiendo a tu cuenta</p>
+                    </div>
                 )}
             </main>
         </>
