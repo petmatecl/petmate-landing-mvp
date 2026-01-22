@@ -90,6 +90,8 @@ export default function ReviewFormModal({ isOpen, onClose, sitterId, onReviewSub
             if (error) {
                 throw error;
             } else {
+                // Success
+                alert("¡Tu reseña ha sido enviada! 📝\n\nPasará por un proceso de moderación antes de ser visible públicamente.");
                 onReviewSubmitted();
                 onClose();
                 setComment("");
