@@ -8,6 +8,7 @@ import { Card } from "../components/Shared/Card";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 import LinkedInAuthButton from "../components/LinkedInAuthButton";
 import { AuthService, Role } from "../lib/authService";
+import { RoleSelector } from "../components/Auth/RoleSelector";
 
 // ==== Íconos mono (inline SVG) ====
 const MailIcon = (props: any) => (
@@ -35,20 +36,7 @@ const EyeOffIcon = (props: any) => (
   </svg>
 );
 
-const UserIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-const PawIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <circle cx="12" cy="5" r="2.5" />
-    <circle cx="19" cy="8" r="2.5" />
-    <circle cx="5" cy="8" r="2.5" />
-    <path d="M12 12c-2.5 0-4.5 2-4.5 4.5S9.5 21 12 21s4.5-2 4.5-4.5S14.5 12 12 12z" />
-  </svg>
-);
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -162,38 +150,12 @@ export default function LoginPage() {
     return (
       <div className="page">
         <div className="wrap">
-          <Card variant="elevated" padding="l" className="login-card">
-            <h1 className="title text-center">¡Hola, {userName}!</h1>
-            <p className="subtitle text-center">¿Con qué perfil deseas ingresar hoy?</p>
-
-            <div className="role-buttons">
-              <button
-                onClick={() => handleRoleSelect("cliente")}
-                className="role-btn client-btn"
-              >
-                <div className="icon-circle">
-                  <UserIcon />
-                </div>
-                <div className="role-info">
-                  <span className="role-title">Ingresar como Usuario</span>
-                  <span className="role-desc">Buscar servicios para mis mascotas</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleRoleSelect("petmate")}
-                className="role-btn sitter-btn"
-              >
-                <div className="icon-circle">
-                  <PawIcon />
-                </div>
-                <div className="role-info">
-                  <span className="role-title">Ingresar como Sitter</span>
-                  <span className="role-desc">Gestionar mis servicios y reservas</span>
-                </div>
-              </button>
-            </div>
-          </Card>
+           <Card variant="elevated" padding="l" className="login-card">
+              <RoleSelector 
+                  userName={userName} 
+                  onSelect={handleRoleSelect} 
+              />
+           </Card>
         </div>
         <style jsx>{`
           .page {
@@ -208,50 +170,6 @@ export default function LoginPage() {
             width: 100%;
             max-width: 500px;
           }
-          .title { font-size: 1.8rem; margin-bottom: 0.5rem; text-align: center; }
-          .subtitle { color: #6b7280; text-align: center; margin-bottom: 2rem; }
-          
-          .role-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-          }
-          .role-btn {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 16px;
-            background: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-          }
-          .role-btn:hover {
-            border-color: #10b981;
-            background: #f0fdf4;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-          }
-          .icon-circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #374151;
-            flex-shrink: 0;
-          }
-          .role-btn:hover .icon-circle {
-            background: #10b981;
-            color: #fff;
-          }
-          .role-info { display: flex; flex-direction: column; }
-          .role-title { font-weight: 700; color: #111827; font-size: 1.1rem; }
-          .role-desc { font-size: 0.9rem; color: #6b7280; }
         `}</style>
       </div>
     );

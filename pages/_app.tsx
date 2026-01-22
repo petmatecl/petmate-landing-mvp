@@ -14,6 +14,8 @@ import { Toaster } from 'sonner';
 
 import { OnlineStatusProvider } from "../components/Shared/OnlineStatusProvider";
 
+import { RoleSelectionInterceptor } from "../components/Auth/RoleSelectionInterceptor";
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
@@ -32,6 +34,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     <UserContextProvider>
       <OnlineStatusProvider>
         <div className="min-h-screen flex flex-col bg-slate-50">
+          <RoleSelectionInterceptor />
           {/* Global Site Tag (gtag.js) - Google Analytics */}
           <Script
             strategy="afterInteractive"

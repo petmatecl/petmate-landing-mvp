@@ -144,19 +144,24 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     setCapabilities(deriveCapabilities(finalProfile));
                     setOnboardingStatus(status);
 
-                    // 3. Determine Active Role (Only if profile exists)
+                    // 3. Determine Active Role
                     if (finalProfile) {
                         const validRoles = finalProfile.roles || ['cliente'];
                         const storedRole = window.localStorage.getItem('activeRole') as Role;
 
+                        // Priority 1: Stored Preference (if valid)
                         if (storedRole && validRoles.includes(storedRole)) {
                             setActiveRole(storedRole);
-                        } else {
-                            if (validRoles.includes('petmate')) {
-                                setActiveRole('petmate');
-                            } else {
-                                setActiveRole('cliente');
-                            }
+                        } 
+                        // Priority 2: Single Role available (Auto-select)
+                        else if (validRoles.length === 1) {
+                            setActiveRole(validRoles[0] as Role);
+                        }
+                        // Priority 3: Ambiguous (Multiple roles, no preference)
+                        // Do NOT set activeRole. Keep it null.
+                        // The RoleSelectionInterceptor will catch this state and prompt the user.
+                        else {
+                            setActiveRole(null); 
                         }
                     }
                 }
