@@ -12,7 +12,15 @@ interface UserProfile {
     roles?: string[];
     foto_perfil?: string;
     aprobado?: boolean;
-    // Add other relevant fields if needed globally
+}
+
+export interface UserCapabilities {
+    canBook: boolean;
+    canPublishProfile: boolean;
+    canRespondToBooking: boolean;
+    canReview: boolean;
+    canViewSitterDashboard: boolean;
+    canViewClientDashboard: boolean;
 }
 
 interface UserContextType {
@@ -20,6 +28,7 @@ interface UserContextType {
     profile: UserProfile | null;
     roles: string[];
     activeRole: Role | null; // The role the user is currently ACTING as
+    capabilities: UserCapabilities; // What the user CAN actually do
     isLoading: boolean;
     isAuthenticated: boolean;
     switchRole: (role: Role) => void;
@@ -28,14 +37,46 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// Default safe capabilities (guest)
+const GUEST_CAPABILITIES: UserCapabilities = {
+    canBook: false,
+    canPublishProfile: false,
+    canRespondToBooking: false,
+    canReview: false,
+    canViewSitterDashboard: false,
+    canViewClientDashboard: false,
+};
+
 export function UserContextProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [activeRole, setActiveRole] = useState<Role | null>(null);
+
+    // Derived Capabilities State
+    const [capabilities, setCapabilities] = useState<UserCapabilities>(GUEST_CAPABILITIES);
+
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
     const roles = profile?.roles || ['cliente']; // Default to cliente
+
+    // Derive Capabilities Logic
+    const deriveCapabilities = (p: UserProfile | null): UserCapabilities => {
+        if (!p) return GUEST_CAPABILITIES;
+
+        const userRoles = p.roles || [];
+        const isSitter = userRoles.includes('petmate');
+        const isClient = userRoles.includes('cliente') || userRoles.length === 0; // Assume client basic access if auth
+
+        return {
+            canBook: isClient, // Clients can book
+            canPublishProfile: isSitter, // Only sitters can publish/edit profile
+            canRespondToBooking: isSitter, // Only sitters respond to bookings
+            canReview: true, // Generally authorized users can review (filtered by RLS anyway)
+            canViewSitterDashboard: isSitter,
+            canViewClientDashboard: true, // Everyone basic access to client view
+        };
+    };
 
     useEffect(() => {
         let mounted = true;
@@ -50,6 +91,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         setUser(null);
                         setProfile(null);
                         setActiveRole(null);
+                        setCapabilities(GUEST_CAPABILITIES);
                         setIsLoading(false);
                     }
                     return;
@@ -66,11 +108,11 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
                 if (error) {
                     console.error('Error fetching profile:', error);
-                    // Handle edge case: User authenticated but no profile? -> Maybe redirect to onboarding
                 }
 
                 if (mounted && profileData) {
                     setProfile(profileData);
+                    setCapabilities(deriveCapabilities(profileData));
 
                     // 3. Determine Active Role
                     const validRoles = profileData.roles || ['cliente'];
@@ -83,8 +125,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         setActiveRole(storedRole);
                     } else {
                         // C. Default: prefer 'petmate' if available (sítter view), else 'cliente'
-                        // Or logic: "If no role, send to onboarding" - handled by consumer/guard components if roles is empty?
-                        // For now, default to the first available or specific logic
                         if (validRoles.includes('petmate')) {
                             setActiveRole('petmate');
                         } else {
@@ -105,20 +145,17 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (session?.user) {
-                // Determine if we need to re-fetch? Ideally yes to keep sync.
-                // For MVP simplicity, we might just re-run init or partial set.
-                // Re-running logic is safest.
                 if (user?.id !== session.user.id) {
-                    // initializeUser(); // Doing this might cause loops if not careful, handled by useEffect on mount/session check mostly.
-                    // But onAuthStateChange fires on SIGN_IN, SIGN_OUT, TOKEN_REFRESH.
-                    // For pure state sync, let's update user at least.
                     setUser(session.user);
-                    // If switching accounts, profile needs update.
+                    // Ideally trigger re-fetch of profile here or rely on the route change/init cycle
+                    // For MVP, we'll let the init logic run on mount or page refresh mostly, 
+                    // but a full re-init might be safer if user switching is common.
                 }
             } else {
                 setUser(null);
                 setProfile(null);
                 setActiveRole(null);
+                setCapabilities(GUEST_CAPABILITIES);
                 setIsLoading(false);
             }
         });
@@ -146,6 +183,8 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         setUser(null);
         setProfile(null);
         setActiveRole(null);
+        setCapabilities(GUEST_CAPABILITIES); // Reset caps
+        setActiveRole(null);
         window.localStorage.removeItem('activeRole');
         window.localStorage.removeItem("pm_auth_role_pending");
         router.push('/');
@@ -157,6 +196,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             profile,
             roles,
             activeRole,
+            capabilities,
             isLoading,
             isAuthenticated: !!user,
             switchRole,
