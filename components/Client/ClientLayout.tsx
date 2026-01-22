@@ -176,19 +176,13 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
                             <div>
                                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
-                                    {title === "Panel Usuario — Pawnecta" ? <span className="block sm:inline">Hola, {displayName.split(' ')[0]} 👋</span> : title}
+                                    {title !== "Panel Usuario — Pawnecta" ? title : null}
                                 </h1>
                                 {/* Mobile Status Badge */}
                                 <div className="md:hidden mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                     Usuario Verificado
                                 </div>
-
-                                {title === "Panel Usuario — Pawnecta" && (
-                                    <p className="hidden md:block text-sm text-slate-600 mt-1">
-                                        Gestiona tus viajes, mascotas y perfil.
-                                    </p>
-                                )}
                             </div>
                         </div>
                         {userId && <NotificationCenter userId={userId} />}
