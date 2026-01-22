@@ -14,51 +14,79 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     const [currentRole, setCurrentRole] = useState<string | null>(null);
 
     useEffect(() => {
-        // Run specific check on mount
+        let mounted = true;
+
         const checkRole = async () => {
             if (typeof window === "undefined") return;
 
-            // 1. Verify Real Session
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                // No session = unauthorized. Clear ghost data and kick out.
-                window.localStorage.removeItem("activeRole");
-                window.localStorage.removeItem("pm_auth_role_pending");
-                setAuthorized(false);
-                setChecking(false);
-                router.replace("/login"); // Force redirect
-                return;
-            }
+            try {
+                // 1. Verify Real Session
+                const { data: { session } } = await supabase.auth.getSession();
 
-            const activeRole = window.localStorage.getItem("activeRole");
-            setCurrentRole(activeRole);
-
-            if (!activeRole) {
-                // Check if there is a pending role from registration/login
-                const pendingRole = window.localStorage.getItem("pm_auth_role_pending");
-
-                if (pendingRole === requiredRole) {
-                    // Optimized Flow: If the pending role matches where they are trying to go, let them in.
-                    window.localStorage.setItem("activeRole", requiredRole);
-                    setAuthorized(true);
-                } else {
-                    // Strict Mode: If no active role and pending doesn't match (or is null), 
-                    // DO NOT auto-grant access. This prevents new sitters from seeing client dashboard.
-                    // We simply leave authorized = false.
-                    setAuthorized(false);
+                if (!session) {
+                    if (mounted) destroySession();
+                    return;
                 }
-            } else {
-                if (activeRole === requiredRole) {
-                    setAuthorized(true);
-                } else {
+
+                const userId = session.user.id;
+
+                // 2. Fetch REAL roles from DB (Source of Truth)
+                const { data: profile, error } = await supabase
+                    .from('registro_petmate')
+                    .select('roles')
+                    .eq('auth_user_id', userId)
+                    .single();
+
+                if (error || !profile) {
+                    console.error("Error fetching roles:", error);
+                    if (mounted) destroySession();
+                    return;
+                }
+
+                const userRoles: string[] = profile.roles || ['cliente']; // Default to client if empty
+                const hasRequiredRole = userRoles.includes(requiredRole);
+
+                if (mounted) {
+                    if (hasRequiredRole) {
+                        // Success: User has the role in DB.
+                        setAuthorized(true);
+
+                        // Treat localStorage only as a "View Preference" for UI persistence, 
+                        // but we just validated they actually HAVE the right.
+                        window.localStorage.setItem("activeRole", requiredRole);
+                        setCurrentRole(requiredRole);
+                    } else {
+                        // Access Denied: User relies on localStorage or URL but DB says no.
+                        console.warn(`Access denied. Required: ${requiredRole}, Has: ${userRoles.join(', ')}`);
+                        setAuthorized(false);
+                        setCurrentRole(userRoles.includes('petmate') ? 'petmate' : 'cliente'); // Show their actual viable role
+                    }
+                    setChecking(false);
+                }
+
+            } catch (err) {
+                console.error("RoleGuard unexpected error:", err);
+                if (mounted) {
                     setAuthorized(false);
+                    setChecking(false);
                 }
             }
+        };
+
+        const destroySession = () => {
+            window.localStorage.removeItem("activeRole");
+            window.localStorage.removeItem("pm_auth_role_pending");
+            setAuthorized(false);
             setChecking(false);
+            router.replace("/login");
         };
 
         checkRole();
-    }, [requiredRole]);
+
+        return () => {
+            mounted = false;
+        };
+    }, [requiredRole, router]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
