@@ -25,20 +25,18 @@ export const createNotification = async ({
     metadata
 }: CreateNotificationParams) => {
     try {
-        const { error } = await supabase
-            .from('notifications')
-            .insert({
-                user_id: userId,
-                type,
-                title,
-                message,
-                link,
-                metadata,
-                read: false, // Default
-            });
+        // Use RPC function to bypass RLS restrictions on INSERT
+        const { error } = await supabase.rpc('send_notification', {
+            p_user_id: userId,
+            p_type: type,
+            p_title: title,
+            p_message: message,
+            p_link: link,
+            p_metadata: metadata
+        });
 
         if (error) {
-            console.error('Error creating notification:', error);
+            console.error('Error creating notification (RPC):', error);
             // We don't want to block the main flow if notification fails
         }
     } catch (err) {
