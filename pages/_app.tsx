@@ -1,4 +1,5 @@
 import type { AppProps } from "next/app";
+import { UserContextProvider } from "../contexts/UserContext";
 import Script from "next/script";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -28,38 +29,40 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [router.events]);
 
   return (
-    <OnlineStatusProvider>
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        {/* Global Site Tag (gtag.js) - Google Analytics */}
-        <Script
-          strategy="afterInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=${gtag.GA_TRACKING_ID}`}
-        />
-        <Script
-          id="gtag-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${gtag.GA_TRACKING_ID}', {
-              page_path: window.location.pathname,
-            });
-          `,
-          }}
-        />
+    <UserContextProvider>
+      <OnlineStatusProvider>
+        <div className="min-h-screen flex flex-col bg-slate-50">
+          {/* Global Site Tag (gtag.js) - Google Analytics */}
+          <Script
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${gtag.GA_TRACKING_ID}`}
+          />
+          <Script
+            id="gtag-init"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${gtag.GA_TRACKING_ID}', {
+                page_path: window.location.pathname,
+              });
+            `,
+            }}
+          />
 
-        <SessionTimeout />
-        <Toaster position="top-center" richColors />
-        <Header />
+          <SessionTimeout />
+          <Toaster position="top-center" richColors />
+          <Header />
 
-        <main className="flex-1">
-          <Component {...pageProps} />
-        </main>
+          <main className="flex-1">
+            <Component {...pageProps} />
+          </main>
 
-        <Footer />
-      </div>
-    </OnlineStatusProvider>
+          <Footer />
+        </div>
+      </OnlineStatusProvider>
+    </UserContextProvider>
   );
 }
