@@ -23,12 +23,15 @@ export interface UserCapabilities {
     canViewClientDashboard: boolean;
 }
 
+export type OnboardingStep = 'EMAIL_VERIFIED' | 'ROLE_SELECTED' | 'PROFILE_BASIC' | 'COMPLETE';
+
 interface UserContextType {
     user: any | null; // Supabase user
     profile: UserProfile | null;
     roles: string[];
     activeRole: Role | null; // The role the user is currently ACTING as
     capabilities: UserCapabilities; // What the user CAN actually do
+    onboardingStatus: OnboardingStep; // New: Onboarding State
     isLoading: boolean;
     isAuthenticated: boolean;
     switchRole: (role: Role) => void;
@@ -51,6 +54,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [activeRole, setActiveRole] = useState<Role | null>(null);
+    const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStep>('COMPLETE'); // Default optimistic
 
     // Derived Capabilities State
     const [capabilities, setCapabilities] = useState<UserCapabilities>(GUEST_CAPABILITIES);
@@ -66,16 +70,35 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
         const userRoles = p.roles || [];
         const isSitter = userRoles.includes('petmate');
-        const isClient = userRoles.includes('cliente') || userRoles.length === 0; // Assume client basic access if auth
+        const isClient = userRoles.includes('cliente') || userRoles.length === 0;
 
         return {
-            canBook: isClient, // Clients can book
-            canPublishProfile: isSitter, // Only sitters can publish/edit profile
-            canRespondToBooking: isSitter, // Only sitters respond to bookings
-            canReview: true, // Generally authorized users can review (filtered by RLS anyway)
+            canBook: isClient,
+            canPublishProfile: isSitter,
+            canRespondToBooking: isSitter,
+            canReview: true,
             canViewSitterDashboard: isSitter,
-            canViewClientDashboard: true, // Everyone basic access to client view
+            canViewClientDashboard: true,
         };
+    };
+
+    // Calculate Onboarding Status
+    const calculateOnboardingStatus = (u: any, p: UserProfile | null): OnboardingStep => {
+        if (!u) return 'COMPLETE'; // Guest doesn't have onboarding per se
+        // 1. Email Verified (Supabase Auth usually handles this, but we can check u.email_confirmed_at)
+        // For MVP, if they are logged in, we assume verified unless we enforce strict mode.
+        // if (!u.email_confirmed_at) return 'EMAIL_VERIFIED'; 
+
+        // 2. Profile Exists
+        if (!p) return 'PROFILE_BASIC';
+
+        // 3. Basic Fields
+        if (!p.nombre || !p.apellido_p) return 'PROFILE_BASIC';
+
+        // 4. Roles Selected
+        if (!p.roles || p.roles.length === 0) return 'ROLE_SELECTED';
+
+        return 'COMPLETE';
     };
 
     useEffect(() => {
@@ -92,6 +115,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         setProfile(null);
                         setActiveRole(null);
                         setCapabilities(GUEST_CAPABILITIES);
+                        setOnboardingStatus('COMPLETE'); // Guests fine
                         setIsLoading(false);
                     }
                     return;
@@ -108,27 +132,31 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
                 if (error) {
                     console.error('Error fetching profile:', error);
+                    // If 406/404, profile might be missing -> Onboarding needed
                 }
 
-                if (mounted && profileData) {
-                    setProfile(profileData);
-                    setCapabilities(deriveCapabilities(profileData));
+                if (mounted) {
+                    // Check if profile exists, if not, we clearly need BASIC profile
+                    const finalProfile = profileData || null;
+                    const status = calculateOnboardingStatus(session.user, finalProfile);
 
-                    // 3. Determine Active Role
-                    const validRoles = profileData.roles || ['cliente'];
+                    setProfile(finalProfile);
+                    setCapabilities(deriveCapabilities(finalProfile));
+                    setOnboardingStatus(status);
 
-                    // A. Check localStorage preference
-                    const storedRole = window.localStorage.getItem('activeRole') as Role;
+                    // 3. Determine Active Role (Only if profile exists)
+                    if (finalProfile) {
+                        const validRoles = finalProfile.roles || ['cliente'];
+                        const storedRole = window.localStorage.getItem('activeRole') as Role;
 
-                    // B. Validate preference against REAL roles
-                    if (storedRole && validRoles.includes(storedRole)) {
-                        setActiveRole(storedRole);
-                    } else {
-                        // C. Default: prefer 'petmate' if available (sítter view), else 'cliente'
-                        if (validRoles.includes('petmate')) {
-                            setActiveRole('petmate');
+                        if (storedRole && validRoles.includes(storedRole)) {
+                            setActiveRole(storedRole);
                         } else {
-                            setActiveRole('cliente');
+                            if (validRoles.includes('petmate')) {
+                                setActiveRole('petmate');
+                            } else {
+                                setActiveRole('cliente');
+                            }
                         }
                     }
                 }
@@ -147,15 +175,15 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             if (session?.user) {
                 if (user?.id !== session.user.id) {
                     setUser(session.user);
-                    // Ideally trigger re-fetch of profile here or rely on the route change/init cycle
-                    // For MVP, we'll let the init logic run on mount or page refresh mostly, 
-                    // but a full re-init might be safer if user switching is common.
+                    // Re-run init logic via effect trigger or manual call if needed
+                    initializeUser();
                 }
             } else {
                 setUser(null);
                 setProfile(null);
                 setActiveRole(null);
                 setCapabilities(GUEST_CAPABILITIES);
+                setOnboardingStatus('COMPLETE');
                 setIsLoading(false);
             }
         });
@@ -167,12 +195,9 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     }, []);
 
     const switchRole = (role: Role) => {
-        // Validate again!
         if (roles.includes(role)) {
             setActiveRole(role);
             window.localStorage.setItem('activeRole', role);
-
-            // Optional: Redirect to dashboard of that role?
             if (role === 'petmate') router.push('/sitter');
             else router.push('/usuario');
         }
@@ -183,7 +208,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         setUser(null);
         setProfile(null);
         setActiveRole(null);
-        setCapabilities(GUEST_CAPABILITIES); // Reset caps
+        setCapabilities(GUEST_CAPABILITIES);
         setActiveRole(null);
         window.localStorage.removeItem('activeRole');
         window.localStorage.removeItem("pm_auth_role_pending");
@@ -197,6 +222,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             roles,
             activeRole,
             capabilities,
+            onboardingStatus,
             isLoading,
             isAuthenticated: !!user,
             switchRole,

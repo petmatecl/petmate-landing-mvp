@@ -7,28 +7,53 @@ interface RoleGuardProps {
     requiredRole: "cliente" | "petmate";
 }
 
+// RoleGuard.tsx now acts as a full RouteGuard
 export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     const router = useRouter();
-    const { isAuthenticated, activeRole, isLoading, user } = useUser();
+    const { isAuthenticated, activeRole, isLoading, onboardingStatus, user } = useUser();
     const [isRedirecting, setIsRedirecting] = useState(false);
 
     useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
-            setIsRedirecting(true);
-            router.replace("/login");
+        if (!isLoading) {
+            // 1. Auth Check
+            if (!isAuthenticated) {
+                setIsRedirecting(true);
+                router.replace("/login");
+                return;
+            }
+
+            // 2. Onboarding Check
+            if (onboardingStatus !== 'COMPLETE') {
+                // If incomplete, determine where to go. 
+                // Usually Profile Missing -> Register (or specific Step)
+                // Avoid infinite loop if we are ALREADY on the target page (handled by parent usage usually, but here we guard internal routes)
+                if (router.pathname !== '/register' && router.pathname !== '/logout') {
+                    setIsRedirecting(true);
+                    // Pass query param to indicate resumption
+                    router.replace("/register?resume=true");
+                }
+                return;
+            }
         }
-    }, [isLoading, isAuthenticated, router]);
+    }, [isLoading, isAuthenticated, onboardingStatus, router]);
 
     if (isLoading || isRedirecting) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-500 text-sm animate-pulse">Verificando acceso...</p>
+                </div>
             </div>
         );
     }
 
-    // Access Check
-    // If we are authenticated but don't have the right active role:
+    // 3. Onboarding Blocker (Render-level)
+    if (onboardingStatus !== 'COMPLETE') {
+        return null; // Will redirect via effect
+    }
+
+    // 4. Role Check
     if (activeRole !== requiredRole) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
