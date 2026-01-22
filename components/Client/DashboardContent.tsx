@@ -138,7 +138,7 @@ export default function DashboardContent() {
                 if (data.user) setEmail(data.user.email || null);
             });
         }
-    }, [userId]);
+    }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     async function fetchTrips(uid: string) {
         try {

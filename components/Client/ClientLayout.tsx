@@ -55,7 +55,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                 }
             });
         }
-    }, [userId]);
+    }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     async function fetchAddresses(uid: string) {
         try {
