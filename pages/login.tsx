@@ -345,11 +345,8 @@ export default function LoginPage() {
               </button>
 
               <div style={{ marginTop: 12 }}>
-                <GoogleAuthButton role="client" /> {/* Default role, will be overridden by profile check */}
-                {/* LinkedIn removed or standardized? Keeping separate if needed but unified is better. 
-                    Auth providers usually don't care about internal role until callback. 
-                    GoogleAuthButton likely sends meta. For now, defaulting to 'client' is safe as we check profile later.
-                */}
+                <GoogleAuthButton role="client" />
+                <LinkedInAuthButton role="client" />
               </div>
 
               {/* Links */}
