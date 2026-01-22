@@ -8,6 +8,8 @@ import { Card } from "../components/Shared/Card";
 import { format, differenceInYears, subYears, isAfter, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatRut, validateRut, cleanRut } from "../lib/rutValidation";
+import Counter from '../components/Shared/Counter';
+
 import DatePickerSingle from "../components/DatePickerSingle";
 import ModalAlert from "../components/ModalAlert";
 import ModalConfirm from "../components/ModalConfirm";
@@ -20,7 +22,7 @@ import {
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
     Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
     PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler,
-    MessageSquare, AlertCircle, RefreshCw, Search
+    MessageSquare, AlertCircle, RefreshCw, Search, Award
 } from 'lucide-react';
 import UnreadBadge from "../components/Shared/UnreadBadge";
 import ApplicationDialog from "../components/Sitter/ApplicationDialog";
@@ -140,6 +142,7 @@ export default function SitterDashboardPage() {
     const [activeTab, setActiveTab] = useState<'solicitudes' | 'servicios' | 'perfil' | 'disponibilidad' | 'mensajes'>('solicitudes');
     const [selectedChatUser, setSelectedChatUser] = useState<string | null>(null);
     const [availabilityCount, setAvailabilityCount] = useState(0);
+    const [selectedTripForApplication, setSelectedTripForApplication] = useState<any | null>(null);
 
     // Helpers for Price Formatting
     const formatPrice = (value: number | null | undefined) => {
@@ -281,7 +284,10 @@ export default function SitterDashboardPage() {
                 .order('created_at', { ascending: false });
 
             if (!appError && appData) {
+                console.log("Fetched Applications:", appData);
                 setApplications(appData);
+            } else if (appError) {
+                console.error("Error fetching applications:", appError);
             }
 
             // 3. Fetch Open Opportunities (Viajes without sitter, pending)
@@ -414,7 +420,9 @@ export default function SitterDashboardPage() {
         permite_cama: false,
         permite_sofa: false,
         mascotas_no_encerradas: true,
-        capacidad_maxima: 1,
+        capacidad_maxima: 1, // Legacy check
+        capacidad_perros: 0,
+        capacidad_gatos: 0,
         supervision_24_7: false
     });
 
@@ -874,6 +882,10 @@ export default function SitterDashboardPage() {
         }
     };
 
+    const handleApplyClick = (trip: any) => {
+        setSelectedTripForApplication(trip);
+    };
+
     const handleSaveSection = async (section: string) => {
         // e.preventDefault(); // If called from button type button, no event. If form, needs event.
         // We will make buttons type="button" and call this.
@@ -1012,7 +1024,9 @@ export default function SitterDashboardPage() {
                     permite_cama: profileData.permite_cama,
                     permite_sofa: profileData.permite_sofa,
                     mascotas_no_encerradas: profileData.mascotas_no_encerradas,
-                    capacidad_maxima: profileData.capacidad_maxima,
+                    capacidad_maxima: profileData.capacidad_perros + profileData.capacidad_gatos, // Keep legacy rough sync
+                    capacidad_perros: profileData.capacidad_perros,
+                    capacidad_gatos: profileData.capacidad_gatos,
                     supervision_24_7: profileData.supervision_24_7
                 };
             } else if (section === 'services') {
@@ -1527,7 +1541,7 @@ export default function SitterDashboardPage() {
                                                                     Publicado hace {differenceInDays(new Date(), new Date(trip.created_at))} días
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => handleAcceptClick(trip.id, trip.cliente?.nombre || 'Cliente')}
+                                                                    onClick={() => handleApplyClick(trip)}
                                                                     className="bg-emerald-600 text-white text-sm font-bold px-5 py-2 rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200"
                                                                 >
                                                                     Ver Detalles y Postular
@@ -1846,17 +1860,28 @@ export default function SitterDashboardPage() {
 
                                                     {/* Capacity */}
                                                     <div className="sm:col-span-2">
-                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Capacidad Máxima (Mascotas a la vez)</label>
-                                                        <select
-                                                            disabled={activeSection !== 'profile'}
-                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-300 text-slate-500 appearance-none"}`}
-                                                            value={profileData.capacidad_maxima}
-                                                            onChange={(e) => setProfileData({ ...profileData, capacidad_maxima: parseInt(e.target.value) })}
-                                                        >
-                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                                                <option key={n} value={n}>{n} Mascota{n > 1 ? 's' : ''}</option>
-                                                            ))}
-                                                        </select>
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                                                                <Award size={20} />
+                                                            </div>
+                                                            <div className="font-semibold text-gray-700">CAPACIDAD MÁXIMA (MASCOTAS A LA VEZ)</div>
+                                                        </div>
+                                                        <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
+                                                            <Counter
+                                                                label="Perros"
+                                                                value={profileData.capacidad_perros || 0}
+                                                                onChange={(val) => setProfileData({ ...profileData, capacidad_perros: val })}
+                                                                min={0}
+                                                                max={10}
+                                                            />
+                                                            <Counter
+                                                                label="Gatos"
+                                                                value={profileData.capacidad_gatos || 0}
+                                                                onChange={(val) => setProfileData({ ...profileData, capacidad_gatos: val })}
+                                                                min={0}
+                                                                max={10}
+                                                            />
+                                                        </div>
                                                     </div>
 
                                                     <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.acepta_cachorros ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
@@ -2353,9 +2378,9 @@ export default function SitterDashboardPage() {
                                         <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                                             <Send size={18} /> Mis Postulaciones
                                         </h3>
-                                        {applications.filter(app => app.estado !== 'aceptada').length > 0 ? (
+                                        {applications.length > 0 ? (
                                             <div className="grid gap-3">
-                                                {applications.filter(app => app.estado !== 'aceptada').map((app) => (
+                                                {applications.map((app) => (
                                                     <div key={app.id} className="p-4 bg-slate-50 rounded-lg border-2 border-slate-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
@@ -3266,6 +3291,16 @@ export default function SitterDashboardPage() {
                 onClose={() => setShowPetDialog(false)}
                 pets={selectedPets}
             />
+
+            {selectedTripForApplication && userId && (
+                <ApplicationDialog
+                    isOpen={!!selectedTripForApplication}
+                    onClose={() => setSelectedTripForApplication(null)}
+                    trip={selectedTripForApplication}
+                    sitterId={userId}
+                    onApplied={() => window.location.reload()}
+                />
+            )}
 
             <style jsx global>{`
                 @media print {
