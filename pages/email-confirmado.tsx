@@ -29,6 +29,10 @@ export default function EmailConfirmadoPage() {
     const [showRoleSelector, setShowRoleSelector] = React.useState(false);
     const [userName, setUserName] = React.useState("");
     const [availableRoles, setAvailableRoles] = React.useState<string[]>([]);
+    
+    // State for Registration Conflict (User tried to register but already exists)
+    const [registrationConflict, setRegistrationConflict] = React.useState(false);
+    const [existingEmail, setExistingEmail] = React.useState("");
 
     const handleRoleSelect = async (selectedRole: Role) => {
         if (typeof window !== "undefined") {
@@ -85,7 +89,23 @@ export default function EmailConfirmadoPage() {
                         router.replace(roleToAssign === 'petmate' ? "/sitter" : "/usuario");
 
                     } else {
-                        // 3. Existing Profile - Check for multiple roles
+                        // 3. Existing Profile
+                        
+                        // CHECK CONFLICT: If they came from REGISTER flow ('register')
+                        // We should NOT auto-login. We should tell them to go to login.
+                        if (router.query.flow === 'register') {
+                            setRegistrationConflict(true);
+                            setExistingEmail(user.email || "");
+                            // Optional: Sign them out so they are not "logged in" in a confused state?
+                            // If we sign out, we must make sure we don't trigger this useEffect again in a loop or something.
+                            // But usually we just want to halt navigation.
+                            // Actually, let's Sign Out so clicking "Ir a Login" forces a fresh start.
+                            await supabase.auth.signOut(); 
+                            return; 
+                        }
+
+                        // ... NORMAL LOGIN FLOW ...
+                        // Check for multiple roles
                          const userRoles = existingProfile.roles || [];
                          if (existingProfile.rol && !userRoles.includes(existingProfile.rol)) userRoles.push(existingProfile.rol);
                          if (userRoles.length === 0) userRoles.push('cliente');
@@ -129,7 +149,30 @@ export default function EmailConfirmadoPage() {
             </Head>
 
             <main className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-emerald-50 to-white">
-                {showRoleSelector ? (
+                {registrationConflict ? (
+                     <Card padding="l" className="w-full max-w-[520px] text-center relative">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-amber-500" />
+                        <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-amber-100 text-amber-600 text-4xl shadow-sm">
+                            ⚠️
+                        </div>
+                        <h1 className="text-2xl font-bold text-slate-900 m-0 mb-2">
+                            Ya tienes una cuenta
+                        </h1>
+                        <p className="text-lg text-slate-600 mb-6">
+                            El correo <strong>{existingEmail}</strong> ya está registrado en Pawnecta.
+                            <br/><br/>
+                            Por favor, inicia sesión para acceder a tu cuenta.
+                        </p>
+                        <div className="space-y-3">
+                            <Link
+                                href="/login"
+                                className="inline-flex items-center justify-center h-14 rounded-xl font-bold bg-slate-900 text-white w-full text-lg shadow-lg hover:bg-slate-800 hover:scale-[1.02] transition-all"
+                            >
+                                Ir a Iniciar Sesión
+                            </Link>
+                        </div>
+                    </Card>
+                ) : showRoleSelector ? (
                     <Card variant="elevated" padding="l" className="w-full max-w-[500px]">
                         <h1 className="text-2xl font-bold text-center mb-2">¡Hola, {userName}!</h1>
                         <p className="text-slate-600 text-center mb-8">¿Con qué perfil deseas ingresar hoy?</p>

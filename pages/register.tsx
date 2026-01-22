@@ -364,8 +364,8 @@ export default function RegisterPage() {
               <div className="mt-6 border-t border-slate-200 pt-6">
                 <p className="text-center text-sm text-slate-500 mb-4">O regístrate con tus redes sociales</p>
                 <div className="space-y-3">
-                  <GoogleAuthButton role={selectedRole} text="Continuar con Google" />
-                  <LinkedInAuthButton role={selectedRole} text="Continuar con LinkedIn" />
+                  <GoogleAuthButton role={selectedRole} text="Continuar con Google" source="register" />
+                  <LinkedInAuthButton role={selectedRole} text="Continuar con LinkedIn" source="register" />
                 </div>
               </div>
 

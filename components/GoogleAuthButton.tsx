@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabaseClient';
 type Props = {
     role: "cliente" | "sitter" | "client" | null; // supporting legacy "client" string
     text?: string;
+    source?: 'login' | 'register';
 };
 
-export default function GoogleAuthButton({ role, text = "Continuar con Google" }: Props) {
+export default function GoogleAuthButton({ role, text = "Continuar con Google", source = 'login' }: Props) {
     const [loading, setLoading] = useState(false);
 
     const handleGoogleLogin = async () => {
@@ -25,7 +26,7 @@ export default function GoogleAuthButton({ role, text = "Continuar con Google" }
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/email-confirmado`, // We can reuse this or a specific callback page
+                    redirectTo: `${window.location.origin}/email-confirmado?flow=${source}`, // We can reuse this or a specific callback page
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',

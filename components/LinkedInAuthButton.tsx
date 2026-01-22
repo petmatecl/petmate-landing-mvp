@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabaseClient';
 type Props = {
     role: "cliente" | "sitter" | "client" | null; // supporting legacy "client" string
     text?: string;
+    source?: 'login' | 'register';
 };
 
-export default function LinkedInAuthButton({ role, text = "Continuar con LinkedIn" }: Props) {
+export default function LinkedInAuthButton({ role, text = "Continuar con LinkedIn", source = 'login' }: Props) {
     const [loading, setLoading] = useState(false);
 
     const handleLinkedInLogin = async () => {
@@ -26,7 +27,7 @@ export default function LinkedInAuthButton({ role, text = "Continuar con LinkedI
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'linkedin_oidc', // Using the modern OIDC provider string if supported, or just 'linkedin'
                 options: {
-                    redirectTo: `${window.location.origin}/email-confirmado`,
+                    redirectTo: `${window.location.origin}/email-confirmado?flow=${source}`,
                 },
             });
 
