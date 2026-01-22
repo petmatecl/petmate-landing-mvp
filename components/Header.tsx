@@ -171,6 +171,7 @@ export default function Header() {
                 </span>
                 <span className="text-sm font-medium text-emerald-900">{userName}</span>
               </div>
+              <NotificationBell />
               <Link
                 href="/mensajes"
                 className="inline-flex items-center rounded-xl bg-white border-2 border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2 relative"
@@ -294,6 +295,9 @@ export default function Header() {
                     <span className="text-sm font-semibold text-emerald-900">{userName}</span>
                     <span className="text-[11px] text-emerald-700">Conectado</span>
                   </div>
+                </div>
+                <div className="flex justify-center my-2">
+                  <NotificationBell />
                 </div>
                 <Link
                   href="/mensajes"

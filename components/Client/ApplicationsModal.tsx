@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ConfirmationModal } from "../Shared/ConfirmationModal";
 import { createNotification } from "../../lib/notifications";
+import { toast } from "sonner";
 
 type Props = {
     isOpen: boolean;
@@ -162,7 +163,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
             console.error("Error accepting application:", err);
             // Show alert in a more user-friendly way if possible, or just standard alert for now
             // Detailed message:
-            alert(`Hubo un error al aceptar la postulación: ${err.message || err.error_description || "Error desconocido"}`);
+            toast.error(`Hubo un error al aceptar la postulación: ${err.message || err.error_description || "Error desconocido"}`);
             setProcessingId(null);
         }
     };

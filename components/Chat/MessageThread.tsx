@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Message } from '../../types/chat';
+import { createNotification } from '../../lib/notifications';
 import { Send, User as UserIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -19,6 +20,8 @@ export default function MessageThread({ conversationId, userId }: Props) {
     const [loading, setLoading] = useState(true);
     const [otherUser, setOtherUser] = useState<{ auth_user_id: string; nombre: string; apellido_p?: string; foto_perfil?: string; email?: string } | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
+
+    const [myUser, setMyUser] = useState<{ nombre: string } | null>(null);
 
     useEffect(() => {
         if (conversationId && userId) {
@@ -50,20 +53,14 @@ export default function MessageThread({ conversationId, userId }: Props) {
             const clientData = Array.isArray(data.client) ? data.client[0] : data.client;
             const sitterData = Array.isArray(data.sitter) ? data.sitter[0] : data.sitter;
 
-            // Determine other user based on Auth ID matching
             const clientAuthId = clientData?.auth_user_id;
 
             if (clientAuthId === userId) {
                 setOtherUser(sitterData);
+                setMyUser(clientData);
             } else {
-                // Fallback or explicit logic: if userId is NOT client auth id, assume I am sitter?
-                // Or just trust isClient logic if userId passed is auth id.
-                // let's stick to the robust check:
                 setOtherUser(clientData);
-                // Note: If userId matches neither, this logic might be flawed, but standard flow holds.
-                // If previous logic `isClient = data.client_id === userId` worked, then `data.client` IS the client profile.
-                // So if `isClient` is true, other is sitter.
-                setOtherUser(isClient ? sitterData : clientData);
+                setMyUser(sitterData);
             }
         } catch (error) {
             console.error('Error fetching conversation details:', error);
@@ -83,8 +80,6 @@ export default function MessageThread({ conversationId, userId }: Props) {
             .from('messages')
             .update({ read: true })
             .in('id', ids);
-
-
 
         if (!error) {
             window.dispatchEvent(new Event('messages-read'));
@@ -111,6 +106,16 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 if (unread.length > 0) {
                     markAsRead(unread);
                 }
+
+                // [NEW] Also Mark related Notification as read
+                // We use the link as a unique identifier for the conversation notification
+                supabase.from('notifications')
+                    .update({ read: true })
+                    .eq('user_id', userId)
+                    .eq('link', `/mensajes?id=${conversationId}`)
+                    .then(({ error }) => {
+                        if (error) console.error("Error clearing notifications:", error);
+                    });
             }
         } catch (err) {
             console.error('Error fetching messages:', err);
@@ -180,6 +185,18 @@ export default function MessageThread({ conversationId, userId }: Props) {
 
             if (error) throw error;
 
+            // [NEW] Send Standard Notification (now working with fixed RLS)
+            if (otherUser) {
+                createNotification({
+                    userId: otherUser.auth_user_id,
+                    type: 'message',
+                    title: `Mensaje de ${myUser?.nombre || 'Usuario'}`, // Use my name
+                    message: content.substring(0, 50),
+                    link: `/mensajes?id=${conversationId}`,
+                    metadata: { conversationId }
+                }).catch(console.error);
+            }
+
             // [NEW] Send Email Notification to Recipient
             // Check if user is offline or just send always? For MVP send always or if we had online status.
             // Using onlineUsers from context:
@@ -194,7 +211,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                         to: otherUser.email,
                         data: {
                             recipientName: otherUser.nombre,
-                            senderName: "Un usuario", // Or my name if available
+                            senderName: myUser?.nombre || "Un usuario",
                             messagePreview: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
                             chatUrl: `${window.location.origin}/mensajes?id=${conversationId}`
                         }

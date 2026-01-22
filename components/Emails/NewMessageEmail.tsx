@@ -46,7 +46,7 @@ export const NewMessageEmail: React.FC<NewMessageEmailProps> = ({
                         padding: '24px',
                         borderRadius: '12px',
                         margin: '24px 0',
-                        borderLeft: '4px solid #3b82f6',
+                        borderLeft: '4px solid #059669',
                     }}>
                         <Text style={{ margin: 0, fontSize: '16px', fontStyle: 'italic', color: '#555' }}>
                             "{messagePreview}"
@@ -58,7 +58,7 @@ export const NewMessageEmail: React.FC<NewMessageEmailProps> = ({
                     <Button
                         href={chatUrl}
                         style={{
-                            backgroundColor: '#3b82f6',
+                            backgroundColor: '#059669',
                             color: '#ffffff',
                             padding: '12px 24px',
                             borderRadius: '8px',

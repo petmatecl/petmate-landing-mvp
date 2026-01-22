@@ -692,6 +692,26 @@ export default function DashboardContent() {
                             message: `El cliente ha confirmado la reserva. ¡Prepárate para el servicio!`,
                             link: '/sitter'
                         });
+
+                        // [NEW] Send Email to Sitter
+                        if (trip.sitter && trip.sitter.email) {
+                            await fetch('/api/send-email', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    type: 'booking_confirmation', // Ensure this type exists in API handler (checked: yes)
+                                    to: trip.sitter.email,
+                                    data: {
+                                        sitterName: trip.sitter.nombre,
+                                        clientName: nombre || 'Cliente',
+                                        serviceType: trip.servicio,
+                                        startDate: trip.fecha_inicio,
+                                        endDate: trip.fecha_fin,
+                                        applicationId: trip.id.slice(0, 8).toUpperCase()
+                                    }
+                                })
+                            }).catch(console.error);
+                        }
                     }
 
                     showAlert("¡Reserva Confirmada!", "El servicio ha sido confirmado exitosamente.", "success");

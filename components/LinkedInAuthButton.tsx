@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Props = {
-    role: "cliente" | "sitter" | "client"; // supporting legacy "client" string
+    role: "cliente" | "sitter" | "client" | null; // supporting legacy "client" string
     text?: string;
 };
 
@@ -11,6 +11,11 @@ export default function LinkedInAuthButton({ role, text = "Continuar con LinkedI
 
     const handleLinkedInLogin = async () => {
         try {
+            if (!role) {
+                alert("Por favor selecciona si buscas cuidado (Usuario) o quieres cuidar (Sitter).");
+                return;
+            }
+
             setLoading(true);
             // Save role to handle redirection/profile creation after callback
             // (Shared logic with GoogleAuthButton)

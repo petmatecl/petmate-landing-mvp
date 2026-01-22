@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import ReviewList from "../../components/Reviews/ReviewList";
 import ReviewFormModal from "../../components/Reviews/ReviewFormModal";
 import { getReviewsBySitterId, Review } from "../../lib/reviewsService";
-import { Trash2, Share2, Home, Hotel, Maximize, CheckCircle2, XCircle } from "lucide-react";
+import { Trash2, Share2, Home, Hotel, Maximize, CheckCircle2, XCircle, User, PawPrint } from "lucide-react";
 
 // Props que recibe la página desde getServerSideProps
 import { useRouter } from "next/router";
@@ -59,6 +59,14 @@ interface PublicProfileProps {
         servicio_en_casa?: boolean;
         telefono?: string;
         email?: string;
+        // New Policies
+        acepta_cachorros?: boolean;
+        acepta_sin_esterilizar?: boolean;
+        permite_cama?: boolean;
+        permite_sofa?: boolean;
+        mascotas_no_encerradas?: boolean;
+        capacidad_maxima?: number;
+        supervision_24_7?: boolean;
     } | null;
     error?: string;
     id?: string;
@@ -673,66 +681,89 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                             </section>
                                         )}
 
-                                        {/* Detalles del Hogar */}
-                                        {(petmate.tipo_vivienda || petmate.dimensiones_vivienda) && (
-                                            <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
-                                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                                    <Home className="text-emerald-500" />
-                                                    Espacio y Hogar
-                                                </h2>
+                                        {/* Detalles del Hogar y Políticas */}
+                                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                                <Home className="text-emerald-500" />
+                                                Espacio y Condiciones
+                                            </h2>
 
-                                                <div className="space-y-6 mb-6">
-                                                    {/* Row 1: Key Specs (Vivienda & Dimensiones) */}
-                                                    <div className="grid sm:grid-cols-2 gap-4">
-                                                        {petmate.tipo_vivienda && (
-                                                            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                                                <div className="p-3 bg-white rounded-xl text-emerald-600 shadow-sm border border-slate-100">
-                                                                    {petmate.tipo_vivienda === 'casa' ? <Home size={24} /> : <Hotel size={24} />}
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo de Vivienda</p>
-                                                                    <p className="text-slate-900 font-bold capitalize text-lg">{petmate.tipo_vivienda}</p>
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                            <div className="grid md:grid-cols-2 gap-8 md:gap-12">
 
-                                                        {petmate.dimensiones_vivienda && (
-                                                            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                                                <div className="p-3 bg-white rounded-xl text-emerald-600 shadow-sm border border-slate-100">
-                                                                    <Maximize size={24} />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dimensiones</p>
-                                                                    <p className="text-slate-900 font-bold text-lg">{petmate.dimensiones_vivienda}</p>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                {/* Columna 1: Características del Hogar */}
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-4 border-b border-slate-100 pb-2">Características del hogar</h3>
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.tipo_vivienda === 'casa' ? <Home size={20} className="text-slate-400" /> : <Hotel size={20} className="text-slate-400" />}
+                                                            <span className="capitalize">{petmate.tipo_vivienda || 'Vivienda'}</span>
+                                                        </div>
 
-                                                    {/* Row 2: Features Grid (2x2) */}
-                                                    <div className="grid sm:grid-cols-2 gap-3">
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_patio ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
-                                                            {petmate.tiene_patio ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
-                                                            <span className="font-medium">Patio o Jardín</span>
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.tiene_patio ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-slate-300" />}
+                                                            <span>{petmate.tiene_patio ? "Patio cerrado" : "Sin patio"}</span>
                                                         </div>
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_malla ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
-                                                            {petmate.tiene_malla ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
-                                                            <span className="font-medium">Mallas de Seguridad</span>
+
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.fumador ? <CheckCircle2 size={20} className="text-emerald-500" /> : <CheckCircle2 size={20} className="text-emerald-500" />}
+                                                            <span>{petmate.fumador ? "Se permite fumar" : "Hogar no fumador"}</span>
                                                         </div>
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.tiene_ninos ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
-                                                            {petmate.tiene_ninos ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
-                                                            <span className="font-medium">Niños en Casa</span>
+
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.tiene_ninos ? <User size={20} className="text-slate-400" /> : <User size={20} className="text-slate-400" />}
+                                                            <span>{petmate.tiene_ninos ? "Viven niños (0 a 12 años)" : "Sin niños (0 a 12 años)"}</span>
                                                         </div>
-                                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${petmate.fumador ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-white border-slate-200 text-slate-400 opacity-60'}`}>
-                                                            {petmate.fumador ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} />}
-                                                            <span className="font-medium">Fumador en Casa</span>
+
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.tiene_mascotas ? <CheckCircle2 size={20} className="text-emerald-500" /> : <CheckCircle2 size={20} className="text-emerald-500" />}
+                                                            <span>{petmate.tiene_mascotas ? "Hay mascotas en casa" : "No hay mascotas en casa"}</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Fotos del Hogar */}
-                                                {petmate.fotos_vivienda && petmate.fotos_vivienda.length > 0 && (
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                                                {/* Columna 2: Políticas */}
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-4 border-b border-slate-100 pb-2">Políticas de mascotas</h3>
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.acepta_cachorros ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-slate-300" />}
+                                                            <span>Se aceptan cachorros</span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.acepta_sin_esterilizar ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-slate-300" />}
+                                                            <span>Se aceptan perros no esterilizados</span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.permite_cama ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-slate-300" />}
+                                                            <span>Se permite subir a la cama</span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.permite_sofa ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-slate-300" />}
+                                                            <span>Se permite uso de sofás</span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-3 text-slate-700">
+                                                            {petmate.mascotas_no_encerradas !== false ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-slate-300" />}
+                                                            <span>Las mascotas no estarán encerradas</span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-3 text-slate-700 font-bold">
+                                                            <div className="p-1 bg-emerald-100 rounded text-emerald-600"><PawPrint size={14} /></div>
+                                                            <span>Capacidad: {petmate.capacidad_maxima || 1} mascota{(petmate.capacidad_maxima || 1) > 1 ? 's' : ''}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            {/* Housing Gallery */}
+                                            {petmate.fotos_vivienda && petmate.fotos_vivienda.length > 0 && (
+                                                <div className="mt-8 pt-6 border-t border-slate-100">
+                                                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-4">Fotos del Hogar</h4>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                         {petmate.fotos_vivienda.map((foto, i) => (
                                                             <div key={i} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer group">
                                                                 <Image
@@ -745,9 +776,9 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                                             </div>
                                                         ))}
                                                     </div>
-                                                )}
-                                            </section>
-                                        )}
+                                                </div>
+                                            )}
+                                        </section>
 
                                         {/* Location Map Section */}
                                         <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">

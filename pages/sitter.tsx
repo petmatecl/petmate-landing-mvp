@@ -219,7 +219,16 @@ export default function SitterDashboardPage() {
                         fumador: profile.fumador || false,
                         video_presentacion: profile.video_presentacion || null,
                         consentimiento_rrss: profile.consentimiento_rrss || false,
-                        aprobado: profile.aprobado || false
+                        aprobado: profile.aprobado || false,
+
+                        // New Policy Fields Load
+                        acepta_cachorros: profile.acepta_cachorros || false,
+                        acepta_sin_esterilizar: profile.acepta_sin_esterilizar || false,
+                        permite_cama: profile.permite_cama || false,
+                        permite_sofa: profile.permite_sofa || false,
+                        mascotas_no_encerradas: profile.mascotas_no_encerradas === false ? false : true,
+                        capacidad_maxima: profile.capacidad_maxima || 1,
+                        supervision_24_7: profile.supervision_24_7 || false
                     });
                     setBackupProfileData(profile); // Save backup for cancel
 
@@ -256,7 +265,7 @@ export default function SitterDashboardPage() {
             // 1. Fetch Bookings (Direct Requests)
             const { data: bookingData, error: bookingError } = await supabase
                 .from('viajes')
-                .select('*, cliente:user_id(*), direccion:direccion_id(*)') // Removed broken relation, relying on mascotas_ids
+                .select('*, cliente:user_id(*)') // Removed broken relation, relying on mascotas_ids
                 .eq('sitter_id', userId)
                 .order('fecha_inicio', { ascending: true });
 
@@ -279,7 +288,7 @@ export default function SitterDashboardPage() {
             // Assuming 'pendiente_pago' or 'pendiente' is the status for open trips
             const { data: openData } = await supabase
                 .from('viajes')
-                .select('*, cliente:user_id(*), direccion:direccion_id(*)')
+                .select('*, cliente:user_id(*)')
                 .is('sitter_id', null)
                 .in('estado', ['pendiente', 'pendiente_pago']) // Check valid states
                 .neq('user_id', userId) // Don't show own trips if any
@@ -396,7 +405,17 @@ export default function SitterDashboardPage() {
         tiene_malla: false,
         video_presentacion: null,
         consentimiento_rrss: false,
-        aprobado: false // Initialize
+
+        aprobado: false, // Initialize
+
+        // New Policy Fields
+        acepta_cachorros: false,
+        acepta_sin_esterilizar: false,
+        permite_cama: false,
+        permite_sofa: false,
+        mascotas_no_encerradas: true,
+        capacidad_maxima: 1,
+        supervision_24_7: false
     });
 
     // Privacy Notice State
@@ -985,7 +1004,16 @@ export default function SitterDashboardPage() {
                     tiene_ninos: profileData.tiene_ninos,
                     fumador: profileData.fumador,
                     video_presentacion: profileData.video_presentacion,
-                    consentimiento_rrss: profileData.consentimiento_rrss
+                    consentimiento_rrss: profileData.consentimiento_rrss,
+
+                    // New Policy Fields Save
+                    acepta_cachorros: profileData.acepta_cachorros,
+                    acepta_sin_esterilizar: profileData.acepta_sin_esterilizar,
+                    permite_cama: profileData.permite_cama,
+                    permite_sofa: profileData.permite_sofa,
+                    mascotas_no_encerradas: profileData.mascotas_no_encerradas,
+                    capacidad_maxima: profileData.capacidad_maxima,
+                    supervision_24_7: profileData.supervision_24_7
                 };
             } else if (section === 'services') {
                 // Validation: If Cuida Perros is checked, must have sizes
@@ -1807,6 +1835,60 @@ export default function SitterDashboardPage() {
 
 
 
+                                            </div>
+
+                                            {/* Políticas y Reglas (NUEVO) */}
+                                            <div className="mb-6 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+                                                <h5 className="text-xs font-bold text-emerald-800 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                                    <ShieldCheck size={14} /> Políticas de Mascotas
+                                                </h5>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                                                    {/* Capacity */}
+                                                    <div className="sm:col-span-2">
+                                                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Capacidad Máxima (Mascotas a la vez)</label>
+                                                        <select
+                                                            disabled={activeSection !== 'profile'}
+                                                            className={`w-full text-sm rounded-lg px-3 py-2 outline-none transition-all ${activeSection === 'profile' ? "border border-slate-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" : "bg-white border border-slate-300 text-slate-500 appearance-none"}`}
+                                                            value={profileData.capacidad_maxima}
+                                                            onChange={(e) => setProfileData({ ...profileData, capacidad_maxima: parseInt(e.target.value) })}
+                                                        >
+                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                                                                <option key={n} value={n}>{n} Mascota{n > 1 ? 's' : ''}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+                                                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.acepta_cachorros ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                        <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.acepta_cachorros || false} onChange={(e) => setProfileData({ ...profileData, acepta_cachorros: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                        <span className="text-sm font-bold">Acepto Cachorros</span>
+                                                    </label>
+
+                                                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.acepta_sin_esterilizar ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                        <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.acepta_sin_esterilizar || false} onChange={(e) => setProfileData({ ...profileData, acepta_sin_esterilizar: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                        <span className="text-sm font-bold">Acepto No Esterilizados</span>
+                                                    </label>
+
+                                                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.permite_cama ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                        <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.permite_cama || false} onChange={(e) => setProfileData({ ...profileData, permite_cama: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                        <span className="text-sm font-bold">Permito subir a la cama</span>
+                                                    </label>
+
+                                                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.permite_sofa ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                        <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.permite_sofa || false} onChange={(e) => setProfileData({ ...profileData, permite_sofa: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                        <span className="text-sm font-bold">Permito uso de sofás</span>
+                                                    </label>
+
+                                                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.mascotas_no_encerradas ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                        <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.mascotas_no_encerradas !== false} onChange={(e) => setProfileData({ ...profileData, mascotas_no_encerradas: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                        <span className="text-sm font-bold">No encierro mascotas</span>
+                                                    </label>
+
+                                                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${profileData.supervision_24_7 ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-300 text-slate-500'}`}>
+                                                        <input type="checkbox" disabled={activeSection !== 'profile'} checked={profileData.supervision_24_7 || false} onChange={(e) => setProfileData({ ...profileData, supervision_24_7: e.target.checked })} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" />
+                                                        <span className="text-sm font-bold">Supervisión 24/7</span>
+                                                    </label>
+                                                </div>
                                             </div>
 
                                             {/* Detalles de mascotas (Siempre visible para agregar) */}
