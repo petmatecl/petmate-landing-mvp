@@ -49,7 +49,7 @@ export const NewMessageEmail: React.FC<NewMessageEmailProps> = ({
                         borderLeft: '4px solid #059669',
                     }}>
                         <Text style={{ margin: 0, fontSize: '16px', fontStyle: 'italic', color: '#555' }}>
-                            "{messagePreview}"
+                            &quot;{messagePreview}&quot;
                         </Text>
                     </Section>
                     <Text style={{ fontSize: '16px', lineHeight: '24px', color: '#374151', marginBottom: '24px' }}>

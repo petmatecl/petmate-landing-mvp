@@ -1,5 +1,5 @@
 // pages/login.tsx
-import React from "react";
+import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,75 +7,42 @@ import { supabase } from "../lib/supabaseClient";
 import { Card } from "../components/Shared/Card";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 import LinkedInAuthButton from "../components/LinkedInAuthButton";
-
-type Role = "client" | "sitter";
+import { AuthService, Role } from "../lib/authService";
 
 // ==== Íconos mono (inline SVG) ====
 const MailIcon = (props: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    {...props}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <rect x="3" y="5" width="18" height="14" rx="2" />
     <path d="M3 7l9 6 9-6" />
   </svg>
 );
 const LockIcon = (props: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    {...props}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <rect x="4" y="11" width="16" height="9" rx="2" />
     <path d="M8 11V8a4 4 0 0 1 8 0v3" />
   </svg>
 );
 const EyeIcon = (props: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    {...props}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
     <circle cx="12" cy="12" r="3.2" />
   </svg>
 );
 const EyeOffIcon = (props: any) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    {...props}
-  >
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <path d="M17.94 17.94C16.1 19.24 14.12 20 12 20 5 20 1 12 1 12a20.1 20.1 0 0 1 6.05-6.05m4.31-1.55C19 4.4 23 12 23 12a20.14 20.14 0 0 1-2.83 3.94" />
     <path d="M1 1l22 22" />
   </svg>
 );
 
 const UserIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
 );
 const PawIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <circle cx="12" cy="5" r="2.5" />
     <circle cx="19" cy="8" r="2.5" />
     <circle cx="5" cy="8" r="2.5" />
@@ -85,30 +52,34 @@ const PawIcon = (props: any) => (
 
 export default function LoginPage() {
   const router = useRouter();
-  const [tab, setTab] = React.useState<Role>("client");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [showPass, setShowPass] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPass, setShowPass] = useState(false);
 
-  // (Opcional) si quieres que /login?role=sitter seleccione el tab solo
+  // New State for Profile Selection
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
+  const [userName, setUserName] = useState<string>("");
+
   React.useEffect(() => {
-    if (!router.isReady) return;
-    const q = String(router.query.role || "").toLowerCase();
-    if (q === "sitter" || q === "petmate") setTab("sitter");
-    if (q === "client" || q === "cliente" || q === "usuario") setTab("client");
-
-    // Verificar si viene por timeout
     if (router.query.timeout === "true") {
       setError("Por seguridad, tu sesión se ha cerrado tras 10 minutos de inactividad.");
     }
-  }, [router.isReady, router.query.role, router.query.timeout]);
+  }, [router.query.timeout]);
+
+  const handleRoleSelect = async (selectedRole: Role) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("activeRole", selectedRole);
+    }
+    // Redirect
+    await router.push(selectedRole === "cliente" ? "/usuario" : "/sitter");
+  };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
 
     const form = new FormData(e.currentTarget);
-    const role = ((form.get("role") as Role) || "client") as Role;
     const email = String(form.get("email") || "").trim();
     const password = String(form.get("password") || "");
 
@@ -127,71 +98,166 @@ export default function LoginPage() {
 
       if (error) {
         console.error("Error al iniciar sesión:", error);
-
         const msg = error.message.toLowerCase();
         if (msg.includes("email not confirmed")) {
-          setError(
-            "Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada."
-          );
+          setError("Debes confirmar tu correo antes de iniciar sesión. Revisa tu lista de spam.");
         } else {
           setError("Correo o contraseña incorrectos.");
         }
-        return; // ⛔ NO redirigimos
+        setLoading(false);
+        return;
       }
 
       if (!data?.user) {
         setError("No se pudo iniciar sesión. Intenta nuevamente.");
+        setLoading(false);
         return;
       }
 
-      // 🛡️ SECURITY: Verify strict role ownership
-      // Prevent Sitter from logging in on Client tab (and vice-versa)
-      const { data: profile, error: profileErr } = await supabase
-        .from("registro_petmate")
-        .select("roles, rol")
-        .eq("auth_user_id", data.user.id)
-        .single();
+      // Fetch Profile using AuthService
+      const profile = await AuthService.fetchProfile(data.user.id);
 
-      if (profileErr || !profile) {
-        // Profile missing or error -> Deny access to prevent weird states
-        console.error("Profile check failed:", profileErr);
-        setError("No se pudo verificar tu perfil. Contacta soporte.");
-        await supabase.auth.signOut();
+      if (!profile) {
+        // No profile? Redirect to completion
+        router.push("/register?resume=true");
         return;
       }
 
-      const userRoles: string[] = profile.roles || [];
-      // Fallback for older records
-      if (profile.rol && !userRoles.includes(profile.rol)) {
-        userRoles.push(profile.rol);
-      }
+      // Determine Roles
+      const userRoles = profile.roles || [];
+      if (profile.rol && !userRoles.includes(profile.rol)) userRoles.push(profile.rol);
+      // Ensure 'cliente' is default if empty
+      if (userRoles.length === 0) userRoles.push('cliente');
 
-      const targetRole = role === "client" ? "cliente" : "sitter";
+      setUserName(profile.nombre || "Usuario");
 
-      if (!userRoles.includes(targetRole)) {
-        // User is authenticated but selected the WRONG tab for their actual role
-        // Privacy Improvement: Do not reveal they have another account type.
-        // Just say we couldn't find a record for THIS type.
-        const tabName = targetRole === "cliente" ? "Usuario" : "Sitter";
-        setError(`No se encontró una cuenta de ${tabName} con estas credenciales.`);
-
-        await supabase.auth.signOut();
+      // Logic:
+      // 1. Both Roles? -> Show Selector
+      if (userRoles.includes('petmate') && userRoles.includes('cliente')) {
+        setAvailableRoles(userRoles);
+        setShowRoleSelector(true);
+        setLoading(false);
         return;
       }
 
-      // ✅ Solo con login exitoso redirigimos
+      // 2. Only One Role? -> Auto Redirect
+      let targetRole: Role = 'cliente';
+      if (userRoles.includes('petmate')) targetRole = 'petmate';
+
       if (typeof window !== "undefined") {
         window.localStorage.setItem("activeRole", targetRole);
       }
-      await router.push(role === "client" ? "/usuario" : "/sitter");
+
+      await router.push(targetRole === 'cliente' ? "/usuario" : "/sitter");
+
     } catch (err: any) {
       console.error(err);
       setError("No se pudo iniciar sesión. Intenta nuevamente.");
-    } finally {
       setLoading(false);
     }
   }
 
+  // == Render: Role Selector ==
+  if (showRoleSelector) {
+    return (
+      <div className="page">
+        <div className="wrap">
+          <Card variant="elevated" padding="l" className="login-card">
+            <h1 className="title text-center">¡Hola, {userName}!</h1>
+            <p className="subtitle text-center">¿Con qué perfil deseas ingresar hoy?</p>
+
+            <div className="role-buttons">
+              <button
+                onClick={() => handleRoleSelect("cliente")}
+                className="role-btn client-btn"
+              >
+                <div className="icon-circle">
+                  <UserIcon />
+                </div>
+                <div className="role-info">
+                  <span className="role-title">Ingresar como Usuario</span>
+                  <span className="role-desc">Buscar servicios para mis mascotas</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleRoleSelect("petmate")}
+                className="role-btn sitter-btn"
+              >
+                <div className="icon-circle">
+                  <PawIcon />
+                </div>
+                <div className="role-info">
+                  <span className="role-title">Ingresar como Sitter</span>
+                  <span className="role-desc">Gestionar mis servicios y reservas</span>
+                </div>
+              </button>
+            </div>
+          </Card>
+        </div>
+        <style jsx>{`
+          .page {
+            min-height: calc(100vh - 200px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: #fff;
+          }
+           .wrap {
+            width: 100%;
+            max-width: 500px;
+          }
+          .title { font-size: 1.8rem; margin-bottom: 0.5rem; text-align: center; }
+          .subtitle { color: #6b7280; text-align: center; margin-bottom: 2rem; }
+          
+          .role-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+          .role-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+          }
+          .role-btn:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+          }
+          .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #374151;
+            flex-shrink: 0;
+          }
+          .role-btn:hover .icon-circle {
+            background: #10b981;
+            color: #fff;
+          }
+          .role-info { display: flex; flex-direction: column; }
+          .role-title { font-weight: 700; color: #111827; font-size: 1.1rem; }
+          .role-desc { font-size: 0.9rem; color: #6b7280; }
+        `}</style>
+      </div>
+    );
+  }
+
+  // == Render: Login Form ==
   return (
     <>
       <Head>
@@ -200,40 +266,13 @@ export default function LoginPage() {
 
       <main className="pmLogin page">
         <div className="wrap">
-          {/* Tabs */}
-          <div className="tabs" role="tablist" aria-label="Selecciona tipo de cuenta">
-            <button
-              role="tab"
-              aria-selected={tab === "client"}
-              className={`tab ${tab === "client" ? "active" : ""} `}
-              onClick={() => setTab("client")}
-              type="button"
-            >
-              <UserIcon />
-              <span>Usuario</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={tab === "sitter"}
-              className={`tab ${tab === "sitter" ? "active" : ""} `}
-              onClick={() => setTab("sitter")}
-              type="button"
-            >
-              <PawIcon />
-              <span>Sitter</span>
-            </button>
-          </div>
-
-          {/* Card */}
           <Card variant="elevated" padding="l" className="login-card">
             <h1 className="title">Iniciar sesión</h1>
             <p className="subtitle">
-              Accede como {tab === "client" ? "usuario" : "Sitter"} para contactar y gestionar
-              servicios.
+              Ingresa a tu cuenta de Pawnecta
             </p>
 
             <form onSubmit={handleSubmit} className="form">
-              <input type="hidden" name="role" value={tab} />
 
               {/* Correo */}
               <div className="field">
@@ -284,7 +323,7 @@ export default function LoginPage() {
                 </p>
               )}
 
-              {/* Botón — estilos inline para ganar a cualquier CSS global */}
+              {/* Botón */}
               <button
                 type="submit"
                 className="btnPrimary"
@@ -302,20 +341,20 @@ export default function LoginPage() {
                   cursor: loading ? "default" : "pointer",
                 }}
               >
-                {loading ? "Ingresando…" : "Iniciar sesión"}
+                {loading ? "Verificando..." : "Ingresar"}
               </button>
 
               <div style={{ marginTop: 12 }}>
-                <GoogleAuthButton role={tab} />
-                <LinkedInAuthButton role={tab} />
+                <GoogleAuthButton role="client" /> {/* Default role, will be overridden by profile check */}
+                {/* LinkedIn removed or standardized? Keeping separate if needed but unified is better. 
+                    Auth providers usually don't care about internal role until callback. 
+                    GoogleAuthButton likely sends meta. For now, defaulting to 'client' is safe as we check profile later.
+                */}
               </div>
 
               {/* Links */}
               <div className="links">
-                <Link
-                  href={tab === "client" ? "/register?role=client" : "/register?role=sitter"}
-                  className="a"
-                >
+                <Link href="/register" className="a">
                   ¿No tienes cuenta? Regístrate
                 </Link>
                 <Link href="/forgot-password" className="a">
@@ -331,70 +370,28 @@ export default function LoginPage() {
         :root {
           --brand: #111827;
           --muted: #f6f7f9;
-          --border: #94a3b8; /* slate-300 matches global reinforcement */
         }
 
         .page {
           min-height: calc(100vh - 200px);
           display: flex;
-          align-items: flex-start;
+          align-items: center; /* Centered Vertically */
           justify-content: center;
           padding: 24px;
           background: var(--page-bg);
         }
         .wrap {
           width: 100%;
-          max-width: 640px;
+          max-width: 480px; /* narrowed for single column */
         }
 
-        /* Tabs */
-        .tabs {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          margin-bottom: 24px;
-        }
-        .tab {
-          appearance: none;
-          /* Premium Inactive State */
-          border: 1px solid #e2e8f0; /* Slate-200 */
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0,0,0,0.05); /* shadow-sm + ring-1 black/5 */
-          padding: 1rem;
-          border-radius: 16px; /* rounded-2xl */
-          background: #fff;
-          font-weight: 700;
-          cursor: pointer;
-          color: #374151; /* Slate-700 */
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.2s ease;
-          font-size: 1rem;
-        }
-        .tab:hover {
-          background: #f8fafc; /* Slate-50 */
-          border-color: #cbd5e1; /* Slate-300 */
-        }
-        .tab.active {
-          background: #10b981;
-          border-color: transparent;
-          color: #fff;
-          /* Shadow-sm only, no ring */
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-        }
-        .tab.active svg {
-          stroke-width: 2.5;
-        }
-
-        /* Card styles removed to rely on component */
         .title {
           font-size: 1.9rem;
           margin: 0 0 4px;
         }
         .subtitle {
           color: #6b7280;
-          margin: 0 0 18px;
+          margin: 0 0 24px;
         }
 
         /* Form */
@@ -433,7 +430,6 @@ export default function LoginPage() {
           box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
         }
 
-        /* Ojo centrado */
         .rightIconBtn {
           position: absolute;
           right: 8px;
@@ -453,7 +449,6 @@ export default function LoginPage() {
           background: #f3f4f6;
         }
 
-        /* Links */
         .links {
           display: flex;
           justify-content: space-between;

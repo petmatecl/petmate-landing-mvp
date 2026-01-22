@@ -47,7 +47,7 @@ export default function QuienesSomos() {
                             {/* Texto 1 */}
                             <div className="w-full lg:w-2/3">
                                 <p className="first-letter:text-5xl first-letter:font-bold first-letter:text-emerald-600 first-letter:float-left first-letter:mr-3 text-lg">
-                                    Todo comenzó con <strong>Abba y Freddie</strong>. Somos <strong>Aldo y Camila</strong>, una pareja sin hijos para quienes, al igual que para muchos, nuestras mascotas no son "algo" que tenemos, sino <strong>alguien</strong> con quien compartimos la vida. Ella es la reina indiscutible de la casa, elegante y observadora; él es el regalón travieso que siempre busca un regazo donde dormir.
+                                    Todo comenzó con <strong>Abba y Freddie</strong>. Somos <strong>Aldo y Camila</strong>, una pareja sin hijos para quienes, al igual que para muchos, nuestras mascotas no son &quot;algo&quot; que tenemos, sino <strong>alguien</strong> con quien compartimos la vida. Ella es la reina indiscutible de la casa, elegante y observadora; él es el regalón travieso que siempre busca un regazo donde dormir.
                                 </p>
                                 <p className="mt-4">
                                     Cada vez que queríamos salir de viaje o teníamos que ausentarnos, nos enfrentábamos al mismo dilema: <strong>¿Con quién los dejamos?</strong> Las opciones tradicionales como hoteles les causaban estrés, y las visitas rápidas de 15 minutos nos parecían insuficientes para la compañía que ellos necesitan.
@@ -65,7 +65,7 @@ export default function QuienesSomos() {
                                 </p>
 
                                 <div className="border-l-4 border-emerald-500 pl-6 py-2 my-6 italic text-slate-600 bg-slate-50 rounded-r-lg">
-                                    "No buscábamos un cuidador, buscábamos un compañero temporal que los tratara con el mismo amor que nosotros."
+                                    &quot;No buscábamos un cuidador, buscábamos un compañero temporal que los tratara con el mismo amor que nosotros.&quot;
                                 </div>
 
                                 <p>
