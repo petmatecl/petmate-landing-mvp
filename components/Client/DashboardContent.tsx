@@ -873,6 +873,41 @@ export default function DashboardContent() {
         return addr.direccion_completa || "";
     };
 
+    // --- UI HELPERS FOR TRIP LIST ---
+    const reservedTrips = trips.filter(t => t.estado === 'reservado');
+    const confirmedTrips = trips.filter(t => ['confirmado', 'completado'].includes(t.estado));
+    const pendingTrips = trips.filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado));
+
+    const showButtonInReserved = reservedTrips.length > 0;
+    const showButtonInConfirmed = confirmedTrips.length > 0 && !showButtonInReserved;
+    const showButtonInPending = pendingTrips.length > 0 && !showButtonInReserved && !showButtonInConfirmed;
+
+    const NewTripButton = () => (
+        <button
+            onClick={() => {
+                if (!isProfileComplete) {
+                    showAlert('Perfil Incompleto', 'Debes completar tus datos personales y agregar una foto de perfil antes de crear una solicitud.', 'warning');
+                    setActiveTab('datos');
+                    return;
+                }
+                if (!isPetsComplete) {
+                    showAlert('Faltan Mascotas', 'Debes agregar al menos una mascota antes de solicitar cuidado.', 'warning');
+                    setActiveTab('mascotas');
+                    return;
+                }
+                if (!isAddressesComplete) {
+                    showAlert('Faltan Direcciones', 'Debes agregar al menos una dirección antes de solicitar cuidado.', 'warning');
+                    setActiveTab('direcciones');
+                    return;
+                }
+                setShowTripForm(true);
+            }}
+            className="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all flex items-center gap-2 mb-2 sm:mb-0"
+        >
+            <Plus size={16} strokeWidth={2.5} /> Nueva Solicitud
+        </button>
+    );
+
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -1005,36 +1040,8 @@ export default function DashboardContent() {
 
                             {/* COMPLETION WARNING BANNER */}
 
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                    Mis Solicitudes
-                                </h2>
-                                {!showTripForm && (
-                                    <button
-                                        onClick={() => {
-                                            if (!isProfileComplete) {
-                                                showAlert('Perfil Incompleto', 'Debes completar tus datos personales y agregar una foto de perfil antes de crear una solicitud.', 'warning');
-                                                setActiveTab('datos');
-                                                return;
-                                            }
-                                            if (!isPetsComplete) {
-                                                showAlert('Faltan Mascotas', 'Debes agregar al menos una mascota antes de solicitar cuidado.', 'warning');
-                                                setActiveTab('mascotas');
-                                                return;
-                                            }
-                                            if (!isAddressesComplete) {
-                                                showAlert('Faltan Direcciones', 'Debes agregar al menos una dirección antes de solicitar cuidado.', 'warning');
-                                                setActiveTab('direcciones');
-                                                return;
-                                            }
-                                            setShowTripForm(true);
-                                        }}
-                                        className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all flex items-center gap-2"
-                                    >
-                                        <Plus size={18} strokeWidth={2.5} /> Nueva Solicitud
-                                    </button>
-                                )}
-                            </div>
+                            {/* COMPLETION WARNING BANNER (Placeholder if needed) */}
+                            {/* "Mis Solicitudes" Header Removed as per user request */}
 
 
                             {/* Loading State */}
@@ -1053,14 +1060,16 @@ export default function DashboardContent() {
                                 <div className="space-y-8 mb-8">
 
                                     {/* Section 0: REQUIRES ACTION (Reservado) */}
-                                    {trips.filter(t => t.estado === 'reservado').length > 0 && (
+                                    {reservedTrips.length > 0 && (
                                         <div className="animate-in slide-in-from-left-4 duration-500">
-                                            <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wide mb-3 pl-1 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100 flex items-center gap-2">
-                                                <Clock size={16} /> Requiere tu Atención
-                                            </h3>
+                                            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 gap-2">
+                                                <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wide pl-1 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100 flex items-center gap-2">
+                                                    <Clock size={16} /> Requiere tu Atención
+                                                </h3>
+                                                {showButtonInReserved && <NewTripButton />}
+                                            </div>
                                             <div className="grid grid-cols-1 gap-4">
-                                                {trips
-                                                    .filter(t => t.estado === 'reservado')
+                                                {reservedTrips
                                                     .map(trip => (
                                                         <TripCard
                                                             key={trip.id}
@@ -1081,14 +1090,16 @@ export default function DashboardContent() {
                                     )}
 
                                     {/* Section 1: Confirmed / Active Trips */}
-                                    {trips.filter(t => ['confirmado', 'completado'].includes(t.estado)).length > 0 && (
+                                    {confirmedTrips.length > 0 && (
                                         <div>
-                                            <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide mb-3 pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
-                                                <CheckCircle2 size={16} /> Solicitudes Confirmadas
-                                            </h3>
+                                            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 gap-2">
+                                                <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
+                                                    <CheckCircle2 size={16} /> Solicitudes Confirmadas
+                                                </h3>
+                                                {showButtonInConfirmed && <NewTripButton />}
+                                            </div>
                                             <div className="grid grid-cols-1 gap-4">
-                                                {trips
-                                                    .filter(t => ['confirmado', 'completado'].includes(t.estado))
+                                                {confirmedTrips
                                                     .map(trip => (
                                                         <TripCard
                                                             key={trip.id}
@@ -1108,14 +1119,16 @@ export default function DashboardContent() {
                                     )}
 
                                     {/* Section 2: Pending / Published / Draft Trips */}
-                                    {trips.filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado)).length > 0 && (
+                                    {pendingTrips.length > 0 && (
                                         <div>
-                                            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3 pl-1 flex items-center gap-2">
-                                                <Clock size={16} /> Solicitudes Pendientes
-                                            </h3>
+                                            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 gap-2">
+                                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide pl-1 flex items-center gap-2">
+                                                    <Clock size={16} /> Solicitudes Pendientes
+                                                </h3>
+                                                {showButtonInPending && <NewTripButton />}
+                                            </div>
                                             <div className="grid grid-cols-1 gap-4">
-                                                {trips
-                                                    .filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado))
+                                                {pendingTrips
                                                     .map(trip => (
                                                         <TripCard
                                                             key={trip.id}

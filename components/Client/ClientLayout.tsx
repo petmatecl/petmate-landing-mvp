@@ -185,8 +185,13 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                                 </div>
                             </div>
                         </div>
-                        {userId && <NotificationCenter userId={userId} />}
+                        {/* Notification Bell moved out of header to be "lower" */}
                     </header>
+                    
+                    {/* Floating Actions / Notifications Bar */}
+                    <div className="flex justify-end mb-4 px-2">
+                         {userId && <NotificationCenter userId={userId} />}
+                    </div>
 
                     {/* CLEAN LAYOUT: Just render children (DashboardContent handles the grid) */}
                     <div>
