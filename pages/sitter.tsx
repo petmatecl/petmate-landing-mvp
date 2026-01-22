@@ -1501,7 +1501,7 @@ export default function SitterDashboardPage() {
                                                 <p className="text-xs text-slate-400 mt-1">Te avisaremos cuando haya nuevas solicitudes.</p>
                                             </div>
                                         ) : (
-                                            <div className="space-y-4">
+                                            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                                                 {openOpportunities.map((trip) => (
                                                     <Card key={trip.id} padding="none" className="overflow-hidden border-l-4 border-l-emerald-400 group hover:shadow-md transition-all">
                                                         <div className="p-5">
@@ -1511,7 +1511,12 @@ export default function SitterDashboardPage() {
                                                                         {trip.cliente?.nombre?.[0] || 'C'}
                                                                     </div>
                                                                     <div>
-                                                                        <h4 className="font-bold text-slate-800 text-base">{trip.cliente?.nombre} {trip.cliente?.apellido_p}</h4>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <h4 className="font-bold text-slate-800 text-base">{trip.cliente?.nombre} {trip.cliente?.apellido_p}</h4>
+                                                                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 font-mono">
+                                                                                #{trip.id.slice(0, 6).toUpperCase()}
+                                                                            </span>
+                                                                        </div>
                                                                         <span className="text-xs text-slate-500 flex items-center gap-1">
                                                                             <MapPin size={12} /> {trip.direccion?.comuna || 'Ubicación pendiente'}
                                                                         </span>
@@ -1561,7 +1566,7 @@ export default function SitterDashboardPage() {
                                                 <Send className="w-5 h-5 text-indigo-500" />
                                                 Mis Postulaciones
                                             </h3>
-                                            <div className="space-y-4">
+                                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                                 {applications.map((app) => (
                                                     <Card key={app.id} padding="none" className="opacity-75 hover:opacity-100 transition-opacity">
                                                         <div className="p-5">
@@ -1593,7 +1598,7 @@ export default function SitterDashboardPage() {
                                                 <CalendarCheck className="w-5 h-5 text-emerald-600" />
                                                 Próximas Reservas
                                             </h3>
-                                            <div className="space-y-4">
+                                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                                 {bookings.map((booking) => (
                                                     <Card key={booking.id} padding="none" className="border-l-4 border-l-emerald-600">
                                                         <div className="p-5">
