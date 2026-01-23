@@ -1,9 +1,10 @@
 import React from 'react';
 
-export type Role = 'cliente' | 'petmate';
+export type Role = 'cliente' | 'petmate' | 'admin';
 
 interface RoleSelectorProps {
   userName: string;
+  roles?: string[]; // Optional for backward compat, defaults to showing client/sitter
   onSelect: (role: Role) => void;
   showTitle?: boolean;
 }
@@ -24,7 +25,13 @@ const PawIcon = (props: any) => (
   </svg>
 );
 
-export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, onSelect, showTitle = true }) => {
+const ShieldIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+);
+
+export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['cliente', 'petmate'], onSelect, showTitle = true }) => {
   return (
     <div className="w-full max-w-md mx-auto">
       {showTitle && (
@@ -35,31 +42,50 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, onSelect, 
       )}
 
       <div className="space-y-4">
-        <button
-          onClick={() => onSelect("cliente")}
-          className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
-        >
-          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
-            <UserIcon />
-          </div>
-          <div>
-            <span className="block font-bold text-slate-900 text-lg">Ingresar como Usuario</span>
-            <span className="block text-slate-500 text-sm">Buscar servicios para mis mascotas</span>
-          </div>
-        </button>
+        {(roles.includes('cliente') || roles.length === 0) && (
+          <button
+            onClick={() => onSelect("cliente")}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
+          >
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
+              <UserIcon />
+            </div>
+            <div>
+              <span className="block font-bold text-slate-900 text-lg">Ingresar como Usuario</span>
+              <span className="block text-slate-500 text-sm">Buscar servicios para mis mascotas</span>
+            </div>
+          </button>
+        )}
 
-        <button
-          onClick={() => onSelect("petmate")}
-          className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
-        >
-          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
-            <PawIcon />
-          </div>
-          <div>
-            <span className="block font-bold text-slate-900 text-lg">Ingresar como Sitter</span>
-            <span className="block text-slate-500 text-sm">Gestionar mis servicios y reservas</span>
-          </div>
-        </button>
+        {roles.includes('petmate') && (
+          <button
+            onClick={() => onSelect("petmate")}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
+          >
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
+              <PawIcon />
+            </div>
+            <div>
+              <span className="block font-bold text-slate-900 text-lg">Ingresar como Sitter</span>
+              <span className="block text-slate-500 text-sm">Gestionar mis servicios y reservas</span>
+            </div>
+          </button>
+        )}
+
+        {roles.includes('admin') && (
+            <button
+            onClick={() => onSelect("admin")}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md group text-left"
+            >
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-slate-800 group-hover:text-white transition-colors shrink-0">
+                <ShieldIcon />
+            </div>
+            <div>
+                <span className="block font-bold text-slate-900 text-lg">Ingresar como Admin</span>
+                <span className="block text-slate-500 text-sm">Panel de Administración</span>
+            </div>
+            </button>
+        )}
       </div>
     </div>
   );

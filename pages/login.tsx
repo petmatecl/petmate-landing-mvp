@@ -263,7 +263,7 @@ export default function LoginPage() {
               </button>
 
               <div style={{ marginTop: 12 }}>
-                <GoogleAuthButton role="client" source="login" />
+                <GoogleAuthButton source="login" />
                 <LinkedInAuthButton role="client" source="login" />
               </div>
 

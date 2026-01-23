@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
 
 // Types
-type Role = 'cliente' | 'petmate';
+type Role = 'cliente' | 'petmate' | 'admin';
 
 interface UserProfile {
     nombre: string;
@@ -85,17 +85,14 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     // Calculate Onboarding Status
     const calculateOnboardingStatus = (u: any, p: UserProfile | null): OnboardingStep => {
         if (!u) return 'COMPLETE'; // Guest doesn't have onboarding per se
-        // 1. Email Verified (Supabase Auth usually handles this, but we can check u.email_confirmed_at)
-        // For MVP, if they are logged in, we assume verified unless we enforce strict mode.
-        // if (!u.email_confirmed_at) return 'EMAIL_VERIFIED'; 
-
-        // 2. Profile Exists
+        
+        // 1. Profile Exists
         if (!p) return 'PROFILE_BASIC';
 
-        // 3. Basic Fields
+        // 2. Basic Fields
         if (!p.nombre || !p.apellido_p) return 'PROFILE_BASIC';
 
-        // 4. Roles Selected
+        // 3. Roles Selected
         if (!p.roles || p.roles.length === 0) return 'ROLE_SELECTED';
 
         return 'COMPLETE';
@@ -204,6 +201,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setActiveRole(role);
             window.localStorage.setItem('activeRole', role);
             if (role === 'petmate') router.push('/sitter');
+            else if (role === 'admin') router.push('/admin');
             else router.push('/usuario');
         }
     };

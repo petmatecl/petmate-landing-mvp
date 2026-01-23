@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-export type Role = 'cliente' | 'petmate';
+export type Role = 'cliente' | 'petmate' | 'admin';
 export type OnboardingStep = 'EMAIL_VERIFIED' | 'ROLE_SELECTED' | 'PROFILE_BASIC' | 'COMPLETE';
 
 export interface UserProfile {

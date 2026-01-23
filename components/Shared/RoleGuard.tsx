@@ -54,6 +54,18 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     }
 
     // 4. Role Check
+    if (activeRole === null) {
+        // Ambiguous state - Waiting for global interceptor to resolve role
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-500 text-sm animate-pulse">Esperando selección de perfil...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (activeRole !== requiredRole) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">

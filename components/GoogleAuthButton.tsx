@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Props = {
-    role: "cliente" | "sitter" | "client" | null; // supporting legacy "client" string
+    role?: "cliente" | "sitter" | "client" | null; // supporting legacy "client" string
     text?: string;
     source?: 'login' | 'register';
 };
@@ -12,14 +12,15 @@ export default function GoogleAuthButton({ role, text = "Continuar con Google", 
 
     const handleGoogleLogin = async () => {
         try {
-            if (!role) {
+            // Only require selection for registration
+            if (source === 'register' && !role) {
                 alert("Por favor selecciona si buscas cuidado (Usuario) o quieres cuidar (Sitter).");
                 return;
             }
 
             setLoading(true);
-            // Save role to handle redirection/profile creation after callback
-            if (typeof window !== 'undefined') {
+            // Save role ONLY if explicitly provided (e.g. registration or explicit login choice)
+            if (typeof window !== 'undefined' && role) {
                 window.localStorage.setItem('pm_auth_role_pending', role);
             }
 
