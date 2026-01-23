@@ -21,7 +21,6 @@ interface PetMateUser {
     id: string;
     nombre: string;
     apellido_p: string;
-    rol: string;
     roles?: string[];
     comuna?: string;
     region?: string;

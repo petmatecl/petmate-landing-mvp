@@ -206,7 +206,7 @@ export default function SitterDashboardPage() {
                         foto_perfil: profile.foto_perfil || null,
                         certificado_antecedentes: profile.certificado_antecedentes || null,
                         galeria: profile.galeria || [],
-                        roles: profile.roles || [profile.rol || 'cliente'], // Handle migration fallback
+                        roles: profile.roles || ['cliente'], // Default
                         redes_sociales: profile.redes_sociales || { linkedin: "", tiktok: "", instagram: "", facebook: "" },
                         detalles_mascotas: profile.detalles_mascotas || [],
                         videos: profile.videos || [],

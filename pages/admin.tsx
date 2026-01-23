@@ -157,7 +157,7 @@ export default function AdminDashboard() {
         const { data: sitters } = await supabase
             .from("registro_petmate")
             .select("aprobado")
-            .contains("roles", ["sitter"]);
+            .contains("roles", ["petmate"]);
 
         const sittersTotal = sitters?.length || 0;
         const sittersPendientes = sitters?.filter(s => !s.aprobado).length || 0;
@@ -209,10 +209,11 @@ export default function AdminDashboard() {
         }
 
         // Optimize: Select only necessary columns instead of *
+        const queryRole = activeTab === 'sitter' ? 'petmate' : activeTab;
         const { data, error } = await supabase
             .from("registro_petmate")
             .select("*")
-            .contains("roles", [activeTab])
+            .contains("roles", [queryRole])
             .order("created_at", { ascending: false });
 
         if (error) {
