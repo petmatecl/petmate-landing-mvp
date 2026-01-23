@@ -10,6 +10,7 @@ interface UserProfile {
     apellido_p: string;
     apellido_m?: string;
     roles?: string[];
+    rol?: string; // Legacy support
     foto_perfil?: string;
     aprobado?: boolean;
 }
@@ -123,7 +124,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                 // 2. Fetch Profile (Source of Truth for Roles)
                 const { data: profileData, error } = await supabase
                     .from('registro_petmate')
-                    .select('nombre, apellido_p, apellido_m, roles, foto_perfil, aprobado')
+                    .select('nombre, apellido_p, apellido_m, roles, rol, foto_perfil, aprobado')
                     .eq('auth_user_id', session.user.id)
                     .single();
 
@@ -143,7 +144,14 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
                     // 3. Determine Active Role
                     if (finalProfile) {
-                        const validRoles = finalProfile.roles || ['cliente'];
+                        // Merge legacy 'rol' into roles list logic
+                        const userRoles = finalProfile.roles || [];
+                        if (finalProfile.rol && !userRoles.includes(finalProfile.rol)) {
+                            userRoles.push(finalProfile.rol);
+                        }
+                        
+                        const validRoles = userRoles.length > 0 ? userRoles : ['cliente'];
+                        
                         const storedRole = window.localStorage.getItem('activeRole') as Role;
 
                         // Priority 1: Stored Preference (if valid)
