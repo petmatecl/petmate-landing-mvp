@@ -107,7 +107,7 @@ export default function EmailConfirmadoPage() {
                         // ... NORMAL LOGIN FLOW ...
                         // Check for multiple roles
                          const userRoles = existingProfile.roles || [];
-                         if (existingProfile.rol && !userRoles.includes(existingProfile.rol)) userRoles.push(existingProfile.rol);
+                         // Legacy merge removed
                          if (userRoles.length === 0) userRoles.push('cliente');
  
                          setUserName(existingProfile.nombre || "Usuario");

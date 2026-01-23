@@ -117,7 +117,7 @@ export default function LoginPage() {
 
       // Determine Roles
       const userRoles = profile.roles || [];
-      if (profile.rol && !userRoles.includes(profile.rol)) userRoles.push(profile.rol);
+      // Legacy merge removed
       // Ensure 'cliente' is default if empty
       if (userRoles.length === 0) userRoles.push('cliente');
 
