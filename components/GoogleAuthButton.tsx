@@ -19,6 +19,12 @@ export default function GoogleAuthButton({ role, text = "Continuar con Google", 
             }
 
             setLoading(true);
+            
+            // Clear any stale active role from previous sessions
+            if (typeof window !== 'undefined' && source === 'login') {
+                window.localStorage.removeItem('activeRole');
+            }
+
             // Save role ONLY if explicitly provided (e.g. registration or explicit login choice)
             if (typeof window !== 'undefined' && role) {
                 window.localStorage.setItem('pm_auth_role_pending', role);

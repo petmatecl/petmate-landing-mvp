@@ -77,6 +77,10 @@ export default function LoginPage() {
     }
 
     try {
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("activeRole");
+        window.localStorage.removeItem("pm_auth_role_pending");
+      }
       setLoading(true);
 
       const { data, error } = await supabase.auth.signInWithPassword({
