@@ -60,7 +60,11 @@ export default function LoginPage() {
       window.localStorage.setItem("activeRole", selectedRole);
     }
     // Redirect
-    await router.push(selectedRole === "cliente" ? "/usuario" : "/sitter");
+    if (selectedRole === 'admin') {
+      await router.push("/admin");
+    } else {
+      await router.push(selectedRole === "cliente" ? "/usuario" : "/sitter");
+    }
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -118,14 +122,21 @@ export default function LoginPage() {
       // Determine Roles
       const userRoles = profile.roles || [];
       // Legacy merge removed
+
+      // Admin Whitelist Check
+      const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
+      if (data.user.email && ADMIN_EMAILS.includes(data.user.email) && !userRoles.includes('admin')) {
+        userRoles.push('admin');
+      }
+
       // Ensure 'cliente' is default if empty
       if (userRoles.length === 0) userRoles.push('cliente');
 
       setUserName(profile.nombre || "Usuario");
 
       // Logic:
-      // 1. Both Roles? -> Show Selector
-      if (userRoles.includes('petmate') && userRoles.includes('cliente')) {
+      // 1. Multiple Roles (or Admin)? -> Show Selector
+      if (userRoles.length > 1 || userRoles.includes('admin')) {
         setAvailableRoles(userRoles);
         setShowRoleSelector(true);
         setLoading(false);
