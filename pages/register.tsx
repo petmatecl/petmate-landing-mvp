@@ -139,12 +139,12 @@ export default function RegisterPage() {
       if (!authUserId) throw new Error("No User ID returned");
 
       // 2) Insert Profile based on selectedRole
-      const rolesArray = selectedRole === 'sitter' ? ["sitter"] : ["cliente"];
+      // dbRole maps 'sitter' -> 'petmate' internally
       const dbRole = selectedRole === 'sitter' ? 'petmate' : 'cliente';
+      const rolesArray = [dbRole];
 
       const insertPayload = {
         auth_user_id: authUserId,
-        rol: dbRole,
         roles: rolesArray,
         nombre,
         apellido_p: apellidoPaterno,

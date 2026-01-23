@@ -10,7 +10,7 @@ export interface UserProfile {
     apellido_p: string;
     apellido_m?: string;
     roles?: string[];
-    rol?: string; // Legacy fallback
+    // rol deleted
     foto_perfil?: string;
     aprobado?: boolean;
     // Add other fields as needed for specific logic (e.g. telefono for onboarding check)
@@ -44,7 +44,7 @@ export const AuthService = {
         try {
             const { data, error } = await supabase
                 .from('registro_petmate')
-                .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, rol, foto_perfil, aprobado, telefono, rut')
+                .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, aprobado, telefono, rut')
                 .eq('auth_user_id', userId)
                 .single();
 
@@ -65,7 +65,7 @@ export const AuthService = {
     deriveCapabilities(p: UserProfile | null): UserCapabilities {
         if (!p) return GUEST_CAPABILITIES;
 
-        const userRoles = p.roles || (p.rol ? [p.rol] : ['cliente']); // Fallback support
+        const userRoles = p.roles || ['cliente'];
         const isSitter = userRoles.includes('petmate');
         const isClient = userRoles.includes('cliente') || userRoles.length === 0;
 
@@ -92,7 +92,7 @@ export const AuthService = {
         if (!p.nombre || !p.apellido_p) return 'PROFILE_BASIC';
 
         // 3. Roles Selected
-        const validRoles = p.roles || (p.rol ? [p.rol] : []);
+        const validRoles = p.roles || [];
         if (validRoles.length === 0) return 'ROLE_SELECTED';
 
         return 'COMPLETE';
@@ -103,7 +103,7 @@ export const AuthService = {
      */
     determineActiveRole(p: UserProfile | null, preferredRole: string | null): Role | null {
         if (!p) return null;
-        const validRoles = p.roles || (p.rol ? [p.rol] : ['cliente']);
+        const validRoles = p.roles || ['cliente'];
 
         // If preference is valid, use it
         if (preferredRole && (validRoles.includes(preferredRole) || (preferredRole === 'sitter' && validRoles.includes('petmate')))) {
