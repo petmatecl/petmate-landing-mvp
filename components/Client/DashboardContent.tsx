@@ -228,11 +228,16 @@ export default function DashboardContent() {
     }
 
     async function fetchClientProfile(uid: string) {
-        // OPTIMIZATION P1.2: Select only needed columns instead of *
-        const { data } = await supabase.from("registro_petmate")
-            .select("nombre, apellido_p, rut, telefono, latitud, longitud, comuna, region, mascotas_viaje, perros, gatos, foto_perfil, fecha_inicio, fecha_fin")
+        // Reverting to select * to avoid hidden schema errors with explicit columns
+        const { data, error } = await supabase.from("registro_petmate")
+            .select("*")
             .eq("auth_user_id", uid)
             .single();
+
+        if (error) {
+            console.error("Error fetching client profile:", error);
+        }
+
         if (data) {
             setClientProfile(data);
             if (data.nombre && !nombre) setNombre(data.nombre);
@@ -258,6 +263,12 @@ export default function DashboardContent() {
             if (data.fecha_inicio && data.fecha_fin) {
                 setRango({ from: new Date(data.fecha_inicio + "T12:00:00"), to: new Date(data.fecha_fin + "T12:00:00") });
             }
+        }
+
+        // Fallback: Get name from Auth User Metadata if DB is missing name
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.user_metadata?.nombre && (!data || !data.nombre)) {
+            if (!nombre) setNombre(user.user_metadata.nombre);
         }
     }
 
@@ -950,7 +961,7 @@ export default function DashboardContent() {
                                 <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center cursor-pointer group-avatar" onClick={() => setIsLightboxOpen(true)}>
                                     {clientProfile?.foto_perfil ? (
                                         <Image
-                                            src={clientProfile.foto_perfil}
+                                            src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
                                             alt="Foto perfil"
                                             fill
                                             className="object-cover"
