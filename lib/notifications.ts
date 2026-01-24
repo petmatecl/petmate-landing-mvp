@@ -25,19 +25,33 @@ export const createNotification = async ({
     metadata
 }: CreateNotificationParams) => {
     try {
-        // Use RPC function to bypass RLS restrictions on INSERT
-        const { error } = await supabase.rpc('send_notification', {
-            p_user_id: userId,
-            p_type: type,
-            p_title: title,
-            p_message: message,
-            p_link: link,
-            p_metadata: metadata
+        // Use Secure API Route instead of direct RPC/Insert
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+
+        if (!token) {
+            console.warn('Cannot send notification: No session token');
+            return;
+        }
+
+        const response = await fetch('/api/notifications/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                userId,
+                type,
+                title,
+                message,
+                link,
+                metadata
+            })
         });
 
-        if (error) {
-            console.error('Error creating notification (RPC):', error);
-            // We don't want to block the main flow if notification fails
+        if (!response.ok) {
+            console.error('Error creating notification (API):', response.statusText);
         }
     } catch (err) {
         console.error('Unexpected error creating notification:', err);

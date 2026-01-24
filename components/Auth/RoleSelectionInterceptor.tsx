@@ -24,13 +24,14 @@ export const RoleSelectionInterceptor: React.FC = () => {
     // BUT user IS authenticated. "Logged in as guest" is weird.
     // Pawnecta logic: If logged in, you act as Client or Sitter.
     // So YES, intercept everywhere except maybe 'register' or 'logout'.
-    
-    const isExcludedRoute = ['/logout', '/register', '/login'].includes(router.pathname);
+
+    // Exclude Admin from interception too
+    const isExcludedRoute = ['/logout', '/register', '/login', '/admin'].includes(router.pathname) || router.pathname.startsWith('/usuario') || router.pathname.startsWith('/sitter');
     if (isExcludedRoute) return null;
 
     // If only one role, UserContext should have auto-selected it. 
     // If it didn't, it means we have multiple roles and no preference.
-    
+
     const handleSelect = (role: Role) => {
         switchRole(role);
         // UserContext switchRole handles the redirect and storage update
@@ -39,10 +40,11 @@ export const RoleSelectionInterceptor: React.FC = () => {
     return (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full relative animate-in zoom-in-95 duration-300">
-                <RoleSelector 
-                    userName={profile?.nombre || 'Usuario'} 
-                    onSelect={handleSelect} 
-                    showTitle={true} 
+                <RoleSelector
+                    userName={profile?.nombre || 'Usuario'}
+                    roles={roles} // Use roles from context (UserContext) which now includes admin
+                    onSelect={handleSelect}
+                    showTitle={true}
                 />
             </div>
         </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { getProxyImageUrl } from "../../lib/utils";
 import DateRangeAirbnb from "../DateRangeAirbnb";
 import PetsSelectorAirbnb, { PetsValue } from "../PetsSelectorAirbnb";
 import MyPetsSelector from "./MyPetsSelector";
@@ -55,6 +56,10 @@ import AddressAutocomplete from "../AddressAutocomplete";
 import dynamic from "next/dynamic";
 import ImageLightbox from "../ImageLightbox";
 
+
+import OnboardingProgress, { OnboardingStep } from "../Shared/OnboardingProgress"; // [NEW]
+
+
 const COMUNAS_SANTIAGO = [
     "Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia",
     "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo",
@@ -66,6 +71,13 @@ const COMUNAS_SANTIAGO = [
 export default function DashboardContent() {
     const router = useRouter();
     const { userId, addresses, loadingAddresses, refreshAddresses } = useClientData();
+
+    // Import dynamically or normally? Normally is fine.
+    // Adding import at top level via separate modify if needed, or assume I can add it here?
+    // replace_file_content can't add import at top if I target line 68.
+    // I will add import in next step or use multi_replace.
+
+    // ... logic below ...
 
     // Dynamic Map
     const LocationMap = dynamic(() => import("../Shared/LocationMap"), {
@@ -140,6 +152,15 @@ export default function DashboardContent() {
         }
     }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // [NEW] Handle Tab Linking from Onboarding or URL
+    useEffect(() => {
+        if (!router.isReady) return;
+        const { tab } = router.query;
+        if (tab && typeof tab === 'string' && ['datos', 'solicitudes', 'mascotas', 'direcciones'].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+    }, [router.isReady, router.query]);
+
     async function fetchTrips(uid: string) {
         try {
             setLoadingTrips(true);
@@ -207,7 +228,11 @@ export default function DashboardContent() {
     }
 
     async function fetchClientProfile(uid: string) {
-        const { data } = await supabase.from("registro_petmate").select("*").eq("auth_user_id", uid).single();
+        // OPTIMIZATION P1.2: Select only needed columns instead of *
+        const { data } = await supabase.from("registro_petmate")
+            .select("nombre, apellido_p, rut, telefono, latitud, longitud, comuna, region, mascotas_viaje, perros, gatos, foto_perfil, fecha_inicio, fecha_fin")
+            .eq("auth_user_id", uid)
+            .single();
         if (data) {
             setClientProfile(data);
             if (data.nombre && !nombre) setNombre(data.nombre);
@@ -999,6 +1024,33 @@ export default function DashboardContent() {
                 {/* MAIN CONTENT: Reservas y Datos (Col-span-8) */}
                 <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
 
+                    {/* [NEW] Onboarding Progress */}
+                    {clientProfile && (
+                        <OnboardingProgress
+                            role="cliente"
+                            steps={[
+                                {
+                                    label: "Datos de Contacto",
+                                    completed: !!(clientProfile.telefono && clientProfile.rut && clientProfile.nombre),
+                                    href: "/usuario?tab=datos",
+                                    actionLabel: "Editar"
+                                },
+                                {
+                                    label: "Mascotas Registradas",
+                                    completed: myPets.length > 0,
+                                    href: "/usuario/mascotas/nueva",
+                                    actionLabel: "Agregar"
+                                },
+                                {
+                                    label: "Dirección Guardada",
+                                    completed: addresses.length > 0,
+                                    href: "/usuario?tab=direcciones",
+                                    actionLabel: "Agregar"
+                                }
+                            ]}
+                        />
+                    )}
+
                     {/* TAB NAVIGATION (Soft Green Pill Style + Container) */}
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 mb-8 flex flex-wrap gap-2">
                         <button
@@ -1222,8 +1274,14 @@ export default function DashboardContent() {
                                         </div>
                                     ) : (
                                         /* FORM VIEW */
-                                        <div className="relative z-10 p-6 lg:p-8">
-                                            <div className="flex items-center justify-between mb-6">
+                                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+                                            <h1 className="text-3xl font-bold text-slate-900">Hola, {nombre || 'Usuario'}</h1>
+                                            <p className="text-slate-500 mb-6">Gestiona tus mascotas y solicitudes desde aquí.</p>
+
+                                            {/* [NEW] Onboarding Progress */}
+
+
+                                            <div className="flex items-center justify-between mt-1">
                                                 <h3 className="text-lg font-bold text-slate-900">
                                                     {rango ? 'Editando Solicitud' : 'Nueva Solicitud'}
                                                 </h3>
@@ -1688,7 +1746,7 @@ export default function DashboardContent() {
                     {/* Lightbox */}
                     {clientProfile?.foto_perfil && (
                         <ImageLightbox
-                            src={clientProfile.foto_perfil}
+                            src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
                             alt="Foto de perfil"
                             isOpen={isLightboxOpen}
                             onClose={() => setIsLightboxOpen(false)}

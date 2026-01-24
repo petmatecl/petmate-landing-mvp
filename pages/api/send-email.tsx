@@ -14,9 +14,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { type, to, data } = req.body;
 
-    if (!to || !type) {
-        return res.status(400).json({ error: 'Missing required fields' });
+    // 1. Validate 'to' email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!to || typeof to !== 'string' || !emailRegex.test(to)) {
+        return res.status(400).json({ error: 'Invalid email address' });
     }
+
+    // 2. Validate 'type' whitelist
+    const VALID_TYPES = ['welcome', 'new_request', 'request_status', 'booking_confirmation', 'new_message', 'trip_cancellation'];
+    if (!type || typeof type !== 'string' || !VALID_TYPES.includes(type)) {
+        return res.status(400).json({ error: 'Invalid email type' });
+    }
+
+    // 3. Validate 'data' object
+    if (!data || typeof data !== 'object') {
+        return res.status(400).json({ error: 'Invalid data payload' });
+    }
+
+    // [Optional] Rate Limiting Placeholder
+    // In a real scenario, check Redis/KV for frequency by IP or UserID here.
+    // For MVP serverless, we trust the caller triggers (protected by auth usually) or Vercel firewall.
 
     // Determine which template to use
     let emailComponent: React.ReactElement;

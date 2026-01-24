@@ -85,7 +85,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     // Calculate Onboarding Status
     const calculateOnboardingStatus = (u: any, p: UserProfile | null): OnboardingStep => {
         if (!u) return 'COMPLETE'; // Guest doesn't have onboarding per se
-        
+
         // 1. Profile Exists
         if (!p) return 'PROFILE_BASIC';
 
@@ -144,12 +144,19 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     // 3. Determine Active Role
                     if (finalProfile) {
                         const validRoles = finalProfile.roles || ['cliente'];
+
+                        // ADMIN INJECTION
+                        const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
+                        if (session.user.email && ADMIN_EMAILS.includes(session.user.email) && !validRoles.includes('admin')) {
+                            validRoles.push('admin');
+                        }
+
                         const storedRole = window.localStorage.getItem('activeRole') as Role;
 
                         // Priority 1: Stored Preference (if valid)
                         if (storedRole && validRoles.includes(storedRole)) {
                             setActiveRole(storedRole);
-                        } 
+                        }
                         // Priority 2: Single Role available (Auto-select)
                         else if (validRoles.length === 1) {
                             setActiveRole(validRoles[0] as Role);
@@ -158,7 +165,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         // Do NOT set activeRole. Keep it null.
                         // The RoleSelectionInterceptor will catch this state and prompt the user.
                         else {
-                            setActiveRole(null); 
+                            setActiveRole(null);
                         }
                     }
                 }

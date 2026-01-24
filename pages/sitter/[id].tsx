@@ -76,6 +76,7 @@ import BookingModal from "../../components/Sitter/BookingModal";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import ContactSitterButton from "../../components/Shared/ContactSitterButton";
+import CompletionBlocker from "../../components/Shared/CompletionBlocker"; // Import the blocker component
 
 const LocationMap = dynamic(() => import("../../components/Shared/LocationMap"), {
     ssr: false,
@@ -97,6 +98,47 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 
     // Estado de sesión para saber si es el dueño
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+    // [UX] Estados para validación de perfil
+    const [missingFields, setMissingFields] = useState<string[]>([]);
+    const [showCompletionModal, setShowCompletionModal] = useState(false);
+
+    // Validar perfil del cliente actual
+    const checkClientProfile = async () => {
+        if (!currentUserId) return false;
+
+        try {
+            const { data: profile } = await supabase.from("registro_petmate").select("telefono").eq("auth_user_id", currentUserId).single();
+            const { count: petsCount } = await supabase.from("mascotas").select("*", { count: 'exact', head: true }).eq("user_id", currentUserId);
+            // const { count: addrCount } = await supabase.from("direcciones").select("*", { count: 'exact', head: true }).eq("user_id", currentUserId); // Direccion not strictly required for chat, maybe for booking later. Let's stick to Phone + Pet.
+
+            const missing = [];
+            if (!profile?.telefono) missing.push("Teléfono de contacto");
+            if ((petsCount || 0) === 0) missing.push("Al menos una mascota");
+            // if ((addrCount || 0) === 0) missing.push("Al menos una dirección");
+
+            setMissingFields(missing);
+            return missing.length === 0;
+        } catch (e) {
+            console.error("Error checking profile", e);
+            return false;
+        }
+    };
+
+    const handleContactClick = async () => {
+        if (!currentUserId) {
+            // Redirect to login
+            window.location.href = `/login?redirect=/sitter/${profileData?.id}`;
+            return;
+        }
+
+        const isComplete = await checkClientProfile();
+        if (isComplete) {
+            setIsBookingModalOpen(true);
+        } else {
+            setShowCompletionModal(true);
+        }
+    };
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -216,8 +258,8 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 
                     // 3. Fetch Client Info for Email
                     const { data: clientData, error: clientError } = await supabase
-                        .from('profiles') // Assuming profiles table stores user info
-                        .select('nombre, apellido_p, email') // Assuming columns
+                        .from('registro_petmate')
+                        .select('nombre, apellido_p, email')
                         .eq('auth_user_id', pendingApplication.viajes.user_id)
                         .single();
 
@@ -282,7 +324,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         setLoadingTrips(true);
         const { data } = await supabase
             .from("viajes")
-            .select("*")
+            .select("id, fecha_inicio, fecha_fin, servicio, perros, gatos, estado") // OPTIMIZATION P1.2
             .eq("user_id", currentUserId)
             .eq("sitter_id", profileData.auth_user_id)
             .neq("estado", "cancelado")
@@ -526,14 +568,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => {
-                                            if (currentUserId) {
-                                                setIsBookingModalOpen(true);
-                                            } else {
-                                                // Redirigir a login si no está logueado
-                                                window.location.href = `/login?redirect=/sitter/${petmate.id}`;
-                                            }
-                                        }}
+                                        onClick={handleContactClick}
                                         className="w-full mt-2 btn-primary py-3 shadow-lg shadow-emerald-100 hover:shadow-xl transition-shadow"
                                     >
                                         Solicitar Cuidado / Contactar
@@ -978,6 +1013,27 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
                     </div>
                 )}
             </div >
+            {/* Modal de Validación de Perfil */}
+            {showCompletionModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md relative animate-in fade-in zoom-in-95 duration-200">
+                        <button
+                            onClick={() => setShowCompletionModal(false)}
+                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                        >
+                            ✕
+                        </button>
+                        <CompletionBlocker
+                            title="Antes de contactar..."
+                            message="Para enviar una solicitud, necesitamos un par de datos básicos para coordinar con el sitter."
+                            missingFields={missingFields}
+                            redirectUrl="/usuario"
+                            redirectText="Completar mi Perfil"
+                            isApproved={true}
+                        />
+                    </div>
+                </div>
+            )}
         </>
     );
 }
@@ -985,64 +1041,47 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
 export async function getServerSideProps(context: any) {
     const { id } = context.params;
     const soupUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!soupUrl) {
-        return { props: { petmate: null, error: "Configuration Error: Missing API URL" } };
+    if (!soupUrl || !anonKey) {
+        return { props: { petmate: null, error: "Configuration Error: Missing API URL or Key" } };
     }
 
-    let supabaseAdmin;
+    // SECURITY FIX: Never use Service Role Key in public SSR.
+    // Use Anon Key so RLS policies are respected.
+    const supabasePublic = createClient(soupUrl, anonKey);
 
-    // Intentar usar Service Key para bypass RLS (necesario para "Vista Previa" de dueños)
-    if (serviceKey) {
-        try {
-            supabaseAdmin = createClient(soupUrl, serviceKey);
-        } catch (e) {
-            console.error("Error creating Service Client:", e);
-        }
-    }
-
-    // Fallback: Usar Anon Key (solo verá perfiles públicos/aprobados)
-    if (!supabaseAdmin && anonKey) {
-        console.warn("Service Role Key missing or invalid. Falling back to Anon Key.");
-        try {
-            supabaseAdmin = createClient(soupUrl, anonKey);
-        } catch (e) {
-            console.error("Error creating Anon Client:", e);
-        }
-    }
-
-    if (!supabaseAdmin) {
-        return { props: { petmate: null, error: "Configuration Error: No valid Supabase Key found" } };
-    }
+    // Define public fields projection to avoid exposing private data like phone/email/rut in JSON props
+    const publicFields = `
+        id, nombre, apellido_p, descripcion, comuna, region, price,
+        edad, ocupacion, tiene_mascotas, sexo, tipo_vivienda,
+        max_mascotas_en_casa, max_mascotas_domicilio,
+        redes_sociales, foto_perfil, galeria, fotos_vivienda, videos,
+        latitud, longitud, auth_user_id, aprobado,
+        servicio_a_domicilio, servicio_en_casa, tarifa_servicio_a_domicilio,
+        cuida_perros, cuida_gatos,
+        acepta_cachorros, acepta_sin_esterilizar, permite_cama, permite_sofa,
+        mascotas_no_encerradas, capacidad_maxima, supervision_24_7
+    `.replace(/\s+/g, ''); // Remove whitespace for valid select string
 
     // 1. Try fetching by ID (PK)
-    let { data, error } = await supabaseAdmin
+    // Enforce approved=true for public access via SSR
+    let { data, error } = await supabasePublic
         .from("registro_petmate")
-        .select("*")
+        .select(publicFields)
         .eq("id", id)
+        .eq("aprobado", true)
         .single();
 
-    // 2. If not found, try fetching by auth_user_id (Fallback for legacy links)
-    if (!data && !error) {
-        // Only try if id looks like a UUID to avoid syntax errors, though param is usually string
-        const { data: authData, error: authError } = await supabaseAdmin
+    // 2. Fallback: Try by auth_user_id (legacy links)
+    if (!data) {
+        // Only try if id looks like a UUID to avoid syntax errors? 
+        // Supabase handles string comparison fine usually.
+        const { data: authData } = await supabasePublic
             .from("registro_petmate")
-            .select("*")
+            .select(publicFields)
             .eq("auth_user_id", id)
-            .single();
-
-        if (authData) {
-            data = authData;
-        }
-    } else if (error && error.code === 'PGRST116') {
-        // PGRST116 = JSON object requested, multiple (or no) rows returned
-        // Try by auth_user_id
-        const { data: authData } = await supabaseAdmin
-            .from("registro_petmate")
-            .select("*")
-            .eq("auth_user_id", id)
+            .eq("aprobado", true)
             .single();
 
         if (authData) {
@@ -1051,37 +1090,26 @@ export async function getServerSideProps(context: any) {
         }
     }
 
-    // If error is "No rows found" (PGRST116) AND we still rely on RLS/Client fetch:
-    // We return null data but NO error string, so the client can try fetching with their session.
-    if (error || !data) {
-        console.log("SSR Fetch failed or empty (RLS or Wrong ID):", error?.message);
+    // Note: If data is null (e.g. profile exists but approved=false),
+    // we return null props. The Client-Side useEffect will retry
+    // with the user's session active, allowing the owner to view their own preview.
+
+    if (!data) {
         return {
             props: {
                 petmate: null,
                 id: id,
-                // Only return 'error' if it's NOT a "not found" issue, to allow client retry.
-                error: null
+                error: null // No error, just no public data found
             }
         };
     }
 
-    // 4. Calculate Age if missing
-    if (data && !data.edad && data.fecha_nacimiento) {
-        try {
-            const birthDate = new Date(data.fecha_nacimiento);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            if (!isNaN(age)) {
-                data.edad = age;
-            }
-        } catch (e) {
-            console.error("Error calculating age:", e);
-        }
-    }
+    // 4. Calculate Age if missing (and birthday was selected - wait, birthdate is private?)
+    // If birthdate is private, we can't calculate age here unless we fetch it.
+    // Ideally 'edad' is stored or computed. 
+    // If 'fecha_nacimiento' is NOT in publicFields, we cannot compute it here.
+    // We should rely on the stored 'edad' field or assume the sensitive birthdate is not for public eyes.
+    // Let's Skip calculation to protect 'fecha_nacimiento'.
 
     return {
         props: {

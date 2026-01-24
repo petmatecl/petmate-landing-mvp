@@ -5,10 +5,11 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Edit2, Trash2, Calendar, Home, Hotel, CheckCircle2, Users, User, Phone, MapPin, Mail, ChevronDown, ChevronUp, Clock, Dog, Cat, Search, FileText, Download, Info, Eye } from "lucide-react";
 import ContactSitterButton from "../Shared/ContactSitterButton";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// import jsPDF from 'jspdf';
+// import autoTable from 'jspdf-autotable';
 import { PDFPreviewModal } from "../Shared/PDFPreviewModal";
 import TripDetailsModal from "./TripDetailsModal";
+import { getProxyImageUrl } from "../../lib/utils";
 
 export type Trip = {
     id: string;
@@ -88,7 +89,10 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
     const [showPdfPreview, setShowPdfPreview] = useState(false);
     const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
 
-    const getPDFDoc = () => {
+    const getPDFDoc = async () => {
+        const jsPDF = (await import('jspdf')).default;
+        const autoTable = (await import('jspdf-autotable')).default;
+
         const doc = new jsPDF();
 
         // Brand Colors
@@ -155,15 +159,15 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
         return doc;
     };
 
-    const handlePreviewPDF = () => {
-        const doc = getPDFDoc();
+    const handlePreviewPDF = async () => {
+        const doc = await getPDFDoc();
         const pdfBlob = doc.output('bloburl');
         setPdfPreviewUrl(pdfBlob.toString());
         setShowPdfPreview(true);
     };
 
-    const handleDownloadPDF = () => {
-        const doc = getPDFDoc();
+    const handleDownloadPDF = async () => {
+        const doc = await getPDFDoc();
         doc.save(`Ficha_Pawnecta_${trip.id.slice(0, 8)}.pdf`);
     };
 
@@ -268,7 +272,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sitter Asignado</p>
                                 <div className="flex items-center gap-3 group">
                                     <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-12 h-12 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0 flex items-center justify-center group-hover:ring-2 ring-emerald-100 transition-all">
-                                        {trip.sitter?.foto_perfil ? <img src={trip.sitter.foto_perfil} className="w-full h-full object-cover" alt="Foto Sitter" /> : <User size={20} className="text-emerald-700" />}
+                                        {trip.sitter?.foto_perfil ? <img src={getProxyImageUrl(trip.sitter.foto_perfil)} className="w-full h-full object-cover" alt="Foto Sitter" /> : <User size={20} className="text-emerald-700" />}
                                     </Link>
                                     <div>
                                         <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="font-bold text-slate-900 hover:text-emerald-700 transition-colors">
@@ -362,7 +366,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             <div className="bg-amber-50 rounded-lg p-4 border border-amber-200 flex flex-col md:flex-row items-center gap-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold border border-amber-200">
-                                        {trip.sitter?.foto_perfil ? <img src={trip.sitter.foto_perfil} className="w-full h-full rounded-full object-cover" alt="Sitter Aceptado" /> : trip.sitter.nombre.charAt(0)}
+                                        {trip.sitter?.foto_perfil ? <img src={getProxyImageUrl(trip.sitter.foto_perfil)} className="w-full h-full rounded-full object-cover" alt="Sitter Aceptado" /> : trip.sitter.nombre.charAt(0)}
                                     </div>
                                     <div>
                                         <p className="font-bold text-slate-900">{trip.sitter.nombre} ha aceptado</p>
@@ -386,7 +390,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
 
                                 <div className="flex items-center gap-4 pl-2 w-full md:w-auto">
                                     <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold border-2 border-slate-100 overflow-hidden shadow-sm shrink-0">
-                                        {trip.sitter?.foto_perfil ? <img src={trip.sitter.foto_perfil} className="w-full h-full object-cover" alt="Sitter Pendiente" /> : <User size={24} />}
+                                        {trip.sitter?.foto_perfil ? <img src={getProxyImageUrl(trip.sitter.foto_perfil)} className="w-full h-full object-cover" alt="Sitter Pendiente" /> : <User size={24} />}
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Solicitud Enviada a</p>

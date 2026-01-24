@@ -165,12 +165,13 @@ export default function LoginPage() {
     return (
       <div className="page">
         <div className="wrap">
-           <Card variant="elevated" padding="l" className="login-card">
-              <RoleSelector 
-                  userName={userName} 
-                  onSelect={handleRoleSelect} 
-              />
-           </Card>
+          <Card variant="elevated" padding="l" className="login-card">
+            <RoleSelector
+              userName={userName}
+              roles={availableRoles}
+              onSelect={handleRoleSelect}
+            />
+          </Card>
         </div>
         <style jsx>{`
           .page {
@@ -205,7 +206,16 @@ export default function LoginPage() {
               Ingresa a tu cuenta de Pawnecta
             </p>
 
-            <form onSubmit={handleSubmit} className="form">
+            {/* Config Warning for Production */}
+            {process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder") && (
+              <div className="bg-amber-100 text-amber-800 p-4 rounded-lg mb-4 text-sm font-bold border border-amber-300">
+                ⚠️ ALERTA: Supabase no está configurado.
+                <br />
+                Faltan las variables de entorno NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY en Vercel.
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="form" method="POST">
 
               {/* Correo */}
               <div className="field">

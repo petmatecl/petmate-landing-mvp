@@ -1,9 +1,11 @@
 ﻿import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { createNotification } from "../lib/notifications";
+import { getProxyImageUrl } from "../lib/utils";
 import { Card } from "../components/Shared/Card";
 import { format, differenceInYears, subYears, isAfter, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -32,6 +34,7 @@ import ImageLightbox from "../components/ImageLightbox";
 import AvailabilityCalendar from "../components/Sitter/AvailabilityCalendar";
 import { Skeleton } from "../components/Shared/Skeleton";
 import ChatLayout from "../components/Chat/ChatLayout";
+import OnboardingProgress from "../components/Shared/OnboardingProgress";
 
 function SitterDashboardSkeleton() {
     return (
@@ -112,6 +115,7 @@ const OCUPACIONES = [
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 export default function SitterDashboardPage() {
+    const router = useRouter();
     const [nombre, setNombre] = useState<string | null>(null);
     const [email, setEmail] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -143,6 +147,23 @@ export default function SitterDashboardPage() {
     const [selectedChatUser, setSelectedChatUser] = useState<string | null>(null);
     const [availabilityCount, setAvailabilityCount] = useState(0);
     const [selectedTripForApplication, setSelectedTripForApplication] = useState<any | null>(null);
+
+    // [NEW] Handle URL Deep Linking
+    useEffect(() => {
+        if (!router.isReady) return;
+        const { tab, section } = router.query;
+
+        if (tab && typeof tab === 'string' && ['solicitudes', 'servicios', 'perfil', 'disponibilidad', 'mensajes'].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+
+        if (section && typeof section === 'string' && ['personal', 'documents', 'video'].includes(section)) {
+            setExpandedSections(prev => ({
+                ...prev,
+                [section]: true
+            }));
+        }
+    }, [router.isReady, router.query]);
 
     // Helpers for Price Formatting
     const formatPrice = (value: number | null | undefined) => {
@@ -1133,7 +1154,7 @@ export default function SitterDashboardPage() {
                                 <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md">
                                     {profileData.foto_perfil ? (
                                         <Image
-                                            src={profileData.foto_perfil}
+                                            src={getProxyImageUrl(profileData.foto_perfil) || ''}
                                             alt="Perfil"
                                             fill
                                             className="object-cover"
@@ -1171,6 +1192,48 @@ export default function SitterDashboardPage() {
                         </div>
                     </header>
 
+                    {/* [NEW] Onboarding Progress */}
+                    {!loading && profileData && (
+                        <div className="mb-8">
+                            <OnboardingProgress
+                                role="sitter"
+                                title="Completa tu perfil de Sitter"
+                                steps={[
+                                    {
+                                        label: "Información Personal",
+                                        completed: !!(profileData.telefono && profileData.region && profileData.comuna && profileData.rut),
+                                        actionLabel: "Completar",
+                                        href: "?tab=perfil&section=personal"
+                                    },
+                                    {
+                                        label: "Perfil (Bio & Foto)",
+                                        completed: !!(profileData.descripcion && profileData.descripcion.length > 50 && profileData.foto_perfil),
+                                        actionLabel: "Editar",
+                                        href: "?tab=perfil&section=personal"
+                                    },
+                                    {
+                                        label: "Tarifas y Servicios",
+                                        completed: !!(profileData.tarifa_servicio_a_domicilio || profileData.tarifa_servicio_en_casa),
+                                        actionLabel: "Configurar",
+                                        href: "?tab=servicios"
+                                    },
+                                    {
+                                        label: "Seguridad (Antecedentes)",
+                                        completed: !!profileData.certificado_antecedentes,
+                                        actionLabel: "Subir",
+                                        href: "?tab=perfil&section=documents"
+                                    },
+                                    {
+                                        label: "Video de Presentación",
+                                        completed: !!profileData.video_presentacion,
+                                        actionLabel: "Subir",
+                                        href: "?tab=perfil&section=video"
+                                    }
+                                ]}
+                            />
+                        </div>
+                    )}
+
 
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -1191,7 +1254,7 @@ export default function SitterDashboardPage() {
                                         >
                                             {profileData.foto_perfil ? (
                                                 <Image
-                                                    src={profileData.foto_perfil}
+                                                    src={getProxyImageUrl(profileData.foto_perfil) || ''}
                                                     alt="Foto perfil"
                                                     fill
                                                     className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -1308,7 +1371,7 @@ export default function SitterDashboardPage() {
                                                     onClick={() => setSelectedImage(photo)}
                                                 >
                                                     <Image
-                                                        src={photo}
+                                                        src={getProxyImageUrl(photo) || ''}
                                                         alt={`Foto ${index + 1}`}
                                                         fill
                                                         className="object-cover transition-transform duration-500 group-hover/photo:scale-110"
@@ -1369,7 +1432,7 @@ export default function SitterDashboardPage() {
                                                         onClick={() => setSelectedImage(photo)}
                                                     >
                                                         <Image
-                                                            src={photo}
+                                                            src={getProxyImageUrl(photo) || ''}
                                                             alt={`Espacio ${index + 1}`}
                                                             fill
                                                             className="object-cover transition-transform duration-500 group-hover/photo:scale-110"

@@ -36,6 +36,10 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vubmjguwzpesxcgenkxo.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' blob: data: https://ui-avatars.com https://vubmjguwzpesxcgenkxo.supabase.co https://pwhplhjkmmbgnphcoibh.supabase.co https://images.pexels.com https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://vubmjguwzpesxcgenkxo.supabase.co wss://vubmjguwzpesxcgenkxo.supabase.co; frame-ancestors 'none';"
           }
         ]
       }
@@ -65,6 +69,15 @@ const nextConfig = {
         ],
         destination: 'https://www.pawnecta.com/:path*',
         permanent: true,
+      },
+    ]
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/supabase-proxy/:path*',
+        destination: `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'}/:path*`,
       },
     ]
   },

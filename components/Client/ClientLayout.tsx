@@ -5,6 +5,7 @@ import Link from 'next/link';
 // import dynamic from 'next/dynamic'; // Removed unused dynamic import
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
+import { getProxyImageUrl } from '../../lib/utils';
 import ImageLightbox from '../ImageLightbox';
 import ModalAlert from '../ModalAlert';
 // import AddressFormModal from './AddressFormModal'; // Removed
@@ -163,7 +164,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                             <div className="md:hidden relative w-10 h-10 rounded-full overflow-hidden border-2 border-slate-300 bg-white shrink-0">
                                 {clientProfile?.foto_perfil ? (
                                     <Image
-                                        src={clientProfile.foto_perfil}
+                                        src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
                                         alt="Foto perfil"
                                         fill
                                         className="object-cover"
@@ -187,11 +188,11 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                         </div>
                         {/* Notification Bell moved out of header to be "lower" */}
                     </header>
-                    
-                    {/* Floating Actions / Notifications Bar */}
-                    <div className="flex justify-end mb-4 px-2">
+
+                    {/* Floating Actions / Notifications Bar - Removed (Redundant with Header) */}
+                    {/* <div className="flex justify-end mb-4 px-2">
                          {userId && <NotificationCenter userId={userId} />}
-                    </div>
+                    </div> */}
 
                     {/* CLEAN LAYOUT: Just render children (DashboardContent handles the grid) */}
                     <div>

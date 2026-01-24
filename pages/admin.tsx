@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { useUser } from "../contexts/UserContext";
 import { supabase } from "../lib/supabaseClient";
 import SitterDetailModal from "../components/Admin/SitterDetailModal";
 import { ConfirmationModal } from "../components/Shared/ConfirmationModal";
@@ -39,10 +40,11 @@ function AdminDashboardSkeleton() {
     );
 }
 
-import * as XLSX from "xlsx";
+// import * as XLSX from "xlsx";
 
 export default function AdminDashboard() {
     const router = useRouter();
+    const { switchRole, activeRole } = useUser();
     const [loading, setLoading] = useState(true);
     const [tableLoading, setTableLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<"cliente" | "sitter" | "solicitudes">("sitter");
@@ -110,6 +112,17 @@ export default function AdminDashboard() {
     // ... (rest of state)
 
     useEffect(() => {
+        if (!loading && activeRole !== 'admin') {
+            // If we are authorized (loading=false implies checkAuth passed), force role
+            // But wait, checkAuth sets loading=false at the end.
+            // We can check localstorage or just call it.
+            // Be careful of infinite loops.
+            // Only switch if we are NOT admin.
+            switchRole('admin');
+        }
+    }, [loading, activeRole, switchRole]);
+
+    useEffect(() => {
         console.log("Admin Dashboard v1.1 - Loaded");
         setCurrentPage(1);
     }, [activeTab, searchTerm, filterStatus]);
@@ -137,6 +150,9 @@ export default function AdminDashboard() {
 
         // Verify auth matched, fetch stats but NOT users yet
         await fetchStats();
+
+        setLoading(false);
+
         setLoading(false);
     };
 
@@ -212,7 +228,7 @@ export default function AdminDashboard() {
         const queryRole = activeTab === 'sitter' ? 'petmate' : activeTab;
         const { data, error } = await supabase
             .from("registro_petmate")
-            .select("*")
+            .select("id, created_at, nombre, apellido_p, email, rut, telefono, direccion_completa, comuna, region, foto_perfil, aprobado, roles, ocupacion, edad, descripcion, servicio_en_casa, servicio_a_domicilio") // OPTIMIZATION P1.2
             .contains("roles", [queryRole])
             .order("created_at", { ascending: false });
 
@@ -228,7 +244,7 @@ export default function AdminDashboard() {
         // Fetch raw trips
         const { data: viajes, error } = await supabase
             .from("viajes")
-            .select("*")
+            .select("id, created_at, user_id, sitter_id, estado, servicio, fecha_inicio, fecha_fin, total") // OPTIMIZATION P1.2
             .order("created_at", { ascending: false });
 
         if (error) {
@@ -464,7 +480,7 @@ export default function AdminDashboard() {
     );
 
     // --- EXPORTAR ---
-    const handleExport = () => {
+    const handleExport = async () => {
         if (filteredItems.length === 0) {
             alert("No hay datos para exportar con los filtros actuales.");
             return;
@@ -509,6 +525,7 @@ export default function AdminDashboard() {
             }));
         }
 
+        const XLSX = await import("xlsx");
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, activeTab.toUpperCase());

@@ -14,7 +14,7 @@ export default function Header() {
   const router = useRouter();
 
   // Use Unified Context
-  const { user, profile, isAuthenticated, activeRole, logout } = useUser();
+  const { user, profile, isAuthenticated, activeRole, logout, switchRole, roles } = useUser();
 
   // Nombre a mostrar
   const userName = profile?.nombre || user?.user_metadata?.nombre || "Usuario";
@@ -32,7 +32,8 @@ export default function Header() {
 
   // Route logic based on ACTIVE ROLE preference
   const isSitterActive = activeRole === 'petmate';
-  const dashboardLink = isSitterActive ? "/sitter" : "/usuario";
+  const isAdminActive = activeRole === 'admin';
+  const dashboardLink = isAdminActive ? "/admin" : (isSitterActive ? "/sitter" : "/usuario");
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">
@@ -111,7 +112,37 @@ export default function Header() {
                 </span>
                 <span className="text-sm font-medium text-emerald-900">{userName}</span>
               </div>
+
+              {/* Profile Switcher & Unread Badge */}
               <NotificationBell />
+
+              {/* Multi-role Switcher */}
+              {(profile?.roles && profile.roles.length > 1) && (
+                <div className="relative group">
+                  <button className="inline-flex items-center gap-1 rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors uppercase tracking-wide">
+                    {activeRole === 'petmate' ? 'Sitter' : activeRole === 'admin' ? 'Admin' : 'Usuario'}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hidden group-hover:block animate-in fade-in zoom-in-95 duration-200">
+                    <div className="p-2 space-y-1">
+                      {profile.roles.map(r => (
+                        <button
+                          key={r}
+                          onClick={() => {
+                            if (activeRole !== r) {
+                              switchRole(r as any);
+                            }
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeRole === r ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          {r === 'petmate' ? 'Sitter' : r === 'admin' ? 'Admin' : 'Usuario'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Link
                 href="/mensajes"
                 className="inline-flex items-center rounded-xl bg-white border-2 border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2 relative"

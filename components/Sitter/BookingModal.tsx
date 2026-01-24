@@ -17,6 +17,7 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
     const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
     const [sending, setSending] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [checkingDupe, setCheckingDupe] = useState(false); // [LOGIC] State for duplicate validation
 
     useEffect(() => {
         if (isOpen) {
@@ -38,7 +39,7 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
         // O que sean 'borrador'.
         const { data, error } = await supabase
             .from("viajes")
-            .select("*")
+            .select("id, servicio, fecha_inicio, fecha_fin, perros, gatos, estado, created_at") // OPTIMIZATION P1.2
             .eq("user_id", session.user.id)
             .in("estado", ["borrador", "publicado", "solicitado_por_cliente"]) // Allow re-requesting if not confirmed
             //.is("sitter_id", null) // Now we don't rely on sitter_id for availability check strictly, but good for MVP
@@ -54,7 +55,28 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
         if (!selectedTripId) return;
         setSending(true);
 
-        // 1. Create Postulacion
+        // 1. [LOGIC] Check for existing duplicate postulation
+        // Prevent double booking for the same trip/sitter pair if already pending
+        setCheckingDupe(true);
+        const { data: existingPostulacion } = await supabase
+            .from("postulaciones")
+            .select("id")
+            .eq("viaje_id", selectedTripId)
+            .eq("sitter_id", sitterAuthId)
+            .in("estado", ["pendiente", "aceptada"]) // Check if already pending or accepted
+            .order("created_at", { ascending: false }) // Get latest
+            .limit(1)
+            .single();
+
+        setCheckingDupe(false);
+
+        if (existingPostulacion) {
+            alert("Ya existe una solicitud pendiente o aceptada para este viaje con este cuidador.");
+            setSending(false);
+            return;
+        }
+
+        // 2. Create Postulacion
         const { error: postError } = await supabase
             .from("postulaciones")
             .insert({
@@ -96,6 +118,8 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
         // [REMOVED] Notification (Handled by DB Trigger)
         // await createNotification({...});
 
+        setIsSuccess(true);
+        onSuccess();
         setIsSuccess(true);
         onSuccess();
         setSending(false);
@@ -195,11 +219,11 @@ export default function BookingModal({ isOpen, onClose, sitterAuthId, sitterName
                                 Cancelar
                             </button>
                             <button
-                                disabled={!selectedTripId || sending}
+                                disabled={!selectedTripId || sending || checkingDupe}
                                 onClick={handleSendRequest}
                                 className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {sending ? "Enviando..." : "Enviar Solicitud"}
+                                {checkingDupe ? "Verificando..." : sending ? "Enviando..." : "Enviar Solicitud"}
                             </button>
                         </div>
                         <div className="px-6 pb-4 text-center">

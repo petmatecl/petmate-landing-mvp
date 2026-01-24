@@ -165,13 +165,17 @@ export default function DocsFlowsPage() {
     const [selectedDiagram, setSelectedDiagram] = useState<FlowDiagram | null>(null);
 
     useEffect(() => {
-        mermaid.run({ querySelector: '.mermaid' });
+        (async () => {
+            const mermaid = (await import('mermaid')).default;
+            mermaid.run({ querySelector: '.mermaid' });
+        })();
     }, [selectedDiagram]);
 
     // Re-render mermaid when modal opens too
     useEffect(() => {
         if (selectedDiagram) {
-            setTimeout(() => {
+            setTimeout(async () => {
+                const mermaid = (await import('mermaid')).default;
                 mermaid.run({ querySelector: '.mermaid-modal' });
             }, 100);
         }
