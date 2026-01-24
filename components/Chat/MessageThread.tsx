@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useOnlineStatus } from '../../components/Shared/OnlineStatusProvider';
+import { getProxyImageUrl } from '../../lib/utils';
 
 interface Props {
     conversationId: string;
@@ -247,7 +248,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     <div className="relative">
                         {otherUser.foto_perfil ? (
                             <img
-                                src={otherUser.foto_perfil}
+                                src={getProxyImageUrl(otherUser.foto_perfil) || ''}
                                 alt={otherUser.nombre}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-slate-300"
                             />

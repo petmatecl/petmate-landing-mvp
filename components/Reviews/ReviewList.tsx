@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import ImageLightbox from '../ImageLightbox';
+import { getProxyImageUrl } from '../../lib/utils';
 
 interface ReviewListProps {
     reviews: Review[];
@@ -42,7 +43,7 @@ export default function ReviewList({ reviews }: ReviewListProps) {
                             <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold uppercase text-sm relative overflow-hidden">
                                 {review.cliente?.foto_perfil || review.foto_cliente_manual ? (
                                     <Image
-                                        src={review.cliente?.foto_perfil || review.foto_cliente_manual || ''}
+                                        src={getProxyImageUrl(review.cliente?.foto_perfil || review.foto_cliente_manual) || ''}
                                         alt={review.cliente?.nombre || review.nombre_cliente_manual || 'Usuario'}
                                         fill
                                         className="object-cover"
@@ -87,7 +88,7 @@ export default function ReviewList({ reviews }: ReviewListProps) {
                                     onClick={() => openLightbox(foto, `Foto reseña ${review.cliente?.nombre}`)}
                                 >
                                     <Image
-                                        src={foto}
+                                        src={getProxyImageUrl(foto) || ''}
                                         alt={`Foto reseña ${idx + 1}`}
                                         fill
                                         className="object-cover"

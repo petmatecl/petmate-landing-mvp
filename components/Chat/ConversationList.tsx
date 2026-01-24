@@ -4,6 +4,7 @@ import { Conversation } from '../../types/chat';
 import { User, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { getProxyImageUrl } from '../../lib/utils';
 
 interface Props {
     selectedId: string | null;
@@ -166,7 +167,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                         <div className="relative">
                             {other?.foto_perfil ? (
                                 <img
-                                    src={other.foto_perfil}
+                                    src={getProxyImageUrl(other.foto_perfil) || ''}
                                     alt={other.nombre}
                                     className="w-12 h-12 rounded-full object-cover border-2 border-slate-300"
                                 />

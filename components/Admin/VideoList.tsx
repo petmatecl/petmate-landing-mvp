@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Download, Play, Search, User } from 'lucide-react';
 import { Skeleton } from '../Shared/Skeleton';
+import { getProxyImageUrl } from '../../lib/utils';
 
 export default function VideoList() {
     const [sitters, setSitters] = useState<any[]>([]);
@@ -119,7 +120,7 @@ export default function VideoList() {
                                     <div className="p-4">
                                         <div className="flex items-center gap-3 mb-2">
                                             {sitter.foto_perfil ? (
-                                                <img src={sitter.foto_perfil} alt={sitter.nombre} className="w-10 h-10 rounded-full object-cover border-2 border-slate-300" />
+                                                <img src={getProxyImageUrl(sitter.foto_perfil) || ''} alt={sitter.nombre} className="w-10 h-10 rounded-full object-cover border-2 border-slate-300" />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                                                     <User size={20} />

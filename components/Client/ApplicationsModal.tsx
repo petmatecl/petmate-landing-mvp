@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { getProxyImageUrl } from "../../lib/utils";
 import { ConfirmationModal } from "../Shared/ConfirmationModal";
 import { createNotification } from "../../lib/notifications";
 import { toast } from "sonner";
@@ -213,7 +214,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                                         <div className="flex items-start gap-4 flex-1">
                                             {app.sitter?.foto_perfil ? (
                                                 <img
-                                                    src={app.sitter.foto_perfil}
+                                                    src={getProxyImageUrl(app.sitter.foto_perfil) || ''}
                                                     alt={app.sitter.nombre}
                                                     className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
                                                 />

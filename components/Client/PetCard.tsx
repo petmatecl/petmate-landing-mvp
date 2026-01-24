@@ -1,5 +1,6 @@
 import { Card } from "../Shared/Card";
 import { Edit2, Mars, Venus } from "lucide-react";
+import { getProxyImageUrl } from "../../lib/utils";
 
 export type Pet = {
     id: string;
@@ -75,7 +76,7 @@ export default function PetCard({ pet, onEdit, ...props }: PetCardProps) {
                 <div className="w-20 h-20 flex-shrink-0">
                     {pet.foto_mascota ? (
                         <div className="w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
-                            <img src={pet.foto_mascota} alt={pet.nombre} className="w-full h-full object-cover" />
+                            <img src={getProxyImageUrl(pet.foto_mascota) || ''} alt={pet.nombre} className="w-full h-full object-cover" />
                         </div>
                     ) : (
                         <div

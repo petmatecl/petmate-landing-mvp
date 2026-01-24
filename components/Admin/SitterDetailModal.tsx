@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { getProxyImageUrl } from "../../lib/utils";
 
 type SitterData = {
     id: string;
@@ -114,7 +115,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-slate-300 shadow-sm mb-3">
                                     {sitter.foto_perfil ? (
                                         <Image
-                                            src={sitter.foto_perfil}
+                                            src={getProxyImageUrl(sitter.foto_perfil) || ''}
                                             alt="Perfil"
                                             fill
                                             className="object-cover"
@@ -274,7 +275,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     <div className="grid grid-cols-4 gap-2">
                                         {sitter.galeria.map((img, idx) => (
                                             <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300">
-                                                <Image src={img} alt="Galeria" fill className="object-cover" unoptimized />
+                                                <Image src={getProxyImageUrl(img) || ''} alt="Galeria" fill className="object-cover" unoptimized />
                                             </div>
                                         ))}
                                     </div>
@@ -288,7 +289,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     <div className="grid grid-cols-4 gap-2">
                                         {sitter.fotos_vivienda.map((img, idx) => (
                                             <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300">
-                                                <Image src={img} alt="Galeria Hogar" fill className="object-cover" unoptimized />
+                                                <Image src={getProxyImageUrl(img) || ''} alt="Galeria Hogar" fill className="object-cover" unoptimized />
                                             </div>
                                         ))}
                                     </div>

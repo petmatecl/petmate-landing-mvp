@@ -204,7 +204,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                 {
                     clientProfile?.foto_perfil && (
                         <ImageLightbox
-                            src={clientProfile.foto_perfil}
+                            src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
                             alt="Foto de perfil"
                             isOpen={isLightboxOpen}
                             onClose={() => setIsLightboxOpen(false)}
