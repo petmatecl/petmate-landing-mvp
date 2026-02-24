@@ -20,7 +20,7 @@ export function Footer() {
             </Link>
           </div>
           <p className="text-sm text-slate-500 leading-relaxed">
-            Mascotas sin estrés, en la seguridad de tu hogar — o en casa de un Sitter de confianza.
+            El marketplace de servicios para mascotas más confiable de Chile.
           </p>
         </div>
 
@@ -29,18 +29,50 @@ export function Footer() {
           <h4 className="text-sm font-bold text-slate-900">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
-              <Link href="/servicios/domicilio" className="hover:text-emerald-600 transition-colors">
-                Pawnecta a domicilio
+              <Link href="/explorar?categoria=hospedaje" className="hover:text-emerald-600 transition-colors">
+                Hospedaje en casa del sitter
               </Link>
             </li>
             <li>
-              <Link href="/servicios/hospedaje" className="hover:text-emerald-600 transition-colors">
-                Estadía en casa del Sitter
+              <Link href="/explorar?categoria=domicilio" className="hover:text-emerald-600 transition-colors">
+                Cuidado a domicilio
               </Link>
             </li>
             <li>
-              <Link href="/faq" className="hover:text-emerald-400 transition-colors">
-                Preguntas Frecuentes
+              <Link href="/explorar?categoria=paseos" className="hover:text-emerald-600 transition-colors">
+                Paseo de perros
+              </Link>
+            </li>
+            <li>
+              <Link href="/explorar?categoria=peluqueria" className="hover:text-emerald-600 transition-colors">
+                Peluquería
+              </Link>
+            </li>
+            <li>
+              <Link href="/explorar?categoria=veterinario" className="hover:text-emerald-600 transition-colors">
+                Veterinario a domicilio
+              </Link>
+            </li>
+            <li>
+              <Link href="/explorar?categoria=adiestramiento" className="hover:text-emerald-600 transition-colors">
+                Adiestramiento
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Pawnecta */}
+        <div>
+          <h4 className="text-sm font-bold text-slate-900">Pawnecta</h4>
+          <ul className="mt-4 space-y-3 text-sm text-slate-600">
+            <li>
+              <Link href="/quienes-somos" className="hover:text-emerald-600 transition-colors">
+                Quiénes somos
+              </Link>
+            </li>
+            <li>
+              <Link href="/faq" className="hover:text-emerald-600 transition-colors">
+                Preguntas frecuentes
               </Link>
             </li>
             <li>
@@ -48,7 +80,11 @@ export function Footer() {
                 Blog
               </Link>
             </li>
-
+            <li>
+              <Link href="/register?rol=proveedor" className="hover:text-emerald-600 transition-colors">
+                Publicar mi servicio
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -68,11 +104,6 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-bold text-slate-900">Legal</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
-            <li>
-              <Link href="/quienes-somos" className="hover:text-emerald-600 transition-colors">
-                Quiénes somos
-              </Link>
-            </li>
             <li>
               <Link href="/terminos" className="hover:text-emerald-600 transition-colors">
                 Términos y Condiciones
@@ -117,7 +148,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-slate-300 py-6 text-center text-xs text-slate-400 font-medium">
-        © {new Date().getFullYear()} Pawnecta. Todos los derechos reservados.
+        © 2026 Pawnecta. Todos los derechos reservados.
       </div>
     </footer>
   );

@@ -37,16 +37,16 @@ export default function TerminosPage() {
                             <div className="pl-11">
                                 <ul className="space-y-4">
                                     <li className="flex gap-2">
-                                        <span className="font-bold text-slate-800 whitespace-nowrap">Dueño/Tutor:</span>
-                                        <span>usuario que busca un cuidador para su(s) mascota(s).</span>
+                                        <span className="font-bold text-slate-800 whitespace-nowrap">Usuario:</span>
+                                        <span>usuario que busca un proveedor para su(s) mascota(s).</span>
                                     </li>
                                     <li className="flex gap-2">
-                                        <span className="font-bold text-slate-800 whitespace-nowrap">Sitter/Cuidador:</span>
-                                        <span>usuario que ofrece servicios de cuidado.</span>
+                                        <span className="font-bold text-slate-800 whitespace-nowrap">Proveedor de servicios:</span>
+                                        <span>usuario que ofrece servicios de cuidado animal.</span>
                                     </li>
                                     <li className="flex gap-2">
-                                        <span className="font-bold text-slate-800 whitespace-nowrap">Servicio de Cuidado:</span>
-                                        <span>servicio acordado entre Dueño y Sitter (visitas, estadía, paseos u otros).</span>
+                                        <span className="font-bold text-slate-800 whitespace-nowrap">Servicio de Cuidado Animal:</span>
+                                        <span>servicio acordado entre Usuario y Proveedor de servicios.</span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="font-bold text-slate-800 whitespace-nowrap">Contenido:</span>
@@ -66,10 +66,10 @@ export default function TerminosPage() {
                                 Rol de Pawnecta (intermediación)
                             </h3>
                             <div className="pl-11 space-y-4">
-                                <p>Pawnecta es una plataforma de intermediación que permite conectar a Dueños y Sitters.</p>
+                                <p>Pawnecta es un marketplace en línea que conecta a dueños de mascotas con proveedores de servicios verificados en Chile. La plataforma facilita la conexión entre usuarios y proveedores, pero no es parte de los acuerdos de servicio ni procesa pagos entre las partes.</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
-                                    <li>Pawnecta <strong className="text-slate-800">no presta Servicios de Cuidado</strong>, no emplea sitters, no es parte del contrato entre Dueño y Sitter, y no actúa como aseguradora ni garante.</li>
-                                    <li>El acuerdo (fechas, tarifas, condiciones, cancelación, responsabilidades) se celebra directamente entre Dueño y Sitter.</li>
+                                    <li>Pawnecta <strong className="text-slate-800">no presta Servicios de Cuidado Animal</strong>, no emplea proveedores, no es parte del contrato entre Usuario y Proveedor de servicios, y no actúa como aseguradora ni garante.</li>
+                                    <li>El acuerdo (fechas, tarifas, condiciones, cancelación, responsabilidades) se celebra directamente entre Usuario y Proveedor de servicios.</li>
                                 </ul>
                             </div>
                         </section>
@@ -80,7 +80,7 @@ export default function TerminosPage() {
                                 Pagos
                             </h3>
                             <div className="pl-11">
-                                <p>En este MVP, Pawnecta no gestiona pagos ni retiene comisiones. Todo pago, reembolso o cobro se acuerda y ejecuta entre Dueño y Sitter, fuera de Pawnecta.</p>
+                                <p>En este MVP, Pawnecta no gestiona pagos ni retiene comisiones. Todo pago, reembolso o cobro se acuerda y ejecuta entre Usuario y Proveedor de servicios, fuera de Pawnecta.</p>
                             </div>
                         </section>
 
@@ -106,9 +106,9 @@ export default function TerminosPage() {
                             </h3>
                             <div className="pl-11">
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
-                                    <li>Para fines de seguridad y confianza, Pawnecta puede solicitar el RUT tanto de Dueños como de Sitters.</li>
-                                    <li>Para fines de seguridad de la comunidad, Pawnecta puede solicitar a los Sitters un Certificado de Antecedentes (u otra documentación de verificación).</li>
-                                    <li>La entrega del RUT y de la documentación solicitada puede ser requisito para activar o mantener funcionalidades (por ejemplo, publicar un perfil de Sitter o contactar usuarios).</li>
+                                    <li>Para fines de seguridad y confianza, Pawnecta puede solicitar el RUT tanto de Usuarios como de Proveedores de servicios.</li>
+                                    <li>Para fines de seguridad de la comunidad, Pawnecta puede solicitar a los Proveedores de servicios un Certificado de Antecedentes (u otra documentación de verificación).</li>
+                                    <li>La entrega del RUT y de la documentación solicitada puede ser requisito para activar o mantener funcionalidades (por ejemplo, publicar un perfil de Proveedor de servicios o contactar usuarios).</li>
                                     <li>El usuario declara que la información y documentos entregados son auténticos y vigentes. Entregar información falsa o adulterada es causal de suspensión o cierre de cuenta.</li>
                                     <li>La Verificación es limitada y no constituye certificación, garantía de conducta, ni aseguramiento de resultados. Los usuarios siguen siendo responsables de evaluar riesgos y acordar condiciones.</li>
                                 </ul>
@@ -134,10 +134,10 @@ export default function TerminosPage() {
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
                                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">8</span>
-                                Responsabilidades del Dueño (Tutor)
+                                Responsabilidades del Usuario
                             </h3>
                             <div className="pl-11">
-                                <p className="mb-4">El Dueño se obliga a:</p>
+                                <p className="mb-4">El Usuario se obliga a:</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
                                     <li>Entregar información relevante y veraz sobre la mascota (rutina, salud, alergias, comportamiento, necesidades especiales).</li>
                                     <li>Informar riesgos conocidos (p. ej., agresividad, historial de mordidas, escapes).</li>
@@ -151,15 +151,15 @@ export default function TerminosPage() {
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
                                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">9</span>
-                                Responsabilidades del Sitter (Cuidador)
+                                Responsabilidades del Proveedor de servicios
                             </h3>
                             <div className="pl-11">
-                                <p className="mb-4">El Sitter se obliga a:</p>
+                                <p className="mb-4">El Proveedor de servicios se obliga a:</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
                                     <li>Prestar el servicio con diligencia y cuidado razonable, conforme a lo acordado.</li>
-                                    <li>Cumplir lo ofrecido en su perfil y lo pactado con el Dueño.</li>
+                                    <li>Cumplir lo ofrecido en su perfil y lo pactado con el Usuario.</li>
                                     <li>Tratar a la(s) mascota(s) con respeto, evitando cualquier maltrato o negligencia.</li>
-                                    <li>Actuar responsablemente ante emergencias (contactar al Dueño y/o veterinaria según lo acordado).</li>
+                                    <li>Actuar responsablemente ante emergencias (contactar al Usuario y/o veterinaria según lo acordado).</li>
                                     <li>Cumplir la normativa aplicable que le corresponda (incluida la tributaria), si aplica.</li>
                                 </ul>
                             </div>
@@ -168,10 +168,10 @@ export default function TerminosPage() {
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
                                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">10</span>
-                                Acuerdo Dueño–Sitter (recomendación)
+                                Acuerdo Usuario–Proveedor (recomendación)
                             </h3>
                             <div className="pl-11">
-                                <p className="mb-4">Pawnecta recomienda que Dueño y Sitter dejen por escrito (por chat o correo, como mínimo):</p>
+                                <p className="mb-4">Pawnecta recomienda que Usuario y Proveedor de servicios dejen por escrito (por chat o correo, como mínimo):</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
                                     <li>Fechas/horarios, lugar del cuidado y tareas específicas.</li>
                                     <li>Tarifa, forma de pago, reembolsos y política de cancelación.</li>
@@ -204,7 +204,7 @@ export default function TerminosPage() {
                                 <p className="mb-4">En la máxima medida permitida por la ley:</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
                                     <li>Pawnecta no garantiza identidad, conducta, experiencia, disponibilidad, idoneidad o resultados de ningún usuario, aun cuando exista Verificación.</li>
-                                    <li>Pawnecta no es responsable por pérdidas, daños, robos, lesiones, accidentes, enfermedad o muerte de mascotas, daños a bienes o a terceros, ni por disputas de pago, cancelaciones o incumplimientos derivados del acuerdo directo entre Dueño y Sitter.</li>
+                                    <li>Pawnecta no es responsable por pérdidas, daños, robos, lesiones, accidentes, enfermedad o muerte de mascotas, daños a bienes o a terceros, ni por disputas de pago, cancelaciones o incumplimientos derivados del acuerdo directo entre Usuario y Proveedor de servicios.</li>
                                     <li>Pawnecta no responde por interrupciones del Sitio, fallas técnicas o indisponibilidad temporal.</li>
                                 </ul>
                             </div>
@@ -216,7 +216,7 @@ export default function TerminosPage() {
                                 Asunción de riesgo
                             </h3>
                             <div className="pl-11">
-                                <p>El Dueño y el Sitter reconocen que el cuidado de mascotas y/o el ingreso a domicilios puede implicar riesgos. Al usar Pawnecta, asumen dichos riesgos y se obligan a tomar precauciones razonables (conversación previa, verificación básica, acuerdo escrito, etc.).</p>
+                                <p>El Usuario y el Proveedor de servicios reconocen que el cuidado de mascotas y/o el ingreso a domicilios puede implicar riesgos. Al usar Pawnecta, asumen dichos riesgos y se obligan a tomar precauciones razonables (conversación previa, verificación básica, acuerdo escrito, etc.).</p>
                             </div>
                         </section>
 
@@ -226,12 +226,12 @@ export default function TerminosPage() {
                                 Indemnidad
                             </h3>
                             <div className="pl-11">
-                                <p className="mb-4">El usuario que corresponda (Dueño y/o Sitter) se obliga a mantener indemne a Pawnecta, Interactive SpA, sus directores, trabajadores y colaboradores frente a reclamos, acciones, pérdidas, sanciones y gastos (incluidos honorarios razonables) que se originen en:</p>
+                                <p className="mb-4">El usuario que corresponda (Usuario y/o Proveedor de servicios) se obliga a mantener indemne a Pawnecta, Interactive SpA, sus directores, trabajadores y colaboradores frente a reclamos, acciones, pérdidas, sanciones y gastos (incluidos honorarios razonables) que se originen en:</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
-                                    <li>incumplimientos del acuerdo Dueño–Sitter,</li>
+                                    <li>incumplimientos del acuerdo Usuario–Proveedor de servicios,</li>
                                     <li>infracciones legales,</li>
                                     <li>Contenido publicado,</li>
-                                    <li>daños o incidentes ocurridos durante o con ocasión del Servicio de Cuidado.</li>
+                                    <li>daños o incidentes ocurridos durante o con ocasión del Servicio de Cuidado Animal.</li>
                                 </ul>
                             </div>
                         </section>

@@ -4,28 +4,44 @@ import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
 const faqs = [
     {
-        question: "¿Cómo funciona Pawnecta?",
-        answer: "Pawnecta conecta a dueños de mascotas con cuidadores certificados (Petmates) de confianza. Puedes explorar perfiles, ver reseñas, y contactar directamente al cuidador que mejor se adapte a tus necesidades."
+        question: "¿Necesito crear una cuenta para buscar servicios?",
+        answer: "No. Puedes explorar todos los servicios y perfiles sin registrarte. Solo necesitas una cuenta cuando quieras contactar a un proveedor o dejar una evaluación."
     },
     {
-        question: "¿Es seguro dejar a mi mascota con un Petmate?",
-        answer: "¡Absolutamente! Todos nuestros Petmates pasan por un riguroso proceso de validación que incluye verificación de identidad, entrevistas y revisión de antecedentes. Además, contamos con un sistema de reseñas transparentes de otros usuarios."
+        question: "¿Cómo sé que los proveedores son de confianza?",
+        answer: "Todos los proveedores en Pawnecta verificaron su identidad con RUT y foto de carnet antes de publicar. Además, las evaluaciones solo pueden escribirlas usuarios que efectivamente contactaron al proveedor — sin reseñas falsas."
     },
     {
-        question: "¿Qué servicios puedo encontrar?",
-        answer: "Ofrecemos principalmente servicio de hospedaje (alojamiento en casa del cuidador). Cada perfil detalla si cuidan perros, gatos u otros animales, y las condiciones de su hogar (patio, mallas de seguridad, etc.)."
+        question: "¿Cómo contacto a un proveedor?",
+        answer: "Cada proveedor elige cómo quiere ser contactado: por chat interno de Pawnecta, WhatsApp o teléfono. Verás los botones disponibles directamente en su perfil."
     },
     {
-        question: "¿Cómo me registro como cuidador (Sitter)?",
-        answer: "Si amas a los animales y quieres generar ingresos extra, puedes registrarte en la sección 'Quiero ser Sitter'. Deberás completar un formulario con tus datos y experiencia. Nuestro equipo revisará tu solicitud y te contactará."
+        question: "¿Pawnecta procesa los pagos?",
+        answer: "Por ahora no. El pago se coordina directamente entre tú y el proveedor, como ambos prefieran (transferencia, efectivo, etc.). Pawnecta facilita la conexión."
     },
     {
-        question: "¿Tiene algún costo usar la plataforma?",
-        answer: "Para los dueños de mascotas, el uso de la plataforma para buscar cuidadores es gratuito. El precio del servicio se acuerda y paga directamente al cuidador."
+        question: "¿Puedo dejar una evaluación después del servicio?",
+        answer: "Sí, y te lo agradecemos. Las evaluaciones ayudan a otros dueños a elegir mejor. Solo puedes evaluar proveedores con los que hayas tenido contacto en la plataforma. Cada evaluación pasa por moderación antes de publicarse."
     },
     {
-        question: "¿Qué hago si tengo una emergencia?",
-        answer: "Siempre recomendamos intercambiar números de emergencia y contactos veterinarios con tu Petmate antes del servicio. Pawnecta facilita la conexión, pero la responsabilidad del cuidado recae en el acuerdo entre las partes."
+        question: "¿Cuánto cuesta publicar en Pawnecta?",
+        answer: "Publicar es completamente gratis. Puedes crear tu perfil y publicar tus servicios sin pagar nada. En el futuro ofreceremos opciones de mayor visibilidad para quienes quieran destacarse, pero la presencia básica siempre será gratuita."
+    },
+    {
+        question: "¿Cómo me registro como proveedor?",
+        answer: "Ve a Registrarse y elige 'Quiero ofrecer servicios'. Necesitarás tu RUT y una foto de tu carnet de identidad. Tu cuenta será revisada en un plazo de 24 a 48 horas. Una vez aprobada, podrás publicar todos los servicios que ofrezcas."
+    },
+    {
+        question: "¿Qué servicios puedo publicar?",
+        answer: "Cualquier servicio relacionado con el cuidado animal: hospedaje, cuidado a domicilio, paseos, peluquería canina o felina, veterinaria a domicilio, adiestramiento y guardería diurna. Si ofreces algo distinto, contáctanos y lo evaluamos."
+    },
+    {
+        question: "¿Puedo publicar más de un servicio?",
+        answer: "Sí. Desde tu panel puedes crear tantos servicios como quieras, cada uno con su propia descripción, fotos, precio y disponibilidad."
+    },
+    {
+        question: "¿Quién ve mis datos de contacto?",
+        answer: "Tú decides. Al configurar tu perfil eliges si mostrar tu WhatsApp, teléfono o email públicamente. También puedes optar por recibir contacto solo a través del chat interno de Pawnecta, sin exponer ningún dato personal."
     }
 ];
 

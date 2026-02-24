@@ -18,10 +18,13 @@ export default function QuienesSomos() {
 
                     <div className="mx-auto max-w-2xl text-center">
                         <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-6xl text-pretty">
-                            Nacimos de una <span className="text-emerald-600">necesidad personal</span>
+                            Somos Pawnecta
                         </h1>
-                        <p className="mt-6 text-lg leading-8 text-slate-600">
-                            Somos una pareja amante de los animales que, al igual que tú, solo quería lo mejor para su familia de cuatro patas.
+                        <p className="mt-6 text-lg leading-8 text-slate-600 font-medium">
+                            El marketplace de servicios para mascotas más confiable de Chile
+                        </p>
+                        <p className="mt-4 text-base leading-7 text-slate-600">
+                            Pawnecta nació de una pregunta simple: ¿por qué es tan difícil encontrar a alguien de confianza para cuidar a tu mascota? Buscadores dispersos, contactos sin verificar, precios opacos. Decidimos cambiar eso.
                         </p>
                     </div>
                 </section>
@@ -44,33 +47,33 @@ export default function QuienesSomos() {
                                 </div>
                             </div>
 
-                            {/* Texto 1 */}
                             <div className="w-full lg:w-2/3">
-                                <p className="first-letter:text-5xl first-letter:font-bold first-letter:text-emerald-600 first-letter:float-left first-letter:mr-3 text-lg">
-                                    Todo comenzó con <strong>Abba y Freddie</strong>. Somos <strong>Aldo y Camila</strong>, una pareja sin hijos para quienes, al igual que para muchos, nuestras mascotas no son &quot;algo&quot; que tenemos, sino <strong>alguien</strong> con quien compartimos la vida. Ella es la reina indiscutible de la casa, elegante y observadora; él es el regalón travieso que siempre busca un regazo donde dormir.
-                                </p>
-                                <p className="mt-4">
-                                    Cada vez que queríamos salir de viaje o teníamos que ausentarnos, nos enfrentábamos al mismo dilema: <strong>¿Con quién los dejamos?</strong> Las opciones tradicionales como hoteles les causaban estrés, y las visitas rápidas de 15 minutos nos parecían insuficientes para la compañía que ellos necesitan.
+                                <h2 className="text-3xl font-bold text-emerald-600 mb-6">Nuestra misión</h2>
+                                <p className="text-lg">
+                                    Conectar a los dueños de mascotas con los mejores profesionales de su comuna — de forma simple, transparente y segura. Creemos que cada mascota merece atención de calidad, y cada dueño merece la tranquilidad de saber con quién la deja.
                                 </p>
                             </div>
                         </div>
 
                         {/* BLOQUE 2: Texto Izquierda - Imagen Derecha */}
                         <div className="flex flex-col-reverse lg:flex-row gap-8 lg:gap-12 items-center">
-                            {/* Texto 2 */}
                             <div className="w-full lg:w-2/3">
-                                <h2 className="text-2xl font-bold text-slate-900 mt-10">La solución que soñábamos: Pawnecta</h2>
-                                <p>
-                                    Pawnecta nació de esa frustración y de ese amor. Queríamos crear una plataforma donde pudiéramos encontrar a alguien de confianza, un verdadero <em>Pawnecta Sitter</em>, que pudiera quedarse en casa o pasar tiempo de calidad con ellos, manteniendo sus rutinas y su tranquilidad intactas.
-                                </p>
+                                <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-6">¿Por qué Pawnecta?</h2>
 
-                                <div className="border-l-4 border-emerald-500 pl-6 py-2 my-6 italic text-slate-600 bg-slate-50 rounded-r-lg">
-                                    &quot;No buscábamos un cuidador, buscábamos un compañero temporal que los tratara con el mismo amor que nosotros.&quot;
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-emerald-700">Proveedores verificados</h3>
+                                        <p>Cada persona que ofrece servicios en Pawnecta pasa por verificación de identidad con RUT y documento oficial. Sabes exactamente con quién tratas.</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-emerald-700">Evaluaciones reales</h3>
+                                        <p>Solo los usuarios que contactaron al proveedor pueden dejar una evaluación. Sin bots, sin reseñas compradas. Solo experiencias reales.</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-emerald-700">Todos los servicios en un lugar</h3>
+                                        <p>Hospedaje, paseos, peluquería, veterinario a domicilio, adiestramiento y más. Ya no necesitas buscar en cinco sitios distintos.</p>
+                                    </div>
                                 </div>
-
-                                <p>
-                                    Hoy, Pawnecta conecta a dueños como nosotros con personas verificadas que entienden que el cuidado no es un trabajo, es una vocación.
-                                </p>
                             </div>
 
                             {/* Imagen Gato 2 */}
@@ -88,10 +91,12 @@ export default function QuienesSomos() {
 
                     </div>
 
-                    {/* CTA */}
                     <div className="mx-auto max-w-2xl text-center mt-16 pt-10 border-t border-slate-300">
-                        <h3 className="text-2xl font-bold text-slate-900">¿Te identificas con nuestra historia?</h3>
-                        <div className="mt-6 flex items-center justify-center gap-x-6">
+                        <h3 className="text-2xl font-bold text-slate-900">Hecho en Chile, para Chile</h3>
+                        <p className="mt-4 text-base text-slate-600">
+                            Somos un equipo pequeño con mascotas propias. Entendemos lo que significa confiarle tu peludo a alguien más — porque nosotros también lo hacemos.
+                        </p>
+                        <div className="mt-8 flex items-center justify-center gap-x-6">
                             <Link
                                 href="/register"
                                 className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"

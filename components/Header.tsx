@@ -86,8 +86,16 @@ export default function Header() {
             href="/explorar"
             className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-2"
           >
-            Explorar Cuidadores
+            Explorar servicios
           </Link>
+          {!isAuthenticated && (
+            <Link
+              href="/register?rol=proveedor"
+              className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-4"
+            >
+              Publicar servicio
+            </Link>
+          )}
           {!isAuthenticated ? (
             <>
               <Link
@@ -97,7 +105,7 @@ export default function Header() {
                 Ingresar
               </Link>
               <Link
-                href="/register?role=usuario"
+                href="/register"
                 className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               >
                 Registrarse
@@ -120,7 +128,7 @@ export default function Header() {
               {(profile?.roles && profile.roles.length > 1) && (
                 <div className="relative group">
                   <button className="inline-flex items-center gap-1 rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors uppercase tracking-wide">
-                    {activeRole === 'petmate' ? 'Sitter' : activeRole === 'admin' ? 'Admin' : 'Usuario'}
+                    {activeRole === 'petmate' ? 'Proveedor' : activeRole === 'admin' ? 'Admin' : 'Usuario'}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </button>
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hidden group-hover:block animate-in fade-in zoom-in-95 duration-200">
@@ -135,7 +143,7 @@ export default function Header() {
                           }}
                           className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeRole === r ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
                         >
-                          {r === 'petmate' ? 'Sitter' : r === 'admin' ? 'Admin' : 'Usuario'}
+                          {r === 'petmate' ? 'Proveedor' : r === 'admin' ? 'Admin' : 'Usuario'}
                         </button>
                       ))}
                     </div>
@@ -221,7 +229,14 @@ export default function Header() {
                   className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
                   onClick={() => setOpen(false)}
                 >
-                  Explorar Cuidadores
+                  Explorar servicios
+                </Link>
+                <Link
+                  href="/register?rol=proveedor"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
+                  onClick={() => setOpen(false)}
+                >
+                  Publicar servicio
                 </Link>
                 <Link
                   href="/login"
@@ -231,7 +246,7 @@ export default function Header() {
                   Ingresar
                 </Link>
                 <Link
-                  href="/register?role=usuario"
+                  href="/register"
                   className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
                   onClick={() => setOpen(false)}
                 >
@@ -245,7 +260,7 @@ export default function Header() {
                   className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600 mb-2"
                   onClick={() => setOpen(false)}
                 >
-                  Explorar Cuidadores
+                  Explorar servicios
                 </Link>
                 <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white tracking-widest">

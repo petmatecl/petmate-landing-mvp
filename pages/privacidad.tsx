@@ -35,7 +35,7 @@ export default function PrivacidadPage() {
                                 Qué es Pawnecta
                             </h3>
                             <div className="pl-11">
-                                <p>Pawnecta es una plataforma que conecta dueños/tutores de mascotas con cuidadores/as (“sitters”) para que se contacten y coordinen servicios entre ellos. Pawnecta no presta servicios de cuidado y no gestiona pagos en este MVP.</p>
+                                <p>Pawnecta es una plataforma que conecta dueños/tutores de mascotas con proveedores de servicios para que se contacten y coordinen servicios entre ellos. Pawnecta no presta servicios de cuidado y no gestiona pagos en este MVP.</p>
                             </div>
                         </section>
 
@@ -48,10 +48,10 @@ export default function PrivacidadPage() {
                                 <p>Según el uso del Sitio, podemos tratar:</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
                                     <li><strong className="text-slate-800">Datos de cuenta y contacto:</strong> nombre, correo, teléfono, contraseña (almacenada de forma cifrada/hasheada), comuna/ciudad.</li>
-                                    <li><strong className="text-slate-800">Identificación:</strong> RUT (solicitado tanto a Dueños como a Sitters, para fines de verificación y seguridad).</li>
+                                    <li><strong className="text-slate-800">Identificación:</strong> RUT (solicitado tanto a Usuarios como a Proveedores de servicios, para fines de verificación y seguridad).</li>
                                     <li><strong className="text-slate-800">Datos de perfil:</strong> foto, descripción, experiencia, disponibilidad, referencias u otra información que decidas publicar.</li>
-                                    <li><strong className="text-slate-800">Datos sobre mascotas (si el dueño los entrega):</strong> tipo, edad aproximada, rutinas, cuidados, alergias u otra información necesaria para coordinar el cuidado.</li>
-                                    <li><strong className="text-slate-800">Documentación de seguridad (solo Sitters):</strong> Certificado de Antecedentes u otros documentos que solicitemos para verificación y seguridad de la comunidad.</li>
+                                    <li><strong className="text-slate-800">Datos sobre mascotas (si el usuario los entrega):</strong> tipo, edad aproximada, rutinas, cuidados, alergias u otra información necesaria para coordinar el cuidado.</li>
+                                    <li><strong className="text-slate-800">Documentación de seguridad (solo Proveedores de servicios):</strong> Certificado de Antecedentes u otros documentos que solicitamos para verificación y seguridad de la comunidad.</li>
                                     <li><strong className="text-slate-800">Comunicaciones:</strong> mensajes e información intercambiada entre usuarios a través del Sitio.</li>
                                     <li><strong className="text-slate-800">Datos técnicos:</strong> IP, fecha/hora de acceso, identificadores del navegador/dispositivo, logs, cookies y tecnologías similares (seguridad, métricas y funcionamiento).</li>
                                 </ul>
@@ -70,7 +70,7 @@ export default function PrivacidadPage() {
                                 <p className="mb-4">Tratamos los datos para:</p>
                                 <ul className="list-disc pl-5 space-y-3 marker:text-emerald-500">
                                     <li>Crear y administrar tu cuenta y permitir el acceso al Sitio.</li>
-                                    <li>Conectar Dueños y Sitters y habilitar la comunicación entre ellos.</li>
+                                    <li>Conectar Usuarios y Proveedores de servicios y habilitar la comunicación entre ellos.</li>
                                     <li><strong className="text-slate-800">Verificación y seguridad:</strong> validar identidad (incluido RUT), reducir fraude y riesgos, y revisar documentación de seguridad (incluido Certificado de Antecedentes) para fortalecer la confianza en la comunidad.</li>
                                     <li><strong className="text-slate-800">Soporte y seguridad operativa:</strong> prevenir abuso, suplantación, incidentes y vulneraciones; gestionar reportes.</li>
                                     <li><strong className="text-slate-800">Mejoras del servicio (MVP):</strong> analítica básica, diagnóstico de errores y optimización de rendimiento.</li>
@@ -112,7 +112,7 @@ export default function PrivacidadPage() {
                                 Pagos y datos financieros
                             </h3>
                             <div className="pl-11">
-                                <p>Pawnecta no procesa pagos ni almacena datos de tarjetas. Cualquier pago o reembolso se acuerda directamente entre Dueño y Sitter, fuera de Pawnecta.</p>
+                                <p>Pawnecta no procesa pagos ni almacena datos de tarjetas. Cualquier pago o reembolso se acuerda directamente entre Usuario y Proveedor, fuera de Pawnecta.</p>
                             </div>
                         </section>
 
