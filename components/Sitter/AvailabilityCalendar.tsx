@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { DayPicker } from "react-day-picker";
-import { format, startOfDay, addYears, isSameDay, parseISO } from "date-fns";
+import { DayPicker, CaptionProps, useNavigation } from "react-day-picker";
+import {
+    format, startOfDay, addYears, isSameDay, parseISO,
+    eachDayOfInterval, startOfMonth, endOfMonth, isSameMonth, isBefore
+} from "date-fns";
 import { es } from "date-fns/locale";
 import { supabase } from "../../lib/supabaseClient";
-import { Save, Loader2, Calendar as CalendarIcon } from "lucide-react";
+import { Save, Loader2, Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
 
 // CSS Imported globally in _app.tsx now
 
@@ -33,7 +36,7 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess, confirme
         setIsLoading(true);
         // Load a wide range (Current Date to Next Year)
         const start = startOfDay(new Date());
-        const end = addYears(start, 1);
+        const end = addYears(start, 5);
 
         try {
             const { data, error } = await supabase
@@ -66,7 +69,7 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess, confirme
         // Global Save: We overwrite the availability for the entire upcoming year
         // based on the current selection. This ensures persistence across month navigation.
         const start = startOfDay(new Date());
-        const end = addYears(start, 1);
+        const end = addYears(start, 5);
 
         const startStr = format(start, "yyyy-MM-dd");
         const endStr = format(end, "yyyy-MM-dd");
@@ -133,6 +136,46 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess, confirme
         setSelectedDays(newDays);
     };
 
+    // Helper: Toggle Entire Month
+    const handleToggleMonth = (targetMonth: Date) => {
+        const today = startOfDay(new Date());
+
+        // Get all days in the target month
+        const daysInMonth = eachDayOfInterval({
+            start: startOfMonth(targetMonth),
+            end: endOfMonth(targetMonth)
+        });
+
+        // Filter only valid future days (or today)
+        const validDays = daysInMonth.filter(d => !isBefore(d, today));
+
+        if (validDays.length === 0) return;
+
+        // Check if all valid days are already selected
+        const allSelected = validDays.every(d =>
+            selectedDays.some(s => isSameDay(s, d))
+        );
+
+        let newDays = [...selectedDays];
+
+        if (allSelected) {
+            // Deselect all
+            newDays = newDays.filter(s =>
+                !validDays.some(d => isSameDay(s, d))
+            );
+        } else {
+            // Select missing
+            validDays.forEach(d => {
+                if (!newDays.some(s => isSameDay(s, d))) {
+                    newDays.push(d);
+                }
+            });
+        }
+
+        setSelectedDays(newDays);
+    };
+
+
     // Convert Ranges to Matchers
     const pendingMatchers = pendingBookings.map(range => ({
         from: parseISO(range.start),
@@ -189,9 +232,45 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess, confirme
                     month={month}
                     onMonthChange={setMonth}
                     locale={es}
+                    components={{
+                        Caption: (props) => {
+                            const { displayMonth } = props;
+                            // Check status for label
+                            const today = startOfDay(new Date());
+                            const daysInMonth = eachDayOfInterval({
+                                start: startOfMonth(displayMonth),
+                                end: endOfMonth(displayMonth)
+                            }).filter(d => !isBefore(d, today));
+
+                            const allSelected = daysInMonth.length > 0 && daysInMonth.every(d =>
+                                selectedDays.some(s => isSameDay(s, d))
+                            );
+
+                            return (
+                                <div className="flex flex-col items-center pb-4 relative">
+                                    <span className="text-base font-bold capitalize text-slate-900 mb-1">
+                                        {format(displayMonth, 'MMMM yyyy', { locale: es })}
+                                    </span>
+                                    {daysInMonth.length > 0 && (
+                                        <button
+                                            onClick={() => handleToggleMonth(displayMonth)}
+                                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all flex items-center gap-1
+                                            ${allSelected
+                                                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                                    : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700'
+                                                }`}
+                                        >
+                                            {allSelected ? "Desmarcar todo" : "Marcar todo el mes"}
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        }
+                    }}
                     modifiers={{
                         pending: pendingMatchers,
-                        confirmed: confirmedMatchers
+                        confirmed: confirmedMatchers,
+                        disabled: confirmedMatchers // Disable confirmed days so they can't be toggled
                     }}
                     modifiersStyles={{
                         selected: {
@@ -213,14 +292,19 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess, confirme
                             color: 'white',
                             borderRadius: '50%',
                             fontWeight: 'bold',
-                            opacity: 0.9,
-                            border: '2px solid #2563eb'
+                            opacity: 1, // Force opacity 1 to override disabled look
+                            border: '2px solid #2563eb',
+                            cursor: 'not-allowed'
+                        },
+                        disabled: {
+                            opacity: 1 // Prevent default disabled fading for these specific days
                         }
                     }}
                     styles={{
                         head_cell: { color: "#64748b" },
                         day: { borderRadius: "9999px" },
-                        caption: { color: "#0f172a", fontWeight: "bold" }
+                        caption: { color: "#0f172a", fontWeight: "bold" },
+                        nav_button: { color: "#64748b" }
                     }}
                 />
             </div>

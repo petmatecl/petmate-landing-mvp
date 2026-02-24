@@ -207,7 +207,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         if (roles.includes(role)) {
             setActiveRole(role);
             window.localStorage.setItem('activeRole', role);
-            if (role === 'petmate') router.push('/sitter');
+            if (role === 'petmate') router.push('/proveedor');
             else if (role === 'admin') router.push('/admin');
             else router.push('/usuario');
         }

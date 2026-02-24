@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 import { toast } from 'sonner';
 
-export type NotificationType = 'opportunity' | 'application' | 'request' | 'acceptance' | 'message';
+export type NotificationType = 'opportunity' | 'application' | 'request' | 'acceptance' | 'message' | 'cancellation';
 
 type CreateNotificationParams = {
     userId: string; // The recipient

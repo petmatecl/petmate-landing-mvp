@@ -85,7 +85,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                     </p>
 
                     <button
-                        onClick={() => router.push(requiredRole === 'cliente' ? '/usuario' : '/sitter')}
+                        onClick={() => router.push(requiredRole === 'cliente' ? '/usuario' : '/proveedor')}
                         className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10"
                     >
                         Ir a mi Panel de {requiredRole === 'cliente' ? 'Dueño' : 'Sitter'}

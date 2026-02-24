@@ -26,7 +26,7 @@ export const RoleSelectionInterceptor: React.FC = () => {
     // So YES, intercept everywhere except maybe 'register' or 'logout'.
 
     // Exclude Admin from interception too
-    const isExcludedRoute = ['/logout', '/register', '/login', '/admin'].includes(router.pathname) || router.pathname.startsWith('/usuario') || router.pathname.startsWith('/sitter');
+    const isExcludedRoute = ['/logout', '/register', '/login', '/admin'].includes(router.pathname);
     if (isExcludedRoute) return null;
 
     // If only one role, UserContext should have auto-selected it. 

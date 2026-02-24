@@ -24,7 +24,7 @@ import {
     Instagram, Music, ShieldCheck, CheckCircle2, ShieldAlert,
     Eye, ImagePlus, Loader2, Edit2, FileCheck, BarChart, Briefcase,
     PawPrint, AlignLeft, Inbox, Send, CalendarCheck, Printer, Download, Ruler,
-    MessageSquare, AlertCircle, RefreshCw, Search, Award
+    MessageSquare, AlertCircle, RefreshCw, Search, Award, XCircle
 } from 'lucide-react';
 import UnreadBadge from "../components/Shared/UnreadBadge";
 import ApplicationDialog from "../components/Sitter/ApplicationDialog";
@@ -453,10 +453,11 @@ export default function SitterDashboardPage() {
 
     // Details Dialogs State
     const [selectedClient, setSelectedClient] = useState<any>(null);
-    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; bookingId: string | null; clientName: string }>({
+    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; bookingId: string | null; clientName: string; action: 'accept' | 'reject' | 'cancel' }>({
         isOpen: false,
         bookingId: null,
-        clientName: ""
+        clientName: "",
+        action: 'accept'
     });
 
     const [printBooking, setPrintBooking] = useState<{ booking: any; pets: any[] } | null>(null);
@@ -865,41 +866,94 @@ export default function SitterDashboardPage() {
         setConfirmModal({
             isOpen: true,
             bookingId,
-            clientName
+            clientName,
+            action: 'accept'
         });
     };
 
-    const handleConfirmAccept = async () => {
+    const handleRejectClick = (bookingId: string, clientName: string) => {
+        setConfirmModal({
+            isOpen: true,
+            bookingId,
+            clientName,
+            action: 'reject'
+        });
+    };
+
+    const handleCancelClick = (bookingId: string, clientName: string) => {
+        setConfirmModal({
+            isOpen: true,
+            bookingId,
+            clientName,
+            action: 'cancel'
+        });
+    };
+
+    const handleConfirmAction = async () => {
         if (!confirmModal.bookingId) return;
 
         try {
-            // Option A: Set to 'reservado' (waiting for client) and assign self as sitter
-            const { data, error } = await supabase
-                .from('viajes')
-                .update({
-                    sitter_id: userId
-                })
-                .eq('id', confirmModal.bookingId)
-                .select('user_id')
-                .single();
+            if (confirmModal.action === 'accept') {
+                // Option A: Set to 'reservado' (waiting for client) and assign self as sitter
+                const { data, error } = await supabase
+                    .from('viajes')
+                    .update({
+                        sitter_id: userId
+                    })
+                    .eq('id', confirmModal.bookingId)
+                    .select('user_id')
+                    .single();
 
-            if (error) throw error;
+                if (error) throw error;
 
-            if (data) {
-                await createNotification({
-                    userId: data.user_id,
-                    type: 'acceptance',
-                    title: '¡Sitter Confirmado!',
-                    message: `El sitter ${profileData.nombre} ha aceptado tu solicitud de reserva.`,
-                    link: '/usuario' // Redirect to dashboard to see it
-                });
+                if (data) {
+                    await createNotification({
+                        userId: data.user_id,
+                        type: 'acceptance',
+                        title: '¡Sitter Confirmado!',
+                        message: `El sitter ${profileData.nombre} ha aceptado tu solicitud de reserva.`,
+                        link: '/usuario' // Redirect to dashboard to see it
+                    });
+                }
+            } else if (confirmModal.action === 'reject') {
+                const { error } = await supabase
+                    .from('viajes')
+                    .update({
+                        sitter_id: null,
+                        estado: 'publicado'
+                    })
+                    .eq('id', confirmModal.bookingId);
+
+                if (error) throw error;
+            } else if (confirmModal.action === 'cancel') {
+                const { data, error } = await supabase
+                    .from('viajes')
+                    .update({
+                        estado: 'cancelado'
+                    })
+                    .eq('id', confirmModal.bookingId)
+                    .select('user_id')
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    await createNotification({
+                        userId: data.user_id,
+                        type: 'cancellation',
+                        title: 'Servicio Cancelado',
+                        message: `El sitter ${profileData.nombre} ha cancelado la reserva.`,
+                        link: '/usuario'
+                    });
+                }
             }
+
             window.location.reload();
         } catch (err) {
             console.error(err);
-            alert("Error al aceptar");
+            alert("Error al procesar la acción");
         } finally {
-            setConfirmModal({ isOpen: false, bookingId: null, clientName: "" });
+            setConfirmModal({ isOpen: false, bookingId: null, clientName: "", action: 'accept' });
         }
     };
 
@@ -1192,6 +1246,27 @@ export default function SitterDashboardPage() {
                         </div>
                     </header>
 
+                    {/* Availability Alert */}
+                    {profileData.aprobado && availabilityCount === 0 && !loading && (
+                        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-xl flex items-start justify-between shadow-sm">
+                            <div className="flex gap-3">
+                                <Calendar className="text-amber-600 shrink-0 mt-0.5" size={20} />
+                                <div>
+                                    <h4 className="font-bold text-amber-800">Tu calendario está vacío</h4>
+                                    <p className="text-sm text-amber-700 mt-1">
+                                        No tienes días disponibles marcados. Actualiza tu disponibilidad para aparecer en las búsquedas y recibir reservas.
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setActiveTab('disponibilidad')}
+                                className="bg-white text-amber-600 border border-amber-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-amber-50 transition-colors shadow-sm whitespace-nowrap"
+                            >
+                                Gestionar Disponibilidad
+                            </button>
+                        </div>
+                    )}
+
                     {/* [NEW] Onboarding Progress */}
                     {!loading && profileData && (
                         <div className="mb-8">
@@ -1227,7 +1302,8 @@ export default function SitterDashboardPage() {
                                         label: "Video de Presentación",
                                         completed: !!profileData.video_presentacion,
                                         actionLabel: "Subir",
-                                        href: "?tab=perfil&section=video"
+                                        href: "?tab=perfil&section=video",
+                                        optional: true
                                     }
                                 ]}
                             />
@@ -1308,7 +1384,7 @@ export default function SitterDashboardPage() {
                                                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                                                     <span>Perfil Activo</span>
                                                 </div>
-                                                <span className="text-[10px] text-emerald-600 font-medium">Recibiendo Pedidos</span>
+                                                <span className="text-[10px] text-emerald-600 font-medium">Recibiendo Solicitudes</span>
                                             </div>
                                         ) : profileData.certificado_antecedentes ? (
                                             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-semibold">
@@ -1632,15 +1708,17 @@ export default function SitterDashboardPage() {
                                     {profileId ? (
                                         <AvailabilityCalendar
                                             sitterId={profileId}
-                                            confirmedBookings={bookings.map(b => ({
-                                                start: b.fecha_inicio,
-                                                end: b.fecha_fin
-                                            }))}
+                                            confirmedBookings={bookings
+                                                .filter(b => ['confirmado', 'reservado', 'pagado', 'en_curso', 'completado'].includes(b.estado))
+                                                .map(b => ({
+                                                    start: b.fecha_inicio,
+                                                    end: b.fecha_fin
+                                                }))}
                                             pendingBookings={applications
-                                                .filter(a => a.status === 'pending')
+                                                .filter(a => a.estado === 'pendiente')
                                                 .map(a => ({
-                                                    start: a.fecha_inicio,
-                                                    end: a.fecha_fin
+                                                    start: a.viaje?.fecha_inicio,
+                                                    end: a.viaje?.fecha_fin
                                                 }))
                                             }
                                             onSaveSuccess={() => {
@@ -1861,7 +1939,7 @@ export default function SitterDashboardPage() {
                                                             </div>
                                                             <div className="font-semibold text-gray-700">CAPACIDAD MÁXIMA (MASCOTAS A LA VEZ)</div>
                                                         </div>
-                                                        <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
+                                                        <div className="bg-white p-4 rounded-xl border border-gray-200 grid grid-cols-2 gap-4">
                                                             <Counter
                                                                 label="Perros"
                                                                 value={profileData.capacidad_perros || 0}
@@ -2289,6 +2367,12 @@ export default function SitterDashboardPage() {
                                                         </div>
                                                         <div className="flex gap-2 w-full sm:w-auto">
                                                             <button
+                                                                onClick={() => handleRejectClick(booking.id, `${booking.cliente.nombre} ${booking.cliente.apellido_p}`)}
+                                                                className="flex-1 sm:flex-none bg-white text-red-500 border border-red-200 text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-50 shadow-sm transition-colors flex items-center justify-center gap-2"
+                                                            >
+                                                                <XCircle size={14} /> Rechazar
+                                                            </button>
+                                                            <button
                                                                 onClick={() => handleAcceptClick(booking.id, `${booking.cliente.nombre} ${booking.cliente.apellido_p}`)}
                                                                 className="flex-1 sm:flex-none bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-2"
                                                             >
@@ -2473,6 +2557,19 @@ export default function SitterDashboardPage() {
 
                                                         return (
                                                             <Card key={book.id} padding="l" className="hover:shadow-md transition-shadow relative overflow-hidden group">
+                                                                {book.estado === 'confirmada' && (
+                                                                    <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault();
+                                                                                handleCancelClick(book.id, `${book.cliente?.nombre} ${book.cliente?.apellido_p}`);
+                                                                            }}
+                                                                            className="text-xs text-red-500 hover:text-red-700 bg-white border border-red-200 px-3 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1"
+                                                                        >
+                                                                            Cancelar
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                                 {/* Decorative Top Border */}
                                                                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
 
@@ -3327,13 +3424,25 @@ export default function SitterDashboardPage() {
             <ModalConfirm
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
-                onConfirm={handleConfirmAccept}
-                title="Aceptar Solicitud"
-                message={`¿Estás seguro de que deseas aceptar la solicitud de reserva de ${confirmModal.clientName}? El cliente será notificado.`}
-                confirmText="Aceptar y Confirmar"
-                cancelText="Cancelar"
+                onConfirm={handleConfirmAction}
+                title={
+                    confirmModal.action === 'reject' ? "Rechazar Solicitud" :
+                        confirmModal.action === 'cancel' ? "Cancelar Reserva" :
+                            "Aceptar Solicitud"
+                }
+                message={
+                    confirmModal.action === 'reject' ? `¿Estás seguro de que deseas rechazar esta solicitud de ${confirmModal.clientName}?` :
+                        confirmModal.action === 'cancel' ? `ADVERTENCIA: ¿Estás seguro de cancelar la reserva CONFIRMADA de ${confirmModal.clientName}? Esto podría afectar tu reputación.` :
+                            `¿Estás seguro de que deseas aceptar la solicitud de reserva de ${confirmModal.clientName}? El cliente será notificado.`
+                }
+                confirmText={
+                    confirmModal.action === 'reject' ? "Sí, Rechazar" :
+                        confirmModal.action === 'cancel' ? "Sí, Cancelar Reserva" :
+                            "Aceptar y Confirmar"
+                }
+                cancelText="Volver"
+                isDestructive={confirmModal.action === 'reject' || confirmModal.action === 'cancel'}
             />
         </>
     );
 }
-

@@ -121,74 +121,39 @@ export default function LoginPage() {
 
       // Determine Roles
       const userRoles = profile.roles || [];
-      // Legacy merge removed
 
-      // Admin Whitelist Check
+      // Admin Whitelist Check (ensure capability is reflected locally for safe redirect)
       const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
       if (data.user.email && ADMIN_EMAILS.includes(data.user.email) && !userRoles.includes('admin')) {
         userRoles.push('admin');
       }
 
-      // Ensure 'cliente' is default if empty
-      if (userRoles.length === 0) userRoles.push('cliente');
+      // Basic Redirection Logic
+      // If we simply redirect to /usuario or /sitter, the Global RoleSelectionInterceptor will trigger if needed.
+      // But we can try to be smart about the initial redirect target.
 
-      setUserName(profile.nombre || "Usuario");
+      let targetPath = '/usuario'; // Default for clients
 
-      // Logic:
-      // 1. Multiple Roles (or Admin)? -> Show Selector
-      if (userRoles.length > 1 || userRoles.includes('admin')) {
-        setAvailableRoles(userRoles);
-        setShowRoleSelector(true);
-        setLoading(false);
-        return;
+      // Only auto-redirect to specific dashboards if the user has EXACTLY one role.
+      // If they have multiple (e.g. Admin + User), we send them to /usuario to trigger the Interceptor.
+      if (userRoles.length === 1) {
+        if (userRoles[0] === 'admin') {
+          targetPath = '/admin';
+        } else if (userRoles[0] === 'petmate') {
+          targetPath = '/sitter';
+        }
       }
 
-      // 2. Only One Role? -> Auto Redirect
-      let targetRole: Role = 'cliente';
-      if (userRoles.includes('petmate')) targetRole = 'petmate';
+      // If user has both, or other combos, /usuario is a safe default.
+      // If they act as a sitter currently, the interceptor will ask them to switch or select.
 
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("activeRole", targetRole);
-      }
-
-      await router.push(targetRole === 'cliente' ? "/usuario" : "/sitter");
+      await router.push(targetPath);
 
     } catch (err: any) {
       console.error(err);
       setError("No se pudo iniciar sesión. Intenta nuevamente.");
       setLoading(false);
     }
-  }
-
-  // == Render: Role Selector ==
-  if (showRoleSelector) {
-    return (
-      <div className="page">
-        <div className="wrap">
-          <Card variant="elevated" padding="l" className="login-card">
-            <RoleSelector
-              userName={userName}
-              roles={availableRoles}
-              onSelect={handleRoleSelect}
-            />
-          </Card>
-        </div>
-        <style jsx>{`
-          .page {
-            min-height: calc(100vh - 200px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            background: #fff;
-          }
-           .wrap {
-            width: 100%;
-            max-width: 500px;
-          }
-        `}</style>
-      </div>
-    );
   }
 
   // == Render: Login Form ==

@@ -15,8 +15,8 @@ let clientUrl = supabaseUrl;
 if (isBrowser) {
     // supabase-js requires an absolute URL. We construct it from the current location.
     // This allows it to work on localhost, vercel, or custom domain dynamically.
-    const origin = window.location.origin;
-    clientUrl = `${origin}/supabase-proxy`;
+    // const origin = window.location.origin;
+    // clientUrl = `${origin}/supabase-proxy`;
 }
 
 export const supabase = createClient(clientUrl, supabaseAnonKey);

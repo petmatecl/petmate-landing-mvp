@@ -39,7 +39,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vubmjguwzpesxcgenkxo.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' blob: data: https://ui-avatars.com https://vubmjguwzpesxcgenkxo.supabase.co https://pwhplhjkmmbgnphcoibh.supabase.co https://images.pexels.com https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://vubmjguwzpesxcgenkxo.supabase.co wss://vubmjguwzpesxcgenkxo.supabase.co; frame-ancestors 'none';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://ouezpeeiwjwawauidrqq.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' blob: data: https://ui-avatars.com https://ouezpeeiwjwawauidrqq.supabase.co https://pwhplhjkmmbgnphcoibh.supabase.co https://images.pexels.com https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ouezpeeiwjwawauidrqq.supabase.co wss://ouezpeeiwjwawauidrqq.supabase.co; frame-ancestors 'none';"
           }
         ]
       }

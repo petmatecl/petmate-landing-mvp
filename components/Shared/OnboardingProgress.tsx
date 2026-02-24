@@ -7,6 +7,7 @@ export type OnboardingStep = {
     completed: boolean;
     href?: string; // Link to fix the step
     actionLabel?: string;
+    optional?: boolean;
 };
 
 type Props = {
@@ -16,11 +17,16 @@ type Props = {
 };
 
 export default function OnboardingProgress({ steps, title = "Completa tu perfil", role }: Props) {
-    const total = steps.length;
-    const completedCount = steps.filter(s => s.completed).length;
-    const progress = Math.round((completedCount / total) * 100);
+    const mandatorySteps = steps.filter(s => !s.optional);
+    const completedMandatory = mandatorySteps.filter(s => s.completed).length;
+    const totalMandatory = mandatorySteps.length;
 
-    if (progress === 100) return null; // Hide if complete
+    // Calculate progress based ONLY on mandatory steps
+    const progress = totalMandatory > 0 ? Math.round((completedMandatory / totalMandatory) * 100) : 100;
+
+    // Hide if mandatory steps are complete (progress === 100)
+    // User requested to hide it even if optional steps are pending
+    if (progress === 100) return null;
 
     return (
         <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm overflow-hidden relative">

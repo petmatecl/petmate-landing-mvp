@@ -33,7 +33,7 @@ export default function Header() {
   // Route logic based on ACTIVE ROLE preference
   const isSitterActive = activeRole === 'petmate';
   const isAdminActive = activeRole === 'admin';
-  const dashboardLink = isAdminActive ? "/admin" : (isSitterActive ? "/sitter" : "/usuario");
+  const dashboardLink = isAdminActive ? "/admin" : (isSitterActive ? "/proveedor" : "/usuario");
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">

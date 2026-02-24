@@ -8,12 +8,21 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Public fields projection
 const PUBLIC_FIELDS = `
-    id, nombre, apellido_p, descripcion, comuna, region, price,
+    id, nombre, apellido_p, descripcion, comuna, region,
     foto_perfil, galeria, approved_reviews_avg, total_reviews,
     latitud, longitud, auth_user_id,
     cuida_perros, cuida_gatos,
-    servicio_a_domicilio, servicio_en_casa, tarifa_servicio_a_domicilio
+    servicio_a_domicilio, servicio_en_casa, tarifa_servicio_a_domicilio, tarifa_servicio_en_casa
 `.replace(/\s+/g, '');
+
+const calculateDaysBetween = (startStr: string, endStr: string) => {
+    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+    const firstDate = new Date(startStr);
+    const secondDate = new Date(endStr);
+
+    // Calculate difference in days, inclusive
+    return Math.round(Math.abs((firstDate.getTime() - secondDate.getTime()) / oneDay)) + 1;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') {
@@ -21,25 +30,60 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const { query } = req.query; // Search text
+        const { query, from, to } = req.query; // Search text + Date Range
 
-        // Build generic query
-        // Note: For full text search we might still need RPC or TextSearch, 
-        // but for MVP 'ilike' on name/comuna is often sufficient or we can use the table's capabilities.
-        // User requested FIXING search_sitters specifically regarding return fields.
+        // 1. Availability Pre-Filter (if dates provided)
+        let availableSitterIds: string[] | null = null;
 
-        // Let's implement a basic robust search using the table directly to guarantee field selection.
+        if (from && to) {
+            const fromStr = String(from);
+            const toStr = String(to);
+            const daysRequired = calculateDaysBetween(fromStr, toStr);
+
+            // Fetch availability for the range
+            // We want sitters who have 'daysRequired' distinct entries in this range
+            const { data: availabilityData, error: availError } = await supabase
+                .from('sitter_availability')
+                .select('sitter_id')
+                .gte('available_date', fromStr)
+                .lte('available_date', toStr);
+
+            if (availError) throw availError;
+
+            if (availabilityData) {
+                const counts: Record<string, number> = {};
+                availabilityData.forEach((row: any) => {
+                    counts[row.sitter_id] = (counts[row.sitter_id] || 0) + 1;
+                });
+
+                // Keep only those with full coverage
+                availableSitterIds = Object.keys(counts).filter(id => counts[id] >= daysRequired);
+            } else {
+                availableSitterIds = [];
+            }
+        }
+
+        // 2. Build Main Query
         let dbQuery = supabase
             .from('registro_petmate')
             .select(PUBLIC_FIELDS)
             .eq('aprobado', true) // STRICT filter
             .eq('roles', '["petmate"]'); // Ensure it is a sitter (simple check)
 
-        // Apply filters if passed (extending basic text search)
-        // If we want to replicate the RPC logic exactly:
+        // Apply Availability Filter
+        if (availableSitterIds !== null) {
+            if (availableSitterIds.length === 0) {
+                // If filtering by date requested but no one found, return empty early
+                return res.status(200).json({ data: [] });
+            }
+            dbQuery = dbQuery.in('id', availableSitterIds);
+        }
+
+        // Apply Text Filters
         if (query && typeof query === 'string' && query.trim().length > 0) {
-            // Simple OR search on common fields
             const term = `%${query.trim()}%`;
+            // Note: Space before term in ILIKE might affect matching depending on tokenizer, 
+            // but standard 'ilike.%term%' is better.
             dbQuery = dbQuery.or(`nombre.ilike.${term},apellido_p.ilike.${term},comuna.ilike.${term},region.ilike.${term}`);
         }
 
