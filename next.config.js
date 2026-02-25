@@ -39,7 +39,16 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://ouezpeeiwjwawauidrqq.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' blob: data: https://ui-avatars.com https://ouezpeeiwjwawauidrqq.supabase.co https://pwhplhjkmmbgnphcoibh.supabase.co https://images.pexels.com https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ouezpeeiwjwawauidrqq.supabase.co wss://ouezpeeiwjwawauidrqq.supabase.co; frame-ancestors 'none';"
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co https://www.googletagmanager.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com",
+              "img-src 'self' data: blob: https://*.supabase.co https://ui-avatars.com https://images.pexels.com https://images.unsplash.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "frame-src 'self'",
+              "frame-ancestors 'none'"
+            ].join('; ')
           }
         ]
       }
