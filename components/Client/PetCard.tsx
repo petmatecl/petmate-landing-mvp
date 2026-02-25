@@ -76,6 +76,7 @@ export default function PetCard({ pet, onEdit, ...props }: PetCardProps) {
                 <div className="w-20 h-20 flex-shrink-0">
                     {pet.foto_mascota ? (
                         <div className="w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={getProxyImageUrl(pet.foto_mascota) || ''} alt={pet.nombre} className="w-full h-full object-cover" />
                         </div>
                     ) : (

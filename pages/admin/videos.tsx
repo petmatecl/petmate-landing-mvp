@@ -12,10 +12,6 @@ export default function AdminVideosPage() {
 
     const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
 
-    useEffect(() => {
-        checkAuth();
-    }, []);
-
     const checkAuth = async () => {
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -32,6 +28,11 @@ export default function AdminVideosPage() {
 
         setLoading(false);
     };
+
+    useEffect(() => {
+        checkAuth();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (loading) {
         return (

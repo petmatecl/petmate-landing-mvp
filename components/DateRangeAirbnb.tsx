@@ -28,6 +28,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
   // sincroniza cuando cambie value desde afuera
   React.useEffect(() => {
     setRange(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value?.from?.getTime?.(), value?.to?.getTime?.()]);
 
   const apply = () => {

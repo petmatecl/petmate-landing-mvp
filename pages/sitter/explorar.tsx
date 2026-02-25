@@ -45,6 +45,7 @@ export default function SitterExplorarPage() {
 
     useEffect(() => {
         checkSession();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const checkSession = async () => {
@@ -55,7 +56,7 @@ export default function SitterExplorarPage() {
         }
         setSitterId(session.user.id);
 
-        // Fetch Profile for completeness check
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         const { data: profile } = await supabase
             .from("registro_petmate")
             .select("*")

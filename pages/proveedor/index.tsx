@@ -55,6 +55,7 @@ export default function ProveedorDashboard() {
         if (user && !userLoading) {
             checkProviderStatus();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, userLoading]);
 
     const checkProviderStatus = async () => {
@@ -335,6 +336,7 @@ export default function ProveedorDashboard() {
                                             {/* Imagen */}
                                             <div className="w-full sm:w-40 sm:h-32 h-40 shrink-0 rounded-xl overflow-hidden bg-slate-100 relative">
                                                 {servicio.fotos && servicio.fotos[0] ? (
+                                                    /* eslint-disable-next-line @next/next/no-img-element */
                                                     <img src={servicio.fotos[0]} alt={servicio.titulo} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-slate-300"><ImageIcon size={32} /></div>
@@ -405,7 +407,12 @@ export default function ProveedorDashboard() {
                                 <div className="p-8 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-6 bg-slate-50/50">
                                     <div className="relative">
                                         <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden border-4 border-white shadow-sm flex items-center justify-center text-slate-400">
-                                            {fotoPerfil ? <img src={fotoPerfil} alt="Avatar" className="w-full h-full object-cover" /> : <UserIcon size={40} />}
+                                            {fotoPerfil ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={fotoPerfil} alt="Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <UserIcon size={40} />
+                                            )}
                                         </div>
                                         <label className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 cursor-pointer hover:text-[#1A6B4A] hover:border-[#1A6B4A] transition-colors">
                                             {uploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}

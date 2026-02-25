@@ -45,6 +45,7 @@ export default function ServiceCard({ service }: Props) {
 
             {/* Imagen Principal */}
             <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={coverImage}
                     alt={service.titulo}

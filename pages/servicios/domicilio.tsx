@@ -58,6 +58,7 @@ export default function ServicioDomicilio() {
                 <div className="relative isolate overflow-hidden">
                     {/* Background Image Overlay */}
                     <div className="absolute inset-0 z-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src="https://images.pexels.com/photos/1726074/pexels-photo-1726074.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
                             alt="Perro feliz en casa"

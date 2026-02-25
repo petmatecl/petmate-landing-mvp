@@ -43,6 +43,7 @@ export default function EditarMascotaPage() {
         checkSession();
 
         return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // 2. Fetch Data (Dependent on userId and router ready)

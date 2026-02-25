@@ -45,6 +45,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
         if (isOpen && tripId) {
             fetchApplications();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, tripId]);
 
     const fetchApplications = async () => {
@@ -213,6 +214,7 @@ export default function ApplicationsModal({ isOpen, onClose, tripId, onAccepted 
                                         {/* Sitter Info */}
                                         <div className="flex items-start gap-4 flex-1">
                                             {app.sitter?.foto_perfil ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
                                                 <img
                                                     src={getProxyImageUrl(app.sitter.foto_perfil) || ''}
                                                     alt={app.sitter.nombre}

@@ -17,34 +17,83 @@ import { useState } from "react";
 
 // --- SECCIÓN 2: CÓMO FUNCIONA (Band: Soft) ---
 export function HowItWorks() {
-  const steps = [
+  const [activeTab, setActiveTab] = useState<'buscadores' | 'proveedores'>('buscadores');
+
+  const stepsBuscadores = [
     {
       id: "01",
       name: "Explora",
-      description: "Ingresa tu comuna y fechas. Filtra por tipo de mascota y servicio (hospedaje o visitas).",
+      description: "Busca por comuna, fecha y el tipo de servicio que tu mascota necesita.",
       icon: MagnifyingGlassIcon,
     },
     {
       id: "02",
-      name: "Conoce",
-      description: "Revisa perfiles detallados, fotos de cuidados anteriores y reseñas de otros tutores.",
+      name: "Elige",
+      description: "Lee perfiles detallados, precios y evaluaciones reales de otros tutores.",
       icon: ChatBubbleLeftRightIcon,
     },
     {
       id: "03",
-      name: "Reserva",
-      description: "Coordina detalles por chat y acuerda el servicio. El pago es directo con el sitter.",
+      name: "Contacta",
+      description: "Escríbele al proveedor directamente para coordinar los detalles del servicio.",
       icon: BriefcaseIcon,
     },
   ];
 
+  const stepsProveedores = [
+    {
+      id: "01",
+      name: "Regístrate",
+      description: "Crea tu perfil con tu RUT. Validamos tu identidad para mayor seguridad de la comunidad.",
+      icon: ShieldCheckIcon,
+    },
+    {
+      id: "02",
+      name: "Publica",
+      description: "Agrega los servicios que ofreces, junto con tus precios, horarios y fotos de tu trabajo.",
+      icon: HomeIcon,
+    },
+    {
+      id: "03",
+      name: "Conecta",
+      description: "Recibe consultas de clientes directamente en nuestra plataforma y haz crecer tu negocio.",
+      icon: ChatBubbleLeftRightIcon,
+    },
+  ];
+
+  const steps = activeTab === 'buscadores' ? stepsBuscadores : stepsProveedores;
+
   return (
     <Band variant="soft">
-      <div className="mx-auto max-w-2xl lg:text-center mb-16">
+      <div className="mx-auto max-w-2xl lg:text-center mb-10">
         <h2 className="text-emerald-600 font-bold tracking-wide uppercase text-sm">Simple y Rápido</h2>
         <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
           ¿Cómo funciona Pawnecta?
         </p>
+
+        {/* Toggle Buscadores / Proveedores */}
+        <div className="mt-10 flex justify-center">
+          <div className="relative flex w-full max-w-xs p-1 bg-slate-100 rounded-2xl shadow-inner border border-slate-200/50">
+            <button
+              onClick={() => setActiveTab('buscadores')}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all duration-300 ${activeTab === 'buscadores'
+                ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-900/5'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                }`}
+            >
+              Para Tutores
+            </button>
+            <button
+              onClick={() => setActiveTab('proveedores')}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all duration-300 ${activeTab === 'proveedores'
+                ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-900/5'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                }`}
+            >
+              Para Proveedores
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
@@ -75,7 +124,16 @@ export function HowItWorks() {
 }
 
 // --- SECCIÓN 3: CONFIANZA / VALUE PROPS (Band: White) ---
-export function TrustSection() {
+
+export interface TrustSectionProps {
+  stats?: {
+    servicios: number;
+    proveedores: number;
+    comunas: number;
+  };
+}
+
+export function TrustSection({ stats }: TrustSectionProps = {}) {
   const features = [
     {
       name: "Identidad Verificada",
@@ -88,8 +146,8 @@ export function TrustSection() {
       icon: UserGroupIcon,
     },
     {
-      name: "Cero Jaulas",
-      description: "Olvídate de los caniles fríos. Aquí tu mascota recibe atención personalizada y calor de hogar.",
+      name: "Trato Personalizado",
+      description: "Olvídate de procesos en frío. Aquí tú contactas directamente a la persona que cuidará a tu peludo.",
       icon: HomeIcon,
     },
   ];
@@ -161,11 +219,11 @@ export function TrustSection() {
                     />
                   ))}
                   <div className="w-10 h-10 rounded-full border-2 border-white bg-emerald-600 flex items-center justify-center text-xs text-white font-bold">
-                    +1k
+                    ...
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-slate-900">Comunidad Feliz</div>
+                  <div className="text-sm font-bold text-slate-900">100% Cuidado</div>
                   <div className="text-xs text-slate-500">Reseñas reales</div>
                 </div>
               </div>
@@ -173,11 +231,29 @@ export function TrustSection() {
           </div>
         </div>
       </div>
+
+      {/* Stats Bar */}
+      {stats && (
+        <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3 border-t border-slate-200 pt-16">
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="text-4xl font-extrabold text-emerald-600">{stats.servicios}</div>
+            <div className="mt-2 text-sm font-semibold text-slate-600 uppercase tracking-wide">Servicios Publicados</div>
+          </div>
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="text-4xl font-extrabold text-emerald-600">{stats.proveedores}</div>
+            <div className="mt-2 text-sm font-semibold text-slate-600 uppercase tracking-wide">Proveedores Verificados</div>
+          </div>
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="text-4xl font-extrabold text-emerald-600">{stats.comunas}</div>
+            <div className="mt-2 text-sm font-semibold text-slate-600 uppercase tracking-wide">Comunas Cubiertas</div>
+          </div>
+        </div>
+      )}
     </Band>
   );
 }
 
-// --- SECCIÓN 5: Sitter CTA (Band: Dark Full-Width) ---
+// --- SECCIÓN 5: Proveedor CTA (Band: Dark Full-Width) ---
 export function SitterCTA() {
   return (
     <Band variant="dark">
@@ -188,10 +264,10 @@ export function SitterCTA() {
 
         <div className="relative z-10 flex-1 text-center lg:text-left">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Convierte tu amor por los animales en ingresos extra
+            Convierte tu pasión por las mascotas en ingresos
           </h2>
           <p className="mt-4 text-lg text-slate-300">
-            Únete a la red de cuidadores de Pawnecta. Tú eliges tus horarios, tus tarifas y las mascotas que quieres cuidar.
+            Únete a nuestra red como cuidador, paseador, peluquero o veterinario. Tú eliges tus horarios, tus tarifas y los servicios que quieres ofrecer.
           </p>
           <div className="mt-8 flex flex-wrap gap-4 justify-center lg:justify-start">
             <div className="flex items-center gap-2 text-white bg-white/5 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
@@ -207,10 +283,10 @@ export function SitterCTA() {
 
         <div className="relative z-10 flex-none">
           <Link
-            href="/register?role=sitter"
+            href="/register?role=proveedor"
             className="inline-block rounded-xl bg-emerald-500 px-8 py-4 text-base font-bold text-white shadow-lg hover:bg-emerald-400 transition-all hover:scale-105"
           >
-            Comenzar como Cuidador
+            Publicar mis servicios
           </Link>
         </div>
       </div>

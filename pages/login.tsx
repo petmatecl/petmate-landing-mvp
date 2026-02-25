@@ -128,24 +128,31 @@ export default function LoginPage() {
         userRoles.push('admin');
       }
 
-      // Basic Redirection Logic
-      // If we simply redirect to /usuario or /sitter, the Global RoleSelectionInterceptor will trigger if needed.
-      // But we can try to be smart about the initial redirect target.
-
-      let targetPath = '/usuario'; // Default for clients
-
-      // Only auto-redirect to specific dashboards if the user has EXACTLY one role.
-      // If they have multiple (e.g. Admin + User), we send them to /usuario to trigger the Interceptor.
-      if (userRoles.length === 1) {
-        if (userRoles[0] === 'admin') {
-          targetPath = '/admin';
-        } else if (userRoles[0] === 'petmate') {
-          targetPath = '/sitter';
-        }
+      if (userRoles.includes('admin')) {
+        await router.push('/admin');
+        return;
       }
 
-      // If user has both, or other combos, /usuario is a safe default.
-      // If they act as a sitter currently, the interceptor will ask them to switch or select.
+      // Check Provider status
+      const { data: providerData } = await supabase
+        .from('proveedores')
+        .select('estado')
+        .eq('auth_user_id', data.user.id)
+        .single();
+
+      const hasApprovedProvider = providerData?.estado === 'aprobado';
+      let savedMode = 'buscador';
+      if (typeof window !== "undefined") {
+        savedMode = window.localStorage.getItem('pawnecta_active_mode') || 'buscador';
+      }
+
+      let targetPath = '/explorar'; // Default for seekers
+
+      if (hasApprovedProvider && savedMode === 'proveedor') {
+        targetPath = '/proveedor';
+      } else if (providerData?.estado === 'pendiente') {
+        targetPath = '/usuario';
+      }
 
       await router.push(targetPath);
 

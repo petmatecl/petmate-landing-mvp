@@ -18,6 +18,8 @@ import AddressFormModal from "./AddressFormModal";
 import TripCard, { Trip } from "./TripCard";
 import ApplicationsModal from "./ApplicationsModal"; // Import Modal
 import { useClientData } from "./ClientContext";
+import { useUser } from "../../contexts/UserContext";
+import ProviderUpgradeModal from "../Shared/ProviderUpgradeModal";
 import { TripCardSkeleton, ItemsSkeleton, Skeleton } from "../Shared/Skeleton";
 import { createNotification } from "../../lib/notifications";
 import {
@@ -71,6 +73,7 @@ const COMUNAS_SANTIAGO = [
 export default function DashboardContent() {
     const router = useRouter();
     const { userId, addresses, loadingAddresses, refreshAddresses } = useClientData();
+    const { providerStatus, refreshProfile } = useUser();
 
     // Import dynamically or normally? Normally is fine.
     // Adding import at top level via separate modify if needed, or assume I can add it here?
@@ -138,6 +141,9 @@ export default function DashboardContent() {
     // Applications Modal State
     const [isAppsModalOpen, setIsAppsModalOpen] = useState(false);
     const [selectedTripAppsId, setSelectedTripAppsId] = useState<string | null>(null);
+
+    // Provider Upgrade State
+    const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
 
     useEffect(() => {
         if (userId) {
@@ -1725,6 +1731,45 @@ export default function DashboardContent() {
                         </section>
                     )}
 
+                    {/* UPGRADE A PROVEEDOR SECTION */}
+                    {providerStatus === 'none' && (
+                        <div className="bg-amber-50 rounded-3xl border border-amber-200 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-bottom-2 mt-8">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0 border border-amber-100">
+                                    <span className="text-3xl filter drop-shadow-sm">🛠️</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-amber-900 tracking-tight mb-1">¿También ofreces servicios para mascotas?</h3>
+                                    <p className="text-sm text-amber-700 max-w-md leading-relaxed">
+                                        Publica tus servicios gratis en Pawnecta. Solo necesitas verificar tu identidad con tu RUT.
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsProviderModalOpen(true)}
+                                className="w-full sm:w-auto px-6 py-3 bg-white text-emerald-700 hover:text-emerald-800 border-2 border-emerald-600 hover:bg-emerald-50 rounded-xl font-bold shadow-sm transition-all text-sm shrink-0 whitespace-nowrap active:scale-95 text-center"
+                            >
+                                Comenzar como proveedor
+                            </button>
+                        </div>
+                    )}
+
+                    {providerStatus === 'pendiente' && (
+                        <div className="bg-amber-50 rounded-3xl border border-amber-200 shadow-sm p-6 sm:p-8 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 mt-8">
+                            <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0 border border-amber-100">
+                                <Clock size={20} className="text-amber-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-amber-900 uppercase tracking-wide flex items-center gap-2 mb-1">
+                                    En Revisión
+                                </h3>
+                                <p className="text-sm text-amber-800 max-w-lg leading-relaxed">
+                                    Tu solicitud como proveedor está en revisión (24-48 horas).
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Modal Dirección */}
                     {userId && (
                         <AddressFormModal
@@ -1763,6 +1808,16 @@ export default function DashboardContent() {
                             onClose={() => setIsLightboxOpen(false)}
                         />
                     )}
+
+                    {/* Provider Upgrade Modal */}
+                    <ProviderUpgradeModal
+                        isOpen={isProviderModalOpen}
+                        onClose={() => setIsProviderModalOpen(false)}
+                        onSuccess={async () => {
+                            setIsProviderModalOpen(false);
+                            await refreshProfile();
+                        }}
+                    />
 
                     {/* Confirmation Modal */}
                     <ModalConfirm

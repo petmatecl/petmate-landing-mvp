@@ -30,6 +30,7 @@ export default function AvailabilityCalendar({ sitterId, onSaveSuccess, confirme
         if (sitterId) {
             loadAvailability();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sitterId]);
 
     const loadAvailability = async () => {

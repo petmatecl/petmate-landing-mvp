@@ -33,6 +33,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 unsubscribe();
             };
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [conversationId, userId]);
 
     async function fetchConversationDetails() {
@@ -247,6 +248,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 <div className="p-3 bg-white border-b border-slate-300 flex items-center gap-3 shadow-sm z-10">
                     <div className="relative">
                         {otherUser.foto_perfil ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={getProxyImageUrl(otherUser.foto_perfil) || ''}
                                 alt={otherUser.nombre}

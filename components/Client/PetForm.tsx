@@ -315,6 +315,7 @@ export default function PetForm({
                 <div className="relative group">
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-white relative ring-1 ring-slate-200">
                         {fotoMascota ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img src={fotoMascota} alt="Foto mascota" className="w-full h-full object-cover" />
                         ) : (
                             <div className="flex items-center justify-center h-full text-slate-300 bg-slate-50">
@@ -336,6 +337,7 @@ export default function PetForm({
                     <div className="flex items-center justify-center gap-3">
                         {fotosGaleria.map((url, idx) => (
                             <div key={idx} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={url} alt={`Galeria ${idx} `} className="w-full h-full object-cover" />
                                 <button
                                     type="button"

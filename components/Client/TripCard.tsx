@@ -272,6 +272,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sitter Asignado</p>
                                 <div className="flex items-center gap-3 group">
                                     <Link href={`/sitter/${trip.sitter?.id}?returnTo=/usuario`} className="w-12 h-12 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0 flex items-center justify-center group-hover:ring-2 ring-emerald-100 transition-all">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         {trip.sitter?.foto_perfil ? <img src={getProxyImageUrl(trip.sitter.foto_perfil)} className="w-full h-full object-cover" alt="Foto Sitter" /> : <User size={20} className="text-emerald-700" />}
                                     </Link>
                                     <div>
@@ -366,6 +367,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
                             <div className="bg-amber-50 rounded-lg p-4 border border-amber-200 flex flex-col md:flex-row items-center gap-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold border border-amber-200">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         {trip.sitter?.foto_perfil ? <img src={getProxyImageUrl(trip.sitter.foto_perfil)} className="w-full h-full rounded-full object-cover" alt="Sitter Aceptado" /> : trip.sitter.nombre.charAt(0)}
                                     </div>
                                     <div>
@@ -390,6 +392,7 @@ export default function TripCard({ trip, petNames, pets, onEdit, onDelete, onVie
 
                                 <div className="flex items-center gap-4 pl-2 w-full md:w-auto">
                                     <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold border-2 border-slate-100 overflow-hidden shadow-sm shrink-0">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         {trip.sitter?.foto_perfil ? <img src={getProxyImageUrl(trip.sitter.foto_perfil)} className="w-full h-full object-cover" alt="Sitter Pendiente" /> : <User size={24} />}
                                     </div>
                                     <div className="min-w-0">

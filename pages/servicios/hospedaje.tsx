@@ -43,6 +43,7 @@ export default function ServicioHospedaje() {
             <main className="bg-white">
                 {/* --- HERO SECTION --- */}
                 <div className="relative isolate overflow-hidden bg-slate-900 pb-16 pt-14 sm:pb-20">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src="https://images.pexels.com/photos/4000095/pexels-photo-4000095.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
                         alt="Perro en sofá"

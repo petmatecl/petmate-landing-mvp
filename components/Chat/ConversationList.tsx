@@ -19,6 +19,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
 
     useEffect(() => {
         if (userId) fetchConversations();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
     // Realtime subscription for conversation updates
@@ -48,6 +49,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
         return () => {
             supabase.removeChannel(channel);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
 
@@ -166,6 +168,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                         {/* Avatar */}
                         <div className="relative">
                             {other?.foto_perfil ? (
+                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                     src={getProxyImageUrl(other.foto_perfil) || ''}
                                     alt={other.nombre}

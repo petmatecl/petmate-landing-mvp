@@ -81,6 +81,7 @@ export default function TripDetailsModal({ isOpen, onClose, trip, pets, serviceA
                                                 <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 shadow-sm items-start">
                                                     <div className="shrink-0">
                                                         {pet.foto_mascota ? (
+                                                            // eslint-disable-next-line @next/next/no-img-element
                                                             <img src={getProxyImageUrl(pet.foto_mascota) || ''} className="w-14 h-14 rounded-2xl object-cover border border-slate-100 shadow-sm" alt={pet.nombre} />
                                                         ) : (
                                                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border text-xl font-bold ${pet.tipo === 'perro' ? 'bg-orange-50 text-orange-500 border-orange-100' : 'bg-emerald-50 text-emerald-500 border-emerald-100'}`}>
@@ -160,6 +161,7 @@ export default function TripDetailsModal({ isOpen, onClose, trip, pets, serviceA
                                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
                                             {trip.sitter.foto_perfil ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
                                                 <img src={getProxyImageUrl(trip.sitter.foto_perfil) || ''} alt={trip.sitter.nombre} className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="font-bold text-slate-400 text-lg">{trip.sitter.nombre.charAt(0)}</span>

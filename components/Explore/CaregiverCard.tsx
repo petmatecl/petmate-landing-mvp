@@ -48,6 +48,7 @@ export default function CaregiverCard({
     // Sync if prop changes
     useEffect(() => {
         setImgSrc(imageUrl || fallbackImage);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [imageUrl, nombre, apellido]);
 
     const handleProfileClick = async (e: React.MouseEvent) => {

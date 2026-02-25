@@ -36,12 +36,12 @@ export function Hero() {
           {/* Copy + CTAs */}
           <div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
-              Tu mascota en familia, <br className="hidden lg:block" />
-              <span className="text-emerald-600">incluso cuando no estás.</span>
+              Todos los servicios para tu mascota, <br className="hidden lg:block" />
+              <span className="text-emerald-600">cerca de ti.</span>
             </h1>
 
             <p className="mt-6 text-lg leading-8 text-slate-700">
-              Cero jaulas, solo cariño de hogar. Encuentra <strong>cuidadores verificados</strong> en tu comuna, lee reseñas de otros tutores y viaja con total tranquilidad.
+              Encuentra <strong>cuidadores, paseadores, peluqueros, veterinarios</strong> y más. Todos verificados en tu comuna para la seguridad de tu peludo.
             </p>
 
             {/* CTAs Principales */}
@@ -50,13 +50,13 @@ export function Hero() {
                 href="/explorar"
                 className="inline-flex justify-center items-center rounded-xl bg-slate-900 px-8 py-4 text-base font-bold text-white shadow-lg hover:bg-slate-800 transition-all hover:-translate-y-1"
               >
-                Buscar cuidador
+                Buscar servicios
               </Link>
               <Link
-                href="/register?role=sitter"
+                href="/register?role=proveedor"
                 className="inline-flex justify-center items-center rounded-xl bg-white border-2 border-slate-200 px-8 py-4 text-base font-bold text-slate-700 hover:border-emerald-500 hover:text-emerald-600 transition-all"
               >
-                Quiero ser cuidador
+                Publica tus servicios gratis
               </Link>
             </div>
 
@@ -79,7 +79,7 @@ export function Hero() {
                 <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 2" width={32} height={32} />
                 <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Sitter 3" width={32} height={32} />
               </div>
-              <div>+200 cuidadores listos para ayudar</div>
+              <div>+200 profesionales listos para ayudar</div>
             </div>
           </div>
 

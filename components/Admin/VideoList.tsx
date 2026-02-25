@@ -120,6 +120,7 @@ export default function VideoList() {
                                     <div className="p-4">
                                         <div className="flex items-center gap-3 mb-2">
                                             {sitter.foto_perfil ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
                                                 <img src={getProxyImageUrl(sitter.foto_perfil) || ''} alt={sitter.nombre} className="w-10 h-10 rounded-full object-cover border-2 border-slate-300" />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">

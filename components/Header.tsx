@@ -14,7 +14,7 @@ export default function Header() {
   const router = useRouter();
 
   // Use Unified Context
-  const { user, profile, isAuthenticated, activeRole, logout, switchRole, roles } = useUser();
+  const { user, profile, isAuthenticated, activeRole, activeMode, canSwitchMode, switchMode, logout, switchRole, roles } = useUser();
 
   // Nombre a mostrar
   const userName = profile?.nombre || user?.user_metadata?.nombre || "Usuario";
@@ -30,10 +30,9 @@ export default function Header() {
 
   const userInitials = getInitials();
 
-  // Route logic based on ACTIVE ROLE preference
-  const isSitterActive = activeRole === 'petmate';
-  const isAdminActive = activeRole === 'admin';
-  const dashboardLink = isAdminActive ? "/admin" : (isSitterActive ? "/proveedor" : "/usuario");
+  // Route logic based on ACTIVE MODE preference
+  const isSitterActive = activeMode === 'proveedor';
+  const dashboardLink = isSitterActive ? "/proveedor" : "/usuario";
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">
@@ -124,28 +123,49 @@ export default function Header() {
               {/* Profile Switcher & Unread Badge */}
               <NotificationBell />
 
-              {/* Multi-role Switcher */}
-              {(profile?.roles && profile.roles.length > 1) && (
+              {/* Multi-mode Switcher */}
+              {canSwitchMode && (
+                <div className="flex items-center bg-slate-100 rounded-full p-1 border border-slate-200 shadow-inner">
+                  <button
+                    onClick={() => switchMode('buscador')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'buscador'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                      }`}
+                  >
+                    <span>🔍</span>
+                    <span>Buscando</span>
+                  </button>
+                  <button
+                    onClick={() => switchMode('proveedor')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'proveedor'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                      }`}
+                  >
+                    <span>🛠️</span>
+                    <span>Ofreciendo</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Legacy Admin Switcher if needed */}
+              {(!canSwitchMode && profile?.roles && profile.roles.includes('admin')) && (
                 <div className="relative group">
                   <button className="inline-flex items-center gap-1 rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors uppercase tracking-wide">
-                    {activeRole === 'petmate' ? 'Proveedor' : activeRole === 'admin' ? 'Admin' : 'Usuario'}
+                    Admin
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </button>
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hidden group-hover:block animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-2 space-y-1">
-                      {profile.roles.map(r => (
-                        <button
-                          key={r}
-                          onClick={() => {
-                            if (activeRole !== r) {
-                              switchRole(r as any);
-                            }
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeRole === r ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
-                        >
-                          {r === 'petmate' ? 'Proveedor' : r === 'admin' ? 'Admin' : 'Usuario'}
-                        </button>
-                      ))}
+                      <button
+                        onClick={() => {
+                          if (activeRole !== 'admin') switchRole('admin');
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeRole === 'admin' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                      >
+                        Admin Dashboard
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -29,12 +29,18 @@ interface UserContextType {
     user: any | null; // Supabase user
     profile: UserProfile | null;
     roles: string[];
-    activeRole: Role | null; // The role the user is currently ACTING as
+    activeRole: Role | null; // Keep for backwards compatibility if needed, but we migrate to modes
+    activeMode: 'buscador' | 'proveedor' | null;
+    canSwitchMode: boolean;
+    providerStatus: 'none' | 'pendiente' | 'aprobado';
     capabilities: UserCapabilities; // What the user CAN actually do
-    onboardingStatus: OnboardingStep; // New: Onboarding State
+    onboardingStatus: OnboardingStep;
     isLoading: boolean;
     isAuthenticated: boolean;
+    switchMode: (mode: 'buscador' | 'proveedor') => void;
+    activateProviderMode: () => void;
     switchRole: (role: Role) => void;
+    refreshProfile: () => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -54,6 +60,9 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [activeRole, setActiveRole] = useState<Role | null>(null);
+    const [activeMode, setActiveMode] = useState<'buscador' | 'proveedor' | null>(null);
+    const [canSwitchMode, setCanSwitchMode] = useState(false);
+    const [providerStatus, setProviderStatus] = useState<'none' | 'pendiente' | 'aprobado'>('none');
     const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStep>('COMPLETE'); // Default optimistic
 
     // Derived Capabilities State
@@ -98,102 +107,126 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         return 'COMPLETE';
     };
 
-    useEffect(() => {
-        let mounted = true;
+    const initializeUser = async () => {
+        try {
+            // 1. Get Session
+            const { data: { session } } = await supabase.auth.getSession();
 
-        const initializeUser = async () => {
-            try {
-                // 1. Get Session
-                const { data: { session } } = await supabase.auth.getSession();
-
-                if (!session?.user) {
-                    if (mounted) {
-                        setUser(null);
-                        setProfile(null);
-                        setActiveRole(null);
-                        setCapabilities(GUEST_CAPABILITIES);
-                        setOnboardingStatus('COMPLETE'); // Guests fine
-                        setIsLoading(false);
-                    }
-                    return;
-                }
-
-                if (mounted) setUser(session.user);
-
-                // 2. Fetch Profile (Source of Truth for Roles)
-                const { data: profileData, error } = await supabase
-                    .from('registro_petmate')
-                    .select('nombre, apellido_p, apellido_m, roles, foto_perfil, aprobado')
-                    .eq('auth_user_id', session.user.id)
-                    .single();
-
-                if (error) {
-                    console.error('Error fetching profile:', error);
-                    // If 406/404, profile might be missing -> Onboarding needed
-                }
-
-                if (mounted) {
-                    // Check if profile exists, if not, we clearly need BASIC profile
-                    const finalProfile = profileData || null;
-                    const status = calculateOnboardingStatus(session.user, finalProfile);
-
-                    setProfile(finalProfile);
-                    setCapabilities(deriveCapabilities(finalProfile));
-                    setOnboardingStatus(status);
-
-                    // 3. Determine Active Role
-                    if (finalProfile) {
-                        const validRoles = finalProfile.roles || ['cliente'];
-
-                        // ADMIN INJECTION
-                        const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
-                        if (session.user.email && ADMIN_EMAILS.includes(session.user.email) && !validRoles.includes('admin')) {
-                            validRoles.push('admin');
-                        }
-
-                        const storedRole = window.localStorage.getItem('activeRole') as Role;
-
-                        // Priority 1: Stored Preference (if valid)
-                        if (storedRole && validRoles.includes(storedRole)) {
-                            setActiveRole(storedRole);
-                        }
-                        // Priority 2: Single Role available (Auto-select)
-                        else if (validRoles.length === 1) {
-                            setActiveRole(validRoles[0] as Role);
-                        }
-                        // Priority 3: Ambiguous (Multiple roles, no preference)
-                        // Do NOT set activeRole. Keep it null.
-                        // The RoleSelectionInterceptor will catch this state and prompt the user.
-                        else {
-                            setActiveRole(null);
-                        }
-                    }
-                }
-
-            } catch (err) {
-                console.error("UserContext Init Error:", err);
-            } finally {
-                if (mounted) setIsLoading(false);
-            }
-        };
-
-        initializeUser();
-
-        // Listen for Auth Changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            if (session?.user) {
-                if (user?.id !== session.user.id) {
-                    setUser(session.user);
-                    // Re-run init logic via effect trigger or manual call if needed
-                    initializeUser();
-                }
-            } else {
+            if (!session?.user) {
                 setUser(null);
                 setProfile(null);
                 setActiveRole(null);
+                setActiveMode('buscador'); // Default para no logueados
+                setCanSwitchMode(false);
+                setProviderStatus('none');
                 setCapabilities(GUEST_CAPABILITIES);
                 setOnboardingStatus('COMPLETE');
                 setIsLoading(false);
+                return;
+            }
+
+            setUser(session.user);
+
+            // 2. Fetch Profile from 'registro_petmate' for backwards compatibility and basic info
+            const { data: profileData, error } = await supabase
+                .from('registro_petmate')
+                .select('nombre, apellido_p, apellido_m, roles, foto_perfil, aprobado')
+                .eq('auth_user_id', session.user.id)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error fetching general profile:', error);
+            }
+
+            // 3. New Dual-Role Check
+            const { data: providerData } = await supabase
+                .from('proveedores')
+                .select('id, estado')
+                .eq('auth_user_id', session.user.id)
+                .single();
+
+            const { data: seekerData } = await supabase
+                .from('usuarios_buscadores')
+                .select('id')
+                .eq('auth_user_id', session.user.id)
+                .single();
+
+            const hasApprovedProvider = providerData?.estado === 'aprobado';
+            const statusOfProvider = providerData ? providerData.estado : 'none';
+            const hasSeeker = !!seekerData;
+
+            const finalProfile = profileData || null;
+            const status = calculateOnboardingStatus(session.user, finalProfile);
+
+            setProfile(finalProfile);
+            setCapabilities(deriveCapabilities(finalProfile));
+            setOnboardingStatus(status);
+            setProviderStatus(statusOfProvider as 'none' | 'pendiente' | 'aprobado');
+
+            // Dual Role State resolution
+            const canSwitch = hasApprovedProvider && hasSeeker;
+            setCanSwitchMode(canSwitch);
+
+            let determinedMode: 'buscador' | 'proveedor' = 'buscador';
+
+            if (canSwitch) {
+                const savedMode = window.localStorage.getItem('pawnecta_active_mode');
+                determinedMode = (savedMode === 'proveedor' || savedMode === 'buscador') ? savedMode : 'buscador';
+            } else if (hasApprovedProvider) {
+                determinedMode = 'proveedor';
+            } else {
+                // includes only seeker, or neither (new signups)
+                determinedMode = 'buscador';
+            }
+
+            setActiveMode(determinedMode);
+
+            // --- Legacy activeRole Logic Maintenance ---
+            if (finalProfile) {
+                const validRoles = finalProfile.roles || ['cliente'];
+                const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
+                if (session.user.email && ADMIN_EMAILS.includes(session.user.email) && !validRoles.includes('admin')) {
+                    validRoles.push('admin');
+                }
+
+                // For backwards compatibility, sync activeRole to mode
+                if (determinedMode === 'proveedor') setActiveRole('petmate');
+                else if (determinedMode === 'buscador') setActiveRole('cliente');
+                else setActiveRole(null);
+            }
+
+        } catch (err) {
+            console.error("UserContext Init Error:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        let mounted = true;
+
+        const runInit = async () => {
+            if (mounted) await initializeUser();
+        };
+
+        runInit();
+
+        // Listen for Auth Changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN') {
+                if (mounted) await initializeUser();
+            } else if (event === 'SIGNED_OUT') {
+                if (mounted) {
+                    setUser(null);
+                    setProfile(null);
+                    setActiveRole(null);
+                    setActiveMode('buscador');
+                    setCanSwitchMode(false);
+                    setProviderStatus('none');
+                    setCapabilities(GUEST_CAPABILITIES);
+                    setOnboardingStatus('COMPLETE');
+                    setIsLoading(false);
+                }
             }
         });
 
@@ -213,15 +246,34 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         }
     };
 
+    const switchMode = (mode: 'buscador' | 'proveedor') => {
+        setActiveMode(mode);
+        window.localStorage.setItem('pawnecta_active_mode', mode);
+        // also sync activeRole
+        if (mode === 'proveedor') setActiveRole('petmate');
+        else setActiveRole('cliente');
+    };
+
+    const activateProviderMode = () => {
+        console.log("activateProviderMode called");
+    };
+
+    const refreshProfile = async () => {
+        setIsLoading(true);
+        await initializeUser();
+    };
+
     const logout = async () => {
         await supabase.auth.signOut();
         setUser(null);
         setProfile(null);
         setActiveRole(null);
-        setCapabilities(GUEST_CAPABILITIES);
-        setActiveRole(null);
+        setActiveMode('buscador');
+        setCanSwitchMode(false);
+        setProviderStatus('none');
         window.localStorage.removeItem('activeRole');
         window.localStorage.removeItem("pm_auth_role_pending");
+        window.localStorage.removeItem('pawnecta_active_mode');
         router.push('/');
     };
 
@@ -231,11 +283,17 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             profile,
             roles,
             activeRole,
+            activeMode,
+            canSwitchMode,
+            providerStatus,
             capabilities,
             onboardingStatus,
             isLoading,
             isAuthenticated: !!user,
+            switchMode,
+            activateProviderMode,
             switchRole,
+            refreshProfile,
             logout
         }}>
             {children}

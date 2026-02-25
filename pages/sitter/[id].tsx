@@ -191,6 +191,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         if (profileData?.id) {
             fetchReviews();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [profileData?.id]);
 
     const fetchReviews = async () => {
@@ -208,6 +209,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         if (currentUserId && profileData?.auth_user_id) {
             checkPendingApplication();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUserId, profileData?.auth_user_id]);
 
     const checkPendingApplication = async () => {
@@ -317,6 +319,7 @@ export default function PublicProfilePage({ petmate: initialPetmate, error, id }
         if (currentUserId && profileData?.auth_user_id) {
             fetchMyTripsWithSitter();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUserId, profileData?.auth_user_id]);
 
     const fetchMyTripsWithSitter = async () => {

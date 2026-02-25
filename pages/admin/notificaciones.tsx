@@ -18,25 +18,6 @@ export default function AdminNotifications() {
     // --- CONFIGURACIÓN: Lista de administradores ---
     const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
 
-    const checkAuth = async () => {
-        setLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-            router.push("/login");
-            return;
-        }
-
-        if (!ADMIN_EMAILS.includes(session.user.email || "")) {
-            alert("Acceso denegado: No tienes permisos de administrador.");
-            router.push("/");
-            return;
-        }
-
-        await fetchData();
-        setLoading(false);
-    };
-
     const fetchData = async () => {
         // 1. Stats Counters
         const { count: sittersPendientes } = await supabase
@@ -67,8 +48,28 @@ export default function AdminNotifications() {
         setActivities(users || []);
     };
 
+    const checkAuth = async () => {
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+            router.push("/login");
+            return;
+        }
+
+        if (!ADMIN_EMAILS.includes(session.user.email || "")) {
+            alert("Acceso denegado: No tienes permisos de administrador.");
+            router.push("/");
+            return;
+        }
+
+        await fetchData();
+        setLoading(false);
+    };
+
     useEffect(() => {
         checkAuth();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

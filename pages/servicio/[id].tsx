@@ -121,6 +121,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
 
                         {/* Galeria / Portada */}
                         <div className="w-full h-[300px] md:h-[450px] bg-slate-200 rounded-3xl overflow-hidden relative shadow-sm">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={coverImage}
                                 alt={service.titulo}
@@ -264,6 +265,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
                                                                 {u?.foto_perfil ? (
+                                                                    // eslint-disable-next-line @next/next/no-img-element
                                                                     <img src={u.foto_perfil} alt={u.nombre} className="w-full h-full object-cover" />
                                                                 ) : (
                                                                     <div className="w-full h-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm">{u?.nombre?.[0] || '?'}</div>
@@ -315,6 +317,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                             <div className="flex flex-col items-center justify-center gap-2 mb-8 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                 <div className="w-20 h-20 rounded-full border-4 border-white shadow-md relative overflow-hidden bg-slate-200">
                                     {proveedor.foto_perfil ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
                                         <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
                                     ) : (
                                         <svg className="w-full h-full text-slate-400 p-2" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
