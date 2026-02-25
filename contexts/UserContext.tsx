@@ -139,9 +139,9 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             }
 
             // 3. New Dual-Role Check
-            const { data: providerData } = await supabase
+            const { data: proveedorData } = await supabase
                 .from('proveedores')
-                .select('id, estado')
+                .select('id, nombre, apellido_p, roles, foto_perfil, estado')
                 .eq('auth_user_id', session.user.id)
                 .single();
 
@@ -151,15 +151,22 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                 .eq('auth_user_id', session.user.id)
                 .single();
 
-            const hasApprovedProvider = providerData?.estado === 'aprobado';
-            const statusOfProvider = providerData ? providerData.estado : 'none';
+            const hasApprovedProvider = proveedorData?.estado === 'aprobado';
+            const statusOfProvider = proveedorData ? proveedorData.estado : 'none';
             const hasSeeker = !!seekerData;
 
-            const finalProfile = profileData || null;
-            const status = calculateOnboardingStatus(session.user, finalProfile);
+            const finalProfile = profileData || (proveedorData ? {
+                nombre: proveedorData.nombre,
+                apellido_p: proveedorData.apellido_p,
+                roles: proveedorData.roles || ['proveedor'],
+                foto_perfil: proveedorData.foto_perfil,
+                aprobado: proveedorData.estado === 'aprobado'
+            } : null);
 
-            setProfile(finalProfile);
-            setCapabilities(deriveCapabilities(finalProfile));
+            const status = calculateOnboardingStatus(session.user, finalProfile as any);
+
+            setProfile(finalProfile as any);
+            setCapabilities(deriveCapabilities(finalProfile as any));
             setOnboardingStatus(status);
             setProviderStatus(statusOfProvider as 'none' | 'pendiente' | 'aprobado');
 
@@ -264,17 +271,25 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     };
 
     const logout = async () => {
-        await supabase.auth.signOut();
+        // 1. Limpiar estado local PRIMERO
         setUser(null);
         setProfile(null);
         setActiveRole(null);
         setActiveMode('buscador');
         setCanSwitchMode(false);
         setProviderStatus('none');
+        setCapabilities(GUEST_CAPABILITIES);
+
+        // 2. Limpiar localStorage
         window.localStorage.removeItem('activeRole');
-        window.localStorage.removeItem("pm_auth_role_pending");
+        window.localStorage.removeItem('pm_auth_role_pending');
         window.localStorage.removeItem('pawnecta_active_mode');
-        router.push('/');
+
+        // 3. Sign out de Supabase
+        await supabase.auth.signOut();
+
+        // 4. Redirect con window.location para forzar recarga completa
+        window.location.href = '/';
     };
 
     return (

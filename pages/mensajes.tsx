@@ -30,9 +30,12 @@ export default function MensajesPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-            </div>
+            <>
+                <Header />
+                <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                </div>
+            </>
         );
     }
 
@@ -43,6 +46,8 @@ export default function MensajesPage() {
             <Head>
                 <title>Mensajes | Pawnecta</title>
             </Head>
+
+            <Header />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-64px-64px)] flex flex-col">
                 <div className="mb-6 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
