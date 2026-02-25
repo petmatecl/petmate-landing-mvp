@@ -19,6 +19,18 @@ import { RoleSelectionInterceptor } from "../components/Auth/RoleSelectionInterc
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
+  const ROUTES_WITHOUT_LAYOUT = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/registro-exitoso',
+    '/email-confirmado',
+    '/security-logout',
+  ];
+
+  const showLayout = !ROUTES_WITHOUT_LAYOUT.includes(router.pathname);
+
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       gtag.pageview(url);
@@ -57,13 +69,13 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
           <SessionTimeout />
           <Toaster position="top-center" richColors />
-          <Header />
+          {showLayout && <Header />}
 
           <main className="flex-1">
             <Component {...pageProps} />
           </main>
 
-          <Footer />
+          {showLayout && <Footer />}
         </div>
       </OnlineStatusProvider>
     </UserContextProvider>

@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning } from 'lucide-react';
-// import TabNavigation from '../components/Proveedor/TabNavigation'; // Removed missing component
 
 // Nuevos componentes de la refactorización
 import AdminMetrics from '../components/Admin/AdminMetrics';
@@ -82,7 +79,6 @@ export default function AdminDashboard() {
     if (loading) {
         return (
             <>
-                <Header />
                 <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
                 </div>
@@ -99,8 +95,6 @@ export default function AdminDashboard() {
             <Head>
                 <title>Administración | Pawnecta</title>
             </Head>
-
-            <Header />
 
             <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-24">
                 {/* Header del Dashboard */}
@@ -143,8 +137,6 @@ export default function AdminDashboard() {
                     {activeTab === 'proveedores' && <ProveedorManagementList />}
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 }

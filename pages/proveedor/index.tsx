@@ -3,8 +3,6 @@ import Head from 'next/head';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import RoleGuard from '../../components/Shared/RoleGuard';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
 import ConversationList from '../../components/Chat/ConversationList';
 import MessageThread from '../../components/Chat/MessageThread';
@@ -198,7 +196,6 @@ export default function ProveedorDashboard() {
     if (userLoading || statusLoading) {
         return (
             <>
-                <Header />
                 <div className="min-h-screen flex items-center justify-center bg-slate-50">
                     <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
@@ -209,7 +206,6 @@ export default function ProveedorDashboard() {
     if (proveedor?.estado === 'pendiente') {
         return (
             <>
-                <Header />
                 <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 p-4">
                     <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
                         <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
@@ -231,7 +227,6 @@ export default function ProveedorDashboard() {
     if (proveedor?.estado === 'suspendido') {
         return (
             <>
-                <Header />
                 <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 p-4">
                     <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
                         <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
@@ -251,7 +246,6 @@ export default function ProveedorDashboard() {
     return (
         <>
             <Head><title>Mi Panel | Pawnecta</title></Head>
-            <Header />
             <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
                 {/* Desktop Sidebar */}
                 <aside className="hidden lg:flex w-[260px] flex-col bg-white border-r border-slate-200 h-[calc(100vh-64px)] shrink-0 sticky top-16">
@@ -636,7 +630,6 @@ export default function ProveedorDashboard() {
 
                 </main>
             </div>
-            {/* <Footer /> */}
             <Toaster position="top-center" richColors />
         </>
     );
