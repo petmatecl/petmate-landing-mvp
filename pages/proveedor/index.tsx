@@ -198,7 +198,6 @@ export default function ProveedorDashboard() {
     if (userLoading || statusLoading) {
         return (
             <>
-                <Header />
                 <div className="min-h-screen flex items-center justify-center bg-slate-50">
                     <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
@@ -209,7 +208,6 @@ export default function ProveedorDashboard() {
     if (proveedor?.estado === 'pendiente') {
         return (
             <>
-                <Header />
                 <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 p-4">
                     <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
                         <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
@@ -231,7 +229,6 @@ export default function ProveedorDashboard() {
     if (proveedor?.estado === 'suspendido') {
         return (
             <>
-                <Header />
                 <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 p-4">
                     <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
                         <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
