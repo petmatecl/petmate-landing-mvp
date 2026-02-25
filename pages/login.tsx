@@ -189,7 +189,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="form" method="POST">
+            <form onSubmit={handleSubmit} className="form">
 
               {/* Correo */}
               <div className="field">
