@@ -118,14 +118,10 @@ export default function LoginPage() {
         // Pero primero verifica si es admin por email (puede no tener perfil completo)
         const ADMIN_EMAILS = ['canocortes@gmail.com', 'admin@petmate.cl', 'aldo@petmate.cl', 'eduardo.a.cordova.d@gmail.com', 'acanocts@gmail.com'];
         if (data.user.email && ADMIN_EMAILS.includes(data.user.email)) {
-          setTimeout(() => {
-            window.location.href = '/admin';
-          }, 500);
+          window.location.replace('/admin');
           return;
         }
-        setTimeout(() => {
-          window.location.href = '/register?resume=true';
-        }, 500);
+        window.location.replace('/register?resume=true');
         return;
       }
 
@@ -138,9 +134,7 @@ export default function LoginPage() {
       const isAdminByRole = userRoles.includes('admin');
 
       if (isAdminByEmail || isAdminByRole) {
-        setTimeout(() => {
-          window.location.href = '/admin';
-        }, 500);
+        window.location.replace('/admin');
         return;
       }
 
@@ -157,11 +151,14 @@ export default function LoginPage() {
         : 'buscador';
 
       if (hasApprovedProvider && savedMode === 'proveedor') {
-        setTimeout(() => { window.location.href = '/proveedor'; }, 500);
+        window.location.replace('/proveedor');
+        return;
       } else if (proveedorData?.estado === 'pendiente') {
-        setTimeout(() => { window.location.href = '/usuario'; }, 500);
+        window.location.replace('/usuario');
+        return;
       } else {
-        setTimeout(() => { window.location.href = '/explorar'; }, 500);
+        window.location.replace('/explorar');
+        return;
       }
 
     } catch (err: any) {
