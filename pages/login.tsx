@@ -110,51 +110,53 @@ export default function LoginPage() {
         return;
       }
 
-      // Fetch Profile using AuthService
+      // Fetch Profile — busca en registro_petmate Y proveedores
       const profile = await AuthService.fetchProfile(data.user.id);
 
+      // Si no hay perfil en NINGUNA tabla → es usuario nuevo, completa registro
       if (!profile) {
-        // No profile? Redirect to completion
-        router.push("/register?resume=true");
+        // Pero primero verifica si es admin por email (puede no tener perfil completo)
+        const ADMIN_EMAILS = ['canocortes@gmail.com', 'admin@petmate.cl', 'aldo@petmate.cl', 'eduardo.a.cordova.d@gmail.com', 'acanocts@gmail.com'];
+        if (data.user.email && ADMIN_EMAILS.includes(data.user.email)) {
+          await router.push('/admin');
+          return;
+        }
+        router.push('/register?resume=true');
         return;
       }
 
-      // Determine Roles
+      // Determina roles del perfil
       const userRoles = profile.roles || [];
 
-      // Admin Whitelist Check (ensure capability is reflected locally for safe redirect)
-      const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
-      if (data.user.email && ADMIN_EMAILS.includes(data.user.email) && !userRoles.includes('admin')) {
-        userRoles.push('admin');
-      }
+      // Admin check por roles O por email whitelist
+      const ADMIN_EMAILS = ['canocortes@gmail.com', 'admin@petmate.cl', 'aldo@petmate.cl', 'eduardo.a.cordova.d@gmail.com', 'acanocts@gmail.com'];
+      const isAdminByEmail = data.user.email && ADMIN_EMAILS.includes(data.user.email);
+      const isAdminByRole = userRoles.includes('admin');
 
-      if (userRoles.includes('admin')) {
+      if (isAdminByEmail || isAdminByRole) {
         await router.push('/admin');
         return;
       }
 
-      // Check Provider status
-      const { data: providerData } = await supabase
+      // Para proveedores y buscadores normales
+      const { data: proveedorData } = await supabase
         .from('proveedores')
         .select('estado')
         .eq('auth_user_id', data.user.id)
         .single();
 
-      const hasApprovedProvider = providerData?.estado === 'aprobado';
-      let savedMode = 'buscador';
-      if (typeof window !== "undefined") {
-        savedMode = window.localStorage.getItem('pawnecta_active_mode') || 'buscador';
-      }
-
-      let targetPath = '/explorar'; // Default for seekers
+      const hasApprovedProvider = proveedorData?.estado === 'aprobado';
+      const savedMode = typeof window !== 'undefined'
+        ? window.localStorage.getItem('pawnecta_active_mode') || 'buscador'
+        : 'buscador';
 
       if (hasApprovedProvider && savedMode === 'proveedor') {
-        targetPath = '/proveedor';
-      } else if (providerData?.estado === 'pendiente') {
-        targetPath = '/usuario';
+        await router.push('/proveedor');
+      } else if (proveedorData?.estado === 'pendiente') {
+        await router.push('/usuario');
+      } else {
+        await router.push('/explorar');
       }
-
-      await router.push(targetPath);
 
     } catch (err: any) {
       console.error(err);

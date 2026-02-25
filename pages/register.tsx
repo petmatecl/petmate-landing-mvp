@@ -84,8 +84,8 @@ export default function RegisterPage() {
                     <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-colors bg-slate-100 text-slate-500 group-hover:bg-[#1A6B4A]/10 group-hover:text-[#1A6B4A]">
                       <UserIcon width={40} height={40} />
                     </div>
-                    <h3 className="font-bold text-xl mb-2 text-slate-700 group-hover:text-[#1A6B4A]">Quiero encontrar servicios</h3>
-                    <p className="text-sm text-center text-slate-500">Busca, compara y contrata cuidadores y paseadores de confianza.</p>
+                    <h3 className="font-bold text-xl mb-2 text-slate-700 group-hover:text-[#1A6B4A]">Soy usuario</h3>
+                    <p className="text-sm text-center text-slate-500">Quiero encontrar servicios para mi mascota.</p>
                   </button>
                 </div>
               </div>

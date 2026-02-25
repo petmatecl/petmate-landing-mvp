@@ -24,7 +24,7 @@ export default function QuienesSomos() {
                             El marketplace de servicios para mascotas más confiable de Chile
                         </p>
                         <p className="mt-4 text-base leading-7 text-slate-600">
-                            Pawnecta nació de una pregunta simple: ¿por qué es tan difícil encontrar a alguien de confianza para cuidar a tu mascota? Buscadores dispersos, contactos sin verificar, precios opacos. Decidimos cambiar eso.
+                            Pawnecta nació de una pregunta simple: ¿por qué es tan difícil encontrar a alguien de confianza para cuidar a tu mascota? Usuarios dispersos, contactos sin verificar, precios opacos. Decidimos cambiar eso.
                         </p>
                     </div>
                 </section>

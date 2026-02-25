@@ -11,6 +11,7 @@ export default function Header() {
 
   const [open, setOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
   const router = useRouter();
 
   // Use Unified Context
@@ -87,7 +88,7 @@ export default function Header() {
           >
             Explorar servicios
           </Link>
-          {!isAuthenticated && (
+          {(!isAuthenticated || loggingOut) && (
             <Link
               href="/register?rol=proveedor"
               className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-4"
@@ -95,7 +96,7 @@ export default function Header() {
               Publicar servicio
             </Link>
           )}
-          {!isAuthenticated ? (
+          {(!isAuthenticated || loggingOut) ? (
             <>
               <Link
                 href="/login"
@@ -129,18 +130,18 @@ export default function Header() {
                   <button
                     onClick={() => switchMode('buscador')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'buscador'
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
                     <span>🔍</span>
-                    <span>Buscando</span>
+                    <span>Usuario</span>
                   </button>
                   <button
                     onClick={() => switchMode('proveedor')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'proveedor'
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
                     <span>🛠️</span>
@@ -184,9 +185,11 @@ export default function Header() {
                 Mi panel
               </Link>
               <button
-                onClick={() => {
+                onClick={async () => {
                   setOpen(false);
-                  logout();
+                  setLoggingOut(true);
+                  await logout();
+                  setLoggingOut(false);
                 }}
                 className="inline-flex items-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 bg-white cursor-pointer"
               >
@@ -235,7 +238,7 @@ export default function Header() {
       {open && (
         <div id="mobile-menu" className="border-t bg-white sm:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3">
-            {!isAuthenticated ? (
+            {(!isAuthenticated || loggingOut) ? (
               <>
                 <Link
                   href="/blog"
@@ -311,7 +314,9 @@ export default function Header() {
                 <button
                   onClick={async () => {
                     setOpen(false);
+                    setLoggingOut(true);
                     await logout();
+                    setLoggingOut(false);
                   }}
                   className="inline-flex items-center justify-center rounded-xl border px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 w-full"
                 >

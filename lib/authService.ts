@@ -42,19 +42,40 @@ export const AuthService = {
      */
     async fetchProfile(userId: string): Promise<UserProfile | null> {
         try {
-            const { data, error } = await supabase
+            // Intenta registro_petmate primero (usuarios del modelo anterior)
+            const { data: legacyData } = await supabase
                 .from('registro_petmate')
                 .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, aprobado, telefono, rut')
                 .eq('auth_user_id', userId)
                 .single();
 
-            if (error) {
-                console.error("AuthService: Error fetching profile", error);
-                return null;
+            if (legacyData) return legacyData;
+
+            // Si no existe en registro_petmate, busca en proveedores (modelo nuevo)
+            const { data: proveedorData } = await supabase
+                .from('proveedores')
+                .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, estado, rut')
+                .eq('auth_user_id', userId)
+                .single();
+
+            if (proveedorData) {
+                // Normaliza al formato UserProfile
+                return {
+                    id: proveedorData.id,
+                    auth_user_id: proveedorData.auth_user_id,
+                    nombre: proveedorData.nombre,
+                    apellido_p: proveedorData.apellido_p,
+                    apellido_m: proveedorData.apellido_m,
+                    roles: proveedorData.roles || ['proveedor'],
+                    foto_perfil: proveedorData.foto_perfil,
+                    aprobado: proveedorData.estado === 'aprobado',
+                    rut: proveedorData.rut,
+                };
             }
-            return data;
+
+            return null;
         } catch (e) {
-            console.error("AuthService: Unexpected error", e);
+            console.error('AuthService: Unexpected error', e);
             return null;
         }
     },

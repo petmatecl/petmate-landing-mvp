@@ -82,7 +82,7 @@ export default function ClientRegistrationFlow({ onCancel }: { onCancel: () => v
         <div className="mt-8 transition-all animate-fade-in">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-slate-800">
-                    Registro de Buscador
+                    Registro de Usuario
                 </h2>
                 <button onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-800 underline">
                     Cambiar rol
