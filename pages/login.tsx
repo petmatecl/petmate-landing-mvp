@@ -118,10 +118,10 @@ export default function LoginPage() {
         // Pero primero verifica si es admin por email (puede no tener perfil completo)
         const ADMIN_EMAILS = ['canocortes@gmail.com', 'admin@petmate.cl', 'aldo@petmate.cl', 'eduardo.a.cordova.d@gmail.com', 'acanocts@gmail.com'];
         if (data.user.email && ADMIN_EMAILS.includes(data.user.email)) {
-          await router.push('/admin');
+          window.location.href = '/admin';
           return;
         }
-        router.push('/register?resume=true');
+        window.location.href = '/register?resume=true';
         return;
       }
 
@@ -134,7 +134,7 @@ export default function LoginPage() {
       const isAdminByRole = userRoles.includes('admin');
 
       if (isAdminByEmail || isAdminByRole) {
-        await router.push('/admin');
+        window.location.href = '/admin';
         return;
       }
 
@@ -151,11 +151,11 @@ export default function LoginPage() {
         : 'buscador';
 
       if (hasApprovedProvider && savedMode === 'proveedor') {
-        await router.push('/proveedor');
+        window.location.href = '/proveedor';
       } else if (proveedorData?.estado === 'pendiente') {
-        await router.push('/usuario');
+        window.location.href = '/usuario';
       } else {
-        await router.push('/explorar');
+        window.location.href = '/explorar';
       }
 
     } catch (err: any) {
