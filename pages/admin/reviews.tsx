@@ -10,12 +10,12 @@ export default function AdminReviews() {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pendiente' | 'aprobado' | 'rechazado'>('all');
-    const [sitters, setSitters] = useState<any[]>([]); // For manual review creation
+    const [proveedores, setProveedores] = useState<any[]>([]); // For manual review creation
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [manualReview, setManualReview] = useState({
-        sitter_id: '',
+        proveedor_id: '',
         calificacion: 5,
         comentario: '',
         nombre_cliente_manual: '',
@@ -23,12 +23,12 @@ export default function AdminReviews() {
     });
 
     // Searchable Dropdown State
-    const [sitterSearchTerm, setSitterSearchTerm] = useState("");
-    const [isSitterDropdownOpen, setIsSitterDropdownOpen] = useState(false);
+    const [proveedorSearchTerm, setProveedorSearchTerm] = useState("");
+    const [isProveedorDropdownOpen, setIsProveedorDropdownOpen] = useState(false);
 
     useEffect(() => {
         fetchReviews();
-        fetchSitters();
+        fetchProveedores();
     }, []);
 
     const fetchReviews = async () => {
@@ -39,12 +39,12 @@ export default function AdminReviews() {
         setLoading(false);
     };
 
-    const fetchSitters = async () => {
+    const fetchProveedores = async () => {
         const { data } = await supabase
             .from('registro_petmate')
             .select('user_id, nombre, apellido, comunas')
             .order('nombre');
-        if (data) setSitters(data);
+        if (data) setProveedores(data);
     };
 
     const handleStatusChange = async (id: string, status: 'aprobado' | 'rechazado') => {
@@ -58,12 +58,19 @@ export default function AdminReviews() {
 
     const handleCreateManualReview = async (e: React.FormEvent) => {
         e.preventDefault();
-        const { error } = await createReview(manualReview);
+        const payload = {
+            sitter_id: manualReview.proveedor_id,
+            calificacion: manualReview.calificacion,
+            comentario: manualReview.comentario,
+            nombre_cliente_manual: manualReview.nombre_cliente_manual,
+            estado: manualReview.estado
+        };
+        const { error } = await createReview(payload);
         if (error) {
             alert("Error: " + error.message);
         } else {
             setIsModalOpen(false);
-            setManualReview({ sitter_id: '', calificacion: 5, comentario: '', nombre_cliente_manual: '', estado: 'aprobado' });
+            setManualReview({ proveedor_id: '', calificacion: 5, comentario: '', nombre_cliente_manual: '', estado: 'aprobado' });
             fetchReviews(); // Refresh list
         }
     };
@@ -122,7 +129,7 @@ export default function AdminReviews() {
                                 <tr className="bg-slate-50 border-b border-slate-300 text-xs uppercase text-slate-400 font-bold tracking-wider">
                                     <th className="p-4">Fecha</th>
                                     <th className="p-4">Cliente</th>
-                                    <th className="p-4">Sitter</th>
+                                    <th className="p-4">Proveedor</th>
                                     <th className="p-4">Calificación</th>
                                     <th className="p-4 w-1/3">Comentario</th>
                                     <th className="p-4">Estado</th>
@@ -229,26 +236,26 @@ export default function AdminReviews() {
                         </div>
                         <form onSubmit={handleCreateManualReview} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Sitter (Cuidador)</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">Proveedor</label>
                                 <div className="relative">
                                     <button
                                         type="button" // Prevent form submission
-                                        onClick={() => setIsSitterDropdownOpen(!isSitterDropdownOpen)}
+                                        onClick={() => setIsProveedorDropdownOpen(!isProveedorDropdownOpen)}
                                         className="w-full border rounded-lg p-2 text-sm text-left flex justify-between items-center bg-white"
                                     >
-                                        <span className={manualReview.sitter_id ? "text-slate-900" : "text-slate-400"}>
-                                            {manualReview.sitter_id
+                                        <span className={manualReview.proveedor_id ? "text-slate-900" : "text-slate-400"}>
+                                            {manualReview.proveedor_id
                                                 ? (() => {
-                                                    const s = sitters.find(s => s.user_id === manualReview.sitter_id);
+                                                    const s = proveedores.find(s => s.user_id === manualReview.proveedor_id);
                                                     return s ? `${s.nombre} ${s.apellido} (${JSON.parse(s.comunas || '[]').join(', ') || 'Sin comuna'})` : "Cargando...";
                                                 })()
-                                                : "Selecciona un cuidador..."
+                                                : "Selecciona un proveedor..."
                                             }
                                         </span>
                                         <ChevronDown size={16} className="text-slate-400" />
                                     </button>
 
-                                    {isSitterDropdownOpen && (
+                                    {isProveedorDropdownOpen && (
                                         <div className="absolute z-10 w-full bg-white border-2 border-slate-300 rounded-lg mt-1 shadow-xl max-h-60 flex flex-col">
                                             {/* Search Input */}
                                             <div className="p-2 border-b border-slate-300 sticky top-0 bg-white rounded-t-lg">
@@ -258,8 +265,8 @@ export default function AdminReviews() {
                                                         type="text"
                                                         placeholder="Buscar por nombre..."
                                                         className="w-full pl-8 pr-2 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-emerald-500 outline-none"
-                                                        value={sitterSearchTerm}
-                                                        onChange={(e) => setSitterSearchTerm(e.target.value)}
+                                                        value={proveedorSearchTerm}
+                                                        onChange={(e) => setProveedorSearchTerm(e.target.value)}
                                                         autoFocus
                                                     />
                                                 </div>
@@ -267,28 +274,28 @@ export default function AdminReviews() {
 
                                             {/* List */}
                                             <div className="overflow-y-auto flex-1">
-                                                {sitters.filter(s => {
+                                                {proveedores.filter(s => {
                                                     const fullName = `${s.nombre} ${s.apellido}`.toLowerCase();
-                                                    return fullName.includes(sitterSearchTerm.toLowerCase());
+                                                    return fullName.includes(proveedorSearchTerm.toLowerCase());
                                                 }).length === 0 ? (
                                                     <div className="p-3 text-center text-xs text-slate-400">
                                                         No se encontraron resultados.
                                                     </div>
                                                 ) : (
-                                                    sitters.filter(s => {
+                                                    proveedores.filter(s => {
                                                         const fullName = `${s.nombre} ${s.apellido}`.toLowerCase();
-                                                        return fullName.includes(sitterSearchTerm.toLowerCase());
+                                                        return fullName.includes(proveedorSearchTerm.toLowerCase());
                                                     }).map(s => (
                                                         <button
                                                             key={s.user_id}
                                                             type="button"
                                                             onClick={() => {
-                                                                setManualReview({ ...manualReview, sitter_id: s.user_id });
-                                                                setIsSitterDropdownOpen(false);
-                                                                setSitterSearchTerm(""); // Reset search
+                                                                setManualReview({ ...manualReview, proveedor_id: s.user_id });
+                                                                setIsProveedorDropdownOpen(false);
+                                                                setProveedorSearchTerm(""); // Reset search
                                                             }}
                                                             className={`w-full text-left px-3 py-2 text-xs hover:bg-emerald-50 transition-colors flex flex-col
-                                                                ${manualReview.sitter_id === s.user_id ? 'bg-emerald-50 text-emerald-700' : 'text-slate-700'}
+                                                                ${manualReview.proveedor_id === s.user_id ? 'bg-emerald-50 text-emerald-700' : 'text-slate-700'}
                                                             `}
                                                         >
                                                             <span className="font-bold">{s.nombre} {s.apellido}</span>

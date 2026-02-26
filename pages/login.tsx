@@ -156,11 +156,11 @@ export default function LoginPage() {
         <title>Iniciar sesión — Pawnecta</title>
       </Head>
 
-      <main className="pmLogin page">
-        <div className="wrap">
-          <Card variant="elevated" padding="l" className="login-card">
-            <h1 className="title">Iniciar sesión</h1>
-            <p className="subtitle">
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md mx-auto">
+          <Card variant="elevated" padding="l" className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Iniciar sesión</h1>
+            <p className="text-sm text-slate-500 mb-6">
               Ingresa a tu cuenta de Pawnecta
             </p>
 
@@ -173,18 +173,19 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="form">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
               {/* Correo */}
-              <div className="field">
-                <label htmlFor="email" className="label">
+              <div className="flex flex-col gap-1 mb-4">
+                <label htmlFor="email" className="text-sm font-medium text-slate-700 flex items-center gap-2">
                   <MailIcon /> <span>Correo</span>
                 </label>
-                <div className="inputWrap">
+                <div className="relative">
                   <input
                     id="email"
                     name="email"
                     type="email"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder-slate-400"
                     placeholder="tu@correo.com"
                     autoComplete="off"
                     required
@@ -193,22 +194,23 @@ export default function LoginPage() {
               </div>
 
               {/* Contraseña */}
-              <div className="field">
-                <label htmlFor="password" className="label">
+              <div className="flex flex-col gap-1 mb-4">
+                <label htmlFor="password" className="text-sm font-medium text-slate-700 flex items-center gap-2">
                   <LockIcon /> <span>Contraseña</span>
                 </label>
-                <div className="inputWrap">
+                <div className="relative">
                   <input
                     id="password"
                     name="password"
                     type={showPass ? "text" : "password"}
+                    className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder-slate-400 pr-12"
                     placeholder="••••••••"
                     autoComplete="off"
                     required
                   />
                   <button
                     type="button"
-                    className="rightIconBtn"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1 rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
                     aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                     onClick={() => setShowPass((v) => !v)}
                     title={showPass ? "Ocultar" : "Mostrar"}
@@ -219,7 +221,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="error" role="alert">
+                <p className="text-sm text-red-600 mt-1" role="alert">
                   {error}
                 </p>
               )}
@@ -227,23 +229,8 @@ export default function LoginPage() {
               {/* Botón */}
               <button
                 type="submit"
-                className="btnPrimary"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors mt-2 flex items-center justify-center gap-2 disabled:bg-slate-700 disabled:cursor-default"
                 disabled={loading}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "10px",
-                  width: "100%",
-                  height: 48,
-                  marginTop: 8,
-                  border: "none",
-                  borderRadius: 10,
-                  background: loading ? "#374151" : "#111827",
-                  color: "#fff",
-                  fontWeight: 800 as any,
-                  cursor: loading ? "default" : "pointer",
-                }}
               >
                 {loading && (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -261,11 +248,11 @@ export default function LoginPage() {
               </div>
 
               {/* Links */}
-              <div className="links">
-                <Link href="/register" className="a">
+              <div className="flex justify-between flex-wrap gap-2 text-sm mt-4">
+                <Link href="/register" className="text-emerald-700 hover:underline font-medium">
                   ¿No tienes cuenta? Regístrate
                 </Link>
-                <Link href="/forgot-password" className="a">
+                <Link href="/forgot-password" className="text-emerald-700 hover:underline font-medium">
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
@@ -273,110 +260,6 @@ export default function LoginPage() {
           </Card>
         </div>
       </main >
-
-      <style jsx>{`
-        :root {
-          --brand: #111827;
-          --muted: #f6f7f9;
-        }
-
-        .page {
-          min-height: calc(100vh - 200px);
-          display: flex;
-          align-items: center; /* Centered Vertically */
-          justify-content: center;
-          padding: 24px;
-          background: var(--page-bg);
-        }
-        .wrap {
-          width: 100%;
-          max-width: 480px; /* narrowed for single column */
-        }
-
-        .title {
-          font-size: 1.9rem;
-          margin: 0 0 4px;
-        }
-        .subtitle {
-          color: #6b7280;
-          margin: 0 0 24px;
-        }
-
-        /* Form */
-        .form {
-          display: grid;
-          gap: 14px;
-        }
-        .field {
-          display: grid;
-          gap: 6px;
-        }
-        .label {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 700;
-          color: #111827;
-        }
-        .inputWrap {
-          position: relative;
-        }
-        input {
-          height: 46px;
-          width: 100%;
-          padding: 0 44px 0 12px;
-          border: 2px solid #94a3b8; /* Slate-400 */
-          border-radius: 10px;
-          background: #fff;
-        }
-        input:placeholder {
-          color: #9ca3af;
-        }
-        input:focus {
-          outline: none;
-          border-color: var(--brand);
-          box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
-        }
-
-        .rightIconBtn {
-          position: absolute;
-          right: 8px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: none;
-          background: transparent;
-          padding: 6px;
-          border-radius: 8px;
-          cursor: pointer;
-          color: #374151;
-        }
-        .rightIconBtn:hover {
-          background: #f3f4f6;
-        }
-
-        .links {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.95rem;
-          margin-top: 10px;
-        }
-        .a {
-          text-decoration: underline;
-          color: #111827;
-        }
-
-        .error {
-          color: #b91c1c;
-        }
-
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </>
   );
 }

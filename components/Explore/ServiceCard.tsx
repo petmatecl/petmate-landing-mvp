@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
+import { useUser } from '../../contexts/UserContext';
+import { supabase } from '../../lib/supabaseClient';
+import LoginRequiredModal from '../Shared/LoginRequiredModal';
 
 export interface ServiceResult {
     servicio_id: string;
@@ -26,9 +30,63 @@ interface Props {
 }
 
 export default function ServiceCard({ service }: Props) {
+    const { user } = useUser();
+    const [isFavorito, setIsFavorito] = useState(false);
+    const [isLoadingFav, setIsLoadingFav] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+
     // Use first photo of service, fallback to provider photo, fallback to generic
     const defaultImage = "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=600";
     const coverImage = service.fotos?.[0] || service.proveedor_foto || defaultImage;
+
+    // Cargar estado inicial del favorito
+    useEffect(() => {
+        if (!user) return;
+        const checkFavorite = async () => {
+            const { data } = await supabase
+                .from('favoritos')
+                .select('id')
+                .eq('auth_user_id', user.id)
+                .eq('servicio_id', service.servicio_id)
+                .single();
+            if (data) setIsFavorito(true);
+        };
+        checkFavorite();
+    }, [user, service.servicio_id]);
+
+    const handleToggleFavorite = async (e: React.MouseEvent) => {
+        e.preventDefault(); // Evita navegar a la pagina del servicio
+        e.stopPropagation();
+
+        if (!user) {
+            setShowLoginModal(true);
+            return;
+        }
+
+        setIsLoadingFav(true);
+        try {
+            if (isFavorito) {
+                await supabase
+                    .from('favoritos')
+                    .delete()
+                    .eq('auth_user_id', user.id)
+                    .eq('servicio_id', service.servicio_id);
+                setIsFavorito(false);
+            } else {
+                await supabase
+                    .from('favoritos')
+                    .insert({
+                        auth_user_id: user.id,
+                        servicio_id: service.servicio_id
+                    });
+                setIsFavorito(true);
+            }
+        } catch (error) {
+            console.error("Error toggling favorite:", error);
+        } finally {
+            setIsLoadingFav(false);
+        }
+    };
 
     return (
         <Link
@@ -37,11 +95,25 @@ export default function ServiceCard({ service }: Props) {
         >
             {/* Etiqueta Destacado */}
             {service.destacado && (
-                <div className="absolute top-3 right-3 z-10 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-md shadow-amber-200/50">
+                <div className="absolute top-3 left-3 z-10 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-md shadow-amber-200/50">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                     Destacado
                 </div>
             )}
+
+            {/* Botón Guardar Favorito */}
+            <button
+                onClick={handleToggleFavorite}
+                disabled={isLoadingFav}
+                className="absolute top-3 right-3 z-20 w-8 h-8 bg-white/90 rounded-full shadow-sm flex items-center justify-center hover:scale-110 transition-transform duration-150 disabled:opacity-50"
+                aria-label={isFavorito ? "Quitar de favoritos" : "Añadir a favoritos"}
+            >
+                <Heart
+                    size={16}
+                    className={`transition-colors duration-150 ${isFavorito ? "text-red-500" : "text-slate-400 hover:text-red-500"}`}
+                    fill={isFavorito ? "currentColor" : "none"}
+                />
+            </button>
 
             {/* Imagen Principal */}
             <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
@@ -54,9 +126,10 @@ export default function ServiceCard({ service }: Props) {
                 />
 
                 {/* Badge de Categoría Base */}
-                <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
-                    <span>{service.categoria_icono}</span>
-                    <span>{service.categoria_nombre}</span>
+                <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm flex items-center">
+                    <span className="font-semibold text-slate-700 text-xs">
+                        {service.categoria_nombre}
+                    </span>
                 </div>
 
                 {/* Gradiente sutil inferior para legibilidad si hay algo */}
@@ -101,6 +174,14 @@ export default function ServiceCard({ service }: Props) {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Login (renderizado condicionalmente y fuera del flujo estricto del anchor) */}
+            <LoginRequiredModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                title="Inicia sesión para guardar favoritos"
+                message="Necesitas una cuenta en Pawnecta para guardar cuidadores en tu lista de favoritos."
+            />
         </Link>
     );
 }

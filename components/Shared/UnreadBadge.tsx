@@ -1,29 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
 interface Props {
     userId: string;
-    className?: string; // To position it manually if needed, or we enclose it
+    className?: string; // To position it manually
 }
 
 export default function UnreadBadge({ userId, className }: Props) {
     const [count, setCount] = useState(0);
 
-    useEffect(() => {
+    const fetchUnreadCount = useCallback(async () => {
         if (!userId) return;
-
-        fetchUnreadCount();
-        const unsubscribe = subscribeToMessages();
-
-        window.addEventListener('messages-read', fetchUnreadCount);
-
-        return () => {
-            unsubscribe();
-            window.removeEventListener('messages-read', fetchUnreadCount);
-        };
-    }, [userId]);
-
-    async function fetchUnreadCount() {
         try {
             const { count: unreadCount, error } = await supabase
                 .from('messages')
@@ -33,38 +20,41 @@ export default function UnreadBadge({ userId, className }: Props) {
 
             if (error) throw error;
             setCount(unreadCount || 0);
-
         } catch (error) {
             console.error('Error fetching unread messages:', error);
         }
-    }
+    }, [userId]);
 
-    function subscribeToMessages() {
+    useEffect(() => {
+        if (!userId) return;
+
+        fetchUnreadCount();
+
         // Listen for new messages (INSERT) and read status updates (UPDATE)
         const channel = supabase
             .channel(`public:messages:unread:${userId}`)
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'messages'
-            }, (payload) => {
-                // We could try to be smart and increment/decrement, but fetching count is safer and fast enough for simple badge
-                // Optimization: Only refetch if the message involves me (RLS usually handles what we receive, but let's be safe)
-                // Actually, if we rely on RLS, we receive events for visible rows.
-                fetchUnreadCount();
-            })
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'messages' },
+                () => {
+                    fetchUnreadCount();
+                }
+            )
             .subscribe();
+
+        window.addEventListener('messages-read', fetchUnreadCount);
 
         return () => {
             supabase.removeChannel(channel);
+            window.removeEventListener('messages-read', fetchUnreadCount);
         };
-    }
+    }, [userId, fetchUnreadCount]);
 
     if (count === 0) return null;
 
     return (
-        <span className={`bg-red-500 text-white text-[10px] font-bold px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center rounded-full border-2 border-white ${className || ''}`}>
-            {count > 99 ? '99+' : count}
+        <span className={`bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full ${className || ''}`}>
+            {count > 9 ? '9+' : count}
         </span>
     );
 }

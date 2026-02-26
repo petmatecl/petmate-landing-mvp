@@ -6,6 +6,7 @@ import { useUser } from "../contexts/UserContext"; // Context Unificado
 import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
 import UnreadBadge from "./Shared/UnreadBadge";
+import QuickSearch from "./Header/QuickSearch";
 
 export default function Header() {
 
@@ -73,6 +74,11 @@ export default function Header() {
             className="h-8 sm:h-9 w-auto"
           />
         </Link>
+
+        {/* Buscador Compacto Central */}
+        <div className="flex-1 flex justify-center px-4">
+          <QuickSearch />
+        </div>
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-3 sm:flex">
@@ -174,9 +180,12 @@ export default function Header() {
 
               <Link
                 href="/mensajes"
-                className="inline-flex items-center rounded-xl bg-white border-2 border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2 relative"
+                className="inline-flex items-center rounded-xl bg-white border-2 border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors gap-2"
               >
-                Mensajes
+                <span className="relative">
+                  Mensajes
+                  <UnreadBadge userId={user.id} className="absolute -top-1 -right-3 w-4 h-4" />
+                </span>
               </Link>
               <Link
                 href={dashboardLink}
@@ -299,10 +308,13 @@ export default function Header() {
                 </div>
                 <Link
                   href="/mensajes"
-                  className="inline-flex items-center justify-center rounded-xl border-2 border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 mb-2 relative"
+                  className="inline-flex items-center justify-center rounded-xl border-2 border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 mb-2"
                   onClick={() => setOpen(false)}
                 >
-                  Mensajes
+                  <span className="relative">
+                    Mensajes
+                    <UnreadBadge userId={user.id} className="absolute -top-1 -right-3 w-4 h-4" />
+                  </span>
                 </Link>
                 <Link
                   href={dashboardLink}

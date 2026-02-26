@@ -34,7 +34,16 @@ export default function ProveedorDashboard() {
     // Tab Data
     const [servicios, setServicios] = useState<any[]>([]);
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);
-    const [stats, setStats] = useState<any>({ vistas: 0, activos: 0, evaluaciones: 0, consultas: 0 });
+    const [stats, setStats] = useState<any>({
+        vistas: 0,
+        vistasTrend: null, // string e.g '+15%' 
+        vistasTrendValue: 0, // for color
+        consultas: 0,
+        ratingAvg: 0,
+        evalCount: 0,
+        activos: 0,
+        totalActivos: 0
+    });
 
     // Chat Data
     const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -108,19 +117,82 @@ export default function ProveedorDashboard() {
                 .order('created_at', { ascending: false });
             setEvaluaciones(data || []);
         } else if (tab === 'estadisticas') {
-            const [vistasRes, activosRes, evalRes, chatRes] = await Promise.all([
-                supabase.from('servicios_publicados').select('vistas').eq('proveedor_id', provId),
-                supabase.from('servicios_publicados').select('id', { count: 'exact' }).eq('proveedor_id', provId).eq('activo', true),
-                supabase.from('evaluaciones').select('id', { count: 'exact' }).eq('proveedor_id', provId).eq('estado', 'aprobado'),
-                supabase.from('conversations').select('id', { count: 'exact' }).eq('proveedor_auth_id', authId)
-            ]);
+            const now = new Date();
+            const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            const last14Days = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+            const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-            const totalVistas = vistasRes.data?.reduce((acc, curr) => acc + (curr.vistas || 0), 0) || 0;
+            let vistas = 0;
+            let vistasTrendValue = 0;
+            let vistasTrend = null;
+
+            // 1. Service Views (7 dias)
+            const { count: currentViews, error: errorViews } = await supabase
+                .from('service_views')
+                .select('*', { head: true, count: 'exact' })
+                .eq('proveedor_id', provId)
+                .gte('created_at', last7Days);
+
+            if (errorViews && errorViews.code === '42P01') {
+                // Fallback si no existe tabla service_views
+                const fallbackVistas = await supabase.from('servicios_publicados').select('vistas').eq('proveedor_id', provId);
+                vistas = fallbackVistas.data?.reduce((acc, curr) => acc + (curr.vistas || 0), 0) || 0;
+            } else {
+                vistas = currentViews || 0;
+                // Prev 7 days for trend
+                const { count: prevViews } = await supabase
+                    .from('service_views')
+                    .select('*', { head: true, count: 'exact' })
+                    .eq('proveedor_id', provId)
+                    .lt('created_at', last7Days)
+                    .gte('created_at', last14Days);
+
+                const prev = prevViews || 0;
+                if (prev > 0) {
+                    const percent = Math.round(((vistas - prev) / prev) * 100);
+                    vistasTrendValue = percent;
+                    vistasTrend = percent >= 0 ? `+${percent}% esta semana` : `${percent}% esta semana`;
+                } else if (vistas > 0) {
+                    vistasTrendValue = 100;
+                    vistasTrend = '+100% esta semana';
+                }
+            }
+
+            // 2. Converations (30 days)
+            const { count: consultas30d } = await supabase
+                .from('conversations')
+                .select('*', { head: true, count: 'exact' })
+                .eq('sitter_id', authId)
+                .gte('created_at', last30Days);
+
+            // 3. Rating Promedio
+            const { data: revs } = await supabase
+                .from('evaluaciones')
+                .select('rating')
+                .eq('proveedor_id', provId)
+                .eq('estado', 'aprobado');
+
+            const ratingAvg = revs && revs.length > 0 ? (revs.reduce((a, b) => a + (b.rating || 0), 0) / revs.length).toFixed(1) : '0.0';
+            const evalCount = revs?.length || 0;
+
+            // 4. Servicios Activos
+            const { data: servs } = await supabase
+                .from('servicios_publicados')
+                .select('activo')
+                .eq('proveedor_id', provId);
+
+            const activosCount = servs?.filter(s => s.activo).length || 0;
+            const totalCount = servs?.length || 0;
+
             setStats({
-                vistas: totalVistas,
-                activos: activosRes.count || 0,
-                evaluaciones: evalRes.count || 0,
-                consultas: chatRes.count || 0
+                vistas,
+                vistasTrend,
+                vistasTrendValue,
+                consultas: consultas30d || 0,
+                ratingAvg,
+                evalCount,
+                activos: activosCount,
+                totalActivos: totalCount
             });
         }
     };
@@ -650,26 +722,50 @@ export default function ProveedorDashboard() {
                             <h1 className="text-2xl font-black text-slate-900 mb-8">Tus Resultados en Pawnecta</h1>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-                                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4"><Eye size={24} /></div>
-                                    <h3 className="text-blue-900 text-3xl font-black mb-1">{stats.vistas}</h3>
-                                    <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Vistas de Perfil</p>
+                                {/* STAT 1: Vistas */}
+                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
+                                    <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.vistas}</h3>
+                                    <p className="text-slate-500 text-sm mb-1">Vistas de Perfil (7 días)</p>
+                                    {stats.vistasTrend && (
+                                        <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                            {stats.vistasTrend}
+                                        </p>
+                                    )}
                                 </div>
-                                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
-                                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4"><Briefcase size={24} /></div>
-                                    <h3 className="text-emerald-900 text-3xl font-black mb-1">{stats.activos}</h3>
-                                    <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Servicios Activos</p>
-                                    <div className="absolute right-0 bottom-0 text-slate-50 p-4"><LayoutDashboard size={80} /></div>
+
+                                {/* STAT 2: Conversaciones */}
+                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><MessageSquare size={20} /></div>
+                                    <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.consultas}</h3>
+                                    <p className="text-slate-500 text-sm">Nuevas consultas (30 días)</p>
                                 </div>
-                                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-                                    <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4"><MessageSquare size={24} /></div>
-                                    <h3 className="text-purple-900 text-3xl font-black mb-1">{stats.consultas}</h3>
-                                    <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Consultas por Chat</p>
+
+                                {/* STAT 3: Rating */}
+                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Star size={20} /></div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="text-slate-900 text-3xl font-bold">{stats.ratingAvg}</h3>
+                                        <div className="flex text-amber-400">
+                                            <Star size={20} fill="currentColor" />
+                                        </div>
+                                    </div>
+                                    <p className="text-slate-500 text-sm">Rating promedio ({stats.evalCount} reseñas)</p>
                                 </div>
-                                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-                                    <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center mb-4"><Star size={24} /></div>
-                                    <h3 className="text-amber-900 text-3xl font-black mb-1">{stats.evaluaciones}</h3>
-                                    <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Reseñas Públicas</p>
+
+                                {/* STAT 4: Servicios Activos */}
+                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5 relative overflow-hidden">
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Briefcase size={20} /></div>
+                                    <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.activos} <span className="text-lg text-slate-400">/ {stats.totalActivos}</span></h3>
+                                    <p className="text-slate-500 text-sm mb-3">Servicios activos</p>
+
+                                    {/* Emerald Progress Bar */}
+                                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                        <div
+                                            className="bg-emerald-600 h-full rounded-full transition-all duration-500"
+                                            style={{ width: `${stats.totalActivos > 0 ? (stats.activos / stats.totalActivos) * 100 : 0}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
 

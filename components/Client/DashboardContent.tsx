@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
-import { MapPin, MessagesSquare, PawPrint, Search, PlusCircle, AlertCircle, Bookmark } from "lucide-react";
+import { MapPin, MessagesSquare, PawPrint, Search, PlusCircle, AlertCircle, Bookmark, Heart } from "lucide-react";
 
 // --- Tipos de Datos ---
 interface Pet {
@@ -24,9 +24,13 @@ interface ConversationPreview {
 }
 
 interface FavoritePreview {
-    // Definición provisional si existe una tabla de favoritos a futuro
     id: string;
-    serviceName: string;
+    servicio_id: string;
+    titulo: string;
+    foto?: string;
+    precio_desde?: number;
+    unidad_precio?: string;
+    proveedor_nombre?: string;
 }
 
 export default function DashboardContent() {
@@ -118,25 +122,52 @@ export default function DashboardContent() {
             }
         };
 
-        // 3. Fetch Favoritos (Graceful Degradation en caso de no existir esquema)
+        // 3. Fetch Favoritos
         const loadFavorites = async () => {
             try {
                 const { data, error } = await supabase
                     .from('favoritos')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .limit(3);
+                    .select(`
+                        id,
+                        servicio_id,
+                        servicios_publicados (
+                            titulo,
+                            fotos,
+                            precio_desde,
+                            unidad_precio,
+                            proveedores (
+                                nombre,
+                                apellido_p
+                            )
+                        )
+                    `)
+                    .eq('auth_user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
 
                 if (error && error.code === '42P01') {
                     // La tabla 'favoritos' no existe (relation does not exist)
                     setHasFavoritesError(true);
                 } else if (!error && data) {
-                    setFavorites(data);
+                    const parsedFavs = data.map((item: any) => {
+                        const sp = item.servicios_publicados;
+                        // proveedores can be an array or object depending on relation, usually object for many-to-one
+                        const prov = Array.isArray(sp?.proveedores) ? sp.proveedores[0] : sp?.proveedores;
+                        return {
+                            id: item.id,
+                            servicio_id: item.servicio_id,
+                            titulo: sp?.titulo || 'Servicio no disponible',
+                            foto: sp?.fotos && sp.fotos.length > 0 ? sp.fotos[0] : undefined,
+                            precio_desde: sp?.precio_desde,
+                            unidad_precio: sp?.unidad_precio,
+                            proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor'
+                        };
+                    });
+                    setFavorites(parsedFavs);
                 } else {
                     setHasFavoritesError(true);
                 }
             } catch (err) {
-                // Cualquier error duro silencioso y mostramos Empty State
                 setHasFavoritesError(true);
             } finally {
                 if (isMounted) setIsLoadingFavorites(false);
@@ -150,8 +181,16 @@ export default function DashboardContent() {
         return () => { isMounted = false; };
     }, [user]);
 
-    // Helpers CSS
-    const gradientHeader = "bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl p-8 text-white shadow-xl";
+    // Helpers Interacciones
+    const handleRemoveFavorite = async (idToRemove: string) => {
+        // Actualización optimista de UI
+        setFavorites(prev => prev.filter(f => f.id !== idToRemove));
+        try {
+            await supabase.from('favoritos').delete().eq('id', idToRemove);
+        } catch (err) {
+            console.error("Error al quitar favorito:", err);
+        }
+    };
 
     if (!user) return <div className="p-8 text-center text-slate-500">Cargando panel...</div>;
 
@@ -161,15 +200,16 @@ export default function DashboardContent() {
         <div className="space-y-10 animate-in fade-in duration-500 pb-12">
 
             {/* --- WELCOME HEADER --- */}
-            <section className={gradientHeader}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <h1 className="text-3xl font-black mb-2 tracking-tight">¡Hola, {firstName}!</h1>
-                        <p className="text-emerald-50 text-lg opacity-90 max-w-xl">
-                            Bienvenido a tu panel de dueño de mascota. Desde aquí podrás gestionar tus regalones, revisar tus conversaciones con cuidadores y planear tu próxima aventura tranquilo.
-                        </p>
-                    </div>
-                </div>
+            <section className="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <p className="text-sm text-slate-500 mb-1">
+                    Bienvenido de vuelta
+                </p>
+                <h1 className="text-2xl font-bold text-slate-900">
+                    {firstName}
+                </h1>
+                <p className="text-slate-500 mt-1 text-sm">
+                    Gestiona tus mascotas y conversaciones desde aquí.
+                </p>
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -333,7 +373,49 @@ export default function DashboardContent() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="text-sm text-slate-600">Tienes {favorites.length} guardados.</div>
+                                <div className="space-y-4 text-left">
+                                    {favorites.map(fav => (
+                                        <Link key={fav.id} href={`/servicio/${fav.servicio_id}`} className="block group">
+                                            <div className="flex gap-3 p-2 -mx-2 rounded-xl group-hover:bg-slate-50 transition-colors relative border border-transparent group-hover:border-slate-100">
+                                                <div className="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                                                    {fav.foto ? (
+                                                        <img src={fav.foto} alt={fav.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex justify-center items-center text-slate-400">
+                                                            <PawPrint size={20} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0 py-0.5">
+                                                    <h3 className="font-bold text-slate-900 text-sm line-clamp-2 group-hover:text-emerald-700 transition-colors pr-8">
+                                                        {fav.titulo}
+                                                    </h3>
+                                                    <p className="text-xs text-slate-500 mt-1 truncate">{fav.proveedor_nombre}</p>
+                                                    <p className="font-bold text-slate-900 text-sm mt-0.5">
+                                                        ${fav.precio_desde?.toLocaleString('es-CL')} <span className="text-[10px] font-normal text-slate-500">/ {fav.unidad_precio}</span>
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleRemoveFavorite(fav.id);
+                                                    }}
+                                                    className="absolute top-2 right-0 w-8 h-8 bg-white/90 rounded-full shadow-sm flex items-center justify-center hover:scale-110 transition-transform duration-150 border border-slate-100 z-10"
+                                                    aria-label="Quitar de favoritos"
+                                                    title="Quitar"
+                                                >
+                                                    <Heart fill="currentColor" size={16} className="text-red-500" />
+                                                </button>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                    <div className="pt-2 border-t border-slate-100 mt-2">
+                                        <Link href="/explorar" className="text-sm font-bold text-emerald-600 hover:text-emerald-700 block text-center mt-2">
+                                            Buscar más servicios &rarr;
+                                        </Link>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </section>

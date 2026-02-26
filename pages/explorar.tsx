@@ -1,6 +1,8 @@
 import Head from "next/head";
+import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
+import { Search } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 import CategoryChips from "../components/Explore/CategoryChips";
@@ -23,8 +25,8 @@ export default function ExplorarPage() {
     const [services, setServices] = useState<ServiceResult[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Estado de Filtros extraidos de URL
     const [filters, setFilters] = useState({
+        q: "",
         categoria: null as string | null,
         comuna: "",
         mascota: "any" as "perro" | "gato" | "otro" | "any",
@@ -50,9 +52,10 @@ export default function ExplorarPage() {
     // 2. Sincronizar estado local con Query Params de la URL
     useEffect(() => {
         if (!router.isReady) return;
-        const { categoria, comuna, mascota, tamano, precioMax } = router.query;
+        const { q, categoria, comuna, mascota, tamano, precioMax } = router.query;
 
         setFilters({
+            q: (q as string) || "",
             categoria: (categoria as string) || null,
             comuna: (comuna as string) || "",
             mascota: (mascota as "perro" | "gato" | "otro" | "any") || "any",
@@ -77,7 +80,16 @@ export default function ExplorarPage() {
             });
 
             if (error) throw error;
-            setServices(data || []);
+
+            let localData = data || [];
+            if (filters.q) {
+                const searchLower = filters.q.toLowerCase();
+                localData = localData.filter((s: any) =>
+                    s.titulo.toLowerCase().includes(searchLower) ||
+                    s.descripcion?.toLowerCase().includes(searchLower)
+                );
+            }
+            setServices(localData);
         } catch (err) {
             console.error("Error fetching services:", err);
         } finally {
@@ -96,6 +108,7 @@ export default function ExplorarPage() {
 
         // Limpiar query params nulos o vacíos para una URL limpia
         const query: Record<string, string> = {};
+        if (combined.q) query.q = combined.q;
         if (combined.categoria) query.categoria = combined.categoria;
         if (combined.comuna) query.comuna = combined.comuna;
         if (combined.mascota && combined.mascota !== 'any') query.mascota = combined.mascota;
@@ -139,9 +152,11 @@ export default function ExplorarPage() {
                 {/* Encabezado de la página */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                        {filters.categoria
-                            ? categories.find(c => c.slug === filters.categoria)?.nombre || "Servicios"
-                            : "Explorar"} en tu zona
+                        {filters.q ? `Resultados para "${filters.q}"` : (
+                            filters.categoria
+                                ? `${categories.find(c => c.slug === filters.categoria)?.nombre || "Servicios"} en tu zona`
+                                : "Explorar en tu zona"
+                        )}
                     </h1>
                     <p className="text-slate-500 mt-2">
                         Descubre los mejores profesionales y amantes de las mascotas en Pawnecta.
@@ -158,20 +173,19 @@ export default function ExplorarPage() {
                     </div>
                 ) : services.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-                        <div className="text-6xl mb-4">🐾</div>
+                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
+                            <Search size={28} className="text-slate-400" />
+                        </div>
                         <h3 className="text-xl font-bold text-slate-900">
-                            No encontramos servicios {filters.comuna ? `en ${filters.comuna}` : 'con estos filtros'}
+                            Sin resultados por ahora
                         </h3>
                         <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                            Intenta ampliando tu criterio de búsqueda o buscando en otra comuna cercana.
+                            Intenta con otra categoria o comuna.
                         </p>
-                        <div className="flex justify-center gap-4 mt-8">
-                            <button
-                                onClick={handleClearFilters}
-                                className="px-6 py-2.5 bg-emerald-100 text-emerald-800 font-bold rounded-xl hover:bg-emerald-200 transition-colors"
-                            >
-                                Limpiar filtros
-                            </button>
+                        <div className="mt-8 flex justify-center">
+                            <Link href="/explorar" className="px-6 py-3 bg-transparent text-slate-700 font-medium rounded-xl border border-slate-300 hover:bg-slate-50 transition-colors">
+                                Ver todos los servicios
+                            </Link>
                         </div>
                     </div>
                 ) : (

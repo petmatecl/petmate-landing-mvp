@@ -74,7 +74,7 @@ export default function CategoryChips({ categories, selectedCategory, onSelect }
                             : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-slate-50'}
           `}
                 >
-                    <span>🌟</span> Todos los servicios
+                    Todos los servicios
                 </button>
 
                 {categories.map((cat) => (
@@ -88,7 +88,7 @@ export default function CategoryChips({ categories, selectedCategory, onSelect }
                                 : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-slate-50'}
             `}
                     >
-                        <span>{cat.icono}</span> {cat.nombre}
+                        {cat.nombre}
                     </button>
                 ))}
             </div>

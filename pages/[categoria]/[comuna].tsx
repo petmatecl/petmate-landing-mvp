@@ -4,23 +4,19 @@ import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import { ChevronRightIcon } from '@heroicons/react/24/solid';
+import { Search } from 'lucide-react';
 
 export const COMUNAS_SEO = [
     { slug: 'providencia', name: 'Providencia' },
     { slug: 'las-condes', name: 'Las Condes' },
     { slug: 'nunoa', name: 'Ñuñoa' },
     { slug: 'vitacura', name: 'Vitacura' },
-    { slug: 'la-reina', name: 'La Reina' },
-    { slug: 'miraflores', name: 'Miraflores' },
     { slug: 'santiago', name: 'Santiago' },
-    { slug: 'macul', name: 'Macul' },
-    { slug: 'penalolen', name: 'Peñalolén' },
-    { slug: 'la-florida', name: 'La Florida' },
     { slug: 'maipu', name: 'Maipú' },
-    { slug: 'lo-barnechea', name: 'Lo Barnechea' },
+    { slug: 'la-florida', name: 'La Florida' },
     { slug: 'san-miguel', name: 'San Miguel' },
-    { slug: 'estacion-central', name: 'Estación Central' },
-    { slug: 'pudahuel', name: 'Pudahuel' },
+    { slug: 'macul', name: 'Macul' },
+    { slug: 'la-reina', name: 'La Reina' }
 ];
 
 interface SEOServicePageProps {
@@ -38,29 +34,15 @@ interface SEOServicePageProps {
 
 export default function SEOServicePage({ categoria, comuna, services }: SEOServicePageProps) {
     const pageTitle = `${categoria.nombre} en ${comuna.name} | Pawnecta`;
-    const pageDescription = `Encuentra los mejores servicios de ${categoria.nombre.toLowerCase()} en ${comuna.name}. Proveedores verificados, reseñas reales y contacto directo sin intermediarios.`;
+    const pageDescription = `Encuentra proveedores de ${categoria.nombre.toLowerCase()} verificados en ${comuna.name}. Compara perfiles, lee evaluaciones y contacta directo. Gratis.`;
 
-    // JSON-LD local business mockup for services
+    // JSON-LD ItemList for services
     const structuredData = {
         "@context": "https://schema.org",
         "@type": "ItemList",
-        "itemListElement": services.map((service, index) => ({
-            "@type": "ListItem",
-            "position": index + 1,
-            "item": {
-                "@type": "LocalBusiness",
-                "name": service.titulo,
-                "description": service.descripcion,
-                "image": service.fotos?.[0] || "https://www.pawnecta.cl/favicon_sin_fondo_png.png",
-                "address": {
-                    "@type": "PostalAddress",
-                    "addressLocality": comuna.name,
-                    "addressCountry": "CL"
-                },
-                "url": `https://www.pawnecta.cl/servicio/${service.servicio_id}`,
-                "priceRange": service.precio_desde ? `$${service.precio_desde.toLocaleString('es-CL')}` : undefined
-            }
-        }))
+        "name": `Servicios de ${categoria.nombre.toLowerCase()} en ${comuna.name}`,
+        "url": `https://pawnecta.com/${categoria.slug}/${comuna.slug}`,
+        "numberOfItems": services.length
     };
 
     return (
@@ -68,6 +50,7 @@ export default function SEOServicePage({ categoria, comuna, services }: SEOServi
             <Head>
                 <title>{pageTitle}</title>
                 <meta name="description" content={pageDescription} />
+                <link rel="canonical" href={`https://pawnecta.com/${categoria.slug}/${comuna.slug}`} />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={pageDescription} />
                 <script
@@ -88,8 +71,8 @@ export default function SEOServicePage({ categoria, comuna, services }: SEOServi
 
                 {/* Encabezado */}
                 <div className="mb-12">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                        {categoria.nombre} en <span className="text-emerald-600">{comuna.name}</span>
+                    <h1 className="text-4xl font-bold text-slate-900 tracking-tight">
+                        {categoria.nombre} en {comuna.name}
                     </h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl">
                         {categoria.descripcion || `Descubre los mejores profesionales de ${categoria.nombre.toLowerCase()} en ${comuna.name}. En Pawnecta verificamos la identidad de cada proveedor para tu tranquilidad.`}
@@ -99,25 +82,18 @@ export default function SEOServicePage({ categoria, comuna, services }: SEOServi
                 {/* Grilla de Servicios */}
                 {services.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-                        <div className="text-6xl mb-4">🐾</div>
+                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
+                            <Search size={28} className="text-slate-400" />
+                        </div>
                         <h3 className="text-xl font-bold text-slate-900">
-                            Aún no hay profesionales en {comuna.name}
+                            Sin resultados por ahora
                         </h3>
                         <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                            Sé el primero en ofrecer servicios de {categoria.nombre.toLowerCase()} en esta comuna y consigue nuevos clientes.
+                            Intenta con otra categoria o comuna.
                         </p>
-                        <div className="mt-8 flex justify-center gap-4">
-                            <Link
-                                href="/register?role=proveedor"
-                                className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                            >
-                                Ofrecer mis servicios
-                            </Link>
-                            <Link
-                                href={`/${categoria.slug}`}
-                                className="px-6 py-3 bg-white text-slate-700 font-bold rounded-xl border-2 border-slate-200 hover:border-emerald-500 hover:text-emerald-600 transition-all"
-                            >
-                                Ver otras comunas
+                        <div className="mt-8 flex justify-center">
+                            <Link href="/explorar" className="px-6 py-3 bg-transparent text-slate-700 font-medium rounded-xl border border-slate-300 hover:bg-slate-50 transition-colors">
+                                Ver todos los servicios
                             </Link>
                         </div>
                     </div>

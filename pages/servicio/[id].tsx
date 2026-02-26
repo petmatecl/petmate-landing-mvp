@@ -3,13 +3,11 @@ import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
-
 import LoginRequiredModal from '../../components/Shared/LoginRequiredModal';
 import ReviewModal from '../../components/Service/ReviewModal';
 import ReviewForm from '../../components/Service/ReviewForm';
 import ReviewSummary from '../../components/Service/ReviewSummary';
+import ReviewList from '../../components/Service/ReviewList';
 
 interface ServiceDetailProps {
     service: any; // Using any for brevity, structure defined below
@@ -155,7 +153,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
 
                         {/* Encabezado del Servicio */}
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight mb-4">
+                            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-4">
                                 {service.titulo}
                             </h1>
                             <div className="flex flex-wrap items-center gap-4 text-slate-600 text-sm md:text-base font-medium">
@@ -172,7 +170,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
 
                         {/* Mascotas Aceptadas */}
                         {service.tipos_mascota && service.tipos_mascota.length > 0 && (
-                            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                 <h3 className="text-lg font-bold text-slate-900 mb-4">Tipos de mascota</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {service.tipos_mascota.map((tm: string) => (
@@ -193,7 +191,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                         )}
 
                         {/* Descripcion */}
-                        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                                 Acerca del Servicio
@@ -205,7 +203,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
 
                         {/* Que Incluye */}
                         {service.que_incluye && service.que_incluye.length > 0 && (
-                            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                 <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                     ¿Qué incluye?
@@ -222,7 +220,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                         )}
 
                         {/* Evaluaciones */}
-                        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                                 <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -243,39 +241,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                             {totalReviews > 0 ? (
                                 <div>
                                     {/* Lista de Reviews */}
-                                    <div className="flex flex-col gap-6">
-                                        {reviews.map(review => {
-                                            const u = review.usuarios_buscadores;
-                                            return (
-                                                <div key={review.id} className="border-t border-slate-100 pt-6 flex flex-col gap-2">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                                                                {u?.foto_perfil ? (
-                                                                    // eslint-disable-next-line @next/next/no-img-element
-                                                                    <img src={u.foto_perfil} alt={u.nombre} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <div className="w-full h-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm">{u?.nombre?.[0] || '?'}</div>
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="font-bold text-slate-900 text-sm">{u?.nombre} {u?.apellido_p}</h4>
-                                                                <p className="text-xs text-slate-500">
-                                                                    Hace {formatDistanceToNow(new Date(review.created_at), { locale: es })}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex text-amber-400">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-200 fill-current'}`} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-slate-600 mt-2 text-sm leading-relaxed whitespace-pre-wrap">{review.comentario}</p>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                    <ReviewList servicioId={service.id} />
                                 </div>
                             ) : null}
 
@@ -300,15 +266,13 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
 
                     {/* COLUMNA DERECHA: SIDEBAR (Sticky) */}
                     <div className="w-full lg:w-1/3 space-y-6">
-                        <div className="sticky top-24 bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col relative overflow-hidden">
-                            {/* Accent Top Bar */}
-                            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+                        <div className="sticky top-24 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 border-t-2 border-t-emerald-600 flex flex-col relative overflow-hidden">
 
                             {/* Precio Gigante */}
                             <div className="flex flex-col pb-6 border-b border-slate-100 mb-6 mt-2">
                                 <span className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-1">Precio desde</span>
                                 <div className="flex items-end gap-1 text-slate-900">
-                                    <span className="text-4xl font-black">${service.precio_desde?.toLocaleString('es-CL')}</span>
+                                    <span className="text-3xl font-bold">${service.precio_desde?.toLocaleString('es-CL')}</span>
                                     <span className="text-slate-500 font-medium mb-1">/{service.unidad_precio}</span>
                                 </div>
                             </div>

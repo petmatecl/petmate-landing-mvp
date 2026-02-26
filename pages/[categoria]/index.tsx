@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import { ChevronRightIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { Search } from 'lucide-react';
 import { COMUNAS_SEO } from './[comuna]';
 
 interface CategoryPageProps {
@@ -68,19 +69,18 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 {/* Grilla de Servicios (Todos los de la categoría) */}
                 {services.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-                        <div className="text-6xl mb-4">🐾</div>
+                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
+                            <Search size={28} className="text-slate-400" />
+                        </div>
                         <h3 className="text-xl font-bold text-slate-900">
-                            Aún no hay profesionales de {categoria.nombre.toLowerCase()}
+                            Sin resultados por ahora
                         </h3>
                         <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                            Sé el primero en ofrecer estos servicios y consigue clientes rápidamente en nuestra red.
+                            Intenta con otra categoria o comuna.
                         </p>
-                        <div className="mt-8">
-                            <Link
-                                href="/register?role=proveedor"
-                                className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 inline-block"
-                            >
-                                Ofrecer mis servicios
+                        <div className="mt-8 flex justify-center">
+                            <Link href="/explorar" className="px-6 py-3 bg-transparent text-slate-700 font-medium rounded-xl border border-slate-300 hover:bg-slate-50 transition-colors">
+                                Ver todos los servicios
                             </Link>
                         </div>
                     </div>

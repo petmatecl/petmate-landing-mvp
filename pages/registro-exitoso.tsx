@@ -2,11 +2,12 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { CheckCircle } from "lucide-react";
 
 export default function RegistroExitosoPage() {
   const router = useRouter();
   const role = String(router.query.role || "");
-  const esPetmate = role === "sitter";
+  const esProveedor = role === "proveedor";
 
   return (
     <>
@@ -14,41 +15,38 @@ export default function RegistroExitosoPage() {
         <title>Registro exitoso — Pawnecta</title>
       </Head>
 
-      <main className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-zinc-50 to-white">
-        <div className="w-full max-w-[520px] bg-white rounded-2xl p-7 shadow-xl border border-zinc-200 text-center">
-          <div className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center bg-emerald-50 text-emerald-600 text-3xl">
-            ✅
-          </div>
+      <main className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-slate-50">
+        <div className="w-full max-w-md mx-auto bg-white border border-slate-200 rounded-2xl p-8 text-center">
+          <CheckCircle size={48} className="text-emerald-600 mx-auto mb-4" />
 
-          <h1 className="text-2xl font-bold text-gray-900 m-0">¡Registro enviado!</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            {esProveedor ? "Solicitud enviada" : "Revisa tu correo"}
+          </h1>
 
-          <p className="mt-1.5 mb-3 text-gray-600">
-            Ya creamos tu cuenta {esPetmate ? "de Sitter" : "de usuario"}.
+          <p className="text-slate-600 mb-6">
+            {esProveedor
+              ? "Revisaremos tu información en 24 a 48 horas. Te avisaremos por correo cuando tu perfil esté activo."
+              : "Te enviamos un enlace de confirmación. Ábrelo y haz clic para activar tu cuenta."}
           </p>
 
-          <p className="mb-2 text-gray-500 text-sm">
-            Te enviamos un correo de confirmación desde{" "}
-            <strong>Supabase Auth</strong>. Abre ese correo y haz clic en{" "}
-            <strong>“Confirm your mail”</strong> para activar tu cuenta.
+          <p className="text-sm text-slate-500 mb-8">
+            {esProveedor
+              ? "Mientras esperas, confirma tu correo desde el enlace que te enviamos."
+              : "Si no lo ves en unos minutos, revisa la carpeta de spam."}
           </p>
 
-          <p className="mb-2 text-gray-500 text-sm">
-            Gracias por unirte. Hemos enviado un enlace de confirmación a tu correo. Por favor revísalo para activar tu cuenta y establecer tu
-            contraseña en Pawnecta.
-          </p>
-
-          <div className="mt-5 flex flex-col sm:flex-row gap-2.5">
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center h-12 rounded-xl font-bold bg-gray-900 text-white w-full hover:bg-black transition-colors"
-            >
-              Ya confirmé mi correo
-            </Link>
+          <div className="flex flex-col gap-3">
             <Link
               href="/"
-              className="inline-flex items-center justify-center h-12 rounded-xl font-bold bg-white text-gray-900 border border-gray-300 w-full hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center justify-center h-12 rounded-xl font-medium bg-emerald-600 text-white w-full hover:bg-emerald-700 transition-colors"
             >
-              Volver al inicio
+              Ir al inicio
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center h-12 rounded-xl font-medium bg-transparent text-slate-700 border border-slate-300 w-full hover:bg-slate-50 transition-colors"
+            >
+              Iniciar sesión
             </Link>
           </div>
         </div>

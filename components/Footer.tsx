@@ -30,16 +30,16 @@ export function Footer() {
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
               <Link href="/hospedaje" className="hover:text-emerald-600 transition-colors">
-                Hospedaje en casa del sitter
+                Hospedaje
               </Link>
             </li>
             <li>
-              <Link href="/domicilio" className="hover:text-emerald-600 transition-colors">
-                Cuidado a domicilio
+              <Link href="/visita-domicilio" className="hover:text-emerald-600 transition-colors">
+                Visita a domicilio
               </Link>
             </li>
             <li>
-              <Link href="/paseos" className="hover:text-emerald-600 transition-colors">
+              <Link href="/paseo" className="hover:text-emerald-600 transition-colors">
                 Paseo de perros
               </Link>
             </li>
@@ -49,8 +49,8 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/veterinario" className="hover:text-emerald-600 transition-colors">
-                Veterinario a domicilio
+              <Link href="/veterinaria" className="hover:text-emerald-600 transition-colors">
+                Veterinaria
               </Link>
             </li>
             <li>
@@ -167,25 +167,25 @@ export function Footer() {
 
             {/* Domicilio */}
             <div>
-              <Link href="/domicilio" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Cuidado a domicilio</Link>
+              <Link href="/visita-domicilio" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Visita a domicilio</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/domicilio/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/domicilio/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/domicilio/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/domicilio/la-florida" className="hover:text-emerald-600 transition-colors">La Florida</Link></li>
-                <li><Link href="/domicilio/maipu" className="hover:text-emerald-600 transition-colors">Maipú</Link></li>
+                <li><Link href="/visita-domicilio/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/visita-domicilio/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/visita-domicilio/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/visita-domicilio/la-florida" className="hover:text-emerald-600 transition-colors">La Florida</Link></li>
+                <li><Link href="/visita-domicilio/maipu" className="hover:text-emerald-600 transition-colors">Maipú</Link></li>
               </ul>
             </div>
 
             {/* Paseos */}
             <div>
-              <Link href="/paseos" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Paseadores</Link>
+              <Link href="/paseo" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Paseadores</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/paseos/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/paseos/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/paseos/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/paseos/santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
-                <li><Link href="/paseos/macul" className="hover:text-emerald-600 transition-colors">Macul</Link></li>
+                <li><Link href="/paseo/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/paseo/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/paseo/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/paseo/santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/paseo/macul" className="hover:text-emerald-600 transition-colors">Macul</Link></li>
               </ul>
             </div>
 
@@ -203,13 +203,13 @@ export function Footer() {
 
             {/* Veterinario */}
             <div>
-              <Link href="/veterinario" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Veterinarios</Link>
+              <Link href="/veterinaria" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Veterinarios</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/veterinario/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/veterinario/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/veterinario/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/veterinario/san-miguel" className="hover:text-emerald-600 transition-colors">San Miguel</Link></li>
-                <li><Link href="/veterinario/santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/veterinaria/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/veterinaria/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/veterinaria/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/veterinaria/san-miguel" className="hover:text-emerald-600 transition-colors">San Miguel</Link></li>
+                <li><Link href="/veterinaria/santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
               </ul>
             </div>
 
