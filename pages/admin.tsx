@@ -15,6 +15,11 @@ export default function AdminDashboard() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    const [adminEmail, setAdminEmail] = useState('');
+    const [adminPassword, setAdminPassword] = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [loginError, setLoginError] = useState('');
+
     // Pestaña activa ('dashboard', 'aprobaciones', 'moderacion', 'proveedores')
     const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -55,19 +60,62 @@ export default function AdminDashboard() {
             if (hasAdminAccess) {
                 setIsAdmin(true);
             } else {
-                router.push('/');
+                setIsAdmin(false);
             }
         } catch (error) {
             console.error('Error checking auth:', error);
-            router.push('/');
+            setIsAdmin(false);
         } finally {
             setLoading(false);
         }
-    }, [router]);
+    }, []);
 
     useEffect(() => {
         checkAuth();
-    }, [checkAuth, router]);
+    }, [checkAuth]);
+
+    const handleAdminLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoginError('');
+        setLoginLoading(true);
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: adminEmail,
+                password: adminPassword,
+            });
+
+            if (error || !data.user) {
+                setLoginError('Credenciales incorrectas.');
+                setLoginLoading(false);
+                return;
+            }
+
+            // Verificar rol admin en DB
+            const { data: proveedorData } = await supabase
+                .from('proveedores')
+                .select('roles, estado')
+                .eq('auth_user_id', data.user.id)
+                .single();
+
+            const isAdminCheck = proveedorData?.roles?.includes('admin')
+                && proveedorData?.estado === 'aprobado';
+
+            if (!isAdminCheck) {
+                await supabase.auth.signOut();
+                setLoginError('Credenciales incorrectas.');
+                setLoginLoading(false);
+                return;
+            }
+
+            // Admin verificado → recargar para que lo detecte
+            window.location.reload();
+
+        } catch (err) {
+            setLoginError('Error al iniciar sesión. Intenta nuevamente.');
+            setLoginLoading(false);
+        }
+    };
 
     const tabs = [
         { id: 'dashboard', label: 'Métricas', icon: BarChart3 },
@@ -87,7 +135,64 @@ export default function AdminDashboard() {
     }
 
     if (!isAdmin) {
-        return null;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-900">
+                <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+                    <div className="text-center mb-8">
+                        <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                        </div>
+                        <h1 className="text-xl font-black text-slate-900">Acceso restringido</h1>
+                    </div>
+
+                    <form onSubmit={handleAdminLogin}>
+                        <div className="space-y-4">
+                            <input
+                                type="email"
+                                placeholder="Correo"
+                                value={adminEmail}
+                                onChange={e => setAdminEmail(e.target.value)}
+                                required
+                                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                            />
+                            <input
+                                type="password"
+                                placeholder="Contraseña"
+                                value={adminPassword}
+                                onChange={e => setAdminPassword(e.target.value)}
+                                required
+                                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                            />
+                            {loginError && (
+                                <p className="text-red-500 text-sm text-center">{loginError}</p>
+                            )}
+                            <button
+                                type="submit"
+                                disabled={loginLoading}
+                                className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60"
+                            >
+                                {loginLoading && (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                        style={{ animation: "spin 0.8s linear infinite" }}>
+                                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                                    </svg>
+                                )}
+                                {loginLoading ? 'Verificando...' : 'Ingresar'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <style jsx>{`
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                `}</style>
+            </div>
+        );
     }
 
     return (
@@ -131,7 +236,7 @@ export default function AdminDashboard() {
 
                 {/* Contenedor de las Tab */}
                 <div className="mt-8">
-                    {activeTab === 'dashboard' && <AdminMetrics />}
+                    {activeTab === 'dashboard' && <AdminMetrics setActiveTab={setActiveTab} />}
                     {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
                     {activeTab === 'moderacion' && <EvaluacionModerationList />}
                     {activeTab === 'proveedores' && <ProveedorManagementList />}

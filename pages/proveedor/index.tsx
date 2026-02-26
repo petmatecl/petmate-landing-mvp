@@ -1,23 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
 import ConversationList from '../../components/Chat/ConversationList';
 import MessageThread from '../../components/Chat/MessageThread';
+import ReviewSummary from '../../components/Service/ReviewSummary';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
 import {
     Clock, AlertTriangle, Briefcase, User as UserIcon,
     Star, MessageSquare, BarChart, Edit, Trash2, LayoutDashboard, Eye, Camera,
-    Image as ImageIcon, Loader2, CheckCircle, XCircle
+    Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle
 } from 'lucide-react';
 
 type TabType = 'servicios' | 'perfil' | 'evaluaciones' | 'mensajes' | 'estadisticas';
 
 export default function ProveedorDashboard() {
+    const router = useRouter();
     const { user, isLoading: userLoading } = useUser();
     const [proveedor, setProveedor] = useState<any>(null);
     const [statusLoading, setStatusLoading] = useState(true);
@@ -206,16 +209,79 @@ export default function ProveedorDashboard() {
     if (proveedor?.estado === 'pendiente') {
         return (
             <>
-                <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 p-4">
-                    <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
-                        <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
-                            <Clock className="w-10 h-10 text-amber-500" />
+                <Head><title>Cuenta en revisión | Pawnecta</title></Head>
+                <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+                    <div className="bg-white max-w-lg w-full rounded-2xl shadow-sm border border-slate-200 p-8">
+                        {/* Header Centralizado */}
+                        <div className="text-center mb-8">
+                            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Clock size={40} className="text-amber-500" />
+                            </div>
+                            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+                                Tu solicitud está en revisión
+                            </h1>
+                            <p className="text-slate-600 leading-relaxed text-sm">
+                                Revisamos cada proveedor manualmente para garantizar la confianza en la plataforma.
+                            </p>
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 mb-4">Tu cuenta está en revisión</h1>
-                        <p className="text-slate-600 mb-8 leading-relaxed">
-                            Estamos verificando tu identidad. Te notificaremos por email en un plazo de 24 a 48 horas una vez que tu cuenta sea aprobada para comenzar a ofrecer servicios.
-                        </p>
-                        <button onClick={() => window.location.href = '/'} className="px-6 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+
+                        {/* Timeline de 3 pasos */}
+                        <div className="mb-8 pl-4 space-y-6">
+                            {/* Paso 1: Completado */}
+                            <div className="relative flex items-center gap-4">
+                                <div className="absolute left-[11px] top-8 w-[2px] h-6 bg-slate-200"></div>
+                                <div className="bg-white z-10 text-emerald-500 rounded-full bg-emerald-50 w-6 h-6 flex items-center justify-center shrink-0">
+                                    <CheckCircle2 size={24} className="fill-current text-white bg-emerald-500 rounded-full border-2 border-white" />
+                                </div>
+                                <span className="text-slate-900 font-medium line-through decoration-slate-300">Solicitud recibida</span>
+                            </div>
+
+                            {/* Paso 2: Activo */}
+                            <div className="relative flex items-center gap-4">
+                                <div className="absolute left-[11px] top-8 w-[2px] h-6 bg-slate-100"></div>
+                                <div className="bg-white z-10 text-amber-500 shrink-0">
+                                    <Clock size={24} className="bg-white" />
+                                </div>
+                                <span className="text-amber-700 font-bold">En revisión por el equipo</span>
+                            </div>
+
+                            {/* Paso 3: Pendiente */}
+                            <div className="relative flex items-center gap-4">
+                                <div className="bg-white z-10 text-slate-300 shrink-0">
+                                    <Circle size={24} className="bg-white" />
+                                </div>
+                                <span className="text-slate-400 font-medium">Perfil aprobado y activo</span>
+                            </div>
+                        </div>
+
+                        {/* Mensaje de Plaza */}
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8 flex items-start gap-3">
+                            <Clock size={20} className="text-slate-400 shrink-0 mt-0.5" />
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                Te notificaremos a tu correo en un plazo de <strong>24 a 48 horas</strong> hábiles.
+                            </p>
+                        </div>
+
+                        {/* Mientras esperas */}
+                        <div className="border border-slate-100 rounded-xl p-5 mb-8 bg-white shadow-sm">
+                            <h3 className="font-bold text-slate-800 text-sm mb-3">Mientras esperas...</h3>
+                            <ul className="space-y-3">
+                                <li className="flex gap-2 items-start text-sm text-slate-600">
+                                    <span className="text-slate-300 mt-0.5">•</span>
+                                    <span>Prepara fotos de tu espacio o de los servicios que ofreces para subirlas apenas tu perfil esté activo.</span>
+                                </li>
+                                <li className="flex gap-2 items-start text-sm text-slate-600">
+                                    <span className="text-slate-300 mt-0.5">•</span>
+                                    <span>Revisa los consejos para proveedores en nuestra sección de ayuda o FAQs.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/* Acciones */}
+                        <button
+                            onClick={() => router.push('/')}
+                            className="w-full bg-slate-100 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-200 transition-colors shadow-sm"
+                        >
                             Volver al inicio
                         </button>
                     </div>
@@ -417,7 +483,7 @@ export default function ProveedorDashboard() {
                                             {proveedor.nombre} {proveedor.apellido_p}
                                             <span className="text-slate-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
                                         </h3>
-                                        <p className="text-slate-500 text-sm mt-1">Sitter registrado desde {new Date(proveedor.created_at).getFullYear()}</p>
+                                        <p className="text-slate-500 text-sm mt-1">Proveedor registrado desde {new Date(proveedor.created_at).getFullYear()}</p>
                                     </div>
                                 </div>
 
@@ -512,24 +578,9 @@ export default function ProveedorDashboard() {
                         <div className="animate-in fade-in duration-300">
                             <h1 className="text-2xl font-black text-slate-900 mb-8">Evaluaciones Recibidas</h1>
 
-                            {/* Metrics */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
-                                    <div className="text-4xl font-black text-slate-900 flex items-baseline gap-1">
-                                        {evaluaciones.length > 0
-                                            ? (evaluaciones.filter(e => e.estado === 'aprobado').reduce((acc, curr) => acc + curr.rating, 0) / evaluaciones.filter(e => e.estado === 'aprobado').length || 0).toFixed(1)
-                                            : "0.0"} <Star size={24} className="text-amber-400 fill-current mb-1" />
-                                    </div>
-                                    <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mt-1">Rating Histórico</p>
-                                </div>
-                                <div className="bg-[#1A6B4A] border border-[#14563a] rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center text-white">
-                                    <div className="text-4xl font-black">{evaluaciones.filter(e => e.estado === 'aprobado').length}</div>
-                                    <p className="text-sm font-semibold text-emerald-100 uppercase tracking-widest mt-1">Reseñas Públicas</p>
-                                </div>
-                                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
-                                    <div className="text-4xl font-black text-amber-700">{evaluaciones.filter(e => e.estado === 'pendiente').length}</div>
-                                    <p className="text-sm font-semibold text-amber-600/80 uppercase tracking-widest mt-1">En Revisión</p>
-                                </div>
+                            {/* Metrics using ReviewSummary */}
+                            <div className="mb-10">
+                                <ReviewSummary proveedorId={proveedor.id} />
                             </div>
 
                             {evaluaciones.length === 0 ? (

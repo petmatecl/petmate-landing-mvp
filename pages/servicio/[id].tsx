@@ -3,9 +3,13 @@ import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 import LoginRequiredModal from '../../components/Shared/LoginRequiredModal';
 import ReviewModal from '../../components/Service/ReviewModal';
+import ReviewForm from '../../components/Service/ReviewForm';
+import ReviewSummary from '../../components/Service/ReviewSummary';
 
 interface ServiceDetailProps {
     service: any; // Using any for brevity, structure defined below
@@ -18,18 +22,23 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [isChatLoading, setIsChatLoading] = useState(false);
 
+    // Check if the current user is authenticated for the ReviewForm
+    const [user, setUser] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        const fetchSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user || null);
+        };
+        fetchSession();
+    }, []);
+
     // Derived state
     const proveedor = service.proveedores;
     const categoria = service.categorias_servicio;
     const coverImage = service.fotos?.[0] || proveedor.foto_perfil || 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
-    // Rating distribution math
     const totalReviews = reviews.length;
-    const calculatePercentage = (stars: number) => {
-        if (totalReviews === 0) return 0;
-        const count = reviews.filter(r => r.rating === stars).length;
-        return (count / totalReviews) * 100;
-    };
 
     const handleChatClick = async () => {
         setIsChatLoading(true);
@@ -227,34 +236,12 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                                 </button>
                             </div>
 
+                            <div className="mb-10">
+                                <ReviewSummary servicioId={service.id} />
+                            </div>
+
                             {totalReviews > 0 ? (
                                 <div>
-                                    {/* Resumen Numerico Barra */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-10">
-                                        <div className="md:col-span-4 flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                                            <span className="text-5xl font-black text-slate-900">
-                                                {(reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1)}
-                                            </span>
-                                            <div className="flex items-center text-amber-400 mt-2 mb-1">
-                                                {[1, 2, 3, 4, 5].map(i => (
-                                                    <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                                ))}
-                                            </div>
-                                            <span className="text-sm text-slate-500 font-medium">{totalReviews} evaluaciones</span>
-                                        </div>
-                                        <div className="md:col-span-8 flex flex-col justify-center gap-2">
-                                            {[5, 4, 3, 2, 1].map(stars => (
-                                                <div key={stars} className="flex items-center gap-3">
-                                                    <span className="text-sm font-medium text-slate-600 w-3">{stars}</span>
-                                                    <svg className="w-4 h-4 text-slate-300 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                                    <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${calculatePercentage(stars)}%` }}></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
                                     {/* Lista de Reviews */}
                                     <div className="flex flex-col gap-6">
                                         {reviews.map(review => {
@@ -273,7 +260,9 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                                                             </div>
                                                             <div>
                                                                 <h4 className="font-bold text-slate-900 text-sm">{u?.nombre} {u?.apellido_p}</h4>
-                                                                <p className="text-xs text-slate-500">{new Date(review.created_at).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    Hace {formatDistanceToNow(new Date(review.created_at), { locale: es })}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                         <div className="flex text-amber-400">
@@ -288,13 +277,24 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                                         })}
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="text-center bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-200">
-                                    <p className="text-slate-500 font-medium">Aún no hay evaluaciones para este servicio. ¡Sé el primero en dejar una!</p>
-                                </div>
-                            )}
+                            ) : null}
 
                         </div>
+
+                        {/* Formulario de Evaluación (Solo Autenticados) */}
+                        {user && (
+                            <div className="mt-8">
+                                <ReviewForm
+                                    servicioId={service.id}
+                                    proveedorId={proveedor.id}
+                                    servicioTitulo={service.titulo}
+                                    onSuccess={() => {
+                                        // Opcional: Podríamos recargar la página para ver si la review es auto-aprobada
+                                        // pero el spec dice que queda pendiente, con el mensaje de éxito es suficiente.
+                                    }}
+                                />
+                            </div>
+                        )}
 
                     </div>
 

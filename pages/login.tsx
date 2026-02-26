@@ -63,7 +63,7 @@ export default function LoginPage() {
     if (selectedRole === 'admin') {
       await router.push("/admin");
     } else {
-      await router.push(selectedRole === "cliente" ? "/usuario" : "/sitter");
+      await router.push(selectedRole === "cliente" ? "/usuario" : "/proveedor");
     }
   };
 
@@ -115,26 +115,7 @@ export default function LoginPage() {
 
       // Si no hay perfil en NINGUNA tabla → es usuario nuevo, completa registro
       if (!profile) {
-        // Pero primero verifica si es admin por email (puede no tener perfil completo)
-        const ADMIN_EMAILS = ['canocortes@gmail.com', 'admin@petmate.cl', 'aldo@petmate.cl', 'eduardo.a.cordova.d@gmail.com', 'acanocts@gmail.com'];
-        if (data.user.email && ADMIN_EMAILS.includes(data.user.email)) {
-          window.location.replace('/admin');
-          return;
-        }
         window.location.replace('/register?resume=true');
-        return;
-      }
-
-      // Determina roles del perfil
-      const userRoles = profile.roles || [];
-
-      // Admin check por roles O por email whitelist
-      const ADMIN_EMAILS = ['canocortes@gmail.com', 'admin@petmate.cl', 'aldo@petmate.cl', 'eduardo.a.cordova.d@gmail.com', 'acanocts@gmail.com'];
-      const isAdminByEmail = data.user.email && ADMIN_EMAILS.includes(data.user.email);
-      const isAdminByRole = userRoles.includes('admin');
-
-      if (isAdminByEmail || isAdminByRole) {
-        window.location.replace('/admin');
         return;
       }
 
@@ -249,18 +230,28 @@ export default function LoginPage() {
                 className="btnPrimary"
                 disabled={loading}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px",
                   width: "100%",
                   height: 48,
                   marginTop: 8,
                   border: "none",
                   borderRadius: 10,
-                  background: "#111827",
+                  background: loading ? "#374151" : "#111827",
                   color: "#fff",
                   fontWeight: 800 as any,
                   cursor: loading ? "default" : "pointer",
                 }}
               >
+                {loading && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.5"
+                    style={{ animation: "spin 0.8s linear infinite" }}>
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                  </svg>
+                )}
                 {loading ? "Verificando..." : "Ingresar"}
               </button>
 
@@ -379,6 +370,11 @@ export default function LoginPage() {
 
         .error {
           color: #b91c1c;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </>
