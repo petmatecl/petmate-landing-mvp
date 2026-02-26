@@ -52,7 +52,7 @@ export default function MensajesPage() {
                             Mensajes
                         </h1>
                         <p className="text-slate-600 mt-2">
-                            Comunícate directamente con tus sitters o clientes.
+                            Comunícate directamente con proveedores o clientes.
                         </p>
                     </div>
                     <div>

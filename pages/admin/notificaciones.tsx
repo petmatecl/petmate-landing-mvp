@@ -117,7 +117,7 @@ export default function AdminNotifications() {
                                         <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
                                             <Calendar size={20} />
                                         </div>
-                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Solicitudes sin Sitter</p>
+                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Solicitudes sin Proveedor</p>
                                     </div>
                                     <p className="text-4xl font-extrabold text-slate-900">{stats.solicitudesPendientes}</p>
                                     <Link href="/admin?tab=solicitudes&filter=pending" className="mt-4 text-indigo-600 font-bold text-sm hover:underline flex items-center gap-1">

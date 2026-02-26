@@ -73,7 +73,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                             onClick={() => onFilterChange("serviceType", filters.serviceType === "hospedaje" ? "all" : "hospedaje")}
                         >
-                            <Home size={16} /> En casa del Sitter
+                            <Home size={16} /> Hospedaje
                         </button>
 
                         <button

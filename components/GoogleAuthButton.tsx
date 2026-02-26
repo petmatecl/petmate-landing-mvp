@@ -14,12 +14,12 @@ export default function GoogleAuthButton({ role, text = "Continuar con Google", 
         try {
             // Only require selection for registration
             if (source === 'register' && !role) {
-                alert("Por favor selecciona si buscas cuidado (Usuario) o quieres cuidar (Sitter).");
+                alert("Por favor selecciona si buscas cuidado (Usuario) o quieres cuidar (Proveedor).");
                 return;
             }
 
             setLoading(true);
-            
+
             // Clear any stale active role from previous sessions
             if (typeof window !== 'undefined' && source === 'login') {
                 window.localStorage.removeItem('activeRole');

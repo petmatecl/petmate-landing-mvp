@@ -13,7 +13,7 @@ export default function LinkedInAuthButton({ role, text = "Continuar con LinkedI
     const handleLinkedInLogin = async () => {
         try {
             if (!role) {
-                alert("Por favor selecciona si buscas cuidado (Usuario) o quieres cuidar (Sitter).");
+                alert("Por favor selecciona si buscas cuidado (Usuario) o quieres cuidar (Proveedor).");
                 return;
             }
 
