@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type Role = 'cliente' | 'petmate' | 'admin';
+export type Role = 'usuario' | 'proveedor' | 'admin';
 
 interface RoleSelectorProps {
   userName: string;
@@ -31,7 +31,7 @@ const ShieldIcon = (props: any) => (
   </svg>
 );
 
-export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['cliente', 'petmate'], onSelect, showTitle = true }) => {
+export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['usuario', 'proveedor'], onSelect, showTitle = true }) => {
   return (
     <div className="w-full max-w-md mx-auto">
       {showTitle && (
@@ -42,9 +42,9 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
       )}
 
       <div className="space-y-4">
-        {(roles.includes('cliente') || roles.length === 0) && (
+        {(roles.includes('usuario') || roles.length === 0) && (
           <button
-            onClick={() => onSelect("cliente")}
+            onClick={() => onSelect("usuario")}
             className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
           >
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
@@ -57,34 +57,34 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
           </button>
         )}
 
-        {roles.includes('petmate') && (
+        {roles.includes('proveedor') && (
           <button
-            onClick={() => onSelect("petmate")}
+            onClick={() => onSelect("proveedor")}
             className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
           >
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
               <PawIcon />
             </div>
             <div>
-              <span className="block font-bold text-slate-900 text-lg">Ingresar como Sitter</span>
+              <span className="block font-bold text-slate-900 text-lg">Ingresar como Proveedor</span>
               <span className="block text-slate-500 text-sm">Gestionar mis servicios y reservas</span>
             </div>
           </button>
         )}
 
         {roles.includes('admin') && (
-            <button
+          <button
             onClick={() => onSelect("admin")}
             className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md group text-left"
-            >
+          >
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-slate-800 group-hover:text-white transition-colors shrink-0">
-                <ShieldIcon />
+              <ShieldIcon />
             </div>
             <div>
-                <span className="block font-bold text-slate-900 text-lg">Ingresar como Admin</span>
-                <span className="block text-slate-500 text-sm">Panel de Administración</span>
+              <span className="block font-bold text-slate-900 text-lg">Ingresar como Admin</span>
+              <span className="block text-slate-500 text-sm">Panel de Administración</span>
             </div>
-            </button>
+          </button>
         )}
       </div>
     </div>

@@ -1,1835 +1,372 @@
-import Head from "next/head";
-import Link from "next/link";
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import { getProxyImageUrl } from "../../lib/utils";
-import DateRangeAirbnb from "../DateRangeAirbnb";
-import PetsSelectorAirbnb, { PetsValue } from "../PetsSelectorAirbnb";
-import MyPetsSelector from "./MyPetsSelector";
-import { DateRange } from "react-day-picker";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import PetCard, { Pet } from "./PetCard";
-import ModalAlert from "../ModalAlert";
-import ModalConfirm from "../ModalConfirm";
-import AddressCard, { Address } from "./AddressCard";
-import AddressFormModal from "./AddressFormModal";
-import TripCard, { Trip } from "./TripCard";
-import ApplicationsModal from "./ApplicationsModal"; // Import Modal
-import { useClientData } from "./ClientContext";
 import { useUser } from "../../contexts/UserContext";
-import ProviderUpgradeModal from "../Shared/ProviderUpgradeModal";
-import { TripCardSkeleton, ItemsSkeleton, Skeleton } from "../Shared/Skeleton";
-import { createNotification } from "../../lib/notifications";
-import {
-    Clock,
-    CheckCircle2,
-    User,
-    Megaphone,
-    Home,
-    Hotel,
-    Plus,
-    PawPrint,
-    Edit,
-    Edit2,
-    Save,
-    MapPin,
-    Calendar,
-    FileText,
-    Phone,
-    Lock,
-    ShieldCheck,
-    ShieldAlert,
-    ImagePlus,
-    BarChart,
-    Briefcase,
-    Inbox,
-    ChevronDown,
-    ChevronUp,
-    Trash2,
-    Camera,
-    Upload,
-    Mail,
-    LogOut
-} from "lucide-react";
-import { useRouter } from "next/router";
-import AddressAutocomplete from "../AddressAutocomplete";
-import dynamic from "next/dynamic";
-import ImageLightbox from "../ImageLightbox";
+import { supabase } from "../../lib/supabaseClient";
+import Link from "next/link";
+import { MapPin, MessagesSquare, PawPrint, Search, PlusCircle, AlertCircle, Bookmark } from "lucide-react";
 
+// --- Tipos de Datos ---
+interface Pet {
+    id: string;
+    nombre: string;
+    especie: string;
+    raza?: string;
+    foto?: string;
+    sexo?: 'macho' | 'hembra';
+    tamaño?: 'pequeño' | 'mediano' | 'grande' | 'gigante';
+}
 
-import OnboardingProgress, { OnboardingStep } from "../Shared/OnboardingProgress"; // [NEW]
+interface ConversationPreview {
+    id: string;
+    partnerName: string;
+    partnerPhoto?: string;
+    lastMessage: string;
+    updatedAt: string;
+}
 
-
-const COMUNAS_SANTIAGO = [
-    "Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia",
-    "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo",
-    "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel",
-    "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Santiago",
-    "Vitacura"
-];
+interface FavoritePreview {
+    // Definición provisional si existe una tabla de favoritos a futuro
+    id: string;
+    serviceName: string;
+}
 
 export default function DashboardContent() {
-    const router = useRouter();
-    const { userId, addresses, loadingAddresses, refreshAddresses } = useClientData();
-    const { providerStatus, refreshProfile } = useUser();
+    const { user, profile } = useUser();
 
-    // Import dynamically or normally? Normally is fine.
-    // Adding import at top level via separate modify if needed, or assume I can add it here?
-    // replace_file_content can't add import at top if I target line 68.
-    // I will add import in next step or use multi_replace.
+    const [pets, setPets] = useState<Pet[]>([]);
+    const [conversations, setConversations] = useState<ConversationPreview[]>([]);
+    const [favorites, setFavorites] = useState<FavoritePreview[]>([]);
 
-    // ... logic below ...
-
-    // Dynamic Map
-    const LocationMap = dynamic(() => import("../Shared/LocationMap"), {
-        ssr: false,
-        loading: () => <div className="h-48 w-full bg-slate-100 animate-pulse rounded-lg" />
-    });
-
-    const [nombre, setNombre] = useState<string | null>(null);
-    const [email, setEmail] = useState<string | null>(null);
-    const [clientProfile, setClientProfile] = useState<any>(null);
-
-    // Profile Form State
-    const [savingProfile, setSavingProfile] = useState(false);
-    const [isEditingProfile, setIsEditingProfile] = useState(false);
-    const [backupProfileData, setBackupProfileData] = useState<any>(null);
-    const [uploading, setUploading] = useState(false);
-    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-
-    const [profileFormData, setProfileFormData] = useState({
-        nombre: '',
-        apellido_p: '',
-        rut: '',
-        telefono: '',
-        latitud: null as number | null,
-        longitud: null as number | null,
-        comuna: '',
-        region: ''
-    });
-
-    // Estado del buscador
-    const [rango, setRango] = useState<DateRange | undefined>();
-    const [servicio, setServicio] = useState("domicilio");
-    const [hospedajeComuna, setHospedajeComuna] = useState("");
-    const [mascotas, setMascotas] = useState<PetsValue>({ dogs: 0, cats: 0 });
-
-    // Nueva lógica: Selección de mascotas específicas
-    const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
-
-    // Tab State
-    const [activeTab, setActiveTab] = useState<'datos' | 'solicitudes' | 'mascotas' | 'direcciones'>('solicitudes');
-
-    // Estado de gestión de mascotas
-    const [myPets, setMyPets] = useState<Pet[]>([]);
-    const [loadingPets, setLoadingPets] = useState(true);
-
-    // Address State (for local Modal)
-    const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-    const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-
-    // Trips State
-    const [trips, setTrips] = useState<Trip[]>([]);
-    const [loadingTrips, setLoadingTrips] = useState(true);
-    const [showTripForm, setShowTripForm] = useState(false);
-    const [showStrategySelection, setShowStrategySelection] = useState(false);
-
-    const [selectedAddressId, setSelectedAddressId] = useState<string>("");
-
-    // Applications Modal State
-    const [isAppsModalOpen, setIsAppsModalOpen] = useState(false);
-    const [selectedTripAppsId, setSelectedTripAppsId] = useState<string | null>(null);
-
-    // Provider Upgrade State
-    const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
+    // UI states
+    const [isLoadingPets, setIsLoadingPets] = useState(true);
+    const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+    const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
+    const [hasFavoritesError, setHasFavoritesError] = useState(false);
 
     useEffect(() => {
-        if (userId) {
-            // Fetch specific dashboard data
-            fetchPets(userId);
-            fetchClientProfile(userId);
-            fetchTrips(userId);
-            // Fetch Email
-            supabase.auth.getUser().then(({ data }) => {
-                if (data.user) setEmail(data.user.email || null);
-            });
-        }
-    }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+        if (!user) return;
 
-    // [NEW] Handle Tab Linking from Onboarding or URL
-    useEffect(() => {
-        if (!router.isReady) return;
-        const { tab } = router.query;
-        if (tab && typeof tab === 'string' && ['datos', 'solicitudes', 'mascotas', 'direcciones'].includes(tab)) {
-            setActiveTab(tab as any);
-        }
-    }, [router.isReady, router.query]);
+        let isMounted = true;
 
-    async function fetchTrips(uid: string) {
-        try {
-            setLoadingTrips(true);
-            const { data, error } = await supabase
-                .from("viajes")
-                .select("*")
-                .eq("user_id", uid)
-                .order("fecha_inicio", { ascending: true });
+        // 1. Fetch Mascotas
+        const loadPets = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('mascotas_usuarios')
+                    .select('*')
+                    .eq('auth_user_id', user.id)
+                    .order('created_at', { ascending: false });
 
-            if (error) throw error;
+                if (error) throw error;
+                if (isMounted && data) setPets(data);
+            } catch (err) {
+                console.error("Error cargando mascotas:", err);
+            } finally {
+                if (isMounted) setIsLoadingPets(false);
+            }
+        };
 
-            // Get unique sitter IDs
-            const sitterIds = Array.from(new Set(data.filter((t: any) => t.sitter_id).map((t: any) => t.sitter_id)));
-            let sittersMap: any = {};
+        // 2. Fetch Conversaciones
+        const loadConversations = async () => {
+            try {
+                // Buscamos conversaciones donde el usuario sea el cliente
+                const { data, error } = await supabase
+                    .from('conversations')
+                    .select(`
+                        id,
+                        updated_at,
+                        sitter_id,
+                        proveedores!conversations_sitter_id_fkey(
+                            nombre,
+                            apellido_p,
+                            foto_perfil
+                        ),
+                        messages(
+                            content,
+                            created_at
+                        )
+                    `)
+                    .eq('client_id', user.id)
+                    .order('updated_at', { ascending: false })
+                    .limit(5);
 
-            if (sitterIds.length > 0) {
-                const { data: sitters } = await supabase
-                    .from("registro_petmate")
-                    .select("auth_user_id, nombre, apellido_p, foto_perfil, id, telefono, email, direccion_completa, region, comuna, calle, numero") // Fetch needed fields
-                    .in("auth_user_id", sitterIds);
+                if (error) throw error;
 
-                if (sitters) {
-                    sitters.forEach(s => {
-                        sittersMap[s.auth_user_id] = s;
+                if (isMounted && data) {
+                    const parsed = data.map((conv: any) => {
+                        const partner = Array.isArray(conv.proveedores) ? conv.proveedores[0] : conv.proveedores;
+                        // messages typically come ordered by created_at if Supabase API is configured,
+                        // otherwise we take the last one in the array
+                        const msgs = conv.messages || [];
+                        const lastMsg = msgs.length > 0
+                            ? msgs.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b)?.content
+                            : 'Sin mensajes';
+
+                        return {
+                            id: conv.id,
+                            partnerName: partner ? `${partner.nombre || 'Proveedor'} ${partner.apellido_p ? partner.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor Eliminado',
+                            partnerPhoto: partner?.foto_perfil,
+                            lastMessage: lastMsg || '',
+                            updatedAt: conv.updated_at
+                        };
                     });
+                    setConversations(parsed);
                 }
+            } catch (err) {
+                console.error("Error cargando conversaciones:", err);
+            } finally {
+                if (isMounted) setIsLoadingConversations(false);
             }
+        };
 
-            // Fetch applications count for these trips
-            const tripIds = data.map((t: any) => t.id);
-            let appCountsMap: any = {};
+        // 3. Fetch Favoritos (Graceful Degradation en caso de no existir esquema)
+        const loadFavorites = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('favoritos')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .limit(3);
 
-            if (tripIds.length > 0) {
-                const { data: apps } = await supabase
-                    .from("postulaciones")
-                    .select("viaje_id, estado")
-                    .in("viaje_id", tripIds); // Fetch all apps for these trips
-
-                if (apps) {
-                    apps.forEach((app: any) => {
-                        if (!appCountsMap[app.viaje_id]) appCountsMap[app.viaje_id] = 0;
-                        if (app.estado === 'pendiente') { // Only count pending? Or all? Let's count pending for badge
-                            appCountsMap[app.viaje_id]++;
-                        }
-                    });
+                if (error && error.code === '42P01') {
+                    // La tabla 'favoritos' no existe (relation does not exist)
+                    setHasFavoritesError(true);
+                } else if (!error && data) {
+                    setFavorites(data);
+                } else {
+                    setHasFavoritesError(true);
                 }
+            } catch (err) {
+                // Cualquier error duro silencioso y mostramos Empty State
+                setHasFavoritesError(true);
+            } finally {
+                if (isMounted) setIsLoadingFavorites(false);
             }
+        };
 
-            const tripsWithStatus = data.map((t: any) => ({
-                ...t,
-                sitter_asignado: !!t.sitter_id,
-                sitter: t.sitter_id ? sittersMap[t.sitter_id] : null,
-                postulaciones_count: appCountsMap[t.id] || 0
-            }));
+        loadPets();
+        loadConversations();
+        loadFavorites();
 
-            setTrips(tripsWithStatus as Trip[]);
+        return () => { isMounted = false; };
+    }, [user]);
 
-            // if (data.length === 0) setShowTripForm(true); // Removed to enforce pet validation on button click
+    // Helpers CSS
+    const gradientHeader = "bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl p-8 text-white shadow-xl";
 
-        } catch (err) {
-            console.error("Error fetching trips:", err);
-        } finally {
-            setLoadingTrips(false);
-        }
-    }
+    if (!user) return <div className="p-8 text-center text-slate-500">Cargando panel...</div>;
 
-    async function fetchClientProfile(uid: string) {
-        // Reverting to select * to avoid hidden schema errors with explicit columns
-        const { data, error } = await supabase.from("registro_petmate")
-            .select("*")
-            .eq("auth_user_id", uid)
-            .single();
-
-        if (error) {
-            console.error("Error fetching client profile:", error);
-        }
-
-        if (data) {
-            setClientProfile(data);
-            if (data.nombre && !nombre) setNombre(data.nombre);
-
-            // Populate Form Data
-            setProfileFormData({
-                nombre: data.nombre || '',
-                apellido_p: data.apellido_p || '',
-                rut: data.rut || '',
-                telefono: data.telefono || '',
-                latitud: data.latitud,
-                longitud: data.longitud,
-                comuna: data.comuna || '',
-                region: data.region || ''
-            });
-
-            if (data.mascotas_viaje && Array.isArray(data.mascotas_viaje)) {
-                setSelectedPetIds(data.mascotas_viaje);
-            } else {
-                setMascotas({ dogs: data.perros || 0, cats: data.gatos || 0 });
-            }
-
-            if (data.fecha_inicio && data.fecha_fin) {
-                setRango({ from: new Date(data.fecha_inicio + "T12:00:00"), to: new Date(data.fecha_fin + "T12:00:00") });
-            }
-        }
-
-        // Fallback: Get name from Auth User Metadata if DB is missing name
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.user_metadata?.nombre && (!data || !data.nombre)) {
-            if (!nombre) setNombre(user.user_metadata.nombre);
-        }
-    }
-
-    async function fetchPets(uid: string) {
-        try {
-            setLoadingPets(true);
-            const { data, error } = await supabase
-                .from("mascotas")
-                .select("*")
-                .eq("user_id", uid)
-                .order("created_at", { ascending: false });
-
-            if (error) throw error;
-
-            if (data) {
-                setMyPets(data as Pet[]);
-            }
-        } catch (err) {
-            console.error("Error fetching pets:", err);
-        } finally {
-            setLoadingPets(false);
-        }
-    }
-
-    useEffect(() => {
-        if (myPets.length > 0 && selectedPetIds.length > 0) {
-            const selected = myPets.filter(p => selectedPetIds.includes(p.id));
-            // Case insensitive check
-            const dogs = selected.filter(p => p.tipo?.toLowerCase() === 'perro').length;
-            const cats = selected.filter(p => p.tipo?.toLowerCase() === 'gato').length;
-            setMascotas({ dogs, cats });
-        }
-    }, [myPets, selectedPetIds]);
-
-    const handleEdit = (pet: Pet) => {
-        router.push(`/usuario/mascotas/${pet.id}`);
-    };
-
-    const handleAdd = () => {
-        router.push("/usuario/mascotas/nueva");
-    };
-
-
-
-    const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!userId) return;
-        try {
-            setUploading(true);
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error('Debes seleccionar una imagen.');
-            }
-
-            const file = event.target.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${userId}-${Math.random()}.${fileExt}`;
-            const filePath = `${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(filePath);
-
-            const { error: updateError } = await supabase
-                .from('registro_petmate')
-                .update({ foto_perfil: publicUrl })
-                .eq('auth_user_id', userId);
-
-            if (updateError) throw updateError;
-
-            setClientProfile((prev: any) => ({ ...prev, foto_perfil: publicUrl }));
-            showAlert('¡Foto actualizada!', 'Tu foto de perfil ha sido actualizada correctamente.', 'success');
-
-        } catch (error: any) {
-            console.error('Error uploading photo:', error);
-            showAlert('Error', error.message || 'Error subiendo la imagen.', 'error');
-        } finally {
-            setUploading(false);
-        }
-    };
-    const [alertConfig, setAlertConfig] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        type: 'success' | 'error' | 'warning' | 'info';
-    }>({
-        isOpen: false,
-        title: '',
-        message: '',
-        type: 'info'
-    });
-
-    // Privacy Notice State
-    const [showSecurityNotice, setShowSecurityNotice] = useState(true);
-    // COMPLETION CHECKS
-    const isProfileComplete = clientProfile?.nombre && clientProfile?.apellido_p && clientProfile?.telefono && clientProfile?.rut && clientProfile?.foto_perfil;
-    const isPetsComplete = myPets.length > 0;
-    const isAddressesComplete = addresses.length > 0;
-
-    const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
-        setAlertConfig({ isOpen: true, title, message, type });
-    };
-
-    const closeAlert = () => {
-        setAlertConfig(prev => ({ ...prev, isOpen: false }));
-    };
-
-    // Confirmation Modal State
-    const [confirmConfig, setConfirmConfig] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        onConfirm: () => void;
-        confirmText?: string;
-        cancelText?: string;
-        isDestructive?: boolean;
-    }>({
-        isOpen: false,
-        title: '',
-        message: '',
-        onConfirm: () => { },
-        isDestructive: false
-    });
-
-    const closeConfirm = () => {
-        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
-    };
-
-    // --- Address Handlers ---
-    const handleAddAddress = () => {
-        setEditingAddress(null);
-        setIsAddressModalOpen(true);
-    };
-
-    const handleEditAddress = (addr: Address) => {
-        setEditingAddress(addr);
-        setIsAddressModalOpen(true);
-    };
-
-    const handleAddressSaved = () => {
-        refreshAddresses(); // Refresh global context
-    };
-
-    const handleDeleteAddress = (id: string) => {
-        setConfirmConfig({
-            isOpen: true,
-            title: "Eliminar Dirección",
-            message: "¿Estás seguro de que deseas eliminar esta dirección? Esta acción no se puede deshacer.",
-            confirmText: "Eliminar",
-            isDestructive: true,
-            onConfirm: async () => {
-                try {
-                    const { error } = await supabase.from("direcciones").delete().eq("id", id);
-                    if (error) throw error;
-                    refreshAddresses(); // Refresh global context
-                    showAlert("Dirección eliminada", "La dirección ha sido eliminada correctamente.", "success");
-                } catch (err: any) {
-                    console.error(err);
-                    showAlert("Error", "No se pudo eliminar la dirección.", "error");
-                }
-                closeConfirm();
-            }
-        });
-    };
-
-    const handleSetDefaultAddress = async (addressId: string) => {
-        if (!userId) return;
-        try {
-            // 1. Set all to false
-            await supabase.from('direcciones').update({ es_principal: false }).eq('user_id', userId);
-
-            // 2. Set selected to true
-            const { error } = await supabase.from('direcciones').update({ es_principal: true }).eq('id', addressId);
-
-            if (error) throw error;
-
-            await refreshAddresses();
-            showAlert('Dirección actualizada', 'Se ha establecido la dirección principal.', 'success');
-        } catch (error) {
-            console.error(error);
-            showAlert('Error', 'No se pudo actualizar la dirección principal.', 'error');
-        }
-    };
-
-    const handleEditProfile = () => {
-        setBackupProfileData({ ...profileFormData });
-        setIsEditingProfile(true);
-    };
-
-    const handleCancelEdit = () => {
-        if (backupProfileData) {
-            setProfileFormData(backupProfileData);
-        }
-        setIsEditingProfile(false);
-    };
-
-    const handleSaveProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSavingProfile(true);
-
-        try {
-            const { error } = await supabase
-                .from('registro_petmate')
-                .update({
-                    nombre: profileFormData.nombre,
-                    apellido_p: profileFormData.apellido_p,
-                    rut: profileFormData.rut,
-                    telefono: profileFormData.telefono,
-                    // latitud & longitud managed by addresses now, preserving existing values if needed or handled separately
-                })
-                .eq('auth_user_id', userId);
-
-            if (error) throw error;
-
-            await fetchClientProfile(userId!); // Refresh data
-            setIsEditingProfile(false); // EXIT EDIT MODE
-            showAlert('Perfil actualizado', 'Tus datos han sido guardados correctamente.', 'success');
-        } catch (err: any) {
-            console.error(err);
-            showAlert('Error', 'Error al actualizar el perfil: ' + err.message, 'error');
-        } finally {
-            setSavingProfile(false);
-        }
-    };
-
-    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setProfileFormData({ ...profileFormData, [e.target.name]: e.target.value });
-    };
-
-    // Helper: Rut Formatter
-    const formatRut = (value: string) => {
-        const cleaned = value.replace(/[^\dKk]/g, '');
-        if (cleaned.length <= 1) return cleaned;
-
-        const body = cleaned.slice(0, -1);
-        const dv = cleaned.slice(-1).toUpperCase();
-
-        return `${body.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`;
-    };
-
-    const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        const formatted = formatRut(val);
-        setProfileFormData({ ...profileFormData, rut: formatted });
-    };
-
-    // Calculate Completion Status
-
-
-    const handleDeleteTrip = (id: string) => {
-        const trip = trips.find(t => t.id === id);
-
-        setConfirmConfig({
-            isOpen: true,
-            title: "Eliminar Solicitud",
-            message: trip && ['confirmado', 'aceptado', 'pagado'].includes(trip.estado)
-                ? "Esta reserva está confirmada. Al eliminarla, se notificará al sitter de la cancelación. ¿Deseas continuar?"
-                : "¿Estás seguro de que deseas eliminar esta solicitud? Si ya tienes un sitter asignado, se le notificará la cancelación.",
-            confirmText: "Eliminar",
-            isDestructive: true,
-            onConfirm: async () => {
-                try {
-                    // Send Cancellation Emails if confirmed
-                    if (trip && ['confirmado', 'aceptado', 'pagado'].includes(trip.estado)) {
-                        try {
-                            // 1. Notify Client (Confirmation)
-                            await fetch('/api/send-email', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    type: 'trip_cancellation',
-                                    to: email, // Current user email
-                                    data: {
-                                        recipientName: nombre || 'Usuario',
-                                        tripId: trip.id.slice(0, 8),
-                                        cancelledBy: 'Tú (Cliente)',
-                                        serviceType: trip.servicio,
-                                        startDate: trip.fecha_inicio,
-                                        endDate: trip.fecha_fin
-                                    }
-                                })
-                            });
-
-                            // 2. Notify Sitter
-                            if (trip.sitter && trip.sitter.email) {
-                                await fetch('/api/send-email', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        type: 'trip_cancellation',
-                                        to: trip.sitter.email,
-                                        data: {
-                                            recipientName: trip.sitter.nombre,
-                                            tripId: trip.id.slice(0, 8),
-                                            cancelledBy: 'El Cliente',
-                                            serviceType: trip.servicio,
-                                            startDate: trip.fecha_inicio,
-                                            endDate: trip.fecha_fin
-                                        }
-                                    })
-                                });
-                            }
-                        } catch (emailError) {
-                            console.error("Error sending cancellation emails:", emailError);
-                            // Ensure we still delete even if email fails? Yes, usually better to proceed or warn?
-                            // Proceeding silently for MVP but logging error.
-                        }
-                    }
-
-                    const { error } = await supabase.from("viajes").delete().eq("id", id);
-                    if (error) throw error;
-                    if (userId) fetchTrips(userId);
-                    showAlert("Solicitud eliminada", "La solicitud ha sido eliminada correctamente.", "success");
-                } catch (err: any) {
-                    console.error(err);
-                    showAlert("Error", "No se pudo eliminar el viaje.", "error");
-                }
-                closeConfirm();
-            }
-        });
-    };
-
-    const handleRemoveSitter = (tripId: string) => {
-        setConfirmConfig({
-            isOpen: true,
-            title: "Cancelar Servicio",
-            message: "¿Estás seguro de que deseas cancelar el servicio con este Sitter? Tu solicitud volverá a estar pública para recibir nuevas ofertas.",
-            confirmText: "Sí, Cancelar Servicio",
-            isDestructive: true,
-            onConfirm: async () => {
-                try {
-                    const { error } = await supabase
-                        .from("viajes")
-                        .update({
-                            sitter_id: null,
-                            estado: 'publicado'
-                        })
-                        .eq("id", tripId);
-
-                    if (error) throw error;
-
-                    if (userId) fetchTrips(userId);
-
-                    // [NEW] Notification to Sitter (Cancellation/Removal)
-                    // We need to know who was removed. But after update, we can't get it from DB.
-                    // We should use the trip object passed to find sitter_id roughly? 
-                    // handleRemoveSitter only gets tripId. We need to fetch trip first or use state if we had it.
-                    // But for now, let's assume we can fetch it BEFORE update or just skip if too complex for MVP.
-                    // Actually, let's skip "Removal" notification for now to avoid complexity of fetching "who was assigned".
-                    // The user asked for "new opportunities, applications, accepted". Cancellation was not explicitly requested but good to have.
-                    // User Request: "notificar al sitter cuando el cliente le ha enviado una solicitud, notificar al sitter cuando un cliente ha aceptado una solicitud"
-                    // NOT "cancelled". I will skip cancellation notification to stick to strict requirements + safe changes.
-
-                    showAlert("Sitter Desvinculado", "El sitter ha sido removido de tu viaje. Tu solicitud vuelve a estar pública.", "success");
-                } catch (err: any) {
-                    console.error(err);
-                    showAlert("Error", "No se pudo remover al sitter.", "error");
-                }
-                closeConfirm();
-            }
-        });
-    };
-
-    const [editingTripId, setEditingTripId] = useState<string | null>(null);
-
-    // ... (existing code)
-
-    const handleEditTripNew = (trip: Trip) => {
-        setEditingTripId(trip.id);
-        if (trip.fecha_inicio && trip.fecha_fin) {
-            setRango({ from: new Date(trip.fecha_inicio + "T12:00:00"), to: new Date(trip.fecha_fin + "T12:00:00") });
-        }
-        setServicio(trip.servicio);
-        if (trip.mascotas_ids && Array.isArray(trip.mascotas_ids)) {
-            setSelectedPetIds(trip.mascotas_ids);
-        }
-        setMascotas({ dogs: trip.perros, cats: trip.gatos });
-
-        setShowTripForm(true);
-        const formElement = document.getElementById("trip-form-section");
-        if (formElement) formElement.scrollIntoView({ behavior: "smooth" });
-
-        if (trip.direccion_id) {
-            setSelectedAddressId(trip.direccion_id);
-        } else {
-            setSelectedAddressId("");
-        }
-    };
-
-    // --- New Application Handlers ---
-    const handleViewApplications = (trip: Trip) => {
-        setSelectedTripAppsId(trip.id);
-        setIsAppsModalOpen(true);
-    };
-
-    const handleAppAccepted = () => {
-        if (userId) fetchTrips(userId); // Refresh trips to show new status and assigned sitter
-        showAlert("¡Sitter Aceptado!", "Has reservado tu servicio con éxito. ¡Ponte en contacto con tu sitter!", "success");
-    };
-
-    const handleSearchSitter = (trip: Trip) => {
-        const params = new URLSearchParams();
-
-        // 1. Pet Type Logic
-        if (trip.perros > 0 && trip.gatos > 0) {
-            params.append('type', 'both');
-        } else if (trip.perros > 0) {
-            params.append('type', 'dogs');
-        } else if (trip.gatos > 0) {
-            params.append('type', 'cats');
-        } else {
-            params.append('type', 'any');
-        }
-
-        // 2. Service Logic
-        // trip.servicio is 'domicilio' | 'hospedaje'
-        // explorar expects 'a_domicilio' | 'en_casa_petmate'
-        if (trip.servicio === 'domicilio') {
-            params.append('service', 'a_domicilio');
-        } else if (trip.servicio === 'hospedaje') {
-            params.append('service', 'hospedaje');
-        } else {
-            params.append('service', 'all');
-        }
-
-        router.push(`/explorar?${params.toString()}`);
-    };
-
-    const handleConfirmBooking = (trip: Trip) => {
-        setConfirmConfig({
-            isOpen: true,
-            title: "Confirmar Reserva",
-            message: "Al confirmar, notificaremos al Sitter que estás listo para comenzar. Recuerda que el pago se coordina directamente con el Sitter fuera de la plataforma.",
-            confirmText: "Sí, Confirmar Reserva",
-            isDestructive: false,
-            onConfirm: async () => {
-                try {
-                    const { error } = await supabase
-                        .from("viajes")
-                        .update({ estado: 'confirmado' })
-                        .eq("id", trip.id);
-
-                    if (error) throw error;
-
-                    if (userId) fetchTrips(userId);
-
-                    // [NEW] Notification to Sitter
-                    if (trip.sitter_id) {
-                        await createNotification({
-                            userId: trip.sitter_id,
-                            type: 'acceptance',
-                            title: '¡Reserva Confirmada!',
-                            message: `El cliente ha confirmado la reserva. ¡Prepárate para el servicio!`,
-                            link: '/sitter'
-                        });
-
-                        // [NEW] Send Email to Sitter
-                        if (trip.sitter && trip.sitter.email) {
-                            await fetch('/api/send-email', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    type: 'booking_confirmation', // Ensure this type exists in API handler (checked: yes)
-                                    to: trip.sitter.email,
-                                    data: {
-                                        sitterName: trip.sitter.nombre,
-                                        clientName: nombre || 'Cliente',
-                                        serviceType: trip.servicio,
-                                        startDate: trip.fecha_inicio,
-                                        endDate: trip.fecha_fin,
-                                        applicationId: trip.id.slice(0, 8).toUpperCase()
-                                    }
-                                })
-                            }).catch(console.error);
-                        }
-                    }
-
-                    showAlert("¡Reserva Confirmada!", "El servicio ha sido confirmado exitosamente.", "success");
-                } catch (err: any) {
-                    console.error(err);
-                    showAlert("Error", "No se pudo confirmar la reserva.", "error");
-                }
-                closeConfirm();
-            }
-        });
-    };
-
-    const handleSaveTrip = async () => {
-        if (!userId) return;
-
-        try {
-            if (!validateForm()) return;
-
-            const payload: any = {
-                user_id: userId,
-                fecha_inicio: format(rango!.from!, 'yyyy-MM-dd'),
-                fecha_fin: format(rango!.to!, 'yyyy-MM-dd'),
-                servicio,
-                perros: mascotas.dogs,
-                gatos: mascotas.cats,
-                mascotas_ids: selectedPetIds,
-                estado: 'publicado'
-            };
-
-            if (servicio === 'domicilio') {
-                if (!selectedAddressId) {
-                    showAlert('Dirección requerida', 'Para servicio a domicilio debes seleccionar una dirección.', 'warning');
-                    return;
-                }
-                payload.direccion_id = selectedAddressId;
-            }
-
-            console.log("Saving trip payload:", payload);
-
-            let error;
-            if (editingTripId) {
-                // Update
-                const res = await supabase.from("viajes").update(payload).eq("id", editingTripId);
-                error = res.error;
-            } else {
-                // Insert
-                const res = await supabase.from("viajes").insert(payload);
-                error = res.error;
-            }
-
-            if (error) {
-                console.error("Error saving trip:", error);
-                showAlert('Error', `Error guardando la solicitud: ${error.message}`, 'error');
-            } else {
-                await fetchTrips(userId);
-                setRango(undefined);
-                setSelectedPetIds([]);
-                setMascotas({ dogs: 0, cats: 0 });
-                setEditingTripId(null); // Reset
-                setEditingTripId(null); // Reset
-                setShowTripForm(false);
-                setShowStrategySelection(false);
-                showAlert(
-                    editingTripId ? '¡Solicitud Actualizada!' : '¡Solicitud Publicada!',
-                    editingTripId ? 'Los cambios se han guardado correctamente.' : 'Los sitters recibirán tu solicitud y podrás ver sus postulaciones aquí.',
-                    'success'
-                );
-            }
-
-        } catch (e) {
-            console.error(e);
-            showAlert('Error', 'Ocurrió un error inesperado.', 'error');
-        }
-    };
-
-    // Helper to reset form
-    const resetForm = () => {
-        setRango(undefined);
-        setSelectedPetIds([]);
-        setMascotas({ dogs: 0, cats: 0 });
-        setEditingTripId(null);
-        setShowTripForm(false);
-        setShowStrategySelection(false);
-    };
-
-    // --- Validation Helper ---
-    const validateForm = (): boolean => {
-        if (!rango?.from || !rango?.to) {
-            showAlert('Fechas requeridas', 'Por favor selecciona las fechas de inicio y fin.', 'warning');
-            return false;
-        }
-        if (mascotas.dogs === 0 && mascotas.cats === 0) {
-            showAlert('Mascotas requeridas', 'Debes indicar cuántos perros y/o gatos viajarán.', 'warning');
-            return false;
-        }
-        if (servicio === 'domicilio' && !selectedAddressId) {
-            showAlert('Dirección requerida', 'Para servicio a domicilio debes seleccionar una dirección.', 'warning');
-            return false;
-        }
-        return true;
-    }
-
-    const handleContinue = () => {
-        if (validateForm()) {
-            setShowStrategySelection(true);
-        }
-    };
-
-
-    // --- New Handler: Search Directly with Validation ---
-    const handleSearchDirectly = () => {
-        // Validation already done if coming from Strategy Screen, but safe to keep or rely on caller.
-        // If called directly validation is good.
-        if (!validateForm()) return;
-
-        // 2. Build Query Params
-        const params = new URLSearchParams();
-
-        // Dates
-        params.append('from', format(rango!.from!, 'yyyy-MM-dd'));
-        params.append('to', format(rango!.to!, 'yyyy-MM-dd'));
-
-        // Service (explorar uses 'a_domicilio', 'en_casa_petmate')
-        if (servicio === 'domicilio') {
-            params.append('service', 'a_domicilio');
-            // If domicilio, we might want to pass lat/lng of selected address to filter nearby sitters
-            // (Assuming 'addresses' has this data if needed, or we rely on user filtering in Explore)
-            const addr = addresses.find(a => a.id === selectedAddressId);
-            if (addr && addr.latitud && addr.longitud) {
-                params.append('lat', addr.latitud.toString());
-                params.append('lng', addr.longitud.toString());
-                params.append('comuna', addr.comuna || '');
-            }
-        } else {
-            params.append('service', 'hospedaje');
-            // If hosting, maybe filter by user's base location or let them choose? 
-            // Currently Explore uses map center. We can pass user's base district if known.
-            if (profileFormData.comuna) {
-                params.append('location', profileFormData.comuna);
-            }
-        }
-
-        // Pets
-        params.append('dogs', mascotas.dogs.toString());
-        params.append('cats', mascotas.cats.toString());
-
-        // Redirect
-        router.push(`/explorar?${params.toString()}`);
-    };
-
-    const hasPets = myPets.length > 0;
-
-    const getFormattedAddress = (addressId?: string) => {
-        const addr = addresses.find(a => a.id === addressId);
-        if (!addr) return "";
-        if (addr.calle && addr.numero && addr.comuna) {
-            return `${addr.calle} ${addr.numero}, ${addr.comuna}`;
-        }
-        return addr.direccion_completa || "";
-    };
-
-    // --- UI HELPERS FOR TRIP LIST ---
-    const reservedTrips = trips.filter(t => t.estado === 'reservado');
-    const confirmedTrips = trips.filter(t => ['confirmado', 'completado'].includes(t.estado));
-    const pendingTrips = trips.filter(t => ['borrador', 'publicado', 'pendiente', 'solicitado'].includes(t.estado));
-
-    const showButtonInReserved = reservedTrips.length > 0;
-    const showButtonInConfirmed = confirmedTrips.length > 0 && !showButtonInReserved;
-    const showButtonInPending = pendingTrips.length > 0 && !showButtonInReserved && !showButtonInConfirmed;
-
-    const NewTripButton = () => (
-        <button
-            onClick={() => {
-                if (!isProfileComplete) {
-                    showAlert('Perfil Incompleto', 'Debes completar tus datos personales y agregar una foto de perfil antes de crear una solicitud.', 'warning');
-                    setActiveTab('datos');
-                    return;
-                }
-                if (!isPetsComplete) {
-                    showAlert('Faltan Mascotas', 'Debes agregar al menos una mascota antes de solicitar cuidado.', 'warning');
-                    setActiveTab('mascotas');
-                    return;
-                }
-                if (!isAddressesComplete) {
-                    showAlert('Faltan Direcciones', 'Debes agregar al menos una dirección antes de solicitar cuidado.', 'warning');
-                    setActiveTab('direcciones');
-                    return;
-                }
-                setShowTripForm(true);
-            }}
-            className="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all flex items-center gap-2 mb-2 sm:mb-0"
-        >
-            <Plus size={16} strokeWidth={2.5} /> Nueva Solicitud
-        </button>
-    );
+    const firstName = profile?.nombre || 'Usuario';
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="space-y-10 animate-in fade-in duration-500 pb-12">
 
-                {/* SIDEBAR: Identidad y Verificación (Col-span-4) */}
-                <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
+            {/* --- WELCOME HEADER --- */}
+            <section className={gradientHeader}>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h1 className="text-3xl font-black mb-2 tracking-tight">¡Hola, {firstName}!</h1>
+                        <p className="text-emerald-50 text-lg opacity-90 max-w-xl">
+                            Bienvenido a tu panel de dueño de mascota. Desde aquí podrás gestionar tus regalones, revisar tus conversaciones con cuidadores y planear tu próxima aventura tranquilo.
+                        </p>
+                    </div>
+                </div>
+            </section>
 
-                    {/* Tarjeta de Identidad Consolidada (CLEAN STYLE) */}
-                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative group hover:shadow-md transition-all duration-300">
-                        {/* Subtle Accent Header (Optional, kept minimal/white as per request "Volvamos a esto") */}
-                        <div className="h-24 bg-gradient-to-b from-slate-50 to-white"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                        <div className="px-6 pb-6 text-center -mt-16 relative flex flex-col items-center">
-                            <div className="relative w-32 h-32 mb-4">
-                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center cursor-pointer group-avatar" onClick={() => setIsLightboxOpen(true)}>
-                                    {clientProfile?.foto_perfil ? (
-                                        <Image
-                                            src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
-                                            alt="Foto perfil"
-                                            fill
-                                            className="object-cover"
-                                            unoptimized
-                                        />
-                                    ) : (
-                                        <User size={48} className="text-slate-300" />
-                                    )}
+                {/* --- SECCIÓN 1: Mis Mascotas (Ocupa 2/3 en desktop) --- */}
+                <section className="lg:col-span-2 space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold flex items-center gap-2 text-slate-800">
+                            <PawPrint className="text-emerald-500" />
+                            Mis mascotas
+                        </h2>
+                        <Link
+                            href="/usuario/mascotas/nueva"
+                            className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-full px-4 py-2 text-sm font-bold flex items-center gap-2 transition-colors"
+                        >
+                            <PlusCircle size={18} />
+                            Agregar mascota
+                        </Link>
+                    </div>
+
+                    {isLoadingPets ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {[1, 2].map(i => (
+                                <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-pulse flex items-center gap-4">
+                                    <div className="w-16 h-16 bg-slate-200 rounded-full shrink-0" />
+                                    <div className="space-y-2 flex-1">
+                                        <div className="h-5 w-24 bg-slate-200 rounded-md" />
+                                        <div className="h-4 w-16 bg-slate-100 rounded-md" />
+                                    </div>
                                 </div>
-                                <label className="absolute bottom-1 right-1 p-2 bg-white/90 backdrop-blur-sm border-2 border-slate-400 rounded-full shadow-lg cursor-pointer hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all z-10 hover:scale-110 active:scale-95">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handlePhotoUpload}
-                                        disabled={uploading}
-                                    />
-                                    {uploading ? (
-                                        <div className="animate-spin w-4 h-4 border-2 border-slate-400 border-t-emerald-600 rounded-full" />
-                                    ) : (
-                                        <Edit2 size={16} />
-                                    )}
-                                </label>
-                            </div>
-
-                            <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">{nombre || 'Usuario'} {clientProfile?.apellido_p || ''}</h2>
-
-                            {/* Datos de Contacto */}
-                            <div className="flex flex-col items-center gap-2 mb-4">
-                                {email && (
-                                    <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 text-sm">
-                                        <Mail size={14} className="text-slate-400" />
-                                        {email}
-                                    </div>
-                                )}
-                                {clientProfile?.telefono && (
-                                    <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 text-sm">
-                                        <Phone size={14} className="text-slate-400" />
-                                        {clientProfile.telefono}
-                                    </div>
-                                )}
-                            </div>
-
-
-                            {/* Estado de Verificación */}
-                            <div className="mt-2 flex flex-col items-center justify-center gap-2">
-                                {clientProfile?.aprobado ? (
-                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold shadow-sm">
-                                        <CheckCircle2 size={14} strokeWidth={2.5} />
-                                        <span>Usuario Verificado</span>
-                                    </div>
-                                ) : (
-                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-xs font-semibold">
-                                        <ShieldAlert size={14} />
-                                        <span>Pendiente Verificación</span>
-                                    </div>
-                                )}
-                            </div>
+                            ))}
                         </div>
+                    ) : pets.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {pets.map(pet => (
+                                <Link key={pet.id} href={`/usuario/mascotas/${pet.id}`}>
+                                    <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 hover:border-emerald-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group cursor-pointer">
+                                        <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-100 shrink-0 border border-slate-200 group-hover:border-emerald-300">
+                                            {pet.foto ? (
+                                                <img src={pet.foto} alt={pet.nombre} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                    <PawPrint size={24} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-900 text-lg group-hover:text-emerald-700 transition-colors">{pet.nombre}</h3>
+                                            <p className="text-sm text-slate-500 capitalize">{pet.especie} {pet.raza ? `• ${pet.raza}` : ''}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-300 mb-4 shadow-sm border border-slate-100">
+                                <PawPrint size={32} />
+                            </div>
+                            <h3 className="text-slate-700 font-bold mb-1">Aún no has agregado mascotas</h3>
+                            <p className="text-slate-500 text-sm max-w-xs mx-auto mb-4">Crea un perfil para tu mascota para que los cuidadores la conozcan mejor.</p>
+                            <Link
+                                href="/usuario/mascotas/nueva"
+                                className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-sm"
+                            >
+                                Registrar mi mascota
+                            </Link>
+                        </div>
+                    )}
+                </section>
 
-                        {/* Navigation / Actions */}
-                        <div className="border-t border-slate-100 p-4">
-                            <button onClick={async () => { await supabase.auth.signOut(); router.push("/login"); }} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-slate-500 rounded-xl hover:bg-slate-50 hover:text-rose-600 transition-all group">
-                                <LogOut size={18} className="text-slate-400 group-hover:text-rose-500 transition-colors" />
-                                Cerrar Sesión
-                            </button>
+
+                {/* --- SECCIÓN 2 & 3: Sidebar Derecha (Ocupa 1/3) --- */}
+                <div className="space-y-8">
+
+                    {/* Conversaciones Recientes */}
+                    <section className="space-y-4">
+                        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+                            <MessagesSquare className="text-blue-500" />
+                            Mensajes
+                        </h2>
+
+                        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4">
+                            {isLoadingConversations ? (
+                                <div className="space-y-4">
+                                    {[1, 2].map(i => (
+                                        <div key={i} className="flex gap-3 items-center animate-pulse">
+                                            <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
+                                            <div className="space-y-2 flex-1">
+                                                <div className="h-4 w-20 bg-slate-200 rounded" />
+                                                <div className="h-3 w-full bg-slate-100 rounded" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : conversations.length > 0 ? (
+                                <div className="space-y-4">
+                                    {conversations.map(conv => (
+                                        <Link key={conv.id} href={`/mensajes?id=${conv.id}`} className="block group">
+                                            <div className="flex items-center gap-3 p-2 -mx-2 rounded-xl group-hover:bg-slate-50 transition-colors">
+                                                <div className="w-12 h-12 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                                                    {conv.partnerPhoto ? (
+                                                        <img src={conv.partnerPhoto} alt={conv.partnerName} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex justify-center items-center text-slate-400 font-bold">
+                                                            {conv.partnerName.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-baseline mb-0.5">
+                                                        <p className="font-bold text-slate-900 text-sm truncate">{conv.partnerName}</p>
+                                                        <span className="text-[10px] text-slate-400 shrink-0">
+                                                            {new Date(conv.updatedAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 truncate group-hover:text-blue-600 transition-colors">
+                                                        {conv.lastMessage}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                    <div className="pt-2">
+                                        <Link href="/mensajes" className="text-sm font-bold text-blue-600 hover:text-blue-700 block text-center">
+                                            Ver todos mis mensajes &rarr;
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-6 text-slate-500">
+                                    <MessagesSquare size={32} className="mx-auto text-slate-200 mb-2" />
+                                    <p className="text-sm">Sin conversaciones activas.</p>
+                                    <p className="text-xs text-slate-400 mt-1">Busca un proveedor y escríbele.</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* Servicios Favoritos */}
+                    <section className="space-y-4">
+                        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+                            <Bookmark className="text-amber-500" />
+                            Favoritos
+                        </h2>
+
+                        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
+                            {isLoadingFavorites ? (
+                                <div className="animate-pulse space-y-3">
+                                    <div className="h-4 w-3/4 bg-slate-200 rounded mx-auto" />
+                                    <div className="h-3 w-1/2 bg-slate-100 rounded mx-auto" />
+                                </div>
+                            ) : hasFavoritesError || favorites.length === 0 ? (
+                                <div className="space-y-2">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto">
+                                        <Bookmark size={20} />
+                                    </div>
+                                    <p className="text-sm font-semibold text-slate-700">Pronto podrás guardar servicios</p>
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        Estamos construyendo tu lista de guardados para mantener a tus cuidadores preferidos a un solo clic.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="text-sm text-slate-600">Tienes {favorites.length} guardados.</div>
+                            )}
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            {/* --- SECCIÓN 4: Explorar CTA --- */}
+            <section className="mt-8">
+                <div className="bg-slate-900 rounded-3xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden">
+                    {/* Deco cercles */}
+                    <div className="absolute -top-24 -left-20 w-64 h-64 bg-slate-800 rounded-full opacity-50 blur-3xl"></div>
+                    <div className="absolute -bottom-24 -right-20 w-64 h-64 bg-emerald-900 rounded-full opacity-30 blur-3xl"></div>
+
+                    <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+                        <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl mb-2 backdrop-blur-sm">
+                            <Search size={32} className="text-emerald-400" />
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-black text-white">Encuentra al cuidador ideal</h2>
+                        <p className="text-slate-300 text-lg mx-auto">
+                            Revisa cientos de perfiles verificados de cuidadores de mascotas cerca de ti y organiza tu próximo viaje con tranquilidad absoluta.
+                        </p>
+                        <div className="pt-4">
+                            <Link
+                                href="/explorar"
+                                className="inline-flex items-center justify-center h-14 px-8 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1 transition-all"
+                            >
+                                Buscar Servicios
+                            </Link>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                {/* MAIN CONTENT: Reservas y Datos (Col-span-8) */}
-                <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
-
-                    {/* [NEW] Onboarding Progress */}
-                    {clientProfile && (
-                        <OnboardingProgress
-                            role="cliente"
-                            steps={[
-                                {
-                                    label: "Datos de Contacto",
-                                    completed: !!(clientProfile.telefono && clientProfile.rut && clientProfile.nombre),
-                                    href: "/usuario?tab=datos",
-                                    actionLabel: "Editar"
-                                },
-                                {
-                                    label: "Mascotas Registradas",
-                                    completed: myPets.length > 0,
-                                    href: "/usuario/mascotas/nueva",
-                                    actionLabel: "Agregar"
-                                },
-                                {
-                                    label: "Dirección Guardada",
-                                    completed: addresses.length > 0,
-                                    href: "/usuario?tab=direcciones",
-                                    actionLabel: "Agregar"
-                                }
-                            ]}
-                        />
-                    )}
-
-                    {/* TAB NAVIGATION (Soft Green Pill Style + Container) */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 mb-8 flex flex-wrap gap-2">
-                        <button
-                            onClick={() => setActiveTab('solicitudes')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'solicitudes' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                        >
-                            <Calendar size={16} /> Solicitudes
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('datos')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'datos' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                        >
-                            <User size={16} /> Datos Personales
-                            {isProfileComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('mascotas')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'mascotas' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                        >
-                            <PawPrint size={16} /> Mascotas
-                            {isPetsComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('direcciones')}
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'direcciones' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm ring-1 ring-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                        >
-                            <MapPin size={16} /> Direcciones
-                            {isAddressesComplete ? <div className="w-2 h-2 rounded-full bg-emerald-400" title="Completo" /> : <div className="w-2 h-2 rounded-full bg-amber-400" title="Incompleto" />}
-                        </button>
-                    </div>
-
-
-                    {/* TAB: SOLICITUDES */}
-                    {activeTab === 'solicitudes' && (
-                        <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-
-                            {/* COMPLETION WARNING BANNER */}
-
-                            {/* COMPLETION WARNING BANNER (Placeholder if needed) */}
-                            {/* "Mis Solicitudes" Header Removed as per user request */}
-
-
-                            {/* Loading State */}
-                            {loadingTrips && (
-                                <div className="space-y-8 mb-8 animate-in fade-in duration-500">
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <TripCardSkeleton />
-                                        <TripCardSkeleton />
-                                        <TripCardSkeleton />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Lista de Viajes */}
-                            {!loadingTrips && !showTripForm && trips.length > 0 && (
-                                <div className="space-y-8 mb-8">
-
-                                    {/* Section 0: REQUIRES ACTION (Reservado) */}
-                                    {reservedTrips.length > 0 && (
-                                        <div className="animate-in slide-in-from-left-4 duration-500">
-                                            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 gap-2">
-                                                <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wide pl-1 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100 flex items-center gap-2">
-                                                    <Clock size={16} /> Requiere tu Atención
-                                                </h3>
-                                                {showButtonInReserved && <NewTripButton />}
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {reservedTrips
-                                                    .map(trip => (
-                                                        <TripCard
-                                                            key={trip.id}
-                                                            trip={trip}
-                                                            onEdit={handleEditTripNew}
-                                                            onDelete={handleDeleteTrip}
-                                                            onConfirm={handleConfirmBooking}
-                                                            onViewApplications={handleViewApplications}
-                                                            onRemoveSitter={handleRemoveSitter}
-                                                            onSearchSitter={handleSearchSitter}
-                                                            petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                            pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
-                                                            serviceAddress={getFormattedAddress(trip.direccion_id)}
-                                                        />
-                                                    ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Section 1: Confirmed / Active Trips */}
-                                    {confirmedTrips.length > 0 && (
-                                        <div>
-                                            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 gap-2">
-                                                <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wide pl-1 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-2">
-                                                    <CheckCircle2 size={16} /> Solicitudes Confirmadas
-                                                </h3>
-                                                {showButtonInConfirmed && <NewTripButton />}
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {confirmedTrips
-                                                    .map(trip => (
-                                                        <TripCard
-                                                            key={trip.id}
-                                                            trip={trip}
-                                                            onEdit={handleEditTripNew}
-                                                            onDelete={handleDeleteTrip} // No confirm needed here
-                                                            onViewApplications={handleViewApplications}
-                                                            onRemoveSitter={handleRemoveSitter}
-                                                            onSearchSitter={handleSearchSitter}
-                                                            petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                            pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
-                                                            serviceAddress={getFormattedAddress(trip.direccion_id)}
-                                                        />
-                                                    ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Section 2: Pending / Published / Draft Trips */}
-                                    {pendingTrips.length > 0 && (
-                                        <div>
-                                            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 gap-2">
-                                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide pl-1 flex items-center gap-2">
-                                                    <Clock size={16} /> Solicitudes Pendientes
-                                                </h3>
-                                                {showButtonInPending && <NewTripButton />}
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {pendingTrips
-                                                    .map(trip => (
-                                                        <TripCard
-                                                            key={trip.id}
-                                                            trip={trip}
-                                                            onEdit={handleEditTripNew}
-                                                            onDelete={handleDeleteTrip}
-                                                            onViewApplications={handleViewApplications}
-                                                            onRemoveSitter={handleRemoveSitter}
-                                                            onSearchSitter={handleSearchSitter}
-                                                            petNames={myPets.filter(p => trip.mascotas_ids?.includes(p.id)).map(p => p.nombre).join(", ")}
-                                                            pets={myPets.filter(p => trip.mascotas_ids?.includes(p.id))}
-                                                            serviceAddress={getFormattedAddress(trip.direccion_id)}
-                                                        />
-                                                    ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Empty State */}
-                            {!loadingTrips && trips.length === 0 && !showTripForm && (
-                                <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center mb-8">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">✈️</div>
-                                    <h3 className="text-lg font-bold text-slate-900">Aún no tienes viajes planeados</h3>
-                                    <p className="text-slate-500 mb-6 max-w-md mx-auto">Crea un viaje para que los sitters disponibles puedan postular y cuidar a tus mascotas.</p>
-                                    <button
-
-                                        onClick={() => setShowTripForm(true)}
-                                        className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg"
-                                    >
-                                        Planear mi primer viaje
-                                    </button>
-                                </div>
-                            )}
-
-
-                            {/* Formulario de Creación / Edición */}
-                            {showTripForm && (
-                                <div id="trip-form-section" className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    {/* Background Decoration Container - Clipped */}
-                                    <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-16 -mt-16"></div>
-                                    </div>
-
-                                    {/* STRATEGY SELECTION VIEW */}
-                                    {showStrategySelection ? (
-                                        <div className="relative z-10 p-6 lg:p-12 text-center animate-in zoom-in-95 duration-300">
-                                            <h3 className="text-2xl font-bold text-slate-900 mb-2">¿Cómo deseas continuar?</h3>
-                                            <p className="text-slate-500 mb-8 max-w-lg mx-auto">Ya tenemos los detalles de tu solicitud. Ahora elige la mejor opción para ti.</p>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                                                {/* Option 2: Search (Secondary) */}
-                                                <button
-                                                    onClick={handleSearchDirectly}
-                                                    className="group flex flex-col items-center p-8 rounded-2xl border-2 border-slate-300 bg-slate-50/50 hover:bg-white hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center"
-                                                >
-                                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-sky-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-slate-100">
-                                                        <User size={32} />
-                                                    </div>
-                                                    <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-sky-700 transition-colors">Elegir Sitter</h4>
-                                                    <p className="text-sm text-slate-500 leading-relaxed">
-                                                        Explora el catálogo y elige manualmente.<br />(Recomendado si buscas algo muy específico)
-                                                    </p>
-                                                </button>
-
-                                                {/* Option 1: Publish (Recommended) */}
-                                                <button
-                                                    onClick={handleSaveTrip}
-                                                    className="group relative flex flex-col items-center p-8 rounded-2xl border-2 border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 text-center"
-                                                >
-                                                    <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                                                        Recomendado
-                                                    </div>
-                                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300 ring-1 ring-emerald-100">
-                                                        <Megaphone size={32} />
-                                                    </div>
-                                                    <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">Publicar Solicitud</h4>
-                                                    <p className="text-sm text-slate-500 leading-relaxed">
-                                                        Deja que los sitters postulen a tu viaje.<br />Recibirás ofertas de cuidadores disponibles.
-                                                    </p>
-                                                </button>
-                                            </div>
-
-                                            <button
-                                                onClick={() => setShowStrategySelection(false)}
-                                                className="mt-8 text-sm text-slate-400 hover:text-slate-600 font-medium underline decoration-slate-300 underline-offset-4"
-                                            >
-                                                Volver a editar solicitud
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        /* FORM VIEW */
-                                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-                                            <h1 className="text-3xl font-bold text-slate-900">Hola, {nombre || 'Usuario'}</h1>
-                                            <p className="text-slate-500 mb-6">Gestiona tus mascotas y solicitudes desde aquí.</p>
-
-                                            {/* [NEW] Onboarding Progress */}
-
-
-                                            <div className="flex items-center justify-between mt-1">
-                                                <h3 className="text-lg font-bold text-slate-900">
-                                                    {rango ? 'Editando Solicitud' : 'Nueva Solicitud'}
-                                                </h3>
-                                                <button onClick={() => setShowTripForm(false)} className="text-sm text-slate-500 hover:text-slate-800 underline">
-                                                    Cancelar
-                                                </button>
-                                            </div>
-
-                                            <div>
-                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                                    {/* Fecha */}
-                                                    <div className="md:col-span-12 xl:col-span-5 flex flex-col h-full">
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                            Fechas del viaje
-                                                        </label>
-                                                        <DateRangeAirbnb className="w-full" value={rango} onChange={setRango} hideLabel />
-                                                    </div>
-
-                                                    {/* Servicio */}
-                                                    <div className="md:col-span-12 xl:col-span-3 flex flex-col h-full">
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                            Tipo de Servicio
-                                                        </label>
-                                                        <div className="flex flex-col gap-2 flex-1">
-                                                            <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'domicilio' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'domicilio' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}>
-                                                                    {servicio === 'domicilio' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                                                </div>
-                                                                <input type="radio" name="servicio" value="domicilio" checked={servicio === 'domicilio'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                                                <div className="flex items-center gap-2">
-                                                                    <Home size={18} />
-                                                                    <span className="text-sm">Domicilio</span>
-                                                                </div>
-                                                            </label>
-                                                            <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${servicio === 'hospedaje' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-sm' : 'border-slate-300 hover:border-emerald-300 hover:bg-slate-50'}`}>
-                                                                    {servicio === 'hospedaje' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-                                                                </div>
-                                                                <input type="radio" name="servicio" value="hospedaje" checked={servicio === 'hospedaje'} onChange={(e) => setServicio(e.target.value)} className="hidden" />
-                                                                <div className="flex items-center gap-2">
-                                                                    <Hotel size={18} />
-                                                                    <span className="text-sm">Hospedaje</span>
-                                                                </div>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="md:col-span-12 xl:col-span-4 flex flex-col h-full">
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 h-4">
-                                                            Mascotas
-                                                        </label>
-                                                        {hasPets ? (
-                                                            <MyPetsSelector
-                                                                myPets={myPets}
-                                                                selectedIds={selectedPetIds}
-                                                                onChange={(ids, counts) => {
-                                                                    setSelectedPetIds(ids);
-                                                                    setMascotas(counts);
-                                                                }}
-                                                                hideLabel
-                                                            />
-                                                        ) : (
-                                                            <PetsSelectorAirbnb
-                                                                value={mascotas}
-                                                                onChange={setMascotas}
-                                                                className="w-full"
-                                                                hideLabel
-                                                            />
-                                                        )}
-                                                    </div>
-
-
-                                                    {/* Dirección (Solo Domicilio) */}
-                                                    {servicio === 'domicilio' && (
-                                                        <div className="md:col-span-12">
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                                                                    Dirección del Servicio
-                                                                </label>
-                                                                <button
-                                                                    onClick={handleAddAddress}
-                                                                    className="text-xs text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 hover:underline"
-                                                                >
-                                                                    <Plus size={14} /> Nueva Dirección
-                                                                </button>
-                                                            </div>
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                                {addresses.map(addr => (
-                                                                    <label key={addr.id} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-slate-300 hover:border-emerald-300 bg-white'}`}>
-                                                                        <div className="mt-0.5">
-                                                                            <input
-                                                                                type="radio"
-                                                                                name="tripAddress"
-                                                                                value={addr.id}
-                                                                                checked={selectedAddressId === addr.id}
-                                                                                onChange={(e) => setSelectedAddressId(e.target.value)}
-                                                                                className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="flex-1">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="font-bold text-slate-900 text-sm">{addr.nombre}</span>
-                                                                                {addr.es_principal && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
-                                                                            </div>
-                                                                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{addr.direccion_completa}</p>
-                                                                        </div>
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                            {addresses.length === 0 && (
-                                                                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                                                                    ⚠️ Necesitas agregar una dirección para solicitar servicio a domicilio.
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Comuna Preferida (Solo Hospedaje) */}
-                                                    {servicio === 'hospedaje' && (
-                                                        <div className="md:col-span-12">
-                                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
-                                                                ¿En qué comuna prefieres dejar a tu mascota?
-                                                            </label>
-                                                            <div className="relative">
-                                                                <select
-                                                                    className="w-full appearance-none bg-white border border-slate-300 text-slate-900 rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
-                                                                    value={hospedajeComuna}
-                                                                    onChange={(e) => setHospedajeComuna(e.target.value)}
-                                                                >
-                                                                    <option value="">Selecciona una comuna...</option>
-                                                                    {COMUNAS_SANTIAGO.map((comuna) => (
-                                                                        <option key={comuna} value={comuna}>
-                                                                            {comuna}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                                                                    <ChevronDown size={16} />
-                                                                </div>
-                                                            </div>
-                                                            <p className="text-xs text-slate-400 mt-2">
-                                                                Te mostraremos cuidadores disponibles en esta zona.
-                                                            </p>
-                                                        </div>
-                                                    )}
-
-                                                </div>
-
-                                                <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end items-center border-t border-slate-300 pt-6">
-
-                                                    {!editingTripId && (
-                                                        <div className="flex-1 w-full md:w-auto text-left">
-                                                            <p className="text-xs text-slate-400">
-                                                                Completa los datos para continuar.
-                                                            </p>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                                                        {/* Primary Action: Continuar (New Flow) or Save (Edit Mode) */}
-                                                        {editingTripId ? (
-                                                            <button
-                                                                onClick={handleSaveTrip}
-                                                                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
-                                                            >
-                                                                {loadingTrips ? 'Guardando...' : 'Guardar Cambios'}
-                                                                <Save size={14} />
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={handleContinue}
-                                                                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 group"
-                                                            >
-                                                                Continuar
-                                                                <div className="group-hover:translate-x-1 transition-transform">→</div>
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </section>
-                    )}
-
-                    {/* TAB: MIS MASCOTAS */}
-                    {activeTab === 'mascotas' && (
-                        <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Mascotas</h2>
-                                <button onClick={handleAdd} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
-                                    <Plus size={16} strokeWidth={3} /> Agregar mascota
-                                </button>
-                            </div>
-
-                            {loadingPets ? (
-                                <ItemsSkeleton />
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {myPets.length > 0 ? (
-                                        myPets.map((pet) => (
-                                            <PetCard
-                                                key={pet.id}
-                                                pet={pet}
-                                                onEdit={handleEdit}
-                                            />
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                            <PawPrint className="w-12 h-12 text-slate-300 mb-3" />
-                                            <p className="text-sm font-medium text-slate-500">Aún no tienes mascotas registradas.</p>
-                                            <button onClick={handleAdd} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">
-                                                Registrar mi primera mascota
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </section>
-                    )}
-
-                    {/* TAB: DATOS PERSONALES */}
-                    {activeTab === 'datos' && (
-                        <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
-
-                                {/* HEADER */}
-                                <div className="flex justify-between items-start mb-8 pb-6 border-b border-slate-100">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-2">Datos Personales</h2>
-                                        <p className="text-sm text-slate-500 max-w-lg">
-                                            Gestiona tu información personal para verificar tu identidad y generar confianza.
-                                        </p>
-                                        {!clientProfile?.foto_perfil && (
-                                            <div className="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-2 rounded-xl text-xs font-bold border border-amber-100">
-                                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                                                Falta tu foto de perfil. Súbela desde la barra lateral.
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {!isEditingProfile && (
-                                        <button
-                                            onClick={handleEditProfile}
-                                            className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-md font-bold transition-all flex items-center gap-2 text-sm group"
-                                        >
-                                            Editar Datos
-                                            <Edit2 size={16} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                                        </button>
-                                    )}
-                                </div>
-
-                                {isEditingProfile ? (
-                                    /* --- MODE: EDIT --- */
-                                    <form id="profile-form-tab" onSubmit={handleSaveProfile} className="space-y-8 animate-in fade-in duration-300">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {/* Nombre */}
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Nombre</label>
-                                                <input
-                                                    type="text"
-                                                    name="nombre"
-                                                    value={profileFormData.nombre}
-                                                    onChange={handleProfileChange}
-                                                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
-                                                    placeholder="Tu nombre"
-                                                />
-                                            </div>
-                                            {/* Apellido */}
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1">Apellido</label>
-                                                <input
-                                                    type="text"
-                                                    name="apellido_p"
-                                                    value={profileFormData.apellido_p}
-                                                    onChange={handleProfileChange}
-                                                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
-                                                    placeholder="Tu apellido"
-                                                />
-                                            </div>
-
-                                            {/* RUT (Disabled in Edit) */}
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
-                                                    <FileText size={14} /> RUT <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 normal-case font-normal ml-auto">No editable</span>
-                                                </label>
-                                                <div className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-sm font-medium rounded-2xl px-4 py-3 cursor-not-allowed flex items-center justify-between">
-                                                    <span>{profileFormData.rut || 'Sin RUT'}</span>
-                                                    <Lock size={14} className="text-slate-400" />
-                                                </div>
-                                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Para cambiar tu RUT, contacta a soporte.</p>
-                                            </div>
-
-                                            {/* Teléfono */}
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 pl-1 flex items-center gap-1.5">
-                                                    <Phone size={14} /> Teléfono
-                                                </label>
-                                                <input
-                                                    type="tel"
-                                                    name="telefono"
-                                                    value={profileFormData.telefono}
-                                                    onChange={handleProfileChange}
-                                                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-sm"
-                                                    placeholder="+56 9 1234 5678"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Acciones Guardar/Cancelar */}
-                                        <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                                            <button
-                                                type="button"
-                                                onClick={handleCancelEdit}
-                                                disabled={savingProfile}
-                                                className="px-6 py-3 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-bold transition-all text-sm"
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={savingProfile}
-                                                className="px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm active:scale-95"
-                                            >
-                                                {savingProfile ? (
-                                                    <>
-                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                        Guardando...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Guardar Cambios
-                                                        <Save size={16} />
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    /* --- MODE: VIEW (READ ONLY) --- */
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
-                                        {/* Nombre */}
-                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Nombre</label>
-                                            <div className="text-lg font-bold text-slate-900 break-words">
-                                                {profileFormData.nombre || <span className="text-slate-300 italic">No definido</span>}
-                                            </div>
-                                        </div>
-
-                                        {/* Apellido */}
-                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 group-hover:text-emerald-600 transition-colors">Apellido</label>
-                                            <div className="text-lg font-bold text-slate-900 break-words">
-                                                {profileFormData.apellido_p || <span className="text-slate-300 italic">No definido</span>}
-                                            </div>
-                                        </div>
-
-                                        {/* RUT */}
-                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group relative overflow-hidden">
-                                            {/* Lock Indicator */}
-                                            <div className="absolute top-3 right-3 text-slate-300 group-hover:text-slate-400 transition-colors">
-                                                <Lock size={16} />
-                                            </div>
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
-                                                <FileText size={14} /> RUT
-                                            </label>
-                                            <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
-                                                {profileFormData.rut || <span className="text-slate-300 italic">No registrado</span>}
-                                            </div>
-                                            <p className="text-[10px] text-slate-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                Identificador único de cuenta
-                                            </p>
-                                        </div>
-
-                                        {/* Teléfono */}
-                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 ring-1 ring-slate-200/50 hover:bg-slate-50 transition-colors group">
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5 group-hover:text-emerald-600 transition-colors">
-                                                <Phone size={14} /> Teléfono
-                                            </label>
-                                            <div className="text-lg font-bold text-slate-900 font-mono tracking-tight">
-                                                {profileFormData.telefono || <span className="text-slate-300 italic">No registrado</span>}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* TAB: DIRECCIONES */}
-                    {activeTab === 'direcciones' && (
-                        <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
-                                <div className="flex justify-between items-center mb-8">
-                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">Mis Direcciones</h2>
-                                    <button onClick={handleAddAddress} className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-emerald-900/10 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
-                                        <Plus size={16} strokeWidth={3} /> Agregar
-                                    </button>
-                                </div>
-
-                                {loadingAddresses ? (
-                                    <ItemsSkeleton />
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {addresses.map(addr => (
-                                            <AddressCard
-                                                key={addr.id}
-                                                address={addr}
-                                                onEdit={handleEditAddress}
-                                                onDelete={handleDeleteAddress}
-                                                onSetDefault={handleSetDefaultAddress}
-                                            />
-                                        ))}
-                                        {addresses.length === 0 && (
-                                            <div className="text-center py-12 col-span-2 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm text-slate-300">
-                                                    <MapPin size={32} />
-                                                </div>
-                                                <p className="text-sm font-medium text-slate-500 mb-2">No tienes direcciones registradas.</p>
-                                                <button onClick={handleAddAddress} className="text-emerald-600 font-bold text-sm hover:underline">
-                                                    Agregar mi primera dirección
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* UPGRADE A PROVEEDOR SECTION */}
-                    {providerStatus === 'none' && (
-                        <div className="bg-amber-50 rounded-3xl border border-amber-200 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-bottom-2 mt-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0 border border-amber-100">
-                                    <span className="text-3xl filter drop-shadow-sm">🛠️</span>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-amber-900 tracking-tight mb-1">¿También ofreces servicios para mascotas?</h3>
-                                    <p className="text-sm text-amber-700 max-w-md leading-relaxed">
-                                        Publica tus servicios gratis en Pawnecta. Solo necesitas verificar tu identidad con tu RUT.
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsProviderModalOpen(true)}
-                                className="w-full sm:w-auto px-6 py-3 bg-white text-emerald-700 hover:text-emerald-800 border-2 border-emerald-600 hover:bg-emerald-50 rounded-xl font-bold shadow-sm transition-all text-sm shrink-0 whitespace-nowrap active:scale-95 text-center"
-                            >
-                                Comenzar como proveedor
-                            </button>
-                        </div>
-                    )}
-
-                    {providerStatus === 'pendiente' && (
-                        <div className="bg-amber-50 rounded-3xl border border-amber-200 shadow-sm p-6 sm:p-8 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 mt-8">
-                            <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0 border border-amber-100">
-                                <Clock size={20} className="text-amber-500" />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-bold text-amber-900 uppercase tracking-wide flex items-center gap-2 mb-1">
-                                    En Revisión
-                                </h3>
-                                <p className="text-sm text-amber-800 max-w-lg leading-relaxed">
-                                    Tu solicitud como proveedor está en revisión (24-48 horas).
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Modal Dirección */}
-                    {userId && (
-                        <AddressFormModal
-                            isOpen={isAddressModalOpen}
-                            onClose={() => setIsAddressModalOpen(false)}
-                            onSaved={handleAddressSaved}
-                            initialData={editingAddress}
-                            userId={userId}
-                        />
-                    )}
-
-                    {/* Modal Postulaciones */}
-                    {userId && selectedTripAppsId && (
-                        <ApplicationsModal
-                            isOpen={isAppsModalOpen}
-                            onClose={() => setIsAppsModalOpen(false)}
-                            tripId={selectedTripAppsId}
-                            onAccepted={handleAppAccepted}
-                        />
-                    )}
-
-                    <ModalAlert
-                        isOpen={alertConfig.isOpen}
-                        onClose={closeAlert}
-                        title={alertConfig.title}
-                        message={alertConfig.message}
-                        type={alertConfig.type}
-                    />
-
-                    {/* Lightbox */}
-                    {clientProfile?.foto_perfil && (
-                        <ImageLightbox
-                            src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
-                            alt="Foto de perfil"
-                            isOpen={isLightboxOpen}
-                            onClose={() => setIsLightboxOpen(false)}
-                        />
-                    )}
-
-                    {/* Provider Upgrade Modal */}
-                    <ProviderUpgradeModal
-                        isOpen={isProviderModalOpen}
-                        onClose={() => setIsProviderModalOpen(false)}
-                        onSuccess={async () => {
-                            setIsProviderModalOpen(false);
-                            await refreshProfile();
-                        }}
-                    />
-
-                    {/* Confirmation Modal */}
-                    <ModalConfirm
-                        isOpen={confirmConfig.isOpen}
-                        onClose={closeConfirm}
-                        onConfirm={confirmConfig.onConfirm}
-                        title={confirmConfig.title}
-                        message={confirmConfig.message}
-                        confirmText={confirmConfig.confirmText}
-                        cancelText={confirmConfig.cancelText}
-                        isDestructive={confirmConfig.isDestructive}
-                    />
-                </div></div></div>
+        </div>
     );
 }

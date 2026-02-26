@@ -68,7 +68,7 @@ export default function ProveedorApprovalList() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         to: prov.email_publico || prov.email || `${session.user.email}`, // Fallback ideal iterar supabase auth user, asumimos email_publico para pruebas o logica en backend
-                        subject: "¡Estás aprobado en Pawnecta! Ya puedes publicar tus servicios 🐾",
+                        subject: "Tu perfil fue aprobado en Pawnecta",
                         template: "AprobacionProveedor",
                         props: { nombre: prov.nombre }
                     })

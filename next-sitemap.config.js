@@ -4,6 +4,9 @@ module.exports = {
     generateRobotsTxt: true,
     // Exclude private and auth pages
     exclude: [
+        '/docs/*',
+        '/styleguide',
+        '/api/*',
         '/admin*',
         '/usuario*',
         '/sitter',

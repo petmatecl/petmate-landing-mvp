@@ -40,7 +40,7 @@ export default function NuevaMascotaPage() {
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Agregar Nueva Mascota</h1>
-                        <p className="text-slate-500 text-sm">Completa la información para que los sitters conozcan a tu peludo.</p>
+                        <p className="text-slate-500 text-sm">Completa la información para que los proveedores conozcan a tu peludo.</p>
                     </div>
                 </div>
 

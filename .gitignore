@@ -26,3 +26,13 @@ push_output.txt
 .antigravity/
 .vercel
 .env*.local
+
+# Logs de desarrollo
+build_output.txt
+stderr.txt
+stdout.txt
+lint_output.txt
+lint_log.txt
+lint_full.txt
+push_output.txt
+*.log

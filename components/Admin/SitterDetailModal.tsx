@@ -3,6 +3,7 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { getProxyImageUrl } from "../../lib/utils";
+import { CheckCircle, Dog, Cat } from "lucide-react";
 
 type SitterData = {
     id: string;
@@ -129,9 +130,9 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 <p className="text-sm text-slate-500">{sitter.email || "Sin email"}</p>
                                 <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                                     {sitter.aprobado && (!sitter.missingFields || sitter.missingFields.length === 0)
-                                        ? "Verificado ✅"
+                                        ? <span className="flex items-center gap-1"><CheckCircle size={14} /> Verificado</span>
                                         : sitter.aprobado
-                                            ? <span className="text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) ⚠️</span>
+                                            ? <span className="flex items-center gap-1 text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) ⚠️</span>
                                             : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div></span>
                                     }
                                 </div>
@@ -249,8 +250,8 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             <div>
                                 <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Servicios & Tarifas</h4>
                                 <div className="flex flex-wrap gap-2">
-                                    {sitter.cuida_perros && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">🐶 Perros</span>}
-                                    {sitter.cuida_gatos && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">🐱 Gatos</span>}
+                                    {sitter.cuida_perros && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1"><Dog size={14} /> Perros</span>}
+                                    {sitter.cuida_gatos && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1"><Cat size={14} /> Gatos</span>}
                                 </div>
                                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {sitter.servicio_en_casa && (

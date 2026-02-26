@@ -23,7 +23,7 @@ export default function ClienteDashboardPage() {
   }, [router]);
 
   return (
-    <RoleGuard requiredRole="cliente">
+    <RoleGuard requiredRole="usuario">
       <ClientLayout userId={userId} title="Panel Usuario — Pawnecta">
         <DashboardContent />
       </ClientLayout>

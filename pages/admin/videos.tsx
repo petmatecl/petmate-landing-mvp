@@ -10,19 +10,11 @@ export default function AdminVideosPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
 
-    const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
-
     const checkAuth = async () => {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (!session) {
             router.push("/login");
-            return;
-        }
-
-        if (!ADMIN_EMAILS.includes(session.user.email || "")) {
-            alert("Acceso denegado: No tienes permisos de administrador.");
-            router.push("/");
             return;
         }
 
@@ -45,7 +37,7 @@ export default function AdminVideosPage() {
     return (
         <AdminLayout>
             <Head>
-                <title>Videos de Sitters | Admin Pawnecta</title>
+                <title>Videos de Proveedores | Admin Pawnecta</title>
             </Head>
             <div className="mb-8">
                 <h1 className="text-2xl font-extrabold text-slate-900">Gestión de Videos</h1>

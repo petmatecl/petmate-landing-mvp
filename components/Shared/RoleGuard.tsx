@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 
 interface RoleGuardProps {
     children: React.ReactNode;
-    requiredRole: "cliente" | "petmate" | "admin";
+    requiredRole: "usuario" | "proveedor" | "admin";
 }
 
 export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
@@ -23,13 +23,13 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                 return;
             }
 
-            if (requiredRole === 'cliente') {
+            if (requiredRole === 'usuario') {
                 // If it's pure client dashboard, everyone authenticated has access essentially
                 setAuthState('authorized');
                 return;
             }
 
-            if (requiredRole === 'petmate') {
+            if (requiredRole === 'proveedor') {
                 if (providerStatus === 'aprobado' || roles?.includes('admin')) {
                     setAuthState('authorized');
                     return;

@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
 
 // Types
-type Role = 'cliente' | 'petmate' | 'admin';
+type Role = 'usuario' | 'proveedor' | 'admin';
 
 interface UserProfile {
     nombre: string;
@@ -71,22 +71,22 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
-    const roles = profile?.roles || ['cliente']; // Default to cliente
+    const roles = profile?.roles || ['usuario']; // Default to usuario
 
     // Derive Capabilities Logic
     const deriveCapabilities = (p: UserProfile | null): UserCapabilities => {
         if (!p) return GUEST_CAPABILITIES;
 
         const userRoles = p.roles || [];
-        const isSitter = userRoles.includes('petmate');
-        const isClient = userRoles.includes('cliente') || userRoles.length === 0;
+        const isProveedor = userRoles.includes('proveedor') || userRoles.includes('admin');
+        const isClient = userRoles.includes('usuario') || userRoles.length === 0;
 
         return {
             canBook: isClient,
-            canPublishProfile: isSitter,
-            canRespondToBooking: isSitter,
+            canPublishProfile: isProveedor,
+            canRespondToBooking: isProveedor,
             canReview: true,
-            canViewSitterDashboard: isSitter,
+            canViewSitterDashboard: isProveedor,
             canViewClientDashboard: true,
         };
     };
@@ -127,27 +127,17 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
             setUser(session.user);
 
-            // 2. Fetch Profile from 'registro_petmate' for backwards compatibility and basic info
-            const { data: profileData, error } = await supabase
-                .from('registro_petmate')
-                .select('nombre, apellido_p, apellido_m, roles, foto_perfil, aprobado')
-                .eq('auth_user_id', session.user.id)
-                .single();
-
-            if (error && error.code !== 'PGRST116') {
-                console.error('Error fetching general profile:', error);
-            }
-
-            // 3. New Dual-Role Check
+            // 2. Consultar `proveedores` 
             const { data: proveedorData } = await supabase
                 .from('proveedores')
                 .select('id, nombre, apellido_p, roles, foto_perfil, estado')
                 .eq('auth_user_id', session.user.id)
                 .single();
 
+            // 3. Consultar `usuarios_buscadores`
             const { data: seekerData } = await supabase
                 .from('usuarios_buscadores')
-                .select('id')
+                .select('id, nombre, apellido_p')
                 .eq('auth_user_id', session.user.id)
                 .single();
 
@@ -155,18 +145,29 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             const statusOfProvider = proveedorData ? proveedorData.estado : 'none';
             const hasSeeker = !!seekerData;
 
-            const finalProfile = profileData || (proveedorData ? {
-                nombre: proveedorData.nombre,
-                apellido_p: proveedorData.apellido_p,
-                roles: proveedorData.roles || ['proveedor'],
-                foto_perfil: proveedorData.foto_perfil,
-                aprobado: proveedorData.estado === 'aprobado'
-            } : null);
+            // Reconstruir un perfil general para compatibilidad
+            let finalProfile: UserProfile | null = null;
+            if (proveedorData) {
+                finalProfile = {
+                    nombre: proveedorData.nombre,
+                    apellido_p: proveedorData.apellido_p,
+                    roles: proveedorData.roles || ['proveedor'],
+                    foto_perfil: proveedorData.foto_perfil,
+                    aprobado: proveedorData.estado === 'aprobado'
+                };
+            } else if (seekerData) {
+                finalProfile = {
+                    nombre: seekerData.nombre,
+                    apellido_p: seekerData.apellido_p,
+                    roles: ['usuario'],
+                    aprobado: true // Los usuarios básicos no se moderan
+                };
+            }
 
-            const status = calculateOnboardingStatus(session.user, finalProfile as any);
+            const status = calculateOnboardingStatus(session.user, finalProfile);
 
-            setProfile(finalProfile as any);
-            setCapabilities(deriveCapabilities(finalProfile as any));
+            setProfile(finalProfile);
+            setCapabilities(deriveCapabilities(finalProfile));
             setOnboardingStatus(status);
             setProviderStatus(statusOfProvider as 'none' | 'pendiente' | 'aprobado');
 
@@ -188,17 +189,21 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
             setActiveMode(determinedMode);
 
-            // --- Legacy activeRole Logic Maintenance ---
+            // --- Set activeRole Logic ---
             if (finalProfile) {
-                const validRoles = finalProfile.roles || ['cliente'];
-                const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
-                if (session.user.email && ADMIN_EMAILS.includes(session.user.email) && !validRoles.includes('admin')) {
-                    validRoles.push('admin');
+                const validRoles = finalProfile.roles || ['usuario'];
+
+                // Set Admin Role Dynamically from DB, NO HARDCODED EMAILS.
+                // Requerimos que esté en 'proveedores' con el array de strings con 'admin' y estado aprobado
+                if (proveedorData?.roles?.includes('admin') && proveedorData?.estado === 'aprobado') {
+                    if (!validRoles.includes('admin')) {
+                        validRoles.push('admin');
+                    }
                 }
 
                 // For backwards compatibility, sync activeRole to mode
-                if (determinedMode === 'proveedor') setActiveRole('petmate');
-                else if (determinedMode === 'buscador') setActiveRole('cliente');
+                if (determinedMode === 'proveedor') setActiveRole('proveedor');
+                else if (determinedMode === 'buscador') setActiveRole('usuario');
                 else setActiveRole(null);
             }
 
@@ -247,7 +252,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         if (roles.includes(role)) {
             setActiveRole(role);
             window.localStorage.setItem('activeRole', role);
-            if (role === 'petmate') router.push('/proveedor');
+            if (role === 'proveedor') router.push('/proveedor');
             else if (role === 'admin') router.push('/admin');
             else router.push('/usuario');
         }
@@ -257,8 +262,8 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         setActiveMode(mode);
         window.localStorage.setItem('pawnecta_active_mode', mode);
         // also sync activeRole
-        if (mode === 'proveedor') setActiveRole('petmate');
-        else setActiveRole('cliente');
+        if (mode === 'proveedor') setActiveRole('proveedor');
+        else setActiveRole('usuario');
     };
 
     const activateProviderMode = () => {
@@ -284,6 +289,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         window.localStorage.removeItem('activeRole');
         window.localStorage.removeItem('pm_auth_role_pending');
         window.localStorage.removeItem('pawnecta_active_mode');
+        window.localStorage.removeItem('pawnecta_pending_role');
 
         // 3. Sign out de Supabase
         await supabase.auth.signOut();

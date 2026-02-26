@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import mermaid from "mermaid";
 import { X, ZoomIn } from "lucide-react";
+import { useRouter } from "next/router";
+import { supabase } from "../../lib/supabaseClient";
 
 // Diagram Definition Type
 type FlowDiagram = {
@@ -162,7 +164,14 @@ const DIAGRAMS: FlowDiagram[] = [
 ];
 
 export default function DocsFlowsPage() {
+    const router = useRouter();
     const [selectedDiagram, setSelectedDiagram] = useState<FlowDiagram | null>(null);
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) router.replace('/');
+        });
+    }, [router]);
 
     useEffect(() => {
         (async () => {

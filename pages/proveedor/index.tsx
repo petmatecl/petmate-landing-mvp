@@ -112,7 +112,7 @@ export default function ProveedorDashboard() {
                 supabase.from('servicios_publicados').select('vistas').eq('proveedor_id', provId),
                 supabase.from('servicios_publicados').select('id', { count: 'exact' }).eq('proveedor_id', provId).eq('activo', true),
                 supabase.from('evaluaciones').select('id', { count: 'exact' }).eq('proveedor_id', provId).eq('estado', 'aprobado'),
-                supabase.from('conversations').select('id', { count: 'exact' }).eq('sitter_id', authId)
+                supabase.from('conversations').select('id', { count: 'exact' }).eq('proveedor_auth_id', authId)
             ]);
 
             const totalVistas = vistasRes.data?.reduce((acc, curr) => acc + (curr.vistas || 0), 0) || 0;
@@ -154,9 +154,6 @@ export default function ProveedorDashboard() {
         setFotoPerfil(url);
 
         await supabase.from('proveedores').update({ foto_perfil: url }).eq('auth_user_id', user.id);
-        // Also update shared registry
-        await supabase.from('registro_petmate').update({ foto_perfil: url }).eq('auth_user_id', user.id);
-
         setUploadingAvatar(false);
         toast.success('Foto de perfil actualizada');
     };
@@ -483,7 +480,7 @@ export default function ProveedorDashboard() {
                                             {proveedor.nombre} {proveedor.apellido_p}
                                             <span className="text-slate-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
                                         </h3>
-                                        <p className="text-slate-500 text-sm mt-1">Proveedor registrado desde {new Date(proveedor.created_at).getFullYear()}</p>
+                                        <p className="text-slate-500 text-sm mt-1">Proveedor desde {new Date(proveedor.created_at).getFullYear()}</p>
                                     </div>
                                 </div>
 

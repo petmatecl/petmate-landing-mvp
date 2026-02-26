@@ -10,21 +10,18 @@ export default function AdminNotifications() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
-        sittersPendientes: 0,
+        proveedoresPendientes: 0,
         solicitudesPendientes: 0
     });
     const [activities, setActivities] = useState<any[]>([]);
 
-    // --- CONFIGURACIÓN: Lista de administradores ---
-    const ADMIN_EMAILS = ["admin@petmate.cl", "aldo@petmate.cl", "canocortes@gmail.com", "eduardo.a.cordova.d@gmail.com", "acanocts@gmail.com"];
 
     const fetchData = async () => {
         // 1. Stats Counters
-        const { count: sittersPendientes } = await supabase
-            .from("registro_petmate")
+        const { count: proveedoresPendientes } = await supabase
+            .from("proveedores")
             .select("*", { count: "exact", head: true })
-            .contains("roles", ["petmate"])
-            .eq("aprobado", false);
+            .eq("estado", "pendiente");
 
         const { count: solicitudesPendientes } = await supabase
             .from("viajes")
@@ -34,7 +31,7 @@ export default function AdminNotifications() {
             .neq("estado", "completado");
 
         setStats({
-            sittersPendientes: sittersPendientes || 0,
+            proveedoresPendientes: proveedoresPendientes || 0,
             solicitudesPendientes: solicitudesPendientes || 0
         });
 
@@ -57,11 +54,6 @@ export default function AdminNotifications() {
             return;
         }
 
-        if (!ADMIN_EMAILS.includes(session.user.email || "")) {
-            alert("Acceso denegado: No tienes permisos de administrador.");
-            router.push("/");
-            return;
-        }
 
         await fetchData();
         setLoading(false);
@@ -109,10 +101,10 @@ export default function AdminNotifications() {
                                         <div className="bg-amber-100 p-2 rounded-lg text-amber-600">
                                             <User size={20} />
                                         </div>
-                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Sitters Pendientes</p>
+                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Proveedores Pendientes</p>
                                     </div>
-                                    <p className="text-4xl font-extrabold text-slate-900">{stats.sittersPendientes}</p>
-                                    <Link href="/admin?tab=petmate&filter=pending" className="mt-4 text-amber-600 font-bold text-sm hover:underline flex items-center gap-1">
+                                    <p className="text-4xl font-extrabold text-slate-900">{stats.proveedoresPendientes}</p>
+                                    <Link href="/admin/proveedores?estado=pendiente" className="mt-4 text-amber-600 font-bold text-sm hover:underline flex items-center gap-1">
                                         Revisar solicitudes <ChevronRight size={14} />
                                     </Link>
                                 </div>
@@ -145,13 +137,13 @@ export default function AdminNotifications() {
                                 {activities.map((user) => (
                                     <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm uppercase shrink-0
-                                            ${user.roles?.includes('petmate') ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
+                                            ${user.roles?.includes('proveedor') ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
                                         `}>
                                             {user.nombre?.[0] || "?"}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-slate-900 truncate">
-                                                <span className="font-bold">{user.nombre} {user.apellido_p}</span> se registró como {user.roles?.includes('petmate') ? 'Sitter' : 'Cliente'}.
+                                                <span className="font-bold">{user.nombre} {user.apellido_p}</span> se registró como {user.roles?.includes('proveedor') ? 'Proveedor' : 'Usuario'}.
                                             </p>
                                             <p className="text-xs text-slate-500">
                                                 {new Date(user.created_at).toLocaleString('es-CL')} • {user.email}
