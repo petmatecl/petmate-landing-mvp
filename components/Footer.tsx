@@ -29,32 +29,32 @@ export function Footer() {
           <h4 className="text-sm font-bold text-slate-900">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
-              <Link href="/hospedaje" className="hover:text-emerald-600 transition-colors">
+              <Link href="/explorar?categoria=hospedaje" className="hover:text-emerald-600 transition-colors">
                 Hospedaje
               </Link>
             </li>
             <li>
-              <Link href="/visita-domicilio" className="hover:text-emerald-600 transition-colors">
+              <Link href="/explorar?categoria=visita-domicilio" className="hover:text-emerald-600 transition-colors">
                 Visita a domicilio
               </Link>
             </li>
             <li>
-              <Link href="/paseo" className="hover:text-emerald-600 transition-colors">
-                Paseo de perros
+              <Link href="/explorar?categoria=paseo" className="hover:text-emerald-600 transition-colors">
+                Paseador
               </Link>
             </li>
             <li>
-              <Link href="/peluqueria" className="hover:text-emerald-600 transition-colors">
+              <Link href="/explorar?categoria=peluqueria" className="hover:text-emerald-600 transition-colors">
                 Peluquería
               </Link>
             </li>
             <li>
-              <Link href="/veterinaria" className="hover:text-emerald-600 transition-colors">
+              <Link href="/explorar?categoria=veterinaria" className="hover:text-emerald-600 transition-colors">
                 Veterinaria
               </Link>
             </li>
             <li>
-              <Link href="/adiestramiento" className="hover:text-emerald-600 transition-colors">
+              <Link href="/explorar?categoria=adiestramiento" className="hover:text-emerald-600 transition-colors">
                 Adiestramiento
               </Link>
             </li>
@@ -155,73 +155,73 @@ export function Footer() {
 
             {/* Hospedaje */}
             <div>
-              <Link href="/hospedaje" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Hospedaje</Link>
+              <Link href="/explorar?categoria=hospedaje" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Hospedaje</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/hospedaje/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/hospedaje/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/hospedaje/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/hospedaje/vitacura" className="hover:text-emerald-600 transition-colors">Vitacura</Link></li>
-                <li><Link href="/hospedaje/santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&q=providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&q=las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&q=nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&q=vitacura" className="hover:text-emerald-600 transition-colors">Vitacura</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&q=santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
               </ul>
             </div>
 
             {/* Domicilio */}
             <div>
-              <Link href="/visita-domicilio" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Visita a domicilio</Link>
+              <Link href="/explorar?categoria=visita-domicilio" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Visita a domicilio</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/visita-domicilio/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/visita-domicilio/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/visita-domicilio/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/visita-domicilio/la-florida" className="hover:text-emerald-600 transition-colors">La Florida</Link></li>
-                <li><Link href="/visita-domicilio/maipu" className="hover:text-emerald-600 transition-colors">Maipú</Link></li>
+                <li><Link href="/explorar?categoria=visita-domicilio&q=providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=visita-domicilio&q=las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=visita-domicilio&q=nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=visita-domicilio&q=la-florida" className="hover:text-emerald-600 transition-colors">La Florida</Link></li>
+                <li><Link href="/explorar?categoria=visita-domicilio&q=maipu" className="hover:text-emerald-600 transition-colors">Maipú</Link></li>
               </ul>
             </div>
 
             {/* Paseos */}
             <div>
-              <Link href="/paseo" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Paseadores</Link>
+              <Link href="/explorar?categoria=paseo" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Paseadores</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/paseo/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/paseo/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/paseo/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/paseo/santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
-                <li><Link href="/paseo/macul" className="hover:text-emerald-600 transition-colors">Macul</Link></li>
+                <li><Link href="/explorar?categoria=paseo&q=providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=paseo&q=las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=paseo&q=nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=paseo&q=santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/explorar?categoria=paseo&q=macul" className="hover:text-emerald-600 transition-colors">Macul</Link></li>
               </ul>
             </div>
 
             {/* Peluqueria */}
             <div>
-              <Link href="/peluqueria" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Peluquería</Link>
+              <Link href="/explorar?categoria=peluqueria" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Peluquería</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/peluqueria/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/peluqueria/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/peluqueria/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/peluqueria/penalolen" className="hover:text-emerald-600 transition-colors">Peñalolén</Link></li>
-                <li><Link href="/peluqueria/la-reina" className="hover:text-emerald-600 transition-colors">La Reina</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&q=providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&q=las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&q=nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&q=penalolen" className="hover:text-emerald-600 transition-colors">Peñalolén</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&q=la-reina" className="hover:text-emerald-600 transition-colors">La Reina</Link></li>
               </ul>
             </div>
 
             {/* Veterinario */}
             <div>
-              <Link href="/veterinaria" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Veterinarios</Link>
+              <Link href="/explorar?categoria=veterinaria" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Veterinarios</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/veterinaria/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/veterinaria/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/veterinaria/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/veterinaria/san-miguel" className="hover:text-emerald-600 transition-colors">San Miguel</Link></li>
-                <li><Link href="/veterinaria/santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/explorar?categoria=veterinaria&q=providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=veterinaria&q=las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=veterinaria&q=nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=veterinaria&q=san-miguel" className="hover:text-emerald-600 transition-colors">San Miguel</Link></li>
+                <li><Link href="/explorar?categoria=veterinaria&q=santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
               </ul>
             </div>
 
             {/* Adiestramiento */}
             <div>
-              <Link href="/adiestramiento" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Adiestramiento</Link>
+              <Link href="/explorar?categoria=adiestramiento" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Adiestramiento</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/adiestramiento/providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/adiestramiento/las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/adiestramiento/nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/adiestramiento/lo-barnechea" className="hover:text-emerald-600 transition-colors">Lo Barnechea</Link></li>
-                <li><Link href="/adiestramiento/vitacura" className="hover:text-emerald-600 transition-colors">Vitacura</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&q=providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&q=las-condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&q=nunoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&q=lo-barnechea" className="hover:text-emerald-600 transition-colors">Lo Barnechea</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&q=vitacura" className="hover:text-emerald-600 transition-colors">Vitacura</Link></li>
               </ul>
             </div>
 
