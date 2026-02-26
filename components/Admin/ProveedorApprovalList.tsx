@@ -63,14 +63,13 @@ export default function ProveedorApprovalList() {
 
             // 3. Enviar email (no bloqueamos si falla el email, pero notificamos)
             try {
-                await fetch('/api/send-email', {
+                await fetch('/api/admin/notify-provider', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        to: prov.email_publico || prov.email || `${session.user.email}`, // Fallback ideal iterar supabase auth user, asumimos email_publico para pruebas o logica en backend
-                        subject: "Tu perfil fue aprobado en Pawnecta",
-                        template: "AprobacionProveedor",
-                        props: { nombre: prov.nombre }
+                        email: prov.email_publico || prov.email || `${session.user.email}`, // Fallback ideal iterar supabase auth user, asumimos email_publico para pruebas o logica en backend
+                        nombre: prov.nombre,
+                        estado: 'aprobado'
                     })
                 });
             } catch (emailErr) {
@@ -110,14 +109,14 @@ export default function ProveedorApprovalList() {
 
             // Enviar email
             try {
-                await fetch('/api/send-email', {
+                await fetch('/api/admin/notify-provider', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        to: prov.email_publico || prov.email || "test@test.com",
-                        subject: "Sobre tu solicitud en Pawnecta",
-                        template: "RechazoProveedor",
-                        props: { nombre: prov.nombre, motivo_rechazo: motivoRechazo }
+                        email: prov.email_publico || prov.email || "test@test.com",
+                        nombre: prov.nombre,
+                        estado: 'rechazado',
+                        motivo: motivoRechazo
                     })
                 });
             } catch (emailErr) {
