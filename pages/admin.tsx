@@ -144,7 +144,7 @@ export default function AdminDashboard() {
                                 <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
                             </svg>
                         </div>
-                        <h1 className="text-xl font-black text-slate-900">Acceso restringido</h1>
+                        <h1 className="text-xl font-bold text-slate-900">Acceso restringido</h1>
                     </div>
 
                     <form onSubmit={handleAdminLogin}>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                 {/* Header del Dashboard */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div>
-                        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
                             <ShieldCheck className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-600" />
                             Panel de Administración
                         </h1>

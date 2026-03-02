@@ -27,7 +27,7 @@ export default function CompletionBlocker({
                 <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
                     <AlertTriangle className="w-8 h-8 text-yellow-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-2">Perfil en Verificación ⏳</h2>
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">Perfil en Verificación</h2>
                 <p className="text-slate-600 mb-6">
                     Tu perfil está siendo revisado por nuestro equipo. Una vez aprobado, podrás acceder a esta sección y recibir solicitudes.
                 </p>

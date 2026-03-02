@@ -70,7 +70,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {[...Array(6)].map((_, i) => (
-                    <div key={i} className="h-32 bg-slate-100 rounded-3xl animate-pulse"></div>
+                    <div key={i} className="h-32 bg-slate-100 rounded-2xl animate-pulse"></div>
                 ))}
             </div>
         );
@@ -98,7 +98,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 {/* 1. Proveedores Totales */}
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center">
                             <Users size={24} />
@@ -111,7 +111,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                 </div>
 
                 {/* 2. Proveedores Pendientes */}
-                <div className={`p-6 rounded-3xl shadow-sm border flex flex-col justify-between transition-colors ${stats.proveedoresPendientes > 0 ? 'bg-amber-50/30 border-amber-300' : 'bg-white border-slate-200'}`}>
+                <div className={`p-6 rounded-2xl shadow-sm border flex flex-col justify-between transition-colors ${stats.proveedoresPendientes > 0 ? 'bg-amber-50/30 border-amber-300' : 'bg-white border-slate-200'}`}>
                     <div className="flex justify-between items-start mb-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stats.proveedoresPendientes > 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
                             <AlertTriangle size={24} />
@@ -129,7 +129,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                 </div>
 
                 {/* 3. Proveedores Aprobados Activos */}
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
                             <CheckCircle size={24} />
@@ -142,7 +142,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                 </div>
 
                 {/* 4. Servicios Publicados */}
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center">
                             <LayoutDashboard size={24} />
@@ -155,7 +155,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                 </div>
 
                 {/* 5. Usuarios Buscadores */}
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center">
                             <UserIcon size={24} />
@@ -168,7 +168,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                 </div>
 
                 {/* 6. Evaluaciones Pendientes */}
-                <div className={`p-6 rounded-3xl shadow-sm border flex flex-col justify-between transition-colors ${stats.evaluacionesPendientes > 0 ? 'bg-amber-50/30 border-amber-300' : 'bg-white border-slate-200'}`}>
+                <div className={`p-6 rounded-2xl shadow-sm border flex flex-col justify-between transition-colors ${stats.evaluacionesPendientes > 0 ? 'bg-amber-50/30 border-amber-300' : 'bg-white border-slate-200'}`}>
                     <div className="flex justify-between items-start mb-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stats.evaluacionesPendientes > 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
                             <Star size={24} />
@@ -189,7 +189,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
 
             {/* Accesos Rápidos */}
             {setActiveTab && (
-                <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm mt-8">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-8">
                     <h3 className="font-bold text-slate-800 mb-4 px-2">Accesos Rápidos</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <button

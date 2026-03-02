@@ -1,4 +1,4 @@
-// components/PetsSelectorAirbnb.tsx
+﻿// components/PetsSelectorAirbnb.tsx
 import * as React from "react";
 
 export type PetsValue = {
@@ -52,7 +52,7 @@ export default function PetsSelectorAirbnb({ value, onChange, className, hideLab
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="mt-1 flex w-full items-center justify-between rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-left text-sm shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="mt-1 flex w-full items-center justify-between rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-left text-sm shadow-sm hover:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600"
       >
         <div className="flex flex-col">
           <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">

@@ -81,7 +81,7 @@ export default function SEOServicePage({ categoria, comuna, services }: SEOServi
 
                 {/* Grilla de Servicios */}
                 {services.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                    <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200">
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
                             <Search size={28} className="text-slate-400" />
                         </div>

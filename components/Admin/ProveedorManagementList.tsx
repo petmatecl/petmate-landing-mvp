@@ -117,7 +117,7 @@ export default function ProveedorManagementList() {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 text-center shadow-sm">
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
                 <p className="text-slate-500 font-medium">Cargando base de proveedores...</p>
             </div>
@@ -126,7 +126,7 @@ export default function ProveedorManagementList() {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <div className="relative w-full sm:max-w-md">
                     <input
                         type="text"
@@ -151,7 +151,7 @@ export default function ProveedorManagementList() {
                 </select>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-xs">
@@ -260,7 +260,7 @@ export default function ProveedorManagementList() {
             {/* MODAL SUSPENSIÓN */}
             {suspendModalOpen && providerToSuspend && (
                 <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 text-left whitespace-normal">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 text-left whitespace-normal">
                         <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6">
                             <AlertTriangle size={24} />
                         </div>

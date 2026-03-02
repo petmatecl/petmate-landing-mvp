@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { X, Save, MapPin } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import AddressAutocomplete from "../AddressAutocomplete";
@@ -180,7 +180,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                             value={nombre}
                             onChange={(e) => setNombre(e.target.value)}
                             placeholder="Ej: Casa, Depto Playa, Casa de mis papás"
-                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:text-slate-400 font-medium"
+                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all placeholder:text-slate-400 font-medium"
                             required
                         />
                     </div>
@@ -214,7 +214,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={numero}
                                 onChange={(e) => setNumero(e.target.value)}
                                 placeholder="Ej: 204"
-                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all"
                             />
                         </div>
                         <div>
@@ -226,7 +226,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={depto}
                                 onChange={(e) => setDepto(e.target.value)}
                                 placeholder="Ej: 404, Block B"
-                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all"
                             />
                         </div>
                         <div className="col-span-2 sm:col-span-1">
@@ -238,7 +238,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={comuna}
                                 onChange={(e) => setComuna(e.target.value)}
                                 placeholder="Ej: Las Condes"
-                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all"
                             />
                         </div>
                         <div className="col-span-2 sm:col-span-1">
@@ -250,7 +250,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
                                 placeholder="Ej: Región Metropolitana"
-                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -265,7 +265,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                             value={notas}
                             onChange={(e) => setNotas(e.target.value)}
                             placeholder="Ej: Tocar el timbre conserjería, reja negra..."
-                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"
+                            className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all resize-none"
                         />
                     </div>
 
@@ -276,7 +276,7 @@ export default function AddressFormModal({ isOpen, onClose, onSaved, initialData
                             id="esPrincipal"
                             checked={esPrincipal}
                             onChange={(e) => setEsPrincipal(e.target.checked)}
-                            className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                            className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600"
                         />
                         <label htmlFor="esPrincipal" className="text-sm font-medium text-slate-700 cursor-pointer">
                             Establecer como dirección principal

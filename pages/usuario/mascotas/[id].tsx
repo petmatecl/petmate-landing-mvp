@@ -125,7 +125,7 @@ export default function EditarMascotaPage() {
         return (
             <ClientLayout userId={userId} title="Error">
                 <div className="flex flex-col items-center justify-center pt-20">
-                    <h1 className="text-2xl font-bold text-slate-800 mb-2">Ups, algo salió mal 😕</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 mb-2">Ups, algo salió mal</h1>
                     <p className="text-red-500 mb-6">{errorMsg || "Mascota no encontrada."}</p>
                     <button
                         onClick={() => router.push("/usuario")}

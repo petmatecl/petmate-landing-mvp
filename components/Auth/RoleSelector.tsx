@@ -45,7 +45,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
         {(roles.includes('usuario') || roles.length === 0) && (
           <button
             onClick={() => onSelect("usuario")}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
+            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
           >
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
               <UserIcon />
@@ -60,7 +60,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
         {roles.includes('proveedor') && (
           <button
             onClick={() => onSelect("proveedor")}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
+            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md group text-left"
           >
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
               <PawIcon />

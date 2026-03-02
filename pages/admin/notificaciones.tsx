@@ -128,7 +128,7 @@ export default function AdminNotifications() {
                         </div>
 
                         {/* Recent Activity Feed */}
-                        <div className="bg-white rounded-3xl shadow-sm border-2 border-slate-300 overflow-hidden">
+                        <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 overflow-hidden">
                             <div className="p-6 border-b border-slate-300 flex items-center gap-2">
                                 <Bell className="text-slate-400" size={20} />
                                 <h3 className="font-bold text-lg text-slate-900">Últimos Registros</h3>

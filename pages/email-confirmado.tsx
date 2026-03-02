@@ -258,7 +258,7 @@ export default function EmailConfirmadoPage() {
 
                     <Card padding="l" className="w-full max-w-[500px] text-center animate-in zoom-in-95 duration-500">
                         <CheckCircle size={64} className="text-emerald-600 mx-auto mb-6 drop-shadow-sm" />
-                        <h1 className="text-3xl font-black text-slate-900 mb-3">¡Correo Confirmado!</h1>
+                        <h1 className="text-3xl font-bold text-slate-900 mb-3">¡Correo Confirmado!</h1>
                         <p className="text-lg text-slate-600 mb-2">Gracias por verificar tu cuenta electrónica.</p>
                         <p className="text-emerald-700 font-semibold mb-6 animate-pulse">
                             {statusText}
@@ -269,7 +269,7 @@ export default function EmailConfirmadoPage() {
 
                     <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500">
                         <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mb-6"></div>
-                        <h2 className="text-2xl font-black text-slate-800 mb-2">Validando Email...</h2>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Validando Email...</h2>
                         <p className="text-slate-500 mb-1 max-w-sm text-center">{statusText}</p>
 
                         {/* Botones de Respaldo por fallos de enrutado LocalStorage */}

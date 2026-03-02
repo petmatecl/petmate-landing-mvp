@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/Admin/AdminLayout';
 import { getAllReviews, updateReviewStatus, createReview, Review } from '../../lib/reviewsService';
@@ -165,7 +165,7 @@ export default function AdminReviews() {
                                                 )}
                                             </td>
                                             <td className="p-4 text-slate-600">
-                                                {/* Requires joining with sitter data ideally, but for now we rely on user knowing sitter IDs or fix backend join later */}
+                                                {/* Requires joining with proveedor data ideally, but for now we rely on user knowing proveedor IDs or fix backend join later */}
                                                 <span className="font-mono text-xs bg-slate-100 px-1 rounded">{review.sitter_id.substring(0, 8)}...</span>
                                             </td>
                                             <td className="p-4">
@@ -264,7 +264,7 @@ export default function AdminReviews() {
                                                     <input
                                                         type="text"
                                                         placeholder="Buscar por nombre..."
-                                                        className="w-full pl-8 pr-2 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-emerald-500 outline-none"
+                                                        className="w-full pl-8 pr-2 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-emerald-600 outline-none"
                                                         value={proveedorSearchTerm}
                                                         onChange={(e) => setProveedorSearchTerm(e.target.value)}
                                                         autoFocus

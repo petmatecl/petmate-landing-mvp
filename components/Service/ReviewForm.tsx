@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -171,7 +171,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                         placeholder="Cuenta tu experiencia con este proveedor..."
                         value={comentario}
                         onChange={(e) => setComentario(e.target.value)}
-                        className={`w-full bg-slate-50 border rounded-xl p-4 text-sm focus:outline-none focus:ring-2 transition-all resize-none ${comentario.length > 500 ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-emerald-500/20 focus:border-emerald-500'
+                        className={`w-full bg-slate-50 border rounded-xl p-4 text-sm focus:outline-none focus:ring-2 transition-all resize-none ${comentario.length > 500 ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-emerald-600/20 focus:border-emerald-600'
                             }`}
                         disabled={isSubmitting}
                     />

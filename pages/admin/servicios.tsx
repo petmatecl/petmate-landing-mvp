@@ -179,7 +179,7 @@ export default function GestionServicios() {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-black flex items-center gap-2">
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
                                 <Briefcase className="text-indigo-400" />
                                 Gestión de Servicios
                             </h1>
@@ -194,12 +194,12 @@ export default function GestionServicios() {
                 {/* Grid Superior de Estadisticas Rápidas */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     {/* Tarjeta 1: Total Activos */}
-                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between items-start">
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between items-start">
                         <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-4 shrink-0">
                             <ShieldCheck size={24} />
                         </div>
                         <div>
-                            <p className="text-4xl font-black text-slate-800 mb-1">{statsData.activosCount}</p>
+                            <p className="text-4xl font-bold text-slate-800 mb-1">{statsData.activosCount}</p>
                             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Servicios Activos (Públicos)</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
@@ -208,12 +208,12 @@ export default function GestionServicios() {
                     </div>
 
                     {/* Tarjeta 2: Vistas MVP */}
-                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between items-start">
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between items-start">
                         <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-4 shrink-0">
                             <TrendingUp size={24} />
                         </div>
                         <div>
-                            <p className="text-3xl font-black text-amber-600 mb-2 truncate max-w-[200px] sm:max-w-[250px]">{statsData.mvpServicio || '-'}</p>
+                            <p className="text-3xl font-bold text-amber-600 mb-2 truncate max-w-[200px] sm:max-w-[250px]">{statsData.mvpServicio || '-'}</p>
                             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Servicio Más Visto</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
@@ -391,7 +391,7 @@ export default function GestionServicios() {
                                     <span className="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-0.5 rounded font-bold">{modalData.categoria_nombre}</span>
                                     <EstadoBadge activo={modalData.activo} />
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900 leading-tight">{modalData.titulo}</h3>
+                                <h3 className="text-2xl font-bold text-slate-900 leading-tight">{modalData.titulo}</h3>
                                 <p className="text-sm text-slate-500 mt-1">Proveedor: <span className="font-semibold text-slate-800">{modalData.proveedor_nombre} {modalData.proveedor_apellido}</span></p>
                             </div>
                             <button onClick={() => setModalData(null)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 transition-colors shrink-0">
@@ -409,11 +409,11 @@ export default function GestionServicios() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tarifa Base</p>
-                                    <p className="text-2xl font-black text-emerald-600">${modalData.precio_desde.toLocaleString('es-CL')}</p>
+                                    <p className="text-2xl font-bold text-emerald-600">${modalData.precio_desde.toLocaleString('es-CL')}</p>
                                 </div>
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Métricas</p>
-                                    <p className="text-2xl font-black text-slate-800 flex items-center gap-2"><Eye size={20} className="text-indigo-400" /> {modalData.vistas} <span className="text-sm font-medium text-slate-400">vistas orgánicas</span></p>
+                                    <p className="text-2xl font-bold text-slate-800 flex items-center gap-2"><Eye size={20} className="text-indigo-400" /> {modalData.vistas} <span className="text-sm font-medium text-slate-400">vistas orgánicas</span></p>
                                 </div>
                             </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
@@ -200,15 +200,13 @@ export default function DashboardContent() {
         <div className="space-y-10 animate-in fade-in duration-500 pb-12">
 
             {/* --- WELCOME HEADER --- */}
-            <section className="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
-                <p className="text-sm text-slate-500 mb-1">
+            <section className="bg-white border border-slate-200 rounded-2xl p-6 mb-2">
+                <p className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">
                     Bienvenido de vuelta
                 </p>
-                <h1 className="text-2xl font-bold text-slate-900">
-                    {firstName}
-                </h1>
-                <p className="text-slate-500 mt-1 text-sm">
-                    Gestiona tus mascotas y conversaciones desde aquí.
+                <h1 className="text-2xl font-bold text-slate-900">{firstName}</h1>
+                <p className="text-slate-500 mt-1 max-w-xl">
+                    Desde aquí puedes gestionar tus mascotas y encontrar proveedores en tu zona.
                 </p>
             </section>
 
@@ -265,7 +263,7 @@ export default function DashboardContent() {
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
                             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-300 mb-4 shadow-sm border border-slate-100">
                                 <PawPrint size={32} />
                             </div>
@@ -292,7 +290,7 @@ export default function DashboardContent() {
                             Mensajes
                         </h2>
 
-                        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4">
+                        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
                             {isLoadingConversations ? (
                                 <div className="space-y-4">
                                     {[1, 2].map(i => (
@@ -356,7 +354,7 @@ export default function DashboardContent() {
                             Favoritos
                         </h2>
 
-                        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center">
                             {isLoadingFavorites ? (
                                 <div className="animate-pulse space-y-3">
                                     <div className="h-4 w-3/4 bg-slate-200 rounded mx-auto" />
@@ -424,7 +422,7 @@ export default function DashboardContent() {
 
             {/* --- SECCIÓN 4: Explorar CTA --- */}
             <section className="mt-8">
-                <div className="bg-slate-900 rounded-3xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden">
+                <div className="bg-slate-900 rounded-2xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden">
                     {/* Deco cercles */}
                     <div className="absolute -top-24 -left-20 w-64 h-64 bg-slate-800 rounded-full opacity-50 blur-3xl"></div>
                     <div className="absolute -bottom-24 -right-20 w-64 h-64 bg-emerald-900 rounded-full opacity-30 blur-3xl"></div>
@@ -433,14 +431,14 @@ export default function DashboardContent() {
                         <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl mb-2 backdrop-blur-sm">
                             <Search size={32} className="text-emerald-400" />
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-black text-white">Encuentra al cuidador ideal</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold text-white">Encuentra al cuidador ideal</h2>
                         <p className="text-slate-300 text-lg mx-auto">
                             Revisa cientos de perfiles verificados de cuidadores de mascotas cerca de ti y organiza tu próximo viaje con tranquilidad absoluta.
                         </p>
                         <div className="pt-4">
                             <Link
                                 href="/explorar"
-                                className="inline-flex items-center justify-center h-14 px-8 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1 transition-all"
+                                className="inline-flex items-center justify-center h-14 px-8 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1 transition-all"
                             >
                                 Buscar Servicios
                             </Link>

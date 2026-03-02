@@ -85,7 +85,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                 </div>
 
                 {/* Article Card - Paper Style */}
-                <article className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border-2 border-slate-300 overflow-hidden mb-16">
+                <article className="bg-white rounded-2xl p-8 md:p-14 shadow-sm border-2 border-slate-300 overflow-hidden mb-16">
 
                     {/* Header */}
                     <header className="mb-10 text-center md:text-left border-b border-slate-300 pb-10">
@@ -159,7 +159,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {relatedPosts.map((relatedPost) => (
                                 <Link href={`/blog/${relatedPost.slug}`} key={relatedPost.id} className="group">
-                                    <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300">
+                                    <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-md hover:shadow-emerald-900/5 transition-all duration-300">
                                         {/* Image */}
                                         <div className="relative h-48 overflow-hidden">
                                             <Image

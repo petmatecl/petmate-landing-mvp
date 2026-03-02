@@ -79,7 +79,7 @@ export default function CaregiverCard({
 
     return (
         <>
-            <Card variant="elevated" className="group flex flex-col h-full !rounded-3xl !overflow-hidden transform-gpu" padding="none" hoverable>
+            <Card variant="elevated" className="group flex flex-col h-full !rounded-2xl !overflow-hidden transform-gpu" padding="none" hoverable>
                 {/* Imagen */}
                 <div className="aspect-[4/3] w-full bg-slate-100 relative overflow-hidden rounded-t-3xl isolate">
                     <Image

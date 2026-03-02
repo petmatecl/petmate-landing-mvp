@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 
@@ -131,7 +131,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
 
                     {error && (
                         <div className="p-3 mb-6 bg-rose-50 border border-rose-200 text-rose-600 rounded-lg text-sm flex items-center gap-2">
-                            <span>🚫</span> {error}
+                            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></span> {error}
                         </div>
                     )}
 
@@ -143,31 +143,31 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">Nombre</label>
-                                    <input type="text" required value={nombre} onChange={e => setNombre(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm" />
+                                    <input type="text" required value={nombre} onChange={e => setNombre(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">Apellido Paterno</label>
-                                    <input type="text" required value={apellidoP} onChange={e => setApellidoP(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm" />
+                                    <input type="text" required value={apellidoP} onChange={e => setApellidoP(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">Apellido Materno (Opcional)</label>
-                                    <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm" />
+                                    <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">RUT</label>
-                                    <input type="text" required value={rut} onChange={e => setRut(formatRut(e.target.value))} placeholder="12.345.678-9" className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm" />
+                                    <input type="text" required value={rut} onChange={e => setRut(formatRut(e.target.value))} placeholder="12.345.678-9" className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">Teléfono</label>
-                                    <input type="tel" required value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56 9 1234 5678" className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm" />
+                                    <input type="tel" required value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56 9 1234 5678" className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">WhatsApp (Opcional)</label>
-                                    <input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+56 9 1234 5678" className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm" />
+                                    <input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+56 9 1234 5678" className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                                 <div className="grid gap-1 md:col-span-2">
                                     <label className="text-sm font-semibold text-slate-700">Comuna</label>
-                                    <input type="text" required value={comuna} onChange={e => setComuna(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm" />
+                                    <input type="text" required value={comuna} onChange={e => setComuna(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                             </div>
 

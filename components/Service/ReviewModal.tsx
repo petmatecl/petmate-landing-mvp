@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
 interface ReviewModalProps {
@@ -148,7 +148,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                                     id="comentario"
                                     rows={4}
                                     placeholder="¿Qué te gustó del servicio? ¿Cómo fue el trato con la mascota?"
-                                    className="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-sm p-3 resize-none shadow-sm"
+                                    className="w-full rounded-xl border-slate-300 focus:border-emerald-600 focus:ring-emerald-600 text-sm p-3 resize-none shadow-sm"
                                     value={comentario}
                                     onChange={(e) => setComentario(e.target.value)}
                                     disabled={isSubmitting}

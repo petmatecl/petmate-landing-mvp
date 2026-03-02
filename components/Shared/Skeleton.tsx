@@ -17,10 +17,10 @@ export function Skeleton({ className = "", ...props }: SkeletonProps) {
 export function ItemsSkeleton() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Skeleton className="h-40 w-full rounded-3xl" />
-            <Skeleton className="h-40 w-full rounded-3xl" />
-            <Skeleton className="h-40 w-full rounded-3xl" />
-            <Skeleton className="h-40 w-full rounded-3xl" />
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-40 w-full rounded-2xl" />
         </div>
     );
 }

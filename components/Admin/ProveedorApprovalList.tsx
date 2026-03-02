@@ -145,7 +145,7 @@ export default function ProveedorApprovalList() {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 text-center shadow-sm">
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
                 <p className="text-slate-500 font-medium">Cargando solicitudes pendientes...</p>
             </div>
@@ -154,7 +154,7 @@ export default function ProveedorApprovalList() {
 
     if (proveedores.length === 0) {
         return (
-            <div className="bg-white rounded-3xl p-12 border border-slate-200 text-center shadow-sm">
+            <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
                 <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Check size={32} />
                 </div>
@@ -267,7 +267,7 @@ export default function ProveedorApprovalList() {
             {/* MODAL DE RECHAZO */}
             {rejectingId && (
                 <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
                         <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6">
                             <AlertTriangle size={24} />
                         </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
@@ -115,7 +115,7 @@ export default function NotificationBell() {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="relative p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (

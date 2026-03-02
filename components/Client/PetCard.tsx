@@ -87,7 +87,7 @@ export default function PetCard({ pet, onEdit, ...props }: PetCardProps) {
                                 }`}
                         >
                             {/* Initials or Icon */}
-                            {pet.nombre ? pet.nombre.charAt(0).toUpperCase() : (isDog ? "🐶" : "🐱")}
+                            {pet.nombre ? pet.nombre.charAt(0).toUpperCase() : (isDog ? "P" : "G")}
                         </div>
                     )}
                 </div>

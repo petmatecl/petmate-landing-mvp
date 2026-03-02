@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
@@ -219,7 +219,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             <div className="md:col-span-1">
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Categoría</label>
                                 <select
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
                                     value={categoriaId}
                                     onChange={(e) => setCategoriaId(e.target.value)}
                                     required
@@ -238,7 +238,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     maxLength={80}
                                     required
                                     placeholder="Ej: Hospedaje cariñoso con amplio patio"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                 />
                                 <div className="text-right text-xs text-slate-400 mt-1">{titulo.length}/80</div>
                             </div>
@@ -253,7 +253,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 maxLength={500}
                                 rows={4}
                                 placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none"
+                                className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                             />
                             <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/500</div>
                         </div>
@@ -269,7 +269,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     required
                                     min={0}
                                     placeholder="15000"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                 />
                             </div>
                             <div>
@@ -280,7 +280,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     onChange={e => setPrecioHasta(e.target.value ? Number(e.target.value) : '')}
                                     min={0}
                                     placeholder="30000"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                 />
                             </div>
                             <div>
@@ -288,7 +288,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 <select
                                     value={unidadPrecio}
                                     onChange={e => setUnidadPrecio(e.target.value)}
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
                                 >
                                     <option value="por noche">por noche</option>
                                     <option value="por hora">por hora</option>
@@ -304,15 +304,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             <label className="block text-sm font-semibold text-slate-700 mb-2">Mascotas Aceptadas</label>
                             <div className="flex flex-wrap gap-4 mb-4">
                                 <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                    <input type="checkbox" checked={perros} onChange={e => setPerros(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
+                                    <input type="checkbox" checked={perros} onChange={e => setPerros(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
                                     Perros
                                 </label>
                                 <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                    <input type="checkbox" checked={gatos} onChange={e => setGatos(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
+                                    <input type="checkbox" checked={gatos} onChange={e => setGatos(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
                                     Gatos
                                 </label>
                                 <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                    <input type="checkbox" checked={otras} onChange={e => setOtras(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
+                                    <input type="checkbox" checked={otras} onChange={e => setOtras(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
                                     Otras especies
                                 </label>
                             </div>
@@ -321,15 +321,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex flex-wrap gap-4">
                                     <span className="text-sm font-semibold text-emerald-900 mr-2 w-full sm:w-auto">Tamaños P. permitidos:</span>
                                     <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                        <input type="checkbox" checked={tamanoPequeno} onChange={e => setTamanoPequeno(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500" />
+                                        <input type="checkbox" checked={tamanoPequeno} onChange={e => setTamanoPequeno(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
                                         Pequeño
                                     </label>
                                     <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                        <input type="checkbox" checked={tamanoMediano} onChange={e => setTamanoMediano(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500" />
+                                        <input type="checkbox" checked={tamanoMediano} onChange={e => setTamanoMediano(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
                                         Mediano
                                     </label>
                                     <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                        <input type="checkbox" checked={tamanoGrande} onChange={e => setTamanoGrande(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500" />
+                                        <input type="checkbox" checked={tamanoGrande} onChange={e => setTamanoGrande(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
                                         Grande
                                     </label>
                                 </div>
@@ -344,7 +344,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 value={disponibilidad}
                                 onChange={e => setDisponibilidad(e.target.value)}
                                 placeholder="Ej: Lunes a viernes, 9:00 a 18:00"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                             />
                         </div>
 

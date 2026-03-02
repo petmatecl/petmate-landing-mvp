@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
@@ -196,7 +196,7 @@ export default function GestionEvaluaciones() {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-black flex items-center gap-2">
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
                                 <MessageSquareWarning className="text-amber-400" />
                                 Moderación de Evaluaciones
                             </h1>
@@ -210,45 +210,45 @@ export default function GestionEvaluaciones() {
 
                 {/* Estadísticas Rápidas */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-2">
                             <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
                                 <Clock size={24} />
                             </div>
                         </div>
                         <div>
-                            <p className="text-4xl font-black text-amber-600 mb-1">{stats.pendientes}</p>
+                            <p className="text-4xl font-bold text-amber-600 mb-1">{stats.pendientes}</p>
                             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Pendientes de Revisión</p>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-2">
                             <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center">
                                 <CheckCircle2 size={24} />
                             </div>
                         </div>
                         <div>
-                            <p className="text-4xl font-black text-emerald-600 mb-1">{stats.aprobadasMes}</p>
+                            <p className="text-4xl font-bold text-emerald-600 mb-1">{stats.aprobadasMes}</p>
                             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Aprobadas este mes</p>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-2">
                             <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center">
                                 <Star size={24} />
                             </div>
                         </div>
                         <div>
-                            <p className="text-4xl font-black text-blue-600 mb-1">{stats.promedioGlobal}</p>
+                            <p className="text-4xl font-bold text-blue-600 mb-1">{stats.promedioGlobal}</p>
                             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Rating Promedio Plataforma</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Controles y Filtros */}
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 mb-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
                     <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
                         <Filter size={18} className="text-slate-400" /> Filtros
                     </h3>
@@ -278,13 +278,13 @@ export default function GestionEvaluaciones() {
                                     placeholder="Buscar por proveedor, servicio o comentario..."
                                     value={busqueda}
                                     onChange={e => setBusqueda(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-shadow"
                                 />
                             </div>
                             <select
                                 value={filtroEstrellas}
                                 onChange={e => setFiltroEstrellas(e.target.value === 'todas' ? 'todas' : Number(e.target.value) as any)}
-                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 min-w-[120px]"
+                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-600 min-w-[120px]"
                             >
                                 <option value="todas">Cualquier rating</option>
                                 <option value="5">5 Estrellas</option>
@@ -300,14 +300,14 @@ export default function GestionEvaluaciones() {
                 {/* Lista de Evaluaciones */}
                 <div className="space-y-4">
                     {loading && (
-                        <div className="text-center py-12 flex flex-col items-center justify-center bg-white rounded-3xl border border-slate-200">
+                        <div className="text-center py-12 flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200">
                             <div className="w-8 h-8 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin mb-4"></div>
                             <p className="text-slate-500 font-medium">Cargando evaluaciones...</p>
                         </div>
                     )}
 
                     {!loading && evaluacionesVisibles.length === 0 && (
-                        <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
                             <MessageSquareWarning size={48} className="text-slate-300 mx-auto mb-4" />
                             <h3 className="text-lg font-bold text-slate-800">No hay evaluaciones que mostrar</h3>
                             <p className="text-slate-500">Prueba ajustando los filtros de búsqueda.</p>
@@ -315,7 +315,7 @@ export default function GestionEvaluaciones() {
                     )}
 
                     {!loading && evaluacionesVisibles.map(evaluacion => (
-                        <div key={evaluacion.id} className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+                        <div key={evaluacion.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
 
                             <div className="flex flex-col md:flex-row justify-between gap-6">
                                 {/* Info Principal */}

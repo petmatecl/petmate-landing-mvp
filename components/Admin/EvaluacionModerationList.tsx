@@ -62,7 +62,7 @@ export default function EvaluacionModerationList() {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 text-center shadow-sm">
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
                 <p className="text-slate-500 font-medium">Cargando evaluaciones pendientes...</p>
             </div>
@@ -71,7 +71,7 @@ export default function EvaluacionModerationList() {
 
     if (evaluaciones.length === 0) {
         return (
-            <div className="bg-white rounded-3xl p-12 border border-slate-200 text-center shadow-sm">
+            <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
                 <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Check size={32} />
                 </div>

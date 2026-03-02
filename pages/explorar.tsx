@@ -1,8 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/router";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 import CategoryChips from "../components/Explore/CategoryChips";
@@ -17,13 +17,23 @@ interface Category {
     icono: string;
 }
 
+const PAGE_SIZE = 20;
+
+function getPaginationItems(current: number, total: number): (number | "...")[] {
+    if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+    if (current <= 3) return [1, 2, 3, 4, 5, "...", total];
+    if (current >= total - 2) return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+    return [1, "...", current - 1, current, current + 1, "...", total];
+}
+
 export default function ExplorarPage() {
     const router = useRouter();
+    const gridRef = useRef<HTMLDivElement>(null);
 
-    // Estados
     const [categories, setCategories] = useState<Category[]>([]);
     const [services, setServices] = useState<ServiceResult[]>([]);
     const [loading, setLoading] = useState(true);
+    const [totalCount, setTotalCount] = useState(0);
 
     const [filters, setFilters] = useState({
         q: "",
@@ -31,8 +41,12 @@ export default function ExplorarPage() {
         comuna: "",
         mascota: "any" as "perro" | "gato" | "otro" | "any",
         tamano: null as "pequeno" | "mediano" | "grande" | null,
-        precioMax: ""
+        precioMin: "",
+        precioMax: "",
+        orden: "relevancia" as "relevancia" | "rating" | "precio_asc" | "precio_desc"
     });
+
+    const [pagina, setPagina] = useState(1);
 
     // 1. Cargar Categorías
     useEffect(() => {
@@ -52,7 +66,7 @@ export default function ExplorarPage() {
     // 2. Sincronizar estado local con Query Params de la URL
     useEffect(() => {
         if (!router.isReady) return;
-        const { q, categoria, comuna, mascota, tamano, precioMax } = router.query;
+        const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam } = router.query;
 
         setFilters({
             q: (q as string) || "",
@@ -60,60 +74,130 @@ export default function ExplorarPage() {
             comuna: (comuna as string) || "",
             mascota: (mascota as "perro" | "gato" | "otro" | "any") || "any",
             tamano: (tamano as "pequeno" | "mediano" | "grande" | null) || null,
-            precioMax: (precioMax as string) || ""
+            precioMin: (precioMin as string) || "",
+            precioMax: (precioMax as string) || "",
+            orden: (orden as "relevancia" | "rating" | "precio_asc" | "precio_desc") || "relevancia"
         });
+
+        const p = parseInt(paginaParam as string);
+        setPagina(Number.isFinite(p) && p >= 1 ? p : 1);
     }, [router.isReady, router.query]);
 
-    // 3. Ejecutar búsqueda basada en *estado local actualizado*
+    // 3. Ejecutar búsqueda
     const fetchServices = useCallback(async () => {
-        // Evita refetch si router aún no monta queries iniciales
         if (!router.isReady) return;
 
         setLoading(true);
         try {
-            const { data, error } = await supabase.rpc('buscar_servicios', {
-                p_categoria_slug: filters.categoria,
-                p_comuna: filters.comuna || null,
-                p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
-                p_tamano: filters.tamano || null,
-                p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null
-            });
+            const hasTextSearch = !!filters.q;
 
-            if (error) throw error;
+            let localData: any[] = [];
+            let serverTotal = 0;
 
-            let localData = data || [];
-            if (filters.q) {
+            if (hasTextSearch) {
+                const { data, error } = await supabase.rpc('buscar_servicios', {
+                    p_categoria_slug: filters.categoria,
+                    p_comuna: filters.comuna || null,
+                    p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
+                    p_tamano: filters.tamano || null,
+                    p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null,
+                    p_precio_min: filters.precioMin ? parseInt(filters.precioMin) : null,
+                    p_limit: 10000,
+                    p_offset: 0
+                });
+                if (error) throw error;
+                localData = data || [];
+
                 const searchLower = filters.q.toLowerCase();
                 localData = localData.filter((s: any) =>
                     s.titulo.toLowerCase().includes(searchLower) ||
                     s.descripcion?.toLowerCase().includes(searchLower)
                 );
+                serverTotal = localData.length;
+            } else {
+                const { data, error } = await supabase.rpc('buscar_servicios', {
+                    p_categoria_slug: filters.categoria,
+                    p_comuna: filters.comuna || null,
+                    p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
+                    p_tamano: filters.tamano || null,
+                    p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null,
+                    p_precio_min: filters.precioMin ? parseInt(filters.precioMin) : null,
+                    p_limit: PAGE_SIZE,
+                    p_offset: (pagina - 1) * PAGE_SIZE
+                });
+                if (error) throw error;
+                localData = data || [];
+                serverTotal = localData.length > 0 ? Number(localData[0].total_count) : 0;
             }
-            setServices(localData);
+
+            // Ordenamiento en cliente
+            localData.sort((a: any, b: any) => {
+                if (filters.orden === "rating") {
+                    if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
+                    return b.total_evaluaciones - a.total_evaluaciones;
+                }
+                if (filters.orden === "precio_asc") return a.precio_desde - b.precio_desde;
+                if (filters.orden === "precio_desc") return b.precio_desde - a.precio_desde;
+                if (a.destacado !== b.destacado) return a.destacado ? -1 : 1;
+                if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
+                return b.total_evaluaciones - a.total_evaluaciones;
+            });
+
+            if (hasTextSearch) {
+                const startIdx = (pagina - 1) * PAGE_SIZE;
+                setTotalCount(serverTotal);
+                setServices(localData.slice(startIdx, startIdx + PAGE_SIZE));
+            } else {
+                setTotalCount(serverTotal);
+                setServices(localData);
+            }
         } catch (err) {
             console.error("Error fetching services:", err);
         } finally {
             setLoading(false);
         }
-    }, [filters, router.isReady]);
+    }, [filters, pagina, router.isReady]);
 
-    // Disparar effecto cuando cambian los filtros (después que se parseen de URL)
     useEffect(() => {
         fetchServices();
     }, [fetchServices]);
 
-    // 4. Manejador de cambios (Actualiza la URL, lo que dispara los useEffects)
+    // 4. Cambio de página con scroll a grilla
+    const goToPage = useCallback((p: number) => {
+        const total = Math.ceil(totalCount / PAGE_SIZE);
+        if (p < 1 || p > total) return;
+
+        const query: Record<string, string> = {};
+        if (filters.q) query.q = filters.q;
+        if (filters.categoria) query.categoria = filters.categoria;
+        if (filters.comuna) query.comuna = filters.comuna;
+        if (filters.mascota && filters.mascota !== 'any') query.mascota = filters.mascota;
+        if (filters.mascota === 'perro' && filters.tamano) query.tamano = filters.tamano;
+        if (filters.precioMin) query.precioMin = filters.precioMin;
+        if (filters.precioMax) query.precioMax = filters.precioMax;
+        if (filters.orden && filters.orden !== 'relevancia') query.orden = filters.orden;
+        if (p > 1) query.pagina = String(p);
+
+        router.push({ pathname: '/explorar', query }, undefined, { shallow: true });
+
+        setTimeout(() => {
+            gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+    }, [filters, router, totalCount]);
+
+    // 5. Actualizar filtros (resetea a página 1)
     const updateQueryParams = (newParams: Partial<typeof filters>) => {
         const combined = { ...filters, ...newParams };
 
-        // Limpiar query params nulos o vacíos para una URL limpia
         const query: Record<string, string> = {};
         if (combined.q) query.q = combined.q;
         if (combined.categoria) query.categoria = combined.categoria;
         if (combined.comuna) query.comuna = combined.comuna;
         if (combined.mascota && combined.mascota !== 'any') query.mascota = combined.mascota;
         if (combined.mascota === 'perro' && combined.tamano) query.tamano = combined.tamano;
+        if (combined.precioMin) query.precioMin = combined.precioMin;
         if (combined.precioMax) query.precioMax = combined.precioMax;
+        if (combined.orden && combined.orden !== 'relevancia') query.orden = combined.orden;
 
         router.push({ pathname: '/explorar', query }, undefined, { shallow: true });
     };
@@ -122,6 +206,9 @@ export default function ExplorarPage() {
         router.push({ pathname: '/explorar' }, undefined, { shallow: true });
     };
 
+    const totalPaginas = Math.ceil(totalCount / PAGE_SIZE);
+    const paginationItems = getPaginationItems(pagina, totalPaginas);
+
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <Head>
@@ -129,7 +216,7 @@ export default function ExplorarPage() {
                 <meta name="description" content="Busca y encuentra cuidadores, paseadores, entrenadores y veterinarios verificados en tu comuna." />
             </Head>
 
-            {/* 1. Category Chips (Sticky Top 1) */}
+            {/* 1. Category Chips */}
             <div className="sticky top-0 z-40">
                 <CategoryChips
                     categories={categories}
@@ -138,7 +225,7 @@ export default function ExplorarPage() {
                 />
             </div>
 
-            {/* 2. Secondary Filters (Sticky Top 2 debajo de categorías) */}
+            {/* 2. Secondary Filters */}
             <div className="sticky top-[73px] z-30">
                 <ServiceFilters
                     filters={filters}
@@ -149,9 +236,9 @@ export default function ExplorarPage() {
 
             <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
 
-                {/* Encabezado de la página */}
+                {/* Encabezado */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                         {filters.q ? `Resultados para "${filters.q}"` : (
                             filters.categoria
                                 ? `${categories.find(c => c.slug === filters.categoria)?.nombre || "Servicios"} en tu zona`
@@ -163,7 +250,7 @@ export default function ExplorarPage() {
                     </p>
                 </div>
 
-                {/* Grilla de Resultados / Skeletons */}
+                {/* Grilla */}
                 {loading ? (
                     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         <ServiceSkeleton />
@@ -172,32 +259,101 @@ export default function ExplorarPage() {
                         <ServiceSkeleton />
                     </div>
                 ) : services.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                    <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
                             <Search size={28} className="text-slate-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900">
-                            Sin resultados por ahora
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">
+                            {filters.comuna ? `Sin resultados en ${filters.comuna}` : 'Sin resultados con estos filtros'}
                         </h3>
-                        <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                            Intenta con otra categoria o comuna.
+                        <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                            Intenta ampliar la búsqueda o buscar en una comuna cercana.
                         </p>
-                        <div className="mt-8 flex justify-center">
-                            <Link href="/explorar" className="px-6 py-3 bg-transparent text-slate-700 font-medium rounded-xl border border-slate-300 hover:bg-slate-50 transition-colors">
-                                Ver todos los servicios
-                            </Link>
+                        <div className="flex justify-center gap-3 mt-8">
+                            <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
+                                Limpiar filtros
+                            </button>
                         </div>
                     </div>
                 ) : (
                     <>
-                        <p className="text-slate-500 font-medium mb-6">
-                            {services.length} resultado{services.length !== 1 ? 's' : ''}
-                        </p>
-                        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {/* Barra superior: conteo + orden */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                            <p className="text-slate-500 font-medium shrink-0">
+                                {totalCount} resultado{totalCount !== 1 ? 's' : ''}
+                                {totalPaginas > 1 && (
+                                    <span className="text-slate-400 font-normal ml-1">
+                                        — página {pagina} de {totalPaginas}
+                                    </span>
+                                )}
+                            </p>
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto">
+                                <label className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
+                                <select
+                                    value={filters.orden}
+                                    onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
+                                    className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors cursor-pointer appearance-none"
+                                >
+                                    <option value="relevancia">Relevancia</option>
+                                    <option value="rating">Mejor evaluados</option>
+                                    <option value="precio_asc">Menor precio</option>
+                                    <option value="precio_desc">Mayor precio</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Grilla de resultados */}
+                        <div ref={gridRef} className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {services.map((service) => (
                                 <ServiceCard key={service.servicio_id} service={service} />
                             ))}
                         </div>
+
+                        {/* Controles de paginación */}
+                        {totalPaginas > 1 && (
+                            <div className="mt-10 flex items-center justify-center gap-1.5">
+                                <button
+                                    onClick={() => goToPage(pagina - 1)}
+                                    disabled={pagina === 1}
+                                    className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
+                                    aria-label="Página anterior"
+                                >
+                                    <ChevronLeft size={16} />
+                                    <span className="hidden sm:inline">Anterior</span>
+                                </button>
+
+                                <div className="hidden sm:flex items-center gap-1.5">
+                                    {paginationItems.map((item, idx) =>
+                                        item === "..." ? (
+                                            <span key={`ellipsis-${idx}`} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
+                                        ) : (
+                                            <button
+                                                key={item}
+                                                onClick={() => goToPage(item as number)}
+                                                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                                                aria-current={item === pagina ? 'page' : undefined}
+                                            >
+                                                {item}
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+
+                                <span className="sm:hidden rounded-lg px-3 py-2 text-sm font-medium bg-emerald-600 text-white">
+                                    {pagina}
+                                </span>
+
+                                <button
+                                    onClick={() => goToPage(pagina + 1)}
+                                    disabled={pagina === totalPaginas}
+                                    className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === totalPaginas ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
+                                    aria-label="Página siguiente"
+                                >
+                                    <span className="hidden sm:inline">Siguiente</span>
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </main>

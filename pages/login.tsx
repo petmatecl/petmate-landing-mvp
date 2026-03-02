@@ -185,7 +185,7 @@ export default function LoginPage() {
                     id="email"
                     name="email"
                     type="email"
-                    className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder-slate-400"
+                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                     placeholder="tu@correo.com"
                     autoComplete="off"
                     required
@@ -203,7 +203,7 @@ export default function LoginPage() {
                     id="password"
                     name="password"
                     type={showPass ? "text" : "password"}
-                    className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder-slate-400 pr-12"
+                    className="w-full h-12 px-4 pr-12 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                     placeholder="••••••••"
                     autoComplete="off"
                     required

@@ -24,8 +24,8 @@ export default function SearchBar() {
     };
 
     return (
-        <form onSubmit={handleSearch} className="bg-white p-6 rounded-3xl shadow-xl border border-slate-200 flex flex-col gap-4 w-full md:max-w-md ml-auto relative z-10">
-            <h3 className="text-xl font-black text-slate-900 mb-1">Empieza tu búsqueda</h3>
+        <form onSubmit={handleSearch} className="bg-white p-6 rounded-3xl shadow-md border border-slate-200 flex flex-col gap-4 w-full md:max-w-md ml-auto relative z-10">
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Empieza tu búsqueda</h3>
             <div className="relative">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                     <LayoutGrid className="w-5 h-5 text-slate-400" />
@@ -33,7 +33,7 @@ export default function SearchBar() {
                 <select
                     value={categoria}
                     onChange={(e) => setCategoria(e.target.value)}
-                    className="w-full h-12 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none cursor-pointer transition-colors"
+                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white appearance-none cursor-pointer transition-colors"
                 >
                     <option value="" disabled>¿Qué servicio buscas?</option>
                     <option value="hospedaje">Hospedaje</option>
@@ -56,7 +56,7 @@ export default function SearchBar() {
                     value={comuna}
                     onChange={(e) => setComuna(e.target.value)}
                     placeholder="¿En qué comuna?"
-                    className="w-full h-12 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-slate-400 transition-colors"
+                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                 />
             </div>
 

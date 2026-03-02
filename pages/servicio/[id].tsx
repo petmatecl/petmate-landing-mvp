@@ -127,7 +127,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                     <div className="w-full lg:w-2/3 flex flex-col gap-8">
 
                         {/* Galeria / Portada */}
-                        <div className="w-full h-[300px] md:h-[450px] bg-slate-200 rounded-3xl overflow-hidden relative shadow-sm">
+                        <div className="w-full h-[300px] md:h-[450px] bg-slate-200 rounded-2xl overflow-hidden relative shadow-sm">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={coverImage}

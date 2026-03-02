@@ -363,7 +363,7 @@ export default function ProveedorDashboard() {
         return (
             <>
                 <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 p-4">
-                    <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
+                    <div className="bg-white max-w-lg w-full rounded-2xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
                         <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
                             <AlertTriangle className="w-10 h-10 text-red-500" />
                         </div>
@@ -444,7 +444,7 @@ export default function ProveedorDashboard() {
                             </div>
 
                             {servicios.length === 0 ? (
-                                <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center shadow-sm">
+                                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
                                     <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Briefcase size={32} />
                                     </div>
@@ -530,7 +530,7 @@ export default function ProveedorDashboard() {
                         <div className="animate-in fade-in duration-300 max-w-3xl">
                             <h1 className="text-2xl font-black text-slate-900 mb-8">Mi Perfil</h1>
 
-                            <form onSubmit={saveProfile} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                            <form onSubmit={saveProfile} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                                 {/* Avatar Section */}
                                 <div className="p-8 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-6 bg-slate-50/50">
                                     <div className="relative">
@@ -653,7 +653,7 @@ export default function ProveedorDashboard() {
                             </div>
 
                             {evaluaciones.length === 0 ? (
-                                <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center shadow-sm">
+                                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
                                     <h3 className="text-lg font-bold text-slate-800 mb-2">Aún no tienes evaluaciones</h3>
                                     <p className="text-slate-500">¡Cuando tus primeros clientes te contraten podrán dejarte una reseña para impulsar tu perfil!</p>
                                 </div>
@@ -686,7 +686,7 @@ export default function ProveedorDashboard() {
                     {/* MENSAJES */}
                     {activeTab === 'mensajes' && (
                         <div className="animate-in fade-in duration-300 h-[calc(100vh-140px)] min-h-[500px]">
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm h-full flex overflow-hidden">
+                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm h-full flex overflow-hidden">
                                 <div className={`${selectedChatId ? 'hidden sm:block' : 'block'} w-full sm:w-[320px] shrink-0 border-r border-slate-200 h-full flex flex-col`}>
                                     <div className="p-4 border-b border-slate-200 bg-slate-50">
                                         <h2 className="font-bold text-slate-800">Bandeja de Entrada</h2>

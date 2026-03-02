@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
 import UnreadBadge from "./Shared/UnreadBadge";
 import QuickSearch from "./Header/QuickSearch";
+import { Search } from "lucide-react";
 
 export default function Header() {
 
@@ -43,11 +44,11 @@ export default function Header() {
         <div className="bg-black text-white text-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-center gap-2">
-              <span className="hidden rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide sm:inline animate-pulse">
+              <span className="hidden rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide sm:inline">
                 Exclusivo Lanzamiento
               </span>
               <p className="text-center font-medium tracking-wide">
-                ¡Regístrate hoy y aprovecha <span className="font-extrabold text-white underline decoration-emerald-500 underline-offset-2">0% comisión de servicio</span> por tiempo limitado! 🚀
+                <Link href="/register?rol=proveedor" className="hover:underline decoration-emerald-500 underline-offset-2">Sin comisión en el lanzamiento — Regístrate como proveedor</Link>
               </p>
             </div>
             <button
@@ -140,7 +141,7 @@ export default function Header() {
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
-                    <span>🔍</span>
+                    <span><Search size={18} /></span>
                     <span>Usuario</span>
                   </button>
                   <button

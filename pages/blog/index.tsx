@@ -37,7 +37,7 @@ export default function BlogIndex() {
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
                         {BLOG_POSTS.map((post) => (
                             <Link href={`/blog/${post.slug}`} key={post.id} className="group">
-                                <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300">
+                                <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-md hover:shadow-emerald-900/5 transition-all duration-300">
                                     {/* Image */}
                                     <div className="relative h-64 overflow-hidden">
                                         <Image

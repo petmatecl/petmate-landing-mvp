@@ -308,7 +308,7 @@ export default function PetForm({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
             {/* 1. SECCIÓN DE FOTOS */}
             <div className="bg-slate-50/50 p-8 border-b border-slate-100 flex flex-col md:flex-row items-center justify-center gap-8">

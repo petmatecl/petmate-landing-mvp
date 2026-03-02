@@ -1,4 +1,4 @@
-// components/DateRangeAirbnb.tsx
+﻿// components/DateRangeAirbnb.tsx
 import * as React from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import { es } from "date-fns/locale";
@@ -59,7 +59,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="w-full rounded-xl border-2 border-slate-300 bg-white px-3 py-2 text-left shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full rounded-xl border-2 border-slate-300 bg-white px-3 py-2 text-left shadow-sm hover:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600"
         >
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="flex flex-col">
@@ -144,7 +144,7 @@ export default function DateRangeAirbnb({ value, onChange, minDate, className, h
                   cell: "relative flex-1 p-0 text-center text-sm",
 
                   // Día base: círculo centrado (como antes)
-                  day: "mx-auto mt-1 flex h-9 w-9 items-center justify-center rounded-full text-sm text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500",
+                  day: "mx-auto mt-1 flex h-9 w-9 items-center justify-center rounded-full text-sm text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600",
 
                   day_today:
                     "border border-emerald-500 text-emerald-700 font-semibold",

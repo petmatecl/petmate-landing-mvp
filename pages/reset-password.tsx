@@ -3,7 +3,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
-import { Card } from "../components/Shared/Card";
 
 // ==== Íconos mono (inline SVG) ====
 const LockIcon = (props: any) => (
@@ -27,13 +26,6 @@ export default function ResetPasswordPage() {
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     useEffect(() => {
-        // Al cargar, verificar si tenemos el hash de recuperación de Supabase
-        // Supabase maneja el intercambio de token por sesión automáticamente en el cliente,
-        // pero idealmente deberíamos escuchar el evento PASSWORD_RECOVERY si quisiéramos ser muy estrictos.
-        // Sin embargo, si el usuario llega aquí con una sesión válida (producto del link mágico),
-        // updateUser funcionará.
-
-        // Opcional: escuchar cambios de estado
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === "PASSWORD_RECOVERY") {
                 // El usuario está en modo recuperación
@@ -102,164 +94,68 @@ export default function ResetPasswordPage() {
                 <title>Restablecer Contraseña | Pawnecta</title>
             </Head>
 
-            <main className="pmLogin page">
-                <div className="wrap">
-                    {/* Card */}
-                    <Card padding="l">
-                        <h1 className="title">Nueva contraseña</h1>
-                        <p className="subtitle">
-                            Ingresa tu nueva contraseña para acceder a tu cuenta.
-                        </p>
+            <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-md shadow-sm">
+                    <h1 className="text-2xl font-bold text-slate-900 mb-2">Nueva contraseña</h1>
+                    <p className="text-sm text-slate-500 mb-6">
+                        Ingresa tu nueva contraseña para acceder a tu cuenta.
+                    </p>
 
-                        <form onSubmit={handleSubmit} className="form">
-                            {/* Password */}
-                            <div className="field">
-                                <label htmlFor="password" className="label">
-                                    <LockIcon /> <span>Nueva contraseña</span>
-                                </label>
-                                <div className="inputWrap">
-                                    <input
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        required
-                                    />
-                                </div>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1 mb-4">
+                            <label htmlFor="password" className="text-sm font-medium text-slate-700 block">
+                                Nueva contraseña
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <LockIcon />
+                                </span>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    required
+                                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                />
                             </div>
+                        </div>
 
-                            {/* Confirm Password */}
-                            <div className="field">
-                                <label htmlFor="confirmPassword" className="label">
-                                    <LockIcon /> <span>Confirmar contraseña</span>
-                                </label>
-                                <div className="inputWrap">
-                                    <input
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        required
-                                    />
-                                </div>
+                        <div className="flex flex-col gap-1 mb-4">
+                            <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 block">
+                                Confirmar contraseña
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <LockIcon />
+                                </span>
+                                <input
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    required
+                                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                />
                             </div>
+                        </div>
 
-                            {message && (
-                                <div
-                                    className={`message ${message.type === "error" ? "error" : "success"}`}
-                                    role="alert"
-                                >
-                                    {message.text}
-                                </div>
-                            )}
+                        {message && (
+                            <div className={`p-4 rounded-lg text-sm font-medium ${message.type === "error" ? "bg-red-100 text-red-700 border-red-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"} border`} role="alert">
+                                {message.text}
+                            </div>
+                        )}
 
-                            {/* Botón */}
-                            <button
-                                type="submit"
-                                className="btnPrimary"
-                                disabled={loading}
-                                style={{
-                                    display: "block",
-                                    width: "100%",
-                                    height: 48,
-                                    marginTop: 8,
-                                    border: "none",
-                                    borderRadius: 10,
-                                    background: "#111827",
-                                    color: "#fff",
-                                    fontWeight: 800,
-                                    cursor: loading ? "default" : "pointer",
-                                }}
-                            >
-                                {loading ? "Actualizando..." : "Actualizar contraseña"}
-                            </button>
-                        </form>
-                    </Card>
+                        <button
+                            type="submit"
+                            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                            disabled={loading}
+                        >
+                            {loading ? "Actualizando..." : "Actualizar contraseña"}
+                        </button>
+                    </form>
                 </div>
             </main>
-
-            <style jsx>{`
-        :root {
-          --brand: #111827;
-          --muted: #f6f7f9;
-          --border: #94a3b8; /* slate-400 */
-        }
-
-        .page {
-          min-height: calc(100vh - 200px);
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          padding: 24px;
-          background: var(--page-bg);
-        }
-        .wrap {
-          width: 100%;
-          max-width: 480px; 
-        }
-
-        /* Card styles removed - using component */
-        
-        .title {
-          font-size: 1.8rem;
-          margin: 0 0 4px;
-        }
-        .subtitle {
-          color: #6b7280;
-          margin: 0 0 18px;
-          line-height: 1.5;
-        }
-
-        /* Form */
-        .form {
-          display: grid;
-          gap: 14px;
-        }
-        .field {
-          display: grid;
-          gap: 6px;
-        }
-        .label {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 700;
-          color: #111827;
-        }
-        .inputWrap {
-          position: relative;
-        }
-        input {
-          height: 46px;
-          width: 100%;
-          padding: 0 12px;
-          padding-left: 12px;
-          border: 2px solid #94a3b8;
-          border-radius: 10px;
-          background: #fff;
-        }
-        input:focus {
-          outline: none;
-          border-color: var(--brand);
-          box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
-        }
-
-        /* Messages */
-        .message {
-          padding: 12px;
-          border-radius: 8px;
-          font-size: 0.95rem;
-          line-height: 1.4;
-        }
-        .message.error {
-          background-color: #fee2e2;
-          color: #b91c1c;
-        }
-        .message.success {
-          background-color: #d1fae5;
-          color: #047857;
-        }
-      `}</style>
         </>
     );
 }

@@ -244,33 +244,33 @@ export default function RegisterWizard() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
-                    <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} required className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Paterno *</label>
-                    <input type="text" value={apellidoP} onChange={e => setApellidoP(e.target.value)} required className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <input type="text" value={apellidoP} onChange={e => setApellidoP(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Materno (Opcional)</label>
-                  <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico *</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña *</label>
-                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                     <span className="text-xs text-slate-500 mt-1 block">Mínimo 8 caracteres</span>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar Contraseña *</label>
-                    <input type="password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} required minLength={8} className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <input type="password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} required minLength={8} className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                   </div>
                 </div>
 
@@ -291,17 +291,17 @@ export default function RegisterWizard() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">RUT *</label>
-                    <input type="text" value={rut} onChange={e => setRut(formatRut(e.target.value))} required placeholder="12.345.678-9" className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <input type="text" value={rut} onChange={e => setRut(formatRut(e.target.value))} required placeholder="12.345.678-9" className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Comuna donde operas *</label>
-                    <input type="text" value={comuna} onChange={e => setComuna(e.target.value)} required placeholder="Ej: Providencia" className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <input type="text" value={comuna} onChange={e => setComuna(e.target.value)} required placeholder="Ej: Providencia" className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Categoría Principal *</label>
-                  <select value={categoria} onChange={e => setCategoria(e.target.value)} required className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  <select value={categoria} onChange={e => setCategoria(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors">
                     <option value="" disabled>Selecciona una categoría</option>
                     {CATEGORIES.map(cat => (
                       <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -317,7 +317,7 @@ export default function RegisterWizard() {
                     maxLength={200}
                     rows={3}
                     placeholder="Cuéntanos brevemente sobre tu experiencia (max 200 caracteres)"
-                    className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                   />
                   <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/200</div>
                 </div>

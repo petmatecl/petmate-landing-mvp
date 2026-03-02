@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
@@ -91,11 +91,11 @@ export default function ServiceCard({ service }: Props) {
     return (
         <Link
             href={`/servicio/${service.servicio_id}`}
-            className="group block bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative flex flex-col h-full"
+            className="group block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative flex flex-col h-full"
         >
             {/* Etiqueta Destacado */}
             {service.destacado && (
-                <div className="absolute top-3 left-3 z-10 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-md shadow-amber-200/50">
+                <div className="absolute top-3 left-3 z-10 bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-md shadow-amber-200/50">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                     Destacado
                 </div>
@@ -126,14 +126,9 @@ export default function ServiceCard({ service }: Props) {
                 />
 
                 {/* Badge de Categoría Base */}
-                <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm flex items-center">
-                    <span className="font-semibold text-slate-700 text-xs">
-                        {service.categoria_nombre}
-                    </span>
+                <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+                    {service.categoria_nombre}
                 </div>
-
-                {/* Gradiente sutil inferior para legibilidad si hay algo */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
             </div>
 
             {/* Contenido Card */}
@@ -168,7 +163,7 @@ export default function ServiceCard({ service }: Props) {
                 <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex flex-col">
                         <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Precio desde</span>
-                        <p className="font-black text-slate-900 text-lg">
+                        <p className="font-bold text-slate-900 text-lg">
                             ${service.precio_desde?.toLocaleString('es-CL')} <span className="text-sm font-normal text-slate-500">/ {service.unidad_precio}</span>
                         </p>
                     </div>

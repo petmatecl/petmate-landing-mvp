@@ -3,7 +3,7 @@ import { Skeleton } from '../Shared/Skeleton';
 
 export default function ServiceSkeleton() {
     return (
-        <div className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col h-full shadow-sm animate-pulse">
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 flex flex-col h-full shadow-sm animate-pulse">
             {/* Image Skeleton */}
             <Skeleton className="w-full aspect-[4/3] rounded-2xl mb-4" />
 

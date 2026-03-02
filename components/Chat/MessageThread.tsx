@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Message } from '../../types/chat';
 import { createNotification } from '../../lib/notifications';
@@ -331,7 +331,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Escribe un mensaje..."
-                        className="flex-1 rounded-full border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:ring-emerald-500 focus:border-emerald-500 transition-shadow outline-none"
+                        className="flex-1 rounded-full border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:ring-emerald-600 focus:border-emerald-600 transition-shadow outline-none"
                     />
                     <button
                         type="submit"

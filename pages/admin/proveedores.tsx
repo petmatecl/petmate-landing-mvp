@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
@@ -213,7 +213,7 @@ export default function GestionProveedores() {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-black flex items-center gap-2">
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
                                 <ShieldCheck className="text-emerald-400" />
                                 Gestión de Proveedores
                             </h1>
@@ -248,13 +248,13 @@ export default function GestionProveedores() {
                                     placeholder="Buscar nombre o RUT..."
                                     value={busqueda}
                                     onChange={e => setBusqueda(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
                                 />
                             </div>
                             <select
                                 value={orden}
                                 onChange={e => setOrden(e.target.value as OrdenType)}
-                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500"
+                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-600"
                             >
                                 <option value="fecha_desc">Más recientes primero</option>
                                 <option value="fecha_asc">Más antiguos primero</option>
@@ -453,7 +453,7 @@ export default function GestionProveedores() {
                     {modalConfig.type === 'detalle' && (
                         <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl overflow-hidden">
                             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                                <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     <UserIcon className="text-slate-400" /> Ficha del Proveedor
                                 </h3>
                                 <button onClick={closeModal} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors">

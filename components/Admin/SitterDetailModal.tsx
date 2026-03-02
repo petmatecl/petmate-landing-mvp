@@ -3,7 +3,7 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { getProxyImageUrl } from "../../lib/utils";
-import { CheckCircle, Dog, Cat } from "lucide-react";
+import { CheckCircle, Dog, Cat, User, Instagram, Music, Briefcase, Facebook, FileText, Video, AlertTriangle } from "lucide-react";
 
 type SitterData = {
     id: string;
@@ -91,7 +91,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                     {/* Alerta de Perfil Incompleto */}
                     {sitter.missingFields && sitter.missingFields.length > 0 && (
                         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                            <span className="text-2xl">⚠️</span>
+                            <AlertTriangle className="text-amber-500" size={24} />
                             <div>
                                 <h4 className="font-bold text-amber-800 text-sm uppercase">Perfil Incompleto</h4>
                                 <p className="text-xs text-amber-700 mt-1">
@@ -123,7 +123,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                             unoptimized
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-slate-200 flex items-center justify-center text-3xl">👤</div>
+                                        <div className="w-full h-full bg-slate-200 flex items-center justify-center text-3xl"><User size={48} className="text-slate-400" /></div>
                                     )}
                                 </div>
                                 <h2 className="text-xl font-bold text-slate-900">{sitter.nombre} {sitter.apellido_p || ""}</h2>
@@ -132,7 +132,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     {sitter.aprobado && (!sitter.missingFields || sitter.missingFields.length === 0)
                                         ? <span className="flex items-center gap-1"><CheckCircle size={14} /> Verificado</span>
                                         : sitter.aprobado
-                                            ? <span className="flex items-center gap-1 text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) ⚠️</span>
+                                            ? <span className="flex items-center gap-1 text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) <AlertTriangle size={14} /></span>
                                             : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div></span>
                                     }
                                 </div>
@@ -169,22 +169,22 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     <div className="flex flex-col gap-2">
                                         {sitter.redes_sociales.instagram && (
                                             <a href={`https://instagram.com/${sitter.redes_sociales.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-pink-700 flex items-center gap-2 text-sm font-medium">
-                                                <span>📸</span> {sitter.redes_sociales.instagram}
+                                                <Instagram size={16} /> {sitter.redes_sociales.instagram}
                                             </a>
                                         )}
                                         {sitter.redes_sociales.tiktok && (
                                             <a href={`https://tiktok.com/@${sitter.redes_sociales.tiktok.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-700 flex items-center gap-2 text-sm font-medium">
-                                                <span>🎵</span> {sitter.redes_sociales.tiktok}
+                                                <Music size={16} /> {sitter.redes_sociales.tiktok}
                                             </a>
                                         )}
                                         {sitter.redes_sociales.linkedin && (
                                             <a href={sitter.redes_sociales.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-800 flex items-center gap-2 text-sm font-medium text-ellipsis overflow-hidden whitespace-nowrap block max-w-full">
-                                                <span className="shrink-0">💼</span> <span className="truncate">LinkedIn</span>
+                                                <Briefcase size={16} className="shrink-0" /> <span className="truncate">LinkedIn</span>
                                             </a>
                                         )}
                                         {sitter.redes_sociales.facebook && (
                                             <a href={sitter.redes_sociales.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 text-sm font-medium text-ellipsis overflow-hidden whitespace-nowrap block max-w-full">
-                                                <span className="shrink-0">📘</span> <span className="truncate">Facebook</span>
+                                                <Facebook size={16} className="shrink-0" /> <span className="truncate">Facebook</span>
                                             </a>
                                         )}
                                     </div>
@@ -197,7 +197,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     onClick={() => onViewDocument(sitter.certificado_antecedentes!)}
                                     className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors"
                                 >
-                                    📄 Ver Certificado
+                                    <FileText size={16} /> Ver Certificado
                                 </button>
                             )}
                             {sitter.video_presentacion && (
@@ -208,7 +208,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     download
                                     className="flex items-center justify-center gap-2 w-full py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors"
                                 >
-                                    🎥 Descargar Video Presentación
+                                    <Video size={16} /> Descargar Video Presentación
                                 </a>
                             )}
                         </div>

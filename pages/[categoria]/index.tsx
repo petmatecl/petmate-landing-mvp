@@ -39,7 +39,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
 
                 {/* Encabezado */}
                 <div className="mb-12">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-bold text-slate-900 tracking-tight">
                         {categoria.nombre} <span className="text-emerald-600">cerca de ti</span>
                     </h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl">
@@ -48,7 +48,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 </div>
 
                 {/* Buscador Rápido de Comunas (Enlaces SEO) */}
-                <div className="mb-12 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div className="mb-12 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-2 mb-4">
                         <MapPinIcon className="w-5 h-5 text-emerald-600" />
                         <h2 className="text-lg font-bold text-slate-900">Busca por comuna en Santiago</h2>
@@ -58,7 +58,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                             <Link
                                 key={comuna.slug}
                                 href={`/${categoria.slug}/${comuna.slug}`}
-                                className="px-4 py-2 bg-slate-50 text-slate-700 font-medium rounded-full border border-slate-200 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 transition-all text-sm"
+                                className="px-4 py-2 bg-slate-50 text-slate-700 font-medium rounded-full border border-slate-200 hover:border-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition-all text-sm"
                             >
                                 {comuna.name}
                             </Link>
@@ -68,7 +68,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
 
                 {/* Grilla de Servicios (Todos los de la categoría) */}
                 {services.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                    <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200">
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
                             <Search size={28} className="text-slate-400" />
                         </div>

@@ -27,7 +27,7 @@ export default function ChatLayout({ userId, initialConversationId, returnTo, on
     };
 
     return (
-        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-xl shadow-slate-200/50 overflow-hidden flex h-[600px] max-h-[80vh]">
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden flex h-[600px] max-h-[80vh]">
 
             {/* Sidebar List */}
             <div className={`w-full md:w-80 border-r border-slate-300 flex flex-col ${selectedConversationId ? 'hidden md:flex' : 'flex'}`}>

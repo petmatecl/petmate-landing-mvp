@@ -171,7 +171,7 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                                         unoptimized
                                     />
                                 ) : (
-                                    <div className="flex items-center justify-center h-full text-slate-300 text-lg">👤</div>
+                                    <div className="flex items-center justify-center h-full text-slate-300 text-lg"><User size={24} /></div>
                                 )}
                             </div>
 
