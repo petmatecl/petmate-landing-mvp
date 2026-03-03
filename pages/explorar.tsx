@@ -139,8 +139,8 @@ export default function ExplorarPage() {
                         supabase.rpc('buscar_servicios', {
                             ...baseParams,
                             p_categoria_slug: slug,
-                            p_limit: 100,
-                            p_offset: 0
+                            p_limit: PAGE_SIZE,
+                            p_offset: (pagina - 1) * PAGE_SIZE
                         })
                     )
                 );

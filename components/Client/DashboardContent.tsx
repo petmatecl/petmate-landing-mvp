@@ -149,7 +149,7 @@ export default function DashboardContent() {
                             )
                         )
                     `)
-                    .eq('auth_user_id', user.id)
+                    .eq('user_id', user.id)
                     .order('created_at', { ascending: false })
                     .limit(5);
 
@@ -451,13 +451,12 @@ export default function DashboardContent() {
                                     <div className="h-3 w-1/2 bg-slate-100 rounded mx-auto" />
                                 </div>
                             ) : hasFavoritesError || favorites.length === 0 ? (
-                                <div className="space-y-2">
-                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto">
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-3">
                                         <Bookmark size={20} />
                                     </div>
-                                    <p className="text-sm font-semibold text-slate-700">Aún no tienes servicios guardados.</p>
-                                    <p className="text-xs text-slate-500 leading-relaxed">
-                                        Guarda servicios desde el explorador para encontrarlos fácilmente.
+                                    <p className="text-slate-500 text-sm font-medium">
+                                        Próximamente podrás guardar tus servicios favoritos
                                     </p>
                                 </div>
                             ) : (

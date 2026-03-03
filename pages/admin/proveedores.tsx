@@ -103,11 +103,6 @@ export default function GestionProveedores() {
         setModalConfig({ type: null, prov: null });
     };
 
-    const getProviderEmail = async (authUserId: string) => {
-        // Fallback email recovery
-        const { data } = await supabase.from('registro_petmate').select('email').eq('auth_user_id', authUserId).single();
-        return data?.email || 'admin@pawnecta.com'; // Fallback
-    };
 
     const handleAprobar = async () => {
         if (!modalConfig.prov) return;
@@ -117,16 +112,14 @@ export default function GestionProveedores() {
             const { error } = await supabase.from('proveedores').update({ estado: 'aprobado' }).eq('id', currentProv.id);
             if (error) throw error;
 
-            const email = currentProv.email_publico || await getProviderEmail(currentProv.auth_user_id);
-
             // Notify
             await fetch('/api/admin/notify-provider', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email,
+                    auth_user_id: currentProv.auth_user_id,
                     nombre: currentProv.nombre,
-                    estado: 'aprobado'
+                    estado: 'aprobado',
                 })
             });
 
@@ -152,17 +145,15 @@ export default function GestionProveedores() {
             }).eq('id', currentProv.id);
             if (error) throw error;
 
-            const email = currentProv.email_publico || await getProviderEmail(currentProv.auth_user_id);
-
             // Notify
             await fetch('/api/admin/notify-provider', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email,
+                    auth_user_id: currentProv.auth_user_id,
                     nombre: currentProv.nombre,
                     estado: 'rechazado',
-                    motivo: motivoRechazo
+                    motivo: motivoRechazo,
                 })
             });
 

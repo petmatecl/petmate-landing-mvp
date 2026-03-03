@@ -101,10 +101,17 @@ export default function AdminDashboard() {
                 .from('proveedores')
                 .select('roles, estado')
                 .eq('auth_user_id', data.user.id)
-                .single();
+                .maybeSingle();
 
-            const isAdminCheck = proveedorData?.roles?.includes('admin')
-                && proveedorData?.estado === 'aprobado';
+            if (!proveedorData) {
+                await supabase.auth.signOut();
+                setLoginError('Credenciales incorrectas.');
+                setLoginLoading(false);
+                return;
+            }
+
+            const isAdminCheck = proveedorData.roles?.includes('admin')
+                && proveedorData.estado === 'aprobado';
 
             if (!isAdminCheck) {
                 await supabase.auth.signOut();
