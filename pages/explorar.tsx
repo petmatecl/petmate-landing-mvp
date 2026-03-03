@@ -224,17 +224,15 @@ export default function ExplorarPage() {
                 <meta name="description" content="Busca y encuentra cuidadores, paseadores, entrenadores y veterinarios verificados en tu comuna." />
             </Head>
 
-            {/* 1. Category Chips */}
-            <div className="sticky top-0 z-40">
-                <CategoryChips
-                    categories={categories}
-                    selectedCategory={filters.categoria}
-                    onSelect={(slug) => updateQueryParams({ categoria: slug })}
-                />
-            </div>
-
-            {/* 2. Secondary Filters */}
-            <div className="sticky top-[73px] z-30">
+            {/* Filter Bar — sticky bajo el header global (h-16 = 64px = top-16) */}
+            <div className="sticky top-16 z-30 bg-white border-b border-slate-200 shadow-sm">
+                <div className="border-b border-slate-100">
+                    <CategoryChips
+                        categories={categories}
+                        selectedCategory={filters.categoria}
+                        onSelect={(slug) => updateQueryParams({ categoria: slug })}
+                    />
+                </div>
                 <ServiceFilters
                     filters={filters}
                     onFilterChange={updateQueryParams}
