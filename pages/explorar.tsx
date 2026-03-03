@@ -56,10 +56,9 @@ export default function ExplorarPage() {
         async function fetchCategories() {
             const { data, error } = await supabase
                 .from('categorias_servicio')
-                .select('*')
-                .eq('activa', true)
-                .order('orden', { ascending: true });
-            if (!error && data) {
+                .select('id, slug, nombre, icono')
+                .order('nombre', { ascending: true });
+            if (!error && data && data.length > 0) {
                 setCategories(data);
             }
         }
