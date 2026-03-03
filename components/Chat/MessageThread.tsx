@@ -193,19 +193,15 @@ export default function MessageThread({ conversationId, userId }: Props) {
             // Using onlineUsers from context:
             const isRecipientOnline = otherUser && onlineUsers.has(otherUser.auth_user_id);
 
-            if (otherUser?.email && !isRecipientOnline) {
-                fetch('/api/send-email', {
+            if (otherUser?.auth_user_id && !isRecipientOnline) {
+                fetch('/api/notifications/new-message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        type: 'new_message',
-                        to: otherUser.email,
-                        data: {
-                            recipientName: otherUser.nombre,
-                            senderName: myUser?.nombre || "Un usuario",
-                            messagePreview: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
-                            chatUrl: `${window.location.origin}/mensajes?id=${conversationId}`
-                        }
+                        recipientAuthId: otherUser.auth_user_id,
+                        senderName: myUser?.nombre || 'Un usuario',
+                        messagePreview: content.substring(0, 80) + (content.length > 80 ? '...' : ''),
+                        chatUrl: `${window.location.origin}/mensajes?id=${conversationId}`
                     })
                 }).catch(console.error);
             }

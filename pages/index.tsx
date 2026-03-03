@@ -1,5 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car,
@@ -38,10 +39,10 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
   ];
 
   const testimonios = [
-    { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
-    { nombre: "Rodrigo F.", ciudad: "Ñuñoa, Santiago", mascota: "Gato Maine Coon", texto: "Necesitaba alguien de confianza para Miso mientras viajaba. Pawnecta me permitió comparar opciones en mi comuna y elegir con calma. La comunicación fue directa y sin complicaciones." },
-    { nombre: "Catalina R.", ciudad: "Las Condes, Santiago", mascota: "Golden Retriever", texto: "Me tranquiliza saber que los proveedores están verificados. Encontré paseador para Luna en el mismo barrio y quedé muy conforme con el servicio." },
-    { nombre: "Ignacio V.", ciudad: "Maipú, Santiago", rol: "Paseador y cuidador", texto: "Publiqué mi servicio en menos de 20 minutos. Desde el primer día empecé a recibir consultas de dueños de mi misma comuna. Es la forma más simple que he encontrado de crecer." }
+    { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: true, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
+    { nombre: "Rodrigo F.", ciudad: "Ñuñoa, Santiago", mascota: "Gato Maine Coon", verificado: true, texto: "Necesitaba alguien de confianza para Miso mientras viajaba. Pawnecta me permitió comparar opciones en mi comuna y elegir con calma. La comunicación fue directa y sin complicaciones." },
+    { nombre: "Catalina R.", ciudad: "Las Condes, Santiago", mascota: "Golden Retriever", verificado: true, texto: "Me tranquiliza saber que los proveedores están verificados. Encontré paseador para Luna en el mismo barrio y quedé muy conforme con el servicio." },
+    { nombre: "Ignacio V.", ciudad: "Maipú, Santiago", rol: "Paseador y cuidador", verificado: true, texto: "Publiqué mi servicio en menos de 20 minutos. Desde el primer día empecé a recibir consultas de dueños de mi misma comuna. Es la forma más simple que he encontrado de crecer." }
   ];
 
   return (
@@ -88,12 +89,14 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
           {/* Columna derecha: imagen — solo desktop */}
           <div className="hidden lg:block">
-            <div className="relative aspect-square rounded-2xl overflow-hidden shadow-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&dpr=1"
-                alt="Perro feliz con su cuidador"
-                className="w-full h-full object-cover"
+            <div className="relative aspect-square ring-4 ring-emerald-600/20 rounded-3xl overflow-hidden shadow-2xl">
+              <Image
+                src="/images/hero-perro.jpg"
+                alt="Perro feliz recibiendo cuidado profesional en Pawnecta"
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1024px) 0px, 50vw"
               />
             </div>
           </div>

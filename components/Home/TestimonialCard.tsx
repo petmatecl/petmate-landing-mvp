@@ -6,9 +6,10 @@ interface TestimonialCardProps {
     rol?: string;
     mascota?: string;
     texto: string;
+    verificado?: boolean;
 }
 
-export default function TestimonialCard({ nombre, ciudad, rol, mascota, texto }: TestimonialCardProps) {
+export default function TestimonialCard({ nombre, ciudad, rol, mascota, texto, verificado }: TestimonialCardProps) {
     const initials = nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
     return (
@@ -24,6 +25,11 @@ export default function TestimonialCard({ nombre, ciudad, rol, mascota, texto }:
                         <p className="text-xs font-bold text-emerald-700 mt-0.5">
                             {rol || mascota}
                         </p>
+                    )}
+                    {verificado && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
+                            Usuario verificado
+                        </span>
                     )}
                 </div>
             </div>
