@@ -138,6 +138,35 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
             <Head>
                 <title>{service.titulo} - {proveedor.nombre} | Pawnecta</title>
                 <meta name="description" content={service.descripcion?.substring(0, 160)} />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'Service',
+                            name: service.titulo,
+                            description: service.descripcion,
+                            provider: {
+                                '@type': 'Person',
+                                name: `${proveedor.nombre} ${proveedor.apellido_p}`,
+                                image: proveedor.foto_perfil || undefined,
+                            },
+                            areaServed: { '@type': 'City', name: proveedor.comuna },
+                            offers: {
+                                '@type': 'Offer',
+                                price: service.precio_desde,
+                                priceCurrency: 'CLP',
+                            },
+                            ...(service.total_evaluaciones > 0 ? {
+                                aggregateRating: {
+                                    '@type': 'AggregateRating',
+                                    ratingValue: service.rating_promedio,
+                                    reviewCount: service.total_evaluaciones,
+                                }
+                            } : {}),
+                        })
+                    }}
+                />
             </Head>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

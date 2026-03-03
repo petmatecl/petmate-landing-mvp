@@ -3,8 +3,9 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
-import { ChevronRightIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon } from '@heroicons/react/24/outline';
 import { Search } from 'lucide-react';
+import Breadcrumb from '../../components/Shared/Breadcrumb';
 import { COMUNAS_SEO } from './[comuna]';
 
 interface CategoryPageProps {
@@ -30,12 +31,10 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
             </Head>
 
             <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-                {/* Breadcrumb */}
-                <nav className="flex items-center text-sm text-slate-500 mb-8 font-medium">
-                    <Link href="/" className="hover:text-emerald-600 transition-colors">Inicio</Link>
-                    <ChevronRightIcon className="w-4 h-4 mx-2 text-slate-300" />
-                    <span className="text-slate-900">{categoria.nombre}</span>
-                </nav>
+                <Breadcrumb items={[
+                    { label: 'Inicio', href: '/' },
+                    { label: categoria.nombre },
+                ]} />
 
                 {/* Encabezado */}
                 <div className="mb-12">
@@ -107,22 +106,13 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-    const { data: categorias } = await supabase
-        .from('categorias_servicio')
-        .select('slug')
-        .eq('activa', true);
-
-    if (!categorias) {
-        return { paths: [], fallback: 'blocking' };
-    }
-
-    const paths = categorias.map((cat) => ({
-        params: { categoria: cat.slug }
-    }));
-
+    const categorias = [
+        'hospedaje', 'guarderia-diurna', 'paseo', 'visita-domicilio',
+        'peluqueria', 'adiestramiento', 'veterinaria', 'traslado'
+    ];
     return {
-        paths,
-        fallback: 'blocking'
+        paths: categorias.map(slug => ({ params: { categoria: slug } })),
+        fallback: false
     };
 };
 

@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
-import { ChevronRightIcon } from '@heroicons/react/24/solid';
+import Breadcrumb from '../../components/Shared/Breadcrumb';
 import { Search } from 'lucide-react';
 
 export const COMUNAS_SEO = [
@@ -42,7 +42,13 @@ export default function SEOServicePage({ categoria, comuna, services }: SEOServi
         "@type": "ItemList",
         "name": `Servicios de ${categoria.nombre.toLowerCase()} en ${comuna.name}`,
         "url": `https://pawnecta.com/${categoria.slug}/${comuna.slug}`,
-        "numberOfItems": services.length
+        "numberOfItems": services.length,
+        "itemListElement": services.map((s, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "name": s.titulo,
+            "url": `https://pawnecta.com/servicio/${s.servicio_id}`
+        }))
     };
 
     return (
@@ -60,14 +66,11 @@ export default function SEOServicePage({ categoria, comuna, services }: SEOServi
             </Head>
 
             <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-                {/* Breadcrumb */}
-                <nav className="flex items-center text-sm text-slate-500 mb-8 font-medium">
-                    <Link href="/" className="hover:text-emerald-600 transition-colors">Inicio</Link>
-                    <ChevronRightIcon className="w-4 h-4 mx-2 text-slate-300" />
-                    <Link href={`/${categoria.slug}`} className="hover:text-emerald-600 transition-colors">{categoria.nombre}</Link>
-                    <ChevronRightIcon className="w-4 h-4 mx-2 text-slate-300" />
-                    <span className="text-slate-900">{comuna.name}</span>
-                </nav>
+                <Breadcrumb items={[
+                    { label: 'Inicio', href: '/' },
+                    { label: categoria.nombre, href: `/${categoria.slug}` },
+                    { label: comuna.name },
+                ]} />
 
                 {/* Encabezado */}
                 <div className="mb-12">
@@ -117,33 +120,18 @@ export default function SEOServicePage({ categoria, comuna, services }: SEOServi
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-    // Obtener categorías activas
-    const { data: categorias } = await supabase
-        .from('categorias_servicio')
-        .select('slug')
-        .eq('activa', true);
-
-    if (!categorias) {
-        return { paths: [], fallback: 'blocking' };
-    }
-
-    // Generar combinación de paths: categoría * comuna
-    const paths: any[] = [];
-    categorias.forEach((cat) => {
-        COMUNAS_SEO.forEach((comuna) => {
-            paths.push({
-                params: {
-                    categoria: cat.slug,
-                    comuna: comuna.slug
-                }
-            });
-        });
-    });
-
-    return {
-        paths,
-        fallback: 'blocking' // Si se agrega una nueva categoría o comuna on-the-fly, se genera al visitar
-    };
+    const CATEGORIAS = [
+        'hospedaje', 'guarderia-diurna', 'paseo', 'visita-domicilio',
+        'peluqueria', 'adiestramiento', 'veterinaria', 'traslado'
+    ];
+    const COMUNAS = [
+        'providencia', 'las-condes', 'nunoa', 'vitacura', 'santiago',
+        'maipu', 'la-florida', 'san-miguel', 'macul', 'la-reina'
+    ];
+    const paths = CATEGORIAS.flatMap(cat =>
+        COMUNAS.map(com => ({ params: { categoria: cat, comuna: com } }))
+    );
+    return { paths, fallback: 'blocking' };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {

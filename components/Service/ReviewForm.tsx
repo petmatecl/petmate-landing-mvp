@@ -11,8 +11,21 @@ interface ReviewFormProps {
 }
 
 export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, onSuccess }: ReviewFormProps) {
+    // Auth
     const [user, setUser] = useState<any>(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
+
+    // Conversation guard
+    const [hasConversacion, setHasConversacion] = useState<boolean | null>(null);
+    const [checkingConv, setCheckingConv] = useState(false);
+
+    // Form state — all hooks must be declared before any JSX conditionals
+    const [rating, setRating] = useState<number>(0);
+    const [hoverRating, setHoverRating] = useState<number>(0);
+    const [comentario, setComentario] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     useEffect(() => {
         const checkUser = async () => {
@@ -23,40 +36,74 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
         checkUser();
     }, []);
 
-    const [rating, setRating] = useState<number>(0);
-    const [hoverRating, setHoverRating] = useState<number>(0);
-    const [comentario, setComentario] = useState<string>('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    // Once user is known, check conversation
+    useEffect(() => {
+        if (!user) return;
+        const checkConv = async () => {
+            setCheckingConv(true);
+            const { data: conv } = await supabase
+                .from('conversations')
+                .select('id')
+                .eq('client_id', user.id)
+                .eq('servicio_id', servicioId)
+                .maybeSingle();
+            setHasConversacion(conv !== null);
+            setCheckingConv(false);
+        };
+        checkConv();
+    }, [user, servicioId]);
 
-    // Estados post-envío
-    const [isSuccess, setIsSuccess] = useState(false);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    // ——— Guards (after all hooks) ———
 
-    // Si no está autenticado o cargando, no mostrar
     if (loadingAuth || !user) return null;
+
+    if (checkingConv || hasConversacion === null) {
+        return (
+            <div className="flex items-center gap-2 text-sm text-slate-400 py-4">
+                <Loader2 size={16} className="animate-spin" />
+                Verificando acceso...
+            </div>
+        );
+    }
+
+    if (!hasConversacion) {
+        return (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="shrink-0">
+                    <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div className="flex-1">
+                    <p className="text-sm font-semibold">Solo puedes evaluar un servicio que hayas contactado previamente.</p>
+                    <p className="text-xs text-amber-700 mt-0.5">Inicia una conversación con el proveedor para poder dejar tu evaluación.</p>
+                </div>
+            </div>
+        );
+    }
+
+    // ——— Form submit ———
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg(null);
 
-        // Validaciones Frontend
         if (rating === 0) {
-            setErrorMsg("Por favor, selecciona una calificación (1 a 5 estrellas).");
+            setErrorMsg('Por favor, selecciona una calificación (1 a 5 estrellas).');
             return;
         }
         if (comentario.length < 20) {
-            setErrorMsg("El comentario debe tener al menos 20 caracteres.");
+            setErrorMsg('El comentario debe tener al menos 20 caracteres.');
             return;
         }
         if (comentario.length > 500) {
-            setErrorMsg("El comentario no puede exceder los 500 caracteres.");
+            setErrorMsg('El comentario no puede exceder los 500 caracteres.');
             return;
         }
 
         setIsSubmitting(true);
 
         try {
-            // Intentamos insertar
             const { error } = await supabase
                 .from('evaluaciones')
                 .insert({
@@ -69,36 +116,29 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 });
 
             if (error) {
-                // Verificar si se debe a restriccion de unicidad (ya evaluo)
                 if (error.code === '23505' || error.message.includes('unique')) {
-                    setErrorMsg("Ya dejaste una evaluación para este servicio.");
+                    setErrorMsg('Ya dejaste una evaluación para este servicio.');
                 } else {
-                    console.error("Error BD al insertar:", error);
-                    setErrorMsg("Hubo un problema. Intenta nuevamente.");
+                    console.error('Error BD al insertar:', error);
+                    setErrorMsg('Hubo un problema. Intenta nuevamente.');
                 }
                 setIsSubmitting(false);
                 return;
             }
 
-            // Éxito DB, despachar Fire-And-Forget Notification API
             fetch('/api/evaluaciones/notify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    proveedorId,
-                    servicioTitulo,
-                    rating,
-                    comentario: comentario.trim()
-                })
-            }).catch(err => console.error("Error despachando notificacion Email:", err));
+                body: JSON.stringify({ proveedorId, servicioTitulo, rating, comentario: comentario.trim() })
+            }).catch(err => console.error('Error despachando notificación:', err));
 
             setIsSuccess(true);
-            toast.success("Evaluación enviada con éxito.");
-            onSuccess(); // Para que el padre se refrezque o actúe
+            toast.success('Evaluación enviada con éxito.');
+            onSuccess();
 
         } catch (err) {
-            console.error("Exception:", err);
-            setErrorMsg("Hubo un problema de red. Intenta nuevamente.");
+            console.error('Exception:', err);
+            setErrorMsg('Hubo un problema de red. Intenta nuevamente.');
             setIsSubmitting(false);
         }
     };
@@ -122,7 +162,6 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
             <h3 className="text-xl font-bold text-slate-900 mb-6">Deja tu evaluación</h3>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
                 {/* 1. Rating interactivo */}
                 <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">
@@ -186,7 +225,6 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                     </div>
                 )}
 
-                {/* Botón Submit */}
                 <button
                     type="submit"
                     disabled={isSubmitting || rating === 0 || comentario.trim().length < 20 || comentario.length > 500}
