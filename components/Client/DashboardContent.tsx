@@ -2,7 +2,7 @@
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
-import { MapPin, MessagesSquare, PawPrint, Search, PlusCircle, AlertCircle, Bookmark, Heart } from "lucide-react";
+import { MapPin, MessagesSquare, PawPrint, Search, PlusCircle, AlertCircle, Bookmark, Heart, X } from "lucide-react";
 
 // --- Tipos de Datos ---
 interface Pet {
@@ -39,15 +39,23 @@ export default function DashboardContent() {
     const [pets, setPets] = useState<Pet[]>([]);
     const [conversations, setConversations] = useState<ConversationPreview[]>([]);
     const [favorites, setFavorites] = useState<FavoritePreview[]>([]);
+    const [contactedServices, setContactedServices] = useState<any[]>([]);
 
     // UI states
     const [isLoadingPets, setIsLoadingPets] = useState(true);
     const [isLoadingConversations, setIsLoadingConversations] = useState(true);
     const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
     const [hasFavoritesError, setHasFavoritesError] = useState(false);
+    const [showBanner, setShowBanner] = useState(false);
 
     useEffect(() => {
         if (!user) return;
+
+        // Welcome banner (localStorage)
+        const key = `pawnecta_onboarded_${user.id}`;
+        if (typeof window !== 'undefined' && !localStorage.getItem(key)) {
+            setShowBanner(true);
+        }
 
         let isMounted = true;
 
@@ -174,16 +182,60 @@ export default function DashboardContent() {
             }
         };
 
+        // 4. Fetch Servicios contactados (DISTINCT por servicio, últimos 6)
+        const loadContactedServices = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('conversations')
+                    .select(`
+                        id,
+                        created_at,
+                        servicios_publicados!inner(
+                            id, titulo, fotos, precio_desde, unidad_precio,
+                            proveedores!inner(nombre, apellido_p, foto_perfil)
+                        )
+                    `)
+                    .eq('client_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
+                if (!error && data) {
+                    // DISTINCT by servicio_id
+                    const seen = new Set<string>();
+                    const unique: any[] = [];
+                    for (const conv of data) {
+                        const sp = conv.servicios_publicados as any;
+                        if (!sp?.id || seen.has(sp.id)) continue;
+                        seen.add(sp.id);
+                        const prov = Array.isArray(sp.proveedores) ? sp.proveedores[0] : sp.proveedores;
+                        unique.push({
+                            conversation_id: conv.id,
+                            servicio_id: sp.id,
+                            titulo: sp.titulo,
+                            foto: sp.fotos?.[0] || null,
+                            precio_desde: sp.precio_desde,
+                            unidad_precio: sp.unidad_precio,
+                            proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor',
+                        });
+                        if (unique.length >= 6) break;
+                    }
+                    if (isMounted) setContactedServices(unique);
+                }
+            } catch (err) {
+                console.error('Error cargando servicios contactados:', err);
+            }
+        };
+
         loadPets();
         loadConversations();
         loadFavorites();
+        loadContactedServices();
 
         return () => { isMounted = false; };
     }, [user]);
 
     // Helpers Interacciones
     const handleRemoveFavorite = async (idToRemove: string) => {
-        // Actualización optimista de UI
         setFavorites(prev => prev.filter(f => f.id !== idToRemove));
         try {
             await supabase.from('favoritos').delete().eq('id', idToRemove);
@@ -192,12 +244,50 @@ export default function DashboardContent() {
         }
     };
 
+    const dismissBanner = () => {
+        if (user && typeof window !== 'undefined') {
+            localStorage.setItem(`pawnecta_onboarded_${user.id}`, '1');
+        }
+        setShowBanner(false);
+    };
+
     if (!user) return <div className="p-8 text-center text-slate-500">Cargando panel...</div>;
 
     const firstName = profile?.nombre || 'Usuario';
 
     return (
         <div className="space-y-10 animate-in fade-in duration-500 pb-12">
+
+            {/* --- WELCOME BANNER (first visit only) --- */}
+            {showBanner && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 className="font-bold text-slate-900">Bienvenido a Pawnecta, {firstName}</h2>
+                            <p className="text-sm text-slate-600 mt-1">
+                                Empieza por agregar el perfil de tu mascota para que los proveedores la conozcan.
+                            </p>
+                            <div className="flex flex-wrap gap-3 mt-4">
+                                <Link
+                                    href="/usuario/mascotas/nueva"
+                                    className="bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-emerald-800 transition-colors"
+                                >
+                                    Agregar mi mascota
+                                </Link>
+                                <Link
+                                    href="/explorar"
+                                    className="bg-white border border-emerald-200 text-emerald-700 text-sm font-bold px-4 py-2 rounded-xl hover:bg-emerald-50 transition-colors"
+                                >
+                                    Buscar proveedores
+                                </Link>
+                            </div>
+                        </div>
+                        <button onClick={dismissBanner} aria-label="Cerrar" className="text-slate-400 hover:text-slate-600 shrink-0 mt-0.5">
+                            <X size={20} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* --- WELCOME HEADER --- */}
             <section className="bg-white border border-slate-200 rounded-2xl p-6 mb-2">
@@ -419,6 +509,49 @@ export default function DashboardContent() {
                     </section>
                 </div>
             </div>
+
+            {/* --- SECCIÓN: Servicios que has consultado --- */}
+            {contactedServices.length > 0 && (
+                <section>
+                    <h2 className="text-xl font-bold text-slate-800 mb-4">Servicios que has consultado</h2>
+                    <div className="overflow-x-auto pb-2">
+                        <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+                            {contactedServices.map(item => (
+                                <div key={item.servicio_id} className="w-56 shrink-0 border border-slate-200 rounded-xl shadow-sm overflow-hidden bg-white">
+                                    <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
+                                        {item.foto ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img src={item.foto} alt={item.titulo} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                <PawPrint size={28} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-3">
+                                        <h3 className="font-bold text-slate-900 text-sm line-clamp-2 mb-0.5">{item.titulo}</h3>
+                                        <p className="text-xs text-slate-500 mb-3">{item.proveedor_nombre}</p>
+                                        <div className="flex gap-2">
+                                            <Link
+                                                href={`/servicio/${item.servicio_id}`}
+                                                className="flex-1 text-center text-xs font-bold bg-emerald-50 text-emerald-700 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+                                            >
+                                                Ver servicio
+                                            </Link>
+                                            <Link
+                                                href={`/mensajes?id=${item.conversation_id}`}
+                                                className="flex-1 text-center text-xs font-bold bg-slate-100 text-slate-700 py-1.5 rounded-lg hover:bg-slate-200 transition-colors"
+                                            >
+                                                Ver chat
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* --- SECCIÓN 4: Explorar CTA --- */}
             <section className="mt-8">

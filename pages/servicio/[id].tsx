@@ -293,11 +293,11 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             </div>
                         )}
 
-                        {/* Otros servicios del proveedor */}
+                        {/* Otros proveedores de la misma categoría en la misma comuna */}
                         {otrosServicios && otrosServicios.length > 0 && (
                             <section className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                 <h2 className="text-xl font-bold text-slate-900 mb-6">
-                                    Otros servicios de {proveedor.nombre}
+                                    Otros proveedores de {categoria.nombre} en {proveedor.comuna}
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {otrosServicios.map(s => (
@@ -516,37 +516,43 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .eq('estado', 'aprobado')
             .order('created_at', { ascending: false });
 
-        // Fetch otros servicios del mismo proveedor
+        // Fetch servicios similares: misma categoría, misma comuna, distinto proveedor
+        const categoriaSlug = service.categorias_servicio?.slug;
+        const comuna = service.proveedores?.comuna;
         const proveedorId = service.proveedores?.id;
         let otrosServicios: ServiceResult[] = [];
-        if (proveedorId) {
-            const { data: otrosRaw } = await supabase
-                .from('servicios_publicados')
-                .select('*, categoria:categorias_servicio(nombre, icono, slug)')
-                .eq('proveedor_id', proveedorId)
-                .eq('activo', true)
-                .neq('id', service.id)
-                .limit(3);
 
-            otrosServicios = (otrosRaw || []).map((s: any) => ({
-                servicio_id: s.id,
-                titulo: s.titulo,
-                descripcion: s.descripcion,
-                precio_desde: s.precio_desde,
-                precio_hasta: s.precio_hasta,
-                unidad_precio: s.unidad_precio,
-                fotos: s.fotos || [],
-                categoria_nombre: s.categoria?.nombre || '',
-                categoria_slug: s.categoria?.slug || '',
-                categoria_icono: s.categoria?.icono || '',
-                proveedor_id: proveedorId,
-                proveedor_nombre: `${service.proveedores?.nombre} ${service.proveedores?.apellido_p}`,
-                proveedor_foto: service.proveedores?.foto_perfil || '',
-                proveedor_comuna: service.proveedores?.comuna || '',
-                destacado: s.destacado || false,
-                rating_promedio: s.rating_promedio || 0,
-                total_evaluaciones: s.total_evaluaciones || 0,
-            }));
+        if (categoriaSlug && comuna) {
+            const { data: similarRaw } = await supabase.rpc('buscar_servicios', {
+                p_categoria_slug: categoriaSlug,
+                p_comuna: comuna,
+                p_limit: 6,
+                p_offset: 0,
+            });
+
+            otrosServicios = (similarRaw || [])
+                .filter((s: any) => s.proveedor_id !== proveedorId && s.servicio_id !== id)
+                .slice(0, 3)
+                .map((s: any) => ({
+                    servicio_id: s.servicio_id,
+                    titulo: s.titulo,
+                    descripcion: s.descripcion,
+                    precio_desde: s.precio_desde,
+                    precio_hasta: s.precio_hasta,
+                    unidad_precio: s.unidad_precio,
+                    fotos: s.fotos || [],
+                    categoria_nombre: s.categoria_nombre || '',
+                    categoria_slug: s.categoria_slug || '',
+                    categoria_icono: s.categoria_icono || '',
+                    proveedor_id: s.proveedor_id,
+                    proveedor_nombre: s.proveedor_nombre,
+                    proveedor_foto: s.proveedor_foto || '',
+                    proveedor_comuna: s.proveedor_comuna || '',
+                    destacado: s.destacado || false,
+                    rating_promedio: s.rating_promedio || 0,
+                    total_evaluaciones: s.total_evaluaciones || 0,
+                    proveedor_updated_at: s.proveedor_updated_at,
+                }));
         }
 
         return {

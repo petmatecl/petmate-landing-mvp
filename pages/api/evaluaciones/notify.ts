@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { proveedorId, servicioTitulo, rating, comentario } = req.body ? (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) : {};
+    const { proveedorId, servicioTitulo, rating, comentario, isFirst } = req.body ? (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) : {};
 
     if (!proveedorId || !servicioTitulo || typeof rating !== 'number' || !comentario) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -43,11 +43,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const emailTarget = authUser.user.email;
 
+        const subject = isFirst
+            ? 'Recibiste tu primera evaluación en Pawnecta'
+            : 'Recibiste una nueva evaluación en Pawnecta';
+
         // 3. Render HTML Email e intermediario hacia Resend
         const response = await resend.emails.send({
-            from: process.env.EMAIL_FROM || 'onboarding@resend.dev', // Use fallback for free tier testing context safely
+            from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: emailTarget,
-            subject: 'Recibiste una nueva evaluación en Pawnecta',
+            subject,
             react: NewEvaluationEmail({
                 nombre: proveedor.nombre || 'Proveedor',
                 servicioTitulo: servicioTitulo,

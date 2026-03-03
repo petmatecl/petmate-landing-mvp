@@ -52,12 +52,41 @@ export default function EvaluacionModerationList() {
     const handleAction = async (evalId: string, newState: 'aprobado' | 'rechazado') => {
         setIsSubmitting(evalId);
         try {
+            const ev = evaluaciones.find(e => e.id === evalId);
+
             const { error } = await supabase
                 .from('evaluaciones')
                 .update({ estado: newState })
                 .eq('id', evalId);
 
             if (error) throw error;
+
+            // Email notification on approval
+            if (newState === 'aprobado' && ev) {
+                // Check if this is the provider's first approved review
+                const proveedorId = ev.proveedor?.id || ev.proveedor_id;
+                if (proveedorId) {
+                    const { count } = await supabase
+                        .from('evaluaciones')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('proveedor_id', proveedorId)
+                        .eq('estado', 'aprobado');
+
+                    const isFirst = (count ?? 0) <= 1; // just became 1 after this update
+
+                    void fetch('/api/evaluaciones/notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            proveedorId,
+                            servicioTitulo: ev.servicio?.titulo || '',
+                            rating: ev.rating,
+                            comentario: ev.comentario,
+                            isFirst,
+                        }),
+                    });
+                }
+            }
 
             toast.success(newState === 'aprobado' ? 'Evaluación aprobada y publicada' : 'Evaluación rechazada');
             setEvaluaciones(prev => prev.filter(e => e.id !== evalId));

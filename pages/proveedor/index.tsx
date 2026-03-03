@@ -8,6 +8,7 @@ import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
 import ConversationList from '../../components/Chat/ConversationList';
 import MessageThread from '../../components/Chat/MessageThread';
 import ReviewSummary from '../../components/Service/ReviewSummary';
+import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
@@ -679,46 +680,8 @@ export default function ProveedorDashboard() {
 
                     {/* EVALUACIONES */}
                     {activeTab === 'evaluaciones' && (
-                        <div className="animate-in fade-in duration-300">
-                            <h1 className="text-2xl font-black text-slate-900 mb-8">Evaluaciones Recibidas</h1>
-
-                            {/* Metrics using ReviewSummary */}
-                            <div className="mb-10">
-                                <ReviewSummary proveedorId={proveedor.id} />
-                            </div>
-
-                            {evaluaciones.length === 0 ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                                    <h3 className="text-lg font-bold text-slate-800 mb-2">Aún no tienes evaluaciones</h3>
-                                    <p className="text-slate-500">¡Cuando tus primeros clientes te contraten podrán dejarte una reseña para impulsar tu perfil!</p>
-                                </div>
-                            ) : (
-                                <div className="grid gap-4">
-                                    {evaluaciones.map(ev => (
-                                        <div key={ev.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row gap-6">
-                                            <div className="sm:w-3/4">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <div className="flex text-amber-400">
-                                                        {[1, 2, 3, 4, 5].map(i => <Star key={i} size={16} className={i <= ev.rating ? "fill-current" : "text-slate-200"} />)}
-                                                    </div>
-                                                    <span className="text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[200px]">{ev.servicio?.titulo}</span>
-                                                </div>
-                                                <p className="text-slate-600 text-sm leading-relaxed mb-3">&quot;{ev.comentario}&quot;</p>
-                                                <span className="text-xs font-semibold text-slate-400">{formatDistanceToNow(new Date(ev.created_at), { addSuffix: true, locale: es })}</span>
-                                            </div>
-                                            <div className="sm:w-1/4 flex flex-col justify-center sm:items-end sm:border-l sm:border-slate-100 sm:pl-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                                                {ev.estado === 'aprobado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-[#1A6B4A] rounded-full text-xs font-bold uppercase"><CheckCircle size={14} /> Publicada</span>}
-                                                {ev.estado === 'pendiente' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase"><Clock size={14} /> En revisión</span>}
-                                                {ev.estado === 'rechazado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold uppercase"><XCircle size={14} /> No Publicada</span>}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <EvaluacionesTab evaluaciones={evaluaciones} proveedorId={proveedor.id} />
                     )}
-
-                    {/* MENSAJES */}
                     {activeTab === 'mensajes' && (
                         <div className="animate-in fade-in duration-300 h-[calc(100vh-140px)] min-h-[500px]">
                             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm h-full flex overflow-hidden">
