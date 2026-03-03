@@ -6,7 +6,6 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 
-import CategoryChips from "../components/Explore/CategoryChips";
 import ServiceFilters from "../components/Explore/ServiceFilters";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
@@ -41,7 +40,7 @@ export default function ExplorarPage() {
 
     const [filters, setFilters] = useState({
         q: "",
-        categoria: null as string | null,
+        categorias: [] as string[],
         comuna: "",
         mascota: "any" as "perro" | "gato" | "otro" | "any",
         tamano: null as "pequeno" | "mediano" | "grande" | null,
@@ -87,7 +86,9 @@ export default function ExplorarPage() {
 
         setFilters({
             q: (q as string) || "",
-            categoria: (categoria as string) || null,
+            categorias: categoria
+                ? (typeof categoria === 'string' ? categoria.split(',').filter(Boolean) : (categoria as string[]))
+                : [],
             comuna: (comuna as string) || "",
             mascota: (mascota as "perro" | "gato" | "otro" | "any") || "any",
             tamano: (tamano as "pequeno" | "mediano" | "grande" | null) || null,
@@ -107,8 +108,7 @@ export default function ExplorarPage() {
         setLoading(true);
         setComunasSugeridas([]);
         try {
-            const { data, error } = await supabase.rpc('buscar_servicios', {
-                p_categoria_slug: filters.categoria,
+            const baseParams = {
                 p_comuna: filters.comuna || null,
                 p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
                 p_tamano: filters.tamano || null,
@@ -117,14 +117,47 @@ export default function ExplorarPage() {
                 p_texto: filters.q || null,
                 p_limit: PAGE_SIZE,
                 p_offset: (pagina - 1) * PAGE_SIZE
-            });
-            if (error) throw error;
+            };
 
-            const localData: any[] = data || [];
-            const serverTotal = localData.length > 0 ? Number(localData[0].total_count) : 0;
+            let allData: any[] = [];
+            let serverTotal = 0;
 
-            // Ordenamiento en cliente
-            localData.sort((a: any, b: any) => {
+            if (filters.categorias.length <= 1) {
+                // Single query (0 = todas, 1 = una categoria)
+                const { data, error } = await supabase.rpc('buscar_servicios', {
+                    ...baseParams,
+                    p_categoria_slug: filters.categorias[0] || null
+                });
+                if (error) throw error;
+                allData = data || [];
+                serverTotal = allData.length > 0 ? Number(allData[0].total_count) : 0;
+            } else {
+                // Parallel queries for each selected category, then merge+deduplicate
+                const results = await Promise.all(
+                    filters.categorias.map(slug =>
+                        supabase.rpc('buscar_servicios', {
+                            ...baseParams,
+                            p_categoria_slug: slug,
+                            p_limit: 100,
+                            p_offset: 0
+                        })
+                    )
+                );
+                const seen = new Set<string>();
+                for (const { data } of results) {
+                    if (!data) continue;
+                    for (const item of data as any[]) {
+                        if (!seen.has(item.servicio_id)) {
+                            seen.add(item.servicio_id);
+                            allData.push(item);
+                        }
+                    }
+                }
+                serverTotal = allData.length;
+            }
+
+            // Client-side sort
+            allData.sort((a: any, b: any) => {
                 if (filters.orden === "rating") {
                     if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
                     return b.total_evaluaciones - a.total_evaluaciones;
@@ -137,12 +170,13 @@ export default function ExplorarPage() {
             });
 
             setTotalCount(serverTotal);
-            setServices(localData);
+            setServices(allData);
 
-            // Si no hay resultados con comuna + categoria → sugerir comunas cercanas
-            if (localData.length === 0 && filters.comuna && filters.categoria) {
+            // Si no hay resultados con comuna + al menos una categoria → sugerir comunas
+            if (allData.length === 0 && filters.comuna && filters.categorias.length > 0) {
+                const primarySlug = filters.categorias[0];
                 const { data: altData } = await supabase.rpc('buscar_servicios', {
-                    p_categoria_slug: filters.categoria,
+                    p_categoria_slug: primarySlug,
                     p_comuna: null,
                     p_tipo_mascota: null,
                     p_tamano: null,
@@ -177,7 +211,7 @@ export default function ExplorarPage() {
 
         const query: Record<string, string> = {};
         if (filters.q) query.q = filters.q;
-        if (filters.categoria) query.categoria = filters.categoria;
+        if (filters.categorias.length > 0) query.categoria = filters.categorias.join(',');
         if (filters.comuna) query.comuna = filters.comuna;
         if (filters.mascota && filters.mascota !== 'any') query.mascota = filters.mascota;
         if (filters.mascota === 'perro' && filters.tamano) query.tamano = filters.tamano;
@@ -199,7 +233,7 @@ export default function ExplorarPage() {
 
         const query: Record<string, string> = {};
         if (combined.q) query.q = combined.q;
-        if (combined.categoria) query.categoria = combined.categoria;
+        if (combined.categorias && combined.categorias.length > 0) query.categoria = combined.categorias.join(',');
         if (combined.comuna) query.comuna = combined.comuna;
         if (combined.mascota && combined.mascota !== 'any') query.mascota = combined.mascota;
         if (combined.mascota === 'perro' && combined.tamano) query.tamano = combined.tamano;
@@ -225,16 +259,10 @@ export default function ExplorarPage() {
             </Head>
 
             {/* Filter Bar — sticky bajo el header global (h-16 = 64px = top-16) */}
-            <div className="sticky top-16 z-30 bg-white border-b border-slate-200 shadow-sm">
-                <div className="border-b border-slate-100">
-                    <CategoryChips
-                        categories={categories}
-                        selectedCategory={filters.categoria}
-                        onSelect={(slug) => updateQueryParams({ categoria: slug })}
-                    />
-                </div>
+            <div className="sticky top-16 z-30">
                 <ServiceFilters
                     filters={filters}
+                    categories={categories}
                     onFilterChange={updateQueryParams}
                     onClear={handleClearFilters}
                 />
@@ -246,9 +274,11 @@ export default function ExplorarPage() {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                         {filters.q ? `Resultados para "${filters.q}"` : (
-                            filters.categoria
-                                ? `${categories.find(c => c.slug === filters.categoria)?.nombre || "Servicios"} en tu zona`
-                                : "Explorar en tu zona"
+                            filters.categorias.length === 1
+                                ? `${categories.find(c => c.slug === filters.categorias[0])?.nombre || 'Servicios'} en tu zona`
+                                : filters.categorias.length > 1
+                                    ? `${filters.categorias.length} categorías en tu zona`
+                                    : 'Explorar en tu zona'
                         )}
                     </h1>
                     <p className="text-slate-500 mt-2">

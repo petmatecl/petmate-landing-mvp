@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check, Grid2x2 } from 'lucide-react';
 
 interface Category {
     id: number;
@@ -9,101 +10,114 @@ interface Category {
 
 interface Props {
     categories: Category[];
-    selectedCategory: string | null;
-    onSelect: (slug: string | null) => void;
+    selectedCategories: string[];
+    onChange: (slugs: string[]) => void;
 }
 
-export default function CategoryChips({ categories, selectedCategory, onSelect }: Props) {
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [showLeftArrow, setShowLeftArrow] = useState(false);
-    const [showRightArrow, setShowRightArrow] = useState(false);
+export default function CategorySelect({ categories, selectedCategories, onChange }: Props) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
 
-    // Funciones para manejar el scroll y las flechas indicadoras (opcional pero de buena UI)
-    const handleScroll = () => {
-        if (scrollContainerRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-            setShowLeftArrow(scrollLeft > 0);
-            setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
-        }
-    };
-
+    // Close on click outside
     useEffect(() => {
-        handleScroll();
-        window.addEventListener('resize', handleScroll);
-        return () => window.removeEventListener('resize', handleScroll);
-    }, [categories]);
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollContainerRef.current) {
-            const scrollAmount = 200;
-            scrollContainerRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
+    const toggle = (slug: string) => {
+        if (selectedCategories.includes(slug)) {
+            onChange(selectedCategories.filter(s => s !== slug));
+        } else {
+            onChange([...selectedCategories, slug]);
         }
     };
+
+    const clearAll = () => onChange([]);
+
+    // Label for the trigger button
+    const label = selectedCategories.length === 0
+        ? 'Todas las categorías'
+        : selectedCategories.length === 1
+            ? categories.find(c => c.slug === selectedCategories[0])?.nombre ?? '1 categoría'
+            : `${selectedCategories.length} categorías`;
+
+    const isActive = selectedCategories.length > 0;
 
     return (
-        <div className="relative w-full border-b border-slate-200 bg-white">
-            {/* Flecha Izquierda */}
-            {showLeftArrow && (
-                <button
-                    onClick={() => scroll('left')}
-                    className="absolute left-0 top-0 bottom-0 z-10 w-12 bg-gradient-to-r from-white via-white to-transparent flex items-center justify-start pl-2"
-                    aria-label="Scroll left"
-                >
-                    <div className="w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-600 hover:text-emerald-600">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </div>
-                </button>
-            )}
-
-            {/* Contenedor Scrolleable */}
-            <div
-                ref={scrollContainerRef}
-                onScroll={handleScroll}
-                className="flex gap-3 overflow-x-auto scrollbar-hide py-4 px-4 scroll-smooth"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        <div className="relative" ref={ref}>
+            <button
+                type="button"
+                onClick={() => setOpen(v => !v)}
+                className={`flex items-center gap-2 h-10 pl-3 pr-3 rounded-xl border text-sm font-medium transition-all whitespace-nowrap ${isActive
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-sm'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-white'
+                    }`}
             >
-                <button
-                    onClick={() => onSelect(null)}
-                    className={`
-            flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all font-medium whitespace-nowrap
-            ${!selectedCategory
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-sm'
-                            : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-slate-50'}
-          `}
-                >
-                    Todos los servicios
-                </button>
+                <Grid2x2 size={15} className={isActive ? 'text-emerald-600' : 'text-slate-400'} />
+                <span>{label}</span>
+                <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${open ? 'rotate-180' : ''} ${isActive ? 'text-emerald-600' : 'text-slate-400'}`}
+                />
+            </button>
 
-                {categories.map((cat) => (
+            {open && (
+                <div className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    {/* "Todas" option */}
                     <button
-                        key={cat.id}
-                        onClick={() => onSelect(cat.slug)}
-                        className={`
-              flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all font-medium whitespace-nowrap
-              ${selectedCategory === cat.slug
-                                ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-sm'
-                                : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-slate-50'}
-            `}
+                        type="button"
+                        onMouseDown={e => { e.preventDefault(); clearAll(); setOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold border-b border-slate-100 transition-colors ${selectedCategories.length === 0
+                            ? 'bg-emerald-50 text-emerald-800'
+                            : 'text-slate-700 hover:bg-slate-50'
+                            }`}
                     >
-                        {cat.nombre}
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${selectedCategories.length === 0 ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'}`}>
+                            {selectedCategories.length === 0 && <Check size={10} strokeWidth={3} className="text-white" />}
+                        </div>
+                        Todas las categorías
                     </button>
-                ))}
-            </div>
 
-            {/* Flecha Derecha */}
-            {showRightArrow && (
-                <button
-                    onClick={() => scroll('right')}
-                    className="absolute right-0 top-0 bottom-0 z-10 w-12 bg-gradient-to-l from-white via-white to-transparent flex items-center justify-end pr-2"
-                    aria-label="Scroll right"
-                >
-                    <div className="w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-600 hover:text-emerald-600">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    {/* Individual categories */}
+                    <div className="py-1 max-h-64 overflow-y-auto">
+                        {categories.map(cat => {
+                            const checked = selectedCategories.includes(cat.slug);
+                            return (
+                                <button
+                                    key={cat.id}
+                                    type="button"
+                                    onMouseDown={e => { e.preventDefault(); toggle(cat.slug); }}
+                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${checked
+                                        ? 'bg-emerald-50 text-emerald-800'
+                                        : 'text-slate-700 hover:bg-slate-50'
+                                        }`}
+                                >
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'}`}>
+                                        {checked && <Check size={10} strokeWidth={3} className="text-white" />}
+                                    </div>
+                                    <span>{cat.icono}</span>
+                                    <span className="font-medium">{cat.nombre}</span>
+                                </button>
+                            );
+                        })}
                     </div>
-                </button>
+
+                    {/* Clear selection footer */}
+                    {selectedCategories.length > 0 && (
+                        <div className="border-t border-slate-100 px-4 py-2">
+                            <button
+                                type="button"
+                                onMouseDown={e => { e.preventDefault(); clearAll(); setOpen(false); }}
+                                className="text-xs text-rose-500 font-medium hover:underline"
+                            >
+                                Quitar filtros de categoría
+                            </button>
+                        </div>
+                    )}
+                </div>
             )}
         </div>
     );

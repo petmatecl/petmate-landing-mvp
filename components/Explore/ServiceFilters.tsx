@@ -1,37 +1,59 @@
 import React, { useState } from 'react';
 import AddressAutocomplete from '../AddressAutocomplete';
+import CategorySelect from './CategoryChips';
+
+interface Category {
+    id: number;
+    slug: string;
+    nombre: string;
+    icono: string;
+}
 
 interface FiltersState {
     q: string;
+    categorias: string[];
     comuna: string;
-    mascota: "perro" | "gato" | "otro" | "any";
-    tamano: "pequeno" | "mediano" | "grande" | null;
+    mascota: 'perro' | 'gato' | 'otro' | 'any';
+    tamano: 'pequeno' | 'mediano' | 'grande' | null;
     precioMin: string;
     precioMax: string;
 }
 
 interface Props {
     filters: FiltersState;
+    categories: Category[];
     onFilterChange: (filters: Partial<FiltersState>) => void;
     onClear: () => void;
 }
 
-export default function ServiceFilters({ filters, onFilterChange, onClear }: Props) {
+export default function ServiceFilters({ filters, categories, onFilterChange, onClear }: Props) {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-    const hasActiveFilters = filters.mascota !== 'any' || filters.precioMin || filters.precioMax || filters.q;
+    const hasActiveFilters =
+        filters.categorias.length > 0 ||
+        filters.mascota !== 'any' ||
+        filters.precioMin ||
+        filters.precioMax ||
+        filters.q ||
+        filters.comuna;
 
     return (
-        <div className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
 
-                {/* Mobile Toggle & Main Search Bar */}
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col md:flex-row gap-3 items-center">
+
+                    {/* Category dropdown (first) */}
+                    <CategorySelect
+                        categories={categories}
+                        selectedCategories={filters.categorias}
+                        onChange={(slugs) => onFilterChange({ categorias: slugs })}
+                    />
 
                     {/* Búsqueda por texto */}
-                    <div className="w-full md:w-1/3 min-w-[250px] relative">
-                        <span className="absolute left-3 top-[11px] text-slate-400 z-10 w-5 h-5 flex items-center justify-center">
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="w-full md:flex-1 min-w-[220px] relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <circle cx="11" cy="11" r="8" strokeWidth="2" />
                                 <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2" />
                             </svg>
@@ -41,14 +63,14 @@ export default function ServiceFilters({ filters, onFilterChange, onClear }: Pro
                             value={filters.q}
                             onChange={(e) => onFilterChange({ q: e.target.value })}
                             placeholder="Buscar servicios..."
-                            className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                            className="w-full h-10 pl-9 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                         />
                     </div>
 
                     {/* Ubicación */}
-                    <div className="w-full md:w-1/3 min-w-[250px] relative">
-                        <span className="absolute left-3 top-[11px] text-slate-400 z-10">
-                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="w-full md:flex-1 min-w-[200px] relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
@@ -63,13 +85,13 @@ export default function ServiceFilters({ filters, onFilterChange, onClear }: Pro
                         />
                     </div>
 
-                    {/* Mobile toggle row */}
-                    <div className="w-full flex md:hidden justify-between items-center border-t border-slate-100 pt-3 mt-1">
+                    {/* Mobile toggle */}
+                    <div className="w-full flex md:hidden justify-between items-center border-t border-slate-100 pt-2 mt-1">
                         <button
                             onClick={() => setIsMobileOpen(!isMobileOpen)}
                             className="text-sm font-semibold flex items-center gap-2 text-slate-700 hover:text-emerald-700"
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                             {isMobileOpen ? 'Ocultar Filtros' : 'Más Filtros'}
                         </button>
                         {hasActiveFilters && (
@@ -77,8 +99,8 @@ export default function ServiceFilters({ filters, onFilterChange, onClear }: Pro
                         )}
                     </div>
 
-                    {/* Additional Filters */}
-                    <div className={`w-full md:w-auto flex flex-col md:flex-row items-start md:items-center gap-4 ${isMobileOpen ? 'flex' : 'hidden md:flex'}`}>
+                    {/* Additional filters — desktop always visible */}
+                    <div className={`w-full md:w-auto flex flex-col md:flex-row items-start md:items-center gap-3 ${isMobileOpen ? 'flex' : 'hidden md:flex'}`}>
 
                         {/* Tipo de Mascota */}
                         <div className="flex bg-slate-100 p-1 rounded-xl">
@@ -103,7 +125,7 @@ export default function ServiceFilters({ filters, onFilterChange, onClear }: Pro
 
                         {/* Tamaño (Solo Perro) */}
                         {filters.mascota === 'perro' && (
-                            <div className="flex bg-slate-100 p-1 rounded-xl animate-fade-in">
+                            <div className="flex bg-slate-100 p-1 rounded-xl">
                                 {['pequeno', 'mediano', 'grande'].map(size => (
                                     <button
                                         key={size}
@@ -141,7 +163,7 @@ export default function ServiceFilters({ filters, onFilterChange, onClear }: Pro
                         </div>
 
                         <div className="hidden md:block">
-                            {(filters.mascota !== 'any' || filters.precioMin || filters.precioMax || filters.comuna || filters.q) && (
+                            {hasActiveFilters && (
                                 <button onClick={onClear} className="text-sm text-rose-500 font-medium hover:underline p-2">
                                     Limpiar Todo
                                 </button>
@@ -150,7 +172,6 @@ export default function ServiceFilters({ filters, onFilterChange, onClear }: Pro
 
                     </div>
                 </div>
-
             </div>
         </div>
     );
