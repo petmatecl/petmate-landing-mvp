@@ -66,6 +66,14 @@ export default function RegisterWizard() {
       setError("Las contraseñas no coinciden.");
       return;
     }
+    if (!rut) {
+      setError("El RUT es obligatorio para registrarse.");
+      return;
+    }
+    if (!validateRut(rut)) {
+      setError("El RUT ingresado no es válido. Verifica el número y dígito verificador.");
+      return;
+    }
 
     if (rol === "proveedor") {
       setStep(3);
@@ -113,6 +121,7 @@ export default function RegisterWizard() {
           nombre: nombre.trim(),
           apellido_p: apellidoP.trim(),
           apellido_m: apellidoM.trim() || null,
+          rut: formatRut(rut),
         }]);
         if (insertError) {
           console.error('Insert error in usuarios_buscadores:', insertError.message, insertError.code, insertError.details);
@@ -265,6 +274,20 @@ export default function RegisterWizard() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">RUT *</label>
+                  <input
+                    type="text"
+                    value={rut}
+                    onChange={e => setRut(formatRut(e.target.value))}
+                    required
+                    placeholder="12.345.678-9"
+                    maxLength={12}
+                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Solo lo usamos para verificar tu identidad. No se muestra públicamente.</p>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico *</label>
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                 </div>
@@ -296,11 +319,6 @@ export default function RegisterWizard() {
                 <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Cuéntanos sobre tu servicio</h2>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Tu RUT (para verificar tu identidad) *</label>
-                    <input type="text" value={rut} onChange={e => setRut(formatRut(e.target.value))} required placeholder="12.345.678-9" className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
-                    <p className="text-xs text-slate-500 mt-1">Solo lo usamos para verificar tu identidad. No se muestra públicamente.</p>
-                  </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Dónde ofreces tus servicios *</label>
                     <input type="text" value={comuna} onChange={e => setComuna(e.target.value)} required placeholder="Ej: Providencia" className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
