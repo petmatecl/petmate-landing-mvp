@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
-import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning } from 'lucide-react';
+import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, TrendingUp } from 'lucide-react';
 
-// Nuevos componentes de la refactorización
 import AdminMetrics from '../components/Admin/AdminMetrics';
 import ProveedorApprovalList from '../components/Admin/ProveedorApprovalList';
 import EvaluacionModerationList from '../components/Admin/EvaluacionModerationList';
 import ProveedorManagementList from '../components/Admin/ProveedorManagementList';
+import ConversionMetrics from '../components/Admin/ConversionMetrics';
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -124,6 +124,7 @@ export default function AdminDashboard() {
 
     const tabs = [
         { id: 'dashboard', label: 'Métricas', icon: BarChart3 },
+        { id: 'conversion', label: 'Conversión', icon: TrendingUp },
         { id: 'aprobaciones', label: 'Aprobaciones', icon: UserCheck },
         { id: 'moderacion', label: 'Moderación', icon: MessageSquareWarning },
         { id: 'proveedores', label: 'Proveedores', icon: Users },
@@ -242,6 +243,7 @@ export default function AdminDashboard() {
                 {/* Contenedor de las Tab */}
                 <div className="mt-8">
                     {activeTab === 'dashboard' && <AdminMetrics setActiveTab={setActiveTab} />}
+                    {activeTab === 'conversion' && <ConversionMetrics />}
                     {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
                     {activeTab === 'moderacion' && <EvaluacionModerationList />}
                     {activeTab === 'proveedores' && <ProveedorManagementList />}

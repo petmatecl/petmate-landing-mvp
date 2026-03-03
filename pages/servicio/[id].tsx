@@ -11,6 +11,7 @@ import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import { ShieldCheck, Star, User as UserIcon2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ServiceDetailProps {
     service: any;
@@ -83,6 +84,20 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
             if (existingConv) {
                 router.push(`/mensajes?id=${existingConv.id}`);
+                return;
+            }
+
+            // Rate limit: max 10 new conversations per 24h
+            const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            const { count: convCount } = await supabase
+                .from('conversations')
+                .select('id', { count: 'exact', head: true })
+                .eq('client_id', session.user.id)
+                .gte('created_at', since24h);
+
+            const CONV_LIMIT = Number(process.env.NEXT_PUBLIC_CONV_DAILY_LIMIT ?? 10);
+            if ((convCount ?? 0) >= CONV_LIMIT) {
+                toast.error('Has iniciado muchas conversaciones hoy. Intenta de nuevo mañana.');
                 return;
             }
 

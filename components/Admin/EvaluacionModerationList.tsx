@@ -22,6 +22,7 @@ export default function EvaluacionModerationList() {
                 .from('evaluaciones')
                 .select(`
                     *,
+                    auto_moderado,
                     servicio:servicios_publicados(titulo),
                     proveedor:proveedores(nombre, apellido_p)
                 `)
@@ -151,8 +152,15 @@ export default function EvaluacionModerationList() {
                                     <X size={18} /> <span className="hidden sm:inline">Rechazar</span>
                                 </button>
 
-                                <div className="hidden xl:flex items-center gap-2 mt-auto justify-center text-xs text-amber-600 font-bold bg-amber-50 px-3 py-2 rounded-lg">
-                                    <AlertCircle size={14} /> Requiere acción
+                                <div className="hidden xl:flex flex-col items-center gap-2 mt-auto">
+                                    {ev.auto_moderado && (
+                                        <span className="w-full text-center bg-slate-100 text-slate-500 text-xs font-semibold px-3 py-1.5 rounded-lg">
+                                            Auto-moderado
+                                        </span>
+                                    )}
+                                    <div className="flex items-center gap-2 w-full justify-center text-xs text-amber-600 font-bold bg-amber-50 px-3 py-2 rounded-lg">
+                                        <AlertCircle size={14} /> Requiere acción
+                                    </div>
                                 </div>
                             </div>
                         </div>

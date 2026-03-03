@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
-import { X, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Loader2, Image as ImageIcon, ChevronDown } from 'lucide-react';
 
 interface ServiceFormModalProps {
     isOpen: boolean;
@@ -35,6 +35,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [disponibilidad, setDisponibilidad] = useState('');
     const [fotos, setFotos] = useState<string[]>([]);
     const [uploadingFotos, setUploadingFotos] = useState(false);
+    const [showMobilePreview, setShowMobilePreview] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -195,9 +196,54 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
     if (!isOpen) return null;
 
+    const selectedCat = categorias.find(c => c.id === categoriaId);
+    const coverPreview = fotos[0] || null;
+
+    const PreviewCard = () => (
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="aspect-[4/3] bg-slate-100 relative">
+                {coverPreview ? (
+                    <img src={coverPreview} alt="preview" className="w-full h-full object-cover" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon size={32} className="text-slate-300" />
+                    </div>
+                )}
+                {selectedCat && (
+                    <span className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-2 py-1 rounded-full border border-slate-200">
+                        {selectedCat.icono} {selectedCat.nombre}
+                    </span>
+                )}
+            </div>
+            <div className="p-4">
+                <h3 className="font-bold text-slate-900 text-sm leading-snug mb-1 line-clamp-2">
+                    {titulo || <span className="text-slate-400 font-normal">Título del servicio</span>}
+                </h3>
+                {descripcion && (
+                    <p className="text-xs text-slate-500 line-clamp-2 mb-2">{descripcion}</p>
+                )}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                    <div>
+                        {precioDesde ? (
+                            <span className="text-emerald-700 font-bold text-sm">
+                                ${Number(precioDesde).toLocaleString('es-CL')}
+                                <span className="text-slate-400 font-normal text-xs ml-1">{unidadPrecio}</span>
+                            </span>
+                        ) : (
+                            <span className="text-slate-300 text-xs">Precio por definir</span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1 text-amber-400">
+                        <span className="text-slate-400 text-xs">Sin reseñas aún</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative my-auto">
+            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl relative my-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
                     <h2 className="text-xl font-bold text-slate-900">
@@ -213,176 +259,203 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                         <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
-                        {/* Categoría y Título */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="md:col-span-1">
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Categoría</label>
-                                <select
-                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
-                                    value={categoriaId}
-                                    onChange={(e) => setCategoriaId(e.target.value)}
-                                    required
-                                >
-                                    {categorias.map(c => (
-                                        <option key={c.id} value={c.id}>{c.icono} {c.nombre}</option>
-                                    ))}
-                                </select>
+                    <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-0 min-h-0">
+                        {/* FORM */}
+                        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 lg:border-r lg:border-slate-100">
+                            {/* Categoría y Título */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="md:col-span-1">
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Categoría</label>
+                                    <select
+                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                        value={categoriaId}
+                                        onChange={(e) => setCategoriaId(e.target.value)}
+                                        required
+                                    >
+                                        {categorias.map(c => (
+                                            <option key={c.id} value={c.id}>{c.icono} {c.nombre}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Título <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="text"
+                                        value={titulo}
+                                        onChange={e => setTitulo(e.target.value)}
+                                        maxLength={80}
+                                        required
+                                        placeholder="Ej: Hospedaje cariñoso con amplio patio"
+                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                    />
+                                    <div className="text-right text-xs text-slate-400 mt-1">{titulo.length}/80</div>
+                                </div>
                             </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Título <span className="text-red-500">*</span></label>
+
+                            {/* Descripción */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Descripción</label>
+                                <textarea
+                                    value={descripcion}
+                                    onChange={e => setDescripcion(e.target.value)}
+                                    maxLength={500}
+                                    rows={4}
+                                    placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                />
+                                <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/500</div>
+                            </div>
+
+                            {/* Precios */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Precio desde ($) <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="number"
+                                        value={precioDesde}
+                                        onChange={e => setPrecioDesde(Number(e.target.value))}
+                                        required
+                                        min={0}
+                                        placeholder="15000"
+                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Precio máximo (opcional)</label>
+                                    <input
+                                        type="number"
+                                        value={precioHasta}
+                                        onChange={e => setPrecioHasta(e.target.value ? Number(e.target.value) : '')}
+                                        min={0}
+                                        placeholder="30000"
+                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Unidad</label>
+                                    <select
+                                        value={unidadPrecio}
+                                        onChange={e => setUnidadPrecio(e.target.value)}
+                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    >
+                                        <option value="por noche">por noche</option>
+                                        <option value="por hora">por hora</option>
+                                        <option value="por sesión">por sesión</option>
+                                        <option value="por paseo">por paseo</option>
+                                        <option value="por mes">por mes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Mascotas */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Mascotas Aceptadas</label>
+                                <div className="flex flex-wrap gap-4 mb-4">
+                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                        <input type="checkbox" checked={perros} onChange={e => setPerros(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
+                                        Perros
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                        <input type="checkbox" checked={gatos} onChange={e => setGatos(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
+                                        Gatos
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                        <input type="checkbox" checked={otras} onChange={e => setOtras(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
+                                        Otras especies
+                                    </label>
+                                </div>
+
+                                {perros && (
+                                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex flex-wrap gap-4">
+                                        <span className="text-sm font-semibold text-emerald-900 mr-2 w-full sm:w-auto">Tamaños P. permitidos:</span>
+                                        <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
+                                            <input type="checkbox" checked={tamanoPequeno} onChange={e => setTamanoPequeno(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
+                                            Pequeño
+                                        </label>
+                                        <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
+                                            <input type="checkbox" checked={tamanoMediano} onChange={e => setTamanoMediano(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
+                                            Mediano
+                                        </label>
+                                        <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
+                                            <input type="checkbox" checked={tamanoGrande} onChange={e => setTamanoGrande(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
+                                            Grande
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Disponibilidad */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Disponibilidad (Texto Libre)</label>
                                 <input
                                     type="text"
-                                    value={titulo}
-                                    onChange={e => setTitulo(e.target.value)}
-                                    maxLength={80}
-                                    required
-                                    placeholder="Ej: Hospedaje cariñoso con amplio patio"
-                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                                />
-                                <div className="text-right text-xs text-slate-400 mt-1">{titulo.length}/80</div>
-                            </div>
-                        </div>
-
-                        {/* Descripción */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Descripción</label>
-                            <textarea
-                                value={descripcion}
-                                onChange={e => setDescripcion(e.target.value)}
-                                maxLength={500}
-                                rows={4}
-                                placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
-                                className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
-                            />
-                            <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/500</div>
-                        </div>
-
-                        {/* Precios */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Precio desde ($) <span className="text-red-500">*</span></label>
-                                <input
-                                    type="number"
-                                    value={precioDesde}
-                                    onChange={e => setPrecioDesde(Number(e.target.value))}
-                                    required
-                                    min={0}
-                                    placeholder="15000"
+                                    value={disponibilidad}
+                                    onChange={e => setDisponibilidad(e.target.value)}
+                                    placeholder="Ej: Lunes a viernes, 9:00 a 18:00"
                                     className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                 />
                             </div>
+
+                            {/* Fotos */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Precio máximo (opcional)</label>
-                                <input
-                                    type="number"
-                                    value={precioHasta}
-                                    onChange={e => setPrecioHasta(e.target.value ? Number(e.target.value) : '')}
-                                    min={0}
-                                    placeholder="30000"
-                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                                />
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between">
+                                    Galería de Fotos
+                                    <span className="font-normal text-slate-400">{fotos.length}/8 fotos</span>
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                                    {fotos.map((url, i) => (
+                                        <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
+                                            <img src={url} alt={`Foto ${i}`} className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeFoto(url)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {fotos.length < 8 && (
+                                        <label className="aspect-square rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-colors">
+                                            {uploadingFotos ? (
+                                                <Loader2 size={24} className="text-slate-400 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <Upload size={24} className="text-slate-400 mb-2" />
+                                                    <span className="text-xs text-slate-500 font-medium tracking-wide">SUBIR FOTO</span>
+                                                </>
+                                            )}
+                                            <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploadingFotos} />
+                                        </label>
+                                    )}
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Unidad</label>
-                                <select
-                                    value={unidadPrecio}
-                                    onChange={e => setUnidadPrecio(e.target.value)}
-                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
-                                >
-                                    <option value="por noche">por noche</option>
-                                    <option value="por hora">por hora</option>
-                                    <option value="por sesión">por sesión</option>
-                                    <option value="por paseo">por paseo</option>
-                                    <option value="por mes">por mes</option>
-                                </select>
-                            </div>
+                        </form>
+
+                        {/* PREVIEW PANEL — desktop right column */}
+                        <div className="hidden lg:flex flex-col w-72 shrink-0 p-6 bg-slate-50/50">
+                            <p className="text-sm text-slate-500 font-medium mb-4">Vista previa</p>
+                            <PreviewCard />
+                            <p className="text-xs text-slate-400 mt-3 text-center">Así verán tu servicio los clientes</p>
                         </div>
 
-                        {/* Mascotas */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Mascotas Aceptadas</label>
-                            <div className="flex flex-wrap gap-4 mb-4">
-                                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                    <input type="checkbox" checked={perros} onChange={e => setPerros(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
-                                    Perros
-                                </label>
-                                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                    <input type="checkbox" checked={gatos} onChange={e => setGatos(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
-                                    Gatos
-                                </label>
-                                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                    <input type="checkbox" checked={otras} onChange={e => setOtras(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
-                                    Otras especies
-                                </label>
-                            </div>
-
-                            {perros && (
-                                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex flex-wrap gap-4">
-                                    <span className="text-sm font-semibold text-emerald-900 mr-2 w-full sm:w-auto">Tamaños P. permitidos:</span>
-                                    <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                        <input type="checkbox" checked={tamanoPequeno} onChange={e => setTamanoPequeno(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
-                                        Pequeño
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                        <input type="checkbox" checked={tamanoMediano} onChange={e => setTamanoMediano(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
-                                        Mediano
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                        <input type="checkbox" checked={tamanoGrande} onChange={e => setTamanoGrande(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
-                                        Grande
-                                    </label>
+                        {/* PREVIEW PANEL — mobile collapsible */}
+                        <div className="lg:hidden border-t border-slate-100">
+                            <button
+                                type="button"
+                                onClick={() => setShowMobilePreview(v => !v)}
+                                className="w-full flex items-center justify-between px-6 py-3 text-sm text-slate-600 font-semibold hover:bg-slate-50"
+                            >
+                                Vista previa
+                                <ChevronDown size={16} className={`transition-transform ${showMobilePreview ? 'rotate-180' : ''}`} />
+                            </button>
+                            {showMobilePreview && (
+                                <div className="px-6 pb-6">
+                                    <PreviewCard />
                                 </div>
                             )}
                         </div>
-
-                        {/* Disponibilidad */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Disponibilidad (Texto Libre)</label>
-                            <input
-                                type="text"
-                                value={disponibilidad}
-                                onChange={e => setDisponibilidad(e.target.value)}
-                                placeholder="Ej: Lunes a viernes, 9:00 a 18:00"
-                                className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                            />
-                        </div>
-
-                        {/* Fotos */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between">
-                                Galería de Fotos
-                                <span className="font-normal text-slate-400">{fotos.length}/8 fotos</span>
-                            </label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                                {fotos.map((url, i) => (
-                                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
-                                        <img src={url} alt={`Foto ${i}`} className="w-full h-full object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeFoto(url)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    </div>
-                                ))}
-                                {fotos.length < 8 && (
-                                    <label className="aspect-square rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-colors">
-                                        {uploadingFotos ? (
-                                            <Loader2 size={24} className="text-slate-400 animate-spin" />
-                                        ) : (
-                                            <>
-                                                <Upload size={24} className="text-slate-400 mb-2" />
-                                                <span className="text-xs text-slate-500 font-medium tracking-wide">SUBIR FOTO</span>
-                                            </>
-                                        )}
-                                        <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploadingFotos} />
-                                    </label>
-                                )}
-                            </div>
-                        </div>
-                    </form>
+                    </div>
                 )}
 
                 {/* Footer Buttons */}

@@ -157,6 +157,17 @@ export default function ExplorarPage() {
             }
 
             // Client-side sort
+            const rankingScore = (item: any): number => {
+                const rating = (item.rating_promedio / 5) * 0.35;
+                const hasPhoto = item.proveedor_foto ? 0.10 : 0;
+                const hasReviews = item.total_evaluaciones > 0 ? 0.15 : 0;
+                const isDestacado = item.destacado ? 0.10 : 0;
+                // Recency: use servicio_id as proxy when updated_at not in payload
+                // (decay applied uniformly; SQL-level score can refine later)
+                const recency = 0.10;
+                return rating + hasPhoto + hasReviews + isDestacado + recency;
+            };
+
             allData.sort((a: any, b: any) => {
                 if (filters.orden === "rating") {
                     if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
@@ -164,10 +175,10 @@ export default function ExplorarPage() {
                 }
                 if (filters.orden === "precio_asc") return a.precio_desde - b.precio_desde;
                 if (filters.orden === "precio_desc") return b.precio_desde - a.precio_desde;
-                if (a.destacado !== b.destacado) return a.destacado ? -1 : 1;
-                if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
-                return b.total_evaluaciones - a.total_evaluaciones;
+                // relevancia: weighted ranking score
+                return rankingScore(b) - rankingScore(a);
             });
+
 
             setTotalCount(serverTotal);
             setServices(allData);

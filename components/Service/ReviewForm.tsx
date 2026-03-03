@@ -104,7 +104,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
         setIsSubmitting(true);
 
         try {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('evaluaciones')
                 .insert({
                     servicio_id: servicioId,
@@ -113,7 +113,9 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                     rating,
                     comentario: comentario.trim(),
                     estado: 'pendiente'
-                });
+                })
+                .select('id')
+                .single();
 
             if (error) {
                 if (error.code === '23505' || error.message.includes('unique')) {
@@ -131,6 +133,21 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ proveedorId, servicioTitulo, rating, comentario: comentario.trim() })
             }).catch(err => console.error('Error despachando notificación:', err));
+
+            // Auto-moderation: fire-and-forget
+            if (data && data.id) {
+                fetch('/api/evaluaciones/auto-moderar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        evaluacionId: data.id,
+                        servicioId,
+                        clienteId: user.id,
+                        rating,
+                        comentario: comentario.trim()
+                    })
+                }).catch(err => console.error('[auto-moderar]', err));
+            }
 
             setIsSuccess(true);
             toast.success('Evaluación enviada con éxito.');
