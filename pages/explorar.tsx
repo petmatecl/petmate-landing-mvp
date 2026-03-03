@@ -42,6 +42,7 @@ export default function ExplorarPage() {
         q: "",
         categorias: [] as string[],
         comuna: "",
+        fecha: "",
         mascota: "any" as "perro" | "gato" | "otro" | "any",
         tamano: null as "pequeno" | "mediano" | "grande" | null,
         precioMin: "",
@@ -89,6 +90,7 @@ export default function ExplorarPage() {
                 ? (typeof categoria === 'string' ? categoria.split(',').filter(Boolean) : (categoria as string[]))
                 : [],
             comuna: (comuna as string) || "",
+            fecha: (router.query.fecha as string) || "",
             mascota: (mascota as "perro" | "gato" | "otro" | "any") || "any",
             tamano: (tamano as "pequeno" | "mediano" | "grande" | null) || null,
             precioMin: (precioMin as string) || "",
@@ -223,6 +225,7 @@ export default function ExplorarPage() {
         if (filters.q) query.q = filters.q;
         if (filters.categorias.length > 0) query.categoria = filters.categorias.join(',');
         if (filters.comuna) query.comuna = filters.comuna;
+        if (filters.fecha) query.fecha = filters.fecha;
         if (filters.mascota && filters.mascota !== 'any') query.mascota = filters.mascota;
         if (filters.mascota === 'perro' && filters.tamano) query.tamano = filters.tamano;
         if (filters.precioMin) query.precioMin = filters.precioMin;
@@ -245,6 +248,7 @@ export default function ExplorarPage() {
         if (combined.q) query.q = combined.q;
         if (combined.categorias && combined.categorias.length > 0) query.categoria = combined.categorias.join(',');
         if (combined.comuna) query.comuna = combined.comuna;
+        if (combined.fecha) query.fecha = combined.fecha;
         if (combined.mascota && combined.mascota !== 'any') query.mascota = combined.mascota;
         if (combined.mascota === 'perro' && combined.tamano) query.tamano = combined.tamano;
         if (combined.precioMin) query.precioMin = combined.precioMin;
@@ -273,6 +277,7 @@ export default function ExplorarPage() {
                 <ServiceFilters
                     filters={filters}
                     categories={categories}
+                    services={services}
                     onFilterChange={updateQueryParams}
                     onClear={handleClearFilters}
                 />
@@ -294,6 +299,19 @@ export default function ExplorarPage() {
                     <p className="text-slate-500 mt-2">
                         Descubre los mejores profesionales y amantes de las mascotas en Pawnecta.
                     </p>
+                    {/* Chip de fecha */}
+                    {filters.fecha && (
+                        <div className="flex items-center gap-2 mt-3">
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                Fecha: {new Date(filters.fecha + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
+                                <button
+                                    onClick={() => updateQueryParams({ fecha: '' })}
+                                    className="ml-1 text-emerald-600 hover:text-emerald-900 leading-none"
+                                    aria-label="Limpiar filtro de fecha"
+                                >×</button>
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Grilla */}

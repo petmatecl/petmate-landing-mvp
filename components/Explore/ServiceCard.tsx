@@ -23,6 +23,10 @@ export interface ServiceResult {
     destacado: boolean;
     rating_promedio: number;
     total_evaluaciones: number;
+    acepta_perros?: boolean;
+    acepta_gatos?: boolean;
+    acepta_otras?: boolean;
+    proveedor_updated_at?: string;
 }
 
 interface Props {
@@ -164,6 +168,14 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                     <p className="text-sm text-slate-500 font-medium truncate">
                         {service.proveedor_nombre} <span className="text-slate-300 mx-1">•</span> {service.proveedor_comuna}
                     </p>
+                    {service.proveedor_updated_at && (
+                        Date.now() - new Date(service.proveedor_updated_at).getTime() < 7 * 24 * 60 * 60 * 1000
+                    ) && (
+                            <span className="flex items-center gap-1 shrink-0 ml-auto">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                                <span className="text-xs text-emerald-600">Activo</span>
+                            </span>
+                        )}
                 </div>
 
                 {/* Trust Score Badge */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AddressAutocomplete from '../AddressAutocomplete';
 import CategorySelect from './CategoryChips';
+import { ServiceResult } from './ServiceCard';
 
 interface Category {
     id: number;
@@ -22,12 +23,19 @@ interface FiltersState {
 interface Props {
     filters: FiltersState;
     categories: Category[];
+    services?: ServiceResult[];
     onFilterChange: (filters: Partial<FiltersState>) => void;
     onClear: () => void;
 }
 
-export default function ServiceFilters({ filters, categories, onFilterChange, onClear }: Props) {
+export default function ServiceFilters({ filters, categories, services = [], onFilterChange, onClear }: Props) {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    // Conteo por tipo de mascota (client-side, desde los servicios actuales)
+    const total = services.length;
+    const countPerros = services.filter(s => s.acepta_perros).length;
+    const countGatos = services.filter(s => s.acepta_gatos).length;
+    const countOtras = services.filter(s => s.acepta_otras).length;
 
     const hasActiveFilters =
         filters.categorias.length > 0 ||
@@ -105,10 +113,10 @@ export default function ServiceFilters({ filters, categories, onFilterChange, on
                         {/* Tipo de Mascota */}
                         <div className="flex bg-slate-100 p-1 rounded-xl">
                             {[
-                                { id: 'any', label: 'Cualquiera' },
-                                { id: 'perro', label: 'Perros' },
-                                { id: 'gato', label: 'Gatos' },
-                                { id: 'otro', label: 'Otro' }
+                                { id: 'any', label: 'Cualquiera', count: total },
+                                { id: 'perro', label: 'Perros', count: countPerros },
+                                { id: 'gato', label: 'Gatos', count: countGatos },
+                                { id: 'otro', label: 'Otro', count: countOtras },
                             ].map(opt => (
                                 <button
                                     key={opt.id}
@@ -119,6 +127,9 @@ export default function ServiceFilters({ filters, categories, onFilterChange, on
                                         }`}
                                 >
                                     {opt.label}
+                                    {services.length > 0 && (
+                                        <span className="ml-1 text-slate-400 font-normal">({opt.count})</span>
+                                    )}
                                 </button>
                             ))}
                         </div>
