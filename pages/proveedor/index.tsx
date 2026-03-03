@@ -433,6 +433,41 @@ export default function ProveedorDashboard() {
                     {/* MIS SERVICIOS */}
                     {activeTab === 'servicios' && (
                         <div className="animate-in fade-in duration-300">
+
+                            {/* INDICADOR DE COMPLETITUD */}
+                            {(() => {
+                                const pasos = [
+                                    { label: 'Foto de perfil', done: !!fotoPerfil, puntos: 20 },
+                                    { label: 'Descripción de más de 100 caracteres', done: (bio?.length || 0) > 100, puntos: 20 },
+                                    { label: 'Número de WhatsApp o teléfono', done: !!(whatsapp || telefono), puntos: 15 },
+                                    { label: 'Al menos 1 servicio activo', done: servicios.some(s => s.activo), puntos: 25 },
+                                    { label: 'Al menos 1 foto en algún servicio', done: servicios.some(s => s.fotos?.length > 0), puntos: 10 },
+                                    { label: 'Galería de perfil (3+ fotos)', done: (proveedor.galeria?.length || 0) >= 3, puntos: 10 },
+                                ];
+                                const score = pasos.filter(p => p.done).reduce((a, p) => a + p.puntos, 0);
+                                const pendientes = pasos.filter(p => !p.done);
+                                if (score >= 100) return null;
+                                return (
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="font-bold text-slate-900 text-sm">Completitud del perfil</h3>
+                                            <span className="text-sm font-bold text-emerald-600">{score}%</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full bg-emerald-600 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
+                                        </div>
+                                        <div className="mt-4 space-y-2">
+                                            {pendientes.map(p => (
+                                                <div key={p.label} className="flex items-center gap-2 text-sm text-slate-600">
+                                                    <Circle size={14} className="text-slate-300 shrink-0" />
+                                                    {p.label}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
                             <div className="flex justify-between items-center mb-8">
                                 <h1 className="text-2xl font-black text-slate-900">Mis Servicios</h1>
                                 <button

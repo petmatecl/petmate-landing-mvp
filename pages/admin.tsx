@@ -24,8 +24,15 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('dashboard');
 
     const checkAuth = React.useCallback(async () => {
+        // Safety timeout: if getSession() hangs (e.g. expired token refresh), escape after 8s
+        const safetyTimer = setTimeout(() => {
+            setLoading(false);
+            setIsAdmin(false);
+        }, 8000);
+
         try {
             const { data: { session }, error } = await supabase.auth.getSession();
+            clearTimeout(safetyTimer);
 
             if (error || !session) {
                 throw new Error('No session');
@@ -35,11 +42,9 @@ export default function AdminDashboard() {
             if (!email) throw new Error('No email');
 
             // 1. Verificación por Lista Dura (Hardcoded Fallback de Seguridad)
-            // Ajustar correos según corresponda
             const ADMIN_EMAILS = [
                 'cano.caldera@gmail.com',
                 'admin@pawnecta.com',
-                // Agregar otros mientras se configuran los roles
             ];
 
             let hasAdminAccess = ADMIN_EMAILS.includes(email);
@@ -58,18 +63,17 @@ export default function AdminDashboard() {
                 }
             }
 
-            if (hasAdminAccess) {
-                setIsAdmin(true);
-            } else {
-                setIsAdmin(false);
-            }
+            setIsAdmin(hasAdminAccess);
         } catch (error) {
+            clearTimeout(safetyTimer);
             console.error('Error checking auth:', error);
             setIsAdmin(false);
         } finally {
+            clearTimeout(safetyTimer);
             setLoading(false);
         }
     }, []);
+
 
     useEffect(() => {
         checkAuth();
