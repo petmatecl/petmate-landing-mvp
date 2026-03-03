@@ -91,8 +91,8 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
             <div className="relative aspect-square rounded-2xl overflow-hidden shadow-xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&auto=format&fit=crop"
-                alt="Mascota feliz con su cuidador"
+                src="https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&dpr=1"
+                alt="Perro feliz con su cuidador"
                 className="w-full h-full object-cover"
               />
             </div>
