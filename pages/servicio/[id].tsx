@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -8,14 +9,16 @@ import ReviewModal from '../../components/Service/ReviewModal';
 import ReviewForm from '../../components/Service/ReviewForm';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
+import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import { ShieldCheck, Star, User as UserIcon2 } from 'lucide-react';
 
 interface ServiceDetailProps {
-    service: any; // Using any for brevity, structure defined below
+    service: any;
     reviews: any[];
+    otrosServicios: ServiceResult[];
 }
 
-export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
+export default function ServicioPage({ service, reviews, otrosServicios }: ServiceDetailProps) {
     const router = useRouter();
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -246,7 +249,22 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                             </div>
                         )}
 
+                        {/* Otros servicios del proveedor */}
+                        {otrosServicios && otrosServicios.length > 0 && (
+                            <section className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h2 className="text-xl font-bold text-slate-900 mb-6">
+                                    Otros servicios de {proveedor.nombre}
+                                </h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {otrosServicios.map(s => (
+                                        <ServiceCard key={s.servicio_id} service={s} />
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
                         {/* Evaluaciones */}
+
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                                 <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -325,6 +343,12 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                                         )}
                                     </h2>
                                     <p className="text-slate-500 text-sm">Prestador en Pawnecta</p>
+                                    <Link
+                                        href={`/proveedor/${proveedor.id}`}
+                                        className="text-sm text-emerald-700 font-semibold hover:underline mt-1 block"
+                                    >
+                                        Ver todos sus servicios
+                                    </Link>
 
                                     {/* Trust signals */}
                                     {(() => {
@@ -448,10 +472,44 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .eq('estado', 'aprobado')
             .order('created_at', { ascending: false });
 
+        // Fetch otros servicios del mismo proveedor
+        const proveedorId = service.proveedores?.id;
+        let otrosServicios: ServiceResult[] = [];
+        if (proveedorId) {
+            const { data: otrosRaw } = await supabase
+                .from('servicios_publicados')
+                .select('*, categoria:categorias_servicio(nombre, icono, slug)')
+                .eq('proveedor_id', proveedorId)
+                .eq('activo', true)
+                .neq('id', service.id)
+                .limit(3);
+
+            otrosServicios = (otrosRaw || []).map((s: any) => ({
+                servicio_id: s.id,
+                titulo: s.titulo,
+                descripcion: s.descripcion,
+                precio_desde: s.precio_desde,
+                precio_hasta: s.precio_hasta,
+                unidad_precio: s.unidad_precio,
+                fotos: s.fotos || [],
+                categoria_nombre: s.categoria?.nombre || '',
+                categoria_slug: s.categoria?.slug || '',
+                categoria_icono: s.categoria?.icono || '',
+                proveedor_id: proveedorId,
+                proveedor_nombre: `${service.proveedores?.nombre} ${service.proveedores?.apellido_p}`,
+                proveedor_foto: service.proveedores?.foto_perfil || '',
+                proveedor_comuna: service.proveedores?.comuna || '',
+                destacado: s.destacado || false,
+                rating_promedio: s.rating_promedio || 0,
+                total_evaluaciones: s.total_evaluaciones || 0,
+            }));
+        }
+
         return {
             props: {
                 service,
-                reviews: reviews || []
+                reviews: reviews || [],
+                otrosServicios,
             }
         };
 

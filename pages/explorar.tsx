@@ -37,6 +37,7 @@ export default function ExplorarPage() {
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
     const [favoritoIds, setFavoritoIds] = useState<string[]>([]);
+    const [comunasSugeridas, setComunasSugeridas] = useState<string[]>([]);
 
     const [filters, setFilters] = useState({
         q: "",
@@ -104,6 +105,7 @@ export default function ExplorarPage() {
         if (!router.isReady) return;
 
         setLoading(true);
+        setComunasSugeridas([]);
         try {
             const { data, error } = await supabase.rpc('buscar_servicios', {
                 p_categoria_slug: filters.categoria,
@@ -136,6 +138,27 @@ export default function ExplorarPage() {
 
             setTotalCount(serverTotal);
             setServices(localData);
+
+            // Si no hay resultados con comuna + categoria → sugerir comunas cercanas
+            if (localData.length === 0 && filters.comuna && filters.categoria) {
+                const { data: altData } = await supabase.rpc('buscar_servicios', {
+                    p_categoria_slug: filters.categoria,
+                    p_comuna: null,
+                    p_tipo_mascota: null,
+                    p_tamano: null,
+                    p_precio_max: null,
+                    p_precio_min: null,
+                    p_texto: null,
+                    p_limit: 50,
+                    p_offset: 0
+                });
+                if (altData && altData.length > 0) {
+                    const comunas = Array.from(new Set(
+                        (altData as any[]).map(s => s.proveedor_comuna).filter(Boolean)
+                    )).slice(0, 4) as string[];
+                    setComunasSugeridas(comunas);
+                }
+            }
         } catch (err) {
             console.error("Error fetching services:", err);
         } finally {
@@ -246,17 +269,38 @@ export default function ExplorarPage() {
                 ) : services.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
-                            <Search size={28} className="text-slate-400" />
+                            <Search size={28} className="text-slate-300" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 mb-2">
                             {filters.comuna ? `Sin resultados en ${filters.comuna}` : 'Sin resultados con estos filtros'}
                         </h3>
-                        <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
-                            Intenta ampliar la búsqueda o buscar en una comuna cercana.
-                        </p>
+
+                        {comunasSugeridas.length > 0 ? (
+                            <>
+                                <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                                    Hay proveedores disponibles en comunas cercanas:
+                                </p>
+                                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                    {comunasSugeridas.map(c => (
+                                        <button
+                                            key={c}
+                                            onClick={() => updateQueryParams({ comuna: c })}
+                                            className="inline-flex px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors"
+                                        >
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                                Intenta ajustar los filtros o ampliar la búsqueda.
+                            </p>
+                        )}
+
                         <div className="flex justify-center gap-3 mt-8">
                             <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
-                                Limpiar filtros
+                                Ver todos los servicios
                             </button>
                         </div>
                     </div>
