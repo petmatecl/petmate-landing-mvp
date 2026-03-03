@@ -8,6 +8,7 @@ import ReviewModal from '../../components/Service/ReviewModal';
 import ReviewForm from '../../components/Service/ReviewForm';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
+import { ShieldCheck, Star, User as UserIcon2 } from 'lucide-react';
 
 interface ServiceDetailProps {
     service: any; // Using any for brevity, structure defined below
@@ -31,6 +32,19 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
         fetchSession();
     }, []);
 
+    // Tracking: registrar vista al entrar a la pagina
+    React.useEffect(() => {
+        if (!service?.id) return;
+        // Fire-and-forget — no bloquea el render
+        void supabase.from('eventos_tracking').insert({
+            tipo: 'vista_servicio',
+            servicio_id: service.id,
+            metadata: { source: typeof document !== 'undefined' ? document.referrer : '' },
+        });
+        // Incrementar contador de vistas en servicios_publicados
+        void supabase.rpc('incrementar_vistas', { p_servicio_id: service.id });
+    }, [service?.id]);
+
     // Derived state
     const proveedor = service.proveedores;
     const categoria = service.categorias_servicio;
@@ -47,6 +61,13 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                 setLoginModalOpen(true);
                 return;
             }
+
+            // Registrar evento click_chat
+            void supabase.from('eventos_tracking').insert({
+                tipo: 'click_chat',
+                user_id: session.user.id,
+                servicio_id: service.id,
+            });
 
             // Look for existing conversation
             const { data: existingConv } = await supabase
@@ -89,6 +110,12 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
 
     const handleWhatsApp = () => {
         if (!proveedor.telefono) return;
+        // Registrar evento click_whatsapp
+        void supabase.from('eventos_tracking').insert({
+            tipo: 'click_whatsapp',
+            servicio_id: service.id,
+            metadata: { proveedor_id: proveedor.id },
+        });
         const phone = proveedor.telefono.replace(/\D/g, '');
         const text = encodeURIComponent(`Hola ${proveedor.nombre}, te contacto desde Pawnecta por tu servicio de "${service.titulo}".`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
@@ -138,7 +165,7 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                             <div className="absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-transparent"></div>
 
                             {/* Badge Categoria Flotante */}
-                            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-800 text-sm md:text-base font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-800 text-sm md:text-base font-bold px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
                                 <span>{categoria.icono}</span>
                                 <span>{categoria.nombre}</span>
                             </div>
@@ -298,6 +325,25 @@ export default function ServicioPage({ service, reviews }: ServiceDetailProps) {
                                         )}
                                     </h2>
                                     <p className="text-slate-500 text-sm">Prestador en Pawnecta</p>
+
+                                    {/* Trust signals */}
+                                    {(() => {
+                                        const signals: { icon: React.ReactNode; label: string }[] = [];
+                                        if (proveedor.foto_perfil) signals.push({ icon: <ShieldCheck size={14} />, label: 'Identidad verificada' });
+                                        if (totalReviews > 0) signals.push({ icon: <Star size={14} />, label: `${totalReviews} evaluacion${totalReviews !== 1 ? 'es' : ''} real${totalReviews !== 1 ? 'es' : ''}` });
+                                        if ((proveedor.descripcion?.length ?? 0) > 100) signals.push({ icon: <UserIcon2 size={14} />, label: 'Perfil completo' });
+                                        if (signals.length === 0) return null;
+                                        return (
+                                            <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+                                                {signals.map((s, i) => (
+                                                    <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-semibold rounded-full">
+                                                        {s.icon}
+                                                        {s.label}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 

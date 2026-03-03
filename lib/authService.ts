@@ -42,24 +42,13 @@ export const AuthService = {
      */
     async fetchProfile(userId: string): Promise<UserProfile | null> {
         try {
-            // Intenta registro_petmate primero (usuarios del modelo anterior)
-            const { data: legacyData } = await supabase
-                .from('registro_petmate')
-                .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, aprobado, telefono, rut')
-                .eq('auth_user_id', userId)
-                .single();
-
-            if (legacyData) return legacyData;
-
-            // Si no existe en registro_petmate, busca en proveedores (modelo nuevo)
             const { data: proveedorData } = await supabase
                 .from('proveedores')
                 .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, estado, rut')
                 .eq('auth_user_id', userId)
-                .single();
+                .maybeSingle();
 
             if (proveedorData) {
-                // Normaliza al formato UserProfile
                 return {
                     id: proveedorData.id,
                     auth_user_id: proveedorData.auth_user_id,
@@ -70,6 +59,24 @@ export const AuthService = {
                     foto_perfil: proveedorData.foto_perfil,
                     aprobado: proveedorData.estado === 'aprobado',
                     rut: proveedorData.rut,
+                };
+            }
+
+            const { data: buscadorData } = await supabase
+                .from('usuarios_buscadores')
+                .select('id, auth_user_id, nombre, apellido_p, apellido_m, foto_perfil')
+                .eq('auth_user_id', userId)
+                .maybeSingle();
+
+            if (buscadorData) {
+                return {
+                    id: buscadorData.id,
+                    auth_user_id: buscadorData.auth_user_id,
+                    nombre: buscadorData.nombre,
+                    apellido_p: buscadorData.apellido_p,
+                    apellido_m: buscadorData.apellido_m,
+                    roles: ['usuario'],
+                    foto_perfil: buscadorData.foto_perfil,
                 };
             }
 

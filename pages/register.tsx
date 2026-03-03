@@ -41,6 +41,7 @@ export default function RegisterWizard() {
   const [comuna, setComuna] = useState('');
   const [categoria, setCategoria] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [aceptaPolitica, setAceptaPolitica] = useState(false);
 
   const proceedToStep2 = () => {
     if (!rol) {
@@ -85,6 +86,10 @@ export default function RegisterWizard() {
         setError("El RUT ingresado no es válido.");
         return;
       }
+      if (!aceptaPolitica) {
+        setError("Debes aceptar las políticas de publicación para continuar.");
+        return;
+      }
     }
 
     setLoading(true);
@@ -110,8 +115,8 @@ export default function RegisterWizard() {
           apellido_m: apellidoM.trim() || null,
         }]);
         if (insertError) {
-          console.error("Insert error in usuarios_buscadores:", insertError);
-          throw new Error("Error guardando datos de usuario");
+          console.error('Insert error in usuarios_buscadores:', insertError.message, insertError.code, insertError.details);
+          throw new Error('Error guardando datos de usuario: ' + insertError.message);
         }
       } else if (rol === 'proveedor') {
         const { error: insertError } = await supabase.from('proveedores').insert([{
@@ -125,32 +130,34 @@ export default function RegisterWizard() {
           estado: 'pendiente'
         }]);
         if (insertError) {
-          console.error("Insert error in proveedores:", insertError);
-          throw new Error("Error guardando datos de proveedor");
+          console.error('Insert error in proveedores:', insertError.message, insertError.code, insertError.details);
+          throw new Error('Error guardando datos de proveedor: ' + insertError.message);
         }
       }
 
-      // 3. Trigger Welcome Email API
-      await fetch('/api/auth/welcome', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          email,
-          nombre: nombre.trim(),
-          rol
-        }),
-      });
+      // 3. Trigger Welcome Email API — no debe bloquear el flujo
+      const welcomeController = new AbortController();
+      const welcomeTimeout = setTimeout(() => welcomeController.abort(), 5000);
+      try {
+        await fetch('/api/auth/welcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, email, nombre: nombre.trim(), rol }),
+          signal: welcomeController.signal,
+        });
+      } catch (welcomeErr) {
+        console.warn('Welcome email no enviado (no bloquea el registro):', welcomeErr);
+      } finally {
+        clearTimeout(welcomeTimeout);
+      }
 
       // 4. Move to Success Screen
       setStep(4);
     } catch (err: any) {
-      console.error("Registration error:", err);
-      setError(err.message || 'Error al completar el registro.');
+      console.error('Registration error:', err);
+      setError(err.message || 'Error al completar el registro. Intenta nuevamente.');
     } finally {
-      setLoading(false);
+      setLoading(false);  // Siempre desactivar loading, tanto en éxito como en error
     }
   };
 
@@ -286,43 +293,65 @@ export default function RegisterWizard() {
             {/* Step 3: Provider Info (Only if Provider) */}
             {step === 3 && rol === 'proveedor' && (
               <div className="animate-fade-in space-y-5">
-                <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Información del Proveedor</h2>
+                <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Cuéntanos sobre tu servicio</h2>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">RUT *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Tu RUT (para verificar tu identidad) *</label>
                     <input type="text" value={rut} onChange={e => setRut(formatRut(e.target.value))} required placeholder="12.345.678-9" className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                    <p className="text-xs text-slate-500 mt-1">Solo lo usamos para verificar tu identidad. No se muestra públicamente.</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Comuna donde operas *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Dónde ofreces tus servicios *</label>
                     <input type="text" value={comuna} onChange={e => setComuna(e.target.value)} required placeholder="Ej: Providencia" className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Categoría Principal *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Categoría principal de servicio *</label>
                   <select value={categoria} onChange={e => setCategoria(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors">
                     <option value="" disabled>Selecciona una categoría</option>
                     {CATEGORIES.map(cat => (
                       <option key={cat.value} value={cat.value}>{cat.label}</option>
                     ))}
                   </select>
+                  <p className="text-xs text-slate-500 mt-1">Podrás agregar más categorías desde tu panel después de ser aprobado.</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Descripción breve (Opcional)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Cuéntanos sobre tu experiencia (opcional)</label>
                   <textarea
                     value={descripcion}
                     onChange={e => setDescripcion(e.target.value)}
-                    maxLength={200}
-                    rows={3}
-                    placeholder="Cuéntanos brevemente sobre tu experiencia (max 200 caracteres)"
+                    maxLength={500}
+                    rows={4}
+                    placeholder="Ej: Tengo 5 años cuidando perros y gatos de raza..."
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                   />
-                  <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/200</div>
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-xs text-slate-500">Mínimo 50 caracteres. Una buena descripción aumenta tus consultas.</p>
+                    <span className="text-xs text-slate-400">{descripcion.length} / 500</span>
+                  </div>
                 </div>
 
-                <div className="pt-6 flex gap-3">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="politica"
+                    checked={aceptaPolitica}
+                    onChange={e => setAceptaPolitica(e.target.checked)}
+                    className="mt-1 rounded border-slate-300 accent-emerald-600 cursor-pointer"
+                  />
+                  <label htmlFor="politica" className="text-sm text-slate-600 cursor-pointer">
+                    Entiendo que mi perfil será revisado por el equipo de Pawnecta y que debo cumplir con las{' '}
+                    <Link href="/terminos" target="_blank" className="text-emerald-700 hover:underline">
+                      políticas de publicación
+                    </Link>
+                    {' '}para mantener mi cuenta activa.
+                  </label>
+                </div>
+
+                <div className="pt-2 flex gap-3">
                   <button onClick={() => setStep(2)} disabled={loading} className="w-1/3 border border-slate-300 text-slate-700 font-semibold py-4 rounded-xl hover:bg-slate-50 transition-colors">Atrás</button>
                   <button onClick={handleFinalSubmit} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-50">
                     {loading ? "Creando cuenta..." : "Enviar Solicitud"}

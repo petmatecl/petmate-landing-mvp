@@ -17,18 +17,17 @@ export default function VideoList() {
     const fetchSittersWithVideos = async () => {
         setLoading(true);
         try {
-            // Fetch sitters who have a video_presentacion that is not null and not empty string
             const { data, error } = await supabase
-                .from('registro_petmate')
-                .select('id, auth_user_id, nombre, apellido_p, email, video_presentacion, created_at, approved:aprobado, foto_perfil')
-                .neq('video_presentacion', null)
-                .neq('video_presentacion', '') // simplistic check, ideally we use 'is not null' but supabase neq null works
+                .from('proveedores')
+                .select('id, auth_user_id, nombre, apellido_p, video_presentacion, created_at, estado, foto_perfil')
+                .not('video_presentacion', 'is', null)
+                .neq('video_presentacion', '')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
             setSitters(data || []);
         } catch (error) {
-            console.error("Error fetching videos:", error);
+            console.error('Error fetching videos:', error);
         } finally {
             setLoading(false);
         }
@@ -36,8 +35,7 @@ export default function VideoList() {
 
     const filteredSitters = sitters.filter(sitter =>
     (sitter.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sitter.apellido_p?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sitter.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+        sitter.apellido_p?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const handleDownload = (e: React.MouseEvent, url: string, name: string) => {
@@ -131,14 +129,14 @@ export default function VideoList() {
                                                 <h4 className="font-bold text-slate-900 text-sm line-clamp-1">
                                                     {sitter.nombre} {sitter.apellido_p}
                                                 </h4>
-                                                <p className="text-xs text-slate-500">{sitter.email}</p>
+                                                <p className="text-xs text-slate-500">{sitter.estado || 'pendiente'}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
                                             <span className="text-[10px] text-slate-400 font-mono">
                                                 ID: {sitter.id.slice(0, 8)}...
                                             </span>
-                                            {sitter.approved ? (
+                                            {sitter.estado === 'aprobado' ? (
                                                 <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
                                                     Aprobado
                                                 </span>

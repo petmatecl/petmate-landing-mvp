@@ -365,9 +365,9 @@ export default function DashboardContent() {
                                     <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto">
                                         <Bookmark size={20} />
                                     </div>
-                                    <p className="text-sm font-semibold text-slate-700">Pronto podrás guardar servicios</p>
+                                    <p className="text-sm font-semibold text-slate-700">Aún no tienes servicios guardados.</p>
                                     <p className="text-xs text-slate-500 leading-relaxed">
-                                        Estamos construyendo tu lista de guardados para mantener a tus cuidadores preferidos a un solo clic.
+                                        Guarda servicios desde el explorador para encontrarlos fácilmente.
                                     </p>
                                 </div>
                             ) : (

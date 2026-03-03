@@ -41,8 +41,9 @@ export default function AdminReviews() {
 
     const fetchProveedores = async () => {
         const { data } = await supabase
-            .from('registro_petmate')
-            .select('user_id, nombre, apellido, comunas')
+            .from('proveedores')
+            .select('id, nombre, apellido_p, comuna')
+            .eq('estado', 'aprobado')
             .order('nombre');
         if (data) setProveedores(data);
     };
@@ -246,8 +247,8 @@ export default function AdminReviews() {
                                         <span className={manualReview.proveedor_id ? "text-slate-900" : "text-slate-400"}>
                                             {manualReview.proveedor_id
                                                 ? (() => {
-                                                    const s = proveedores.find(s => s.user_id === manualReview.proveedor_id);
-                                                    return s ? `${s.nombre} ${s.apellido} (${JSON.parse(s.comunas || '[]').join(', ') || 'Sin comuna'})` : "Cargando...";
+                                                    const s = proveedores.find(s => s.id === manualReview.proveedor_id);
+                                                    return s ? `${s.nombre} ${s.apellido_p} (${s.comuna || 'Sin comuna'})` : "Cargando...";
                                                 })()
                                                 : "Selecciona un proveedor..."
                                             }
@@ -275,7 +276,7 @@ export default function AdminReviews() {
                                             {/* List */}
                                             <div className="overflow-y-auto flex-1">
                                                 {proveedores.filter(s => {
-                                                    const fullName = `${s.nombre} ${s.apellido}`.toLowerCase();
+                                                    const fullName = `${s.nombre} ${s.apellido_p}`.toLowerCase();
                                                     return fullName.includes(proveedorSearchTerm.toLowerCase());
                                                 }).length === 0 ? (
                                                     <div className="p-3 text-center text-xs text-slate-400">
@@ -283,24 +284,24 @@ export default function AdminReviews() {
                                                     </div>
                                                 ) : (
                                                     proveedores.filter(s => {
-                                                        const fullName = `${s.nombre} ${s.apellido}`.toLowerCase();
+                                                        const fullName = `${s.nombre} ${s.apellido_p}`.toLowerCase();
                                                         return fullName.includes(proveedorSearchTerm.toLowerCase());
                                                     }).map(s => (
                                                         <button
-                                                            key={s.user_id}
+                                                            key={s.id}
                                                             type="button"
                                                             onClick={() => {
-                                                                setManualReview({ ...manualReview, proveedor_id: s.user_id });
+                                                                setManualReview({ ...manualReview, proveedor_id: s.id });
                                                                 setIsProveedorDropdownOpen(false);
                                                                 setProveedorSearchTerm(""); // Reset search
                                                             }}
                                                             className={`w-full text-left px-3 py-2 text-xs hover:bg-emerald-50 transition-colors flex flex-col
-                                                                ${manualReview.proveedor_id === s.user_id ? 'bg-emerald-50 text-emerald-700' : 'text-slate-700'}
+                                                                ${manualReview.proveedor_id === s.id ? 'bg-emerald-50 text-emerald-700' : 'text-slate-700'}
                                                             `}
                                                         >
-                                                            <span className="font-bold">{s.nombre} {s.apellido}</span>
+                                                            <span className="font-bold">{s.nombre} {s.apellido_p}</span>
                                                             <span className="text-[10px] text-slate-400 truncate">
-                                                                {JSON.parse(s.comunas || '[]').join(', ') || 'Sin comuna'}
+                                                                {s.comuna || 'Sin comuna'}
                                                             </span>
                                                         </button>
                                                     ))

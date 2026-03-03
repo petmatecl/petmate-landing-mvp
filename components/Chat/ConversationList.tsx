@@ -5,6 +5,7 @@ import { User, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { getProxyImageUrl } from '../../lib/utils';
+import { getParticipantProfile } from '../../lib/profileUtils';
 
 interface Props {
     selectedId: string | null;
@@ -75,17 +76,14 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                 return c.client_id === userId ? c.sitter_id : c.client_id;
             })));
 
-            // 3. Fetch Profiles for these users
-            const { data: profiles, error: profilesError } = await supabase
-                .from('registro_petmate')
-                .select('auth_user_id, nombre, apellido_p, foto_perfil')
-                .in('auth_user_id', otherUserIds);
-
-            if (profilesError) throw profilesError;
-
-            // 4. Create a map for easy lookup
+            // 3. Resolver perfiles de todos los otros participantes en paralelo
             const profilesMap = new Map();
-            profiles?.forEach((p: any) => profilesMap.set(p.auth_user_id, p));
+            await Promise.all(
+                otherUserIds.map(async (otherId: string) => {
+                    const profile = await getParticipantProfile(otherId);
+                    if (profile) profilesMap.set(otherId, profile);
+                })
+            );
 
             // 5. Merge data
             const formatted = conversationsData.map((c: any) => {

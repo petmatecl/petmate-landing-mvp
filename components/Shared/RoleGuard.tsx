@@ -40,7 +40,13 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                     .from('proveedores')
                     .select('estado')
                     .eq('auth_user_id', user.id)
-                    .single();
+                    .maybeSingle();
+
+                if (!data) {
+                    setAuthState('unauthorized');
+                    router.push('/login');
+                    return;
+                }
 
                 if (data?.estado === 'aprobado') {
                     setAuthState('authorized');
@@ -56,7 +62,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                     .from('proveedores')
                     .select('roles, estado')
                     .eq('auth_user_id', user.id)
-                    .single();
+                    .maybeSingle();
 
                 if (data?.roles && Array.isArray(data.roles) && data.roles.includes('admin') && data.estado === 'aprobado') {
                     setAuthState('authorized');

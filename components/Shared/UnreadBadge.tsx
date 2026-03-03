@@ -12,9 +12,24 @@ export default function UnreadBadge({ userId, className }: Props) {
     const fetchUnreadCount = useCallback(async () => {
         if (!userId) return;
         try {
+            // 1. Obtener las conversaciones del usuario (como cliente o proveedor)
+            const { data: convs } = await supabase
+                .from('conversations')
+                .select('id')
+                .or(`client_id.eq.${userId},proveedor_auth_id.eq.${userId}`);
+
+            if (!convs || convs.length === 0) {
+                setCount(0);
+                return;
+            }
+
+            const convIds = convs.map((c: any) => c.id);
+
+            // 2. Contar mensajes no leidos en esas conversaciones, enviados por otros
             const { count: unreadCount, error } = await supabase
                 .from('messages')
                 .select('*', { count: 'exact', head: true })
+                .in('conversation_id', convIds)
                 .eq('read', false)
                 .neq('sender_id', userId);
 
@@ -30,23 +45,36 @@ export default function UnreadBadge({ userId, className }: Props) {
 
         fetchUnreadCount();
 
-        // Listen for new messages (INSERT) and read status updates (UPDATE)
+        // Realtime: escuchar INSERT de nuevos mensajes
         const channel = supabase
-            .channel(`public:messages:unread:${userId}`)
+            .channel(`unread-messages-${userId}`)
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'messages' },
+                { event: 'INSERT', schema: 'public', table: 'messages' },
+                (payload: any) => {
+                    // Solo incrementar si el sender no es el usuario actual
+                    if (payload.new?.sender_id !== userId) {
+                        setCount((prev) => prev + 1);
+                    }
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'messages' },
                 () => {
+                    // Al marcar como leidos, recalcular
                     fetchUnreadCount();
                 }
             )
             .subscribe();
 
-        window.addEventListener('messages-read', fetchUnreadCount);
+        // Resetear al navegar a /mensajes
+        const handleMessagesRead = () => setCount(0);
+        window.addEventListener('messages-read', handleMessagesRead);
 
         return () => {
             supabase.removeChannel(channel);
-            window.removeEventListener('messages-read', fetchUnreadCount);
+            window.removeEventListener('messages-read', handleMessagesRead);
         };
     }, [userId, fetchUnreadCount]);
 

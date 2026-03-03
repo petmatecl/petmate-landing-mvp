@@ -132,14 +132,14 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                 .from('proveedores')
                 .select('id, nombre, apellido_p, roles, foto_perfil, estado')
                 .eq('auth_user_id', session.user.id)
-                .single();
+                .maybeSingle();
 
             // 3. Consultar `usuarios_buscadores`
             const { data: seekerData } = await supabase
                 .from('usuarios_buscadores')
                 .select('id, nombre, apellido_p')
                 .eq('auth_user_id', session.user.id)
-                .single();
+                .maybeSingle();
 
             const hasApprovedProvider = proveedorData?.estado === 'aprobado';
             const statusOfProvider = proveedorData ? proveedorData.estado : 'none';

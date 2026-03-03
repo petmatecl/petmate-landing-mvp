@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import { Heart, ShieldCheck } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { supabase } from '../../lib/supabaseClient';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
@@ -27,11 +27,12 @@ export interface ServiceResult {
 
 interface Props {
     service: ServiceResult;
+    isFavorite?: boolean;
 }
 
-export default function ServiceCard({ service }: Props) {
+export default function ServiceCard({ service, isFavorite }: Props) {
     const { user } = useUser();
-    const [isFavorito, setIsFavorito] = useState(false);
+    const [isFavorito, setIsFavorito] = useState(isFavorite ?? false);
     const [isLoadingFav, setIsLoadingFav] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -39,9 +40,9 @@ export default function ServiceCard({ service }: Props) {
     const defaultImage = "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=600";
     const coverImage = service.fotos?.[0] || service.proveedor_foto || defaultImage;
 
-    // Cargar estado inicial del favorito
+    // Cargar estado inicial del favorito solo si no se pasa prop isFavorite (evita N+1 queries)
     useEffect(() => {
-        if (!user) return;
+        if (!user || isFavorite !== undefined) return;
         const checkFavorite = async () => {
             const { data } = await supabase
                 .from('favoritos')
@@ -52,7 +53,12 @@ export default function ServiceCard({ service }: Props) {
             if (data) setIsFavorito(true);
         };
         checkFavorite();
-    }, [user, service.servicio_id]);
+    }, [user, service.servicio_id, isFavorite]);
+
+    // Sync if parent updates isFavorite prop
+    useEffect(() => {
+        if (isFavorite !== undefined) setIsFavorito(isFavorite);
+    }, [isFavorite]);
 
     const handleToggleFavorite = async (e: React.MouseEvent) => {
         e.preventDefault(); // Evita navegar a la pagina del servicio
@@ -147,7 +153,7 @@ export default function ServiceCard({ service }: Props) {
                 </div>
 
                 {/* Proveedor info (Footer de texto) */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-200 shrink-0">
                         {service.proveedor_foto ? (
                             <img src={service.proveedor_foto} alt={service.proveedor_nombre} className="w-full h-full object-cover" />
@@ -159,6 +165,20 @@ export default function ServiceCard({ service }: Props) {
                         {service.proveedor_nombre} <span className="text-slate-300 mx-1">•</span> {service.proveedor_comuna}
                     </p>
                 </div>
+
+                {/* Trust Score Badge */}
+                {(() => {
+                    const signals = [];
+                    if (service.proveedor_foto) signals.push('foto');
+                    if (service.rating_promedio > 0) signals.push('rating');
+                    if ((service.descripcion?.length ?? 0) > 100) signals.push('bio');
+                    return signals.length >= 2 ? (
+                        <div className="flex items-center gap-1 mb-3 px-2 py-1 bg-emerald-50 text-emerald-700 rounded-full w-fit text-[11px] font-bold">
+                            <ShieldCheck size={12} />
+                            <span>Verificado</span>
+                        </div>
+                    ) : <div className="mb-3" />;
+                })()}
 
                 <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex flex-col">

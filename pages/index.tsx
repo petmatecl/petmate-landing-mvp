@@ -3,7 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car,
-  ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star
+  ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
+  CheckCircle2, Shield
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -55,31 +56,93 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
       {/* SECCIÓN 1: HERO + BUSCADOR */}
       <section className="bg-slate-50 pt-16 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
-          <div className="flex-1 space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-5xl font-black text-slate-900 leading-tight">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+
+          {/* Columna izquierda: texto + búsqueda */}
+          <div className="space-y-6">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
               Servicios para tu mascota, cerca de ti
             </h1>
             <p className="text-lg text-slate-600 max-w-xl">
               Encuentra proveedores verificados en tu comuna. Compara, contacta y coordina directamente.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                <ShieldCheck className="w-5 h-5 text-emerald-700" />
+
+            <SearchBar />
+
+            {/* Badges de confianza */}
+            <div className="flex flex-wrap gap-4 text-sm font-bold text-slate-700">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 Proveedores verificados
               </div>
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                <UserCheck className="w-5 h-5 text-emerald-700" />
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-emerald-600" />
                 Aprobación manual
               </div>
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                <MessageCircle className="w-5 h-5 text-emerald-700" />
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-emerald-600" />
                 Contacto directo
               </div>
             </div>
           </div>
-          <div className="w-full md:w-[480px]">
-            <SearchBar />
+
+          {/* Columna derecha: imagen — solo desktop */}
+          <div className="hidden lg:block">
+            <div className="relative aspect-square rounded-2xl overflow-hidden shadow-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&auto=format&fit=crop"
+                alt="Mascota feliz con su cuidador"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* SECCIÓN 1.5: CÓMO FUNCIONA — 3 PASOS */}
+      <section className="py-16 bg-white border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black text-slate-900 mb-3">
+              Encuentra el cuidado perfecto en 3 pasos
+            </h2>
+            <p className="text-slate-600 text-lg">
+              Conectamos dueños de mascotas con proveedores verificados en tu comuna
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-emerald-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-2">1. Busca y compara</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Filtra por servicio y comuna. Revisa perfiles, reseñas y tarifas de cada proveedor.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-8 h-8 text-emerald-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-2">2. Contacta directo</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Escribe al proveedor para coordinar detalles y aclarar dudas antes de contratar.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-2">3. Acuerda y coordina</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Coordina fechas, horarios y pago directamente con tu proveedor elegido.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -111,34 +174,22 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
         </div>
       </section>
 
-      {/* SECCIÓN 3: SERVICIOS DESTACADOS */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-slate-900">Servicios disponibles</h2>
-            <p className="text-slate-600 mt-3 text-lg">Proveedores verificados listos para ayudarte</p>
-          </div>
-
-          {!featuredServices || featuredServices.length < 3 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm max-w-3xl mx-auto">
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Aún estamos creciendo en tu zona.</h3>
-              <p className="text-slate-600 mb-8">Explora todas las categorías disponibles.</p>
-              <button
-                onClick={() => router.push('/explorar')}
-                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
-              >
-                Explorar servicios
-              </button>
+      {/* SECCIÓN 3: SERVICIOS DESTACADOS — solo si hay 3 o más servicios */}
+      {featuredServices && featuredServices.length >= 3 && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-black text-slate-900">Servicios disponibles</h2>
+              <p className="text-slate-600 mt-3 text-lg">Proveedores verificados listos para ayudarte</p>
             </div>
-          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
               {featuredServices.map((service) => (
                 <ServiceCard key={service.id} service={service} />
               ))}
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* SECCIÓN 4: CÓMO FUNCIONA (DUEÑOS) */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
@@ -172,40 +223,59 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
         </div>
       </section>
 
-      {/* SECCIÓN 5: CONFIANZA */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-black text-slate-900 mb-10">Proveedores que puedes conocer</h2>
+      {/* SECCIÓN 5: CONFIANZA — solo si hay 3+ proveedores activos */}
+      {stats.proveedores >= 3 ? (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-black text-slate-900 mb-10">Proveedores que puedes conocer</h2>
 
-            <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-50 p-6 md:px-12 rounded-3xl border border-slate-200 mb-12 max-w-5xl mx-auto text-left md:text-center shadow-sm">
-              <div className="flex flex-col items-start md:items-center md:flex-1">
-                <IdCard className="w-8 h-8 text-emerald-700 mb-3" />
-                <h4 className="font-bold text-slate-900 mb-2">Verificación de RUT</h4>
-                <p className="text-sm text-slate-600">Validamos la identidad de cada proveedor antes de activar su perfil</p>
-              </div>
-              <div className="hidden md:block w-px h-24 bg-slate-200"></div>
-              <div className="flex flex-col items-start md:items-center md:flex-1">
-                <ClipboardCheck className="w-8 h-8 text-emerald-700 mb-3" />
-                <h4 className="font-bold text-slate-900 mb-2">Aprobación manual</h4>
-                <p className="text-sm text-slate-600">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
-              </div>
-              <div className="hidden md:block w-px h-24 bg-slate-200"></div>
-              <div className="flex flex-col items-start md:items-center md:flex-1">
-                <Star className="w-8 h-8 text-emerald-700 mb-3" />
-                <h4 className="font-bold text-slate-900 mb-2">Reseñas reales</h4>
-                <p className="text-sm text-slate-600">Solo dueños que contactaron al proveedor pueden dejar evaluaciones</p>
+              <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-50 p-6 md:px-12 rounded-3xl border border-slate-200 mb-12 max-w-5xl mx-auto text-left md:text-center shadow-sm">
+                <div className="flex flex-col items-start md:items-center md:flex-1">
+                  <IdCard className="w-8 h-8 text-emerald-700 mb-3" />
+                  <h4 className="font-bold text-slate-900 mb-2">Verificación de RUT</h4>
+                  <p className="text-sm text-slate-600">Validamos la identidad de cada proveedor antes de activar su perfil</p>
+                </div>
+                <div className="hidden md:block w-px h-24 bg-slate-200"></div>
+                <div className="flex flex-col items-start md:items-center md:flex-1">
+                  <ClipboardCheck className="w-8 h-8 text-emerald-700 mb-3" />
+                  <h4 className="font-bold text-slate-900 mb-2">Aprobación manual</h4>
+                  <p className="text-sm text-slate-600">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
+                </div>
+                <div className="hidden md:block w-px h-24 bg-slate-200"></div>
+                <div className="flex flex-col items-start md:items-center md:flex-1">
+                  <Star className="w-8 h-8 text-emerald-700 mb-3" />
+                  <h4 className="font-bold text-slate-900 mb-2">Reseñas reales</h4>
+                  <p className="text-sm text-slate-600">Solo dueños que contactaron al proveedor pueden dejar evaluaciones</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonios.map((testimonio, idx) => (
-              <TestimonialCard key={`testimonio-${idx}`} {...testimonio} />
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {testimonios.map((testimonio, idx) => (
+                <TestimonialCard key={`testimonio-${idx}`} {...testimonio} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-2xl font-black text-slate-900 mb-4">
+              Únete a nuestra red de proveedores
+            </h2>
+            <p className="text-slate-600 mb-8">
+              Sé de los primeros cuidadores en ofrecer tus servicios en tu comuna
+            </p>
+            <Link
+              href="/register?rol=proveedor"
+              className="inline-flex items-center justify-center h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-8 text-base font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+            >
+              Registrarse como proveedor
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* SECCIÓN 6: CÓMO FUNCIONA (PROVEEDORES) */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
@@ -243,7 +313,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
           <div className="text-center flex flex-col items-center">
             <Link
               href="/register?rol=proveedor"
-              className="inline-flex items-center justify-center rounded-2xl border-2 border-white px-8 py-4 text-base font-bold text-white hover:bg-white hover:text-slate-900 transition-all shadow-lg shadow-black/20"
+              className="inline-flex items-center justify-center h-14 rounded-2xl border-2 border-white px-8 text-base font-semibold text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-900 shadow-lg shadow-black/20"
             >
               Publicar mi servicio
             </Link>
@@ -260,7 +330,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
           <button
             onClick={() => router.push('/explorar')}
-            className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-10 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all mb-4"
+            className="inline-flex items-center justify-center h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 mb-4"
           >
             Buscar servicios
           </button>
@@ -268,11 +338,11 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto border-t border-slate-200 pt-16">
             <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">+{stats.proveedores}</div>
+              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{stats.proveedores}</div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Proveedores activos</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">+{stats.comunas}</div>
+              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{stats.comunas}</div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Comunas disponibles</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4">
@@ -280,8 +350,8 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Categorías de servicio</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">0%</div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Comisión en lanzamiento</div>
+              <div className="text-2xl font-black text-emerald-700 mb-3 tracking-tight leading-tight">Sin comisiones</div>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Durante el lanzamiento</div>
             </div>
           </div>
         </div>
@@ -344,9 +414,9 @@ export async function getStaticProps() {
   }
 
   const statsObj = {
-    servicios: countServicios || 50, // fallback for styling
-    proveedores: countProveedores || 50,
-    comunas: comunasUnicas.size || 20,
+    servicios: countServicios || 0,
+    proveedores: countProveedores || 0,
+    comunas: comunasUnicas.size || 0,
   };
 
   return {

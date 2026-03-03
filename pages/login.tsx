@@ -110,37 +110,42 @@ export default function LoginPage() {
         return;
       }
 
-      // Fetch Profile — busca en registro_petmate Y proveedores
-      const profile = await AuthService.fetchProfile(data.user.id);
-
-      // Si no hay perfil en NINGUNA tabla → es usuario nuevo, completa registro
-      if (!profile) {
-        window.location.replace('/register?resume=true');
-        return;
-      }
-
-      // Para proveedores y buscadores normales
+      // Buscar perfil en proveedores y usuarios_buscadores directamente
       const { data: proveedorData } = await supabase
         .from('proveedores')
         .select('estado')
         .eq('auth_user_id', data.user.id)
-        .single();
+        .maybeSingle();
 
-      const hasApprovedProvider = proveedorData?.estado === 'aprobado';
-      const savedMode = typeof window !== 'undefined'
-        ? window.localStorage.getItem('pawnecta_active_mode') || 'buscador'
-        : 'buscador';
+      const { data: buscadorData } = await supabase
+        .from('usuarios_buscadores')
+        .select('id')
+        .eq('auth_user_id', data.user.id)
+        .maybeSingle();
 
-      if (hasApprovedProvider && savedMode === 'proveedor') {
-        window.location.replace('/proveedor');
-        return;
-      } else if (proveedorData?.estado === 'pendiente') {
-        window.location.replace('/usuario');
-        return;
-      } else {
-        window.location.replace('/explorar');
+      // Sin perfil en ninguna tabla: registro incompleto
+      if (!proveedorData && !buscadorData) {
+        setLoading(false);
+        window.location.replace('/register?resume=true');
         return;
       }
+
+      // Proveedor
+      if (proveedorData) {
+        const savedMode = typeof window !== 'undefined'
+          ? window.localStorage.getItem('pawnecta_active_mode') || 'buscador'
+          : 'buscador';
+
+        if (proveedorData.estado === 'aprobado' && savedMode === 'proveedor') {
+          window.location.replace('/proveedor');
+        } else {
+          window.location.replace('/explorar');
+        }
+        return;
+      }
+
+      // Usuario buscador
+      window.location.replace('/explorar');
 
     } catch (err: any) {
       console.error(err);

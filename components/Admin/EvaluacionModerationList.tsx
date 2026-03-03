@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Check, X, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getParticipantProfile } from '../../lib/profileUtils';
 
 export default function EvaluacionModerationList() {
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);
@@ -17,21 +18,28 @@ export default function EvaluacionModerationList() {
     const fetchPendientes = async () => {
         setLoading(true);
         try {
-            // Unimos con el servicio para el título, el proveedor para el nombre evaluado, 
-            // y asumiendo que el usuario que deja la review viene por usuario_id hacia registro_petmate
             const { data, error } = await supabase
                 .from('evaluaciones')
                 .select(`
                     *,
                     servicio:servicios_publicados(titulo),
-                    proveedor:proveedores(nombre, apellido_p),
-                    usuario:registro_petmate(nombre, apellido_p)
+                    proveedor:proveedores(nombre, apellido_p)
                 `)
                 .eq('estado', 'pendiente')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setEvaluaciones(data || []);
+
+            // Resolver el nombre del usuario evaluador por separado
+            const evalConUsuario = await Promise.all(
+                (data || []).map(async (ev: any) => {
+                    if (!ev.cliente_id) return { ...ev, usuario: null };
+                    const perfil = await getParticipantProfile(ev.cliente_id);
+                    return { ...ev, usuario: perfil };
+                })
+            );
+
+            setEvaluaciones(evalConUsuario);
         } catch (error) {
             console.error('Error fetching evaluaciones', error);
             toast.error('Error al cargar evaluaciones pendientes');

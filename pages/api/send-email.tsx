@@ -1,3 +1,14 @@
+// DEPRECATED (parcialmente) — estado actual del archivo:
+//
+// ► TIPO 'welcome':     DEPRECADO — reemplazado por /api/auth/welcome (HTML inline, más simple).
+//                       No tiene callers activos. Se puede eliminar el caso 'welcome' aquí.
+//
+// ► TIPO 'new_message': ACTIVO — utilizado en components/Chat/MessageThread.tsx:197
+//                       Hasta que se migre a un endpoint dedicado (/api/notifications/*),
+//                       este archivo NO debe eliminarse.
+//
+// TODO: Migrar 'new_message' a /api/notifications/new-message.ts y eliminar este archivo.
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { resend } from '../../lib/resend';
 import WelcomeEmail from '../../components/Emails/WelcomeEmail';

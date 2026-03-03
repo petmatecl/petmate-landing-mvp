@@ -77,10 +77,28 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
     }
 
     async function fetchClientProfile(uid: string) {
-        const { data } = await supabase.from("registro_petmate").select("*").eq("auth_user_id", uid).single();
-        if (data) {
-            setClientProfile(data);
-            if (data.nombre && !nombre) setNombre(data.nombre);
+        const { data: buscadorData } = await supabase
+            .from('usuarios_buscadores')
+            .select('*')
+            .eq('auth_user_id', uid)
+            .maybeSingle();
+
+        if (buscadorData) {
+            setClientProfile(buscadorData);
+            if (buscadorData.nombre && !nombre) setNombre(buscadorData.nombre);
+            return;
+        }
+
+        // Fallback: el usuario puede ser solo proveedor
+        const { data: proveedorData } = await supabase
+            .from('proveedores')
+            .select('*')
+            .eq('auth_user_id', uid)
+            .maybeSingle();
+
+        if (proveedorData) {
+            setClientProfile(proveedorData);
+            if (proveedorData.nombre && !nombre) setNombre(proveedorData.nombre);
         }
     }
 
@@ -107,8 +125,17 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                 .from('avatars')
                 .getPublicUrl(filePath);
 
+            // Determinar en cual tabla esta el usuario
+            const { data: esBuscador } = await supabase
+                .from('usuarios_buscadores')
+                .select('id')
+                .eq('auth_user_id', userId)
+                .maybeSingle();
+
+            const tabla = esBuscador ? 'usuarios_buscadores' : 'proveedores';
+
             const { error: updateError } = await supabase
-                .from('registro_petmate')
+                .from(tabla)
                 .update({ foto_perfil: publicUrl })
                 .eq('auth_user_id', userId);
 

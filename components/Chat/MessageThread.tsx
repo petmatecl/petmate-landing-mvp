@@ -2,6 +2,7 @@
 import { supabase } from '../../lib/supabaseClient';
 import { Message } from '../../types/chat';
 import { createNotification } from '../../lib/notifications';
+import { getParticipantProfile } from '../../lib/profileUtils';
 import { Send, User as UserIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -40,29 +41,21 @@ export default function MessageThread({ conversationId, userId }: Props) {
         try {
             const { data, error } = await supabase
                 .from('conversations')
-                .select(`
-                    client_id,
-                    sitter_id,
-                    client:registro_petmate!client_id(auth_user_id, nombre, apellido_p, foto_perfil, email),
-                    sitter:registro_petmate!sitter_id(auth_user_id, nombre, apellido_p, foto_perfil, email)
-                `)
+                .select('client_id, sitter_id')
                 .eq('id', conversationId)
                 .single();
 
             if (error) throw error;
 
-            const isClient = data.client_id === userId;
-            const clientData = Array.isArray(data.client) ? data.client[0] : data.client;
-            const sitterData = Array.isArray(data.sitter) ? data.sitter[0] : data.sitter;
+            const clientProfile = await getParticipantProfile(data.client_id);
+            const sitterProfile = await getParticipantProfile(data.sitter_id);
 
-            const clientAuthId = clientData?.auth_user_id;
-
-            if (clientAuthId === userId) {
-                setOtherUser(sitterData);
-                setMyUser(clientData);
+            if (data.client_id === userId) {
+                setOtherUser(sitterProfile);
+                setMyUser(clientProfile);
             } else {
-                setOtherUser(clientData);
-                setMyUser(sitterData);
+                setOtherUser(clientProfile);
+                setMyUser(sitterProfile);
             }
         } catch (error) {
             console.error('Error fetching conversation details:', error);
@@ -74,19 +67,20 @@ export default function MessageThread({ conversationId, userId }: Props) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const markAsRead = async (unreadMessages: Message[]) => {
-        if (unreadMessages.length === 0) return;
+    const markAsRead = async () => {
+        if (!userId || !conversationId) return;
 
-        const ids = unreadMessages.map(m => m.id);
         const { error } = await supabase
             .from('messages')
             .update({ read: true })
-            .in('id', ids);
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', userId)
+            .eq('read', false);
 
         if (!error) {
             window.dispatchEvent(new Event('messages-read'));
         } else {
-            console.error("Error marking messages as read:", error);
+            console.error('Error marking messages as read:', error);
         }
     };
 
@@ -104,9 +98,9 @@ export default function MessageThread({ conversationId, userId }: Props) {
 
             // Mark unread messages as read
             if (userId && data) {
-                const unread = (data as Message[]).filter(m => !m.read && m.sender_id !== userId);
-                if (unread.length > 0) {
-                    markAsRead(unread);
+                const hasUnread = (data as Message[]).some(m => !m.read && m.sender_id !== userId);
+                if (hasUnread) {
+                    markAsRead();
                 }
 
                 // [NEW] Also Mark related Notification as read
@@ -144,7 +138,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
 
                 // Mark as read if it's from the other person
                 if (userId && newMsg.sender_id !== userId && !newMsg.read) {
-                    markAsRead([newMsg]);
+                    markAsRead();
                 }
             })
             .subscribe();
@@ -213,6 +207,17 @@ export default function MessageThread({ conversationId, userId }: Props) {
                             chatUrl: `${window.location.origin}/mensajes?id=${conversationId}`
                         }
                     })
+                }).catch(console.error);
+            }
+
+            // Notificacion interna para el destinatario
+            if (otherUser?.auth_user_id) {
+                createNotification({
+                    userId: otherUser.auth_user_id,
+                    type: 'message',
+                    title: 'Nuevo mensaje',
+                    message: `${myUser?.nombre || 'Un usuario'} te envió un mensaje`,
+                    link: `/mensajes?id=${conversationId}`,
                 }).catch(console.error);
             }
 

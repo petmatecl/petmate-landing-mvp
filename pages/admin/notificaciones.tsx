@@ -35,14 +35,27 @@ export default function AdminNotifications() {
             solicitudesPendientes: solicitudesPendientes || 0
         });
 
-        // 2. Recent Activity (Latest 20 users)
-        const { data: users } = await supabase
-            .from("registro_petmate")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(20);
+        // 2. Recent Activity — combinar proveedores y usuarios recientes
+        const { data: recentProveedores } = await supabase
+            .from('proveedores')
+            .select('id, nombre, apellido_p, created_at, estado')
+            .order('created_at', { ascending: false })
+            .limit(10);
 
-        setActivities(users || []);
+        const { data: recentBuscadores } = await supabase
+            .from('usuarios_buscadores')
+            .select('id, nombre, apellido_p, created_at')
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        const combined = [
+            ...(recentProveedores || []).map(p => ({ ...p, tipo: 'proveedor' })),
+            ...(recentBuscadores || []).map(b => ({ ...b, tipo: 'usuario', estado: null })),
+        ]
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 20);
+
+        setActivities(combined);
     };
 
     const checkAuth = async () => {
@@ -137,26 +150,32 @@ export default function AdminNotifications() {
                                 {activities.map((user) => (
                                     <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm uppercase shrink-0
-                                            ${user.roles?.includes('proveedor') ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
+                                            ${user.tipo === 'proveedor' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
                                         `}>
                                             {user.nombre?.[0] || "?"}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-slate-900 truncate">
-                                                <span className="font-bold">{user.nombre} {user.apellido_p}</span> se registró como {user.roles?.includes('proveedor') ? 'Proveedor' : 'Usuario'}.
+                                                <span className="font-bold">{user.nombre} {user.apellido_p}</span> se registró como {user.tipo === 'proveedor' ? 'Proveedor' : 'Usuario'}.
                                             </p>
                                             <p className="text-xs text-slate-500">
-                                                {new Date(user.created_at).toLocaleString('es-CL')} • {user.email}
+                                                {new Date(user.created_at).toLocaleString('es-CL')}
                                             </p>
                                         </div>
 
-                                        {!user.aprobado ? (
-                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">
-                                                Pendiente
-                                            </span>
+                                        {user.tipo === 'proveedor' ? (
+                                            user.estado === 'aprobado' ? (
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">
+                                                    Aprobado
+                                                </span>
+                                            ) : (
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">
+                                                    Pendiente
+                                                </span>
+                                            )
                                         ) : (
-                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">
-                                                Aprobado
+                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">
+                                                Usuario
                                             </span>
                                         )}
                                     </div>

@@ -49,8 +49,9 @@ export default function AdminDashboard() {
                 const { data: profile } = await supabase
                     .from('proveedores')
                     .select('roles')
-                    .eq('user_id', session.user.id)
-                    .single();
+                    .eq('auth_user_id', session.user.id)
+                    .eq('estado', 'aprobado')
+                    .maybeSingle();
 
                 if (profile?.roles && Array.isArray(profile.roles) && profile.roles.includes('admin')) {
                     hasAdminAccess = true;

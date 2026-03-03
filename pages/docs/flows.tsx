@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
-import mermaid from "mermaid";
-import { X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/router";
+import { X, ZoomIn } from "lucide-react";
+import RoleGuard from "../../components/Shared/RoleGuard";
 import { supabase } from "../../lib/supabaseClient";
 
 // Diagram Definition Type
@@ -165,13 +165,29 @@ const DIAGRAMS: FlowDiagram[] = [
 
 export default function DocsFlowsPage() {
     const router = useRouter();
-    const [selectedDiagram, setSelectedDiagram] = useState<FlowDiagram | null>(null);
+    const [checking, setChecking] = useState(true);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) router.replace('/');
-        });
-    }, [router]);
+        const checkAccess = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                router.replace('/login');
+                return;
+            }
+            const { data: prov } = await supabase
+                .from('proveedores')
+                .select('roles, estado')
+                .eq('auth_user_id', session.user.id)
+                .eq('estado', 'aprobado')
+                .maybeSingle();
+            const isAdmin = prov?.roles?.includes('admin');
+            if (!isAdmin) { router.replace('/login'); return; }
+            setChecking(false);
+        };
+        checkAccess();
+    }, []);
+
+    const [selectedDiagram, setSelectedDiagram] = useState<FlowDiagram | null>(null);
 
     useEffect(() => {
         (async () => {
@@ -190,107 +206,111 @@ export default function DocsFlowsPage() {
         }
     }, [selectedDiagram]);
 
+    if (checking) return null;
+
     return (
-        <div className="font-outfit min-h-screen bg-slate-50">
-            <Head>
-                <title>Documentación de Flujos | Pawnecta</title>
-                <meta name="robots" content="noindex" />
-            </Head>
+        <RoleGuard requiredRole="admin">
+            <div className="font-outfit min-h-screen bg-slate-50">
+                <Head>
+                    <title>Documentación de Flujos | Pawnecta</title>
+                    <meta name="robots" content="noindex" />
+                </Head>
 
-            {/* Modal for Zoom */}
-            {selectedDiagram && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-                    onClick={() => setSelectedDiagram(null)}>
-                    <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200"
-                        onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-800">{selectedDiagram.title}</h3>
-                                <p className="text-sm text-slate-500">{selectedDiagram.description}</p>
-                            </div>
-                            <button
-                                onClick={() => setSelectedDiagram(null)}
-                                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <div className="p-8 overflow-auto flex-1 bg-white cursor-move flex items-center justify-center">
-                            <div className="mermaid mermaid-modal w-full h-full flex items-center justify-center text-center">
-                                {selectedDiagram.code}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="container mx-auto px-4 py-12 max-w-5xl">
-                <div className="mb-12 text-center">
-                    <h1 className="text-3xl font-bold text-slate-900 mb-4">Documentación de Flujos de Usuario</h1>
-                    <p className="text-slate-600 max-w-2xl mx-auto mb-6">
-                        Referencia visual de los procesos core de la plataforma (MVP).
-                    </p>
-
-                    {/* Metadata de Control */}
-                    <div className="inline-flex flex-col sm:flex-row gap-4 sm:gap-8 bg-white px-6 py-3 rounded-xl border border-slate-200 shadow-sm text-xs text-left">
-                        <div>
-                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Versión</span>
-                            <span className="font-mono text-slate-700">v1.2.0 (MVP Launch)</span>
-                        </div>
-                        <div>
-                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Última Act.</span>
-                            <span className="font-mono text-slate-700">20 Ene 2026</span>
-                        </div>
-                        <div>
-                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Owner</span>
-                            <span className="font-mono text-slate-700">Product Team</span>
-                        </div>
-                        <div>
-                            <span className="block text-slate-400 font-bold uppercase tracking-wider">Changelog</span>
-                            <span className="font-mono text-slate-700">Unificación de Estados</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-12">
-                    {DIAGRAMS.map((diagram, index) => (
-                        <div key={index} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-gray-50">
+                {/* Modal for Zoom */}
+                {selectedDiagram && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                        onClick={() => setSelectedDiagram(null)}>
+                        <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200"
+                            onClick={e => e.stopPropagation()}>
+                            <div className="flex justify-between items-center p-4 border-b">
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-800">{diagram.title}</h2>
-                                    <p className="text-sm text-slate-500">{diagram.description}</p>
+                                    <h3 className="text-xl font-bold text-slate-800">{selectedDiagram.title}</h3>
+                                    <p className="text-sm text-slate-500">{selectedDiagram.description}</p>
                                 </div>
                                 <button
-                                    onClick={() => setSelectedDiagram(diagram)}
-                                    className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-white hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 transition-all shadow-sm"
+                                    onClick={() => setSelectedDiagram(null)}
+                                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
                                 >
-                                    <ZoomIn size={16} />
-                                    Ampliar
+                                    <X size={24} />
                                 </button>
                             </div>
-                            <div className="p-8 overflow-x-auto flex justify-center bg-white min-h-[200px] items-center">
-                                <div className="mermaid w-full text-center">
-                                    {diagram.code}
+                            <div className="p-8 overflow-auto flex-1 bg-white cursor-move flex items-center justify-center">
+                                <div className="mermaid mermaid-modal w-full h-full flex items-center justify-center text-center">
+                                    {selectedDiagram.code}
                                 </div>
                             </div>
-                            {/* Privacy / Security Note for Data Visibility Diagram */}
-                            {index === 6 && (
-                                <div className="bg-blue-50 px-6 py-3 border-t border-blue-100 flex items-start gap-3">
-                                    <div className="mt-0.5 text-blue-500">ℹ️</div>
-                                    <p className="text-xs text-blue-800">
-                                        <strong>Política de Privacidad:</strong> Los datos de contacto sensibles (teléfono, email, dirección exacta)
-                                        se comparten <u>únicamente</u> cuando ambas partes han confirmado el servicio. En etapas previas, la plataforma actúa como intermediario ciego para proteger la privacidad.
-                                    </p>
-                                </div>
-                            )}
                         </div>
-                    ))}
-                </div>
+                    </div>
+                )}
 
-                <div className="mt-12 text-center text-slate-400 text-sm">
-                    Generado con Mermaid.js • Pawnecta MVP
+                <div className="container mx-auto px-4 py-12 max-w-5xl">
+                    <div className="mb-12 text-center">
+                        <h1 className="text-3xl font-bold text-slate-900 mb-4">Documentación de Flujos de Usuario</h1>
+                        <p className="text-slate-600 max-w-2xl mx-auto mb-6">
+                            Referencia visual de los procesos core de la plataforma (MVP).
+                        </p>
+
+                        {/* Metadata de Control */}
+                        <div className="inline-flex flex-col sm:flex-row gap-4 sm:gap-8 bg-white px-6 py-3 rounded-xl border border-slate-200 shadow-sm text-xs text-left">
+                            <div>
+                                <span className="block text-slate-400 font-bold uppercase tracking-wider">Versión</span>
+                                <span className="font-mono text-slate-700">v1.2.0 (MVP Launch)</span>
+                            </div>
+                            <div>
+                                <span className="block text-slate-400 font-bold uppercase tracking-wider">Última Act.</span>
+                                <span className="font-mono text-slate-700">20 Ene 2026</span>
+                            </div>
+                            <div>
+                                <span className="block text-slate-400 font-bold uppercase tracking-wider">Owner</span>
+                                <span className="font-mono text-slate-700">Product Team</span>
+                            </div>
+                            <div>
+                                <span className="block text-slate-400 font-bold uppercase tracking-wider">Changelog</span>
+                                <span className="font-mono text-slate-700">Unificación de Estados</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-12">
+                        {DIAGRAMS.map((diagram, index) => (
+                            <div key={index} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-gray-50">
+                                    <div>
+                                        <h2 className="text-lg font-bold text-slate-800">{diagram.title}</h2>
+                                        <p className="text-sm text-slate-500">{diagram.description}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedDiagram(diagram)}
+                                        className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-white hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 transition-all shadow-sm"
+                                    >
+                                        <ZoomIn size={16} />
+                                        Ampliar
+                                    </button>
+                                </div>
+                                <div className="p-8 overflow-x-auto flex justify-center bg-white min-h-[200px] items-center">
+                                    <div className="mermaid w-full text-center">
+                                        {diagram.code}
+                                    </div>
+                                </div>
+                                {/* Privacy / Security Note for Data Visibility Diagram */}
+                                {index === 6 && (
+                                    <div className="bg-blue-50 px-6 py-3 border-t border-blue-100 flex items-start gap-3">
+                                        <div className="mt-0.5 text-blue-500">ℹ️</div>
+                                        <p className="text-xs text-blue-800">
+                                            <strong>Política de Privacidad:</strong> Los datos de contacto sensibles (teléfono, email, dirección exacta)
+                                            se comparten <u>únicamente</u> cuando ambas partes han confirmado el servicio. En etapas previas, la plataforma actúa como intermediario ciego para proteger la privacidad.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-12 text-center text-slate-400 text-sm">
+                        Generado con Mermaid.js • Pawnecta MVP
+                    </div>
                 </div>
             </div>
-        </div>
+        </RoleGuard>
     );
 }

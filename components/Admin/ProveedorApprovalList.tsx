@@ -67,7 +67,7 @@ export default function ProveedorApprovalList() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email: prov.email_publico || prov.email || `${session.user.email}`, // Fallback ideal iterar supabase auth user, asumimos email_publico para pruebas o logica en backend
+                        auth_user_id: prov.auth_user_id,
                         nombre: prov.nombre,
                         estado: 'aprobado'
                     })
@@ -113,7 +113,7 @@ export default function ProveedorApprovalList() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email: prov.email_publico || prov.email || "test@test.com",
+                        auth_user_id: prov.auth_user_id,
                         nombre: prov.nombre,
                         estado: 'rechazado',
                         motivo: motivoRechazo

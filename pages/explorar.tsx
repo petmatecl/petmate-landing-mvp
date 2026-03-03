@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/router";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { useUser } from "../contexts/UserContext";
 
 import CategoryChips from "../components/Explore/CategoryChips";
 import ServiceFilters from "../components/Explore/ServiceFilters";
@@ -29,11 +30,13 @@ function getPaginationItems(current: number, total: number): (number | "...")[] 
 export default function ExplorarPage() {
     const router = useRouter();
     const gridRef = useRef<HTMLDivElement>(null);
+    const { user } = useUser();
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [services, setServices] = useState<ServiceResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
+    const [favoritoIds, setFavoritoIds] = useState<string[]>([]);
 
     const [filters, setFilters] = useState({
         q: "",
@@ -63,6 +66,19 @@ export default function ExplorarPage() {
         fetchCategories();
     }, []);
 
+    // 1b. Cargar IDs de favoritos del usuario autenticado (batch, evita N+1)
+    useEffect(() => {
+        if (!user) { setFavoritoIds([]); return; }
+        async function fetchFavoritos() {
+            const { data } = await supabase
+                .from('favoritos')
+                .select('servicio_id')
+                .eq('auth_user_id', user.id);
+            if (data) setFavoritoIds(data.map((f: any) => f.servicio_id));
+        }
+        fetchFavoritos();
+    }, [user]);
+
     // 2. Sincronizar estado local con Query Params de la URL
     useEffect(() => {
         if (!router.isReady) return;
@@ -89,46 +105,21 @@ export default function ExplorarPage() {
 
         setLoading(true);
         try {
-            const hasTextSearch = !!filters.q;
+            const { data, error } = await supabase.rpc('buscar_servicios', {
+                p_categoria_slug: filters.categoria,
+                p_comuna: filters.comuna || null,
+                p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
+                p_tamano: filters.tamano || null,
+                p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null,
+                p_precio_min: filters.precioMin ? parseInt(filters.precioMin) : null,
+                p_texto: filters.q || null,
+                p_limit: PAGE_SIZE,
+                p_offset: (pagina - 1) * PAGE_SIZE
+            });
+            if (error) throw error;
 
-            let localData: any[] = [];
-            let serverTotal = 0;
-
-            if (hasTextSearch) {
-                const { data, error } = await supabase.rpc('buscar_servicios', {
-                    p_categoria_slug: filters.categoria,
-                    p_comuna: filters.comuna || null,
-                    p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
-                    p_tamano: filters.tamano || null,
-                    p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null,
-                    p_precio_min: filters.precioMin ? parseInt(filters.precioMin) : null,
-                    p_limit: 10000,
-                    p_offset: 0
-                });
-                if (error) throw error;
-                localData = data || [];
-
-                const searchLower = filters.q.toLowerCase();
-                localData = localData.filter((s: any) =>
-                    s.titulo.toLowerCase().includes(searchLower) ||
-                    s.descripcion?.toLowerCase().includes(searchLower)
-                );
-                serverTotal = localData.length;
-            } else {
-                const { data, error } = await supabase.rpc('buscar_servicios', {
-                    p_categoria_slug: filters.categoria,
-                    p_comuna: filters.comuna || null,
-                    p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
-                    p_tamano: filters.tamano || null,
-                    p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null,
-                    p_precio_min: filters.precioMin ? parseInt(filters.precioMin) : null,
-                    p_limit: PAGE_SIZE,
-                    p_offset: (pagina - 1) * PAGE_SIZE
-                });
-                if (error) throw error;
-                localData = data || [];
-                serverTotal = localData.length > 0 ? Number(localData[0].total_count) : 0;
-            }
+            const localData: any[] = data || [];
+            const serverTotal = localData.length > 0 ? Number(localData[0].total_count) : 0;
 
             // Ordenamiento en cliente
             localData.sort((a: any, b: any) => {
@@ -143,14 +134,8 @@ export default function ExplorarPage() {
                 return b.total_evaluaciones - a.total_evaluaciones;
             });
 
-            if (hasTextSearch) {
-                const startIdx = (pagina - 1) * PAGE_SIZE;
-                setTotalCount(serverTotal);
-                setServices(localData.slice(startIdx, startIdx + PAGE_SIZE));
-            } else {
-                setTotalCount(serverTotal);
-                setServices(localData);
-            }
+            setTotalCount(serverTotal);
+            setServices(localData);
         } catch (err) {
             console.error("Error fetching services:", err);
         } finally {
@@ -305,7 +290,7 @@ export default function ExplorarPage() {
                         {/* Grilla de resultados */}
                         <div ref={gridRef} className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {services.map((service) => (
-                                <ServiceCard key={service.servicio_id} service={service} />
+                                <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
                             ))}
                         </div>
 

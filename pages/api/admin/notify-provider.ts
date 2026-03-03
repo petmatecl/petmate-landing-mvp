@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { resend } from '../../../lib/resend';
+import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -7,7 +8,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const { email, nombre, estado, motivo } = req.body;
+        const { email: emailDirecto, auth_user_id, nombre, estado, motivo } = req.body;
+
+        let email = emailDirecto;
+
+        if (!email && auth_user_id) {
+            const supabaseAdmin = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_ROLE_KEY!
+            );
+            const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(auth_user_id);
+            email = authUser?.user?.email || null;
+        }
 
         if (!email || !nombre || !estado) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });

@@ -38,7 +38,7 @@ export const Card = ({
         surface: "surface-card border border-slate-200 shadow-sm", // Standard (keeps surface-card class if needed for other overrides, but ideally surface-card should be its own thing)
         // actually, surface-card in globals has border: 2px. We want to avoid that for elevated.
         // So for elevated, we DO NOT include "surface-card".
-        elevated: "bg-white border border-slate-200 shadow-xl shadow-slate-200/50 ring-1 ring-black/5 rounded-2xl",
+        elevated: "bg-white border border-slate-200 shadow-sm ring-1 ring-black/5 rounded-2xl",
     }[variant] || "surface-card border border-slate-200 shadow-sm";
 
     // "surface-card" class in globals.css forces border: 2px. 
