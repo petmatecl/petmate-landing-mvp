@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Search, Briefcase, CheckCircle2 } from "lucide-react";
+import { Search, Briefcase, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
 
@@ -17,6 +17,30 @@ const CATEGORIES = [
   { value: 'adiestramiento', label: 'Adiestramiento' },
   { value: 'veterinaria', label: 'Veterinaria' },
   { value: 'traslado', label: 'Traslado' },
+];
+
+const COMUNAS_CHILE = [
+  // Región Metropolitana
+  'Cerrillos', 'Cerro Navia', 'Conchalí', 'El Bosque', 'Estación Central',
+  'Huechuraba', 'Independencia', 'La Cisterna', 'La Florida', 'La Granja',
+  'La Pintana', 'La Reina', 'Las Condes', 'Lo Barnechea', 'Lo Espejo',
+  'Lo Prado', 'Macul', 'Maipú', 'Ñuñoa', 'Pedro Aguirre Cerda', 'Peñalolén',
+  'Providencia', 'Pudahuel', 'Quilicura', 'Quinta Normal', 'Recoleta', 'Renca',
+  'San Joaquín', 'San Miguel', 'San Ramón', 'Santiago', 'Vitacura',
+  // Gran Santiago (provincias)
+  'Buin', 'Calera de Tango', 'Colina', 'El Monte', 'Isla de Maipo', 'Lampa',
+  'Melipilla', 'Padre Hurtado', 'Paine', 'Peñaflor', 'Pirque', 'San Bernardo',
+  'San José de Maipo', 'Talagante', 'Tiltil',
+  // Resto de Chile (principales)
+  'Arica', 'Iquique', 'Alto Hospicio', 'Calama', 'Antofagasta', 'Copiapó',
+  'Vallenar', 'La Serena', 'Coquimbo', 'Ovalle', 'Illapel',
+  'Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana', 'Quillota',
+  'San Antonio', 'San Felipe', 'Los Andes', 'Rancagua', 'Machalí',
+  'Curicó', 'Talca', 'Linares', 'Constitución', 'Chillán', 'Los Ángeles',
+  'Concepción', 'Talcahuano', 'San Pedro de la Paz', 'Hualpén', 'Coronel',
+  'Lota', 'Lebu', 'Temuco', 'Padre Las Casas', 'Villarrica', 'Pucón',
+  'Osorno', 'Puerto Montt', 'Puerto Varas', 'Castro', 'Coyhaique',
+  'Punta Arenas',
 ];
 
 export default function RegisterWizard() {
@@ -35,13 +59,34 @@ export default function RegisterWizard() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+
+  // Step 2+3: RUT (common)
+  const [rut, setRut] = useState('');
 
   // Step 3: Provider Info
-  const [rut, setRut] = useState('');
-  const [comuna, setComuna] = useState('');
+  const [comunaQuery, setComunaQuery] = useState('');
+  const [showComunaList, setShowComunaList] = useState(false);
   const [categoria, setCategoria] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
+  const comunaRef = useRef<HTMLDivElement>(null);
+
+  const comunasFiltradas = COMUNAS_CHILE.filter(c =>
+    c.toLowerCase().includes(comunaQuery.toLowerCase())
+  ).slice(0, 8);
+
+  // Cierra el dropdown al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (comunaRef.current && !comunaRef.current.contains(e.target as Node)) {
+        setShowComunaList(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const proceedToStep2 = () => {
     if (!rol) {
@@ -86,12 +131,8 @@ export default function RegisterWizard() {
     setError("");
 
     if (rol === 'proveedor') {
-      if (!rut || !comuna || !categoria) {
-        setError("Por favor completa los campos obligatorios (RUT, Comuna y Categoría).");
-        return;
-      }
-      if (!validateRut(rut)) {
-        setError("El RUT ingresado no es válido.");
+      if (!comunaQuery.trim() || !categoria) {
+        setError("Por favor completa los campos obligatorios (Comuna y Categoría).");
         return;
       }
       if (!aceptaPolitica) {
@@ -101,6 +142,12 @@ export default function RegisterWizard() {
     }
 
     setLoading(true);
+
+    // Timeout de seguridad: si el proceso tarda más de 25 segundos, resetea
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+      setError("La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.");
+    }, 25000);
 
     try {
       // 1. Sign up user
@@ -134,7 +181,7 @@ export default function RegisterWizard() {
           apellido_p: apellidoP.trim(),
           apellido_m: apellidoM.trim() || null,
           rut: formatRut(rut),
-          comuna: comuna.trim(),
+          comuna: comunaQuery.trim(),
           roles: ['proveedor'],
           estado: 'pendiente'
         }]);
@@ -161,16 +208,20 @@ export default function RegisterWizard() {
       }
 
       // 4. Move to Success Screen
+      clearTimeout(safetyTimer);
       setStep(4);
     } catch (err: any) {
+      clearTimeout(safetyTimer);
       console.error('Registration error:', err);
       setError(err.message || 'Error al completar el registro. Intenta nuevamente.');
     } finally {
-      setLoading(false);  // Siempre desactivar loading, tanto en éxito como en error
+      setLoading(false);
     }
   };
 
   const getTotalSteps = () => rol === 'proveedor' ? 4 : 3;
+
+  const inputClass = "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors";
 
   return (
     <>
@@ -260,17 +311,17 @@ export default function RegisterWizard() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
-                    <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                    <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} required className={inputClass} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Paterno *</label>
-                    <input type="text" value={apellidoP} onChange={e => setApellidoP(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                    <input type="text" value={apellidoP} onChange={e => setApellidoP(e.target.value)} required className={inputClass} />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Materno (Opcional)</label>
-                  <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                  <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className={inputClass} />
                 </div>
 
                 <div>
@@ -282,25 +333,59 @@ export default function RegisterWizard() {
                     required
                     placeholder="12.345.678-9"
                     maxLength={12}
-                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                    className={inputClass}
                   />
                   <p className="text-xs text-slate-500 mt-1">Solo lo usamos para verificar tu identidad. No se muestra públicamente.</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico *</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputClass} />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña *</label>
-                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        className={`${inputClass} pr-12`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     <span className="text-xs text-slate-500 mt-1 block">Mínimo 8 caracteres</span>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar Contraseña *</label>
-                    <input type="password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} required minLength={8} className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                    <div className="relative">
+                      <input
+                        type={showPasswordConfirm ? "text" : "password"}
+                        value={passwordConfirm}
+                        onChange={e => setPasswordConfirm(e.target.value)}
+                        required
+                        minLength={8}
+                        className={`${inputClass} pr-12`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswordConfirm(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        aria-label={showPasswordConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -318,16 +403,40 @@ export default function RegisterWizard() {
               <div className="animate-fade-in space-y-5">
                 <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Cuéntanos sobre tu servicio</h2>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Dónde ofreces tus servicios *</label>
-                    <input type="text" value={comuna} onChange={e => setComuna(e.target.value)} required placeholder="Ej: Providencia" className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors" />
+                {/* Combobox de comunas */}
+                <div ref={comunaRef}>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">¿Dónde ofreces tus servicios? *</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={comunaQuery}
+                      onChange={e => { setComunaQuery(e.target.value); setShowComunaList(true); }}
+                      onFocus={() => setShowComunaList(true)}
+                      placeholder="Escribe tu comuna..."
+                      autoComplete="off"
+                      className={inputClass}
+                    />
+                    {showComunaList && comunasFiltradas.length > 0 && (
+                      <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                        {comunasFiltradas.map(c => (
+                          <li key={c}>
+                            <button
+                              type="button"
+                              className="w-full text-left px-4 py-2.5 text-sm text-slate-800 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                              onMouseDown={() => { setComunaQuery(c); setShowComunaList(false); }}
+                            >
+                              {c}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Categoría principal de servicio *</label>
-                  <select value={categoria} onChange={e => setCategoria(e.target.value)} required className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors">
+                  <select value={categoria} onChange={e => setCategoria(e.target.value)} required className={`${inputClass} cursor-pointer`}>
                     <option value="" disabled>Selecciona una categoría</option>
                     {CATEGORIES.map(cat => (
                       <option key={cat.value} value={cat.value}>{cat.label}</option>
