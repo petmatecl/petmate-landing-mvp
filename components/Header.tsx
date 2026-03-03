@@ -41,7 +41,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">
       {/* Franja superior lanzamiento */}
       {showBanner && (
-        <div className="bg-black text-white text-sm">
+        <div className="bg-slate-900 text-white text-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-center gap-2">
               <span className="hidden rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide sm:inline">
@@ -107,13 +107,13 @@ export default function Header() {
             <>
               <Link
                 href="/login"
-                className="inline-flex items-center rounded-xl border-2 border-emerald-600 bg-white px-3.5 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-50 transition-colors"
+                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
               >
                 Ingresar
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                className="inline-flex items-center rounded-lg px-6 py-2 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
               >
                 Registrarse
               </Link>
@@ -273,14 +273,14 @@ export default function Header() {
                 </Link>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-xl border-2 border-emerald-600 bg-white px-3.5 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-50 transition-colors"
+                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   Ingresar
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                  className="inline-flex items-center justify-center rounded-lg px-6 py-2 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   Registrarse

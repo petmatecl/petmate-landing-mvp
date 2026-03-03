@@ -287,7 +287,7 @@ export default function ExplorarPage() {
 
                 {/* Encabezado */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                    <h1 className="text-3xl font-bold text-slate-900 mb-3">
                         {filters.q ? `Resultados para "${filters.q}"` : (
                             filters.categorias.length === 1
                                 ? `${categories.find(c => c.slug === filters.categorias[0])?.nombre || 'Servicios'} en tu zona`
@@ -296,7 +296,7 @@ export default function ExplorarPage() {
                                     : 'Explorar en tu zona'
                         )}
                     </h1>
-                    <p className="text-slate-500 mt-2">
+                    <p className="text-base text-slate-600 max-w-2xl">
                         Descubre los mejores profesionales y amantes de las mascotas en Pawnecta.
                     </p>
                     {/* Chip de fecha */}
@@ -442,6 +442,44 @@ export default function ExplorarPage() {
                     </>
                 )}
             </main>
+
+            {/* CTA Proveedores */}
+            {!user && (
+                <section className="py-16 px-4 bg-emerald-50 border-t border-emerald-100">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <h2 className="text-3xl font-bold text-slate-900 mb-4">
+                            ¿Ofreces servicios para mascotas?
+                        </h2>
+                        <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
+                            Únete a Pawnecta y conecta con miles de dueños que buscan profesionales confiables como tú.
+                        </p>
+                        <Link
+                            href="/register?rol=proveedor"
+                            className="inline-block px-8 py-4 bg-emerald-600 text-white font-semibold rounded-2xl hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 shadow-sm"
+                        >
+                            Publicar mi servicio
+                        </Link>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
+                            {[
+                                { label: 'Registro gratuito', sub: 'Sin costos de alta' },
+                                { label: 'Sin comisión', sub: 'En el período de lanzamiento' },
+                                { label: 'Clientes reales', sub: 'Conecta con dueños verificados' },
+                            ].map((b, i) => (
+                                <div key={b.label} className="text-center">
+                                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        {i === 0 && <svg className="w-6 h-6 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                        {i === 1 && <svg className="w-6 h-6 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                        {i === 2 && <svg className="w-6 h-6 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
+                                    </div>
+                                    <p className="text-sm text-slate-900 font-semibold">{b.label}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">{b.sub}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

@@ -51,7 +51,7 @@ export default function CategorySelect({ categories, selectedCategories, onChang
             <button
                 type="button"
                 onClick={() => setOpen(v => !v)}
-                className={`flex items-center gap-2 h-10 pl-3 pr-3 rounded-xl border text-sm font-medium transition-all whitespace-nowrap ${isActive
+                className={`flex items-center gap-2 h-10 pl-3 pr-3 rounded-xl border text-sm font-medium transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 ${isActive
                     ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-sm'
                     : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-white'
                     }`}

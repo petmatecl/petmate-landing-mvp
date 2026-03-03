@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-slate-300 bg-slate-50">
+    <footer className="mt-20 border-t border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
         {/* Brand */}
         <div className="space-y-4">
@@ -26,7 +26,7 @@ export function Footer() {
 
         {/* Servicios */}
         <div>
-          <h4 className="text-sm font-bold text-slate-900">Servicios</h4>
+          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
               <Link href="/explorar?categoria=hospedaje" className="hover:text-emerald-600 transition-colors">
@@ -63,7 +63,7 @@ export function Footer() {
 
         {/* Pawnecta */}
         <div>
-          <h4 className="text-sm font-bold text-slate-900">Pawnecta</h4>
+          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Pawnecta</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
               <Link href="/quienes-somos" className="hover:text-emerald-600 transition-colors">
@@ -90,7 +90,7 @@ export function Footer() {
 
         {/* Contacto */}
         <div>
-          <h4 className="text-sm font-bold text-slate-900">Contacto</h4>
+          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Contacto</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
               <Link href="mailto:contacto@pawnecta.com" className="hover:text-emerald-600 transition-colors">
@@ -102,7 +102,7 @@ export function Footer() {
 
         {/* Legal */}
         <div>
-          <h4 className="text-sm font-bold text-slate-900">Legal</h4>
+          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Legal</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li>
               <Link href="/terminos" className="hover:text-emerald-600 transition-colors">
@@ -229,8 +229,10 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-slate-300 py-6 text-center text-xs text-slate-400 font-medium">
-        © 2026 Pawnecta. Todos los derechos reservados.
+      <div className="border-t border-slate-200 py-8">
+        <p className="text-sm text-slate-500 text-center">
+          © 2026 Pawnecta. Todos los derechos reservados.
+        </p>
       </div>
     </footer>
   );

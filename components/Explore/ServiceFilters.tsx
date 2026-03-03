@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AddressAutocomplete from '../AddressAutocomplete';
 import CategorySelect from './CategoryChips';
 import { ServiceResult } from './ServiceCard';
+import { Crosshair, Loader2 } from 'lucide-react';
 
 interface Category {
     id: number;
@@ -30,6 +31,31 @@ interface Props {
 
 export default function ServiceFilters({ filters, categories, services = [], onFilterChange, onClear }: Props) {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const [geoLoading, setGeoLoading] = useState(false);
+
+    const handleGeolocate = () => {
+        if (!navigator.geolocation) return;
+        setGeoLoading(true);
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                try {
+                    const { latitude, longitude } = pos.coords;
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=es`
+                    );
+                    const data = await res.json();
+                    const commune = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality;
+                    if (commune) onFilterChange({ comuna: commune });
+                } catch {
+                    // silent fail — user can type manually
+                } finally {
+                    setGeoLoading(false);
+                }
+            },
+            () => setGeoLoading(false),
+            { timeout: 8000 }
+        );
+    };
 
     // Conteo por tipo de mascota (client-side, desde los servicios actuales)
     const total = services.length;
@@ -77,7 +103,7 @@ export default function ServiceFilters({ filters, categories, services = [], onF
 
                     {/* Ubicación */}
                     <div className="w-full md:flex-1 min-w-[200px] relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -91,6 +117,17 @@ export default function ServiceFilters({ filters, categories, services = [], onF
                                 onFilterChange({ comuna: cityName });
                             }}
                         />
+                        <button
+                            type="button"
+                            onClick={handleGeolocate}
+                            disabled={geoLoading}
+                            title="Usar mi ubicación actual"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 disabled:opacity-50 z-10"
+                        >
+                            {geoLoading
+                                ? <Loader2 size={16} className="animate-spin" />
+                                : <Crosshair size={16} />}
+                        </button>
                     </div>
 
                     {/* Mobile toggle */}
