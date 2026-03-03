@@ -2,22 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Search, MapPin, LayoutGrid, Calendar } from 'lucide-react';
 
-const COMUNAS_CHILE = [
-    'Alhué', 'Buin', 'Calera de Tango', 'Cerrillos', 'Cerro Navia', 'Colina',
-    'Conchalí', 'Curacaví', 'El Bosque', 'El Monte', 'Estación Central',
-    'Huechuraba', 'Independencia', 'Isla de Maipo', 'La Cisterna', 'La Florida',
-    'La Granja', 'La Pintana', 'La Reina', 'Lampa', 'Las Condes', 'Lo Barnechea',
-    'Lo Espejo', 'Lo Prado', 'Lo Barnechea', 'Macul', 'Maipú', 'María Pinto',
-    'Melipilla', 'Ñuñoa', 'Padre Hurtado', 'Paine', 'Pedro Aguirre Cerda',
-    'Peñaflor', 'Peñalolén', 'Pirque', 'Providencia', 'Pudahuel', 'Puente Alto',
-    'Quilicura', 'Quinta Normal', 'Recoleta', 'Renca', 'San Bernardo',
-    'San Joaquín', 'San José de Maipo', 'San Miguel', 'San Pedro', 'San Ramón',
-    'Santiago', 'Talagante', 'Tiltil', 'Vitacura',
-    // Otras regiones
-    'Antofagasta', 'Arica', 'Concepción', 'Coquimbo', 'Iquique', 'La Serena',
-    'Osorno', 'Puerto Montt', 'Punta Arenas', 'Rancagua', 'Talca', 'Temuco',
-    'Valdivia', 'Valparaíso', 'Viña del Mar',
-];
+import { COMUNAS_CHILE } from '../../lib/comunas';
 
 export default function SearchBar() {
     const router = useRouter();

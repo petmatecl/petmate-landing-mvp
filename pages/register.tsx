@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { Search, Briefcase, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
+import { COMUNAS_CHILE } from "../lib/comunas";
 
 type Role = "usuario" | "proveedor";
 
@@ -19,29 +20,6 @@ const CATEGORIES = [
   { value: 'traslado', label: 'Traslado' },
 ];
 
-const COMUNAS_CHILE = [
-  // Región Metropolitana
-  'Cerrillos', 'Cerro Navia', 'Conchalí', 'El Bosque', 'Estación Central',
-  'Huechuraba', 'Independencia', 'La Cisterna', 'La Florida', 'La Granja',
-  'La Pintana', 'La Reina', 'Las Condes', 'Lo Barnechea', 'Lo Espejo',
-  'Lo Prado', 'Macul', 'Maipú', 'Ñuñoa', 'Pedro Aguirre Cerda', 'Peñalolén',
-  'Providencia', 'Pudahuel', 'Quilicura', 'Quinta Normal', 'Recoleta', 'Renca',
-  'San Joaquín', 'San Miguel', 'San Ramón', 'Santiago', 'Vitacura',
-  // Gran Santiago (provincias)
-  'Buin', 'Calera de Tango', 'Colina', 'El Monte', 'Isla de Maipo', 'Lampa',
-  'Melipilla', 'Padre Hurtado', 'Paine', 'Peñaflor', 'Pirque', 'San Bernardo',
-  'San José de Maipo', 'Talagante', 'Tiltil',
-  // Resto de Chile (principales)
-  'Arica', 'Iquique', 'Alto Hospicio', 'Calama', 'Antofagasta', 'Copiapó',
-  'Vallenar', 'La Serena', 'Coquimbo', 'Ovalle', 'Illapel',
-  'Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana', 'Quillota',
-  'San Antonio', 'San Felipe', 'Los Andes', 'Rancagua', 'Machalí',
-  'Curicó', 'Talca', 'Linares', 'Constitución', 'Chillán', 'Los Ángeles',
-  'Concepción', 'Talcahuano', 'San Pedro de la Paz', 'Hualpén', 'Coronel',
-  'Lota', 'Lebu', 'Temuco', 'Padre Las Casas', 'Villarrica', 'Pucón',
-  'Osorno', 'Puerto Montt', 'Puerto Varas', 'Castro', 'Coyhaique',
-  'Punta Arenas',
-];
 
 export default function RegisterWizard() {
   const router = useRouter();
