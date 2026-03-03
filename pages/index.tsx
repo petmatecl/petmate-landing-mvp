@@ -79,14 +79,16 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
       </Head>
 
       {/* SECCIÓN 1: HERO + BUSCADOR */}
-      <section className="bg-slate-50 pt-16 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200">
+      <section className="bg-white pt-16 pb-24 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
 
           {/* Columna izquierda: texto + búsqueda */}
           <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-              Servicios para tu mascota, cerca de ti
-            </h1>
+            <div className="border-l-4 border-emerald-600 pl-5">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+                Servicios para tu mascota, cerca de ti
+              </h1>
+            </div>
             <p className="text-lg text-slate-600 max-w-xl">
               Encuentra proveedores verificados en tu comuna. Compara, contacta y coordina directamente.
             </p>
@@ -94,7 +96,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
             <SearchBar />
 
             {/* Badges de confianza */}
-            <div className="flex flex-wrap gap-4 text-sm font-bold text-slate-700">
+            <div className="inline-flex flex-wrap gap-4 bg-emerald-50 rounded-xl px-4 py-3 text-sm font-bold text-slate-700">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 Proveedores verificados

@@ -43,8 +43,8 @@ export default function SearchBar() {
     };
 
     return (
-        <form onSubmit={handleSearch} className="bg-white p-6 rounded-3xl shadow-md border border-slate-200 flex flex-col gap-4 w-full md:max-w-md ml-auto relative z-10">
-            <h3 className="text-xl font-bold text-slate-900 mb-1">Empieza tu búsqueda</h3>
+        <form onSubmit={handleSearch} className="bg-white p-6 rounded-3xl shadow-md border border-slate-200 flex flex-col gap-4 w-full md:max-w-md md:ml-auto relative z-10">
+            <h3 className="text-xl font-semibold text-slate-900 mb-1">Empieza tu busqueda</h3>
 
             {/* Campo Servicio — select */}
             <div className="relative">
@@ -121,7 +121,7 @@ export default function SearchBar() {
 
             <button
                 type="submit"
-                className="bg-emerald-700 hover:bg-emerald-800 hover:-translate-y-0.5 hover:shadow-lg text-white w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all mt-2 shadow-sm"
+                className="bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-md text-white w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all mt-2"
             >
                 <Search className="w-5 h-5" />
                 Buscar servicios

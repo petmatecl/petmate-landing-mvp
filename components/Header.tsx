@@ -7,7 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
 import UnreadBadge from "./Shared/UnreadBadge";
 import QuickSearch from "./Header/QuickSearch";
-import { Search } from "lucide-react";
+import { Search, Briefcase } from "lucide-react";
 
 export default function Header() {
 
@@ -151,7 +151,7 @@ export default function Header() {
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
-                    <span>🛠️</span>
+                    <Briefcase size={14} />
                     <span>Ofreciendo</span>
                   </button>
                 </div>
