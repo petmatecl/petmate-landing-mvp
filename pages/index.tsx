@@ -79,7 +79,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
       </Head>
 
       {/* SECCIÓN 1: HERO + BUSCADOR */}
-      <section className="bg-white pt-16 pb-24 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
+      <section aria-label="Buscador de servicios" className="bg-white pt-16 pb-24 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
 
           {/* Columna izquierda: texto + búsqueda */}
@@ -129,54 +129,8 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
         </div>
       </section>
 
-      {/* SECCIÓN 1.5: CÓMO FUNCIONA — 3 PASOS */}
-      <section className="py-16 bg-white border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-slate-900 mb-3">
-              Encuentra el cuidado perfecto en 3 pasos
-            </h2>
-            <p className="text-slate-600 text-lg">
-              Conectamos dueños de mascotas con proveedores verificados en tu comuna
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-2">1. Busca y compara</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Filtra por servicio y comuna. Revisa perfiles, reseñas y tarifas de cada proveedor.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-2">2. Contacta directo</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Escribe al proveedor para coordinar detalles y aclarar dudas antes de contratar.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-2">3. Acuerda y coordina</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Coordina fechas, horarios y pago directamente con tu proveedor elegido.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* SECCIÓN 2: CATEGORÍAS */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section aria-label="Categorias de servicio" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-black text-slate-900">¿Qué servicio necesitas?</h2>
           <p className="text-slate-600 mt-3 text-lg">Explora todas las categorías disponibles en tu zona</p>
@@ -220,7 +174,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
       )}
 
       {/* SECCIÓN 4: CÓMO FUNCIONA (DUEÑOS) */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
+      <section aria-label="Como funciona para duenos de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
         <div className="mb-16">
           <p className="text-emerald-700 font-bold uppercase tracking-widest text-sm mb-3">Para dueños de mascotas</p>
           <h2 className="text-3xl font-black text-slate-900">Encuentra al proveedor ideal en minutos</h2>
@@ -253,28 +207,28 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
       {/* SECCIÓN 5: CONFIANZA — solo si hay 3+ proveedores activos */}
       {stats.proveedores >= 3 ? (
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
+        <section aria-label="Verificacion de proveedores y testimonios" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-black text-slate-900 mb-10">Proveedores que puedes conocer</h2>
 
-              <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-50 p-6 md:px-12 rounded-3xl border border-slate-200 mb-12 max-w-5xl mx-auto text-left md:text-center shadow-sm">
+              <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-900 p-8 md:px-12 rounded-3xl mb-12 max-w-5xl mx-auto text-left md:text-center">
                 <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <IdCard className="w-8 h-8 text-emerald-700 mb-3" />
-                  <h4 className="font-bold text-slate-900 mb-2">Verificación de RUT</h4>
-                  <p className="text-sm text-slate-600">Validamos la identidad de cada proveedor antes de activar su perfil</p>
+                  <IdCard className="w-8 h-8 text-emerald-400 mb-3" />
+                  <h4 className="font-bold text-white mb-2">Verificación de RUT</h4>
+                  <p className="text-sm text-slate-300">Validamos la identidad de cada proveedor antes de activar su perfil</p>
                 </div>
-                <div className="hidden md:block w-px h-24 bg-slate-200"></div>
+                <div className="hidden md:block w-px h-24 bg-slate-700"></div>
                 <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <ClipboardCheck className="w-8 h-8 text-emerald-700 mb-3" />
-                  <h4 className="font-bold text-slate-900 mb-2">Aprobación manual</h4>
-                  <p className="text-sm text-slate-600">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
+                  <ClipboardCheck className="w-8 h-8 text-emerald-400 mb-3" />
+                  <h4 className="font-bold text-white mb-2">Aprobación manual</h4>
+                  <p className="text-sm text-slate-300">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
                 </div>
-                <div className="hidden md:block w-px h-24 bg-slate-200"></div>
+                <div className="hidden md:block w-px h-24 bg-slate-700"></div>
                 <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <Star className="w-8 h-8 text-emerald-700 mb-3" />
-                  <h4 className="font-bold text-slate-900 mb-2">Reseñas reales</h4>
-                  <p className="text-sm text-slate-600">Solo dueños que contactaron al proveedor pueden dejar evaluaciones</p>
+                  <Star className="w-8 h-8 text-emerald-400 mb-3" />
+                  <h4 className="font-bold text-white mb-2">Reseñas reales</h4>
+                  <p className="text-sm text-slate-300">Solo dueños que contactaron al proveedor pueden dejar evaluaciones</p>
                 </div>
               </div>
             </div>
@@ -306,7 +260,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
       )}
 
       {/* SECCIÓN 6: CÓMO FUNCIONA (PROVEEDORES) */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
+      <section aria-label="Como funciona para proveedores" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <p className="text-emerald-400 font-bold uppercase tracking-widest text-sm mb-3">Para proveedores</p>

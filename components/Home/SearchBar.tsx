@@ -43,7 +43,7 @@ export default function SearchBar() {
     };
 
     return (
-        <form onSubmit={handleSearch} className="bg-white p-6 rounded-3xl shadow-md border border-slate-200 flex flex-col gap-4 w-full md:max-w-md md:ml-auto relative z-10">
+        <form onSubmit={handleSearch} role="search" aria-label="Buscar servicios para mascotas" className="bg-white p-6 rounded-3xl shadow-md border border-slate-200 flex flex-col gap-4 w-full md:max-w-md md:ml-auto relative z-10">
             <h3 className="text-xl font-semibold text-slate-900 mb-1">Empieza tu busqueda</h3>
 
             {/* Campo Servicio — select */}
@@ -116,7 +116,7 @@ export default function SearchBar() {
 
             {/* Error inline */}
             {errorMsg && (
-                <p className="text-sm text-red-500 font-medium -mt-1">{errorMsg}</p>
+                <p role="alert" aria-live="polite" className="text-sm text-red-500 font-medium -mt-1">{errorMsg}</p>
             )}
 
             <button
