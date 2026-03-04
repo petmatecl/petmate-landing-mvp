@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Search, MapPin, LayoutGrid, Calendar } from 'lucide-react';
+import { Search, MapPin, LayoutGrid } from 'lucide-react';
 
 import { COMUNAS_CHILE } from '../../lib/comunas';
 
@@ -8,14 +8,15 @@ export default function SearchBar() {
     const router = useRouter();
     const [categoria, setCategoria] = useState('');
     const [comunaQuery, setComunaQuery] = useState('');
-    const [fecha, setFecha] = useState('');
     const [showComunaList, setShowComunaList] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const comunaRef = useRef<HTMLDivElement>(null);
 
-    const comunasFiltradas = COMUNAS_CHILE.filter(c =>
-        c.toLowerCase().includes(comunaQuery.toLowerCase())
-    ).slice(0, 6);
+    // Muestra hasta 8 comunas filtradas; si no hay texto muestra las primeras 8
+    const comunasFiltradas = (comunaQuery.length === 0
+        ? COMUNAS_CHILE
+        : COMUNAS_CHILE.filter(c => c.toLowerCase().includes(comunaQuery.toLowerCase()))
+    ).slice(0, 8);
 
     // Cerrar dropdown al hacer click fuera
     useEffect(() => {
@@ -38,7 +39,6 @@ export default function SearchBar() {
         const query: Record<string, string> = {};
         if (categoria) query.categoria = categoria;
         if (comunaQuery.trim()) query.comuna = comunaQuery.trim();
-        if (fecha) query.fecha = fecha;
         router.push({ pathname: '/explorar', query });
     };
 
@@ -80,7 +80,7 @@ export default function SearchBar() {
                     autoComplete="off"
                     className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none placeholder:text-slate-400 transition-all"
                 />
-                {showComunaList && comunaQuery.length > 0 && comunasFiltradas.length > 0 && (
+                {showComunaList && comunasFiltradas.length > 0 && (
                     <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
                         {comunasFiltradas.map(c => (
                             <li key={c}>
@@ -94,23 +94,6 @@ export default function SearchBar() {
                             </li>
                         ))}
                     </ul>
-                )}
-            </div>
-
-            {/* Campo Fecha (opcional) */}
-            <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
-                <input
-                    type="date"
-                    value={fecha}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setFecha(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none transition-all"
-                />
-                {!fecha && (
-                    <span className="absolute left-12 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
-                        Fecha de inicio (opcional)
-                    </span>
                 )}
             </div>
 
