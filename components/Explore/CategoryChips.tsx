@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, Grid2x2 } from 'lucide-react';
 
 interface Category {
-    id: number;
+    id: string;
     slug: string;
     nombre: string;
     icono: string;

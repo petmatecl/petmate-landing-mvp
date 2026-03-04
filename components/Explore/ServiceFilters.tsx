@@ -5,7 +5,7 @@ import { ServiceResult } from './ServiceCard';
 import { Crosshair, Loader2 } from 'lucide-react';
 
 interface Category {
-    id: number;
+    id: string;
     slug: string;
     nombre: string;
     icono: string;

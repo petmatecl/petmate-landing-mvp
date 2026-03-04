@@ -11,11 +11,23 @@ import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
 
 interface Category {
-    id: number;
+    id: string;
     slug: string;
     nombre: string;
     icono: string;
 }
+
+// Fallback estático en caso de que la DB demore o falle
+const STATIC_CATEGORIES: Category[] = [
+    { id: 'adiestramiento', slug: 'adiestramiento', nombre: 'Adiestramiento', icono: '🎓' },
+    { id: 'domicilio', slug: 'domicilio', nombre: 'Cuidado a Domicilio', icono: '🏡' },
+    { id: 'guarderia', slug: 'guarderia', nombre: 'Guardería Diurna', icono: '☀️' },
+    { id: 'hospedaje', slug: 'hospedaje', nombre: 'Hospedaje', icono: '🏠' },
+    { id: 'paseos', slug: 'paseos', nombre: 'Paseo de Perros', icono: '🦮' },
+    { id: 'peluqueria', slug: 'peluqueria', nombre: 'Peluquería', icono: '✂️' },
+    { id: 'traslado', slug: 'traslado', nombre: 'Traslado', icono: '🚗' },
+    { id: 'veterinario', slug: 'veterinario', nombre: 'Veterinario a Domicilio', icono: '🩺' },
+];
 
 const PAGE_SIZE = 20;
 
@@ -31,7 +43,7 @@ export default function ExplorarPage() {
     const gridRef = useRef<HTMLDivElement>(null);
     const { user } = useUser();
 
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [categories, setCategories] = useState<Category[]>(STATIC_CATEGORIES);;
     const [services, setServices] = useState<ServiceResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
@@ -52,7 +64,7 @@ export default function ExplorarPage() {
 
     const [pagina, setPagina] = useState(1);
 
-    // 1. Cargar Categorías
+    // 1. Cargar Categorías desde DB (reemplaza el fallback estático si tiene datos)
     useEffect(() => {
         async function fetchCategories() {
             const { data, error } = await supabase
@@ -60,8 +72,9 @@ export default function ExplorarPage() {
                 .select('id, slug, nombre, icono')
                 .order('nombre', { ascending: true });
             if (!error && data && data.length > 0) {
-                setCategories(data);
+                setCategories(data as Category[]);
             }
+            // Si falla, se mantiene el fallback estático
         }
         fetchCategories();
     }, []);
