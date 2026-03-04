@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Search, Briefcase, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { Search, Briefcase, CheckCircle2, Eye, EyeOff, PawPrint, ArrowLeft } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
 import { COMUNAS_CHILE } from "../lib/comunas";
@@ -204,14 +204,29 @@ export default function RegisterWizard() {
   return (
     <>
       <Head>
-        <title>Crear Cuenta — Pawnecta</title>
-        <meta name="description" content="Únete a Pawnecta. Encuentra o publica servicios para mascotas en tu comuna." />
+        <title>Crear cuenta — Pawnecta</title>
+        <meta name="description" content="Regístrate en Pawnecta. Crea tu cuenta gratis para encontrar o publicar servicios para mascotas en Chile." />
       </Head>
 
-      <main className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
+      {/* Minimal header */}
+      <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 sm:px-8">
+        <Link href="/" className="flex items-center gap-2 text-slate-900 font-bold text-lg hover:opacity-80 transition-opacity">
+          <PawPrint size={22} className="text-emerald-600" />
+          Pawnecta
+        </Link>
+        <Link
+          href="/explorar"
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors"
+        >
+          <ArrowLeft size={14} />
+          Explorar servicios
+        </Link>
+      </header>
+
+      <main className="min-h-[calc(100vh-3.5rem-2.5rem)] bg-slate-50 flex flex-col justify-center items-center p-4 py-10">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
-          {/* Header */}
+          {/* Progress header */}
           <div className="bg-slate-50 border-b border-slate-100 p-6 sm:px-10 flex flex-col items-center">
             <h1 className="text-2xl font-bold text-slate-800">Crea tu cuenta en Pawnecta</h1>
             {step < 4 && (
@@ -496,11 +511,23 @@ export default function RegisterWizard() {
         </div>
 
         {step < 4 && (
-          <div className="mt-8 text-center text-sm text-slate-500">
-            ¿Ya tienes cuenta? <Link href="/login" className="text-emerald-700 font-semibold hover:underline">Inicia sesión aquí</Link>
+          <div className="mt-6 text-center text-sm text-slate-500">
+            ¿Ya tienes cuenta?{" "}
+            <Link href="/login" className="text-emerald-700 font-semibold hover:underline">
+              Ingresa aquí
+            </Link>
           </div>
         )}
       </main>
+
+      {/* Minimal footer */}
+      <footer className="h-10 bg-white border-t border-slate-100 flex items-center justify-center gap-4 px-4">
+        <Link href="/terminos" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Términos de servicio</Link>
+        <span className="text-slate-200">·</span>
+        <Link href="/privacidad" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Privacidad</Link>
+        <span className="text-slate-200">·</span>
+        <a href="mailto:contacto@pawnecta.com" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Contacto</a>
+      </footer>
     </>
   );
 }

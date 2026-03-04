@@ -1,5 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check, Grid2x2 } from 'lucide-react';
+import {
+    ChevronDown, Check, Grid2x2,
+    Home, Sun, MapPin, Scissors, Truck, Stethoscope, Dumbbell, PawPrint,
+    LucideIcon
+} from 'lucide-react';
+
+const SLUG_ICONS: Record<string, LucideIcon> = {
+    hospedaje: Home,
+    guarderia: Sun,
+    paseos: PawPrint,
+    peluqueria: Scissors,
+    traslado: Truck,
+    veterinario: Stethoscope,
+    adiestramiento: Dumbbell,
+    domicilio: MapPin,
+};
 
 interface Category {
     id: string;
@@ -85,6 +100,7 @@ export default function CategorySelect({ categories, selectedCategories, onChang
                     <div className="py-1 max-h-64 overflow-y-auto">
                         {categories.map(cat => {
                             const checked = selectedCategories.includes(cat.slug);
+                            const CatIcon = SLUG_ICONS[cat.slug] ?? Grid2x2;
                             return (
                                 <button
                                     key={cat.id}
@@ -98,7 +114,7 @@ export default function CategorySelect({ categories, selectedCategories, onChang
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'}`}>
                                         {checked && <Check size={10} strokeWidth={3} className="text-white" />}
                                     </div>
-                                    <span>{cat.icono}</span>
+                                    <CatIcon size={14} className={checked ? 'text-emerald-600' : 'text-slate-400'} />
                                     <span className="font-medium">{cat.nombre}</span>
                                 </button>
                             );

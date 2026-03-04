@@ -3,67 +3,40 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { Mail, Lock, Eye, EyeOff, PawPrint, Loader2, ArrowLeft } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Card } from "../components/Shared/Card";
-import GoogleAuthButton from "../components/GoogleAuthButton";
-import LinkedInAuthButton from "../components/LinkedInAuthButton";
-import { AuthService, Role } from "../lib/authService";
-import { RoleSelector } from "../components/Auth/RoleSelector";
+import { RoleSelector, Role } from "../components/Auth/RoleSelector";
 
-// ==== Íconos mono (inline SVG) ====
-const MailIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
-    <rect x="3" y="5" width="18" height="14" rx="2" />
-    <path d="M3 7l9 6 9-6" />
-  </svg>
-);
-const LockIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
-    <rect x="4" y="11" width="16" height="9" rx="2" />
-    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-  </svg>
-);
-const EyeIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
-    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
-    <circle cx="12" cy="12" r="3.2" />
-  </svg>
-);
-const EyeOffIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
-    <path d="M17.94 17.94C16.1 19.24 14.12 20 12 20 5 20 1 12 1 12a20.1 20.1 0 0 1 6.05-6.05m4.31-1.55C19 4.4 23 12 23 12a20.14 20.14 0 0 1-2.83 3.94" />
-    <path d="M1 1l22 22" />
-  </svg>
-);
-
-
+const inputClass =
+  "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors";
 
 export default function LoginPage() {
   const router = useRouter();
+  const redirect = typeof router.query.redirect === "string" ? router.query.redirect : null;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
 
-  // New State for Profile Selection
+  // Role selector state (multi-role users)
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<string[]>([]);
   const [userName, setUserName] = useState<string>("");
 
   React.useEffect(() => {
     if (router.query.timeout === "true") {
-      setError("Por seguridad, tu sesión se ha cerrado tras 10 minutos de inactividad.");
+      setError("Por seguridad, tu sesión se cerró tras 10 minutos de inactividad.");
     }
   }, [router.query.timeout]);
 
-  const handleRoleSelect = async (selectedRole: Role) => {
+  const handleRoleSelect = (selectedRole: Role) => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("activeRole", selectedRole);
     }
-    // Redirect
-    if (selectedRole === 'admin') {
-      await router.push("/admin");
+    if (selectedRole === "admin") {
+      router.push("/admin");
     } else {
-      await router.push(selectedRole === "cliente" ? "/usuario" : "/proveedor");
+      router.push(selectedRole === "usuario" ? "/usuario" : "/proveedor");
     }
   };
 
@@ -76,7 +49,7 @@ export default function LoginPage() {
     const password = String(form.get("password") || "");
 
     if (!email || !password) {
-      setError("Completa tu correo y contraseña.");
+      setError("Ingresa tu correo y contraseña para continuar.");
       return;
     }
 
@@ -87,184 +60,206 @@ export default function LoginPage() {
       }
       setLoading(true);
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
-        console.error("Error al iniciar sesión:", error);
         const msg = error.message.toLowerCase();
         if (msg.includes("email not confirmed")) {
-          setError("Debes confirmar tu correo antes de iniciar sesión. Revisa tu lista de spam.");
+          setError("Debes confirmar tu correo antes de ingresar. Revisa tu bandeja de entrada o carpeta de spam.");
         } else {
-          setError("Correo o contraseña incorrectos.");
+          setError("El correo o la contraseña no son correctos. Inténtalo de nuevo.");
         }
         setLoading(false);
         return;
       }
 
       if (!data?.user) {
-        setError("No se pudo iniciar sesión. Intenta nuevamente.");
+        setError("No se pudo iniciar sesión. Inténtalo de nuevo.");
         setLoading(false);
         return;
       }
 
-      // Buscar perfil en proveedores y usuarios_buscadores directamente
+      // Check profiles
       const { data: proveedorData } = await supabase
-        .from('proveedores')
-        .select('estado')
-        .eq('auth_user_id', data.user.id)
+        .from("proveedores")
+        .select("estado")
+        .eq("auth_user_id", data.user.id)
         .maybeSingle();
 
       const { data: buscadorData } = await supabase
-        .from('usuarios_buscadores')
-        .select('id')
-        .eq('auth_user_id', data.user.id)
+        .from("usuarios_buscadores")
+        .select("id")
+        .eq("auth_user_id", data.user.id)
         .maybeSingle();
 
-      // Sin perfil en ninguna tabla: registro incompleto
       if (!proveedorData && !buscadorData) {
         setLoading(false);
-        window.location.replace('/register?resume=true');
+        window.location.replace("/register?resume=true");
         return;
       }
 
-      // Proveedor
-      if (proveedorData) {
-        const savedMode = typeof window !== 'undefined'
-          ? window.localStorage.getItem('pawnecta_active_mode') || 'buscador'
-          : 'buscador';
+      // Redirect to origin if present, else to role default
+      const target =
+        redirect ||
+        (proveedorData &&
+          proveedorData.estado === "aprobado" &&
+          typeof window !== "undefined" &&
+          window.localStorage.getItem("pawnecta_active_mode") === "proveedor"
+          ? "/proveedor"
+          : "/explorar");
 
-        if (proveedorData.estado === 'aprobado' && savedMode === 'proveedor') {
-          window.location.replace('/proveedor');
-        } else {
-          window.location.replace('/explorar');
-        }
-        return;
-      }
-
-      // Usuario buscador
-      window.location.replace('/explorar');
-
+      window.location.replace(target);
     } catch (err: any) {
       console.error(err);
-      setError("No se pudo iniciar sesión. Intenta nuevamente.");
+      setError("Ocurrió un problema al iniciar sesión. Inténtalo más tarde.");
       setLoading(false);
     }
   }
 
-  // == Render: Login Form ==
+  if (showRoleSelector) {
+    return (
+      <RoleSelector
+        roles={availableRoles}
+        userName={userName}
+        onSelect={handleRoleSelect}
+      />
+    );
+  }
+
   return (
     <>
       <Head>
         <title>Iniciar sesión — Pawnecta</title>
+        <meta name="description" content="Ingresa a tu cuenta de Pawnecta y accede a proveedores verificados para el cuidado de tu mascota." />
       </Head>
 
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md mx-auto">
-          <Card variant="elevated" padding="l" className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Iniciar sesión</h1>
-            <p className="text-sm text-slate-500 mb-6">
-              Ingresa a tu cuenta de Pawnecta
+      {/* Minimal header */}
+      <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 sm:px-8">
+        <Link href="/" className="flex items-center gap-2 text-slate-900 font-bold text-lg hover:opacity-80 transition-opacity">
+          <PawPrint size={22} className="text-emerald-600" />
+          Pawnecta
+        </Link>
+        <Link
+          href="/explorar"
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors"
+        >
+          <ArrowLeft size={14} />
+          Explorar servicios
+        </Link>
+      </header>
+
+      <main className="min-h-[calc(100vh-3.5rem-2.5rem)] bg-slate-50 flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md">
+
+          {/* Context banner when coming from protected action */}
+          {redirect && (
+            <div className="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
+              Ingresa a tu cuenta para continuar con tu acción.
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Ingresa a tu cuenta</h1>
+            <p className="text-sm text-slate-500 mb-7">
+              Accede a tu red de proveedores verificados
             </p>
 
-            {/* Config Warning for Production */}
+            {/* Config warning */}
             {process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder") && (
-              <div className="bg-amber-100 text-amber-800 p-4 rounded-lg mb-4 text-sm font-bold border border-amber-300">
-                ⚠️ ALERTA: Supabase no está configurado.
-                <br />
-                Faltan las variables de entorno NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY en Vercel.
+              <div className="bg-amber-50 text-amber-800 p-4 rounded-xl mb-5 text-sm border border-amber-200">
+                Advertencia: la base de datos no está configurada. Faltan variables de entorno de Supabase.
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
 
-              {/* Correo */}
-              <div className="flex flex-col gap-1 mb-4">
+              {/* Email */}
+              <div className="flex flex-col gap-1.5">
                 <label htmlFor="email" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <MailIcon /> <span>Correo</span>
+                  <Mail size={15} className="text-slate-400" />
+                  Correo electrónico
                 </label>
-                <div className="relative">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                    placeholder="tu@correo.com"
-                    autoComplete="off"
-                    required
-                  />
-                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  className={inputClass}
+                  placeholder="tu@correo.cl"
+                  autoComplete="email"
+                  autoFocus
+                  required
+                />
               </div>
 
-              {/* Contraseña */}
-              <div className="flex flex-col gap-1 mb-4">
-                <label htmlFor="password" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <LockIcon /> <span>Contraseña</span>
-                </label>
+              {/* Password */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Lock size={15} className="text-slate-400" />
+                    Contraseña
+                  </label>
+                  <Link href="/forgot-password" className="text-xs text-emerald-700 hover:underline">
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
                 <div className="relative">
                   <input
                     id="password"
                     name="password"
                     type={showPass ? "text" : "password"}
-                    className="w-full h-12 px-4 pr-12 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                    placeholder="••••••••"
-                    autoComplete="off"
+                    className={`${inputClass} pr-12`}
+                    placeholder="Ingresa tu contraseña"
+                    autoComplete="current-password"
                     required
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1 rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                     aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                     onClick={() => setShowPass((v) => !v)}
-                    title={showPass ? "Ocultar" : "Mostrar"}
                   >
-                    {showPass ? <EyeOffIcon /> : <EyeIcon />}
+                    {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
               </div>
 
+              {/* Error */}
               {error && (
-                <p className="text-sm text-red-600 mt-1" role="alert">
+                <p className="text-sm text-red-600 -mt-1" role="alert" aria-live="polite">
                   {error}
                 </p>
               )}
 
-              {/* Botón */}
+              {/* CTA */}
               <button
                 type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors mt-2 flex items-center justify-center gap-2 disabled:bg-slate-700 disabled:cursor-default"
                 disabled={loading}
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
               >
-                {loading && (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2.5"
-                    style={{ animation: "spin 0.8s linear infinite" }}>
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                  </svg>
-                )}
-                {loading ? "Verificando..." : "Ingresar"}
+                {loading && <Loader2 size={18} className="animate-spin" />}
+                {loading ? "Ingresando..." : "Ingresar"}
               </button>
 
-              <div style={{ marginTop: 12 }}>
-                <GoogleAuthButton source="login" />
-                <LinkedInAuthButton role="client" source="login" />
-              </div>
-
-              {/* Links */}
-              <div className="flex justify-between flex-wrap gap-2 text-sm mt-4">
-                <Link href="/register" className="text-emerald-700 hover:underline font-medium">
-                  ¿No tienes cuenta? Regístrate
+              {/* Secondary link */}
+              <p className="text-sm text-center text-slate-500 mt-1">
+                ¿No tienes cuenta?{" "}
+                <Link href="/register" className="text-emerald-700 font-semibold hover:underline">
+                  Regístrate gratis
                 </Link>
-                <Link href="/forgot-password" className="text-emerald-700 hover:underline font-medium">
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </div>
+              </p>
             </form>
-          </Card>
+          </div>
         </div>
-      </main >
+      </main>
+
+      {/* Minimal footer */}
+      <footer className="h-10 bg-white border-t border-slate-100 flex items-center justify-center gap-4 px-4">
+        <Link href="/terminos" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Términos de servicio</Link>
+        <span className="text-slate-200">·</span>
+        <Link href="/privacidad" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Privacidad</Link>
+        <span className="text-slate-200">·</span>
+        <a href="mailto:contacto@pawnecta.com" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Contacto</a>
+      </footer>
     </>
   );
 }
