@@ -1,13 +1,13 @@
 ﻿import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/Admin/AdminLayout';
-import { getAllReviews, updateReviewStatus, createReview, Review } from '../../lib/reviewsService';
+import { getAllReviews, updateReviewStatus, Evaluacion } from '../../lib/reviewsService';
 import { CheckCircle, XCircle, Clock, Plus, Loader, MapPin, User, ChevronDown, Search } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import Image from 'next/image';
 
 export default function AdminReviews() {
-    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviews, setReviews] = useState<Evaluacion[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pendiente' | 'aprobado' | 'rechazado'>('all');
     const [proveedores, setProveedores] = useState<any[]>([]); // For manual review creation
@@ -59,20 +59,36 @@ export default function AdminReviews() {
 
     const handleCreateManualReview = async (e: React.FormEvent) => {
         e.preventDefault();
-        const payload = {
-            sitter_id: manualReview.proveedor_id,
-            calificacion: manualReview.calificacion,
-            comentario: manualReview.comentario,
-            nombre_cliente_manual: manualReview.nombre_cliente_manual,
-            estado: manualReview.estado
-        };
-        const { error } = await createReview(payload);
+        if (!manualReview.proveedor_id) {
+            alert('Selecciona un proveedor.');
+            return;
+        }
+
+        // Resolve a servicio_id for this proveedor (required FK in evaluaciones)
+        const { data: servicioData } = await supabase
+            .from('servicios_publicados')
+            .select('id')
+            .eq('proveedor_id', manualReview.proveedor_id)
+            .limit(1)
+            .maybeSingle();
+
+        const { error } = await supabase
+            .from('evaluaciones')
+            .insert({
+                proveedor_id: manualReview.proveedor_id,
+                servicio_id: servicioData?.id ?? null,
+                rating: manualReview.calificacion,
+                comentario: manualReview.comentario,
+                nombre_cliente_manual: manualReview.nombre_cliente_manual,
+                estado: manualReview.estado,
+            });
+
         if (error) {
-            alert("Error: " + error.message);
+            alert('Error: ' + error.message);
         } else {
             setIsModalOpen(false);
             setManualReview({ proveedor_id: '', calificacion: 5, comentario: '', nombre_cliente_manual: '', estado: 'aprobado' });
-            fetchReviews(); // Refresh list
+            fetchReviews();
         }
     };
 
@@ -160,19 +176,21 @@ export default function AdminReviews() {
                                                 {new Date(review.created_at).toLocaleDateString()}
                                             </td>
                                             <td className="p-4 font-medium text-slate-900">
-                                                {review.nombre_cliente_manual || review.cliente?.nombre || 'Anónimo'}
+                                                {review.nombre_cliente_manual || 'Anónimo'}
                                                 {review.nombre_cliente_manual && (
                                                     <span className="ml-1 text-[10px] bg-slate-100 text-slate-500 px-1 rounded border-2 border-slate-300">Manual</span>
                                                 )}
                                             </td>
                                             <td className="p-4 text-slate-600">
-                                                {/* Requires joining with proveedor data ideally, but for now we rely on user knowing proveedor IDs or fix backend join later */}
-                                                <span className="font-mono text-xs bg-slate-100 px-1 rounded">{review.sitter_id.substring(0, 8)}...</span>
+                                                {review.proveedor
+                                                    ? `${review.proveedor.nombre} ${review.proveedor.apellido_p}`
+                                                    : <span className="font-mono text-xs bg-slate-100 px-1 rounded">{review.proveedor_id?.substring(0, 8)}...</span>
+                                                }
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex text-amber-400 text-xs">
                                                     {[...Array(5)].map((_, i) => (
-                                                        <span key={i}>{i < review.calificacion ? '★' : '☆'}</span>
+                                                        <span key={i}>{i < review.rating ? '★' : '☆'}</span>
                                                     ))}
                                                 </div>
                                             </td>

@@ -407,14 +407,16 @@ export async function getStaticProps() {
     // 3. Comunas cubiertas únicas
     const { data: comunasData } = await supabase
       .from("proveedores")
-      .select("comunas_cobertura")
+      .select("comunas_cobertura, comuna")
       .eq("estado", "aprobado");
 
     if (comunasData) {
       comunasData.forEach(p => {
-        if (Array.isArray(p.comunas_cobertura)) {
-          p.comunas_cobertura.forEach((c: string) => comunasUnicas.add(c));
-        }
+        // Prefer comunas_cobertura array; fallback to single comuna field
+        const comunas = (Array.isArray(p.comunas_cobertura) && p.comunas_cobertura.length > 0)
+          ? p.comunas_cobertura
+          : (p.comuna ? [p.comuna] : []);
+        comunas.forEach((c: string) => comunasUnicas.add(c));
       });
     }
   } catch (err) {
