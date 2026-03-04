@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
-import { Search, Briefcase, CheckCircle2, Eye, EyeOff, PawPrint, ArrowLeft } from "lucide-react";
+import { Search, Briefcase, CheckCircle2, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
 import { COMUNAS_CHILE } from "../lib/comunas";
@@ -210,9 +211,15 @@ export default function RegisterWizard() {
 
       {/* Minimal header */}
       <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 sm:px-8">
-        <Link href="/" className="flex items-center gap-2 text-slate-900 font-bold text-lg hover:opacity-80 transition-opacity">
-          <PawPrint size={22} className="text-emerald-600" />
-          Pawnecta
+        <Link href="/" className="hover:opacity-80 transition-opacity">
+          <Image
+            src="/pawnecta_logo_final-trans.png"
+            alt="Pawnecta"
+            width={140}
+            height={40}
+            priority
+            className="h-9 w-auto object-contain"
+          />
         </Link>
         <Link
           href="/explorar"

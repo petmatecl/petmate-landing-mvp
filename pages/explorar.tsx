@@ -8,6 +8,7 @@ import { useUser } from "../contexts/UserContext";
 
 import ServiceFilters from "../components/Explore/ServiceFilters";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
+import { mapRpcToServiceResult } from "../lib/serviceMapper";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
 
 interface Category {
@@ -161,8 +162,8 @@ export default function ExplorarPage() {
                 for (const { data } of results) {
                     if (!data) continue;
                     for (const item of data as any[]) {
-                        if (!seen.has(item.servicio_id)) {
-                            seen.add(item.servicio_id);
+                        if (!seen.has(item.id)) {
+                            seen.add(item.id);
                             allData.push(item);
                         }
                     }
@@ -173,7 +174,7 @@ export default function ExplorarPage() {
             // Client-side sort
             const rankingScore = (item: any): number => {
                 const rating = (item.rating_promedio / 5) * 0.35;
-                const hasPhoto = item.proveedor_foto ? 0.10 : 0;
+                const hasPhoto = item.foto_perfil ? 0.10 : 0;
                 const hasReviews = item.total_evaluaciones > 0 ? 0.15 : 0;
                 const isDestacado = item.destacado ? 0.10 : 0;
                 // Recency: use servicio_id as proxy when updated_at not in payload
@@ -195,7 +196,7 @@ export default function ExplorarPage() {
 
 
             setTotalCount(serverTotal);
-            setServices(allData);
+            setServices(allData.map(mapRpcToServiceResult));
 
             // Si no hay resultados con comuna + al menos una categoria → sugerir comunas
             if (allData.length === 0 && filters.comuna && filters.categorias.length > 0) {
@@ -213,7 +214,7 @@ export default function ExplorarPage() {
                 });
                 if (altData && altData.length > 0) {
                     const comunas = Array.from(new Set(
-                        (altData as any[]).map(s => s.proveedor_comuna).filter(Boolean)
+                        (altData as any[]).map(s => s.comuna).filter(Boolean)
                     )).slice(0, 4) as string[];
                     setComunasSugeridas(comunas);
                 }

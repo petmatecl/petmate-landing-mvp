@@ -3,6 +3,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { GetStaticProps } from "next";
+import { mapJoinToServiceResult } from "../lib/serviceMapper";
+import { ServiceResult } from "../components/Explore/ServiceCard";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
@@ -367,7 +370,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
 export async function getStaticProps() {
   // Query desde Supabase para servicios destacados
-  let featuredServices = [];
+  let featuredServices: ServiceResult[] = [];
   try {
     const { data } = await supabase
       .from('servicios_publicados')
@@ -375,7 +378,7 @@ export async function getStaticProps() {
       .eq('activo', true)
       .order('created_at', { ascending: false })
       .limit(6);
-    if (data) featuredServices = data;
+    if (data) featuredServices = data.map(mapJoinToServiceResult);
   } catch (error) {
     console.error("Error fetching featured services:", error);
   }
