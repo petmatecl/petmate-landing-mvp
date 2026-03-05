@@ -15,6 +15,7 @@ import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
+    Briefcase, Award, Globe, Instagram,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -487,6 +488,69 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 </div>
                             </div>
 
+                            {/* Insignias de confianza */}
+                            {(proveedor.tipo_entidad === 'empresa' || proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda || proveedor.miembro_asociacion) && (
+                                <div className="border-t border-slate-100 pt-5 flex flex-col gap-3">
+                                    <h4 className="font-bold text-slate-800 text-sm mb-1">Credenciales de confianza</h4>
+
+                                    {proveedor.tipo_entidad === 'empresa' && (
+                                        <div className="flex items-start gap-2 text-sm text-slate-600">
+                                            <Briefcase size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <div>
+                                                <span className="font-bold text-slate-800 block text-sm">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
+                                                <span className="text-xs text-slate-500">Cuenta Empresa {proveedor.giro && `• ${proveedor.giro}`}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 && (
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            <span className="font-medium">{proveedor.anios_experiencia} años de exp.</span>
+                                        </div>
+                                    )}
+
+                                    {proveedor.certificaciones && (
+                                        <div className="flex items-start gap-2 text-sm text-slate-600">
+                                            <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <span className="font-medium break-words leading-tight">{proveedor.certificaciones}</span>
+                                        </div>
+                                    )}
+
+                                    {proveedor.primera_ayuda && (
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <div className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                                            </div>
+                                            <span className="font-medium">Primeros Auxilios</span>
+                                        </div>
+                                    )}
+
+                                    {proveedor.miembro_asociacion && (
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <Award size={16} className="text-emerald-600 shrink-0" />
+                                            <span className="font-medium">Miembro de Asociación</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Enlaces y Redes */}
+                            {(proveedor.sitio_web || proveedor.instagram) && (
+                                <div className="border-t border-slate-100 pt-4 flex gap-3">
+                                    {proveedor.sitio_web && (
+                                        <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-emerald-600 transition-colors p-2 bg-slate-50 rounded-lg" title="Sitio Web">
+                                            <Globe size={18} />
+                                        </a>
+                                    )}
+                                    {proveedor.instagram && (
+                                        <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-pink-600 transition-colors p-2 bg-slate-50 rounded-lg" title="Instagram">
+                                            <Instagram size={18} />
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+
                         </div>
 
                     </div>
@@ -518,7 +582,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .select(`
                 *,
                 proveedores!inner(
-                    id, auth_user_id, nombre, apellido_p, rut_verificado, foto_perfil, comuna, mostrar_whatsapp, mostrar_telefono, telefono
+                    id, auth_user_id, nombre, apellido_p, rut_verificado, foto_perfil, comuna, mostrar_whatsapp, mostrar_telefono, telefono,
+                    tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, anios_experiencia, certificaciones, sitio_web, instagram, primera_ayuda, miembro_asociacion
                 ),
                 categorias_servicio!inner(
                     nombre, slug, icono

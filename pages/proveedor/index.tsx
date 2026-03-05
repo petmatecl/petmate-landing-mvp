@@ -59,6 +59,21 @@ export default function ProveedorDashboard() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
 
+    // Nuevos campos Perfil-01 (Empresa)
+    const [tipoEntidad, setTipoEntidad] = useState<'persona_natural' | 'empresa'>('persona_natural');
+    const [razonSocial, setRazonSocial] = useState('');
+    const [rutEmpresa, setRutEmpresa] = useState('');
+    const [nombreFantasia, setNombreFantasia] = useState('');
+    const [giro, setGiro] = useState('');
+
+    // Nuevos campos Perfil-02 (Credenciales)
+    const [aniosExperiencia, setAniosExperiencia] = useState<string>('');
+    const [certificaciones, setCertificaciones] = useState('');
+    const [sitioWeb, setSitioWeb] = useState('');
+    const [instagram, setInstagram] = useState('');
+    const [primeraAyuda, setPrimeraAyuda] = useState(false);
+    const [miembroAsociacion, setMiembroAsociacion] = useState(false);
+
     useEffect(() => {
         if (user && !userLoading) {
             checkProviderStatus();
@@ -88,6 +103,19 @@ export default function ProveedorDashboard() {
             setMostrarTelefono(data.mostrar_telefono ?? false);
             setMostrarEmail(data.mostrar_email ?? false);
             setFotoPerfil(data.foto_perfil || '');
+
+            setTipoEntidad(data.tipo_entidad || 'persona_natural');
+            setRazonSocial(data.razon_social || '');
+            setRutEmpresa(data.rut_empresa || '');
+            setNombreFantasia(data.nombre_fantasia || '');
+            setGiro(data.giro || '');
+
+            setAniosExperiencia(data.anios_experiencia?.toString() || '');
+            setCertificaciones(data.certificaciones || '');
+            setSitioWeb(data.sitio_web || '');
+            setInstagram(data.instagram || '');
+            setPrimeraAyuda(data.primera_ayuda ?? false);
+            setMiembroAsociacion(data.miembro_asociacion ?? false);
 
             if (data.estado === 'aprobado') {
                 loadTabData('servicios', data.id, data.auth_user_id);
@@ -157,7 +185,18 @@ export default function ProveedorDashboard() {
         setSavingProfile(true);
         const { error } = await supabase.from('proveedores').update({
             bio, comuna, whatsapp, telefono, email_publico: emailPublico,
-            mostrar_whatsapp: mostrarWhatsapp, mostrar_telefono: mostrarTelefono, mostrar_email: mostrarEmail
+            mostrar_whatsapp: mostrarWhatsapp, mostrar_telefono: mostrarTelefono, mostrar_email: mostrarEmail,
+            tipo_entidad: tipoEntidad,
+            razon_social: tipoEntidad === 'empresa' ? razonSocial : null,
+            rut_empresa: tipoEntidad === 'empresa' ? rutEmpresa : null,
+            nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia : null,
+            giro: tipoEntidad === 'empresa' ? giro : null,
+            anios_experiencia: aniosExperiencia ? parseInt(aniosExperiencia) : null,
+            certificaciones,
+            sitio_web: sitioWeb,
+            instagram,
+            primera_ayuda: primeraAyuda,
+            miembro_asociacion: miembroAsociacion,
         }).eq('auth_user_id', user.id);
 
         setSavingProfile(false);
@@ -537,16 +576,62 @@ export default function ProveedorDashboard() {
                                         )}
                                     </div>
 
+                                    {/* Tipo de Entidad */}
+                                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Tipo de Cuenta</h3>
+                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                        <button type="button"
+                                            onClick={() => setTipoEntidad("persona_natural")}
+                                            className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
+                                                    ? "border-emerald-500 bg-emerald-50"
+                                                    : "border-slate-200 hover:border-slate-300"
+                                                }`}
+                                        >
+                                            <p className="font-bold text-slate-900 text-sm">Persona Natural</p>
+                                        </button>
+                                        <button type="button"
+                                            onClick={() => setTipoEntidad("empresa")}
+                                            className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
+                                                    ? "border-emerald-500 bg-emerald-50"
+                                                    : "border-slate-200 hover:border-slate-300"
+                                                }`}
+                                        >
+                                            <p className="font-bold text-slate-900 text-sm">Empresa o Emprendimiento</p>
+                                        </button>
+                                    </div>
+
+                                    {tipoEntidad === 'empresa' && (
+                                        <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 mb-1">Razón social *</label>
+                                                <input type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} required className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 mb-1">RUT de la empresa *</label>
+                                                <input type="text" value={rutEmpresa} onChange={e => setRutEmpresa(e.target.value)} required maxLength={12} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 mb-1">Nombre fantasía (marca)</label>
+                                                <input type="text" value={nombreFantasia} onChange={e => setNombreFantasia(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 mb-1">Giro o rubro</label>
+                                                <input type="text" value={giro} onChange={e => setGiro(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Información General</h3>
+
                                     {/* Editables */}
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Biografía / Acerca de mí</label>
                                         <textarea
                                             value={bio} onChange={e => setBio(e.target.value)}
-                                            rows={4} maxLength={300}
+                                            rows={6} maxLength={600}
                                             placeholder="Cuéntale a los clientes sobre tu experiencia y amor por las mascotas..."
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none"
                                         />
-                                        <div className="text-right text-xs text-slate-400 mt-1">{bio.length}/300</div>
+                                        <div className="text-right text-xs text-slate-400 mt-1">{bio?.length || 0}/600</div>
                                     </div>
 
                                     <div>
@@ -555,6 +640,46 @@ export default function ProveedorDashboard() {
                                             type="text" value={comuna} onChange={e => setComuna(e.target.value)} required
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                                         />
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Credenciales y Confianza</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Años de experiencia (Gral.)</label>
+                                            <input type="number" min="0" value={aniosExperiencia} onChange={e => setAniosExperiencia(e.target.value)} placeholder="Ej: 3" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Certificaciones Relevantes</label>
+                                            <input type="text" value={certificaciones} onChange={e => setCertificaciones(e.target.value)} placeholder="Ej: Adiestrador CCPDT, Auxiliar Veterinario..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                            <input type="checkbox" checked={primeraAyuda} onChange={e => setPrimeraAyuda(e.target.checked)} className="w-5 h-5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500" />
+                                            <div>
+                                                <span className="text-sm font-bold text-slate-800 block">Sabe Primeros Auxilios Pe.</span>
+                                                <span className="text-xs text-slate-500 block">Tienes conocimientos en primeros auxilios para mascotas</span>
+                                            </div>
+                                        </label>
+                                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                            <input type="checkbox" checked={miembroAsociacion} onChange={e => setMiembroAsociacion(e.target.checked)} className="w-5 h-5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500" />
+                                            <div>
+                                                <span className="text-sm font-bold text-slate-800 block">Miembro Asociación</span>
+                                                <span className="text-xs text-slate-500 block">Perteneces a alguna agrupación oficial del rubro</span>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Presencia Web</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Sitio Web</label>
+                                            <input type="url" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Tu página web, linktree o similar..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Instagram</label>
+                                            <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="Ej: @tucuenta" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                        </div>
                                     </div>
 
                                     <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Información de Contacto Externo</h3>

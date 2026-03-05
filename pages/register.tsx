@@ -16,7 +16,7 @@ type TipoCampo = 'text' | 'select' | 'boolean' | 'number';
 interface CampoDinamico {
   key: string;
   label: string;
-  tipo: "text" | "number" | "boolean" | "select" | "textarea";
+  tipo: "text" | "number" | "boolean" | "select" | "textarea" | "info";
   placeholder?: string;
   requerido?: boolean;
   opciones?: { value: string; label: string }[];
@@ -25,103 +25,78 @@ interface CampoDinamico {
 }
 
 const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
-  veterinario: [
-    { key: 'universidad', label: 'Universidad donde estudió', tipo: 'text', placeholder: 'Ej: Universidad de Chile', requerido: true },
-    { key: 'anio_titulacion', label: 'Año de titulación', tipo: 'number', placeholder: 'Ej: 2018' },
-    { key: 'numero_registro', label: 'N° de registro profesional', tipo: 'text', placeholder: 'Ej: 12345' },
-    { key: 'especialidad', label: 'Especialidad (opcional)', tipo: 'text', placeholder: 'Ej: Dermatología, Cirugía...' },
-  ],
-  traslado: [
-    {
-      key: 'tipo_vehiculo', label: 'Tipo de vehículo', tipo: 'select',
-      opciones: [{ value: 'auto', label: 'Auto' }, { value: 'van', label: 'Van' }, { value: 'furgon', label: 'Furgón' }], requerido: true
-    },
-    { key: 'tiene_empresa', label: 'Opero con empresa/boleta', tipo: 'boolean' },
-    { key: 'nombre_empresa', label: 'Nombre de empresa (si aplica)', tipo: 'text', placeholder: 'Ej: Transportes Patitas SpA' },
-    { key: 'capacidad_mascotas', label: 'Capacidad máx. de mascotas', tipo: 'number', placeholder: 'Ej: 3' },
-  ],
-  peluqueria: [
-    { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
-    { key: 'certificaciones', label: 'Certificaciones o cursos', tipo: 'text', placeholder: 'Ej: Curso Groomex 2022' },
-    { key: 'tiene_local', label: 'Tengo local propio', tipo: 'boolean' },
-  ],
-  adiestramiento: [
-    {
-      key: 'metodo', label: 'Método de adiestramiento', tipo: 'select',
-      opciones: [{ value: 'positivo', label: 'Refuerzo positivo' }, { value: 'mixto', label: 'Mixto' }, { value: 'tradicional', label: 'Tradicional' }], requerido: true
-    },
-    { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 3' },
-    { key: 'certificacion', label: 'Certificación (si tiene)', tipo: 'text', placeholder: 'Ej: CPDT-KA' },
-  ],
   hospedaje: [
-    {
-      key: "tipo_vivienda", label: "Tipo de vivienda donde cuidas", tipo: "select",
-      opciones: [{ value: "casa", label: "Casa" }, { value: "departamento", label: "Departamento" }],
-      requerido: true
-    },
-    {
-      key: "metros_espacio", label: "Metros cuadrados del espacio disponible para la mascota",
-      tipo: "number", placeholder: "Ej: 30"
-    },
-    {
-      key: "capacidad_maxima", label: "Capacidad maxima (mascotas simultaneas)",
-      tipo: "number", placeholder: "Ej: 2", requerido: true
-    },
+    { key: "tipo_vivienda", label: "Tipo de vivienda donde cuidas", tipo: "select", opciones: [{ value: "casa", label: "Casa" }, { value: "departamento", label: "Departamento" }], requerido: true },
+    { key: "metros_espacio", label: "Metros cuadrados del espacio disponible para la mascota", tipo: "number", placeholder: "Ej: 30" },
+    { key: "capacidad_maxima", label: "Capacidad maxima (mascotas simultaneas)", tipo: "number", placeholder: "Ej: 2", requerido: true },
     { key: "tiene_patio", label: "Tengo patio o jardin con acceso directo", tipo: "boolean" },
-    {
-      key: "piso_departamento", label: "Piso del departamento", tipo: "number",
-      placeholder: "Ej: 5",
-      condicionalDe: "tipo_vivienda", condicionalValor: "departamento"
-    },
-    {
-      key: "tiene_mallas_seguridad", label: "Tengo mallas de seguridad en ventanas y balcones",
-      tipo: "boolean",
-      condicionalDe: "tipo_vivienda", condicionalValor: "departamento"
-    },
+    { key: "piso_departamento", label: "Piso del departamento", tipo: "number", placeholder: "Ej: 5", condicionalDe: "tipo_vivienda", condicionalValor: "departamento" },
+    { key: "tiene_mallas_seguridad", label: "Tengo mallas de seguridad en ventanas y balcones", tipo: "boolean", condicionalDe: "tipo_vivienda", condicionalValor: "departamento" },
     { key: "otras_mascotas_hogar", label: "Tengo mascotas propias en el hogar", tipo: "boolean" },
-    {
-      key: "tipo_mascotas_propias", label: "Que mascotas tienes? (describe)",
-      tipo: "text", placeholder: "Ej: 1 gato castrado tranquilo",
-      condicionalDe: "otras_mascotas_hogar", condicionalValor: true
-    },
+    { key: "tipo_mascotas_propias", label: "Que mascotas tienes? (describe)", tipo: "text", placeholder: "Ej: 1 gato castrado tranquilo", condicionalDe: "otras_mascotas_hogar", condicionalValor: true },
     { key: "tiene_ninos", label: "Hay ninos menores de 12 anos en el hogar", tipo: "boolean" },
     { key: "acepta_separacion", label: "Puedo mantener mascotas separadas si es necesario", tipo: "boolean" },
   ],
-  guarderia: [
-    { key: 'capacidad_maxima', label: 'Capacidad máxima (mascotas)', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
-    { key: 'tiene_patio', label: 'Tengo patio o jardín', tipo: 'boolean' },
-    { key: 'horario', label: 'Horario de atención', tipo: 'text', placeholder: 'Ej: Lunes a viernes 8:00 - 18:00' },
+  domicilio: [
+    { key: 'info_domicilio', label: 'Tú vas a la casa del cliente. No necesitas espacio propio para mascotas.', tipo: 'info' },
+    { key: 'visitas_por_dia', label: 'Visitas por dia que puedes hacer', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
+    { key: 'duracion_visita', label: 'Duracion de cada visita (minutos)', tipo: 'number', placeholder: 'Ej: 45', requerido: true },
+    { key: 'servicios_incluidos', label: 'Que incluye cada visita', tipo: 'text', placeholder: 'Ej: Alimentacion, paseo corto, limpieza' },
+    { key: 'radio_cobertura_km', label: 'Radio maximo de cobertura (km desde tu comuna)', tipo: 'number', placeholder: 'Ej: 5' },
+    { key: 'incluye_medicamentos', label: 'Puedo administrar medicamentos segun instrucciones', tipo: 'boolean' },
+    { key: 'incluye_foto_reporte', label: 'Envio foto y reporte de cada visita', tipo: 'boolean' },
   ],
   paseos: [
-    { key: 'max_perros_simultaneos', label: 'Máximo de perros simultáneos', tipo: 'number', placeholder: 'Ej: 3', requerido: true },
-    { key: 'duracion_estandar', label: 'Duración estándar del paseo (minutos)', tipo: 'number', placeholder: 'Ej: 45' },
+    { key: "max_perros_simultaneos", label: "Maximo de perros simultaneos", tipo: "number", placeholder: "Ej: 3", requerido: true },
+    { key: "duracion_minutos", label: "Duracion estandar del paseo (min)", tipo: "number", placeholder: "Ej: 45" },
+    { key: "radio_cobertura_km", label: "Radio de cobertura en km desde tu comuna", tipo: "number", placeholder: "Ej: 3" },
+    { key: "comunas_adicionales", label: "Otras comunas donde paseas (opcional)", tipo: "text", placeholder: "Ej: Nunoa, Macul" },
+    { key: "acepta_razas_grandes", label: "Acepto razas grandes o de fuerza (rottweiler, pitbull, etc.)", tipo: "boolean" },
+    { key: "usa_gps", label: "Uso GPS o app de seguimiento durante el paseo", tipo: "boolean" },
+    { key: "envia_reporte_fotos", label: "Envio foto y reporte al dueno tras cada paseo", tipo: "boolean" },
   ],
-  domicilio: [
-    {
-      key: "anios_experiencia", label: "Anos de experiencia en cuidado de mascotas",
-      tipo: "number", placeholder: "Ej: 4"
-    },
-    {
-      key: "visitas_por_dia", label: "Visitas por dia que puedes hacer",
-      tipo: "number", placeholder: "Ej: 2", requerido: true
-    },
-    {
-      key: "duracion_visita", label: "Duracion de cada visita (minutos)",
-      tipo: "number", placeholder: "Ej: 45", requerido: true
-    },
-    {
-      key: "servicios_incluidos", label: "Que incluye cada visita",
-      tipo: "text", placeholder: "Ej: Alimentacion, paseo corto, limpieza, compania"
-    },
-    {
-      key: "incluye_medicamentos", label: "Puedo administrar medicamentos orales segun instrucciones",
-      tipo: "boolean"
-    },
-    { key: "incluye_foto_reporte", label: "Envio foto + reporte de cada visita", tipo: "boolean" },
-    {
-      key: "experiencia_emergencias", label: "Tengo experiencia en emergencias basicas",
-      tipo: "boolean"
-    },
+  veterinario: [
+    { key: "universidad", label: "Universidad donde estudio", tipo: "text", placeholder: "Ej: Universidad de Chile", requerido: true },
+    { key: "anio_titulacion", label: "Ano de titulacion", tipo: "number", placeholder: "Ej: 2018" },
+    { key: "numero_registro", label: "N de registro profesional", tipo: "text", placeholder: "Ej: 12345" },
+    { key: "especialidad", label: "Especialidad (opcional)", tipo: "text", placeholder: "Ej: Dermatologia, Cirugia..." },
+    { key: "radio_cobertura_km", label: "Radio maximo de cobertura a domicilio (km)", tipo: "number", placeholder: "Ej: 10" },
+    { key: "comunas_cobertura", label: "Comunas donde atiendes a domicilio", tipo: "text", placeholder: "Ej: Providencia, Las Condes, Vitacura" },
+    { key: "hace_urgencias", label: "Atencion de urgencias / horario extendido", tipo: "boolean" },
+  ],
+  traslado: [
+    { key: "tipo_vehiculo", label: "Tipo de vehiculo", tipo: "select", opciones: [{ value: "auto", label: "Auto" }, { value: "van", label: "Van" }, { value: "furgon", label: "Furgon" }], requerido: true },
+    { key: "radio_cobertura_km", label: "Radio maximo de cobertura (km)", tipo: "number", placeholder: "Ej: 20" },
+    { key: "comunas_cobertura", label: "Comunas de origen y destino que cubres", tipo: "text", placeholder: "Ej: Todo Santiago, Region Metropolitana" },
+    { key: "tiene_jaula", label: "Tengo jaula o transportin para el traslado", tipo: "boolean" },
+    { key: "acepta_mascotas_grandes", label: "Acepto mascotas grandes (mas de 30kg)", tipo: "boolean" },
+    { key: "capacidad_mascotas", label: "Capacidad maxima de mascotas por viaje", tipo: "number", placeholder: "Ej: 2" },
+    { key: "tiene_empresa", label: "Opero con empresa o emito boleta", tipo: "boolean" },
+  ],
+  peluqueria: [
+    { key: "anios_experiencia", label: "Anos de experiencia", tipo: "number", placeholder: "Ej: 5", requerido: true },
+    { key: "atiende_en", label: "Donde atiendes", tipo: "select", opciones: [{ value: "local_propio", label: "En mi local propio" }, { value: "domicilio", label: "Voy al domicilio del cliente" }, { value: "ambos", label: "Ambas opciones" }], requerido: true },
+    { key: "tiene_mesa_hidraulica", label: "Cuento con mesa hidraulica profesional", tipo: "boolean" },
+    { key: "certificaciones", label: "Cursos o certificaciones", tipo: "text", placeholder: "Ej: Curso Groomex 2022, Especialidad Nordic" },
+    { key: "razas_especiales", label: "Razas especiales que manejas (opcional)", tipo: "text", placeholder: "Ej: Poodle, Cocker, Schnauzer" },
+    { key: "radio_cobertura_km", label: "Radio de cobertura si vas a domicilio (km)", tipo: "number", placeholder: "Ej: 5", condicionalDe: "atiende_en", condicionalValor: "domicilio" },
+  ],
+  adiestramiento: [
+    { key: "metodo", label: "Metodo de adiestramiento", tipo: "select", opciones: [{ value: "positivo", label: "Refuerzo positivo" }, { value: "mixto", label: "Mixto" }, { value: "tradicional", label: "Tradicional" }], requerido: true },
+    { key: "anios_experiencia", label: "Anos de experiencia", tipo: "number", placeholder: "Ej: 3" },
+    { key: "modalidad", label: "Modalidad de trabajo", tipo: "select", opciones: [{ value: "individual", label: "Sesiones individuales" }, { value: "grupal", label: "Clases grupales" }, { value: "ambas", label: "Ambas modalidades" }], requerido: true },
+    { key: "va_domicilio", label: "Puedo ir al domicilio del cliente", tipo: "boolean" },
+    { key: "duracion_sesion", label: "Duracion de la sesion (minutos)", tipo: "number", placeholder: "Ej: 60" },
+    { key: "certificacion", label: "Certificacion profesional", tipo: "text", placeholder: "Ej: CPDT-KA, IAA" },
+    { key: "radio_cobertura_km", label: "Radio de cobertura si vas a domicilio (km)", tipo: "number", condicionalDe: "va_domicilio", condicionalValor: true },
+  ],
+  guarderia: [
+    { key: "capacidad_maxima", label: "Capacidad maxima de mascotas simultaneas", tipo: "number", placeholder: "Ej: 5", requerido: true },
+    { key: "horario", label: "Horario de atencion", tipo: "text", placeholder: "Ej: Lunes a viernes 8:00-18:00", requerido: true },
+    { key: "tipo_guarderia", label: "Tipo de guarderia", tipo: "select", opciones: [{ value: "diurna", label: "Solo diurna (horas)" }, { value: "nocturna", label: "Incluye quedarse de noche" }, { value: "ambas", label: "Ambas opciones" }], requerido: true },
+    { key: "tiene_patio", label: "Tengo patio o jardin con acceso directo", tipo: "boolean" },
+    { key: "tiene_camara", label: "Tengo camara para que el dueno vea a su mascota", tipo: "boolean" },
+    { key: "envia_fotos", label: "Envio fotos durante el dia al dueno", tipo: "boolean" },
   ],
 };
 
@@ -142,7 +117,7 @@ const CATEGORIES = [
   { value: 'hospedaje', label: 'Hospedaje' },
   { value: 'guarderia', label: 'Guardería Diurna' },
   { value: 'paseos', label: 'Paseo de Perros' },
-  { value: 'domicilio', label: 'Cuidado a Domicilio' },
+  { value: 'domicilio', label: 'Cuidado en Casa del Cliente' },
   { value: 'peluqueria', label: 'Peluquería' },
   { value: 'adiestramiento', label: 'Adiestramiento' },
   { value: 'veterinario', label: 'Veterinario a Domicilio' },
@@ -161,6 +136,11 @@ export default function RegisterWizard() {
 
   // Step 2: Personal Info
   const [nombre, setNombre] = useState('');
+  const [tipoEntidad, setTipoEntidad] = useState<'persona_natural' | 'empresa'>('persona_natural');
+  const [razonSocial, setRazonSocial] = useState('');
+  const [rutEmpresa, setRutEmpresa] = useState('');
+  const [nombreFantasia, setNombreFantasia] = useState('');
+  const [giro, setGiro] = useState('');
   const [apellidoP, setApellidoP] = useState('');
   const [apellidoM, setApellidoM] = useState('');
   const [email, setEmail] = useState('');
@@ -246,6 +226,17 @@ export default function RegisterWizard() {
     }
     setRutError('');
 
+    if (rol === "proveedor" && tipoEntidad === "empresa") {
+      if (!razonSocial || !rutEmpresa) {
+        setError("Por favor completa los campos obligatorios de tu empresa.");
+        return;
+      }
+      if (!validateRut(rutEmpresa)) {
+        setError("El RUT de la empresa no es válido.");
+        return;
+      }
+    }
+
     if (rol === "proveedor") {
       setStep(3);
     } else {
@@ -326,6 +317,11 @@ export default function RegisterWizard() {
           roles: ['proveedor'],
           estado: 'pendiente',
           datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : null,
+          tipo_entidad: tipoEntidad,
+          razon_social: tipoEntidad === "empresa" ? razonSocial.trim() : null,
+          rut_empresa: tipoEntidad === "empresa" ? formatRut(rutEmpresa) : null,
+          nombre_fantasia: tipoEntidad === "empresa" ? nombreFantasia.trim() : null,
+          giro: tipoEntidad === "empresa" ? giro.trim() : null,
         }]);
         if (insertError) {
           console.error('Insert error in proveedores:', insertError.message, insertError.code, insertError.details);
@@ -449,6 +445,57 @@ export default function RegisterWizard() {
             {step === 2 && (
               <div className="animate-fade-in space-y-5">
                 <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Tus datos personales</h2>
+
+                {rol === 'proveedor' && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Tipo de cuenta de proveedor
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button type="button"
+                        onClick={() => setTipoEntidad("persona_natural")}
+                        className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
+                            ? "border-emerald-500 bg-emerald-50"
+                            : "border-slate-200 hover:border-slate-300"
+                          }`}
+                      >
+                        <p className="font-bold text-slate-900 text-sm">Persona Natural</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Actúas como individuo, con tu RUT personal</p>
+                      </button>
+                      <button type="button"
+                        onClick={() => setTipoEntidad("empresa")}
+                        className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
+                            ? "border-emerald-500 bg-emerald-50"
+                            : "border-slate-200 hover:border-slate-300"
+                          }`}
+                      >
+                        <p className="font-bold text-slate-900 text-sm">Empresa o Emprendimiento</p>
+                        <p className="text-xs text-slate-500 mt-0.5">SpA, EIRL, sociedad o marca registrada</p>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {rol === 'proveedor' && tipoEntidad === 'empresa' && (
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Razón social *</label>
+                      <input type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} placeholder="Ej: Patitas Felices SpA" required className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">RUT de la empresa *</label>
+                      <input type="text" value={rutEmpresa} onChange={e => setRutEmpresa(formatRut(e.target.value))} placeholder="Ej: 76.123.456-7" required maxLength={12} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Nombre fantasía (marca)</label>
+                      <input type="text" value={nombreFantasia} onChange={e => setNombreFantasia(e.target.value)} placeholder="Ej: Patitas Felices" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Giro o rubro</label>
+                      <input type="text" value={giro} onChange={e => setGiro(e.target.value)} placeholder="Ej: Servicios de cuidado de mascotas" className={inputClass} />
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -629,38 +676,46 @@ export default function RegisterWizard() {
 
                         return camposVisibles.map(campo => (
                           <div key={campo.key}>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                              {campo.label}{campo.requerido && <span className="text-red-500 ml-1">*</span>}
-                            </label>
-                            {campo.tipo === 'boolean' ? (
-                              <label className="flex items-center gap-3 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={!!datosDinamicos[campo.key]}
-                                  onChange={e => setDatoDinamico(campo.key, e.target.checked)}
-                                  className="w-5 h-5 rounded border-slate-300 accent-emerald-600"
-                                />
-                                <span className="text-sm text-slate-600">Sí</span>
-                              </label>
-                            ) : campo.tipo === 'select' ? (
-                              <select
-                                value={datosDinamicos[campo.key] || ''}
-                                onChange={e => setDatoDinamico(campo.key, e.target.value)}
-                                className={`${inputClass} cursor-pointer`}
-                              >
-                                <option value="" disabled>Selecciona...</option>
-                                {campo.opciones?.map(op => (
-                                  <option key={op.value} value={op.value}>{op.label}</option>
-                                ))}
-                              </select>
+                            {campo.tipo === 'info' ? (
+                              <p className="text-sm text-slate-600 mb-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100 italic">
+                                {campo.label}
+                              </p>
                             ) : (
-                              <input
-                                type={campo.tipo === 'number' ? 'number' : 'text'}
-                                value={datosDinamicos[campo.key] || ''}
-                                onChange={e => setDatoDinamico(campo.key, e.target.value)}
-                                placeholder={campo.placeholder}
-                                className={inputClass}
-                              />
+                              <>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                  {campo.label}{campo.requerido && <span className="text-red-500 ml-1">*</span>}
+                                </label>
+                                {campo.tipo === 'boolean' ? (
+                                  <label className="flex items-center gap-3 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={!!datosDinamicos[campo.key]}
+                                      onChange={e => setDatoDinamico(campo.key, e.target.checked)}
+                                      className="w-5 h-5 rounded border-slate-300 accent-emerald-600"
+                                    />
+                                    <span className="text-sm text-slate-600">Sí</span>
+                                  </label>
+                                ) : campo.tipo === 'select' ? (
+                                  <select
+                                    value={datosDinamicos[campo.key] || ''}
+                                    onChange={e => setDatoDinamico(campo.key, e.target.value)}
+                                    className={`${inputClass} cursor-pointer`}
+                                  >
+                                    <option value="" disabled>Selecciona...</option>
+                                    {campo.opciones?.map(op => (
+                                      <option key={op.value} value={op.value}>{op.label}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type={campo.tipo === 'number' ? 'number' : 'text'}
+                                    value={datosDinamicos[campo.key] || ''}
+                                    onChange={e => setDatoDinamico(campo.key, e.target.value)}
+                                    placeholder={campo.placeholder}
+                                    className={inputClass}
+                                  />
+                                )}
+                              </>
                             )}
                           </div>
                         ))
