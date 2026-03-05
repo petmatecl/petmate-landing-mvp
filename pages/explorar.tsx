@@ -2,11 +2,11 @@ import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/router";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 
-import ServiceFilters from "../components/Explore/ServiceFilters";
+import SidebarFiltros from "../components/Explore/SidebarFiltros";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
 import { mapRpcToServiceResult } from "../lib/serviceMapper";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
@@ -64,6 +64,7 @@ export default function ExplorarPage() {
     });
 
     const [pagina, setPagina] = useState(1);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     // 1. Cargar Categorías desde DB (reemplaza el fallback estático si tiene datos)
     useEffect(() => {
@@ -290,183 +291,305 @@ export default function ExplorarPage() {
     const totalPaginas = Math.ceil(totalCount / PAGE_SIZE);
     const paginationItems = getPaginationItems(pagina, totalPaginas);
 
+    const hasActiveFilters =
+        filters.categorias.length > 0 ||
+        filters.mascota !== 'any' ||
+        !!filters.precioMin ||
+        !!filters.precioMax ||
+        !!filters.q ||
+        !!filters.comuna;
+
+    const activeFiltersCount = [
+        filters.categorias.length > 0,
+        filters.mascota !== 'any',
+        !!filters.precioMin || !!filters.precioMax,
+        !!filters.q,
+        !!filters.comuna,
+    ].filter(Boolean).length;
+
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen bg-slate-50">
             <Head>
                 <title>Explorar Servicios | Pawnecta</title>
                 <meta name="description" content="Busca y encuentra cuidadores, paseadores, entrenadores y veterinarios verificados en tu comuna." />
             </Head>
 
-            {/* Filter Bar — sticky bajo el header global (h-16 = 64px = top-16) */}
-            <div className="sticky top-16 z-30">
-                <ServiceFilters
-                    filters={filters}
-                    categories={categories}
-                    services={services}
-                    onFilterChange={updateQueryParams}
-                    onClear={handleClearFilters}
-                />
+            {/* ── MOBILE: botón flotante Filtros ── */}
+            <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+                <button
+                    onClick={() => setMobileFiltersOpen(true)}
+                    className="flex items-center gap-2 bg-slate-900 text-white font-bold px-6 py-3 rounded-full shadow-lg text-sm"
+                >
+                    <Filter size={15} />
+                    Filtros
+                    {hasActiveFilters && (
+                        <span className="bg-emerald-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                            {activeFiltersCount}
+                        </span>
+                    )}
+                </button>
             </div>
 
-            <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-
-                {/* Encabezado */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900 mb-3">
-                        {filters.q ? `Resultados para "${filters.q}"` : (
-                            filters.categorias.length === 1
-                                ? `${categories.find(c => c.slug === filters.categorias[0])?.nombre || 'Servicios'} en tu zona`
-                                : filters.categorias.length > 1
-                                    ? `${filters.categorias.length} categorías en tu zona`
-                                    : 'Explorar en tu zona'
-                        )}
-                    </h1>
-                    <p className="text-base text-slate-600 max-w-2xl">
-                        Descubre los mejores profesionales y amantes de las mascotas en Pawnecta.
-                    </p>
-                    {/* Chip de fecha */}
-                    {filters.fecha && (
-                        <div className="flex items-center gap-2 mt-3">
-                            <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                Fecha: {new Date(filters.fecha + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
-                                <button
-                                    onClick={() => updateQueryParams({ fecha: '' })}
-                                    className="ml-1 text-emerald-600 hover:text-emerald-900 leading-none"
-                                    aria-label="Limpiar filtro de fecha"
-                                >×</button>
-                            </span>
+            {/* ── MOBILE: drawer desde abajo ── */}
+            {mobileFiltersOpen && (
+                <>
+                    <div
+                        className="lg:hidden fixed inset-0 bg-black/40 z-40"
+                        onClick={() => setMobileFiltersOpen(false)}
+                    />
+                    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                            <h2 className="text-base font-bold text-slate-900">Filtros</h2>
+                            <button
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
                         </div>
-                    )}
-                </div>
-
-                {/* Grilla */}
-                {loading ? (
-                    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        <ServiceSkeleton />
-                        <ServiceSkeleton />
-                        <ServiceSkeleton />
-                        <ServiceSkeleton />
-                    </div>
-                ) : services.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
-                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
-                            <Search size={28} className="text-slate-300" />
+                        <div className="p-5">
+                            <SidebarFiltros
+                                filters={filters}
+                                categories={categories}
+                                onFilterChange={updateQueryParams}
+                                onClear={handleClearFilters}
+                                card={false}
+                            />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">
-                            {filters.comuna ? `Sin resultados en ${filters.comuna}` : 'Sin resultados con estos filtros'}
-                        </h3>
-
-                        {comunasSugeridas.length > 0 ? (
-                            <>
-                                <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
-                                    Hay proveedores disponibles en comunas cercanas:
-                                </p>
-                                <div className="flex flex-wrap justify-center gap-2 mt-4">
-                                    {comunasSugeridas.map(c => (
-                                        <button
-                                            key={c}
-                                            onClick={() => updateQueryParams({ comuna: c })}
-                                            className="inline-flex px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors"
-                                        >
-                                            {c}
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
-                        ) : (
-                            <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
-                                Intenta ajustar los filtros o ampliar la búsqueda.
-                            </p>
-                        )}
-
-                        <div className="flex justify-center gap-3 mt-8">
-                            <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
-                                Ver todos los servicios
+                        <div className="p-5 border-t border-slate-100">
+                            <button
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-colors"
+                            >
+                                Ver {totalCount} resultado{totalCount !== 1 ? 's' : ''}
                             </button>
                         </div>
                     </div>
-                ) : (
-                    <>
-                        {/* Barra superior: conteo + orden */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                            <p className="text-slate-500 font-medium shrink-0">
-                                {totalCount} resultado{totalCount !== 1 ? 's' : ''}
-                                {totalPaginas > 1 && (
-                                    <span className="text-slate-400 font-normal ml-1">
-                                        — página {pagina} de {totalPaginas}
-                                    </span>
+                </>
+            )}
+
+            {/* ── LAYOUT: 2 columnas ── */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex gap-8 items-start">
+
+                    {/* SIDEBAR — solo desktop */}
+                    <aside className="hidden lg:block w-72 shrink-0 sticky top-24">
+                        <SidebarFiltros
+                            filters={filters}
+                            categories={categories}
+                            onFilterChange={updateQueryParams}
+                            onClear={handleClearFilters}
+                            card={true}
+                        />
+                    </aside>
+
+                    {/* ÁREA DE RESULTADOS */}
+                    <main className="flex-1 min-w-0">
+
+                        {/* Encabezado */}
+                        <div className="mb-6">
+                            <h1 className="text-2xl font-bold text-slate-900 mb-1.5">
+                                {filters.q ? `Resultados para "${filters.q}"` : (
+                                    filters.categorias.length === 1
+                                        ? `${categories.find(c => c.slug === filters.categorias[0])?.nombre || 'Servicios'} en tu zona`
+                                        : filters.categorias.length > 1
+                                            ? `${filters.categorias.length} categorías en tu zona`
+                                            : 'Explorar en tu zona'
                                 )}
+                            </h1>
+                            <p className="text-sm text-slate-500">
+                                Descubre los mejores profesionales y amantes de las mascotas en Pawnecta.
                             </p>
-                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto">
-                                <label className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
-                                <select
-                                    value={filters.orden}
-                                    onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
-                                    className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors cursor-pointer appearance-none"
-                                >
-                                    <option value="relevancia">Relevancia</option>
-                                    <option value="rating">Mejor evaluados</option>
-                                    <option value="precio_asc">Menor precio</option>
-                                    <option value="precio_desc">Mayor precio</option>
-                                </select>
-                            </div>
                         </div>
 
-                        {/* Grilla de resultados */}
-                        <div ref={gridRef} className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {services.map((service) => (
-                                <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
-                            ))}
-                        </div>
+                        {/* ── Chips de filtros activos ── */}
+                        {(filters.categorias.length > 0 || filters.mascota !== 'any' ||
+                            filters.comuna || filters.precioMin || filters.precioMax || filters.fecha) && (
+                                <div className="flex flex-wrap gap-2 mb-4">
 
-                        {/* Controles de paginación */}
-                        {totalPaginas > 1 && (
-                            <div className="mt-10 flex items-center justify-center gap-1.5">
-                                <button
-                                    onClick={() => goToPage(pagina - 1)}
-                                    disabled={pagina === 1}
-                                    className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
-                                    aria-label="Página anterior"
-                                >
-                                    <ChevronLeft size={16} />
-                                    <span className="hidden sm:inline">Anterior</span>
-                                </button>
-
-                                <div className="hidden sm:flex items-center gap-1.5">
-                                    {paginationItems.map((item, idx) =>
-                                        item === "..." ? (
-                                            <span key={`ellipsis-${idx}`} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
-                                        ) : (
+                                    {filters.categorias.map(slug => (
+                                        <span key={slug} className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                            {categories.find(c => c.slug === slug)?.nombre ?? slug}
                                             <button
-                                                key={item}
-                                                onClick={() => goToPage(item as number)}
-                                                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
-                                                aria-current={item === pagina ? 'page' : undefined}
-                                            >
-                                                {item}
-                                            </button>
-                                        )
+                                                onClick={() => updateQueryParams({ categorias: filters.categorias.filter(s => s !== slug) })}
+                                                className="text-emerald-600 hover:text-emerald-900 leading-none ml-0.5"
+                                                aria-label="Quitar categoría"
+                                            >×</button>
+                                        </span>
+                                    ))}
+
+                                    {filters.comuna && (
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                            📍 {filters.comuna}
+                                            <button
+                                                onClick={() => updateQueryParams({ comuna: '' })}
+                                                className="text-slate-500 hover:text-slate-900 leading-none ml-0.5"
+                                            >×</button>
+                                        </span>
+                                    )}
+
+                                    {filters.mascota !== 'any' && (
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                            {filters.mascota === 'perro' ? '🐕 Perros' : filters.mascota === 'gato' ? '🐈 Gatos' : '🐾 Otro'}
+                                            <button
+                                                onClick={() => updateQueryParams({ mascota: 'any', tamano: null })}
+                                                className="text-slate-500 hover:text-slate-900 leading-none ml-0.5"
+                                            >×</button>
+                                        </span>
+                                    )}
+
+                                    {(filters.precioMin || filters.precioMax) && (
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                            💰 ${filters.precioMin || '0'} – ${filters.precioMax || '∞'}
+                                            <button
+                                                onClick={() => updateQueryParams({ precioMin: '', precioMax: '' })}
+                                                className="text-slate-500 hover:text-slate-900 leading-none ml-0.5"
+                                            >×</button>
+                                        </span>
+                                    )}
+
+                                    {filters.fecha && (
+                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                            📅 {new Date(filters.fecha + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
+                                            <button
+                                                onClick={() => updateQueryParams({ fecha: '' })}
+                                                className="text-emerald-600 hover:text-emerald-900 leading-none ml-0.5"
+                                            >×</button>
+                                        </span>
                                     )}
                                 </div>
+                            )}
 
-                                <span className="sm:hidden rounded-lg px-3 py-2 text-sm font-medium bg-emerald-600 text-white">
-                                    {pagina}
-                                </span>
-
-                                <button
-                                    onClick={() => goToPage(pagina + 1)}
-                                    disabled={pagina === totalPaginas}
-                                    className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === totalPaginas ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
-                                    aria-label="Página siguiente"
-                                >
-                                    <span className="hidden sm:inline">Siguiente</span>
-                                    <ChevronRight size={16} />
-                                </button>
+                        {/* Grilla */}
+                        {loading ? (
+                            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                                <ServiceSkeleton />
+                                <ServiceSkeleton />
+                                <ServiceSkeleton />
+                                <ServiceSkeleton />
                             </div>
+                        ) : services.length === 0 ? (
+                            <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+                                <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
+                                    <Search size={28} className="text-slate-300" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                                    {filters.comuna ? `Sin resultados en ${filters.comuna}` : 'Sin resultados con estos filtros'}
+                                </h3>
+
+                                {comunasSugeridas.length > 0 ? (
+                                    <>
+                                        <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                                            Hay proveedores disponibles en comunas cercanas:
+                                        </p>
+                                        <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                            {comunasSugeridas.map(c => (
+                                                <button
+                                                    key={c}
+                                                    onClick={() => updateQueryParams({ comuna: c })}
+                                                    className="inline-flex px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors"
+                                                >
+                                                    {c}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                                        Intenta ajustar los filtros o ampliar la búsqueda.
+                                    </p>
+                                )}
+
+                                <div className="flex justify-center gap-3 mt-8">
+                                    <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
+                                        Ver todos los servicios
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Barra: conteo + orden */}
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                                    <p className="text-slate-500 font-medium shrink-0">
+                                        {totalCount} resultado{totalCount !== 1 ? 's' : ''}
+                                        {totalPaginas > 1 && (
+                                            <span className="text-slate-400 font-normal ml-1">
+                                                — página {pagina} de {totalPaginas}
+                                            </span>
+                                        )}
+                                    </p>
+                                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto">
+                                        <label className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
+                                        <select
+                                            value={filters.orden}
+                                            onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
+                                            className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors cursor-pointer appearance-none"
+                                        >
+                                            <option value="relevancia">Relevancia</option>
+                                            <option value="rating">Mejor evaluados</option>
+                                            <option value="precio_asc">Menor precio</option>
+                                            <option value="precio_desc">Mayor precio</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Grilla de resultados */}
+                                <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                                    {services.map((service) => (
+                                        <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
+                                    ))}
+                                </div>
+
+                                {/* Controles de paginación */}
+                                {totalPaginas > 1 && (
+                                    <div className="mt-10 flex items-center justify-center gap-1.5">
+                                        <button
+                                            onClick={() => goToPage(pagina - 1)}
+                                            disabled={pagina === 1}
+                                            className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
+                                            aria-label="Página anterior"
+                                        >
+                                            <ChevronLeft size={16} />
+                                            <span className="hidden sm:inline">Anterior</span>
+                                        </button>
+
+                                        <div className="hidden sm:flex items-center gap-1.5">
+                                            {paginationItems.map((item, idx) =>
+                                                item === "..." ? (
+                                                    <span key={`ellipsis-${idx}`} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
+                                                ) : (
+                                                    <button
+                                                        key={item}
+                                                        onClick={() => goToPage(item as number)}
+                                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                                                        aria-current={item === pagina ? 'page' : undefined}
+                                                    >
+                                                        {item}
+                                                    </button>
+                                                )
+                                            )}
+                                        </div>
+
+                                        <span className="sm:hidden rounded-lg px-3 py-2 text-sm font-medium bg-emerald-600 text-white">
+                                            {pagina}
+                                        </span>
+
+                                        <button
+                                            onClick={() => goToPage(pagina + 1)}
+                                            disabled={pagina === totalPaginas}
+                                            className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === totalPaginas ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
+                                            aria-label="Página siguiente"
+                                        >
+                                            <span className="hidden sm:inline">Siguiente</span>
+                                            <ChevronRight size={16} />
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
-                    </>
-                )}
-            </main>
+                    </main>
+                </div>
+            </div>
 
             {/* CTA Proveedores */}
             {!user && (

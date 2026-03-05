@@ -1,0 +1,315 @@
+import React, { useState } from 'react';
+import {
+    Check, Crosshair, Loader2, Search,
+    Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
+    LucideIcon
+} from 'lucide-react';
+import AddressAutocomplete from '../AddressAutocomplete';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Category {
+    id: string;
+    slug: string;
+    nombre: string;
+    icono: string;
+}
+
+interface FiltersState {
+    q: string;
+    categorias: string[];
+    comuna: string;
+    mascota: 'perro' | 'gato' | 'otro' | 'any';
+    tamano: 'pequeno' | 'mediano' | 'grande' | null;
+    precioMin: string;
+    precioMax: string;
+}
+
+interface Props {
+    filters: FiltersState;
+    categories: Category[];
+    onFilterChange: (f: Partial<FiltersState>) => void;
+    onClear: () => void;
+    /** When true, wraps content in white card (desktop sidebar). False = bare (mobile drawer). */
+    card?: boolean;
+}
+
+// ─── Icon mapping (matches CategoryChips.tsx) ─────────────────────────────────
+
+const SLUG_ICONS: Record<string, LucideIcon> = {
+    hospedaje: Home,
+    guarderia: Sun,
+    paseos: PawPrint,
+    peluqueria: Scissors,
+    traslado: Truck,
+    veterinario: Stethoscope,
+    adiestramiento: Dumbbell,
+    domicilio: MapPin,
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function SidebarFiltros({ filters, categories, onFilterChange, onClear, card = true }: Props) {
+    const [geoLoading, setGeoLoading] = useState(false);
+
+    const hasActiveFilters =
+        filters.categorias.length > 0 ||
+        filters.mascota !== 'any' ||
+        !!filters.precioMin ||
+        !!filters.precioMax ||
+        !!filters.q ||
+        !!filters.comuna;
+
+    const handleGeolocate = () => {
+        if (!navigator.geolocation) return;
+        setGeoLoading(true);
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                try {
+                    const { latitude, longitude } = pos.coords;
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=es`
+                    );
+                    const data = await res.json();
+                    const commune =
+                        data.address?.city ||
+                        data.address?.town ||
+                        data.address?.village ||
+                        data.address?.municipality;
+                    if (commune) onFilterChange({ comuna: commune });
+                } catch {
+                    // silent fail
+                } finally {
+                    setGeoLoading(false);
+                }
+            },
+            () => setGeoLoading(false),
+            { timeout: 8000 }
+        );
+    };
+
+    const toggleCategoria = (slug: string) => {
+        if (filters.categorias.includes(slug)) {
+            onFilterChange({ categorias: filters.categorias.filter(s => s !== slug) });
+        } else {
+            onFilterChange({ categorias: [...filters.categorias, slug] });
+        }
+    };
+
+    const inner = (
+        <div>
+            {/* ── 1. Header ── */}
+            <div className="flex items-center justify-between mb-5">
+                <h2 className="text-base font-bold text-slate-900">Filtros</h2>
+                {hasActiveFilters && (
+                    <button
+                        onClick={onClear}
+                        className="text-xs text-rose-500 font-semibold hover:underline transition-colors"
+                    >
+                        Limpiar todo
+                    </button>
+                )}
+            </div>
+
+            {/* ── 2. Búsqueda ── */}
+            <div className="mb-5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                    Buscar
+                </label>
+                <div className="relative">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <input
+                        type="text"
+                        value={filters.q}
+                        onChange={(e) => onFilterChange({ q: e.target.value })}
+                        placeholder="Ej: paseo de perros..."
+                        className="w-full h-10 pl-9 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm
+                                   focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white
+                                   placeholder:text-slate-400 transition-colors"
+                    />
+                </div>
+            </div>
+
+            {/* ── 3. Categorías ── */}
+            <div className="mb-5 border-t border-slate-100 pt-5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                    Categoría
+                </label>
+
+                {/* "Todas" */}
+                <button
+                    type="button"
+                    onClick={() => onFilterChange({ categorias: [] })}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1 ${filters.categorias.length === 0
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : 'text-slate-600 hover:bg-slate-50 border border-transparent'
+                        }`}
+                >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${filters.categorias.length === 0 ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'
+                        }`}>
+                        {filters.categorias.length === 0 && <Check size={10} strokeWidth={3} className="text-white" />}
+                    </div>
+                    <Grid2x2 size={14} className={filters.categorias.length === 0 ? 'text-emerald-600' : 'text-slate-400'} />
+                    <span>Todas las categorías</span>
+                </button>
+
+                {/* Per-category rows */}
+                <div className="space-y-0.5">
+                    {categories.map(cat => {
+                        const checked = filters.categorias.includes(cat.slug);
+                        const CatIcon = SLUG_ICONS[cat.slug] ?? Grid2x2;
+                        return (
+                            <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => toggleCategoria(cat.slug)}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${checked
+                                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                        : 'text-slate-600 hover:bg-slate-50 border border-transparent'
+                                    }`}
+                            >
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'
+                                    }`}>
+                                    {checked && <Check size={10} strokeWidth={3} className="text-white" />}
+                                </div>
+                                <CatIcon size={14} className={checked ? 'text-emerald-600' : 'text-slate-400'} />
+                                <span>{cat.nombre}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* ── 4. Comuna ── */}
+            <div className="mb-5 border-t border-slate-100 pt-5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                    Comuna
+                </label>
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    <AddressAutocomplete
+                        initialValue={filters.comuna}
+                        placeholder="¿En qué comuna?"
+                        onSelect={(res) => {
+                            const cityName =
+                                res.address?.city ||
+                                res.address?.town ||
+                                res.address?.village ||
+                                res.address?.municipality ||
+                                res.display_name.split(',')[0];
+                            onFilterChange({ comuna: cityName });
+                        }}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleGeolocate}
+                        disabled={geoLoading}
+                        title="Usar mi ubicación actual"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-emerald-600 hover:bg-emerald-50
+                                   rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600
+                                   disabled:opacity-50 z-10"
+                    >
+                        {geoLoading
+                            ? <Loader2 size={15} className="animate-spin" />
+                            : <Crosshair size={15} />}
+                    </button>
+                </div>
+            </div>
+
+            {/* ── 5. Tipo de mascota ── */}
+            <div className="mb-5 border-t border-slate-100 pt-5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                    Tipo de mascota
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                    {([
+                        { id: 'any', label: 'Cualquiera', emoji: '🐾' },
+                        { id: 'perro', label: 'Perros', emoji: '🐕' },
+                        { id: 'gato', label: 'Gatos', emoji: '🐈' },
+                        { id: 'otro', label: 'Otro', emoji: '🦜' },
+                    ] as const).map(opt => (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => onFilterChange({ mascota: opt.id as any, tamano: null })}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${filters.mascota === opt.id
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-sm'
+                                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-200 hover:bg-white'
+                                }`}
+                        >
+                            <span>{opt.emoji}</span>
+                            <span>{opt.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Tamaño (solo perros) */}
+                {filters.mascota === 'perro' && (
+                    <div className="mt-3">
+                        <p className="text-xs text-slate-500 font-medium mb-2">Tamaño</p>
+                        <div className="flex gap-1.5">
+                            {(['pequeno', 'mediano', 'grande'] as const).map(size => (
+                                <button
+                                    key={size}
+                                    type="button"
+                                    onClick={() => onFilterChange({ tamano: size })}
+                                    className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold border transition-all capitalize ${filters.tamano === size
+                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-200'
+                                        }`}
+                                >
+                                    {size === 'pequeno' ? 'Pequeño' : size.charAt(0).toUpperCase() + size.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ── 6. Precio ── */}
+            <div className="border-t border-slate-100 pt-5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                    Precio (CLP)
+                </label>
+                <div className="flex items-center gap-2">
+                    <input
+                        type="number"
+                        value={filters.precioMin}
+                        onChange={e => onFilterChange({ precioMin: e.target.value })}
+                        placeholder="Mín"
+                        min="0"
+                        className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
+                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600
+                                   focus:border-emerald-600 focus:bg-white transition-colors"
+                    />
+                    <span className="text-slate-400 text-sm font-medium select-none shrink-0">a</span>
+                    <input
+                        type="number"
+                        value={filters.precioMax}
+                        onChange={e => onFilterChange({ precioMax: e.target.value })}
+                        placeholder="Máx"
+                        min="0"
+                        className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
+                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600
+                                   focus:border-emerald-600 focus:bg-white transition-colors"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
+    if (!card) return inner;
+
+    return (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            {inner}
+        </div>
+    );
+}
