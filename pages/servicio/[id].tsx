@@ -12,7 +12,11 @@ import ReviewForm from '../../components/Service/ReviewForm';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
-import { ShieldCheck, Star, User as UserIcon2 } from 'lucide-react';
+import {
+    ShieldCheck, Star, User as UserIcon2,
+    Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
+    LucideIcon
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ServiceDetailProps {
@@ -21,11 +25,23 @@ interface ServiceDetailProps {
     otrosServicios: ServiceResult[];
 }
 
+const SLUG_ICONS: Record<string, LucideIcon> = {
+    hospedaje: Home,
+    guarderia: Sun,
+    paseos: PawPrint,
+    peluqueria: Scissors,
+    traslado: Truck,
+    veterinario: Stethoscope,
+    adiestramiento: Dumbbell,
+    domicilio: MapPin,
+};
+
 export default function ServicioPage({ service, reviews, otrosServicios }: ServiceDetailProps) {
     const router = useRouter();
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [isChatLoading, setIsChatLoading] = useState(false);
+    const [imgError, setImgError] = useState(false);
 
     // Use shared UserContext — avoids double session fetch
     const { user } = useUser();
@@ -210,18 +226,25 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                         {/* Galeria / Portada */}
                         <div className="w-full h-[300px] md:h-[450px] bg-slate-200 rounded-2xl overflow-hidden relative shadow-sm">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={coverImage}
-                                alt={service.titulo}
-                                className="w-full h-full object-cover"
-                            />
+                            {imgError ? (
+                                <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                    {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={56} className="text-slate-300" />; })()}
+                                </div>
+                            ) : (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img
+                                    src={coverImage}
+                                    alt={service.titulo}
+                                    className="w-full h-full object-cover"
+                                    onError={() => setImgError(true)}
+                                />
+                            )}
                             {/* Overlay subtil para mejor contraste */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-transparent"></div>
+                            {!imgError && <div className="absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-transparent"></div>}
 
                             {/* Badge Categoria Flotante */}
                             <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-800 text-sm md:text-base font-bold px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
-                                <span>{categoria.icono}</span>
+                                {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={16} className="text-slate-600" />; })()}
                                 <span>{categoria.nombre}</span>
                             </div>
 
