@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Check, Crosshair, Loader2, Search,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
     Dog, Cat, Bird,
     LucideIcon
 } from 'lucide-react';
-import AddressAutocomplete from '../AddressAutocomplete';
+import { COMUNAS_CHILE } from '../../lib/comunas';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,6 +52,23 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
 
 export default function SidebarFiltros({ filters, categories, onFilterChange, onClear, card = true }: Props) {
     const [geoLoading, setGeoLoading] = useState(false);
+    const [comunaOpen, setComunaOpen] = useState(false);
+    const comunaRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (comunaRef.current && !comunaRef.current.contains(e.target as Node)) {
+                setComunaOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const comunasFiltradas = COMUNAS_CHILE.filter(c =>
+        filters.comuna ? c.toLowerCase().includes(filters.comuna.toLowerCase()) : true
+    ).slice(0, 40);
 
     const hasActiveFilters =
         filters.categorias.length > 0 ||
@@ -186,7 +203,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Comuna
                 </label>
-                <div className="relative">
+                <div className="relative" ref={comunaRef}>
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -195,19 +212,30 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </span>
-                    <AddressAutocomplete
-                        initialValue={filters.comuna}
+                    <input
+                        type="text"
+                        value={filters.comuna}
+                        onChange={e => { onFilterChange({ comuna: e.target.value }); setComunaOpen(true); }}
+                        onFocus={() => setComunaOpen(true)}
                         placeholder="¿En qué comuna?"
-                        onSelect={(res) => {
-                            const cityName =
-                                res.address?.city ||
-                                res.address?.town ||
-                                res.address?.village ||
-                                res.address?.municipality ||
-                                res.display_name.split(',')[0];
-                            onFilterChange({ comuna: cityName });
-                        }}
+                        autoComplete="off"
+                        className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-slate-400 transition-colors"
                     />
+                    {comunaOpen && comunasFiltradas.length > 0 && (
+                        <ul className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                            {comunasFiltradas.map(c => (
+                                <li key={c}>
+                                    <button
+                                        type="button"
+                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                                        onMouseDown={() => { onFilterChange({ comuna: c }); setComunaOpen(false); }}
+                                    >
+                                        {c}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                     <button
                         type="button"
                         onClick={handleGeolocate}
