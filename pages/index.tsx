@@ -133,6 +133,15 @@ function FranjaCategoria({
                   src={foto}
                   alt={s.titulo}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
+                    if (target.src !== fallback) {
+                      target.src = fallback;
+                    } else if (target.src !== FALLBACK_HOME["default"]) {
+                      target.src = FALLBACK_HOME["default"];
+                    }
+                  }}
                 />
               </div>
               <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug

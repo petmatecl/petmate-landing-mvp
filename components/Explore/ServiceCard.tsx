@@ -133,6 +133,12 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                     alt={service.titulo}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
+                    onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (target.src !== defaultImage) {
+                            target.src = defaultImage;
+                        }
+                    }}
                 />
 
                 {/* Badge de Categoría Base */}
