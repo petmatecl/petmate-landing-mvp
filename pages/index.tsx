@@ -190,13 +190,11 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
 
           <div className="hidden lg:block">
             <div className="relative aspect-[4/5] ring-4 ring-emerald-600/20 rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500 cursor-default">
-              <Image
-                src="/images/hero-pets.png"
-                alt="Perro y gato felices recibiendo cuidado profesional en Pawnecta"
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 0px, 45vw"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&auto=format&fit=crop&q=80"
+                alt="Perro feliz recibiendo cuidado profesional en Pawnecta"
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
@@ -239,8 +237,8 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         </div>
       </section>
 
-      {/* SECCIÓN 3: SERVICIOS DESTACADOS  — con 3+, o módulo pre-lanzamiento */}
-      {featuredServices && featuredServices.length >= 3 ? (
+      {/* SECCIÓN 3: SERVICIOS DESTACADOS  — con 1+, o módulo pre-lanzamiento */}
+      {featuredServices && featuredServices.length >= 1 ? (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
@@ -290,8 +288,8 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         </div>
       </section>
 
-      {/* SECCIÓN 5: CONFIANZA — solo si hay 3+ proveedores activos */}
-      {stats.proveedores >= 3 ? (
+      {/* SECCIÓN 5: CONFIANZA — solo si hay 1+ proveedores activos */}
+      {stats.proveedores >= 1 ? (
         <section aria-label="Verificacion de proveedores y testimonios" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
