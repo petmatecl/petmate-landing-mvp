@@ -386,7 +386,7 @@ export default function ExplorarPage() {
         <div className="min-h-screen bg-slate-50">
             <Head>
                 <title>Explorar Servicios | Pawnecta</title>
-                <meta name="description" content="Busca y encuentra cuidadores, paseadores, entrenadores y veterinarios verificados en tu comuna." />
+                <meta name="description" content="Busca y encuentra proveedores, paseadores, entrenadores y veterinarios verificados en tu comuna." />
             </Head>
 
             {/* ── MOBILE: botón flotante Filtros ── */}

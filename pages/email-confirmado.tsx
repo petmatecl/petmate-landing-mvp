@@ -48,7 +48,7 @@ export default function EmailConfirmadoPage() {
                         .maybeSingle();
 
                     if (!existingProvider) {
-                        setStatusText("Creando perfil de cuidador...");
+                        setStatusText("Creando perfil de proveedor...");
                         const fullName = user.user_metadata?.full_name || user.user_metadata?.name || "";
                         const firstName = user.user_metadata?.given_name || fullName.split(' ')[0] || "Proveedor";
                         const lastName = user.user_metadata?.family_name || fullName.split(' ').slice(1).join(' ') || "";

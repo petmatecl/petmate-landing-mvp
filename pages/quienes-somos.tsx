@@ -104,7 +104,7 @@ export default function QuienesSomos() {
                                 Únete a Pawnecta
                             </Link>
                             <Link href="/explorar" className="text-sm font-semibold leading-6 text-slate-900">
-                                Buscar cuidador <span aria-hidden="true">→</span>
+                                Buscar proveedor <span aria-hidden="true">→</span>
                             </Link>
                         </div>
                     </div>

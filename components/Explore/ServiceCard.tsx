@@ -207,7 +207,7 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                 isOpen={showLoginModal}
                 onClose={() => setShowLoginModal(false)}
                 title="Inicia sesión para guardar favoritos"
-                message="Necesitas una cuenta en Pawnecta para guardar cuidadores en tu lista de favoritos."
+                message="Necesitas una cuenta en Pawnecta para guardar proveedores en tu lista de favoritos."
             />
         </Link>
     );

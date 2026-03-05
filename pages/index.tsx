@@ -105,7 +105,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
     { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: true, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
     { nombre: "Rodrigo F.", ciudad: "Ñuñoa, Santiago", mascota: "Gato Maine Coon", verificado: true, texto: "Necesitaba alguien de confianza para Miso mientras viajaba. Pawnecta me permitió comparar opciones en mi comuna y elegir con calma. La comunicación fue directa y sin complicaciones." },
     { nombre: "Catalina R.", ciudad: "Las Condes, Santiago", mascota: "Golden Retriever", verificado: true, texto: "Me tranquiliza saber que los proveedores están verificados. Encontré paseador para Luna en el mismo barrio y quedé muy conforme con el servicio." },
-    { nombre: "Ignacio V.", ciudad: "Maipú, Santiago", rol: "Paseador y cuidador", verificado: true, texto: "Publiqué mi servicio en menos de 20 minutos. Desde el primer día empecé a recibir consultas de dueños de mi misma comuna. Es la forma más simple que he encontrado de crecer." }
+    { nombre: "Ignacio V.", ciudad: "Maipú, Santiago", rol: "Paseador y proveedor", verificado: true, texto: "Publiqué mi servicio en menos de 20 minutos. Desde el primer día empecé a recibir consultas de dueños de mi misma comuna. Es la forma más simple que he encontrado de crecer." }
   ];
 
   return (
@@ -319,7 +319,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
               Únete a nuestra red de proveedores
             </h2>
             <p className="text-slate-600 mb-8">
-              Sé de los primeros cuidadores en ofrecer tus servicios en tu comuna
+              Sé de los primeros proveedores en ofrecer tus servicios en tu comuna
             </p>
             <Link
               href="/register?rol=proveedor"

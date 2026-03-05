@@ -31,7 +31,7 @@ export default function QuickSearch() {
                     </div>
                     <input
                         type="text"
-                        placeholder="Busca cuidadores, peluquerías, veterinarias..."
+                        placeholder="Busca proveedores, peluquerías, veterinarias..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 block pl-9 p-2 transition-colors placeholder-slate-400 cursor-text outline-none"
@@ -59,7 +59,7 @@ export default function QuickSearch() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Busca cuidadores, peluquerías, veterinarias..."
+                            placeholder="Busca proveedores, peluquerías, veterinarias..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             // eslint-disable-next-line jsx-a11y/no-autofocus
