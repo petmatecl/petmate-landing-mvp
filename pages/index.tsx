@@ -1,7 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
 import { useRouter } from "next/router";
 import { GetStaticProps } from "next";
 import { mapJoinToServiceResult } from "../lib/serviceMapper";
@@ -30,20 +29,6 @@ interface HomePageProps {
 
 export default function HomePage({ featuredServices, stats }: HomePageProps) {
   const router = useRouter();
-
-  // Hero image hover tilt state
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX - cx) / (rect.width / 2);
-    const dy = (e.clientY - cy) / (rect.height / 2);
-    setTilt({ x: dy * -8, y: dx * 8 }); // max 8deg tilt
-  };
-
-  const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
 
   const categoriasEstaticas = [
     { slug: 'hospedaje', nombre: 'Hospedaje', descripcion: 'Tu mascota en un hogar de confianza', Icon: Home },
@@ -130,17 +115,8 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
             </div>
           </div>
 
-          {/* Columna derecha: imagen — solo desktop */}
           <div className="hidden lg:block">
-            <div
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              style={{
-                transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${tilt.x !== 0 || tilt.y !== 0 ? 1.03 : 1})`,
-                transition: tilt.x === 0 && tilt.y === 0 ? 'transform 0.6s ease' : 'transform 0.12s ease',
-              }}
-              className="relative aspect-[4/5] ring-4 ring-emerald-600/20 rounded-3xl overflow-hidden shadow-2xl cursor-default"
-            >
+            <div className="relative aspect-[4/5] ring-4 ring-emerald-600/20 rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500 cursor-default">
               <Image
                 src="/images/hero-pets.png"
                 alt="Perro y gato felices recibiendo cuidado profesional en Pawnecta"
