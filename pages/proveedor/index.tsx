@@ -127,24 +127,32 @@ export default function ProveedorDashboard() {
             let vistasTrendValue = 0;
             let vistasTrend = null;
 
-            // 1. Service Views (7 dias)
-            const { count: currentViews, error: errorViews } = await supabase
-                .from('service_views')
-                .select('*', { head: true, count: 'exact' })
-                .eq('proveedor_id', provId)
-                .gte('created_at', last7Days);
+            // 1. Service Views via eventos_tracking (table that actually exists)
+            // First resolve the proveedor's servicio IDs
+            const { data: provServicios } = await supabase
+                .from('servicios_publicados')
+                .select('id')
+                .eq('proveedor_id', provId);
+            const serviciosIds = provServicios?.map((s: any) => s.id) || [];
 
-            if (errorViews && errorViews.code === '42P01') {
-                // Fallback si no existe tabla service_views
-                const fallbackVistas = await supabase.from('servicios_publicados').select('vistas').eq('proveedor_id', provId);
-                vistas = fallbackVistas.data?.reduce((acc, curr) => acc + (curr.vistas || 0), 0) || 0;
+            if (serviciosIds.length === 0) {
+                vistas = 0;
             } else {
+                const { count: currentViews } = await supabase
+                    .from('eventos_tracking')
+                    .select('*', { head: true, count: 'exact' })
+                    .eq('tipo', 'vista_servicio')
+                    .in('servicio_id', serviciosIds)
+                    .gte('created_at', last7Days);
+
                 vistas = currentViews || 0;
+
                 // Prev 7 days for trend
                 const { count: prevViews } = await supabase
-                    .from('service_views')
+                    .from('eventos_tracking')
                     .select('*', { head: true, count: 'exact' })
-                    .eq('proveedor_id', provId)
+                    .eq('tipo', 'vista_servicio')
+                    .in('servicio_id', serviciosIds)
                     .lt('created_at', last7Days)
                     .gte('created_at', last14Days);
 

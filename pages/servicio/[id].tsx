@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
+import { useUser } from '../../contexts/UserContext';
+import { mapRpcToServiceResult } from '../../lib/serviceMapper';
 import LoginRequiredModal from '../../components/Shared/LoginRequiredModal';
 import ReviewModal from '../../components/Service/ReviewModal';
 import ReviewForm from '../../components/Service/ReviewForm';
@@ -25,16 +27,8 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [isChatLoading, setIsChatLoading] = useState(false);
 
-    // Check if the current user is authenticated for the ReviewForm
-    const [user, setUser] = React.useState<any>(null);
-
-    React.useEffect(() => {
-        const fetchSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user || null);
-        };
-        fetchSession();
-    }, []);
+    // Use shared UserContext — avoids double session fetch
+    const { user } = useUser();
 
     // Tracking: registrar vista al entrar a la pagina
     React.useEffect(() => {
@@ -235,10 +229,12 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                     {proveedor.comuna}
                                 </span>
-                                <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-lg">
-                                    <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                                    {(totalReviews > 0 ? (reviews.reduce((acc, r: any) => acc + r.rating, 0) / totalReviews) : 0).toFixed(1)} Rating
-                                </span>
+                                {totalReviews > 0 && (
+                                    <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-lg">
+                                        <Star size={14} className="text-emerald-500 fill-emerald-500" />
+                                        {totalReviews} evaluaci{totalReviews !== 1 ? 'ones' : 'ón'}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -531,28 +527,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             });
 
             otrosServicios = (similarRaw || [])
-                .filter((s: any) => s.proveedor_id !== proveedorId && s.servicio_id !== id)
+                .filter((s: any) => s.proveedor_id !== proveedorId && s.id !== id)
                 .slice(0, 3)
-                .map((s: any) => ({
-                    servicio_id: s.servicio_id,
-                    titulo: s.titulo,
-                    descripcion: s.descripcion,
-                    precio_desde: s.precio_desde,
-                    precio_hasta: s.precio_hasta,
-                    unidad_precio: s.unidad_precio,
-                    fotos: s.fotos || [],
-                    categoria_nombre: s.categoria_nombre || '',
-                    categoria_slug: s.categoria_slug || '',
-                    categoria_icono: s.categoria_icono || '',
-                    proveedor_id: s.proveedor_id,
-                    proveedor_nombre: s.proveedor_nombre,
-                    proveedor_foto: s.proveedor_foto || '',
-                    proveedor_comuna: s.proveedor_comuna || '',
-                    destacado: s.destacado || false,
-                    rating_promedio: s.rating_promedio || 0,
-                    total_evaluaciones: s.total_evaluaciones || 0,
-                    proveedor_updated_at: s.proveedor_updated_at,
-                }));
+                .map(mapRpcToServiceResult);
         }
 
         return {
