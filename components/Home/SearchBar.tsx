@@ -58,12 +58,12 @@ export default function SearchBar() {
                 >
                     <option value="">Ejemplo: Paseo, Guardería, Veterinario</option>
                     <option value="hospedaje">Hospedaje</option>
-                    <option value="guarderia-diurna">Guardería diurna</option>
-                    <option value="paseo">Paseo</option>
-                    <option value="visita-domicilio">Visita a domicilio</option>
+                    <option value="guarderia">Guardería diurna</option>
+                    <option value="paseos">Paseo</option>
+                    <option value="domicilio">Visita a domicilio</option>
                     <option value="peluqueria">Peluquería</option>
                     <option value="adiestramiento">Adiestramiento</option>
-                    <option value="veterinaria">Veterinaria</option>
+                    <option value="veterinario">Veterinaria</option>
                     <option value="traslado">Traslado</option>
                 </select>
             </div>
