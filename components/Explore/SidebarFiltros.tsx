@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     Check, Crosshair, Loader2, Search,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
+    Dog, Cat, Bird,
     LucideIcon
 } from 'lucide-react';
 import AddressAutocomplete from '../AddressAutocomplete';
@@ -141,8 +142,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     type="button"
                     onClick={() => onFilterChange({ categorias: [] })}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1 ${filters.categorias.length === 0
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : 'text-slate-600 hover:bg-slate-50 border border-transparent'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                         }`}
                 >
                     <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${filters.categorias.length === 0 ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'
@@ -164,8 +165,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                 type="button"
                                 onClick={() => toggleCategoria(cat.slug)}
                                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${checked
-                                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                        : 'text-slate-600 hover:bg-slate-50 border border-transparent'
+                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                    : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                                     }`}
                             >
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'
@@ -230,21 +231,21 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                     {([
-                        { id: 'any', label: 'Cualquiera', emoji: '🐾' },
-                        { id: 'perro', label: 'Perros', emoji: '🐕' },
-                        { id: 'gato', label: 'Gatos', emoji: '🐈' },
-                        { id: 'otro', label: 'Otro', emoji: '🦜' },
+                        { id: 'any', label: 'Cualquiera', Icon: PawPrint },
+                        { id: 'perro', label: 'Perros', Icon: Dog },
+                        { id: 'gato', label: 'Gatos', Icon: Cat },
+                        { id: 'otro', label: 'Otro', Icon: Bird },
                     ] as const).map(opt => (
                         <button
                             key={opt.id}
                             type="button"
                             onClick={() => onFilterChange({ mascota: opt.id as any, tamano: null })}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${filters.mascota === opt.id
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-sm'
-                                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-200 hover:bg-white'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-sm'
+                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-200 hover:bg-white'
                                 }`}
                         >
-                            <span>{opt.emoji}</span>
+                            <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-emerald-600' : 'text-slate-400'} />
                             <span>{opt.label}</span>
                         </button>
                     ))}
@@ -261,8 +262,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     type="button"
                                     onClick={() => onFilterChange({ tamano: size })}
                                     className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold border transition-all capitalize ${filters.tamano === size
-                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-200'
+                                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-200'
                                         }`}
                                 >
                                     {size === 'pequeno' ? 'Pequeño' : size.charAt(0).toUpperCase() + size.slice(1)}

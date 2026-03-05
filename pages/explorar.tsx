@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/router";
-import { Search, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Filter, X, MapPin, Dog, Cat, PawPrint, DollarSign, CalendarDays } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 
@@ -420,7 +420,7 @@ export default function ExplorarPage() {
 
                                     {filters.comuna && (
                                         <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                            📍 {filters.comuna}
+                                            <MapPin size={11} className="text-slate-500 shrink-0" /> {filters.comuna}
                                             <button
                                                 onClick={() => updateQueryParams({ comuna: '' })}
                                                 className="text-slate-500 hover:text-slate-900 leading-none ml-0.5"
@@ -430,7 +430,8 @@ export default function ExplorarPage() {
 
                                     {filters.mascota !== 'any' && (
                                         <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                            {filters.mascota === 'perro' ? '🐕 Perros' : filters.mascota === 'gato' ? '🐈 Gatos' : '🐾 Otro'}
+                                            {filters.mascota === 'perro' ? <Dog size={11} className="text-slate-500 shrink-0" /> : filters.mascota === 'gato' ? <Cat size={11} className="text-slate-500 shrink-0" /> : <PawPrint size={11} className="text-slate-500 shrink-0" />}
+                                            {filters.mascota === 'perro' ? 'Perros' : filters.mascota === 'gato' ? 'Gatos' : 'Otro'}
                                             <button
                                                 onClick={() => updateQueryParams({ mascota: 'any', tamano: null })}
                                                 className="text-slate-500 hover:text-slate-900 leading-none ml-0.5"
@@ -440,7 +441,7 @@ export default function ExplorarPage() {
 
                                     {(filters.precioMin || filters.precioMax) && (
                                         <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                            💰 ${filters.precioMin || '0'} – ${filters.precioMax || '∞'}
+                                            <DollarSign size={11} className="text-slate-500 shrink-0" /> ${filters.precioMin || '0'} – ${filters.precioMax || '∞'}
                                             <button
                                                 onClick={() => updateQueryParams({ precioMin: '', precioMax: '' })}
                                                 className="text-slate-500 hover:text-slate-900 leading-none ml-0.5"

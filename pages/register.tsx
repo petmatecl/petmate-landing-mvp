@@ -3,7 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { Search, Briefcase, CheckCircle2, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Search, Briefcase, CheckCircle2, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
 import { COMUNAS_CHILE } from "../lib/comunas";
@@ -43,6 +43,7 @@ export default function RegisterWizard() {
 
   // Step 2+3: RUT (common)
   const [rut, setRut] = useState('');
+  const [rutError, setRutError] = useState('');
 
   // Step 3: Provider Info
   const [comunaQuery, setComunaQuery] = useState('');
@@ -96,8 +97,10 @@ export default function RegisterWizard() {
     }
     if (!validateRut(rut)) {
       setError("El RUT ingresado no es válido. Verifica el número y dígito verificador.");
+      setRutError("RUT inválido — verifica el número y dígito verificador.");
       return;
     }
+    setRutError('');
 
     if (rol === "proveedor") {
       setStep(3);
@@ -329,13 +332,27 @@ export default function RegisterWizard() {
                   <input
                     type="text"
                     value={rut}
-                    onChange={e => setRut(formatRut(e.target.value))}
+                    onChange={e => {
+                      setRut(formatRut(e.target.value));
+                      if (rutError) setRutError('');
+                    }}
+                    onBlur={() => {
+                      if (rut && !validateRut(rut)) {
+                        setRutError('RUT inválido — verifica el número y dígito verificador.');
+                      } else {
+                        setRutError('');
+                      }
+                    }}
                     required
                     placeholder="12.345.678-9"
                     maxLength={12}
-                    className={inputClass}
+                    className={`${inputClass} ${rutError ? 'border-red-400 focus:ring-red-400 focus:border-red-400' : ''}`}
                   />
-                  <p className="text-xs text-slate-500 mt-1">Solo lo usamos para verificar tu identidad. No se muestra públicamente.</p>
+                  {rutError ? (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{rutError}</p>
+                  ) : (
+                    <p className="text-xs text-slate-500 mt-1">Solo lo usamos para verificar tu identidad. No se muestra públicamente.</p>
+                  )}
                 </div>
 
                 <div>
@@ -391,8 +408,10 @@ export default function RegisterWizard() {
 
                 <div className="pt-6 flex gap-3">
                   <button onClick={() => setStep(1)} className="w-1/3 border border-slate-300 text-slate-700 font-semibold py-4 rounded-xl hover:bg-slate-50 transition-colors">Atrás</button>
-                  <button onClick={proceedToNextStep} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-50">
-                    {loading ? "Procesando..." : rol === "proveedor" ? "Siguiente" : "Crear Cuenta"}
+                  <button onClick={proceedToNextStep} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <><Loader2 size={18} className="animate-spin" /> Procesando...</>
+                    ) : rol === "proveedor" ? "Siguiente" : "Crear Cuenta"}
                   </button>
                 </div>
               </div>
@@ -480,8 +499,10 @@ export default function RegisterWizard() {
 
                 <div className="pt-2 flex gap-3">
                   <button onClick={() => setStep(2)} disabled={loading} className="w-1/3 border border-slate-300 text-slate-700 font-semibold py-4 rounded-xl hover:bg-slate-50 transition-colors">Atrás</button>
-                  <button onClick={handleFinalSubmit} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-50">
-                    {loading ? "Creando cuenta..." : "Enviar Solicitud"}
+                  <button onClick={handleFinalSubmit} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <><Loader2 size={18} className="animate-spin" /> Creando cuenta...</>
+                    ) : "Enviar Solicitud"}
                   </button>
                 </div>
               </div>
