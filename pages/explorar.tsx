@@ -616,7 +616,7 @@ export default function ExplorarPage() {
                                             onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
                                             className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors cursor-pointer appearance-none"
                                         >
-                                            <option value="relevancia">Relevancia</option>
+                                            <option value="relevancia">Mejor coincidencia</option>
                                             <option value="rating">Mejor evaluados</option>
                                             <option value="precio_asc">Menor precio</option>
                                             <option value="precio_desc">Mayor precio</option>

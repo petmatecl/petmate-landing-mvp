@@ -85,9 +85,10 @@ interface HomePageProps {
     proveedores: number;
     comunas: number;
   };
+  categoryCounts: Record<string, number>;
 }
 
-export default function HomePage({ featuredServices, stats }: HomePageProps) {
+export default function HomePage({ featuredServices, stats, categoryCounts }: HomePageProps) {
   const router = useRouter();
 
   const categoriasEstaticas = [
@@ -99,7 +100,11 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
     { slug: 'adiestramiento', nombre: 'Adiestramiento', descripcion: 'Entrenamiento y corrección conductual', Icon: Award },
     { slug: 'veterinario', nombre: 'Veterinaria', descripcion: 'Consultas y atención médica cercana', Icon: Stethoscope },
     { slug: 'traslado', nombre: 'Traslado', descripcion: 'Transporte seguro para tu mascota', Icon: Car },
-  ];
+  ].map(cat => ({
+    ...cat,
+    count: categoryCounts[cat.slug] ?? 0,
+    estado: ((categoryCounts[cat.slug] ?? 0) > 0 ? 'activa' : 'proxima') as 'activa' | 'proxima',
+  }));
 
   const testimonios = [
     { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: true, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
@@ -221,7 +226,15 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {categoriasEstaticas.map((cat) => (
-            <CategoryCard key={`card-${cat.slug}`} {...cat} />
+            <CategoryCard
+              key={`card-${cat.slug}`}
+              slug={cat.slug}
+              nombre={cat.nombre}
+              descripcion={cat.descripcion}
+              Icon={cat.Icon}
+              estado={cat.estado}
+              count={cat.count}
+            />
           ))}
         </div>
       </section>
@@ -287,8 +300,8 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
               <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-900 p-8 md:px-12 rounded-3xl mb-12 max-w-5xl mx-auto text-left md:text-center">
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <IdCard className="w-8 h-8 text-emerald-400 mb-3" />
-                  <h4 className="font-bold text-white mb-2">Verificación de RUT</h4>
-                  <p className="text-sm text-slate-300">Validamos la identidad de cada proveedor antes de activar su perfil</p>
+                  <h4 className="font-bold text-white mb-2">Verificación de identidad</h4>
+                  <p className="text-sm text-slate-300">RUT validado y revisión manual del equipo Pawnecta antes de activar cada perfil</p>
                 </div>
                 <div className="hidden md:block w-px h-24 bg-slate-700"></div>
                 <div className="flex flex-col items-start md:items-center md:flex-1">
@@ -482,10 +495,28 @@ export async function getStaticProps() {
     comunas: comunasUnicas.size || 0,
   };
 
+  // Per-category service counts for CategoryCard estado/count badges
+  let categoryCounts: Record<string, number> = {};
+  try {
+    const { data: catData } = await supabase
+      .from('servicios_publicados')
+      .select('categoria:categorias_servicio(slug)')
+      .eq('activo', true);
+    if (catData) {
+      catData.forEach((row: any) => {
+        const slug = row.categoria?.slug;
+        if (slug) categoryCounts[slug] = (categoryCounts[slug] ?? 0) + 1;
+      });
+    }
+  } catch (err) {
+    console.error('Error fetching category counts:', err);
+  }
+
   return {
     props: {
       featuredServices,
       stats: statsObj,
+      categoryCounts,
     },
     revalidate: 30,
   };
