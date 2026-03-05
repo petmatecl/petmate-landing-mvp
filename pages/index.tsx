@@ -1,6 +1,5 @@
 import Head from "next/head";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { GetStaticProps } from "next";
@@ -15,7 +14,6 @@ import {
 import { supabase } from "../lib/supabaseClient";
 
 import SearchBar from "../components/Home/SearchBar";
-import CategoryCard from "../components/Home/CategoryCard";
 import ServiceCard from "../components/Home/ServiceCard";
 import StepCard from "../components/Home/StepCard";
 import TestimonialCard from "../components/Home/TestimonialCard";
@@ -147,93 +145,89 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
       </Head>
 
       {/* SECCIÓN 1: HERO + BUSCADOR */}
-      <section aria-label="Buscador de servicios" className="bg-white pt-16 pb-24 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+      <section
+        aria-label="Buscador de servicios"
+        className="relative min-h-[520px] flex items-center justify-center overflow-hidden bg-slate-900"
+      >
+        {/* Imagen de fondo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1600&auto=format&fit=crop&q=70"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-40"
+        />
+        {/* Overlay degradado */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/50 to-slate-900/80" />
 
-          {/* Columna izquierda: texto + búsqueda */}
-          <div className="space-y-6">
-            <div className="border-l-4 border-emerald-600 pl-5">
-              <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
-                Servicios para tu mascota, cerca de ti
-              </h1>
-            </div>
-            <p className="text-lg text-slate-600 max-w-xl">
-              Encuentra proveedores verificados en tu comuna. Compara, contacta y coordina directamente.
-            </p>
+        {/* Contenido centrado */}
+        <div className="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 text-center py-20">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-4 drop-shadow">
+            Servicios para tu mascota,<br />
+            <span className="text-emerald-400">cerca de ti</span>
+          </h1>
+          <p className="text-lg text-slate-200 mb-8 max-w-xl mx-auto">
+            Proveedores verificados en tu comuna. Compara, contacta y coordina directo.
+          </p>
 
-            <SearchBar />
+          {/* SearchBar integrado — sin card blanca flotante */}
+          <SearchBar variant="hero" />
 
-            {/* CTA proveedor */}
-            <p className="text-sm text-slate-500 mt-3">
-              ¿Ofreces servicios para mascotas?{" "}
-              <Link href="/register?rol=proveedor" className="text-emerald-600 font-semibold hover:underline">
-                Publica tu servicio gratis
-              </Link>
-            </p>
+          {/* CTA proveedor */}
+          <p className="text-sm text-slate-300 mt-5">
+            ¿Ofreces servicios para mascotas?{" "}
+            <Link href="/register?rol=proveedor" className="text-emerald-400 font-semibold hover:underline">
+              Publica gratis →
+            </Link>
+          </p>
 
-            {/* Badges de confianza */}
-            <div className="inline-flex flex-wrap gap-4 bg-emerald-50 rounded-xl px-4 py-3 text-sm font-bold text-slate-700">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                Proveedores verificados
+          {/* Badges */}
+          <div className="inline-flex flex-wrap justify-center gap-3 mt-6">
+            {[
+              { Icon: CheckCircle2, label: "Proveedores verificados" },
+              { Icon: Shield, label: "Revisión por Pawnecta" },
+              { Icon: MessageCircle, label: "Contacto directo" },
+            ].map(({ Icon, label }) => (
+              <div key={label} className="flex items-center gap-1.5 text-sm font-semibold text-white/90">
+                <Icon className="w-4 h-4 text-emerald-400" />
+                {label}
               </div>
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-emerald-600" />
-                Revisión por Pawnecta
-              </div>
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-emerald-600" />
-                Contacto directo
-              </div>
-            </div>
+            ))}
           </div>
-
-          <div className="hidden lg:block">
-            <div className="relative aspect-[4/5] ring-4 ring-emerald-600/20 rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500 cursor-default">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&auto=format&fit=crop&q=80"
-                alt="Perro feliz recibiendo cuidado profesional en Pawnecta"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
         </div>
       </section>
 
-      {/* SECCIÓN 2: CATEGORÍAS */}
-      <section aria-label="Categorias de servicio" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black text-slate-900">¿Qué servicio necesitas?</h2>
-          <p className="text-slate-600 mt-3 text-lg">Explora todas las categorías disponibles en tu zona</p>
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
-          {categoriasEstaticas.map((cat) => (
-            <button
-              key={`chip-${cat.slug}`}
-              onClick={() => router.push(`/explorar?categoria=${cat.slug}`)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition-colors text-sm font-bold shadow-sm"
-            >
-              <cat.Icon className="w-4 h-4" />
-              {cat.nombre}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categoriasEstaticas.map((cat) => (
-            <CategoryCard
-              key={`card-${cat.slug}`}
-              slug={cat.slug}
-              nombre={cat.nombre}
-              descripcion={cat.descripcion}
-              Icon={cat.Icon}
-              estado={cat.estado}
-              count={cat.count}
-            />
-          ))}
+      <section aria-label="Categorias de servicio" className="py-8 px-4 sm:px-6 lg:px-8 border-b border-slate-100 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {categoriasEstaticas.map((cat) => {
+              const isProxima = cat.estado === "proxima";
+              return isProxima ? (
+                <div
+                  key={cat.slug}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-200 bg-slate-50 text-slate-400 text-sm font-semibold shrink-0 cursor-not-allowed opacity-60 select-none"
+                >
+                  <cat.Icon className="w-4 h-4" />
+                  {cat.nombre}
+                  <span className="text-[10px] font-bold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full">Pronto</span>
+                </div>
+              ) : (
+                <button
+                  key={cat.slug}
+                  onClick={() => router.push(`/explorar?categoria=${cat.slug}`)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 text-sm font-semibold shrink-0 transition-all shadow-sm"
+                >
+                  <cat.Icon className="w-4 h-4 text-emerald-600" />
+                  {cat.nombre}
+                  {cat.count > 0 && (
+                    <span className="text-[11px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                      {cat.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 

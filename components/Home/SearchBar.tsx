@@ -4,7 +4,11 @@ import { Search, MapPin, LayoutGrid } from 'lucide-react';
 
 import { COMUNAS_CHILE } from '../../lib/comunas';
 
-export default function SearchBar() {
+interface SearchBarProps {
+    variant?: "hero" | "inline";
+}
+
+export default function SearchBar({ variant = "inline" }: SearchBarProps) {
     const router = useRouter();
     const [categoria, setCategoria] = useState('');
     const [comunaQuery, setComunaQuery] = useState('');
@@ -43,20 +47,27 @@ export default function SearchBar() {
     };
 
     return (
-        <form onSubmit={handleSearch} role="search" aria-label="Buscar servicios para mascotas" className="bg-white p-6 rounded-3xl shadow-md border border-slate-200 flex flex-col gap-4 w-full md:max-w-md md:ml-auto relative z-10">
-            <h3 className="text-xl font-semibold text-slate-900 mb-1">Empieza tu busqueda</h3>
-
-            {/* Campo Servicio — select */}
-            <div className="relative">
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                    <LayoutGrid className="w-5 h-5 text-slate-400" />
-                </div>
+        <form
+            onSubmit={handleSearch}
+            role="search"
+            aria-label="Buscar servicios para mascotas"
+            className={`
+                flex flex-col sm:flex-row items-stretch sm:items-center w-full
+                rounded-2xl overflow-hidden shadow-xl
+                ${variant === "hero"
+                    ? "bg-white border-0 max-w-2xl mx-auto"
+                    : "bg-white border border-slate-200"}
+            `}
+        >
+            {/* Campo Categoría */}
+            <div className="flex items-center flex-1 px-4 py-3 border-b sm:border-b-0 sm:border-r border-slate-200 gap-3 min-w-0">
+                <LayoutGrid className="w-5 h-5 text-slate-400 shrink-0" />
                 <select
                     value={categoria}
-                    onChange={(e) => { setCategoria(e.target.value); setErrorMsg(''); }}
-                    className="w-full h-12 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 appearance-none cursor-pointer transition-all"
+                    onChange={(e) => { setCategoria(e.target.value); setErrorMsg(""); }}
+                    className="flex-1 bg-transparent text-slate-900 text-sm font-medium focus:outline-none cursor-pointer appearance-none min-w-0"
                 >
-                    <option value="">Ejemplo: Paseo, Guardería, Veterinario</option>
+                    <option value="">¿Qué servicio?</option>
                     <option value="hospedaje">Hospedaje</option>
                     <option value="guarderia">Guardería diurna</option>
                     <option value="paseos">Paseo</option>
@@ -68,46 +79,40 @@ export default function SearchBar() {
                 </select>
             </div>
 
-            {/* Campo Comuna — combobox filtrable */}
-            <div className="relative" ref={comunaRef}>
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+            {/* Campo Comuna */}
+            <div className="flex items-center flex-1 px-4 py-3 gap-3 min-w-0 relative" ref={comunaRef}>
+                <MapPin className="w-5 h-5 text-slate-400 shrink-0" />
                 <input
                     type="text"
                     value={comunaQuery}
-                    onChange={(e) => { setComunaQuery(e.target.value); setShowComunaList(true); setErrorMsg(''); }}
+                    onChange={(e) => { setComunaQuery(e.target.value); setShowComunaList(true); setErrorMsg(""); }}
                     onFocus={() => setShowComunaList(true)}
-                    placeholder="Ej: Providencia, Las Condes"
+                    placeholder="¿Dónde?"
                     autoComplete="off"
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none placeholder:text-slate-400 transition-all"
+                    className="flex-1 bg-transparent text-slate-900 text-sm font-medium focus:outline-none placeholder:text-slate-400 placeholder:font-normal min-w-0"
                 />
+                {/* Dropdown comunas — sin cambios */}
                 {showComunaList && comunasFiltradas.length > 0 && (
                     <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
                         {comunasFiltradas.map(c => (
                             <li key={c}>
-                                <button
-                                    type="button"
+                                <button type="button"
                                     className="w-full text-left px-4 py-2.5 text-sm text-slate-800 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                                     onMouseDown={() => { setComunaQuery(c); setShowComunaList(false); }}
-                                >
-                                    {c}
-                                </button>
+                                >{c}</button>
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
 
-            {/* Error inline */}
-            {errorMsg && (
-                <p role="alert" aria-live="polite" className="text-sm text-red-500 font-medium -mt-1">{errorMsg}</p>
-            )}
-
+            {/* Botón buscar */}
             <button
                 type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-md text-white w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all mt-2"
+                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-4 sm:py-0 sm:h-full transition-colors shrink-0 text-sm"
             >
                 <Search className="w-5 h-5" />
-                Buscar servicios
+                <span>Buscar</span>
             </button>
         </form>
     );

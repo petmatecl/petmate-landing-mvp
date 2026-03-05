@@ -225,10 +225,10 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                     <div className="w-full lg:w-2/3 flex flex-col gap-8">
 
                         {/* Galeria / Portada */}
-                        <div className="w-full h-[300px] md:h-[450px] bg-slate-200 rounded-2xl overflow-hidden relative shadow-sm">
+                        <div className="w-full h-[340px] md:h-[500px] bg-slate-200 rounded-none lg:rounded-2xl overflow-hidden relative shadow-sm -mx-4 sm:-mx-6 lg:mx-0 w-screen sm:w-[calc(100%+3rem)] lg:w-full">
                             {imgError ? (
                                 <div className="w-full h-full flex items-center justify-center bg-slate-100">
-                                    {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={56} className="text-slate-300" />; })()}
+                                    {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={64} className="text-slate-300" />; })()}
                                 </div>
                             ) : (
                                 /* eslint-disable-next-line @next/next/no-img-element */
@@ -239,16 +239,27 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     onError={() => setImgError(true)}
                                 />
                             )}
-                            {/* Overlay subtil para mejor contraste */}
-                            {!imgError && <div className="absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-transparent"></div>}
 
-                            {/* Badge Categoria Flotante */}
-                            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-800 text-sm md:text-base font-bold px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
+                            {/* Overlay inferior con título y ubicación */}
+                            {!imgError && (
+                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-6 pt-16 pb-5">
+                                    <h1 className="text-2xl md:text-3xl font-black text-white leading-tight drop-shadow">
+                                        {service.titulo}
+                                    </h1>
+                                    <div className="flex items-center gap-1.5 mt-1.5 text-white/80 text-sm font-medium">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        {proveedor.comuna}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Badge categoría — se mantiene */}
+                            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-800 text-sm font-bold px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
                                 {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={16} className="text-slate-600" />; })()}
                                 <span>{categoria.nombre}</span>
                             </div>
 
-                            {/* Acciones flotantes fotos */}
+                            {/* Contador fotos */}
                             {service.fotos?.length > 1 && (
                                 <div className="absolute bottom-4 right-4 z-10 bg-white/90 backdrop-blur-sm text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
                                     1 / {service.fotos.length}
@@ -257,23 +268,25 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                         </div>
 
                         {/* Encabezado del Servicio */}
-                        <div>
-                            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-4">
-                                {service.titulo}
-                            </h1>
-                            <div className="flex flex-wrap items-center gap-4 text-slate-600 text-sm md:text-base font-medium">
-                                <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-lg">
-                                    <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                    {proveedor.comuna}
-                                </span>
-                                {totalReviews > 0 && (
-                                    <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-lg">
-                                        <Star size={14} className="text-emerald-500 fill-emerald-500" />
-                                        {totalReviews} evaluaci{totalReviews !== 1 ? 'ones' : 'ón'}
+                        {imgError && (
+                            <div>
+                                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-4">
+                                    {service.titulo}
+                                </h1>
+                                <div className="flex flex-wrap items-center gap-4 text-slate-600 text-sm md:text-base font-medium">
+                                    <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-lg">
+                                        <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        {proveedor.comuna}
                                     </span>
-                                )}
+                                    {totalReviews > 0 && (
+                                        <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-lg">
+                                            <Star size={14} className="text-emerald-500 fill-emerald-500" />
+                                            {totalReviews} evaluaci{totalReviews !== 1 ? 'ones' : 'ón'}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Mascotas Aceptadas */}
                         {service.tipos_mascota && service.tipos_mascota.length > 0 && (
@@ -394,104 +407,86 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                     {/* COLUMNA DERECHA: SIDEBAR (Sticky) */}
                     <div className="w-full lg:w-1/3 space-y-6">
-                        <div className="sticky top-24 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 border-t-2 border-t-emerald-600 flex flex-col relative overflow-hidden">
+                        <div className="sticky top-24 bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5">
 
-                            {/* Precio Gigante */}
-                            <div className="flex flex-col pb-6 border-b border-slate-100 mb-6 mt-2">
-                                <span className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-1">Precio desde</span>
-                                <div className="flex items-end gap-1 text-slate-900">
-                                    <span className="text-3xl font-bold">${service.precio_desde?.toLocaleString('es-CL')}</span>
-                                    <span className="text-slate-500 font-medium mb-1">/{service.unidad_precio}</span>
+                            {/* PRECIO — protagonista */}
+                            <div>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black text-emerald-700">
+                                        ${service.precio_desde?.toLocaleString("es-CL")}
+                                    </span>
+                                    <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
                                 </div>
+                                {/* Rating inline si hay evaluaciones */}
+                                {totalReviews > 0 && (
+                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                        <Star size={14} className="text-amber-400 fill-amber-400" />
+                                        <span className="text-sm font-bold text-slate-800">
+                                            {(reviews.reduce((a: number, r: any) => a + r.rating, 0) / totalReviews).toFixed(1)}
+                                        </span>
+                                        <span className="text-sm text-slate-500">({totalReviews} evaluaciones)</span>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Card del Proveedor */}
-                            <div className="flex flex-col items-center justify-center gap-2 mb-8 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <div className="w-20 h-20 rounded-full border-4 border-white shadow-md relative overflow-hidden bg-slate-200">
-                                    {proveedor.foto_perfil ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <svg className="w-full h-full text-slate-400 p-2" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                                    )}
-                                </div>
-
-                                <div className="text-center">
-                                    <h2 className="text-lg font-bold text-slate-900 flex items-center justify-center gap-1.5">
-                                        {proveedor.nombre} {proveedor.apellido_p}
-                                        {proveedor.rut_verificado && (
-                                            <span className="bg-emerald-100 text-emerald-600 p-0.5 rounded-full" title="Identidad Verificada">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                            </span>
-                                        )}
-                                    </h2>
-                                    <p className="text-slate-500 text-sm">Prestador en Pawnecta</p>
-                                    <Link
-                                        href={`/proveedor/${proveedor.id}`}
-                                        className="text-sm text-emerald-700 font-semibold hover:underline mt-1 block"
-                                    >
-                                        Ver todos sus servicios
-                                    </Link>
-
-                                    {/* Trust signals */}
-                                    {(() => {
-                                        const signals: { icon: React.ReactNode; label: string }[] = [];
-                                        if (proveedor.foto_perfil) signals.push({ icon: <ShieldCheck size={14} />, label: 'Identidad verificada' });
-                                        if (totalReviews > 0) signals.push({ icon: <Star size={14} />, label: `${totalReviews} evaluacion${totalReviews !== 1 ? 'es' : ''} real${totalReviews !== 1 ? 'es' : ''}` });
-                                        if ((proveedor.descripcion?.length ?? 0) > 100) signals.push({ icon: <UserIcon2 size={14} />, label: 'Perfil completo' });
-                                        if (signals.length === 0) return null;
-                                        return (
-                                            <div className="flex flex-wrap justify-center gap-1.5 mt-2">
-                                                {signals.map((s, i) => (
-                                                    <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-semibold rounded-full">
-                                                        {s.icon}
-                                                        {s.label}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-                            </div>
-
-                            {/* Acciones */}
+                            {/* CTAs — inmediatos */}
                             <div className="flex flex-col gap-3">
-
                                 <button
                                     onClick={handleChatClick}
                                     disabled={isChatLoading}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-200"
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
                                 >
-                                    {isChatLoading ? (
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    ) : (
-                                        <>
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                            Enviar Mensaje
-                                        </>
-                                    )}
+                                    {isChatLoading
+                                        ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        : <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
+                                    }
                                 </button>
 
                                 {proveedor.mostrar_whatsapp && proveedor.telefono && (
-                                    <button
-                                        onClick={handleWhatsApp}
-                                        className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#25D366]/20"
+                                    <button onClick={handleWhatsApp}
+                                        className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                                     >
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
-                                        Contactar por WhatsApp
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+                                        WhatsApp
                                     </button>
                                 )}
 
                                 {proveedor.mostrar_telefono && proveedor.telefono && (
-                                    <a
-                                        href={`tel:${proveedor.telefono}`}
-                                        className="w-full bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-slate-200"
+                                    <a href={`tel:${proveedor.telefono}`}
+                                        className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                                     >
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                        Llamar al Proveedor
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                        Llamar
                                     </a>
                                 )}
                             </div>
+
+                            {/* Divisor */}
+                            <div className="border-t border-slate-100" />
+
+                            {/* Proveedor — compacto horizontal */}
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 shrink-0">
+                                    {proveedor.foto_perfil
+                                        ? <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
+                                        : <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                    }
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="font-bold text-slate-900 text-sm truncate">
+                                            {proveedor.nombre} {proveedor.apellido_p}
+                                        </span>
+                                        {proveedor.rut_verificado && (
+                                            <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+                                        )}
+                                    </div>
+                                    <Link href={`/proveedor/${proveedor.id}`}
+                                        className="text-xs text-emerald-700 font-semibold hover:underline"
+                                    >Ver todos sus servicios</Link>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
