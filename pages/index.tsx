@@ -434,6 +434,6 @@ export async function getStaticProps() {
       featuredServices,
       stats: statsObj,
     },
-    revalidate: 60,
+    revalidate: 30,
   };
 }

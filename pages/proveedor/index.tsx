@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
+import { useProveedorStats } from '../../lib/useProveedorStats';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
 import ConversationList from '../../components/Chat/ConversationList';
@@ -35,16 +36,12 @@ export default function ProveedorDashboard() {
     // Tab Data
     const [servicios, setServicios] = useState<any[]>([]);
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);
-    const [stats, setStats] = useState<any>({
-        vistas: 0,
-        vistasTrend: null, // string e.g '+15%' 
-        vistasTrendValue: 0, // for color
-        consultas: 0,
-        ratingAvg: 0,
-        evalCount: 0,
-        activos: 0,
-        totalActivos: 0
-    });
+
+    // Stats via shared hook — uses proveedor.id once loaded
+    const { stats, refetch: fetchStats } = useProveedorStats(
+        proveedor?.id || '',
+        proveedor?.auth_user_id || ''
+    );
 
     // Chat Data
     const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -118,91 +115,7 @@ export default function ProveedorDashboard() {
                 .order('created_at', { ascending: false });
             setEvaluaciones(data || []);
         } else if (tab === 'estadisticas') {
-            const now = new Date();
-            const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-            const last14Days = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-            const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-
-            let vistas = 0;
-            let vistasTrendValue = 0;
-            let vistasTrend = null;
-
-            // 1. Service Views via eventos_tracking (table that actually exists)
-            // First resolve the proveedor's servicio IDs
-            const { data: provServicios } = await supabase
-                .from('servicios_publicados')
-                .select('id')
-                .eq('proveedor_id', provId);
-            const serviciosIds = provServicios?.map((s: any) => s.id) || [];
-
-            if (serviciosIds.length === 0) {
-                vistas = 0;
-            } else {
-                const { count: currentViews } = await supabase
-                    .from('eventos_tracking')
-                    .select('*', { head: true, count: 'exact' })
-                    .eq('tipo', 'vista_servicio')
-                    .in('servicio_id', serviciosIds)
-                    .gte('created_at', last7Days);
-
-                vistas = currentViews || 0;
-
-                // Prev 7 days for trend
-                const { count: prevViews } = await supabase
-                    .from('eventos_tracking')
-                    .select('*', { head: true, count: 'exact' })
-                    .eq('tipo', 'vista_servicio')
-                    .in('servicio_id', serviciosIds)
-                    .lt('created_at', last7Days)
-                    .gte('created_at', last14Days);
-
-                const prev = prevViews || 0;
-                if (prev > 0) {
-                    const percent = Math.round(((vistas - prev) / prev) * 100);
-                    vistasTrendValue = percent;
-                    vistasTrend = percent >= 0 ? `+${percent}% esta semana` : `${percent}% esta semana`;
-                } else if (vistas > 0) {
-                    vistasTrendValue = 100;
-                    vistasTrend = '+100% esta semana';
-                }
-            }
-
-            // 2. Converations (30 days)
-            const { count: consultas30d } = await supabase
-                .from('conversations')
-                .select('*', { head: true, count: 'exact' })
-                .eq('sitter_id', authId)
-                .gte('created_at', last30Days);
-
-            // 3. Rating Promedio
-            const { data: revs } = await supabase
-                .from('evaluaciones')
-                .select('rating')
-                .eq('proveedor_id', provId)
-                .eq('estado', 'aprobado');
-
-            const ratingAvg = revs && revs.length > 0 ? (revs.reduce((a, b) => a + (b.rating || 0), 0) / revs.length).toFixed(1) : '0.0';
-            const evalCount = revs?.length || 0;
-
-            // 4. Servicios Activos
-            const { data: servs } = await supabase
-                .from('servicios_publicados')
-                .select('activo')
-                .eq('proveedor_id', provId);
-
-            const activosCount = servs?.filter(s => s.activo).length || 0;
-            const totalCount = servs?.length || 0;
-
-            setStats({
-                vistas,
-                vistasTrend,
-                vistasTrendValue,
-                consultas: consultas30d || 0,
-                ratingAvg,
-                evalCount,
-                activos: activosCount,
-                totalActivos: totalCount
-            });
+            await fetchStats();
         }
     };
 

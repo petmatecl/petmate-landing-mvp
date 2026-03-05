@@ -125,7 +125,6 @@ export default function ExplorarPage() {
         try {
             const baseParams = {
                 p_comuna: filters.comuna || null,
-                p_tipo_mascota: filters.mascota === 'any' ? null : filters.mascota,
                 p_tamano: filters.tamano || null,
                 p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null,
                 p_precio_min: filters.precioMin ? parseInt(filters.precioMin) : null,
@@ -147,14 +146,14 @@ export default function ExplorarPage() {
                 allData = data || [];
                 serverTotal = allData.length > 0 ? Number(allData[0].total_count) : 0;
             } else {
-                // Parallel queries for each selected category, then merge+deduplicate
+                // Parallel queries for each selected category — fetch all, paginate client-side
                 const results = await Promise.all(
                     filters.categorias.map(slug =>
                         supabase.rpc('buscar_servicios', {
                             ...baseParams,
                             p_categoria_slug: slug,
-                            p_limit: PAGE_SIZE,
-                            p_offset: (pagina - 1) * PAGE_SIZE
+                            p_limit: 100,   // fetch all for multi-cat; paginate in client
+                            p_offset: 0
                         })
                     )
                 );
@@ -168,6 +167,7 @@ export default function ExplorarPage() {
                         }
                     }
                 }
+                // For multi-cat, total is the merged deduplicated count
                 serverTotal = allData.length;
             }
 
@@ -196,7 +196,18 @@ export default function ExplorarPage() {
 
 
             setTotalCount(serverTotal);
-            setServices(allData.map(mapRpcToServiceResult));
+
+            // Map RPC fields → ServiceResult
+            const mapped = allData.map(mapRpcToServiceResult);
+
+            // Client-side mascota filter (p_tipo_mascota removed from RPC in SCH-05)
+            const filteredByMascota = mapped.filter(s => {
+                if (filters.mascota === 'perro') return s.acepta_perros !== false;
+                if (filters.mascota === 'gato') return s.acepta_gatos !== false;
+                return true;
+            });
+
+            setServices(filteredByMascota);
 
             // Si no hay resultados con comuna + al menos una categoria → sugerir comunas
             if (allData.length === 0 && filters.comuna && filters.categorias.length > 0) {

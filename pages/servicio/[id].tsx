@@ -30,6 +30,19 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     // Use shared UserContext — avoids double session fetch
     const { user } = useUser();
 
+    // Check if this user already reviewed this service
+    const [yaEvaluo, setYaEvaluo] = useState(false);
+    React.useEffect(() => {
+        if (!user || !service?.id) return;
+        supabase
+            .from('evaluaciones')
+            .select('id')
+            .eq('servicio_id', service.id)
+            .eq('usuario_id', user.id)
+            .maybeSingle()
+            .then(({ data }) => setYaEvaluo(!!data));
+    }, [user, service?.id]);
+
     // Tracking: registrar vista al entrar a la pagina
     React.useEffect(() => {
         if (!service?.id) return;
@@ -134,6 +147,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     };
 
     const handleLeaveReview = async () => {
+        if (yaEvaluo) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             setLoginModalOpen(true);
@@ -335,15 +349,21 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                         {/* Formulario de Evaluación (Solo Autenticados) */}
                         {user && (
                             <div className="mt-8">
-                                <ReviewForm
-                                    servicioId={service.id}
-                                    proveedorId={proveedor.id}
-                                    servicioTitulo={service.titulo}
-                                    onSuccess={() => {
-                                        // Opcional: Podríamos recargar la página para ver si la review es auto-aprobada
-                                        // pero el spec dice que queda pendiente, con el mensaje de éxito es suficiente.
-                                    }}
-                                />
+                                {yaEvaluo ? (
+                                    <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-xl">
+                                        <Star size={16} className="fill-emerald-500 text-emerald-500" />
+                                        Ya dejaste una evaluación para este servicio
+                                    </div>
+                                ) : (
+                                    <ReviewForm
+                                        servicioId={service.id}
+                                        proveedorId={proveedor.id}
+                                        servicioTitulo={service.titulo}
+                                        onSuccess={() => {
+                                            setYaEvaluo(true);
+                                        }}
+                                    />
+                                )}
                             </div>
                         )}
 
