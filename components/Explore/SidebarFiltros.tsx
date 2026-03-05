@@ -33,6 +33,8 @@ interface Props {
     onClear: () => void;
     /** When true, wraps content in white card (desktop sidebar). False = bare (mobile drawer). */
     card?: boolean;
+    /** Count of services per category slug from current results (calculated client-side) */
+    categoryCounts?: Record<string, number>;
 }
 
 // ─── Icon mapping (matches CategoryChips.tsx) ─────────────────────────────────
@@ -50,7 +52,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function SidebarFiltros({ filters, categories, onFilterChange, onClear, card = true }: Props) {
+export default function SidebarFiltros({ filters, categories, onFilterChange, onClear, card = true, categoryCounts = {} }: Props) {
     const [geoLoading, setGeoLoading] = useState(false);
     const [comunaOpen, setComunaOpen] = useState(false);
     const comunaRef = useRef<HTMLDivElement>(null);
@@ -191,7 +193,12 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     {checked && <Check size={10} strokeWidth={3} className="text-white" />}
                                 </div>
                                 <CatIcon size={14} className={checked ? 'text-emerald-600' : 'text-slate-400'} />
-                                <span className="text-left">{cat.nombre}</span>
+                                <span className="text-left flex-1">{cat.nombre}</span>
+                                {(categoryCounts[cat.slug] ?? 0) > 0 && (
+                                    <span className="text-xs text-slate-400 font-normal tabular-nums ml-auto">
+                                        {categoryCounts[cat.slug]}
+                                    </span>
+                                )}
                             </button>
                         );
                     })}

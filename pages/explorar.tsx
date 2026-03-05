@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from "next/router";
 import { Search, ChevronLeft, ChevronRight, Filter, X, MapPin, Dog, Cat, PawPrint, DollarSign, CalendarDays } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
@@ -140,6 +140,15 @@ export default function ExplorarPage() {
 
     const [pagina, setPagina] = useState(1);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+    // Per-category count from current results (client-side, no extra query)
+    const categoryCounts = useMemo(() =>
+        services.reduce((acc, s) => {
+            const slug = s.categoria_slug;
+            if (slug) acc[slug] = (acc[slug] ?? 0) + 1;
+            return acc;
+        }, {} as Record<string, number>)
+        , [services]);
 
     // 1. Cargar Categorías desde DB (reemplaza el fallback estático si tiene datos)
     useEffect(() => {
@@ -455,6 +464,7 @@ export default function ExplorarPage() {
                             onFilterChange={updateQueryParams}
                             onClear={handleClearFilters}
                             card={true}
+                            categoryCounts={categoryCounts}
                         />
                     </aside>
 
@@ -559,7 +569,7 @@ export default function ExplorarPage() {
                                             <Search size={28} className="text-slate-300" />
                                         </div>
                                         <h3 className="text-xl font-bold text-slate-900 mb-2">
-                                            {filters.comuna ? `Sin resultados en ${filters.comuna}` : 'Sin resultados con estos filtros'}
+                                            {filters.comuna ? `Sin resultados en ${filters.comuna} ` : 'Sin resultados con estos filtros'}
                                         </h3>
                                         {comunasSugeridas.length > 0 ? (
                                             <>
@@ -637,7 +647,7 @@ export default function ExplorarPage() {
                                         <button
                                             onClick={() => goToPage(pagina - 1)}
                                             disabled={pagina === 1}
-                                            className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
+                                            className={`flex items - center gap - 1 border border - slate - 200 text - slate - 700 rounded - lg px - 3 py - 2 text - sm font - medium transition - colors ${pagina === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'} `}
                                             aria-label="Página anterior"
                                         >
                                             <ChevronLeft size={16} />
@@ -647,12 +657,12 @@ export default function ExplorarPage() {
                                         <div className="hidden sm:flex items-center gap-1.5">
                                             {paginationItems.map((item, idx) =>
                                                 item === "..." ? (
-                                                    <span key={`ellipsis-${idx}`} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
+                                                    <span key={`ellipsis - ${idx} `} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
                                                 ) : (
                                                     <button
                                                         key={item}
                                                         onClick={() => goToPage(item as number)}
-                                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                                                        className={`rounded - lg px - 3 py - 2 text - sm font - medium transition - colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'} `}
                                                         aria-current={item === pagina ? 'page' : undefined}
                                                     >
                                                         {item}
@@ -668,7 +678,7 @@ export default function ExplorarPage() {
                                         <button
                                             onClick={() => goToPage(pagina + 1)}
                                             disabled={pagina === totalPaginas}
-                                            className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === totalPaginas ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
+                                            className={`flex items - center gap - 1 border border - slate - 200 text - slate - 700 rounded - lg px - 3 py - 2 text - sm font - medium transition - colors ${pagina === totalPaginas ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'} `}
                                             aria-label="Página siguiente"
                                         >
                                             <span className="hidden sm:inline">Siguiente</span>

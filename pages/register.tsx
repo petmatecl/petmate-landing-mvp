@@ -147,6 +147,17 @@ export default function RegisterWizard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Pre-seleccionar rol desde query param ?rol=proveedor o ?rol=usuario
+  useEffect(() => {
+    if (!router.isReady) return;
+    const queryRol = router.query.rol as string | undefined;
+    if (queryRol === 'proveedor' || queryRol === 'usuario') {
+      setRol(queryRol as Role);
+      // Skip step 1 and go directly to step 2
+      setStep(2);
+    }
+  }, [router.isReady, router.query.rol]);
+
   const proceedToStep2 = () => {
     if (!rol) {
       setError("Por favor, selecciona el tipo de cuenta que quieres crear.");
