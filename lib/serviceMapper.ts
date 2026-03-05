@@ -20,7 +20,21 @@ const CAT_NAMES: Record<string, string> = {
  * RPC returns: id, nombre, apellido_p, foto_perfil, comuna, categoria_slug, ...
  */
 export function mapRpcToServiceResult(item: any): ServiceResult {
-    const slug = item.categoria_slug ?? '';
+    // Defensive swap: some DB overloads return nombre/slug in wrong columns
+    let rawSlug: string = item.categoria_slug ?? '';
+    let rawNombre: string = item.categoria_nombre ?? '';
+
+    // If slug looks like a price unit and nombre looks like a real category name,
+    // they are swapped — correct immediately.
+    const PRICE_PATTERN = /^por /i;
+    if (PRICE_PATTERN.test(rawSlug) && !PRICE_PATTERN.test(rawNombre)) {
+        [rawSlug, rawNombre] = [rawNombre, rawSlug]; // swap back
+    }
+
+    // Normalise slug to a known key (CAT_NAMES uses lowercase slugs)
+    const slug = (CAT_NAMES[rawSlug] ? rawSlug : rawSlug.toLowerCase().replace(/\s+/g, '-')).replace(/ /g, '-');
+    const catNombre = (PRICE_PATTERN.test(rawNombre) ? null : rawNombre) ?? CAT_NAMES[slug] ?? slug;
+
     return {
         servicio_id: item.id,
         titulo: item.titulo,
@@ -29,7 +43,7 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         precio_hasta: item.precio_hasta ?? null,
         unidad_precio: item.unidad_precio ?? 'por sesión',
         fotos: item.fotos ?? [],
-        categoria_nombre: item.categoria_nombre ?? CAT_NAMES[slug] ?? slug,
+        categoria_nombre: catNombre,
         categoria_slug: slug,
         categoria_icono: item.categoria_icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
