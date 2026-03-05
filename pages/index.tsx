@@ -2,9 +2,11 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { GetStaticProps } from "next";
 import { mapJoinToServiceResult } from "../lib/serviceMapper";
 import { ServiceResult } from "../components/Explore/ServiceCard";
+import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
@@ -17,6 +19,64 @@ import CategoryCard from "../components/Home/CategoryCard";
 import ServiceCard from "../components/Home/ServiceCard";
 import StepCard from "../components/Home/StepCard";
 import TestimonialCard from "../components/Home/TestimonialCard";
+
+// ─── PrelaunchDemandCapture ─────────────────────────────────────────────────
+function PrelaunchDemandCapture() {
+  const [email, setEmail] = useState('');
+  const [comuna, setComuna] = useState('');
+  const [done, setDone] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setDone(true);
+  };
+
+  return (
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
+      <div className="max-w-2xl mx-auto text-center">
+        <h2 className="text-3xl font-black text-slate-900 mb-4">Sé el primero en enterarte</h2>
+        <p className="text-slate-600 max-w-xl mx-auto mb-8">
+          Estamos activando proveedores verificados en cada categoría y comuna. Deja tu correo y te avisamos cuando haya opciones disponibles cerca tuyo.
+        </p>
+
+        {done ? (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-8 py-10">
+            <p className="text-emerald-800 font-bold text-lg">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+            <input
+              type="email"
+              required
+              placeholder="Tu correo electrónico"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder:text-slate-400 transition-colors"
+            />
+            <select
+              value={comuna}
+              onChange={e => setComuna(e.target.value)}
+              className="h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+            >
+              <option value="">Mi comuna...</option>
+              {COMUNAS_CHILE.slice(0, 20).map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
+            >
+              Avisarme
+            </button>
+          </form>
+        )}
+        <p className="text-xs text-slate-400 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores disponibles.</p>
+      </div>
+    </section>
+  );
+}
 
 interface HomePageProps {
   featuredServices: any[];
@@ -98,6 +158,14 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
             <SearchBar />
 
+            {/* CTA proveedor */}
+            <p className="text-sm text-slate-500 mt-3">
+              ¿Ofreces servicios para mascotas?{" "}
+              <Link href="/register?rol=proveedor" className="text-emerald-600 font-semibold hover:underline">
+                Publica tu servicio gratis
+              </Link>
+            </p>
+
             {/* Badges de confianza */}
             <div className="inline-flex flex-wrap gap-4 bg-emerald-50 rounded-xl px-4 py-3 text-sm font-bold text-slate-700">
               <div className="flex items-center gap-2">
@@ -158,8 +226,8 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
         </div>
       </section>
 
-      {/* SECCIÓN 3: SERVICIOS DESTACADOS — solo si hay 3 o más servicios */}
-      {featuredServices && featuredServices.length >= 3 && (
+      {/* SECCIÓN 3: SERVICIOS DESTACADOS  — con 3+, o módulo pre-lanzamiento */}
+      {featuredServices && featuredServices.length >= 3 ? (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
@@ -168,11 +236,13 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
               {featuredServices.map((service) => (
-                <ServiceCard key={service.id} service={service} />
+                <ServiceCard key={service.servicio_id ?? service.id} service={service} />
               ))}
             </div>
           </div>
         </section>
+      ) : (
+        <PrelaunchDemandCapture />
       )}
 
       {/* SECCIÓN 4: CÓMO FUNCIONA (DUEÑOS) */}

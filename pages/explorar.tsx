@@ -10,6 +10,7 @@ import SidebarFiltros from "../components/Explore/SidebarFiltros";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
 import { mapRpcToServiceResult } from "../lib/serviceMapper";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
+import { COMUNAS_CHILE } from "../lib/comunas";
 
 interface Category {
     id: string;
@@ -37,6 +38,80 @@ function getPaginationItems(current: number, total: number): (number | "...")[] 
     if (current <= 3) return [1, 2, 3, 4, 5, "...", total];
     if (current >= total - 2) return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
     return [1, "...", current - 1, current, current + 1, "...", total];
+}
+
+// ─── ExplorarPrelaunch ───────────────────────────────────────────────────────
+function ExplorarPrelaunch() {
+    const [email, setEmail] = useState('');
+    const [cat, setCat] = useState('');
+    const [done, setDone] = useState(false);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email.trim()) return;
+        setDone(true);
+    };
+
+    const CATS = [
+        { slug: 'hospedaje', label: 'Hospedaje' },
+        { slug: 'guarderia', label: 'Guadería diurna' },
+        { slug: 'domicilio', label: 'Visita a domicilio' },
+        { slug: 'paseos', label: 'Paseo de perros' },
+        { slug: 'peluqueria', label: 'Peluquería' },
+        { slug: 'adiestramiento', label: 'Adiestramiento' },
+        { slug: 'veterinario', label: 'Veterinario a domicilio' },
+        { slug: 'traslado', label: 'Traslado' },
+    ];
+
+    return (
+        <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 px-6">
+            <h3 className="text-xl font-bold text-slate-900 mb-3">
+                Estamos activando proveedores en tu zona
+            </h3>
+            <p className="text-slate-500 max-w-md mx-auto text-sm mb-8">
+                Pawnecta está en pleno lanzamiento. Estamos verificando proveedores en cada categoría. Deja tu correo y te avisamos cuando haya opciones cerca tuyo.
+            </p>
+
+            {done ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-8 py-8 max-w-md mx-auto">
+                    <p className="text-emerald-800 font-bold">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+                    <input
+                        type="email"
+                        required
+                        placeholder="Tu correo electrónico"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder:text-slate-400 transition-colors"
+                    />
+                    <select
+                        value={cat}
+                        onChange={e => setCat(e.target.value)}
+                        className="h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    >
+                        <option value="">Qué servicio...</option>
+                        {CATS.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
+                    </select>
+                    <button
+                        type="submit"
+                        className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
+                    >
+                        Avísame
+                    </button>
+                </form>
+            )}
+
+            <p className="text-xs text-slate-400 mt-4">Sin spam. Solo cuando haya proveedores disponibles.</p>
+
+            <div className="mt-8 pt-6 border-t border-slate-100">
+                <Link href="/register?rol=proveedor" className="text-sm text-emerald-700 font-semibold hover:underline">
+                    ¿Ofreces servicios para mascotas? Publica tu perfil gratis →
+                </Link>
+            </div>
+        </div>
+    );
 }
 
 export default function ExplorarPage() {
@@ -470,43 +545,58 @@ export default function ExplorarPage() {
                                 <ServiceSkeleton />
                             </div>
                         ) : services.length === 0 ? (
-                            <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
-                                <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
-                                    <Search size={28} className="text-slate-300" />
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">
-                                    {filters.comuna ? `Sin resultados en ${filters.comuna}` : 'Sin resultados con estos filtros'}
-                                </h3>
-
-                                {comunasSugeridas.length > 0 ? (
-                                    <>
-                                        <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
-                                            Hay proveedores disponibles en comunas cercanas:
-                                        </p>
-                                        <div className="flex flex-wrap justify-center gap-2 mt-4">
-                                            {comunasSugeridas.map(c => (
-                                                <button
-                                                    key={c}
-                                                    onClick={() => updateQueryParams({ comuna: c })}
-                                                    className="inline-flex px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors"
-                                                >
-                                                    {c}
-                                                </button>
-                                            ))}
+                            (() => {
+                                const hasActiveFilters =
+                                    filters.categorias.length > 0 ||
+                                    !!filters.comuna ||
+                                    filters.mascota !== 'any' ||
+                                    !!filters.precioMin ||
+                                    !!filters.precioMax;
+                                return hasActiveFilters ? (
+                                    /* RAMA A: filtros activos, sin match */
+                                    <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+                                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
+                                            <Search size={28} className="text-slate-300" />
                                         </div>
-                                    </>
+                                        <h3 className="text-xl font-bold text-slate-900 mb-2">
+                                            {filters.comuna ? `Sin resultados en ${filters.comuna}` : 'Sin resultados con estos filtros'}
+                                        </h3>
+                                        {comunasSugeridas.length > 0 ? (
+                                            <>
+                                                <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                                                    Hay proveedores disponibles en comunas cercanas:
+                                                </p>
+                                                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                                    {comunasSugeridas.map(c => (
+                                                        <button
+                                                            key={c}
+                                                            onClick={() => updateQueryParams({ comuna: c })}
+                                                            className="inline-flex px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors"
+                                                        >
+                                                            {c}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                                                Intenta ajustar los filtros o ampliar la búsqueda.
+                                            </p>
+                                        )}
+                                        <div className="flex flex-col sm:flex-row justify-center gap-3 mt-8">
+                                            <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
+                                                Ver todos los servicios
+                                            </button>
+                                            <Link href="/register?rol=proveedor" className="px-6 py-2.5 bg-emerald-50 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-100 transition-colors text-sm text-center">
+                                                ¿Eres proveedor? Publica tu servicio →
+                                            </Link>
+                                        </div>
+                                    </div>
                                 ) : (
-                                    <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
-                                        Intenta ajustar los filtros o ampliar la búsqueda.
-                                    </p>
-                                )}
-
-                                <div className="flex justify-center gap-3 mt-8">
-                                    <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
-                                        Ver todos los servicios
-                                    </button>
-                                </div>
-                            </div>
+                                    /* RAMA B: sin filtros, estado pre-lanzamiento */
+                                    <ExplorarPrelaunch />
+                                );
+                            })()
                         ) : (
                             <>
                                 {/* Barra: conteo + orden */}
