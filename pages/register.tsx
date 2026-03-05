@@ -16,10 +16,12 @@ type TipoCampo = 'text' | 'select' | 'boolean' | 'number';
 interface CampoDinamico {
   key: string;
   label: string;
-  tipo: TipoCampo;
+  tipo: "text" | "number" | "boolean" | "select" | "textarea";
   placeholder?: string;
-  opciones?: { value: string; label: string }[];
   requerido?: boolean;
+  opciones?: { value: string; label: string }[];
+  condicionalDe?: string;
+  condicionalValor?: string | boolean | number;
 }
 
 const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
@@ -52,9 +54,38 @@ const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     { key: 'certificacion', label: 'Certificación (si tiene)', tipo: 'text', placeholder: 'Ej: CPDT-KA' },
   ],
   hospedaje: [
-    { key: 'capacidad_maxima', label: 'Capacidad máxima (mascotas)', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
-    { key: 'tiene_patio', label: 'Tengo patio o jardín', tipo: 'boolean' },
-    { key: 'otras_mascotas_hogar', label: 'Hay otras mascotas en mi hogar', tipo: 'boolean' },
+    {
+      key: "tipo_vivienda", label: "Tipo de vivienda donde cuidas", tipo: "select",
+      opciones: [{ value: "casa", label: "Casa" }, { value: "departamento", label: "Departamento" }],
+      requerido: true
+    },
+    {
+      key: "metros_espacio", label: "Metros cuadrados del espacio disponible para la mascota",
+      tipo: "number", placeholder: "Ej: 30"
+    },
+    {
+      key: "capacidad_maxima", label: "Capacidad maxima (mascotas simultaneas)",
+      tipo: "number", placeholder: "Ej: 2", requerido: true
+    },
+    { key: "tiene_patio", label: "Tengo patio o jardin con acceso directo", tipo: "boolean" },
+    {
+      key: "piso_departamento", label: "Piso del departamento", tipo: "number",
+      placeholder: "Ej: 5",
+      condicionalDe: "tipo_vivienda", condicionalValor: "departamento"
+    },
+    {
+      key: "tiene_mallas_seguridad", label: "Tengo mallas de seguridad en ventanas y balcones",
+      tipo: "boolean",
+      condicionalDe: "tipo_vivienda", condicionalValor: "departamento"
+    },
+    { key: "otras_mascotas_hogar", label: "Tengo mascotas propias en el hogar", tipo: "boolean" },
+    {
+      key: "tipo_mascotas_propias", label: "Que mascotas tienes? (describe)",
+      tipo: "text", placeholder: "Ej: 1 gato castrado tranquilo",
+      condicionalDe: "otras_mascotas_hogar", condicionalValor: true
+    },
+    { key: "tiene_ninos", label: "Hay ninos menores de 12 anos en el hogar", tipo: "boolean" },
+    { key: "acepta_separacion", label: "Puedo mantener mascotas separadas si es necesario", tipo: "boolean" },
   ],
   guarderia: [
     { key: 'capacidad_maxima', label: 'Capacidad máxima (mascotas)', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
@@ -66,8 +97,31 @@ const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     { key: 'duracion_estandar', label: 'Duración estándar del paseo (minutos)', tipo: 'number', placeholder: 'Ej: 45' },
   ],
   domicilio: [
-    { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 4' },
-    { key: 'servicios_incluidos', label: 'Servicios que incluye', tipo: 'text', placeholder: 'Ej: Alimentación, medicamentos, compañía' },
+    {
+      key: "anios_experiencia", label: "Anos de experiencia en cuidado de mascotas",
+      tipo: "number", placeholder: "Ej: 4"
+    },
+    {
+      key: "visitas_por_dia", label: "Visitas por dia que puedes hacer",
+      tipo: "number", placeholder: "Ej: 2", requerido: true
+    },
+    {
+      key: "duracion_visita", label: "Duracion de cada visita (minutos)",
+      tipo: "number", placeholder: "Ej: 45", requerido: true
+    },
+    {
+      key: "servicios_incluidos", label: "Que incluye cada visita",
+      tipo: "text", placeholder: "Ej: Alimentacion, paseo corto, limpieza, compania"
+    },
+    {
+      key: "incluye_medicamentos", label: "Puedo administrar medicamentos orales segun instrucciones",
+      tipo: "boolean"
+    },
+    { key: "incluye_foto_reporte", label: "Envio foto + reporte de cada visita", tipo: "boolean" },
+    {
+      key: "experiencia_emergencias", label: "Tengo experiencia en emergencias basicas",
+      tipo: "boolean"
+    },
   ],
 };
 
@@ -566,43 +620,51 @@ export default function RegisterWizard() {
                         <CatIcon size={16} className="text-emerald-600" />
                         Información específica de tu servicio
                       </h3>
-                      {CAMPOS_POR_CATEGORIA[categoria].map(campo => (
-                        <div key={campo.key}>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">
-                            {campo.label}{campo.requerido && <span className="text-red-500 ml-1">*</span>}
-                          </label>
-                          {campo.tipo === 'boolean' ? (
-                            <label className="flex items-center gap-3 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={!!datosDinamicos[campo.key]}
-                                onChange={e => setDatoDinamico(campo.key, e.target.checked)}
-                                className="w-5 h-5 rounded border-slate-300 accent-emerald-600"
-                              />
-                              <span className="text-sm text-slate-600">Sí</span>
+                      {(() => {
+                        const camposVisibles = CAMPOS_POR_CATEGORIA[categoria].filter(function (campo) {
+                          if (!campo.condicionalDe) return true;
+                          var valorActual = datosDinamicos[campo.condicionalDe];
+                          return valorActual === campo.condicionalValor;
+                        });
+
+                        return camposVisibles.map(campo => (
+                          <div key={campo.key}>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              {campo.label}{campo.requerido && <span className="text-red-500 ml-1">*</span>}
                             </label>
-                          ) : campo.tipo === 'select' ? (
-                            <select
-                              value={datosDinamicos[campo.key] || ''}
-                              onChange={e => setDatoDinamico(campo.key, e.target.value)}
-                              className={`${inputClass} cursor-pointer`}
-                            >
-                              <option value="" disabled>Selecciona...</option>
-                              {campo.opciones?.map(op => (
-                                <option key={op.value} value={op.value}>{op.label}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <input
-                              type={campo.tipo === 'number' ? 'number' : 'text'}
-                              value={datosDinamicos[campo.key] || ''}
-                              onChange={e => setDatoDinamico(campo.key, e.target.value)}
-                              placeholder={campo.placeholder}
-                              className={inputClass}
-                            />
-                          )}
-                        </div>
-                      ))}
+                            {campo.tipo === 'boolean' ? (
+                              <label className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={!!datosDinamicos[campo.key]}
+                                  onChange={e => setDatoDinamico(campo.key, e.target.checked)}
+                                  className="w-5 h-5 rounded border-slate-300 accent-emerald-600"
+                                />
+                                <span className="text-sm text-slate-600">Sí</span>
+                              </label>
+                            ) : campo.tipo === 'select' ? (
+                              <select
+                                value={datosDinamicos[campo.key] || ''}
+                                onChange={e => setDatoDinamico(campo.key, e.target.value)}
+                                className={`${inputClass} cursor-pointer`}
+                              >
+                                <option value="" disabled>Selecciona...</option>
+                                {campo.opciones?.map(op => (
+                                  <option key={op.value} value={op.value}>{op.label}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                type={campo.tipo === 'number' ? 'number' : 'text'}
+                                value={datosDinamicos[campo.key] || ''}
+                                onChange={e => setDatoDinamico(campo.key, e.target.value)}
+                                placeholder={campo.placeholder}
+                                className={inputClass}
+                              />
+                            )}
+                          </div>
+                        ))
+                      })()}
                     </div>
                   );
                 })()}

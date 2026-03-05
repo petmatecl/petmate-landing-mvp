@@ -76,6 +76,99 @@ function PrelaunchDemandCapture() {
   );
 }
 
+const FALLBACK_HOME: Record<string, string> = {
+  hospedaje: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&auto=format&fit=crop&q=70",
+  guarderia: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&auto=format&fit=crop&q=70",
+  paseos: "https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=400&auto=format&fit=crop&q=70",
+  domicilio: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&auto=format&fit=crop&q=70",
+  peluqueria: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=400&auto=format&fit=crop&q=70",
+  adiestramiento: "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=400&auto=format&fit=crop&q=70",
+  veterinario: "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&auto=format&fit=crop&q=70",
+  traslado: "https://images.unsplash.com/photo-1544568100-847a948585b9?w=400&auto=format&fit=crop&q=70",
+  default: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&auto=format&fit=crop&q=70",
+};
+
+function FranjaCategoria({
+  categoria,
+  servicios,
+  onVerTodos,
+}: {
+  categoria: { slug: string; nombre: string; Icon: any };
+  servicios: any[];
+  onVerTodos: () => void;
+}) {
+  if (servicios.length === 0) return null;
+  return (
+    <div className="py-5">
+      {/* Encabezado franja */}
+      <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-2">
+          <categoria.Icon className="w-5 h-5 text-emerald-600" />
+          <h2 className="text-lg font-bold text-slate-900">{categoria.nombre}</h2>
+          <span className="text-sm text-slate-400">disponibles</span>
+        </div>
+        <button
+          onClick={onVerTodos}
+          className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 transition-colors"
+        >
+          Ver todos <span>→</span>
+        </button>
+      </div>
+
+      {/* Scroll horizontal */}
+      <div className="flex gap-4 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 scrollbar-hide
+                      max-w-7xl mx-auto">
+        {servicios.slice(0, 6).map((s: any) => {
+          const foto = (s.fotos && s.fotos.length > 0) ? s.fotos[0]
+            : s.proveedor_foto || FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
+          return (
+            <a
+              key={s.servicio_id ?? s.id}
+              href={`/servicio/${s.servicio_id ?? s.id}`}
+              className="shrink-0 w-44 group cursor-pointer"
+            >
+              <div className="w-44 h-44 rounded-xl overflow-hidden bg-slate-100 mb-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={foto}
+                  alt={s.titulo}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug
+                            group-hover:text-emerald-700 transition-colors">
+                {s.titulo}
+              </p>
+              {s.proveedor_comuna && (
+                <p className="text-xs text-slate-500 mt-0.5">{s.proveedor_comuna}</p>
+              )}
+              {s.precio_desde > 0 && (
+                <p className="text-sm font-bold text-slate-900 mt-1">
+                  ${s.precio_desde.toLocaleString("es-CL")}
+                  <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
+                </p>
+              )}
+            </a>
+          );
+        })}
+
+        {/* Card "Ver todos" al final */}
+        <button
+          onClick={onVerTodos}
+          className="shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-slate-200
+                     hover:border-emerald-400 flex flex-col items-center justify-center gap-2
+                     text-slate-400 hover:text-emerald-600 transition-colors group"
+        >
+          <span className="text-3xl font-black group-hover:scale-110 transition-transform">→</span>
+          <span className="text-xs font-semibold text-center px-3 leading-snug">
+            Ver todos los {categoria.nombre.toLowerCase()}
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 interface HomePageProps {
   featuredServices: any[];
   stats: {
@@ -231,6 +324,31 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         </div>
       </section>
 
+      {/* SECCION 2.5: FRANJAS POR CATEGORIA — estilo MercadoLibre */}
+      {(() => {
+        const porCategoria: Record<string, any[]> = {};
+        (featuredServices || []).forEach((s: any) => {
+          const slug = s.categoria_slug || "default";
+          if (!porCategoria[slug]) porCategoria[slug] = [];
+          porCategoria[slug].push(s);
+        });
+        const categoriasActivas = categoriasEstaticas.filter(
+          (c) => (porCategoria[c.slug] || []).length > 0
+        );
+        if (categoriasActivas.length < 2) return null;
+        return (
+          <section aria-label="Servicios por categoria" className="bg-white border-b border-slate-100 py-4">
+            {categoriasActivas.map((cat) => (
+              <FranjaCategoria
+                key={cat.slug}
+                categoria={cat}
+                servicios={porCategoria[cat.slug] || []}
+                onVerTodos={() => router.push(`/explorar?categoria=${cat.slug}`)}
+              />
+            ))}
+          </section>
+        );
+      })()}
       {/* SECCIÓN 3: SERVICIOS DESTACADOS  — con 1+, o módulo pre-lanzamiento */}
       {featuredServices && featuredServices.length >= 1 ? (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
