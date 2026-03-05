@@ -3,10 +3,84 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { Search, Briefcase, CheckCircle2, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
+import {
+  Search, Briefcase, CheckCircle2, Eye, EyeOff, ArrowLeft, Loader2,
+  Stethoscope, Car, Scissors, GraduationCap, Home, Sun, Footprints, MapPin
+} from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
 import { COMUNAS_CHILE } from "../lib/comunas";
+
+type TipoCampo = 'text' | 'select' | 'boolean' | 'number';
+
+interface CampoDinamico {
+  key: string;
+  label: string;
+  tipo: TipoCampo;
+  placeholder?: string;
+  opciones?: { value: string; label: string }[];
+  requerido?: boolean;
+}
+
+const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
+  veterinario: [
+    { key: 'universidad', label: 'Universidad donde estudió', tipo: 'text', placeholder: 'Ej: Universidad de Chile', requerido: true },
+    { key: 'anio_titulacion', label: 'Año de titulación', tipo: 'number', placeholder: 'Ej: 2018' },
+    { key: 'numero_registro', label: 'N° de registro profesional', tipo: 'text', placeholder: 'Ej: 12345' },
+    { key: 'especialidad', label: 'Especialidad (opcional)', tipo: 'text', placeholder: 'Ej: Dermatología, Cirugía...' },
+  ],
+  traslado: [
+    {
+      key: 'tipo_vehiculo', label: 'Tipo de vehículo', tipo: 'select',
+      opciones: [{ value: 'auto', label: 'Auto' }, { value: 'van', label: 'Van' }, { value: 'furgon', label: 'Furgón' }], requerido: true
+    },
+    { key: 'tiene_empresa', label: 'Opero con empresa/boleta', tipo: 'boolean' },
+    { key: 'nombre_empresa', label: 'Nombre de empresa (si aplica)', tipo: 'text', placeholder: 'Ej: Transportes Patitas SpA' },
+    { key: 'capacidad_mascotas', label: 'Capacidad máx. de mascotas', tipo: 'number', placeholder: 'Ej: 3' },
+  ],
+  peluqueria: [
+    { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
+    { key: 'certificaciones', label: 'Certificaciones o cursos', tipo: 'text', placeholder: 'Ej: Curso Groomex 2022' },
+    { key: 'tiene_local', label: 'Tengo local propio', tipo: 'boolean' },
+  ],
+  adiestramiento: [
+    {
+      key: 'metodo', label: 'Método de adiestramiento', tipo: 'select',
+      opciones: [{ value: 'positivo', label: 'Refuerzo positivo' }, { value: 'mixto', label: 'Mixto' }, { value: 'tradicional', label: 'Tradicional' }], requerido: true
+    },
+    { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 3' },
+    { key: 'certificacion', label: 'Certificación (si tiene)', tipo: 'text', placeholder: 'Ej: CPDT-KA' },
+  ],
+  hospedaje: [
+    { key: 'capacidad_maxima', label: 'Capacidad máxima (mascotas)', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
+    { key: 'tiene_patio', label: 'Tengo patio o jardín', tipo: 'boolean' },
+    { key: 'otras_mascotas_hogar', label: 'Hay otras mascotas en mi hogar', tipo: 'boolean' },
+  ],
+  guarderia: [
+    { key: 'capacidad_maxima', label: 'Capacidad máxima (mascotas)', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
+    { key: 'tiene_patio', label: 'Tengo patio o jardín', tipo: 'boolean' },
+    { key: 'horario', label: 'Horario de atención', tipo: 'text', placeholder: 'Ej: Lunes a viernes 8:00 - 18:00' },
+  ],
+  paseos: [
+    { key: 'max_perros_simultaneos', label: 'Máximo de perros simultáneos', tipo: 'number', placeholder: 'Ej: 3', requerido: true },
+    { key: 'duracion_estandar', label: 'Duración estándar del paseo (minutos)', tipo: 'number', placeholder: 'Ej: 45' },
+  ],
+  domicilio: [
+    { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 4' },
+    { key: 'servicios_incluidos', label: 'Servicios que incluye', tipo: 'text', placeholder: 'Ej: Alimentación, medicamentos, compañía' },
+  ],
+};
+
+const CATEGORIA_ICONS: Record<string, React.ElementType> = {
+  veterinario: Stethoscope,
+  traslado: Car,
+  peluqueria: Scissors,
+  adiestramiento: GraduationCap,
+  hospedaje: Home,
+  guarderia: Sun,
+  paseos: Footprints,
+  domicilio: MapPin,
+};
 
 type Role = "usuario" | "proveedor";
 
@@ -51,6 +125,11 @@ export default function RegisterWizard() {
   const [categoria, setCategoria] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
+
+  // Step 3: Datos dinámicos por categoría
+  const [datosDinamicos, setDatosDinamicos] = useState<Record<string, any>>({});
+  const setDatoDinamico = (key: string, value: any) =>
+    setDatosDinamicos(prev => ({ ...prev, [key]: value }));
   const comunaRef = useRef<HTMLDivElement>(null);
 
   const comunasFiltradas = COMUNAS_CHILE.filter(c =>
@@ -113,12 +192,27 @@ export default function RegisterWizard() {
     setError("");
 
     if (rol === 'proveedor') {
-      if (!comunaQuery.trim() || !categoria) {
-        setError("Por favor completa los campos obligatorios (Comuna y Categoría).");
+      if (!categoria) {
+        setError('Por favor selecciona tu categoría principal de servicio.');
         return;
       }
+    }
+
+    if (rol === 'proveedor') {
+      if (!comunaQuery.trim()) {
+        setError('Por favor completa los campos obligatorios (Comuna).');
+        return;
+      }
+      // Validate required dynamic fields
+      const campos = CAMPOS_POR_CATEGORIA[categoria] || [];
+      for (const campo of campos) {
+        if (campo.requerido && !datosDinamicos[campo.key]) {
+          setError(`El campo «${campo.label}» es obligatorio.`);
+          return;
+        }
+      }
       if (!aceptaPolitica) {
-        setError("Debes aceptar las políticas de publicación para continuar.");
+        setError('Debes aceptar las políticas de publicación para continuar.');
         return;
       }
     }
@@ -165,7 +259,8 @@ export default function RegisterWizard() {
           rut: formatRut(rut),
           comuna: comunaQuery.trim(),
           roles: ['proveedor'],
-          estado: 'pendiente'
+          estado: 'pendiente',
+          datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : null,
         }]);
         if (insertError) {
           console.error('Insert error in proveedores:', insertError.message, insertError.code, insertError.details);
@@ -406,6 +501,25 @@ export default function RegisterWizard() {
                   </div>
                 </div>
 
+                {/* Categoría — solo proveedores */}
+                {rol === 'proveedor' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Categoría principal de servicio *</label>
+                    <select
+                      value={categoria}
+                      onChange={e => { setCategoria(e.target.value); setDatosDinamicos({}); }}
+                      required
+                      className={`${inputClass} cursor-pointer`}
+                    >
+                      <option value="" disabled>Selecciona una categoría</option>
+                      {CATEGORIES.map(cat => (
+                        <option key={cat.value} value={cat.value}>{cat.label}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1">Podrás agregar más categorías desde tu panel después de ser aprobado.</p>
+                  </div>
+                )}
+
                 <div className="pt-6 flex gap-3">
                   <button onClick={() => setStep(1)} className="w-1/3 border border-slate-300 text-slate-700 font-semibold py-4 rounded-xl hover:bg-slate-50 transition-colors">Atrás</button>
                   <button onClick={proceedToNextStep} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
@@ -453,16 +567,55 @@ export default function RegisterWizard() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Categoría principal de servicio *</label>
-                  <select value={categoria} onChange={e => setCategoria(e.target.value)} required className={`${inputClass} cursor-pointer`}>
-                    <option value="" disabled>Selecciona una categoría</option>
-                    {CATEGORIES.map(cat => (
-                      <option key={cat.value} value={cat.value}>{cat.label}</option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-slate-500 mt-1">Podrás agregar más categorías desde tu panel después de ser aprobado.</p>
-                </div>
+                {/* Campos dinámicos por categoría */}
+                {categoria && CAMPOS_POR_CATEGORIA[categoria] && (() => {
+                  const CatIcon = CATEGORIA_ICONS[categoria] ?? Briefcase;
+                  return (
+                    <div className="bg-slate-50 rounded-xl border border-slate-200 p-5 space-y-4">
+                      <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                        <CatIcon size={16} className="text-emerald-600" />
+                        Información específica de tu servicio
+                      </h3>
+                      {CAMPOS_POR_CATEGORIA[categoria].map(campo => (
+                        <div key={campo.key}>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            {campo.label}{campo.requerido && <span className="text-red-500 ml-1">*</span>}
+                          </label>
+                          {campo.tipo === 'boolean' ? (
+                            <label className="flex items-center gap-3 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={!!datosDinamicos[campo.key]}
+                                onChange={e => setDatoDinamico(campo.key, e.target.checked)}
+                                className="w-5 h-5 rounded border-slate-300 accent-emerald-600"
+                              />
+                              <span className="text-sm text-slate-600">Sí</span>
+                            </label>
+                          ) : campo.tipo === 'select' ? (
+                            <select
+                              value={datosDinamicos[campo.key] || ''}
+                              onChange={e => setDatoDinamico(campo.key, e.target.value)}
+                              className={`${inputClass} cursor-pointer`}
+                            >
+                              <option value="" disabled>Selecciona...</option>
+                              {campo.opciones?.map(op => (
+                                <option key={op.value} value={op.value}>{op.label}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type={campo.tipo === 'number' ? 'number' : 'text'}
+                              value={datosDinamicos[campo.key] || ''}
+                              onChange={e => setDatoDinamico(campo.key, e.target.value)}
+                              placeholder={campo.placeholder}
+                              className={inputClass}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Cuéntanos sobre tu experiencia (opcional)</label>

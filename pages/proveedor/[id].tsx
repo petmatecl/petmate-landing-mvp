@@ -7,6 +7,46 @@ import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
 
+const LABELS_CAMPOS: Record<string, string> = {
+    universidad: 'Universidad',
+    anio_titulacion: 'Año de titulación',
+    numero_registro: 'N° Registro profesional',
+    especialidad: 'Especialidad',
+    tipo_vehiculo: 'Tipo de vehículo',
+    tiene_empresa: 'Opera con empresa',
+    nombre_empresa: 'Empresa',
+    capacidad_mascotas: 'Capacidad máxima',
+    anios_experiencia: 'Años de experiencia',
+    certificaciones: 'Certificaciones',
+    tiene_local: 'Local propio',
+    metodo: 'Método de adiestramiento',
+    certificacion: 'Certificación',
+    capacidad_maxima: 'Capacidad máxima (mascotas)',
+    tiene_patio: 'Tiene patio o jardín',
+    otras_mascotas_hogar: 'Otras mascotas en el hogar',
+    horario: 'Horario de atención',
+    max_perros_simultaneos: 'Máx. perros simultáneos',
+    duracion_estandar: 'Duración estándar del paseo',
+    servicios_incluidos: 'Servicios incluidos',
+};
+
+const formatValor = (key: string, value: any): string => {
+    if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+    if (key === 'anio_titulacion') return String(value);
+    if (key === 'duracion_estandar') return `${value} minutos`;
+    if (key === 'capacidad_maxima' || key === 'capacidad_mascotas' || key === 'max_perros_simultaneos')
+        return `${value} mascotas`;
+    if (key === 'metodo') {
+        const map: Record<string, string> = { positivo: 'Refuerzo positivo', mixto: 'Mixto', tradicional: 'Tradicional' };
+        return map[value] ?? value;
+    }
+    if (key === 'tipo_vehiculo') {
+        const map: Record<string, string> = { auto: 'Auto', van: 'Van', furgon: 'Furgón' };
+        return map[value] ?? value;
+    }
+    return String(value);
+};
+
 interface ProveedorProps {
     proveedor: any;
     servicios: ServiceResult[];
@@ -80,6 +120,34 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         )}
                     </div>
                 </section>
+
+                {/* SECCIÓN 1.5: Credenciales y experiencia */}
+                {proveedor.datos_especificos &&
+                    Object.keys(proveedor.datos_especificos).length > 0 && (() => {
+                        const entries = Object.entries(proveedor.datos_especificos)
+                            .filter(([, v]) => v !== null && v !== '' && v !== false);
+                        if (entries.length === 0) return null;
+                        return (
+                            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                    <ShieldCheck size={18} className="text-emerald-600" />
+                                    Credenciales y experiencia
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {entries.map(([key, value]) => (
+                                        <div key={key} className="flex flex-col">
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-0.5">
+                                                {LABELS_CAMPOS[key] ?? key}
+                                            </span>
+                                            <span className="text-sm font-medium text-slate-900">
+                                                {formatValor(key, value)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        );
+                    })()}
 
                 {/* SECCIÓN 2: Servicios Ofrecidos */}
                 <section>
