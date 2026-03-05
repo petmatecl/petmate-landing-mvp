@@ -47,12 +47,12 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
 
   const categoriasEstaticas = [
     { slug: 'hospedaje', nombre: 'Hospedaje', descripcion: 'Tu mascota en un hogar de confianza', Icon: Home },
-    { slug: 'guarderia-diurna', nombre: 'Guardería diurna', descripcion: 'Cuidado profesional durante el día', Icon: Sun },
-    { slug: 'paseo', nombre: 'Paseo', descripcion: 'Paseos individuales o grupales cerca', Icon: Footprints },
-    { slug: 'visita-domicilio', nombre: 'Visita a domicilio', descripcion: 'El proveedor va a tu casa', Icon: MapPin },
+    { slug: 'guarderia', nombre: 'Guardería diurna', descripcion: 'Cuidado profesional durante el día', Icon: Sun },
+    { slug: 'paseos', nombre: 'Paseo', descripcion: 'Paseos individuales o grupales cerca', Icon: Footprints },
+    { slug: 'domicilio', nombre: 'Visita a domicilio', descripcion: 'El proveedor va a tu casa', Icon: MapPin },
     { slug: 'peluqueria', nombre: 'Peluquería', descripcion: 'Baño, corte y estética especializada', Icon: Scissors },
     { slug: 'adiestramiento', nombre: 'Adiestramiento', descripcion: 'Entrenamiento y corrección conductual', Icon: Award },
-    { slug: 'veterinaria', nombre: 'Veterinaria', descripcion: 'Consultas y atención médica cercana', Icon: Stethoscope },
+    { slug: 'veterinario', nombre: 'Veterinaria', descripcion: 'Consultas y atención médica cercana', Icon: Stethoscope },
     { slug: 'traslado', nombre: 'Traslado', descripcion: 'Transporte seguro para tu mascota', Icon: Car },
   ];
 
