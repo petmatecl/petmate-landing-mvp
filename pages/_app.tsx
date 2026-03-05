@@ -20,8 +20,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   const ROUTES_WITHOUT_LAYOUT = [
-    '/login',
-    '/register',
     '/forgot-password',
     '/reset-password',
     '/registro-exitoso',

@@ -307,28 +307,7 @@ export default function RegisterWizard() {
         <meta name="description" content="Regístrate en Pawnecta. Crea tu cuenta gratis para encontrar o publicar servicios para mascotas en Chile." />
       </Head>
 
-      {/* Minimal header */}
-      <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 sm:px-8">
-        <Link href="/" className="hover:opacity-80 transition-opacity">
-          <Image
-            src="/pawnecta_logo_final-trans.png"
-            alt="Pawnecta"
-            width={140}
-            height={40}
-            priority
-            className="h-9 w-auto object-contain"
-          />
-        </Link>
-        <Link
-          href="/explorar"
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors"
-        >
-          <ArrowLeft size={14} />
-          Explorar servicios
-        </Link>
-      </header>
-
-      <main className="min-h-[calc(100vh-3.5rem-2.5rem)] bg-slate-50 flex flex-col justify-center items-center p-4 py-10">
+      <main className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 py-10">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
           {/* Progress header */}
@@ -701,14 +680,7 @@ export default function RegisterWizard() {
         )}
       </main>
 
-      {/* Minimal footer */}
-      <footer className="h-10 bg-white border-t border-slate-100 flex items-center justify-center gap-4 px-4">
-        <Link href="/terminos" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Términos de servicio</Link>
-        <span className="text-slate-200">·</span>
-        <Link href="/privacidad" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Privacidad</Link>
-        <span className="text-slate-200">·</span>
-        <a href="mailto:contacto@pawnecta.com" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Contacto</a>
-      </footer>
+
     </>
   );
 }

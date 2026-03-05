@@ -4,12 +4,14 @@ import { MapPin } from 'lucide-react';
 
 export default function ServiceCard({ service }: { service: any }) {
     const router = useRouter();
-    // Resolve wrapped data array from Supabase join structures
-    const proveedor = Array.isArray(service.proveedor) ? service.proveedor[0] : service.proveedor;
-    const categoria = Array.isArray(service.categoria) ? service.categoria[0] : service.categoria;
 
-    const fotoUrl = (service.fotos && service.fotos.length > 0) ? service.fotos[0] : proveedor?.foto_perfil || '/placeholder-avatar.jpg';
-    const precio = service.precio_base ? service.precio_base.toLocaleString('es-CL') : '0';
+    // Use flat fields from mapJoinToServiceResult — no raw JOIN arrays
+    const fotoUrl =
+        (service.fotos && service.fotos.length > 0) ? service.fotos[0]
+            : service.proveedor_foto ? service.proveedor_foto
+                : '/placeholder-avatar.jpg';
+
+    const precio = service.precio_desde ? service.precio_desde.toLocaleString('es-CL') : null;
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full group">
@@ -17,7 +19,7 @@ export default function ServiceCard({ service }: { service: any }) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={fotoUrl} alt={service.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-slate-800 shadow-sm">
-                    {categoria?.nombre || 'Servicio'}
+                    {service.categoria_nombre || 'Servicio'}
                 </div>
             </div>
             <div className="p-5 flex flex-col flex-1">
@@ -25,16 +27,23 @@ export default function ServiceCard({ service }: { service: any }) {
 
                 <div className="flex items-center gap-2 mb-4 text-slate-500 text-sm font-medium">
                     <MapPin className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span className="truncate">{proveedor?.comuna || 'Comuna no especificada'}</span>
+                    <span className="truncate">{service.proveedor_comuna || 'Comuna no especificada'}</span>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex flex-col">
-                        <span className="text-xs font-medium text-slate-400">Desde</span>
-                        <span className="font-bold text-emerald-700 text-lg">${precio} <span className="text-xs font-medium text-slate-500">/ {service.unidad_precio || 'servicio'}</span></span>
-                    </div>
+                    {precio ? (
+                        <div className="flex flex-col">
+                            <span className="text-xs font-medium text-slate-400">Desde</span>
+                            <span className="font-bold text-emerald-700 text-lg">
+                                ${precio}
+                                <span className="text-xs font-medium text-slate-500"> / {service.unidad_precio || 'sesión'}</span>
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-sm font-semibold text-slate-500">Consultar precio</span>
+                    )}
                     <button
-                        onClick={() => router.push(`/servicio/${service.id}`)}
+                        onClick={() => router.push(`/servicio/${service.servicio_id}`)}
                         className="text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl transition-colors shrink-0"
                     >
                         Ver detalle

@@ -106,7 +106,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-emerald-600" />
-                Aprobación manual
+                Revisión por Pawnecta
               </div>
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-emerald-600" />
@@ -223,7 +223,7 @@ export default function HomePage({ featuredServices, stats }: HomePageProps) {
                 <div className="hidden md:block w-px h-24 bg-slate-700"></div>
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <ClipboardCheck className="w-8 h-8 text-emerald-400 mb-3" />
-                  <h4 className="font-bold text-white mb-2">Aprobación manual</h4>
+                  <h4 className="font-bold text-white mb-2">Revisión del equipo</h4>
                   <p className="text-sm text-slate-300">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
                 </div>
                 <div className="hidden md:block w-px h-24 bg-slate-700"></div>
