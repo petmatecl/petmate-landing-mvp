@@ -141,6 +141,16 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setFotos(prev => prev.filter(f => f !== urlStr));
     };
 
+    const moveFoto = (index: number, direction: "left" | "right") => {
+        setFotos(prev => {
+            const arr = [...prev];
+            const target = direction === "left" ? index - 1 : index + 1;
+            if (target < 0 || target >= arr.length) return arr;
+            [arr[index], arr[target]] = [arr[target], arr[index]];
+            return arr;
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (titulo.length > 80) return toast.error("El título es muy largo.");
@@ -398,37 +408,95 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* Fotos */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between">
-                                    Galería de Fotos
-                                    <span className="font-normal text-slate-400">{fotos.length}/8 fotos</span>
-                                </label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-sm font-semibold text-slate-700">
+                                        Fotos del servicio
+                                    </label>
+                                    <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
+                                </div>
+
+                                {/* Barra de progreso al subir */}
+                                {uploadingFotos && (
+                                    <div className="w-full h-1 bg-slate-100 rounded-full mb-3 overflow-hidden">
+                                        <div className="h-full bg-emerald-500 animate-pulse w-2/3 rounded-full" />
+                                    </div>
+                                )}
+
+                                {/* Grid de fotos + boton de subir */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                                     {fotos.map((url, i) => (
-                                        <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
-                                            <img src={url} alt={`Foto ${i}`} className="w-full h-full object-cover" />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeFoto(url)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X size={14} />
-                                            </button>
+                                        <div key={url} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
+                                            <img src={url} alt={"Foto " + (i + 1)} className="w-full h-full object-cover" />
+
+                                            {/* Badge portada solo en la primera */}
+                                            {i === 0 && (
+                                                <div className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                                                    PORTADA
+                                                </div>
+                                            )}
+
+                                            {/* Controles: flechas + eliminar (visible al hover) */}
+                                            <div className="absolute bottom-1.5 inset-x-1.5 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                                                <div className="flex gap-1">
+                                                    {i > 0 && (
+                                                        <button type="button" onClick={() => moveFoto(i, "left")}
+                                                            className="bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors"
+                                                            title="Mover a la izquierda">
+                                                            ←
+                                                        </button>
+                                                    )}
+                                                    {i < fotos.length - 1 && (
+                                                        <button type="button" onClick={() => moveFoto(i, "right")}
+                                                            className="bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors"
+                                                            title="Mover a la derecha">
+                                                            →
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <button type="button" onClick={() => removeFoto(url)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors"
+                                                    title="Eliminar foto">
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
+
+                                    {/* Boton de subir — mas grande si no hay fotos aun */}
                                     {fotos.length < 8 && (
-                                        <label className="aspect-square rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-colors">
+                                        <label className={[
+                                            "rounded-xl border-2 border-dashed border-slate-300 bg-slate-50",
+                                            "flex flex-col items-center justify-center cursor-pointer",
+                                            "hover:bg-slate-100 hover:border-emerald-400 transition-colors",
+                                            fotos.length === 0 ? "col-span-2 sm:col-span-4 py-10" : "aspect-square"
+                                        ].join(" ")}
+                                        >
                                             {uploadingFotos ? (
                                                 <Loader2 size={24} className="text-slate-400 animate-spin" />
                                             ) : (
                                                 <>
-                                                    <Upload size={24} className="text-slate-400 mb-2" />
-                                                    <span className="text-xs text-slate-500 font-medium tracking-wide">SUBIR FOTO</span>
+                                                    <Upload size={fotos.length === 0 ? 32 : 22} className="text-slate-400 mb-2" />
+                                                    <span className="text-xs text-slate-500 font-semibold text-center px-2">
+                                                        {fotos.length === 0 ? "Haz click para subir fotos" : "Agregar"}
+                                                    </span>
+                                                    {fotos.length === 0 && (
+                                                        <span className="text-[11px] text-slate-400 mt-1">
+                                                            JPG, PNG, WebP — max 5MB c/u
+                                                        </span>
+                                                    )}
                                                 </>
                                             )}
-                                            <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploadingFotos} />
+                                            <input type="file" multiple accept="image/*" className="hidden"
+                                                onChange={handleFileUpload} disabled={uploadingFotos} />
                                         </label>
                                     )}
                                 </div>
+
+                                {/* Texto de ayuda */}
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                    <span className="font-semibold text-emerald-700">La primera foto es la portada</span>
+                                    {" "}y es la que aparece en el listado. Usa las flechas para reordenar. Puedes subir hasta 8 fotos (JPG, PNG, WebP, max 5MB cada una).
+                                </p>
                             </div>
                         </form>
 
