@@ -174,7 +174,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     {checked && <Check size={10} strokeWidth={3} className="text-white" />}
                                 </div>
                                 <CatIcon size={14} className={checked ? 'text-emerald-600' : 'text-slate-400'} />
-                                <span>{cat.nombre}</span>
+                                <span className="text-left">{cat.nombre}</span>
                             </button>
                         );
                     })}
