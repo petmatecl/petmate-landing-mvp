@@ -69,7 +69,7 @@ function ExplorarPrelaunch() {
                 Estamos activando proveedores en tu zona
             </h3>
             <p className="text-slate-500 max-w-md mx-auto text-sm mb-8">
-                Pawnecta está en pleno lanzamiento. Estamos verificando proveedores en cada categoría. Deja tu correo y te avisamos cuando haya opciones cerca tuyo.
+                Pawnecta está en pleno lanzamiento. Estamos incorporando y verificando proveedores en cada categoría y comuna. Deja tu correo y te avisamos en cuanto haya opciones cerca tuyo.
             </p>
 
             {done ? (
@@ -98,16 +98,16 @@ function ExplorarPrelaunch() {
                         type="submit"
                         className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
                     >
-                        Avísame
+                        Avisarme cuando haya disponibles
                     </button>
                 </form>
             )}
 
-            <p className="text-xs text-slate-400 mt-4">Sin spam. Solo cuando haya proveedores disponibles.</p>
+            <p className="text-xs text-slate-400 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores en tu zona.</p>
 
             <div className="mt-8 pt-6 border-t border-slate-100">
                 <Link href="/register?rol=proveedor" className="text-sm text-emerald-700 font-semibold hover:underline">
-                    ¿Ofreces servicios para mascotas? Publica tu perfil gratis →
+                    ¿Ofreces servicios para mascotas? Publica tu perfil gratis y sé de los primeros →
                 </Link>
             </div>
         </div>
