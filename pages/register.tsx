@@ -12,12 +12,12 @@ type Role = "usuario" | "proveedor";
 
 const CATEGORIES = [
   { value: 'hospedaje', label: 'Hospedaje' },
-  { value: 'guarderia-diurna', label: 'Guardería Diurna' },
-  { value: 'paseo', label: 'Paseo de Perros' },
-  { value: 'visita-domicilio', label: 'Visita a Domicilio' },
+  { value: 'guarderia', label: 'Guardería Diurna' },
+  { value: 'paseos', label: 'Paseo de Perros' },
+  { value: 'domicilio', label: 'Cuidado a Domicilio' },
   { value: 'peluqueria', label: 'Peluquería' },
   { value: 'adiestramiento', label: 'Adiestramiento' },
-  { value: 'veterinaria', label: 'Veterinaria' },
+  { value: 'veterinario', label: 'Veterinario a Domicilio' },
   { value: 'traslado', label: 'Traslado' },
 ];
 
