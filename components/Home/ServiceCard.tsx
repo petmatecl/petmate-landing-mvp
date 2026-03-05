@@ -1,23 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { MapPin } from 'lucide-react';
+import { MapPin, ImageOff } from 'lucide-react';
 
 export default function ServiceCard({ service }: { service: any }) {
     const router = useRouter();
+    const [imgError, setImgError] = useState(false);
 
     // Use flat fields from mapJoinToServiceResult — no raw JOIN arrays
     const fotoUrl =
         (service.fotos && service.fotos.length > 0) ? service.fotos[0]
             : service.proveedor_foto ? service.proveedor_foto
-                : '/placeholder-avatar.jpg';
+                : null;
 
     const precio = service.precio_desde ? service.precio_desde.toLocaleString('es-CL') : null;
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full group">
             <div className="relative h-48 bg-slate-100 overflow-hidden shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={fotoUrl} alt={service.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                {(!fotoUrl || imgError) ? (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                        <ImageOff size={36} className="text-slate-200" />
+                    </div>
+                ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                        src={fotoUrl}
+                        alt={service.titulo}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={() => setImgError(true)}
+                    />
+                )}
                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-slate-800 shadow-sm">
                     {service.categoria_nombre || 'Servicio'}
                 </div>

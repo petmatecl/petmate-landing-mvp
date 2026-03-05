@@ -354,7 +354,14 @@ export async function getStaticProps() {
       .eq('activo', true)
       .order('created_at', { ascending: false })
       .limit(6);
-    if (data) featuredServices = data.map(mapJoinToServiceResult);
+    if (data) {
+      const mapped = data.map(mapJoinToServiceResult);
+      // Prioritize services that have photos
+      featuredServices = [
+        ...mapped.filter(s => s.fotos && s.fotos.length > 0),
+        ...mapped.filter(s => !s.fotos || s.fotos.length === 0),
+      ].slice(0, 6);
+    }
   } catch (error) {
     console.error("Error fetching featured services:", error);
   }
