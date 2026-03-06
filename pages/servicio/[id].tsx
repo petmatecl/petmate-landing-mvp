@@ -430,6 +430,12 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 )}
                             </div>
 
+                            {service.descripcion && (
+                                <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 pb-1">
+                                    {service.descripcion}
+                                </p>
+                            )}
+
                             {/* CTAs — inmediatos */}
                             <div className="flex flex-col gap-3">
                                 <button
@@ -465,80 +471,113 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             {/* Divisor */}
                             <div className="border-t border-slate-100" />
 
-                            {/* Proveedor — Bloque CTA Destacado */}
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col items-center text-center gap-3">
-                                <div className="w-20 h-20 rounded-full border-2 border-emerald-500 overflow-hidden bg-slate-100 shrink-0 shadow-sm relative">
+                            {/* Proveedor — compacto horizontal */}
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 shrink-0">
                                     {proveedor.foto_perfil
                                         ? <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
-                                        : <svg className="w-full h-full text-slate-400 p-2" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                        : <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                     }
                                 </div>
-                                <div className="w-full">
-                                    <div className="flex items-center justify-center gap-1.5 mb-1">
-                                        <h3 className="font-bold text-slate-900 text-lg">
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="font-bold text-slate-900 text-sm truncate">
                                             {proveedor.nombre} {proveedor.apellido_p}
-                                        </h3>
+                                        </span>
                                         {proveedor.rut_verificado && (
-                                            <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
+                                            <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
                                         )}
                                     </div>
-                                    <p className="text-sm text-slate-500 mb-4 px-2 line-clamp-2">
-                                        Proveedor de servicios en {proveedor.comuna}
-                                    </p>
-                                    <Link href={`/proveedor/${proveedor.id}`}
-                                        className="inline-flex items-center justify-center w-full bg-white border-2 border-slate-200 hover:border-emerald-500 hover:text-emerald-700 text-slate-800 font-bold py-2.5 px-4 rounded-xl transition-colors text-sm shadow-sm"
-                                    >
-                                        Ver perfil completo
-                                    </Link>
                                 </div>
                             </div>
 
+                            <div className="border-t border-slate-100 pt-4">
+                                <Link
+                                    href={`/proveedor/${proveedor.id}`}
+                                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-all group"
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 shrink-0 border border-slate-200">
+                                            {proveedor.foto_perfil
+                                                ? <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
+                                                : <span className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">
+                                                    {proveedor.nombre.charAt(0)}
+                                                </span>
+                                            }
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                                                Ver perfil completo
+                                            </p>
+                                            <p className="text-xs text-slate-400">
+                                                Todos sus servicios y evaluaciones
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 group-hover:text-emerald-500 transition-colors shrink-0"><polyline points="9 18 15 12 9 6" /></svg>
+                                </Link>
+                            </div>
+
                             {/* Insignias de confianza */}
-                            {(proveedor.tipo_entidad === 'empresa' || proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda || proveedor.miembro_asociacion) && (
-                                <div className="border-t border-slate-100 pt-5 flex flex-col gap-3">
-                                    <h4 className="font-bold text-slate-800 text-sm mb-1">Credenciales de confianza</h4>
+                            <div className="border-t border-slate-100 pt-4 flex flex-col gap-2.5">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                    Sobre el proveedor
+                                </p>
 
-                                    {proveedor.tipo_entidad === 'empresa' && (
-                                        <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <Briefcase size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                                            <div>
-                                                <span className="font-bold text-slate-800 block text-sm">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
-                                                <span className="text-xs text-slate-500">Cuenta Empresa {proveedor.giro && `• ${proveedor.giro}`}</span>
-                                            </div>
-                                        </div>
-                                    )}
+                                {/* Años de experiencia — si existe */}
+                                {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 ? (
+                                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                                        <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <span className="font-medium">{proveedor.anios_experiencia} años de experiencia</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <span>Proveedor verificado en Pawnecta</span>
+                                    </div>
+                                )}
 
-                                    {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 && (
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                            <span className="font-medium">{proveedor.anios_experiencia} años de exp.</span>
-                                        </div>
-                                    )}
+                                {/* Certificaciones — si existe */}
+                                {proveedor.certificaciones && (
+                                    <div className="flex items-start gap-2 text-sm text-slate-600">
+                                        <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                        <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
+                                    </div>
+                                )}
 
-                                    {proveedor.certificaciones && (
-                                        <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                                            <span className="font-medium break-words leading-tight">{proveedor.certificaciones}</span>
-                                        </div>
-                                    )}
+                                {/* Primera ayuda */}
+                                {proveedor.primera_ayuda && (
+                                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                                        <div className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-[10px] font-black">+</div>
+                                        <span className="font-medium">Primeros Auxilios</span>
+                                    </div>
+                                )}
 
-                                    {proveedor.primera_ayuda && (
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <div className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                                            </div>
-                                            <span className="font-medium">Primeros Auxilios</span>
-                                        </div>
-                                    )}
+                                {/* Miembro asociación */}
+                                {proveedor.miembro_asociacion && (
+                                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                                        <Award size={16} className="text-emerald-600 shrink-0" />
+                                        <span className="font-medium">Miembro de Asociación</span>
+                                    </div>
+                                )}
 
-                                    {proveedor.miembro_asociacion && (
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <Award size={16} className="text-emerald-600 shrink-0" />
-                                            <span className="font-medium">Miembro de Asociación</span>
+                                {/* Empresa */}
+                                {proveedor.tipo_entidad === 'empresa' && (
+                                    <div className="flex items-start gap-2 text-sm text-slate-600">
+                                        <Briefcase size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <span className="font-bold text-slate-800 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
+                                            {proveedor.giro && <span className="text-xs text-slate-500">{proveedor.giro}</span>}
                                         </div>
-                                    )}
+                                    </div>
+                                )}
+
+                                {/* Miembro desde — siempre disponible como fallback */}
+                                <div className="flex items-center gap-2 text-sm text-slate-400 mt-1">
+                                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    <span>En Pawnecta desde {new Date(proveedor.created_at ?? Date.now()).getFullYear()}</span>
                                 </div>
-                            )}
+                            </div>
 
                             {/* Enlaces y Redes */}
                             {(proveedor.sitio_web || proveedor.instagram) && (
