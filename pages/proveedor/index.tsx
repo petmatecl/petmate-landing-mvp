@@ -48,6 +48,8 @@ export default function ProveedorDashboard() {
 
     // Profile Edit State
     const [bio, setBio] = useState('');
+    const [galeria, setGaleria] = useState<string[]>([]);
+    const [uploadingGaleria, setUploadingGaleria] = useState(false);
     const [comuna, setComuna] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [telefono, setTelefono] = useState('');
@@ -103,6 +105,7 @@ export default function ProveedorDashboard() {
             setMostrarTelefono(data.mostrar_telefono ?? false);
             setMostrarEmail(data.mostrar_email ?? false);
             setFotoPerfil(data.foto_perfil || '');
+            setGaleria(data.galeria || []);
 
             setTipoEntidad(data.tipo_entidad || 'persona_natural');
             setRazonSocial(data.razon_social || '');
@@ -180,6 +183,47 @@ export default function ProveedorDashboard() {
         toast.success('Foto de perfil actualizada');
     };
 
+    const uploadGaleriaFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !proveedor) return;
+        if (galeria.length >= 8) {
+            toast.error('Puedes subir máximo 8 fotos');
+            return;
+        }
+
+        setUploadingGaleria(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `proveedor-galeria/${proveedor.id}/${fileName}`;
+
+        try {
+            const { error: uploadError } = await supabase.storage.from('servicios-fotos').upload(filePath, file);
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage.from('servicios-fotos').getPublicUrl(filePath);
+            setGaleria(prev => [...prev, publicUrl]);
+        } catch (error) {
+            console.error('Error uploading photo:', error);
+            toast.error('Error al subir la foto');
+        } finally {
+            setUploadingGaleria(false);
+        }
+    };
+
+    const removeGaleriaFoto = (index: number) => {
+        setGaleria(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const moveGaleriaFoto = (index: number, direction: 'left' | 'right') => {
+        if (direction === 'left' && index === 0) return;
+        if (direction === 'right' && index === galeria.length - 1) return;
+
+        const newGaleria = [...galeria];
+        const swapIndex = direction === 'left' ? index - 1 : index + 1;
+        [newGaleria[index], newGaleria[swapIndex]] = [newGaleria[swapIndex], newGaleria[index]];
+        setGaleria(newGaleria);
+    };
+
     const saveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         setSavingProfile(true);
@@ -197,6 +241,7 @@ export default function ProveedorDashboard() {
             instagram,
             primera_ayuda: primeraAyuda,
             miembro_asociacion: miembroAsociacion,
+            galeria,
         }).eq('auth_user_id', user.id);
 
         setSavingProfile(false);
@@ -401,13 +446,35 @@ export default function ProveedorDashboard() {
                                     { label: 'Foto de perfil', done: !!fotoPerfil, puntos: 20 },
                                     { label: 'Descripción de más de 100 caracteres', done: (bio?.length || 0) > 100, puntos: 20 },
                                     { label: 'Número de WhatsApp o teléfono', done: !!(whatsapp || telefono), puntos: 15 },
-                                    { label: 'Al menos 1 servicio activo', done: servicios.some(s => s.activo), puntos: 25 },
-                                    { label: 'Al menos 1 foto en algún servicio', done: servicios.some(s => s.fotos?.length > 0), puntos: 10 },
-                                    { label: 'Galería de perfil (3+ fotos)', done: (proveedor.galeria?.length || 0) >= 3, puntos: 10 },
+                                    { label: 'Al menos 1 servicio activo', done: servicios.some(s => s.activo), puntos: 15 },
+                                    { label: 'Fotos de tu espacio (3+ fotos)', done: galeria.length >= 3, puntos: 10 },
+                                    { label: 'Credenciales completadas (experiencia o certificación)', done: !!(aniosExperiencia || certificaciones), puntos: 20 },
                                 ];
-                                const score = pasos.filter(p => p.done).reduce((a, p) => a + p.puntos, 0);
+                                const computedScore = pasos.filter(p => p.done).reduce((a, p) => a + p.puntos, 0);
+                                const score = computedScore > 100 ? 100 : computedScore;
                                 const pendientes = pasos.filter(p => !p.done);
-                                if (score >= 100) return null;
+
+                                if (score >= 100) {
+                                    return (
+                                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
+                                                    <CheckCircle size={24} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900 text-sm">¡Perfil completo!</h3>
+                                                    <p className="text-slate-600 text-sm mt-0.5">
+                                                        Los clientes ven tu perfil mejor posicionado en los resultados.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <a href={`/proveedor/${proveedor.id}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-emerald-700 font-bold text-sm bg-white border border-emerald-200 px-4 py-2 rounded-xl hover:bg-emerald-50 transition-colors inline-block text-center whitespace-nowrap w-full sm:w-auto">
+                                                Ver mi perfil público
+                                            </a>
+                                        </div>
+                                    );
+                                }
+
                                 return (
                                     <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6">
                                         <div className="flex items-center justify-between mb-3">
@@ -582,8 +649,8 @@ export default function ProveedorDashboard() {
                                         <button type="button"
                                             onClick={() => setTipoEntidad("persona_natural")}
                                             className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
-                                                    ? "border-emerald-500 bg-emerald-50"
-                                                    : "border-slate-200 hover:border-slate-300"
+                                                ? "border-emerald-500 bg-emerald-50"
+                                                : "border-slate-200 hover:border-slate-300"
                                                 }`}
                                         >
                                             <p className="font-bold text-slate-900 text-sm">Persona Natural</p>
@@ -591,8 +658,8 @@ export default function ProveedorDashboard() {
                                         <button type="button"
                                             onClick={() => setTipoEntidad("empresa")}
                                             className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
-                                                    ? "border-emerald-500 bg-emerald-50"
-                                                    : "border-slate-200 hover:border-slate-300"
+                                                ? "border-emerald-500 bg-emerald-50"
+                                                : "border-slate-200 hover:border-slate-300"
                                                 }`}
                                         >
                                             <p className="font-bold text-slate-900 text-sm">Empresa o Emprendimiento</p>
@@ -668,6 +735,48 @@ export default function ProveedorDashboard() {
                                                 <span className="text-xs text-slate-500 block">Perteneces a alguna agrupación oficial del rubro</span>
                                             </div>
                                         </label>
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Fotos de tu espacio / galería</h3>
+                                    <p className="text-sm text-slate-500 mb-4">Muestra tu espacio, ambiente y forma de trabajar (Máx 8 fotos).</p>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                                        {galeria.map((url, idx) => (
+                                            <div key={idx} className="aspect-square bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative group">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={url} alt={`Foto espacio ${idx + 1}`} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                                                    <div className="flex justify-end">
+                                                        <button type="button" onClick={() => removeGaleriaFoto(idx)} className="w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 tooltip">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex justify-between items-center bg-white/90 rounded-lg p-1">
+                                                        <button type="button" disabled={idx === 0} onClick={() => moveGaleriaFoto(idx, 'left')} className="p-1 disabled:opacity-30 hover:text-[#1A6B4A]">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                                        </button>
+                                                        {idx === 0 && <span className="text-[10px] font-bold text-[#1A6B4A]">PORTADA</span>}
+                                                        <button type="button" disabled={idx === galeria.length - 1} onClick={() => moveGaleriaFoto(idx, 'right')} className="p-1 disabled:opacity-30 hover:text-[#1A6B4A]">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {galeria.length < 8 && (
+                                            <label className="aspect-square bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#1A6B4A] hover:bg-emerald-50 transition-colors text-slate-500 hover:text-[#1A6B4A]">
+                                                {uploadingGaleria ? (
+                                                    <Loader2 className="w-8 h-8 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <Camera size={24} className="mb-2" />
+                                                        <span className="text-sm font-semibold">Añadir foto</span>
+                                                    </>
+                                                )}
+                                                <input type="file" accept="image/*" className="hidden" onChange={uploadGaleriaFoto} disabled={uploadingGaleria} />
+                                            </label>
+                                        )}
                                     </div>
 
                                     <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Presencia Web</h3>
