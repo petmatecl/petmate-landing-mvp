@@ -39,6 +39,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
 
 export default function ServicioPage({ service, reviews, otrosServicios }: ServiceDetailProps) {
     const router = useRouter();
+    const [fotoActiva, setFotoActiva] = useState(0);
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [isChatLoading, setIsChatLoading] = useState(false);
@@ -226,44 +227,82 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                     <div className="w-full lg:w-2/3 flex flex-col gap-8">
 
                         {/* Galeria / Portada */}
-                        <div className="w-full h-[340px] md:h-[500px] bg-slate-200 rounded-none lg:rounded-2xl overflow-hidden relative shadow-sm -mx-4 sm:-mx-6 lg:mx-0 w-screen sm:w-[calc(100%+3rem)] lg:w-full">
-                            {imgError ? (
-                                <div className="w-full h-full flex items-center justify-center bg-slate-100">
-                                    {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={64} className="text-slate-300" />; })()}
-                                </div>
-                            ) : (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img
-                                    src={coverImage}
-                                    alt={service.titulo}
-                                    className="w-full h-full object-cover"
-                                    onError={() => setImgError(true)}
-                                />
-                            )}
-
-                            {/* Overlay inferior con título y ubicación */}
-                            {!imgError && (
-                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-6 pt-16 pb-5">
-                                    <h1 className="text-2xl md:text-3xl font-black text-white leading-tight drop-shadow">
-                                        {service.titulo}
-                                    </h1>
-                                    <div className="flex items-center gap-1.5 mt-1.5 text-white/80 text-sm font-medium">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                        {proveedor.comuna}
+                        <div className="relative">
+                            {/* Foto principal */}
+                            <div className="w-full h-[340px] md:h-[500px] bg-slate-200 rounded-none lg:rounded-2xl overflow-hidden relative shadow-sm -mx-4 sm:-mx-6 lg:mx-0 w-screen sm:w-[calc(100%+3rem)] lg:w-full">
+                                {imgError ? (
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                        {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={64} className="text-slate-300" />; })()}
                                     </div>
-                                </div>
-                            )}
+                                ) : (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img
+                                        src={service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage}
+                                        alt={service.titulo}
+                                        className="w-full h-full object-cover transition-opacity duration-200"
+                                        onError={() => setImgError(true)}
+                                    />
+                                )}
 
-                            {/* Badge categoría — se mantiene */}
-                            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-800 text-sm font-bold px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
-                                {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={16} className="text-slate-600" />; })()}
-                                <span>{categoria.nombre}</span>
+                                {/* Overlay título */}
+                                {!imgError && (
+                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-6 pt-16 pb-5">
+                                        <h1 className="text-2xl md:text-3xl font-black text-white leading-tight drop-shadow">
+                                            {service.titulo}
+                                        </h1>
+                                        <div className="flex items-center gap-1.5 mt-1.5 text-white/80 text-sm font-medium">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                            {proveedor.comuna}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Badge categoría */}
+                                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-800 text-sm font-bold px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
+                                    {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={16} className="text-slate-600" />; })()}
+                                    <span>{categoria.nombre}</span>
+                                </div>
+
+                                {/* Flechas de navegación — solo si hay más de 1 foto */}
+                                {service.fotos?.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={() => setFotoActiva(i => (i - 1 + service.fotos.length) % service.fotos.length)}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-colors z-10"
+                                            aria-label="Foto anterior"
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
+                                        </button>
+                                        <button
+                                            onClick={() => setFotoActiva(i => (i + 1) % service.fotos.length)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-colors z-10"
+                                            aria-label="Foto siguiente"
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                                        </button>
+
+                                        {/* Contador */}
+                                        <div className="absolute bottom-4 right-4 z-10 bg-black/50 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                                            {fotoActiva + 1} / {service.fotos.length}
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
-                            {/* Contador fotos */}
+                            {/* Thumbnails — solo si hay 2+ fotos */}
                             {service.fotos?.length > 1 && (
-                                <div className="absolute bottom-4 right-4 z-10 bg-white/90 backdrop-blur-sm text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
-                                    1 / {service.fotos.length}
+                                <div className="flex gap-2 mt-3 overflow-x-auto pb-1 px-4 sm:px-6 lg:px-0">
+                                    {service.fotos.map((foto: string, i: number) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setFotoActiva(i)}
+                                            className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${fotoActiva === i ? 'border-emerald-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
+                                                }`}
+                                        >
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={foto} alt="" className="w-full h-full object-cover" />
+                                        </button>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -337,6 +376,70 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
+                        )}
+
+                        {proveedor.galeria && proveedor.galeria.length > 0 && (
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                    {/* Icono cámara */}
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+                                    Fotos del espacio
+                                </h3>
+
+                                {proveedor.galeria.length === 1 ? (
+                                    // Una foto — full width
+                                    <div className="w-full h-64 rounded-xl overflow-hidden">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={proveedor.galeria[0]} alt="Espacio del proveedor"
+                                            className="w-full h-full object-cover" />
+                                    </div>
+                                ) : proveedor.galeria.length <= 3 ? (
+                                    // 2-3 fotos — grid horizontal
+                                    <div className={`grid gap-2 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                        {proveedor.galeria.map((url: string, i: number) => (
+                                            <div key={i} className="h-48 rounded-xl overflow-hidden">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    // 4+ fotos — 1 grande izquierda + grid 2x2 derecha
+                                    <div className="grid grid-cols-2 gap-2 h-64">
+                                        <div className="rounded-xl overflow-hidden">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={proveedor.galeria[0]} alt=""
+                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                        </div>
+                                        <div className="grid grid-rows-2 gap-2">
+                                            <div className="rounded-xl overflow-hidden">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={proveedor.galeria[1]} alt=""
+                                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                            </div>
+                                            <div className="relative rounded-xl overflow-hidden">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={proveedor.galeria[2]} alt=""
+                                                    className="w-full h-full object-cover" />
+                                                {proveedor.galeria.length > 3 && (
+                                                    <Link href={`/proveedor/${proveedor.id}`}
+                                                        className="absolute inset-0 bg-black/55 flex items-center justify-center hover:bg-black/65 transition-colors">
+                                                        <span className="text-white font-bold text-lg">
+                                                            +{proveedor.galeria.length - 3} fotos
+                                                        </span>
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <Link href={`/proveedor/${proveedor.id}`}
+                                    className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+                                    Ver perfil completo de {proveedor.nombre}
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                                </Link>
                             </div>
                         )}
 
@@ -468,132 +571,101 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 )}
                             </div>
 
-                            {/* Divisor */}
-                            <div className="border-t border-slate-100" />
+                            {/* ── BLOQUE PROVEEDOR ────────────────────────────────── */}
+                            <div className="border-t border-slate-100 pt-4 flex flex-col gap-4">
 
-                            {/* Proveedor — compacto horizontal */}
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 shrink-0">
-                                    {proveedor.foto_perfil
-                                        ? <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
-                                        : <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                                    }
+                                {/* Fila: nombre + verificado + link al perfil — SIN foto duplicada */}
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="font-bold text-slate-900 text-sm">
+                                                {proveedor.nombre} {proveedor.apellido_p}
+                                            </span>
+                                            {proveedor.rut_verificado && (
+                                                <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-0.5">{proveedor.comuna}</p>
+                                    </div>
+                                    <Link
+                                        href={`/proveedor/${proveedor.id}`}
+                                        className="shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                                    >
+                                        Ver perfil →
+                                    </Link>
                                 </div>
-                                <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="font-bold text-slate-900 text-sm truncate">
-                                            {proveedor.nombre} {proveedor.apellido_p}
-                                        </span>
-                                        {proveedor.rut_verificado && (
-                                            <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+
+                                {/* Sobre el proveedor — siempre visible */}
+                                <div className="flex flex-col gap-2.5">
+                                    {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 ? (
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span className="font-medium">{proveedor.anios_experiencia} años de experiencia</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Proveedor verificado en Pawnecta</span>
+                                        </div>
+                                    )}
+
+                                    {proveedor.certificaciones && (
+                                        <div className="flex items-start gap-2 text-sm text-slate-600">
+                                            <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
+                                        </div>
+                                    )}
+
+                                    {proveedor.primera_ayuda && (
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-[9px] font-black leading-none">+</span>
+                                            <span className="font-medium">Primeros Auxilios</span>
+                                        </div>
+                                    )}
+
+                                    {proveedor.miembro_asociacion && (
+                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                            <Award size={16} className="text-emerald-600 shrink-0" />
+                                            <span className="font-medium">Miembro de Asociación</span>
+                                        </div>
+                                    )}
+
+                                    {proveedor.tipo_entidad === 'empresa' && (
+                                        <div className="flex items-start gap-2 text-sm text-slate-600">
+                                            <Briefcase size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <div>
+                                                <span className="font-bold text-slate-800 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
+                                                {proveedor.giro && <span className="text-xs text-slate-400">{proveedor.giro}</span>}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-2 text-xs text-slate-400 pt-1">
+                                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                                        <span>En Pawnecta desde {new Date(proveedor.created_at ?? Date.now()).getFullYear()}</span>
+                                    </div>
+                                </div>
+
+                                {/* Redes */}
+                                {(proveedor.sitio_web || proveedor.instagram) && (
+                                    <div className="flex gap-2 pt-1">
+                                        {proveedor.sitio_web && (
+                                            <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
+                                                target="_blank" rel="noopener noreferrer"
+                                                className="text-slate-400 hover:text-emerald-600 transition-colors p-2 bg-slate-50 rounded-lg">
+                                                <Globe size={16} />
+                                            </a>
+                                        )}
+                                        {proveedor.instagram && (
+                                            <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
+                                                target="_blank" rel="noopener noreferrer"
+                                                className="text-slate-400 hover:text-pink-500 transition-colors p-2 bg-slate-50 rounded-lg">
+                                                <Instagram size={16} />
+                                            </a>
                                         )}
                                     </div>
-                                </div>
+                                )}
                             </div>
-
-                            <div className="border-t border-slate-100 pt-4">
-                                <Link
-                                    href={`/proveedor/${proveedor.id}`}
-                                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-all group"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 shrink-0 border border-slate-200">
-                                            {proveedor.foto_perfil
-                                                ? <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
-                                                : <span className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">
-                                                    {proveedor.nombre.charAt(0)}
-                                                </span>
-                                            }
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                                                Ver perfil completo
-                                            </p>
-                                            <p className="text-xs text-slate-400">
-                                                Todos sus servicios y evaluaciones
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 group-hover:text-emerald-500 transition-colors shrink-0"><polyline points="9 18 15 12 9 6" /></svg>
-                                </Link>
-                            </div>
-
-                            {/* Insignias de confianza */}
-                            <div className="border-t border-slate-100 pt-4 flex flex-col gap-2.5">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                    Sobre el proveedor
-                                </p>
-
-                                {/* Años de experiencia — si existe */}
-                                {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 ? (
-                                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                                        <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <span className="font-medium">{proveedor.anios_experiencia} años de experiencia</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <span>Proveedor verificado en Pawnecta</span>
-                                    </div>
-                                )}
-
-                                {/* Certificaciones — si existe */}
-                                {proveedor.certificaciones && (
-                                    <div className="flex items-start gap-2 text-sm text-slate-600">
-                                        <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                                        <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
-                                    </div>
-                                )}
-
-                                {/* Primera ayuda */}
-                                {proveedor.primera_ayuda && (
-                                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                                        <div className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-[10px] font-black">+</div>
-                                        <span className="font-medium">Primeros Auxilios</span>
-                                    </div>
-                                )}
-
-                                {/* Miembro asociación */}
-                                {proveedor.miembro_asociacion && (
-                                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                                        <Award size={16} className="text-emerald-600 shrink-0" />
-                                        <span className="font-medium">Miembro de Asociación</span>
-                                    </div>
-                                )}
-
-                                {/* Empresa */}
-                                {proveedor.tipo_entidad === 'empresa' && (
-                                    <div className="flex items-start gap-2 text-sm text-slate-600">
-                                        <Briefcase size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                                        <div>
-                                            <span className="font-bold text-slate-800 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
-                                            {proveedor.giro && <span className="text-xs text-slate-500">{proveedor.giro}</span>}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Miembro desde — siempre disponible como fallback */}
-                                <div className="flex items-center gap-2 text-sm text-slate-400 mt-1">
-                                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                    <span>En Pawnecta desde {new Date(proveedor.created_at ?? Date.now()).getFullYear()}</span>
-                                </div>
-                            </div>
-
-                            {/* Enlaces y Redes */}
-                            {(proveedor.sitio_web || proveedor.instagram) && (
-                                <div className="border-t border-slate-100 pt-4 flex gap-3">
-                                    {proveedor.sitio_web && (
-                                        <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-emerald-600 transition-colors p-2 bg-slate-50 rounded-lg" title="Sitio Web">
-                                            <Globe size={18} />
-                                        </a>
-                                    )}
-                                    {proveedor.instagram && (
-                                        <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-pink-600 transition-colors p-2 bg-slate-50 rounded-lg" title="Instagram">
-                                            <Instagram size={18} />
-                                        </a>
-                                    )}
-                                </div>
-                            )}
 
                         </div>
 
@@ -626,8 +698,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .select(`
                 *,
                 proveedores!inner(
-                    id, auth_user_id, nombre, apellido_p, rut_verificado, foto_perfil, comuna, mostrar_whatsapp, mostrar_telefono, telefono,
-                    tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, anios_experiencia, certificaciones, sitio_web, instagram, primera_ayuda, miembro_asociacion
+                    id, auth_user_id, nombre, apellido_p, rut_verificado, foto_perfil, comuna, mostrar_whatsapp, mostrar_telefono, telefono, created_at,
+                    tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, anios_experiencia, certificaciones, sitio_web, instagram, primera_ayuda, miembro_asociacion, galeria
                 ),
                 categorias_servicio!inner(
                     nombre, slug, icono
