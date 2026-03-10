@@ -9,7 +9,7 @@ import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
-  CheckCircle2, Shield, ChevronLeft, ChevronRight
+  CheckCircle2, Shield
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { toast } from "sonner";
@@ -205,7 +205,6 @@ interface HomePageProps {
 
 export default function HomePage({ featuredServices, stats, categoryCounts }: HomePageProps) {
   const router = useRouter();
-  const [carouselIndex, setCarouselIndex] = useState(0);
 
   const categoriasEstaticas = [
     { slug: 'hospedaje', nombre: 'Hospedaje', descripcion: 'Tu mascota en un hogar de confianza', Icon: Home },
@@ -221,18 +220,6 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
     count: categoryCounts[cat.slug] ?? 0,
     estado: ((categoryCounts[cat.slug] ?? 0) > 0 ? 'activa' : 'proxima') as 'activa' | 'proxima',
   }));
-
-  const VISIBLE = 5;
-  const categoriasOrdenadas = [
-    ...categoriasEstaticas.filter(c => c.estado === 'activa'),
-    ...categoriasEstaticas.filter(c => c.estado === 'proxima'),
-  ];
-  const total = categoriasOrdenadas.length;
-  const prev = () => setCarouselIndex(i => (i - 1 + total) % total);
-  const next = () => setCarouselIndex(i => (i + 1) % total);
-  const visibles = Array.from({ length: VISIBLE }, (_, i) =>
-    categoriasOrdenadas[(carouselIndex + i) % total]
-  );
 
   const testimonios = [
     { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: true, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
@@ -274,103 +261,111 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         />
       </Head>
 
-      {/* SECCIÓN 1: HERO + BUSCADOR */}
-      <section
-        aria-label="Buscador de servicios"
-        className="relative min-h-[520px] flex items-center justify-center overflow-hidden bg-slate-900"
-      >
-        {/* Imagen de fondo */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1600&auto=format&fit=crop&q=70"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-40"
-        />
-        {/* Overlay degradado */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/50 to-slate-900/80" />
+      {/* SECCIÓN 1: HERO — dos columnas, fondo claro */}
+      <section className="bg-slate-50 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20
+                        flex flex-col lg:flex-row items-center gap-12">
 
-        {/* Contenido centrado */}
-        <div className="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 text-center py-20">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-4 drop-shadow">
-            Servicios para tu mascota,<br />
-            <span className="text-emerald-400">cerca de ti</span>
-          </h1>
-          <p className="text-lg text-slate-200 mb-8 max-w-xl mx-auto">
-            Proveedores verificados en tu comuna. Compara, contacta y coordina directo.
-          </p>
+          {/* Columna izquierda — texto + buscador */}
+          <div className="flex-1 text-left max-w-xl">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900
+                           leading-tight mb-4">
+              Servicios para tu mascota,{" "}
+              <span className="text-emerald-600">cerca de ti</span>
+            </h1>
+            <p className="text-lg text-slate-500 mb-8 max-w-md">
+              Proveedores verificados en tu comuna. Compara, contacta y coordina directo.
+            </p>
 
-          {/* SearchBar integrado — sin card blanca flotante */}
-          <SearchBar variant="hero" />
+            <SearchBar variant="hero" />
 
-          {/* CTA proveedor */}
-          <p className="text-sm text-slate-300 mt-5">
-            ¿Ofreces servicios para mascotas?{" "}
-            <Link href="/register?rol=proveedor" className="text-emerald-400 font-semibold hover:underline">
-              Publica gratis →
-            </Link>
-          </p>
+            <p className="text-sm text-slate-400 mt-4">
+              ¿Ofreces servicios para mascotas?{" "}
+              <Link href="/register?rol=proveedor"
+                className="text-emerald-600 font-semibold hover:underline">
+                Publica gratis →
+              </Link>
+            </p>
 
-          {/* Carrusel de categorías */}
-          <div className="relative flex items-center gap-2 mt-8 max-w-2xl mx-auto px-10">
-            <button onClick={prev} aria-label="Anterior"
-              className="absolute left-0 z-10 w-8 h-8 rounded-full flex items-center justify-center
-                bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/35 transition-all">
-              <ChevronLeft size={18} />
-            </button>
-
-            <div className="flex gap-2 flex-1 justify-center">
-              {visibles.map((cat, idx) => {
-                const isProxima = cat.estado === 'proxima';
-                return (
-                  <button
-                    key={cat.slug + idx}
-                    onClick={() => !isProxima && router.push(`/explorar?categoria=${cat.slug}`)}
-                    disabled={isProxima}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl flex-1
-                      backdrop-blur-sm border transition-all text-center min-w-0
-                      ${isProxima
-                        ? 'bg-white/10 border-white/10 opacity-50 cursor-not-allowed'
-                        : 'bg-white/15 border-white/20 hover:bg-white/30 hover:border-white/40 cursor-pointer'
-                      }`}
-                  >
-                    <cat.Icon className="w-5 h-5 text-white shrink-0" />
-                    <span className="text-white text-[11px] font-semibold leading-tight line-clamp-2">
-                      {cat.nombre}
-                    </span>
-                    {cat.count > 0 && (
-                      <span className="text-[10px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">
-                        {cat.count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            <div className="flex flex-wrap gap-4 mt-6">
+              {[
+                { Icon: CheckCircle2, label: "Proveedores verificados" },
+                { Icon: Shield, label: "Revisión por Pawnecta" },
+                { Icon: MessageCircle, label: "Contacto directo" },
+              ].map(({ Icon, label }) => (
+                <div key={label} className="flex items-center gap-1.5 text-sm
+                                            font-semibold text-slate-600">
+                  <Icon className="w-4 h-4 text-emerald-500" />
+                  {label}
+                </div>
+              ))}
             </div>
-
-            <button onClick={next} aria-label="Siguiente"
-              className="absolute right-0 z-10 w-8 h-8 rounded-full flex items-center justify-center
-                bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/35 transition-all">
-              <ChevronRight size={18} />
-            </button>
           </div>
 
-          {/* Badges */}
-          <div className="inline-flex flex-wrap justify-center gap-3 mt-6">
-            {[
-              { Icon: CheckCircle2, label: "Proveedores verificados" },
-              { Icon: Shield, label: "Revisión por Pawnecta" },
-              { Icon: MessageCircle, label: "Contacto directo" },
-            ].map(({ Icon, label }) => (
-              <div key={label} className="flex items-center gap-1.5 text-sm font-semibold text-white/90">
-                <Icon className="w-4 h-4 text-emerald-400" />
-                {label}
-              </div>
-            ))}
+          {/* Columna derecha — imagen */}
+          <div className="flex-1 w-full max-w-lg lg:max-w-none">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=900&auto=format&fit=crop&q=80"
+              alt="Dueña con sus mascotas"
+              className="w-full h-72 lg:h-[420px] object-cover rounded-3xl shadow-xl"
+            />
           </div>
+
         </div>
       </section>
 
+      {/* SECCIÓN 2: GRID DE CATEGORÍAS */}
+      <section className="bg-white border-b border-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-xl font-bold text-slate-800 mb-6">
+            ¿Qué servicio necesitas?
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            {categoriasEstaticas.map((cat) => {
+              const isProxima = cat.estado === 'proxima';
+              return (
+                <button
+                  key={cat.slug}
+                  onClick={() => !isProxima && router.push(`/explorar?categoria=${cat.slug}`)}
+                  disabled={isProxima}
+                  className={`
+                    group flex flex-col items-center gap-2 p-4 rounded-2xl border
+                    transition-all duration-200 text-center
+                    ${isProxima
+                      ? 'bg-slate-50 border-slate-100 opacity-50 cursor-not-allowed'
+                      : 'bg-white border-slate-200 hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer'
+                    }
+                  `}
+                >
+                  <div className={`
+                    w-12 h-12 rounded-xl flex items-center justify-center
+                    ${isProxima ? 'bg-slate-100' : 'bg-emerald-50 group-hover:bg-emerald-100'}
+                    transition-colors duration-200
+                  `}>
+                    <cat.Icon className={`w-6 h-6 ${isProxima ? 'text-slate-400' : 'text-emerald-600'}`} />
+                  </div>
+                  <span className="text-sm font-semibold text-slate-700 leading-tight">
+                    {cat.nombre}
+                  </span>
+                  {!isProxima && cat.count > 0 && (
+                    <span className="text-[11px] font-bold bg-emerald-100 text-emerald-700
+                                     px-2 py-0.5 rounded-full">
+                      {cat.count}
+                    </span>
+                  )}
+                  {isProxima && (
+                    <span className="text-[10px] font-bold bg-slate-100 text-slate-400
+                                     px-2 py-0.5 rounded-full">
+                      Pronto
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
 
       {/* SECCION 2.5: FRANJAS POR CATEGORIA — estilo MercadoLibre */}
