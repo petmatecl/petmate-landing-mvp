@@ -55,6 +55,11 @@ export default function LoginPage() {
     }
 
     try {
+      const safetyTimer = setTimeout(() => {
+        setLoading(false);
+        setError("El inicio de sesión tardó demasiado. Verifica tu conexión e inténtalo de nuevo.");
+      }, 12000);
+
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("activeRole");
         window.localStorage.removeItem("pm_auth_role_pending");
@@ -64,6 +69,7 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
+        clearTimeout(safetyTimer);
         const msg = error.message.toLowerCase();
         if (msg.includes("email not confirmed")) {
           setError("Debes confirmar tu correo antes de ingresar. Revisa tu bandeja de entrada o carpeta de spam.");
@@ -75,6 +81,7 @@ export default function LoginPage() {
       }
 
       if (!data?.user) {
+        clearTimeout(safetyTimer);
         setError("No se pudo iniciar sesión. Inténtalo de nuevo.");
         setLoading(false);
         return;
@@ -94,6 +101,7 @@ export default function LoginPage() {
         .maybeSingle();
 
       if (!proveedorData && !buscadorData) {
+        clearTimeout(safetyTimer);
         setLoading(false);
         window.location.replace("/register?resume=true");
         return;
@@ -109,10 +117,11 @@ export default function LoginPage() {
           ? "/proveedor"
           : "/explorar");
 
+      clearTimeout(safetyTimer);
       window.location.replace(target);
     } catch (err: any) {
       console.error(err);
-      setError("Ocurrió un problema al iniciar sesión. Inténtalo más tarde.");
+      setError("No pudimos conectar con el servidor. Verifica tu conexión e inténtalo de nuevo. Si el problema persiste, recarga la página.");
       setLoading(false);
     }
   }
