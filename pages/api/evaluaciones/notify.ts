@@ -2,17 +2,21 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import NewEvaluationEmail from '../../../components/Emails/NewEvaluationEmail';
+import { emailLimiter } from '../../../lib/rateLimit';
+import { evaluacionNotifySchema } from '../../../lib/validations';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+    if (!emailLimiter(req, res)) return;
 
-    const { proveedorId, servicioTitulo, rating, comentario, isFirst } = req.body ? (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) : {};
-
-    if (!proveedorId || !servicioTitulo || typeof rating !== 'number' || !comentario) {
-        return res.status(400).json({ error: 'Missing required fields' });
+    const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const parsed = evaluacionNotifySchema.safeParse(rawBody);
+    if (!parsed.success) {
+        return res.status(400).json({ error: 'Invalid input' });
     }
+    const { proveedorId, servicioTitulo, rating, comentario, isFirst } = parsed.data;
 
     // Instancia Supabase con Bypass Rol para acceder a auth.users e informaciones protegidas
     const supabaseAdmin = createClient(

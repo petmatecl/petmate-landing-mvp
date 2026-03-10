@@ -1,8 +1,10 @@
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fetch from 'node-fetch';
+import { apiLimiter } from '../../lib/rateLimit';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (!apiLimiter(req, res)) return;
+
     const { url } = req.query;
 
     if (!url || typeof url !== 'string') {

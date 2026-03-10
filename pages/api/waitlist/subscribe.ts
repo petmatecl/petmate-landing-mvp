@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { apiLimiter } from '../../../lib/rateLimit';
+import { waitlistSchema } from '../../../lib/validations';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -12,18 +14,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
     }
+    if (!apiLimiter(req, res)) return;
 
-    const { email, comuna, categoria, rol } = req.body;
-
-    if (!email || typeof email !== 'string') {
-        return res.status(400).json({ ok: false, error: 'Email is required' });
+    const parsed = waitlistSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ ok: false, error: 'Invalid input' });
     }
-
-    // Basic email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({ ok: false, error: 'Invalid email format' });
-    }
+    const { email, comuna, categoria, rol } = parsed.data;
 
     try {
         const { error } = await supabase

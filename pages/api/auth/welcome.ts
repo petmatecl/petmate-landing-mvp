@@ -1,11 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { resend } from '../../../lib/resend';
+import { emailLimiter } from '../../../lib/rateLimit';
+import { escapeHtml } from '../../../lib/sanitize';
+import { welcomeSchema } from '../../../lib/validations';
 
 // Email templates inline as HTML strings
 const UserWelcomeEmail = ({ nombre }: { nombre: string }) => `
     <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #047857; font-size: 24px; margin-bottom: 16px;">
-            ¡Bienvenido a Pawnecta, ${nombre}!
+            ¡Bienvenido a Pawnecta, ${escapeHtml(nombre)}!
         </h1>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
             Estamos muy felices de que te unas a nuestra comunidad. Ya puedes buscar proveedores verificados en tu comuna para cuidar, pasear, o atender a tu mascota.
@@ -25,7 +28,7 @@ const UserWelcomeEmail = ({ nombre }: { nombre: string }) => `
 const ProviderWelcomeEmail = ({ nombre }: { nombre: string }) => `
     <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #047857; font-size: 24px; margin-bottom: 16px;">
-            ¡Recibimos tu solicitud, ${nombre}!
+            ¡Recibimos tu solicitud, ${escapeHtml(nombre)}!
         </h1>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
             Gracias por registrarte como proveedor en Pawnecta. Estamos emocionados por conocerte.
@@ -51,18 +54,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+    if (!emailLimiter(req, res)) return;
 
     try {
-        const { userId, email, nombre, rol } = req.body;
-
-        if (!email || !nombre || !rol) {
-            return res.status(400).json({ error: 'Missing required fields: email, nombre, or rol' });
+        const parsed = welcomeSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
         }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Invalid email address' });
-        }
+        const { userId, email, nombre, rol } = parsed.data;
 
         let subject = '';
         let htmlComponent = '';

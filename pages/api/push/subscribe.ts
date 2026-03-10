@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { apiLimiter } from '../../../lib/rateLimit';
+import { pushSubscribeSchema } from '../../../lib/validations';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -9,13 +11,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
+    if (!apiLimiter(req, res)) return;
 
     try {
-        const { subscription, userId } = req.body;
-
-        if (!subscription || !subscription.endpoint || !userId) {
-            return res.status(400).json({ error: 'Missing subscription or user data' });
+        const parsed = pushSubscribeSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: 'Invalid subscription data' });
         }
+        const { subscription, userId } = parsed.data;
 
         const { error } = await supabase
             .from('push_subscriptions')
