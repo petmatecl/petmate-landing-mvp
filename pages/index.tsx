@@ -116,13 +116,15 @@ function FranjaCategoria({
 }) {
   if (servicios.length === 0) return null;
   return (
-    <div className="py-5">
-      {/* Encabezado franja */}
-      <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Header del frame */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
         <div className="flex items-center gap-2">
           <categoria.Icon className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-lg font-bold text-slate-900">{categoria.nombre}</h2>
-          <span className="text-sm text-slate-400">disponibles</span>
+          <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
+          <span className="text-xs text-slate-400 font-medium">
+            {servicios.length} disponible{servicios.length !== 1 ? 's' : ''}
+          </span>
         </div>
         <button
           onClick={onVerTodos}
@@ -132,9 +134,8 @@ function FranjaCategoria({
         </button>
       </div>
 
-      {/* Scroll horizontal */}
-      <div className="flex gap-4 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 scrollbar-hide
-                      max-w-7xl mx-auto">
+      {/* Carrusel horizontal */}
+      <div className="flex gap-4 overflow-x-auto pb-4 pt-4 px-5 scrollbar-hide">
         {servicios.slice(0, 6).map((s: any) => {
           const foto = (s.fotos && s.fotos.length > 0) ? s.fotos[0]
             : s.proveedor_foto || FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
@@ -161,8 +162,7 @@ function FranjaCategoria({
                   }}
                 />
               </div>
-              <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug
-                            group-hover:text-emerald-700 transition-colors">
+              <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors">
                 {s.titulo}
               </p>
               {s.proveedor_comuna && (
@@ -178,12 +178,10 @@ function FranjaCategoria({
           );
         })}
 
-        {/* Card "Ver todos" al final */}
+        {/* Card “Ver todos” al final */}
         <button
           onClick={onVerTodos}
-          className="shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-slate-200
-                     hover:border-emerald-400 flex flex-col items-center justify-center gap-2
-                     text-slate-400 hover:text-emerald-600 transition-colors group"
+          className="shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-slate-200 hover:border-emerald-400 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors group"
         >
           <span className="text-3xl font-black group-hover:scale-110 transition-transform">→</span>
           <span className="text-xs font-semibold text-center px-3 leading-snug">
@@ -363,15 +361,17 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         );
         if (categoriasActivas.length < 2) return null;
         return (
-          <section aria-label="Servicios por categoria" className="bg-white border-b border-slate-100 py-4">
-            {categoriasActivas.map((cat) => (
-              <FranjaCategoria
-                key={cat.slug}
-                categoria={cat}
-                servicios={porCategoria[cat.slug] || []}
-                onVerTodos={() => router.push(`/explorar?categoria=${cat.slug}`)}
-              />
-            ))}
+          <section aria-label="Servicios por categoria" className="bg-slate-50 border-b border-slate-100 py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+              {categoriasActivas.map((cat) => (
+                <FranjaCategoria
+                  key={cat.slug}
+                  categoria={cat}
+                  servicios={porCategoria[cat.slug] || []}
+                  onVerTodos={() => router.push(`/explorar?categoria=${cat.slug}`)}
+                />
+              ))}
+            </div>
           </section>
         );
       })()}
