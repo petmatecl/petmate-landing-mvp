@@ -274,8 +274,9 @@ export default function ExplorarPage() {
                 for (const { data } of results) {
                     if (!data) continue;
                     for (const item of data as any[]) {
-                        if (!seen.has(item.id)) {
-                            seen.add(item.id);
+                        const uniqueKey = item.servicio_id ?? item.id;
+                        if (!seen.has(uniqueKey)) {
+                            seen.add(uniqueKey);
                             allData.push(item);
                         }
                     }
@@ -653,8 +654,8 @@ export default function ExplorarPage() {
                                             <button
                                                 onClick={() => setVista('lista')}
                                                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${vista === 'lista'
-                                                        ? 'bg-slate-900 text-white'
-                                                        : 'text-slate-600 hover:bg-slate-50'
+                                                    ? 'bg-slate-900 text-white'
+                                                    : 'text-slate-600 hover:bg-slate-50'
                                                     }`}
                                                 aria-label="Vista lista"
                                             >
@@ -664,8 +665,8 @@ export default function ExplorarPage() {
                                             <button
                                                 onClick={() => setVista('mapa')}
                                                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${vista === 'mapa'
-                                                        ? 'bg-slate-900 text-white'
-                                                        : 'text-slate-600 hover:bg-slate-50'
+                                                    ? 'bg-slate-900 text-white'
+                                                    : 'text-slate-600 hover:bg-slate-50'
                                                     }`}
                                                 aria-label="Vista mapa"
                                             >
