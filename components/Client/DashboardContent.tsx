@@ -2,7 +2,8 @@
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
-import { MessagesSquare, Search, Bookmark, Heart, X } from "lucide-react";
+import { MessagesSquare, Search, Bookmark, Heart, X, Star } from "lucide-react";
+import ReviewModal from "../Service/ReviewModal";
 
 // --- Tipos de Datos ---
 interface ConversationPreview {
@@ -26,10 +27,19 @@ interface FavoritePreview {
 interface ContactedService {
     conversation_id: string;
     servicio_id: string;
+    proveedor_id: string;
     titulo: string;
     foto: string | null;
     precio_desde?: number;
     unidad_precio?: string;
+    proveedor_nombre: string;
+}
+
+interface PendingReview {
+    servicio_id: string;
+    proveedor_id: string;
+    titulo: string;
+    foto: string | null;
     proveedor_nombre: string;
 }
 
@@ -39,6 +49,9 @@ export default function DashboardContent() {
     const [conversations, setConversations] = useState<ConversationPreview[]>([]);
     const [favorites, setFavorites] = useState<FavoritePreview[]>([]);
     const [contactedServices, setContactedServices] = useState<ContactedService[]>([]);
+    const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
+    const [evaluadosSet, setEvaluadosSet] = useState<Set<string>>(new Set());
+    const [reviewingId, setReviewingId] = useState<string | null>(null);
 
     // UI states
     const [isLoadingConversations, setIsLoadingConversations] = useState(true);
@@ -166,7 +179,7 @@ export default function DashboardContent() {
                         id,
                         created_at,
                         servicios_publicados!inner(
-                            id, titulo, fotos, precio_desde, unidad_precio,
+                            id, titulo, fotos, precio_desde, unidad_precio, proveedor_id,
                             proveedores!inner(nombre, apellido_p, foto_perfil)
                         )
                     `)
@@ -185,6 +198,7 @@ export default function DashboardContent() {
                         unique.push({
                             conversation_id: conv.id,
                             servicio_id: sp.id,
+                            proveedor_id: sp.proveedor_id ?? '',
                             titulo: sp.titulo,
                             foto: sp.fotos?.[0] || null,
                             precio_desde: sp.precio_desde,
@@ -200,9 +214,60 @@ export default function DashboardContent() {
             }
         };
 
+        // 4. Fetch reseñas pendientes (servicios contactados sin evaluar)
+        const loadPendingReviews = async () => {
+            try {
+                // 1. IDs con evaluación aprobada de este usuario
+                const { data: evals } = await supabase
+                    .from('evaluaciones')
+                    .select('servicio_id')
+                    .eq('usuario_id', user.id)
+                    .eq('estado', 'aprobado');
+                const evSet = new Set((evals || []).map((e: any) => e.servicio_id));
+                if (isMounted) setEvaluadosSet(evSet);
+
+                // 2. IDs de servicios con click de contacto últimos 30 días
+                const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+                const { data: clicks } = await supabase
+                    .from('eventos_tracking')
+                    .select('servicio_id')
+                    .eq('user_id', user.id)
+                    .in('tipo', ['click_whatsapp', 'click_telefono', 'click_email', 'click_web', 'click_instagram'])
+                    .gte('created_at', since);
+                const clickIds = Array.from(new Set((clicks || []).map((c: any) => c.servicio_id).filter(Boolean)));
+
+                // 3. Servicios de clicks que no han sido evaluados (máx 3)
+                const pendingIds = clickIds.filter(id => !evSet.has(id)).slice(0, 3);
+
+                if (pendingIds.length > 0) {
+                    const { data: extras } = await supabase
+                        .from('servicios_publicados')
+                        .select('id, titulo, fotos, proveedor_id, proveedores(nombre, apellido_p)')
+                        .in('id', pendingIds);
+
+                    if (isMounted && extras) {
+                        const mapped: PendingReview[] = extras.map((s: any) => {
+                            const prov = Array.isArray(s.proveedores) ? s.proveedores[0] : s.proveedores;
+                            return {
+                                servicio_id: s.id,
+                                proveedor_id: s.proveedor_id ?? '',
+                                titulo: s.titulo,
+                                foto: s.fotos?.[0] || null,
+                                proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor',
+                            };
+                        });
+                        setPendingReviews(mapped);
+                    }
+                }
+            } catch (err) {
+                console.error('Error cargando reseñas pendientes:', err);
+            }
+        };
+
         loadConversations();
         loadFavorites();
         loadContactedServices();
+        loadPendingReviews();
 
         return () => { isMounted = false; };
     }, [user]);
@@ -270,6 +335,63 @@ export default function DashboardContent() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
+                {/* --- SECCIÓN: ¿Cómo te fue? (reseñas pendientes) --- */}
+                {pendingReviews.length > 0 && (
+                    <section className="lg:col-span-2 space-y-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-800">¿Cómo te fue con estos proveedores?</h2>
+                            <p className="text-sm text-slate-500 mt-0.5">Tu opinión ayuda a otros tutores a elegir mejor</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {pendingReviews.map(item => (
+                                <div key={item.servicio_id} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-xl bg-amber-100 overflow-hidden shrink-0">
+                                            {item.foto ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={item.foto} alt={item.titulo} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-amber-400">
+                                                    <Star size={20} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-slate-900 text-sm line-clamp-2 leading-tight">{item.titulo}</p>
+                                            <p className="text-xs text-slate-500 truncate">{item.proveedor_nombre}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setReviewingId(item.servicio_id)}
+                                        className="w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2 rounded-xl transition-colors"
+                                    >
+                                        <Star size={14} />
+                                        Dejar reseña
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Modal de reseña — fuera del map */}
+                {reviewingId && (() => {
+                    const item = pendingReviews.find(r => r.servicio_id === reviewingId);
+                    if (!item) return null;
+                    return (
+                        <ReviewModal
+                            isOpen={true}
+                            onClose={() => {
+                                setPendingReviews(prev => prev.filter(r => r.servicio_id !== reviewingId));
+                                setReviewingId(null);
+                            }}
+                            servicioId={item.servicio_id}
+                            proveedorId={item.proveedor_id}
+                            serviceTitle={item.titulo}
+                        />
+                    );
+                })()}
+
                 {/* --- SECCIÓN: Servicios que has consultado (2/3 desktop) --- */}
                 <section className="lg:col-span-2 space-y-4">
                     <h2 className="text-xl font-bold text-slate-800">Servicios que has consultado</h2>
@@ -278,7 +400,7 @@ export default function DashboardContent() {
                         <div className="overflow-x-auto pb-2">
                             <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
                                 {contactedServices.map(item => (
-                                    <div key={item.servicio_id} className="w-56 shrink-0 border border-slate-200 rounded-xl shadow-sm overflow-hidden bg-white">
+                                    <div key={item.servicio_id} className="w-56 shrink-0 border border-slate-200 rounded-xl shadow-sm overflow-hidden bg-white relative">
                                         <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
                                             {item.foto ? (
                                                 // eslint-disable-next-line @next/next/no-img-element
@@ -287,6 +409,11 @@ export default function DashboardContent() {
                                                 <div className="w-full h-full flex items-center justify-center text-slate-300">
                                                     <Search size={28} />
                                                 </div>
+                                            )}
+                                            {evaluadosSet.has(item.servicio_id) && (
+                                                <span className="absolute top-2 right-2 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+                                                    ✓ Evaluado
+                                                </span>
                                             )}
                                         </div>
                                         <div className="p-3">

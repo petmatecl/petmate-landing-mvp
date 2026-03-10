@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
-import { ArrowLeft, Bell, Calendar, ChevronRight, User } from "lucide-react";
+import { ArrowLeft, Bell, ChevronRight, User } from "lucide-react";
 import AdminLayout from "../../components/Admin/AdminLayout";
 
 export default function AdminNotifications() {
@@ -11,7 +11,7 @@ export default function AdminNotifications() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         proveedoresPendientes: 0,
-        solicitudesPendientes: 0
+        contactosEstaSemana: 0
     });
     const [activities, setActivities] = useState<any[]>([]);
 
@@ -23,16 +23,16 @@ export default function AdminNotifications() {
             .select("*", { count: "exact", head: true })
             .eq("estado", "pendiente");
 
-        const { count: solicitudesPendientes } = await supabase
-            .from("viajes")
+        const hace7dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const { count: contactosEstaSemana } = await supabase
+            .from("eventos_tracking")
             .select("*", { count: "exact", head: true })
-            .is("sitter_id", null)
-            .neq("estado", "cancelado")
-            .neq("estado", "completado");
+            .eq("tipo", "whatsapp_click")
+            .gte("created_at", hace7dias);
 
         setStats({
             proveedoresPendientes: proveedoresPendientes || 0,
-            solicitudesPendientes: solicitudesPendientes || 0
+            contactosEstaSemana: contactosEstaSemana || 0
         });
 
         // 2. Recent Activity — combinar proveedores y usuarios recientes
@@ -123,18 +123,18 @@ export default function AdminNotifications() {
                                 </div>
                             </div>
 
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
-                                            <Calendar size={20} />
+                                        <div className="bg-emerald-100 p-2 rounded-lg text-emerald-600">
+                                            <Bell size={20} />
                                         </div>
-                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Solicitudes sin Proveedor</p>
+                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Contactos esta semana</p>
                                     </div>
-                                    <p className="text-4xl font-extrabold text-slate-900">{stats.solicitudesPendientes}</p>
-                                    <Link href="/admin?tab=solicitudes&filter=pending" className="mt-4 text-indigo-600 font-bold text-sm hover:underline flex items-center gap-1">
-                                        Gestionar viajes <ChevronRight size={14} />
+                                    <p className="text-4xl font-extrabold text-slate-900">{stats.contactosEstaSemana}</p>
+                                    <Link href="/admin/servicios" className="mt-4 text-emerald-600 font-bold text-sm hover:underline flex items-center gap-1">
+                                        Ver servicios <ChevronRight size={14} />
                                     </Link>
                                 </div>
                             </div>
