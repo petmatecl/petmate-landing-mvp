@@ -9,7 +9,7 @@ import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
-  CheckCircle2, Shield
+  CheckCircle2, Shield, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { toast } from "sonner";
@@ -205,6 +205,7 @@ interface HomePageProps {
 
 export default function HomePage({ featuredServices, stats, categoryCounts }: HomePageProps) {
   const router = useRouter();
+  const [carouselIndex, setCarouselIndex] = useState(0);
 
   const categoriasEstaticas = [
     { slug: 'hospedaje', nombre: 'Hospedaje', descripcion: 'Tu mascota en un hogar de confianza', Icon: Home },
@@ -220,6 +221,18 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
     count: categoryCounts[cat.slug] ?? 0,
     estado: ((categoryCounts[cat.slug] ?? 0) > 0 ? 'activa' : 'proxima') as 'activa' | 'proxima',
   }));
+
+  const VISIBLE = 5;
+  const categoriasOrdenadas = [
+    ...categoriasEstaticas.filter(c => c.estado === 'activa'),
+    ...categoriasEstaticas.filter(c => c.estado === 'proxima'),
+  ];
+  const total = categoriasOrdenadas.length;
+  const prev = () => setCarouselIndex(i => (i - 1 + total) % total);
+  const next = () => setCarouselIndex(i => (i + 1) % total);
+  const visibles = Array.from({ length: VISIBLE }, (_, i) =>
+    categoriasOrdenadas[(carouselIndex + i) % total]
+  );
 
   const testimonios = [
     { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: true, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
@@ -298,6 +311,50 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             </Link>
           </p>
 
+          {/* Carrusel de categorías */}
+          <div className="relative flex items-center gap-2 mt-8 max-w-2xl mx-auto px-10">
+            <button onClick={prev} aria-label="Anterior"
+              className="absolute left-0 z-10 w-8 h-8 rounded-full flex items-center justify-center
+                bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/35 transition-all">
+              <ChevronLeft size={18} />
+            </button>
+
+            <div className="flex gap-2 flex-1 justify-center">
+              {visibles.map((cat, idx) => {
+                const isProxima = cat.estado === 'proxima';
+                return (
+                  <button
+                    key={cat.slug + idx}
+                    onClick={() => !isProxima && router.push(`/explorar?categoria=${cat.slug}`)}
+                    disabled={isProxima}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl flex-1
+                      backdrop-blur-sm border transition-all text-center min-w-0
+                      ${isProxima
+                        ? 'bg-white/10 border-white/10 opacity-50 cursor-not-allowed'
+                        : 'bg-white/15 border-white/20 hover:bg-white/30 hover:border-white/40 cursor-pointer'
+                      }`}
+                  >
+                    <cat.Icon className="w-5 h-5 text-white shrink-0" />
+                    <span className="text-white text-[11px] font-semibold leading-tight line-clamp-2">
+                      {cat.nombre}
+                    </span>
+                    {cat.count > 0 && (
+                      <span className="text-[10px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">
+                        {cat.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button onClick={next} aria-label="Siguiente"
+              className="absolute right-0 z-10 w-8 h-8 rounded-full flex items-center justify-center
+                bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/35 transition-all">
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
           {/* Badges */}
           <div className="inline-flex flex-wrap justify-center gap-3 mt-6">
             {[
@@ -314,39 +371,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         </div>
       </section>
 
-      <section aria-label="Categorias de servicio" className="py-8 px-4 sm:px-6 lg:px-8 border-b border-slate-100 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {categoriasEstaticas.map((cat) => {
-              const isProxima = cat.estado === "proxima";
-              return isProxima ? (
-                <div
-                  key={cat.slug}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-200 bg-slate-50 text-slate-400 text-sm font-semibold shrink-0 cursor-not-allowed opacity-60 select-none"
-                >
-                  <cat.Icon className="w-4 h-4" />
-                  {cat.nombre}
-                  <span className="text-[10px] font-bold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full">Pronto</span>
-                </div>
-              ) : (
-                <button
-                  key={cat.slug}
-                  onClick={() => router.push(`/explorar?categoria=${cat.slug}`)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 text-sm font-semibold shrink-0 transition-all shadow-sm"
-                >
-                  <cat.Icon className="w-4 h-4 text-emerald-600" />
-                  {cat.nombre}
-                  {cat.count > 0 && (
-                    <span className="text-[11px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                      {cat.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+
 
       {/* SECCION 2.5: FRANJAS POR CATEGORIA — estilo MercadoLibre */}
       {(() => {

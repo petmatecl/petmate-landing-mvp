@@ -1,16 +1,24 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import { Search } from 'lucide-react';
 
 export default function QuickSearch() {
     const [query, setQuery] = useState('');
     const [isOpenMobile, setIsOpenMobile] = useState(false);
+    const [scrolledPastHero, setScrolledPastHero] = useState(false);
     const router = useRouter();
 
-    // No mostrar en Home ni en la vista de Explorar principal
-    if (router.pathname === '/' || router.pathname === '/explorar') {
-        return null;
-    }
+    const isHome = router.pathname === '/';
+
+    useEffect(() => {
+        if (!isHome) return;
+        const onScroll = () => setScrolledPastHero(window.scrollY > 500);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, [isHome]);
+
+    if (router.pathname === '/explorar') return null;
+    if (isHome && !scrolledPastHero) return null;
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
