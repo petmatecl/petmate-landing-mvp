@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 
-type EstadoProveedor = 'todos' | 'pendiente' | 'aprobado' | 'suspendido' | 'rechazado';
+type EstadoProveedor = 'todos' | 'pendiente' | 'aprobado' | 'suspendido' | 'rechazado' | 'placeholder';
 type OrdenType = 'fecha_desc' | 'fecha_asc' | 'nombre' | 'estado';
 
 export default function GestionProveedores() {
@@ -57,7 +57,11 @@ export default function GestionProveedores() {
     // Procesar lista con filtros y orden
     const proveedoresVisibles = proveedores
         .filter(p => {
-            if (filtroEstado !== 'todos' && p.estado !== filtroEstado) return false;
+            if (filtroEstado === 'placeholder') {
+                if (!p.es_placeholder) return false;
+            } else if (filtroEstado !== 'todos' && p.estado !== filtroEstado) {
+                return false;
+            }
             if (busqueda) {
                 const query = busqueda.toLowerCase();
                 const nombreCompleto = `${p.nombre || ''} ${p.apellido_p || ''}`.toLowerCase();
@@ -183,6 +187,28 @@ export default function GestionProveedores() {
         }
     };
 
+    const togglePlaceholder = async (prov: any) => {
+        try {
+            const nuevoValor = !prov.es_placeholder;
+            const { error } = await supabase
+                .from('proveedores')
+                .update({ es_placeholder: nuevoValor })
+                .eq('id', prov.id);
+            if (error) throw error;
+
+            // También actualizar todos sus servicios
+            await supabase
+                .from('servicios_publicados')
+                .update({ es_placeholder: nuevoValor })
+                .eq('proveedor_id', prov.id);
+
+            toast.success(nuevoValor ? 'Marcado como placeholder (oculto en búsquedas reales)' : 'Placeholder desactivado — visible como proveedor real');
+            fetchProveedores();
+        } catch (error) {
+            toast.error('Error al actualizar estado de placeholder');
+        }
+    };
+
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
             case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider"><CheckCircle2 size={12} /> Aprobado</span>;
@@ -220,7 +246,7 @@ export default function GestionProveedores() {
                     <div className="flex flex-col lg:flex-row gap-4 justify-between">
                         {/* Tabs */}
                         <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
-                            {(['todos', 'pendiente', 'aprobado', 'suspendido', 'rechazado'] as EstadoProveedor[]).map(estado => (
+                            {(['todos', 'pendiente', 'aprobado', 'suspendido', 'rechazado', 'placeholder'] as EstadoProveedor[]).map(estado => (
                                 <button
                                     key={estado}
                                     onClick={() => setFiltroEstado(estado)}
@@ -298,6 +324,11 @@ export default function GestionProveedores() {
                                                     <p className="font-bold text-slate-900 cursor-pointer hover:text-emerald-700" onClick={() => openModal('detalle', prov)}>
                                                         {prov.nombre} {prov.apellido_p}
                                                     </p>
+                                                    {prov.es_placeholder && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-violet-100 text-violet-700 rounded-full text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                                                            🪆 Placeholder
+                                                        </span>
+                                                    )}
                                                     <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
                                                         {prov.rut}
                                                         {prov.rut_verificado && <CheckCircle2 size={12} className="text-emerald-500" />}
@@ -315,7 +346,18 @@ export default function GestionProveedores() {
                                             <EstadoBadge estado={prov.estado} />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
+                                            <div className="flex justify-end gap-2 flex-wrap">
+                                                {/* Toggle placeholder — siempre visible */}
+                                                <button
+                                                    onClick={() => togglePlaceholder(prov)}
+                                                    title={prov.es_placeholder ? 'Desactivar placeholder (hacer real)' : 'Marcar como placeholder'}
+                                                    className={`px-3 py-1.5 font-bold rounded-lg text-xs transition-colors ${prov.es_placeholder
+                                                            ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
+                                                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                                        }`}
+                                                >
+                                                    {prov.es_placeholder ? '🪆 Es placeholder' : 'Marcar placeholder'}
+                                                </button>
                                                 {/* Botones condicionales */}
                                                 {prov.estado === 'pendiente' && (
                                                     <>
