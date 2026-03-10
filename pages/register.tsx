@@ -279,7 +279,7 @@ export default function RegisterWizard() {
     const safetyTimer = setTimeout(() => {
       setLoading(false);
       setError("La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.");
-    }, 25000);
+    }, 60000);
 
     try {
       // 1. Sign up user
@@ -507,7 +507,10 @@ export default function RegisterWizard() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Materno (Opcional)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Apellido Materno
+                    <span className="ml-1.5 text-xs font-normal text-slate-400">(Opcional)</span>
+                  </label>
                   <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className={inputClass} />
                 </div>
 
