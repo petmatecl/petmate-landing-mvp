@@ -569,16 +569,18 @@ export async function getStaticProps() {
   try {
     const { data } = await supabase
       .from('servicios_publicados')
-      .select('*, proveedor:proveedores(nombre, apellido_p, foto_perfil, comuna), categoria:categorias_servicio(nombre, icono, slug)')
+      .select('*, proveedor:proveedores!inner(nombre, apellido_p, foto_perfil, comuna, estado, es_placeholder), categoria:categorias_servicio(nombre, icono, slug)')
       .eq('activo', true)
+      .eq('proveedor.estado', 'aprobado')
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(12);
     if (data) {
       const mapped = data.map(mapJoinToServiceResult);
-      // Prioritize services that have photos
+      // Priorizar: foto del servicio > foto de perfil > sin foto (fallback visual)
       featuredServices = [
         ...mapped.filter(s => s.fotos && s.fotos.length > 0),
-        ...mapped.filter(s => !s.fotos || s.fotos.length === 0),
+        ...mapped.filter(s => (!s.fotos || s.fotos.length === 0) && s.proveedor_foto),
+        ...mapped.filter(s => (!s.fotos || s.fotos.length === 0) && !s.proveedor_foto),
       ].slice(0, 6);
     }
   } catch (error) {
