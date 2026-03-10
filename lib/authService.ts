@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-export type Role = 'cliente' | 'petmate' | 'admin';
+export type Role = 'usuario' | 'proveedor' | 'admin';
 export type OnboardingStep = 'EMAIL_VERIFIED' | 'ROLE_SELECTED' | 'PROFILE_BASIC' | 'COMPLETE';
 
 export interface UserProfile {
@@ -93,17 +93,17 @@ export const AuthService = {
     deriveCapabilities(p: UserProfile | null): UserCapabilities {
         if (!p) return GUEST_CAPABILITIES;
 
-        const userRoles = p.roles || ['cliente'];
-        const isSitter = userRoles.includes('petmate');
-        const isClient = userRoles.includes('cliente') || userRoles.length === 0;
+        const userRoles = p.roles || ['usuario'];
+        const isProveedor = userRoles.includes('proveedor') || userRoles.includes('admin');
+        const isClient = userRoles.includes('usuario') || userRoles.length === 0;
 
         return {
-            canBook: isClient, // Clients can book
-            canPublishProfile: isSitter, // Only sitters can publish/edit profile
-            canRespondToBooking: isSitter, // Only sitters respond to bookings
-            canReview: true, // Generally authorized users can review (filtered by RLS)
-            canViewSitterDashboard: isSitter,
-            canViewClientDashboard: true, // Everyone basic access to client view
+            canBook: isClient,
+            canPublishProfile: isProveedor,
+            canRespondToBooking: isProveedor,
+            canReview: true,
+            canViewSitterDashboard: isProveedor,
+            canViewClientDashboard: true,
         };
     },
 
@@ -131,17 +131,15 @@ export const AuthService = {
      */
     determineActiveRole(p: UserProfile | null, preferredRole: string | null): Role | null {
         if (!p) return null;
-        const validRoles = p.roles || ['cliente'];
+        const validRoles = p.roles || ['usuario'];
 
         // If preference is valid, use it
-        if (preferredRole && (validRoles.includes(preferredRole) || (preferredRole === 'sitter' && validRoles.includes('petmate')))) {
-            // normalizing sitter -> petmate if needed, but 'activeRole' type is 'cliente' | 'petmate'
-            if (preferredRole === 'sitter') return 'petmate';
+        if (preferredRole && validRoles.includes(preferredRole)) {
             return preferredRole as Role;
         }
 
-        // Default: prefer 'petmate' (sitter) if available, else 'cliente'
-        if (validRoles.includes('petmate')) return 'petmate';
-        return 'cliente';
+        // Default: prefer 'proveedor' if available, else 'usuario'
+        if (validRoles.includes('proveedor') || validRoles.includes('admin')) return 'proveedor';
+        return 'usuario';
     }
 };

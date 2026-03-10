@@ -58,7 +58,7 @@ export default function LoginPage() {
       const safetyTimer = setTimeout(() => {
         setLoading(false);
         setError("El inicio de sesión tardó demasiado. Verifica tu conexión e inténtalo de nuevo.");
-      }, 12000);
+      }, 30000);
 
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("activeRole");
@@ -87,38 +87,10 @@ export default function LoginPage() {
         return;
       }
 
-      // Check profiles
-      const { data: proveedorData } = await supabase
-        .from("proveedores")
-        .select("estado")
-        .eq("auth_user_id", data.user.id)
-        .maybeSingle();
-
-      const { data: buscadorData } = await supabase
-        .from("usuarios_buscadores")
-        .select("id")
-        .eq("auth_user_id", data.user.id)
-        .maybeSingle();
-
-      if (!proveedorData && !buscadorData) {
-        clearTimeout(safetyTimer);
-        setLoading(false);
-        window.location.replace("/register?resume=true");
-        return;
-      }
-
-      // Redirect to origin if present, else to role default
-      const target =
-        redirect ||
-        (proveedorData &&
-          proveedorData.estado === "aprobado" &&
-          typeof window !== "undefined" &&
-          window.localStorage.getItem("pawnecta_active_mode") === "proveedor"
-          ? "/proveedor"
-          : "/explorar");
-
+      // UserContext.onAuthStateChange se encarga de cargar el perfil (proveedores / usuarios_buscadores).
+      // No hacemos queries adicionales aquí para evitar doble fetch y carreras de condición.
       clearTimeout(safetyTimer);
-      window.location.replace(target);
+      window.location.replace(redirect || '/explorar');
     } catch (err: any) {
       console.error(err);
       setError("No pudimos conectar con el servidor. Verifica tu conexión e inténtalo de nuevo. Si el problema persiste, recarga la página.");
