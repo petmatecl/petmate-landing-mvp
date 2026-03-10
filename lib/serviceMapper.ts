@@ -16,6 +16,39 @@ const CAT_NAMES: Record<string, string> = {
 };
 
 /**
+ * Convierte una ruta de Supabase Storage a URL pública completa.
+ * Si ya es una URL completa (http/https), la devuelve sin cambios.
+ *
+ * Buckets:
+ *  - avatars        → fotos de perfil de proveedores
+ *  - servicios-fotos → fotos de servicios publicados
+ *
+ * Las rutas guardadas en la DB pueden empezar con el bucket o sin él:
+ *   "avatars/uuid/foto.jpg"    → ya incluye bucket → usar directo
+ *   "uuid/foto.jpg"            → sin bucket → defaults a servicios-fotos para fotos[] de servicio
+ */
+function toPublicUrl(path: string | null | undefined, defaultBucket = 'servicios-fotos'): string | null {
+    if (!path) return null;
+    if (path.startsWith('http')) return path; // ya es URL completa
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
+    if (!base) return null;
+    // Si la ruta empieza con un nombre de bucket conocido, usarlo directo
+    const KNOWN_BUCKETS = ['avatars', 'servicios-fotos', 'documents'];
+    const bucket = KNOWN_BUCKETS.find(b => path.startsWith(b + '/'));
+    if (bucket) {
+        const filePath = path.slice(bucket.length + 1); // quitar "bucket/"
+        return `${base}/storage/v1/object/public/${bucket}/${filePath}`;
+    }
+    // Sin prefijo de bucket → usar defaultBucket
+    return `${base}/storage/v1/object/public/${defaultBucket}/${path}`;
+}
+
+function toPublicUrls(fotos: string[] | null | undefined): string[] {
+    if (!fotos || fotos.length === 0) return [];
+    return fotos.map(f => toPublicUrl(f, 'servicios-fotos')).filter(Boolean) as string[];
+}
+
+/**
  * Maps a raw row from the buscar_servicios RPC to ServiceResult.
  * RPC returns: id, nombre, apellido_p, foto_perfil, comuna, categoria_slug, ...
  */
@@ -35,26 +68,20 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
     const slug = (CAT_NAMES[rawSlug] ? rawSlug : rawSlug.toLowerCase().replace(/\s+/g, '-')).replace(/ /g, '-');
     const catNombre = (PRICE_PATTERN.test(rawNombre) ? null : rawNombre) ?? CAT_NAMES[slug] ?? slug;
 
-    // RPC buscar_servicios returns:
-    //   servicio_id, proveedor_nombre (pre-computed), proveedor_foto, proveedor_comuna
-    // These differ from the join-query shape used by mapJoinToServiceResult.
     return {
-        servicio_id: item.servicio_id ?? item.id, // RPC uses servicio_id; fallback to id for compat
+        servicio_id: item.servicio_id ?? item.id,
         titulo: item.titulo,
         descripcion: item.descripcion,
         precio_desde: Number(item.precio_desde ?? 0),
         precio_hasta: item.precio_hasta ?? null,
         unidad_precio: item.unidad_precio ?? 'por sesión',
-        fotos: item.fotos ?? [],
+        fotos: toPublicUrls(item.fotos),
         categoria_nombre: catNombre,
         categoria_slug: slug,
         categoria_icono: item.categoria_icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
-        // RPC pre-computes the full name in proveedor_nombre; fallback for join shapes
         proveedor_nombre: item.proveedor_nombre ?? `${item.nombre ?? ''} ${item.apellido_p ?? ''}`.trim(),
-        // RPC uses proveedor_foto; join shapes use foto_perfil
-        proveedor_foto: item.proveedor_foto ?? item.foto_perfil ?? null,
-        // RPC uses proveedor_comuna; join shapes use comuna
+        proveedor_foto: toPublicUrl(item.proveedor_foto ?? item.foto_perfil, 'avatars') ?? '',
         proveedor_comuna: item.proveedor_comuna ?? item.comuna ?? '',
         destacado: item.destacado ?? false,
         rating_promedio: Number(item.rating_promedio ?? 0),
@@ -74,7 +101,7 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
  *             item.categoria.{nombre, icono, slug}
  */
 export function mapJoinToServiceResult(item: any): ServiceResult {
-    const slug = item.categoria?.slug ?? '';
+    const slug = item.categoria?.slug ?? item.categoria_slug ?? '';
     return {
         servicio_id: item.id,
         titulo: item.titulo,
@@ -82,13 +109,13 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         precio_desde: Number(item.precio_desde ?? 0),
         precio_hasta: item.precio_hasta ?? null,
         unidad_precio: item.unidad_precio ?? 'por sesión',
-        fotos: item.fotos ?? [],
+        fotos: toPublicUrls(item.fotos),
         categoria_nombre: item.categoria?.nombre ?? CAT_NAMES[slug] ?? slug,
         categoria_slug: slug,
         categoria_icono: item.categoria?.icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
         proveedor_nombre: `${item.proveedor?.nombre ?? ''} ${item.proveedor?.apellido_p ?? ''}`.trim(),
-        proveedor_foto: item.proveedor?.foto_perfil ?? null,
+        proveedor_foto: toPublicUrl(item.proveedor?.foto_perfil, 'avatars') ?? '',
         proveedor_comuna: item.proveedor?.comuna ?? '',
         destacado: item.destacado ?? false,
         rating_promedio: Number(item.rating_promedio ?? 0),

@@ -152,12 +152,10 @@ function FranjaCategoria({
                     alt={s.titulo}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement;
+                      const img = e.currentTarget as HTMLImageElement;
                       const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
-                      if (target.src !== fallback) {
-                        target.src = fallback;
-                      } else if (target.src !== FALLBACK_HOME["default"]) {
-                        target.src = FALLBACK_HOME["default"];
+                      if (img.src !== fallback) {
+                        img.src = fallback;
                       }
                     }}
                   />
@@ -307,9 +305,21 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
           <div className="flex-1 w-full max-w-lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=900&auto=format&fit=crop&q=80"
+              src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=900&auto=format&fit=crop&q=80"
               alt="Mascota con su dueña"
               className="w-full h-64 lg:h-[400px] object-cover rounded-3xl shadow-xl"
+              onError={(e) => {
+                const HERO_FALLBACKS = [
+                  "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&auto=format&fit=crop&q=80",
+                  "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=900&auto=format&fit=crop&q=80",
+                ];
+                const img = e.currentTarget as HTMLImageElement;
+                const tried = Number(img.dataset.fallbackIndex ?? 0);
+                if (tried < HERO_FALLBACKS.length) {
+                  img.dataset.fallbackIndex = String(tried + 1);
+                  img.src = HERO_FALLBACKS[tried];
+                }
+              }}
             />
           </div>
         </div>
