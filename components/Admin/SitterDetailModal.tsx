@@ -1,66 +1,35 @@
 import React from "react";
 import Image from "next/image";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { getProxyImageUrl } from "../../lib/utils";
-import { CheckCircle, Dog, Cat, User, Instagram, Music, Briefcase, Facebook, FileText, Video, AlertTriangle } from "lucide-react";
+import { CheckCircle, User, Instagram, Music, Briefcase, Facebook, FileText, Video, AlertTriangle } from "lucide-react";
 
-type SitterData = {
+type ProveedorData = {
     id: string;
-    // Personal
     nombre: string;
-    apellido_p?: string; // Sometimes separate or in 'nombre' depending on legacy
-    email?: string; // Often joined from auth
-    rut: string;
-    fecha_nacimiento: string;
-    edad: number;
-    sexo: string;
-    telefono: string;
-    foto_perfil: string;
-
-    // Profile
-    descripcion: string;
-    ocupacion: string;
-    // Student fields removed
-    tiene_mascotas: boolean;
-    detalles_mascotas?: { tipo: string; cantidad: number }[];
-
-    // Services
-    cuida_perros: boolean;
-    cuida_gatos: boolean;
-    servicio_en_casa: boolean;
-    servicio_a_domicilio: boolean;
-    tarifa_servicio_en_casa?: number;
-    tarifa_servicio_a_domicilio?: number;
-
-    // Location
-    region: string;
-    comuna: string;
-    direccion_completa?: string;
-    calle?: string;
-    numero?: string;
-
-    // Docs
-    certificado_antecedentes?: string;
+    apellido_p?: string;
+    email?: string;
+    rut?: string;
+    telefono?: string;
+    foto_perfil?: string;
+    bio?: string;
+    comuna?: string;
+    region?: string;
+    sitio_web?: string;
+    instagram?: string;
     video_presentacion?: string;
-    aprobado: boolean;
-
-    // Gallery
+    certificado_antecedentes?: string;
     galeria?: string[];
-    fotos_vivienda?: string[];
-
-    // Social
-    redes_sociales?: { linkedin?: string; tiktok?: string; instagram?: string; facebook?: string };
-
-    // Extra for Clients/Admin
-    pets?: any[]; // Full pet objects
-    missingFields?: string[]; // List of missing field names
-
+    anios_experiencia?: number;
+    certificaciones?: string;
+    aprobado: boolean;
+    rut_verificado?: boolean;
+    missingFields?: string[];
     created_at: string;
+    redes_sociales?: { linkedin?: string; tiktok?: string; instagram?: string; facebook?: string };
 };
 
 type Props = {
-    sitter: SitterData | null;
+    sitter: ProveedorData | null;
     open: boolean;
     onClose: () => void;
     onApprove: (id: string, currentStatus: boolean) => void;
@@ -72,12 +41,12 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative flex flex-col z-50">
                 {/* Header */}
                 <div className="p-4 border-b border-slate-300 flex justify-between items-center bg-slate-50">
-                    <h3 className="font-bold text-lg text-slate-800">Detalle del Cuidador</h3>
+                    <h3 className="font-bold text-lg text-slate-800">Detalle del Proveedor</h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -123,42 +92,59 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                             unoptimized
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-slate-200 flex items-center justify-center text-3xl"><User size={48} className="text-slate-400" /></div>
+                                        <div className="w-full h-full bg-slate-200 flex items-center justify-center text-3xl">
+                                            <User size={48} className="text-slate-400" />
+                                        </div>
                                     )}
                                 </div>
                                 <h2 className="text-xl font-bold text-slate-900">{sitter.nombre} {sitter.apellido_p || ""}</h2>
                                 <p className="text-sm text-slate-500">{sitter.email || "Sin email"}</p>
                                 <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                                     {sitter.aprobado && (!sitter.missingFields || sitter.missingFields.length === 0)
-                                        ? <span className="flex items-center gap-1"><CheckCircle size={14} /> Verificado</span>
+                                        ? <span className="flex items-center gap-1"><CheckCircle size={14} /> Aprobado</span>
                                         : sitter.aprobado
                                             ? <span className="flex items-center gap-1 text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) <AlertTriangle size={14} /></span>
-                                            : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div></span>
+                                            : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" /></span>
                                     }
                                 </div>
                             </div>
 
                             <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-300 space-y-3 text-sm">
+                                {sitter.rut && (
+                                    <div>
+                                        <span className="block text-xs font-bold text-slate-400 uppercase">RUT</span>
+                                        <span className="text-slate-700 font-medium">{sitter.rut}</span>
+                                    </div>
+                                )}
+                                {sitter.telefono && (
+                                    <div>
+                                        <span className="block text-xs font-bold text-slate-400 uppercase">Teléfono</span>
+                                        <span className="text-slate-700 font-medium">{sitter.telefono}</span>
+                                    </div>
+                                )}
+                                {(sitter.comuna || sitter.region) && (
+                                    <div>
+                                        <span className="block text-xs font-bold text-slate-400 uppercase">Ubicación</span>
+                                        <span className="text-slate-700 font-medium">{sitter.comuna}{sitter.region ? `, ${sitter.region}` : ''}</span>
+                                    </div>
+                                )}
+                                {sitter.anios_experiencia !== undefined && sitter.anios_experiencia > 0 && (
+                                    <div>
+                                        <span className="block text-xs font-bold text-slate-400 uppercase">Experiencia</span>
+                                        <span className="text-slate-700 font-medium">{sitter.anios_experiencia} años</span>
+                                    </div>
+                                )}
+                                {sitter.certificaciones && (
+                                    <div>
+                                        <span className="block text-xs font-bold text-slate-400 uppercase">Certificaciones</span>
+                                        <span className="text-slate-700 font-medium">{sitter.certificaciones}</span>
+                                    </div>
+                                )}
                                 <div>
-                                    <span className="block text-xs font-bold text-slate-400 uppercase">RUT</span>
-                                    <span className="text-slate-700 font-medium">{sitter.rut || "No informado"}</span>
-                                </div>
-                                <div>
-                                    <span className="block text-xs font-bold text-slate-400 uppercase">Teléfono</span>
-                                    <span className="text-slate-700 font-medium">{sitter.telefono || "No informado"}</span>
-                                </div>
-                                <div>
-                                    <span className="block text-xs font-bold text-slate-400 uppercase">Edad / Sexo</span>
-                                    <span className="text-slate-700 font-medium">
-                                        {sitter.edad ? `${sitter.edad} años` : "N/A"} • {sitter.sexo || "N/A"}
+                                    <span className="block text-xs font-bold text-slate-400 uppercase">Identidad</span>
+                                    <span className={`text-sm font-bold ${sitter.rut_verificado ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                        {sitter.rut_verificado ? '✓ Verificada' : 'Sin verificar'}
                                     </span>
-                                </div>
-                                <div>
-                                    <span className="block text-xs font-bold text-slate-400 uppercase">Ubicación</span>
-                                    <span className="text-slate-700 font-medium">{sitter.comuna}, {sitter.region}</span>
-                                    {sitter.direccion_completa && (
-                                        <p className="text-xs text-slate-500 mt-1">{sitter.direccion_completa}</p>
-                                    )}
                                 </div>
                             </div>
 
@@ -178,12 +164,12 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                             </a>
                                         )}
                                         {sitter.redes_sociales.linkedin && (
-                                            <a href={sitter.redes_sociales.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-800 flex items-center gap-2 text-sm font-medium text-ellipsis overflow-hidden whitespace-nowrap block max-w-full">
+                                            <a href={sitter.redes_sociales.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-800 flex items-center gap-2 text-sm font-medium overflow-hidden">
                                                 <Briefcase size={16} className="shrink-0" /> <span className="truncate">LinkedIn</span>
                                             </a>
                                         )}
                                         {sitter.redes_sociales.facebook && (
-                                            <a href={sitter.redes_sociales.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 text-sm font-medium text-ellipsis overflow-hidden whitespace-nowrap block max-w-full">
+                                            <a href={sitter.redes_sociales.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 text-sm font-medium overflow-hidden">
                                                 <Facebook size={16} className="shrink-0" /> <span className="truncate">Facebook</span>
                                             </a>
                                         )}
@@ -191,7 +177,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 </div>
                             )}
 
-                            {/* Downloads */}
+                            {/* Documents */}
                             {sitter.certificado_antecedentes && (
                                 <button
                                     onClick={() => onViewDocument(sitter.certificado_antecedentes!)}
@@ -218,61 +204,31 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
                             {/* Bio */}
                             <div>
-                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Sobre mí</h4>
+                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Descripción / Bio</h4>
                                 <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                                    {sitter.descripcion || "Sin descripción."}
+                                    {sitter.bio || "Sin descripción."}
                                 </p>
                             </div>
 
-                            {/* Occupation / Student */}
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Sitio web */}
+                            {sitter.sitio_web && (
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Ocupación</h4>
-                                    <p className="text-sm text-slate-600">{sitter.ocupacion}</p>
-                                    {/* Student fields display removed */}
+                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Sitio Web</h4>
+                                    <a href={sitter.sitio_web.startsWith('http') ? sitter.sitio_web : `https://${sitter.sitio_web}`}
+                                        target="_blank" rel="noopener noreferrer"
+                                        className="text-emerald-700 hover:underline text-sm"
+                                    >
+                                        {sitter.sitio_web}
+                                    </a>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Mascotas</h4>
-                                    <p className="text-sm text-slate-600">
-                                        {sitter.tiene_mascotas ? "Tiene mascotas propias" : "No tiene mascotas"}
-                                    </p>
-                                    {sitter.detalles_mascotas && sitter.detalles_mascotas.length > 0 && (
-                                        <ul className="mt-1 text-xs text-slate-500 list-disc list-inside">
-                                            {sitter.detalles_mascotas.map((m, i) => (
-                                                <li key={i}>{m.cantidad} {m.tipo}(s)</li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Services */}
-                            <div>
-                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Servicios & Tarifas</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {sitter.cuida_perros && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1"><Dog size={14} /> Perros</span>}
-                                    {sitter.cuida_gatos && <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1"><Cat size={14} /> Gatos</span>}
-                                </div>
-                                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {sitter.servicio_en_casa && (
-                                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                                            <span className="block text-xs font-bold text-emerald-800 uppercase">En mi Casa</span>
-                                            <span className="text-sm text-emerald-900 font-bold">${sitter.tarifa_servicio_en_casa?.toLocaleString('es-CL') || 0} / día</span>
-                                        </div>
-                                    )}
-                                    {sitter.servicio_a_domicilio && (
-                                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                                            <span className="block text-xs font-bold text-blue-800 uppercase">A Domicilio</span>
-                                            <span className="text-sm text-blue-900 font-bold">${sitter.tarifa_servicio_a_domicilio?.toLocaleString('es-CL') || 0} / visita</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            )}
 
                             {/* Gallery */}
                             {sitter.galeria && sitter.galeria.length > 0 && (
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Galería Mascotas ({sitter.galeria.length})</h4>
+                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">
+                                        Galería ({sitter.galeria.length})
+                                    </h4>
                                     <div className="grid grid-cols-4 gap-2">
                                         {sitter.galeria.map((img, idx) => (
                                             <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300">
@@ -282,21 +238,6 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     </div>
                                 </div>
                             )}
-
-                            {/* Housing Gallery */}
-                            {sitter.fotos_vivienda && sitter.fotos_vivienda.length > 0 && (
-                                <div className="mt-6">
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Galería Hogar ({sitter.fotos_vivienda.length})</h4>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {sitter.fotos_vivienda.map((img, idx) => (
-                                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-300">
-                                                <Image src={getProxyImageUrl(img) || ''} alt="Galeria Hogar" fill className="object-cover" unoptimized />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
                         </div>
                     </div>
                 </div>
@@ -319,7 +260,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             : "bg-emerald-600 hover:bg-emerald-700 ring-4 ring-emerald-600/20"
                             }`}
                     >
-                        {sitter.aprobado ? "Revocar Aprobación" : "Aprobar Cuidador"}
+                        {sitter.aprobado ? "Revocar Aprobación" : "Aprobar Proveedor"}
                     </button>
                 </div>
             </div>

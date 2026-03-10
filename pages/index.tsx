@@ -12,6 +12,7 @@ import {
   CheckCircle2, Shield
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { toast } from "sonner";
 
 import SearchBar from "../components/Home/SearchBar";
 import ServiceCard from "../components/Home/ServiceCard";
@@ -24,10 +25,26 @@ function PrelaunchDemandCapture() {
   const [comuna, setComuna] = useState('');
   const [done, setDone] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    setDone(true);
+
+    try {
+      const res = await fetch('/api/waitlist/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, comuna, rol: 'tutor' }),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        setDone(true);
+      } else {
+        toast.error('No pudimos guardar tu correo, intenta de nuevo');
+      }
+    } catch (err) {
+      toast.error('No pudimos guardar tu correo, intenta de nuevo');
+    }
   };
 
   return (

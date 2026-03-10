@@ -1,30 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Calendar, Briefcase, Award, Clock, Globe, Instagram } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera } from 'lucide-react';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
-import GalleryLightbox from '../../components/GalleryLightbox';
-
-const BioExpandible = ({ bio, maxChars }: { bio: string, maxChars: number }) => {
-    const [expanded, setExpanded] = React.useState(false);
-    if (!bio) return null;
-    if (bio.length <= maxChars) {
-        return <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{bio}</p>;
-    }
-    return (
-        <div>
-            <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">
-                {expanded ? bio : `${bio.substring(0, maxChars)}...`}
-            </p>
-            <button onClick={() => setExpanded(!expanded)} className="text-emerald-600 font-bold text-sm mt-1 hover:underline">
-                {expanded ? 'Leer menos' : 'Leer más'}
-            </button>
-        </div>
-    );
-};
+import { useUser } from '../../contexts/UserContext';
+import LoginRequiredModal from '../../components/Shared/LoginRequiredModal';
 
 const LABELS_CAMPOS: Record<string, string> = {
     universidad: 'Universidad',
@@ -73,8 +57,35 @@ interface ProveedorProps {
     globalTotalEvaluaciones: number;
 }
 
+function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number }) {
+    const [expanded, setExpanded] = useState(false);
+    const needsTruncation = bio.length > maxChars;
+    const shown = expanded || !needsTruncation ? bio : bio.slice(0, maxChars) + '…';
+    return (
+        <div>
+            <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{shown}</p>
+            {needsTruncation && (
+                <button
+                    onClick={() => setExpanded(v => !v)}
+                    className="mt-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors"
+                >
+                    {expanded ? 'Leer menos ↑' : 'Leer más ↓'}
+                </button>
+            )}
+        </div>
+    );
+}
+
 export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones }: ProveedorProps) {
-    const [galeriaOpen, setGaleriaOpen] = React.useState(false);
+    const { user } = useUser();
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+    const handleProtectedLinkClick = (e: React.MouseEvent) => {
+        if (!user) {
+            e.preventDefault();
+            setLoginModalOpen(true);
+        }
+    };
 
     if (!proveedor) {
         return (
@@ -84,11 +95,13 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
         );
     }
 
-    const title = `${proveedor.nombre} ${proveedor.apellido_p} — Proveedor de servicios en ${proveedor.comuna} | Pawnecta`;
-    const desc = proveedor.bio ? proveedor.bio.substring(0, 160) : `Conoce a ${proveedor.nombre}, proveedor de servicios para mascotas en ${proveedor.comuna}. Revisa sus servicios, tarifas y las evaluaciones de otros clientes en Pawnecta.`;
-
     const anosEnPawnecta = new Date().getFullYear() - new Date(proveedor.created_at).getFullYear();
-    const anosLabel = anosEnPawnecta === 0 ? "Nuevo en Pawnecta" : `${anosEnPawnecta} año${anosEnPawnecta > 1 ? "s" : ""} en Pawnecta`;
+    const bioTexto: string | null = proveedor.bio || proveedor.sobre_mi || null;
+    const tieneTrustSignals = proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda || proveedor.miembro_asociacion;
+    const tieneDatosEspecificos = proveedor.datos_especificos && Object.entries(proveedor.datos_especificos).filter(([, v]) => v !== null && v !== '' && v !== false).length > 0;
+    const tieneGaleria = proveedor.galeria && proveedor.galeria.length > 0;
+    const title = `${proveedor.nombre} ${proveedor.apellido_p} — ${proveedor.comuna} | Pawnecta`;
+    const desc = `Conoce a ${proveedor.nombre}, proveedor de servicios para mascotas en ${proveedor.comuna}. Revisa sus servicios, tarifas y evaluaciones en Pawnecta.`;
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
@@ -97,277 +110,223 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <meta name="description" content={desc} />
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={desc} />
-                <meta property="og:image" content={proveedor.foto_perfil || "/og-default.png"} />
-                <meta property="og:type" content="profile" />
-                <meta property="og:url" content={`https://pawnecta.cl/proveedor/${proveedor.id}`} />
+                <meta property="og:image" content={proveedor.foto_perfil || '/og-default.png'} />
                 <link rel="canonical" href={`https://pawnecta.cl/proveedor/${proveedor.id}`} />
-
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({
-                            "@context": "https://schema.org",
-                            "@type": proveedor.tipo_entidad === "empresa" ? "LocalBusiness" : "Person",
-                            "name": proveedor.tipo_entidad === "empresa"
-                                ? (proveedor.nombre_fantasia || proveedor.razon_social)
-                                : `${proveedor.nombre} ${proveedor.apellido_p}`,
-                            "description": proveedor.bio || desc,
-                            "image": proveedor.foto_perfil,
-                            "url": `https://pawnecta.cl/proveedor/${proveedor.id}`,
-                            "address": {
-                                "@type": "PostalAddress",
-                                "addressLocality": proveedor.comuna,
-                                "addressCountry": "CL"
-                            },
-                            "aggregateRating": globalTotalEvaluaciones > 0 ? {
-                                "@type": "AggregateRating",
-                                "ratingValue": globalRatingPromedio.toFixed(1),
-                                "reviewCount": globalTotalEvaluaciones,
-                                "bestRating": "5",
-                                "worstRating": "1"
-                            } : undefined,
-                        })
-                    }}
-                />
             </Head>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-5">
 
-                {/* SECCIÓN 1: Header del Proveedor */}
-                <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-6 relative">
-                    {/* Foto de perfil */}
-                    <div className={`w-[120px] h-[120px] rounded-full bg-slate-200 shrink-0 border border-slate-200 overflow-hidden relative ${proveedor.rut_verificado ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}>
-                        {proveedor.foto_perfil ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold bg-slate-100 text-3xl">
-                                {proveedor.nombre.charAt(0)}
-                            </div>
-                        )}
-                    </div>
+                {/* ══ HERO ══════════════════════════════════════════════════ */}
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
 
-                    {/* Información Principal */}
-                    <div className="flex-1 text-center md:text-left">
-                        <div className="flex flex-col md:flex-row md:items-center gap-3 mb-1 justify-center md:justify-start">
-                            <h1 className="text-2xl font-bold text-slate-900">
-                                {proveedor.nombre} {proveedor.apellido_p}
-                            </h1>
-                            {proveedor.rut_verificado && (
-                                <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full text-xs mx-auto md:mx-0">
-                                    <ShieldCheck size={14} />
-                                    <span>Verificado</span>
+                        {/* Foto 120×120 */}
+                        <div className={`w-28 h-28 rounded-2xl shrink-0 overflow-hidden border-2 ${proveedor.rut_verificado ? 'border-emerald-400 ring-4 ring-emerald-100' : 'border-slate-200'}`}>
+                            {proveedor.foto_perfil ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-600 font-bold text-4xl">
+                                    {proveedor.nombre.charAt(0)}
                                 </div>
                             )}
                         </div>
 
-                        {proveedor.tipo_entidad === "empresa" && (
-                            <div className="flex items-center justify-center md:justify-start gap-1.5 text-sm text-slate-500 mb-2">
-                                <Briefcase size={14} />
-                                <span>{proveedor.nombre_fantasia || proveedor.razon_social}</span>
+                        {/* Info */}
+                        <div className="flex-1 text-center sm:text-left">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                                <h1 className="text-2xl font-bold text-slate-900">
+                                    {proveedor.nombre} {proveedor.apellido_p}
+                                </h1>
+                                {(proveedor.rut_verificado || proveedor.verificacion_estado === 'aprobado') && (
+                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
+                                        <ShieldCheck size={12} /> Identidad Verificada
+                                    </span>
+                                )}
                             </div>
-                        )}
 
-                        <p className="text-slate-500 font-medium mb-4">
-                            {proveedor.comuna}
-                        </p>
+                            {proveedor.tipo_entidad === 'empresa' && (
+                                <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
+                                    <Briefcase size={13} className="text-emerald-600 shrink-0" />
+                                    <span className="font-medium">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
+                                    {proveedor.giro && <span className="text-slate-400">· {proveedor.giro}</span>}
+                                </p>
+                            )}
 
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-sm text-slate-700">
-                                <Calendar size={16} className="text-emerald-600" />
-                                <span>{anosLabel}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-sm text-slate-700">
-                                <Star size={16} className="text-amber-400 fill-amber-400" />
-                                <span className="font-bold">{globalRatingPromedio.toFixed(1)}</span>
-                                <span className="text-slate-500">({globalTotalEvaluaciones} evaluaciones)</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-sm text-slate-700">
-                                <Briefcase size={16} className="text-emerald-600" />
-                                <span>{servicios.length} servicio{servicios.length !== 1 ? 's' : ''} activo{servicios.length !== 1 ? 's' : ''}</span>
+                            <p className="text-slate-500 text-sm mb-4 flex items-center gap-1.5 justify-center sm:justify-start">
+                                <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                {proveedor.comuna}
+                            </p>
+
+                            {/* Stat chips */}
+                            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                                <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
+                                    <Clock size={12} className="text-slate-400" />
+                                    {anosEnPawnecta === 0 ? 'Nuevo en Pawnecta' : `${anosEnPawnecta} año${anosEnPawnecta > 1 ? 's' : ''} en Pawnecta`}
+                                </span>
+                                {globalTotalEvaluaciones > 0 && (
+                                    <span className="flex items-center gap-1.5 bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium px-3 py-1.5 rounded-full">
+                                        <Star size={12} className="text-amber-400 fill-amber-400" />
+                                        {globalRatingPromedio.toFixed(1)} · {globalTotalEvaluaciones} evaluacion{globalTotalEvaluaciones !== 1 ? 'es' : ''}
+                                    </span>
+                                )}
+                                {servicios.length > 0 && (
+                                    <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
+                                        <Briefcase size={12} className="text-slate-400" />
+                                        {servicios.length} servicio{servicios.length !== 1 ? 's' : ''} activo{servicios.length !== 1 ? 's' : ''}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
+
+                    {/* Redes — franja inferior */}
+                    {(proveedor.sitio_web || proveedor.instagram) && (
+                        <div className="border-t border-slate-100 px-6 md:px-8 py-3 flex gap-5">
+                            {proveedor.sitio_web && (
+                                <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
+                                    onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors font-medium">
+                                    <Globe size={15} /> Sitio web
+                                </a>
+                            )}
+                            {proveedor.instagram && (
+                                <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
+                                    onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-pink-500 transition-colors font-medium">
+                                    <Instagram size={15} /> @{proveedor.instagram.replace('@', '')}
+                                </a>
+                            )}
+                        </div>
+                    )}
                 </section>
 
-                {/* SECCIÓN SOBRE MÍ */}
-                {(proveedor.bio || proveedor.anios_experiencia || proveedor.certificaciones ||
-                    proveedor.primera_ayuda || proveedor.miembro_asociacion ||
-                    proveedor.sitio_web || proveedor.instagram || proveedor.tipo_entidad === "empresa") && (
-                        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-                            <h2 className="text-xl font-bold text-slate-900 mb-2">Sobre el proveedor</h2>
-                            {/* Bio */}
-                            {proveedor.bio && (
-                                <BioExpandible bio={proveedor.bio} maxChars={300} />
-                            )}
+                {/* ══ BIO ═══════════════════════════════════════════════════ */}
+                {bioTexto && (
+                    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                        <h2 className="text-base font-bold text-slate-900 mb-3">Sobre el proveedor</h2>
+                        <BioExpandible bio={bioTexto} maxChars={400} />
+                    </section>
+                )}
 
-                            {/* Trust signals grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                                {proveedor.anios_experiencia > 0 && (
-                                    <div className="flex items-center gap-2 text-sm text-slate-700">
-                                        <Clock size={16} className="text-emerald-600 shrink-0" />
-                                        <span><strong>{proveedor.anios_experiencia}</strong> años de experiencia</span>
-                                    </div>
-                                )}
-                                {proveedor.certificaciones && (
-                                    <div className="flex items-start gap-2 text-sm text-slate-700">
-                                        <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                                        <span>{proveedor.certificaciones}</span>
-                                    </div>
-                                )}
-                                {proveedor.primera_ayuda && (
-                                    <div className="flex items-center gap-2 text-sm text-slate-700">
-                                        <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-black shrink-0">+</span>
-                                        <span>Certificado en Primeros Auxilios</span>
-                                    </div>
-                                )}
-                                {proveedor.miembro_asociacion && (
-                                    <div className="flex items-center gap-2 text-sm text-slate-700">
-                                        <Award size={16} className="text-emerald-600 shrink-0" />
-                                        <span>Miembro de Asociación Profesional</span>
-                                    </div>
-                                )}
-                            </div>
+                {/* ══ CREDENCIALES ══════════════════════════════════════════ */}
+                {(tieneTrustSignals || tieneDatosEspecificos) && (
+                    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <ShieldCheck size={17} className="text-emerald-600" />
+                            Experiencia y credenciales
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-                            {/* Empresa */}
-                            {proveedor.tipo_entidad === "empresa" && (
-                                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 mt-2">
-                                    <Briefcase size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+                            {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 && (
+                                <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                    <Clock size={17} className="text-emerald-600 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-bold text-slate-900">{proveedor.nombre_fantasia || proveedor.razon_social}</p>
-                                        {proveedor.giro && <p className="text-sm text-slate-500">{proveedor.giro}</p>}
+                                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Experiencia</p>
+                                        <p className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</p>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Redes sociales */}
-                            {(proveedor.sitio_web || proveedor.instagram) && (
-                                <div className="flex gap-4 pt-4 border-t border-slate-100">
-                                    {proveedor.sitio_web && (
-                                        <a href={proveedor.sitio_web.startsWith("http") ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
-                                            target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors bg-slate-50 px-3 py-1.5 rounded-lg">
-                                            <Globe size={16} /> <span className="font-medium">Sitio web</span>
-                                        </a>
-                                    )}
-                                    {proveedor.instagram && (
-                                        <a href={`https://instagram.com/${proveedor.instagram.replace("@", "")}`}
-                                            target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-pink-600 transition-colors bg-slate-50 px-3 py-1.5 rounded-lg">
-                                            <Instagram size={16} /> <span className="font-medium">@{proveedor.instagram.replace("@", "")}</span>
-                                        </a>
-                                    )}
-                                </div>
-                            )}
-                        </section>
-                    )}
-
-                {/* SECCIÓN GALERÍA DEL ESPACIO */}
-                {proveedor.galeria && proveedor.galeria.length > 0 && (
-                    <section>
-                        <h2 className="text-xl font-bold text-slate-900 mb-4">Fotos de su espacio</h2>
-
-                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
-                            {proveedor.galeria.length === 1 ? (
-                                <div className="w-full h-64 md:h-80 rounded-2xl overflow-hidden cursor-pointer" onClick={() => setGaleriaOpen(true)}>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={proveedor.galeria[0]} alt="Espacio del proveedor" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                </div>
-                            ) : proveedor.galeria.length < 4 ? (
-                                <div className={`grid gap-2 grid-cols-${proveedor.galeria.length} h-48 md:h-64`}>
-                                    {proveedor.galeria.map((url: string, i: number) => (
-                                        <div key={i} className="rounded-2xl overflow-hidden cursor-pointer" onClick={() => setGaleriaOpen(true)}>
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-2 h-64 md:h-80">
-                                    <div className="rounded-l-2xl overflow-hidden cursor-pointer" onClick={() => setGaleriaOpen(true)}>
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={proveedor.galeria[0]} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                    </div>
-                                    <div className="grid grid-rows-2 gap-2">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {proveedor.galeria.slice(1, 3).map((url: string, i: number) => (
-                                                <div key={i} className={i === 1 ? "rounded-tr-2xl overflow-hidden cursor-pointer" : "overflow-hidden cursor-pointer"} onClick={() => setGaleriaOpen(true)}>
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2 relative">
-                                            <div className="overflow-hidden cursor-pointer" onClick={() => setGaleriaOpen(true)}>
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={proveedor.galeria[3]} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                            </div>
-                                            {proveedor.galeria.length > 5 ? (
-                                                <button onClick={() => setGaleriaOpen(true)} className="relative rounded-br-2xl overflow-hidden group border-0 p-0 text-left">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={proveedor.galeria[4]} alt="" className="w-full h-full object-cover" />
-                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-colors group-hover:bg-black/70">
-                                                        <span className="text-white font-bold text-lg">+{proveedor.galeria.length - 4} fotos</span>
-                                                    </div>
-                                                </button>
-                                            ) : (
-                                                <div className="rounded-br-2xl overflow-hidden cursor-pointer" onClick={() => setGaleriaOpen(true)}>
-                                                    {proveedor.galeria[4] && (
-                                                        /* eslint-disable-next-line @next/next/no-img-element */
-                                                        <img src={proveedor.galeria[4]} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
+                            {proveedor.certificaciones && (
+                                <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                    <ShieldCheck size={17} className="text-emerald-600 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Certificaciones</p>
+                                        <p className="text-sm font-semibold text-slate-800">{proveedor.certificaciones}</p>
                                     </div>
                                 </div>
                             )}
+
+                            {proveedor.primera_ayuda && (
+                                <div className="flex items-start gap-3 p-3.5 bg-red-50 rounded-xl border border-red-100">
+                                    <span className="w-[17px] h-[17px] rounded-full bg-red-500 text-white flex items-center justify-center shrink-0 text-[10px] font-black mt-0.5">+</span>
+                                    <div>
+                                        <p className="text-[11px] text-red-400 font-bold uppercase tracking-wide">Primeros Auxilios</p>
+                                        <p className="text-sm font-semibold text-red-800">Certificado</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {proveedor.miembro_asociacion && (
+                                <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                    <Award size={17} className="text-emerald-600 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Asociación</p>
+                                        <p className="text-sm font-semibold text-slate-800">Miembro activo</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {tieneDatosEspecificos && Object.entries(proveedor.datos_especificos)
+                                .filter(([, v]) => v !== null && v !== '' && v !== false)
+                                .map(([key, value]) => (
+                                    <div key={key} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <ShieldCheck size={17} className="text-slate-400 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">{LABELS_CAMPOS[key] ?? key}</p>
+                                            <p className="text-sm font-semibold text-slate-800">{formatValor(key, value)}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            }
                         </div>
+                    </section>
+                )}
 
-                        {galeriaOpen && (
-                            <GalleryLightbox
-                                images={proveedor.galeria}
-                                isOpen={galeriaOpen}
-                                onClose={() => setGaleriaOpen(false)}
-                            />
+                {/* ══ GALERÍA ═══════════════════════════════════════════════ */}
+                {tieneGaleria && (
+                    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <Camera size={17} className="text-emerald-600" />
+                            Fotos del espacio
+                        </h2>
+                        {proveedor.galeria.length === 1 ? (
+                            <div className="w-full h-72 rounded-xl overflow-hidden">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={proveedor.galeria[0]} alt="" className="w-full h-full object-cover" />
+                            </div>
+                        ) : proveedor.galeria.length <= 3 ? (
+                            <div className={`grid gap-2 h-64 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                {proveedor.galeria.map((url: string, i: number) => (
+                                    <div key={i} className="rounded-xl overflow-hidden">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            // 4+ fotos: 1 grande izquierda + grid derecha
+                            <div className="grid grid-cols-2 gap-2 h-72">
+                                <div className="rounded-xl overflow-hidden">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={proveedor.galeria[0]} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                </div>
+                                <div className="grid grid-rows-2 gap-2">
+                                    <div className="rounded-xl overflow-hidden">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={proveedor.galeria[1]} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                    </div>
+                                    <div className="rounded-xl overflow-hidden relative">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={proveedor.galeria[2]} alt="" className="w-full h-full object-cover" />
+                                        {proveedor.galeria.length > 3 && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                                                <span className="text-white font-bold text-lg">+{proveedor.galeria.length - 3} fotos</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </section>
                 )}
 
-                {/* SECCIÓN 1.5: Credenciales y experiencia */}
-                {proveedor.datos_especificos &&
-                    Object.keys(proveedor.datos_especificos).length > 0 && (() => {
-                        const entries = Object.entries(proveedor.datos_especificos)
-                            .filter(([, v]) => v !== null && v !== '' && v !== false);
-                        if (entries.length === 0) return null;
-                        return (
-                            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                    <ShieldCheck size={18} className="text-emerald-600" />
-                                    Credenciales y experiencia
-                                </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {entries.map(([key, value]) => (
-                                        <div key={key} className="flex flex-col">
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-0.5">
-                                                {LABELS_CAMPOS[key] ?? key}
-                                            </span>
-                                            <span className="text-sm font-medium text-slate-900">
-                                                {formatValor(key, value)}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        );
-                    })()}
-
-                {/* SECCIÓN 2: Servicios Ofrecidos */}
+                {/* ══ SERVICIOS ═════════════════════════════════════════════ */}
                 <section>
-                    <h2 className="text-xl font-bold text-slate-900 mb-6">Servicios ofrecidos</h2>
-
+                    <h2 className="text-xl font-bold text-slate-900 mb-4">Servicios ofrecidos</h2>
                     {servicios.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             {servicios.map((srv) => (
                                 <ServiceCard key={srv.servicio_id} service={srv} />
                             ))}
@@ -379,14 +338,19 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     )}
                 </section>
 
-                {/* SECCIÓN 3: Evaluaciones */}
-                <section className="space-y-6">
+                {/* ══ EVALUACIONES ══════════════════════════════════════════ */}
+                <section className="space-y-4">
                     <h2 className="text-xl font-bold text-slate-900">Evaluaciones</h2>
                     <ReviewSummary proveedorId={proveedor.id} />
                     <ReviewList proveedorId={proveedor.id} />
                 </section>
 
             </div>
+
+            <LoginRequiredModal
+                isOpen={loginModalOpen}
+                onClose={() => setLoginModalOpen(false)}
+            />
         </div>
     );
 }
@@ -395,7 +359,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const { id } = context.params as { id: string };
 
     try {
-        // 1. Fetch Proveedor
         const { data: proveedor, error: provError } = await supabase
             .from('proveedores')
             .select('*')
@@ -407,8 +370,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             return { notFound: true };
         }
 
-        // 2. Fetch Servicios Publicados con Join a Categorías
-        const { data: rawServices, error: servError } = await supabase
+        const { data: rawServices } = await supabase
             .from('servicios_publicados')
             .select(`
                 id, titulo, descripcion, precio_desde, precio_hasta, unidad_precio, fotos, destacado,
@@ -417,35 +379,27 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .eq('proveedor_id', id)
             .eq('activo', true);
 
-        let servicios: ServiceResult[] = [];
-
-        // 3. Fetch Evaluaciones (para el proveedor)
-        const { data: evaluaciones, error: evalError } = await supabase
+        const { data: evaluaciones } = await supabase
             .from('evaluaciones')
             .select('rating, servicio_id')
             .eq('proveedor_id', id)
             .eq('estado', 'aprobado');
 
-        // Calcular globales
         let globalRatingPromedio = 0;
         let globalTotalEvaluaciones = 0;
 
         if (evaluaciones && evaluaciones.length > 0) {
             globalTotalEvaluaciones = evaluaciones.length;
-            const sum = evaluaciones.reduce((acc, curr) => acc + curr.rating, 0);
-            globalRatingPromedio = sum / globalTotalEvaluaciones;
+            globalRatingPromedio = evaluaciones.reduce((acc, curr) => acc + curr.rating, 0) / globalTotalEvaluaciones;
         }
 
-        // Map data to ServiceResult structure
+        let servicios: ServiceResult[] = [];
         if (rawServices && rawServices.length > 0) {
             servicios = rawServices.map((rs: any) => {
                 const cat = Array.isArray(rs.categorias_servicio) ? rs.categorias_servicio[0] : rs.categorias_servicio;
-
-                // Calcular specs del servicio individual
                 const evalsServicio = evaluaciones?.filter((e: any) => e.servicio_id === rs.id) || [];
                 const totServ = evalsServicio.length;
-                const promServ = totServ > 0 ? (evalsServicio.reduce((a: number, b: any) => a + b.rating, 0) / totServ) : 0;
-
+                const promServ = totServ > 0 ? evalsServicio.reduce((a: number, b: any) => a + b.rating, 0) / totServ : 0;
                 return {
                     servicio_id: rs.id,
                     titulo: rs.titulo,
@@ -463,22 +417,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     proveedor_comuna: proveedor.comuna,
                     destacado: !!rs.destacado,
                     rating_promedio: promServ,
-                    total_evaluaciones: totServ
+                    total_evaluaciones: totServ,
                 };
             });
         }
 
         return {
-            props: {
-                proveedor,
-                servicios,
-                globalRatingPromedio,
-                globalTotalEvaluaciones
-            }
+            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones }
         };
 
     } catch (e) {
-        console.error("Error en getServerSideProps de proveedor", e);
+        console.error('Error en getServerSideProps de proveedor', e);
         return { notFound: true };
     }
 };

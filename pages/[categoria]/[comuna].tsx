@@ -1,7 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { GetServerSideProps } from 'next';
+import { GetStaticProps, GetStaticPaths } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 
@@ -160,7 +160,24 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
     );
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+export const getStaticPaths: import('next').GetStaticPaths = async () => {
+    const categorias = [
+        'hospedaje', 'guarderia-diurna', 'paseo', 'visita-domicilio',
+        'peluqueria', 'adiestramiento', 'veterinaria', 'traslado'
+    ];
+    const paths = [];
+    for (const cat of categorias) {
+        for (const com of COMUNAS_SEO) {
+            paths.push({ params: { categoria: cat, comuna: com.slug } });
+        }
+    }
+    return {
+        paths,
+        fallback: 'blocking'
+    };
+};
+
+export const getStaticProps: import('next').GetStaticProps = async ({ params }) => {
     const { categoria: categoriaSlug, comuna: comunaSlug } = params as { categoria: string; comuna: string };
     const comunaNombre = slugToComuna(comunaSlug);
 
@@ -202,15 +219,16 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
                 destacado: s.destacado || false,
                 rating_promedio: s.rating_promedio || 0,
                 total_evaluaciones: s.total_evaluaciones || 0,
-                proveedor_updated_at: s.proveedor_updated_at,
+                proveedor_updated_at: s.proveedor_updated_at ?? null,
             }));
         }
 
         return {
             props: { categoria, comuna: comunaNombre, services },
+            revalidate: 3600 // Revalidate every hour
         };
     } catch (e) {
-        console.error('Error en [categoria]/[comuna] getServerSideProps:', e);
-        return { props: { categoria: null, comuna: comunaNombre, services: [] } };
+        console.error('Error en [categoria]/[comuna] getStaticProps:', e);
+        return { props: { categoria: null, comuna: comunaNombre, services: [] }, revalidate: 3600 };
     }
 };

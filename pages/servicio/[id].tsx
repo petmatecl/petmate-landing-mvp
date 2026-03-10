@@ -151,12 +151,18 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
         }
     };
 
-    const handleWhatsApp = () => {
+    const handleWhatsApp = (e?: React.MouseEvent) => {
+        e?.preventDefault();
+        if (!user) {
+            setLoginModalOpen(true);
+            return;
+        }
         if (!proveedor.telefono) return;
         // Registrar evento click_whatsapp
         void supabase.from('eventos_tracking').insert({
             tipo: 'click_whatsapp',
             servicio_id: service.id,
+            user_id: user.id,
             metadata: { proveedor_id: proveedor.id },
         });
         const phone = proveedor.telefono.replace(/\D/g, '');
@@ -164,14 +170,50 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
     };
 
+    const handleProtectedLinkClick = (e: React.MouseEvent) => {
+        if (!user) {
+            e.preventDefault();
+            setLoginModalOpen(true);
+        }
+    };
+
     const handleLeaveReview = async () => {
         if (yaEvaluo) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             setLoginModalOpen(true);
-        } else {
-            setReviewModalOpen(true);
+            return;
         }
+
+        // Verificar si ha contactado al proveedor (por chat)
+        const { data: conv } = await supabase
+            .from('conversations')
+            .select('id')
+            .eq('client_id', session.user.id)
+            .eq('sitter_id', proveedor.id)
+            .limit(1)
+            .maybeSingle();
+
+        // Verificar si clickeó WhatsApp (si aplica)
+        let hasWs = false;
+        if (!conv) {
+            const { data: ws } = await supabase
+                .from('eventos_tracking')
+                .select('id')
+                .eq('tipo', 'click_whatsapp')
+                .eq('user_id', session.user.id)
+                .eq('servicio_id', service.id)
+                .limit(1)
+                .maybeSingle();
+            hasWs = !!ws;
+        }
+
+        if (!conv && !hasWs) {
+            toast.error('Solo puedes evaluar a proveedores que hayas contactado previamente (por mensaje o WhatsApp).');
+            return;
+        }
+
+        setReviewModalOpen(true);
     };
 
     return (
@@ -563,6 +605,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                                 {proveedor.mostrar_telefono && proveedor.telefono && (
                                     <a href={`tel:${proveedor.telefono}`}
+                                        onClick={handleProtectedLinkClick}
                                         className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                                     >
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
@@ -571,21 +614,29 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 )}
                             </div>
 
-                            {/* ── BLOQUE PROVEEDOR ────────────────────────────────── */}
-                            <div className="border-t border-slate-100 pt-4 flex flex-col gap-4">
+                            {/* ── PROVEEDOR ─────────────────────────────────────── */}
+                            <div className="border-t border-slate-100 pt-4 space-y-4">
 
-                                {/* Fila: nombre + verificado + link al perfil — SIN foto duplicada */}
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="font-bold text-slate-900 text-sm">
+                                {/* Fila: foto + nombre + link al perfil */}
+                                <div className="flex items-center gap-3">
+                                    {/* Foto — se mantiene como estaba originalmente */}
+                                    <div className="w-12 h-12 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 shrink-0">
+                                        {proveedor.foto_perfil
+                                            ? <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
+                                            : <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                        }
+                                    </div>
+                                    {/* Nombre + link */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="font-bold text-slate-900 text-sm truncate">
                                                 {proveedor.nombre} {proveedor.apellido_p}
                                             </span>
                                             {proveedor.rut_verificado && (
                                                 <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
                                             )}
                                         </div>
-                                        <p className="text-xs text-slate-400 mt-0.5">{proveedor.comuna}</p>
+                                        <p className="text-xs text-slate-400">{proveedor.comuna}</p>
                                     </div>
                                     <Link
                                         href={`/proveedor/${proveedor.id}`}
@@ -595,8 +646,8 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     </Link>
                                 </div>
 
-                                {/* Sobre el proveedor — siempre visible */}
-                                <div className="flex flex-col gap-2.5">
+                                {/* Sobre el proveedor — siempre visible, con fallback */}
+                                <div className="space-y-2">
                                     {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 ? (
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
                                             <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -611,28 +662,28 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                                     {proveedor.certificaciones && (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <ShieldCheck size={15} className="text-emerald-600 shrink-0 mt-0.5" />
                                             <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
                                         </div>
                                     )}
 
                                     {proveedor.primera_ayuda && (
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-[9px] font-black leading-none">+</span>
+                                            <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-[9px] font-black">+</span>
                                             <span className="font-medium">Primeros Auxilios</span>
                                         </div>
                                     )}
 
                                     {proveedor.miembro_asociacion && (
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <Award size={16} className="text-emerald-600 shrink-0" />
+                                            <Award size={15} className="text-emerald-600 shrink-0" />
                                             <span className="font-medium">Miembro de Asociación</span>
                                         </div>
                                     )}
 
                                     {proveedor.tipo_entidad === 'empresa' && (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <Briefcase size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <Briefcase size={15} className="text-emerald-600 shrink-0 mt-0.5" />
                                             <div>
                                                 <span className="font-bold text-slate-800 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
                                                 {proveedor.giro && <span className="text-xs text-slate-400">{proveedor.giro}</span>}
@@ -646,25 +697,26 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     </div>
                                 </div>
 
-                                {/* Redes */}
+                                {/* Redes sociales */}
                                 {(proveedor.sitio_web || proveedor.instagram) && (
-                                    <div className="flex gap-2 pt-1">
+                                    <div className="flex gap-2 pt-1 border-t border-slate-100">
                                         {proveedor.sitio_web && (
                                             <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
-                                                target="_blank" rel="noopener noreferrer"
-                                                className="text-slate-400 hover:text-emerald-600 transition-colors p-2 bg-slate-50 rounded-lg">
+                                                target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
+                                                className="text-slate-400 hover:text-emerald-600 p-2 bg-slate-50 rounded-lg transition-colors">
                                                 <Globe size={16} />
                                             </a>
                                         )}
                                         {proveedor.instagram && (
                                             <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
-                                                target="_blank" rel="noopener noreferrer"
-                                                className="text-slate-400 hover:text-pink-500 transition-colors p-2 bg-slate-50 rounded-lg">
+                                                target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
+                                                className="text-slate-400 hover:text-pink-500 p-2 bg-slate-50 rounded-lg transition-colors">
                                                 <Instagram size={16} />
                                             </a>
                                         )}
                                     </div>
                                 )}
+
                             </div>
 
                         </div>

@@ -10,6 +10,7 @@ import "leaflet/dist/leaflet.css"; // Fix Leaflet Map visibility
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SessionTimeout from "../components/SessionTimeout";
+import PushNotifications from "../components/Shared/PushNotifications";
 import { Toaster } from 'sonner';
 
 import { OnlineStatusProvider } from "../components/Shared/OnlineStatusProvider";
@@ -65,6 +66,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             }}
           />
 
+          <PushNotifications />
           <SessionTimeout />
           <Toaster position="top-center" richColors />
           {showLayout && <Header />}

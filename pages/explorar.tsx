@@ -1,10 +1,21 @@
 import Head from "next/head";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from "next/router";
-import { Search, ChevronLeft, ChevronRight, Filter, X, MapPin, Dog, Cat, PawPrint, DollarSign, CalendarDays } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Filter, X, MapPin, Dog, Cat, PawPrint, DollarSign, CalendarDays, List, Map } from "lucide-react";
+
+const CaregiverMap = dynamic(() => import('../components/Explore/CaregiverMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[580px] w-full rounded-2xl bg-slate-100 animate-pulse flex items-center justify-center">
+            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+        </div>
+    ),
+});
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
+import { toast } from "sonner";
 
 import SidebarFiltros from "../components/Explore/SidebarFiltros";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
@@ -46,10 +57,26 @@ function ExplorarPrelaunch() {
     const [cat, setCat] = useState('');
     const [done, setDone] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email.trim()) return;
-        setDone(true);
+
+        try {
+            const res = await fetch('/api/waitlist/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, categoria: cat, rol: 'tutor' }),
+            });
+            const data = await res.json();
+
+            if (data.ok) {
+                setDone(true);
+            } else {
+                toast.error('No pudimos guardar tu correo, intenta de nuevo');
+            }
+        } catch (err) {
+            toast.error('No pudimos guardar tu correo, intenta de nuevo');
+        }
     };
 
     const CATS = [
@@ -140,6 +167,7 @@ export default function ExplorarPage() {
 
     const [pagina, setPagina] = useState(1);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+    const [vista, setVista] = useState<'lista' | 'mapa'>('lista');
 
     // Per-category count from current results (client-side, no extra query)
     const categoryCounts = useMemo(() =>
@@ -609,40 +637,73 @@ export default function ExplorarPage() {
                             })()
                         ) : (
                             <>
-                                {/* Barra: conteo + orden */}
+                                {/* Barra: conteo + orden + toggle vista */}
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                                     <p className="text-slate-500 font-medium shrink-0">
                                         {totalCount} resultado{totalCount !== 1 ? 's' : ''}
-                                        {totalPaginas > 1 && (
+                                        {totalPaginas > 1 && vista === 'lista' && (
                                             <span className="text-slate-400 font-normal ml-1">
                                                 — página {pagina} de {totalPaginas}
                                             </span>
                                         )}
                                     </p>
                                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto">
-                                        <label className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
-                                        <select
-                                            value={filters.orden}
-                                            onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
-                                            className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors cursor-pointer appearance-none"
-                                        >
-                                            <option value="relevancia">Mejor coincidencia</option>
-                                            <option value="rating">Mejor evaluados</option>
-                                            <option value="precio_asc">Menor precio</option>
-                                            <option value="precio_desc">Mayor precio</option>
-                                        </select>
+                                        {/* Toggle Lista / Mapa */}
+                                        <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
+                                            <button
+                                                onClick={() => setVista('lista')}
+                                                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${vista === 'lista'
+                                                        ? 'bg-slate-900 text-white'
+                                                        : 'text-slate-600 hover:bg-slate-50'
+                                                    }`}
+                                                aria-label="Vista lista"
+                                            >
+                                                <List size={14} />
+                                                <span className="hidden sm:inline">Lista</span>
+                                            </button>
+                                            <button
+                                                onClick={() => setVista('mapa')}
+                                                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${vista === 'mapa'
+                                                        ? 'bg-slate-900 text-white'
+                                                        : 'text-slate-600 hover:bg-slate-50'
+                                                    }`}
+                                                aria-label="Vista mapa"
+                                            >
+                                                <Map size={14} />
+                                                <span className="hidden sm:inline">Mapa</span>
+                                            </button>
+                                        </div>
+                                        {vista === 'lista' && (
+                                            <label className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
+                                        )}
+                                        {vista === 'lista' && (
+                                            <select
+                                                value={filters.orden}
+                                                onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
+                                                className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors cursor-pointer appearance-none"
+                                            >
+                                                <option value="relevancia">Mejor coincidencia</option>
+                                                <option value="rating">Mejor evaluados</option>
+                                                <option value="precio_asc">Menor precio</option>
+                                                <option value="precio_desc">Mayor precio</option>
+                                            </select>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Grilla de resultados */}
-                                <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-                                    {services.map((service) => (
-                                        <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
-                                    ))}
-                                </div>
+                                {/* Grilla de resultados o Mapa */}
+                                {vista === 'mapa' ? (
+                                    <CaregiverMap services={services} />
+                                ) : (
+                                    <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                                        {services.map((service) => (
+                                            <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
+                                        ))}
+                                    </div>
+                                )}
 
-                                {/* Controles de paginación */}
-                                {totalPaginas > 1 && (
+                                {/* Controles de paginación — solo en vista lista */}
+                                {vista === 'lista' && totalPaginas > 1 && (
                                     <div className="mt-10 flex items-center justify-center gap-1.5">
                                         <button
                                             onClick={() => goToPage(pagina - 1)}

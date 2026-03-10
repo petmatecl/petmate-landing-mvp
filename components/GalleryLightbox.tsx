@@ -7,9 +7,10 @@ interface GalleryLightboxProps {
     initialIndex?: number;
     isOpen: boolean;
     onClose: () => void;
+    title?: string;
 }
 
-export default function GalleryLightbox({ images, initialIndex = 0, isOpen, onClose }: GalleryLightboxProps) {
+export default function GalleryLightbox({ images, initialIndex = 0, isOpen, onClose, title }: GalleryLightboxProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
     useEffect(() => {

@@ -27,6 +27,8 @@ export interface ServiceResult {
     acepta_gatos?: boolean;
     acepta_otras?: boolean;
     proveedor_updated_at?: string;
+    proveedor_lat?: number | null;
+    proveedor_lng?: number | null;
 }
 
 interface Props {

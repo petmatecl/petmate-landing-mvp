@@ -215,6 +215,19 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     message: `${myUser?.nombre || 'Un usuario'} te envió un mensaje`,
                     link: `/mensajes?id=${conversationId}`,
                 }).catch(console.error);
+
+                if (!isRecipientOnline) {
+                    fetch('/api/push/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: otherUser.auth_user_id,
+                            title: 'Nuevo mensaje en Pawnecta',
+                            message: `${myUser?.nombre || 'Un usuario'} te ha escrito: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+                            url: `/mensajes?id=${conversationId}`
+                        })
+                    }).catch(console.error);
+                }
             }
 
             // Replace optimistic message with real one

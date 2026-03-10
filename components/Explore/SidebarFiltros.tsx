@@ -55,7 +55,13 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
 export default function SidebarFiltros({ filters, categories, onFilterChange, onClear, card = true, categoryCounts = {} }: Props) {
     const [geoLoading, setGeoLoading] = useState(false);
     const [comunaOpen, setComunaOpen] = useState(false);
+    const [comunaInput, setComunaInput] = useState(filters.comuna);
     const comunaRef = useRef<HTMLDivElement>(null);
+
+    // Sync comunaInput if filter is cleared externally (e.g. "Limpiar todo")
+    useEffect(() => {
+        setComunaInput(filters.comuna);
+    }, [filters.comuna]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -69,7 +75,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
     }, []);
 
     const comunasFiltradas = COMUNAS_CHILE.filter(c =>
-        filters.comuna ? c.toLowerCase().includes(filters.comuna.toLowerCase()) : true
+        comunaInput ? c.toLowerCase().includes(comunaInput.toLowerCase()) : true
     ).slice(0, 40);
 
     const hasActiveFilters =
@@ -221,9 +227,30 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     </span>
                     <input
                         type="text"
-                        value={filters.comuna}
-                        onChange={e => { onFilterChange({ comuna: e.target.value }); setComunaOpen(true); }}
+                        value={comunaInput}
+                        onChange={e => {
+                            setComunaInput(e.target.value); // solo actualiza texto visible
+                            setComunaOpen(true);            // abre el dropdown
+                            // NO llama a onFilterChange aquí
+                        }}
                         onFocus={() => setComunaOpen(true)}
+                        onKeyDown={e => {
+                            if ((e.key === 'Enter' || e.key === 'Tab') && comunaInput === '') {
+                                onFilterChange({ comuna: '' });
+                                setComunaOpen(false);
+                            }
+                            if (e.key === 'Escape') {
+                                setComunaInput(filters.comuna);
+                                setComunaOpen(false);
+                            }
+                        }}
+                        onBlur={() => {
+                            // Si el usuario sale sin seleccionar, restaurar el valor confirmado
+                            setTimeout(() => {
+                                setComunaInput(filters.comuna);
+                                setComunaOpen(false);
+                            }, 200);
+                        }}
                         placeholder="¿En qué comuna?"
                         autoComplete="off"
                         className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-slate-400 transition-colors"

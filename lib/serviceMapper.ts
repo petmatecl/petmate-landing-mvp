@@ -35,8 +35,11 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
     const slug = (CAT_NAMES[rawSlug] ? rawSlug : rawSlug.toLowerCase().replace(/\s+/g, '-')).replace(/ /g, '-');
     const catNombre = (PRICE_PATTERN.test(rawNombre) ? null : rawNombre) ?? CAT_NAMES[slug] ?? slug;
 
+    // RPC buscar_servicios returns:
+    //   servicio_id, proveedor_nombre (pre-computed), proveedor_foto, proveedor_comuna
+    // These differ from the join-query shape used by mapJoinToServiceResult.
     return {
-        servicio_id: item.id,
+        servicio_id: item.servicio_id ?? item.id, // RPC uses servicio_id; fallback to id for compat
         titulo: item.titulo,
         descripcion: item.descripcion,
         precio_desde: Number(item.precio_desde ?? 0),
@@ -47,15 +50,21 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         categoria_slug: slug,
         categoria_icono: item.categoria_icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
-        proveedor_nombre: `${item.nombre ?? ''} ${item.apellido_p ?? ''}`.trim(),
-        proveedor_foto: item.foto_perfil ?? null,
-        proveedor_comuna: item.comuna ?? '',
+        // RPC pre-computes the full name in proveedor_nombre; fallback for join shapes
+        proveedor_nombre: item.proveedor_nombre ?? `${item.nombre ?? ''} ${item.apellido_p ?? ''}`.trim(),
+        // RPC uses proveedor_foto; join shapes use foto_perfil
+        proveedor_foto: item.proveedor_foto ?? item.foto_perfil ?? null,
+        // RPC uses proveedor_comuna; join shapes use comuna
+        proveedor_comuna: item.proveedor_comuna ?? item.comuna ?? '',
         destacado: item.destacado ?? false,
         rating_promedio: Number(item.rating_promedio ?? 0),
         total_evaluaciones: Number(item.total_evaluaciones ?? 0),
         acepta_perros: item.acepta_perros ?? true,
         acepta_gatos: item.acepta_gatos ?? true,
         acepta_otras: item.acepta_otras ?? false,
+        proveedor_updated_at: item.proveedor_updated_at ?? undefined,
+        proveedor_lat: item.proveedor_lat != null ? Number(item.proveedor_lat) : null,
+        proveedor_lng: item.proveedor_lng != null ? Number(item.proveedor_lng) : null,
     };
 }
 

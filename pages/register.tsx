@@ -307,22 +307,20 @@ export default function RegisterWizard() {
           throw new Error('Error guardando datos de usuario: ' + insertError.message);
         }
       } else if (rol === 'proveedor') {
-        const { error: insertError } = await supabase.from('proveedores').insert([{
-          auth_user_id: userId,
-          nombre: nombre.trim(),
-          apellido_p: apellidoP.trim(),
-          apellido_m: apellidoM.trim() || null,
-          rut: formatRut(rut),
-          comuna: comunaQuery.trim(),
-          roles: ['proveedor'],
-          estado: 'pendiente',
-          datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : null,
-          tipo_entidad: tipoEntidad,
-          razon_social: tipoEntidad === "empresa" ? razonSocial.trim() : null,
-          rut_empresa: tipoEntidad === "empresa" ? formatRut(rutEmpresa) : null,
-          nombre_fantasia: tipoEntidad === "empresa" ? nombreFantasia.trim() : null,
-          giro: tipoEntidad === "empresa" ? giro.trim() : null,
-        }]);
+        const { error: insertError } = await supabase.rpc('registrar_proveedor', {
+          p_auth_user_id: userId,
+          p_nombre: nombre.trim(),
+          p_apellido_p: apellidoP.trim(),
+          p_apellido_m: apellidoM.trim() || null,
+          p_rut: formatRut(rut),
+          p_comuna: comunaQuery.trim(),
+          p_tipo_entidad: tipoEntidad,
+          p_razon_social: tipoEntidad === 'empresa' ? razonSocial.trim() : null,
+          p_rut_empresa: tipoEntidad === 'empresa' ? formatRut(rutEmpresa) : null,
+          p_nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia.trim() : null,
+          p_giro: tipoEntidad === 'empresa' ? giro.trim() : null,
+          p_datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : null,
+        });
         if (insertError) {
           console.error('Insert error in proveedores:', insertError.message, insertError.code, insertError.details);
           throw new Error('Error guardando datos de proveedor: ' + insertError.message);
@@ -455,8 +453,8 @@ export default function RegisterWizard() {
                       <button type="button"
                         onClick={() => setTipoEntidad("persona_natural")}
                         className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
-                            ? "border-emerald-500 bg-emerald-50"
-                            : "border-slate-200 hover:border-slate-300"
+                          ? "border-emerald-500 bg-emerald-50"
+                          : "border-slate-200 hover:border-slate-300"
                           }`}
                       >
                         <p className="font-bold text-slate-900 text-sm">Persona Natural</p>
@@ -465,8 +463,8 @@ export default function RegisterWizard() {
                       <button type="button"
                         onClick={() => setTipoEntidad("empresa")}
                         className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
-                            ? "border-emerald-500 bg-emerald-50"
-                            : "border-slate-200 hover:border-slate-300"
+                          ? "border-emerald-500 bg-emerald-50"
+                          : "border-slate-200 hover:border-slate-300"
                           }`}
                       >
                         <p className="font-bold text-slate-900 text-sm">Empresa o Emprendimiento</p>

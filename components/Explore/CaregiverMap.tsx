@@ -1,8 +1,9 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Circle, CircleMarker } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Circle } from "react-leaflet";
 import L from "leaflet";
 // CSS is imported in _app.tsx
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ServiceResult } from "./ServiceCard";
 
 // Fix Leaflet default icon issue in Next.js
 const fixLeafletIcons = () => {
@@ -18,10 +19,10 @@ const fixLeafletIcons = () => {
     }
 };
 
-// Santiago Centroid
+// Santiago Centroid (fallback)
 const CENTER_SANTIAGO: [number, number] = [-33.4489, -70.6693];
 
-// Mapping Comunas to Lat/Lng (Approximate Centers)
+// Mapping Comunas to Lat/Lng (Approximate Centers) — fallback when DB lat/lng is null
 const COMUNA_COORDS: Record<string, [number, number]> = {
     "Santiago": [-33.4489, -70.6693],
     "Providencia": [-33.4314, -70.6093],
@@ -55,30 +56,41 @@ const COMUNA_COORDS: Record<string, [number, number]> = {
     "La Granja": [-33.5361, -70.6133],
     "El Bosque": [-33.5658, -70.6697],
     "La Pintana": [-33.5853, -70.6319],
-    "San Bernardo": [-33.5833, -70.7000]
+    "San Bernardo": [-33.5833, -70.7000],
+    "Antofagasta": [-23.6510, -70.3954],
+    "Valparaíso": [-33.0472, -71.6127],
+    "Viña del Mar": [-33.0241, -71.5516],
+    "Concepción": [-36.8201, -73.0444],
+    "Temuco": [-38.7359, -72.5904],
+    "Rancagua": [-34.1708, -70.7444],
+    "Talca": [-35.4264, -71.6553],
+    "La Serena": [-29.9027, -71.2520],
+    "Coquimbo": [-29.9533, -71.3375],
+    "Iquique": [-20.2140, -70.1522],
+    "Arica": [-18.4783, -70.3126],
+    "Puerto Montt": [-41.4693, -72.9424],
+    "Osorno": [-40.5740, -73.1329],
+    "Valdivia": [-39.8142, -73.2459],
+    "Punta Arenas": [-53.1638, -70.9171],
 };
 
 interface CaregiverMapProps {
-    sitters: any[];
-    isAuthenticated: boolean;
+    services: ServiceResult[];
 }
 
-// Helper to find coords case-insensitively
+// Helper to get coords from commune name (case-insensitive)
 function getComunaCoords(comunaName: string): [number, number] {
     if (!comunaName) return CENTER_SANTIAGO;
     const normalized = comunaName.trim().toLowerCase();
-
-    // Find key that matches case-insensitively
     const match = Object.keys(COMUNA_COORDS).find(k => k.toLowerCase() === normalized);
     return match ? COMUNA_COORDS[match] : CENTER_SANTIAGO;
 }
 
-// Component to update view when sitters change
-function MapUpdater({ sitters }: { sitters: any[] }) {
+// Re-centers map when services change
+function MapUpdater({ services }: { services: ServiceResult[] }) {
     const map = useMap();
 
     useEffect(() => {
-        // Force resize calculation after mount to fix "grey box"
         const timer = setTimeout(() => {
             map.invalidateSize();
         }, 100);
@@ -86,13 +98,13 @@ function MapUpdater({ sitters }: { sitters: any[] }) {
     }, [map]);
 
     useEffect(() => {
-        if (sitters.length > 0) {
-            // Calculate bounds
-            const bounds = L.latLngBounds(
-                sitters.map(s => getComunaCoords(s.comuna))
+        if (services.length > 0) {
+            const coords = services.map(s =>
+                (s.proveedor_lat && s.proveedor_lng)
+                    ? [s.proveedor_lat, s.proveedor_lng] as [number, number]
+                    : getComunaCoords(s.proveedor_comuna)
             );
-
-            // If only one point (or very close points), extend bounds slightly or use specific zoom
+            const bounds = L.latLngBounds(coords);
             if (bounds.isValid()) {
                 map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
             } else {
@@ -101,12 +113,12 @@ function MapUpdater({ sitters }: { sitters: any[] }) {
         } else {
             map.setView(CENTER_SANTIAGO, 12);
         }
-    }, [sitters, map]);
+    }, [services, map]);
 
     return null;
 }
 
-export default function CaregiverMap({ sitters, isAuthenticated }: CaregiverMapProps) {
+export default function CaregiverMap({ services }: CaregiverMapProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -114,108 +126,131 @@ export default function CaregiverMap({ sitters, isAuthenticated }: CaregiverMapP
         setMounted(true);
     }, []);
 
-    // Memoize markers to keep random offset consistent
+    // Memoize marker positions (add small jitter only when using commune fallback, for visual separation)
     const markers = useMemo(() => {
-        return sitters.map(s => {
-            const baseCoords = getComunaCoords(s.comuna);
-            // Add slight jitter for privacy and separation
-            // +/- 0.005 degrees is approx 500m
-            const lat = baseCoords[0] + (Math.random() - 0.5) * 0.008;
-            const lng = baseCoords[1] + (Math.random() - 0.5) * 0.008;
-            return {
-                ...s,
-                lat,
-                lng
-            };
-        });
-    }, [sitters]);
+        return services.map(s => {
+            const hasRealCoords = s.proveedor_lat != null && s.proveedor_lng != null;
+            let lat: number;
+            let lng: number;
 
-    if (!mounted) return null;
+            if (hasRealCoords) {
+                lat = s.proveedor_lat!;
+                lng = s.proveedor_lng!;
+            } else {
+                const base = getComunaCoords(s.proveedor_comuna);
+                // Small jitter (~500m) so multiple providers in same commune don't overlap
+                lat = base[0] + (Math.random() - 0.5) * 0.008;
+                lng = base[1] + (Math.random() - 0.5) * 0.008;
+            }
+
+            return { ...s, lat, lng, hasRealCoords };
+        });
+    }, [services]);
+
+    if (!mounted) return (
+        <div className="h-[580px] w-full rounded-2xl bg-slate-100 flex items-center justify-center">
+            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+        </div>
+    );
+
+    if (services.length === 0) return (
+        <div className="h-[580px] w-full rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+            <p className="text-slate-400 text-sm">Sin resultados para mostrar en el mapa</p>
+        </div>
+    );
 
     return (
-        <div className={`h-[600px] w-full rounded-2xl overflow-hidden border-2 border-slate-200 shadow-sm relative bg-slate-50 ${!isAuthenticated ? 'blur-sm' : ''}`}>
-            {!isAuthenticated && (
-                <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-white/30 backdrop-blur-sm pointer-events-none">
-                    {/* Overlay handled by parent mostly, but let's keep interactions blocked */}
-                </div>
-            )}
-
+        <div className="h-[580px] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative bg-slate-50">
             <MapContainer
                 center={CENTER_SANTIAGO}
                 zoom={11}
                 scrollWheelZoom={false}
                 style={{ height: "100%", width: "100%" }}
                 className="leaflet-container"
+                zoomControl={false}
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
-
-                {/* Default Zoom Control */}
                 <ZoomControl position="topleft" />
+                <MapUpdater services={services} />
 
-                {markers.map((sitter) => {
-                    const price = sitter.tarifa_servicio_en_casa || sitter.tarifa_servicio_a_domicilio || 15000;
-                    const formattedPrice = `$${(price / 1000).toLocaleString('es-CL', { maximumFractionDigits: 0 })}k`;
+                {markers.map((s, idx) => {
+                    const price = s.precio_desde;
+                    const formattedPrice = price >= 1000
+                        ? `$${(price / 1000).toLocaleString('es-CL', { maximumFractionDigits: 0 })}k`
+                        : `$${price.toLocaleString('es-CL')}`;
 
                     const priceIcon = L.divIcon({
                         className: 'bg-transparent border-none',
                         html: `
                             <div class="relative group cursor-pointer transform transition-transform hover:scale-110 hover:z-50">
-                                <div class="bg-white text-slate-900 font-bold text-xs px-2.5 py-1.5 rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.2)] border border-slate-200 flex items-center justify-center whitespace-nowrap hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors">
+                                <div class="bg-white text-slate-900 font-bold text-xs px-2.5 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.18)] border border-slate-200 flex items-center justify-center whitespace-nowrap hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors">
                                     ${formattedPrice}
                                 </div>
-                                <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-b border-r border-slate-200 group-hover:bg-slate-900 group-hover:border-slate-900 transition-colors"></div>
+                                <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-b border-r border-slate-200 transition-colors"></div>
                             </div>
                         `,
-                        iconSize: [50, 40], // Enough space for the pill
-                        iconAnchor: [25, 40], // Tip of the "arrow" (bottom center approx)
+                        iconSize: [56, 40],
+                        iconAnchor: [28, 40],
                     });
 
+                    const coverImage = s.fotos?.[0] || s.proveedor_foto || null;
+
                     return (
-                        <div key={sitter.id}>
-                            {/* Area de Servicio (Radio Aproximado) */}
+                        <div key={`${s.servicio_id}-${idx}`}>
+                            {/* Area de cobertura aproximada */}
                             <Circle
-                                center={[sitter.lat, sitter.lng]}
-                                radius={800} // 800 meters approximate radius
+                                center={[s.lat, s.lng]}
+                                radius={600}
                                 pathOptions={{
-                                    color: '#059669', // emerald-600 (Darker border)
-                                    fillColor: '#10b981', // emerald-500 (Vivid fill)
-                                    fillOpacity: 0.1, // Reduced for cleaner look with pills
-                                    weight: 1, // Thinner border
-                                    dashArray: '5, 5'
+                                    color: '#059669',
+                                    fillColor: '#10b981',
+                                    fillOpacity: 0.07,
+                                    weight: 1,
+                                    dashArray: '4, 4'
                                 }}
                             />
 
-                            {/* Price Pill Marker */}
+                            {/* Precio pill marker */}
                             <Marker
-                                position={[sitter.lat, sitter.lng]}
+                                position={[s.lat, s.lng]}
                                 icon={priceIcon}
                             >
-                                <Popup className="custom-popup" closeButton={false} offset={[0, -30]}>
+                                <Popup className="custom-popup" closeButton={false} offset={[0, -32]} maxWidth={220}>
                                     <div className="min-w-[200px]">
-                                        <h3 className="font-bold text-slate-900 text-base mb-0.5">{sitter.nombre} {sitter.apellido_p?.charAt(0)}.</h3>
-                                        <p className="text-xs text-slate-500 mb-2 truncate max-w-[180px]">{sitter.comuna}</p>
+                                        {coverImage && (
+                                            /* eslint-disable-next-line @next/next/no-img-element */
+                                            <img
+                                                src={coverImage}
+                                                alt={s.titulo}
+                                                className="w-full h-28 object-cover rounded-t-xl -mx-4 -mt-4 mb-3"
+                                                style={{ width: 'calc(100% + 32px)', marginLeft: '-16px', marginTop: '-16px' }}
+                                            />
+                                        )}
+                                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{s.categoria_nombre}</p>
+                                        <h3 className="font-bold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">{s.titulo}</h3>
+                                        <p className="text-xs text-slate-500 mb-2 truncate">{s.proveedor_nombre} · {s.proveedor_comuna}</p>
 
                                         <div className="flex items-center gap-1.5 mb-3">
                                             <div className="flex items-center text-xs font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
                                                 <span className="text-emerald-500 mr-1">★</span>
-                                                {sitter.promedio_calificacion || 5.0}
+                                                {Number(s.rating_promedio).toFixed(1)}
                                             </div>
-                                            <span className="text-xs text-slate-400">({sitter.total_reviews || 0} reseñas)</span>
+                                            <span className="text-xs text-slate-400">({s.total_evaluaciones} reseñas)</span>
                                         </div>
 
-                                        <div className="flex items-end gap-1 mb-3">
+                                        <div className="flex items-baseline gap-1 mb-3">
                                             <span className="font-bold text-lg text-slate-900">${price.toLocaleString('es-CL')}</span>
-                                            <span className="text-xs text-slate-500 mb-1">/noche</span>
+                                            <span className="text-xs text-slate-500">/ {s.unidad_precio}</span>
                                         </div>
 
                                         <Link
-                                            href={isAuthenticated ? `/sitter/${sitter.id}` : "/register"}
-                                            className="block w-full py-2.5 bg-slate-900 text-white text-center rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-sm"
+                                            href={`/proveedor/${s.proveedor_id}`}
+                                            className="block w-full py-2 bg-emerald-600 text-white text-center rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors shadow-sm"
                                         >
-                                            {isAuthenticated ? "Ver Perfil" : "Regístrate"}
+                                            Ver perfil completo
                                         </Link>
                                     </div>
                                 </Popup>
@@ -230,10 +265,13 @@ export default function CaregiverMap({ sitters, isAuthenticated }: CaregiverMapP
                     border-radius: 16px;
                     padding: 0;
                     overflow: hidden;
-                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
                 }
                 .leaflet-popup-content {
                     margin: 16px;
+                }
+                .leaflet-popup-tip-container {
+                    display: none;
                 }
             `}</style>
         </div>

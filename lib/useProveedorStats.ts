@@ -6,6 +6,8 @@ interface ProveedorStats {
     vistasTrend: string | null;
     vistasTrendValue: number;
     consultas: number;
+    whatsappClicks: number;
+    conversionRate: string;
     ratingAvg: string;
     evalCount: number;
     activos: number;
@@ -17,6 +19,8 @@ const DEFAULT_STATS: ProveedorStats = {
     vistasTrend: null,
     vistasTrendValue: 0,
     consultas: 0,
+    whatsappClicks: 0,
+    conversionRate: '0%',
     ratingAvg: '0.0',
     evalCount: 0,
     activos: 0,
@@ -81,8 +85,23 @@ export function useProveedorStats(provId: string, authId: string) {
             const { count: consultas30d } = await supabase
                 .from('conversations')
                 .select('*', { head: true, count: 'exact' })
-                .eq('sitter_id', authId)
+                .eq('sitter_id', provId)
                 .gte('created_at', last30Days);
+
+            // 2b. WhatsApp Clicks (30 días)
+            const { count: wpClicks30d } = await supabase
+                .from('eventos_tracking')
+                .select('*', { head: true, count: 'exact' })
+                .eq('tipo', 'click_whatsapp')
+                .in('servicio_id', serviciosIds)
+                .gte('created_at', last30Days);
+
+            const consultas = consultas30d || 0;
+            const whatsappClicks = wpClicks30d || 0;
+
+            // Calculo de conversión
+            const totalContactos = consultas + whatsappClicks;
+            const conversionRate = vistas > 0 ? ((totalContactos / vistas) * 100).toFixed(1) + '%' : '0%';
 
             // 3. Rating promedio
             const { data: revs } = await supabase
@@ -105,7 +124,7 @@ export function useProveedorStats(provId: string, authId: string) {
             const activos = servs?.filter((s: any) => s.activo).length || 0;
             const totalActivos = servs?.length || 0;
 
-            setStats({ vistas, vistasTrend, vistasTrendValue, consultas: consultas30d || 0, ratingAvg, evalCount, activos, totalActivos });
+            setStats({ vistas, vistasTrend, vistasTrendValue, consultas, whatsappClicks, conversionRate, ratingAvg, evalCount, activos, totalActivos });
         } catch (e) {
             console.error('useProveedorStats error:', e);
         } finally {
