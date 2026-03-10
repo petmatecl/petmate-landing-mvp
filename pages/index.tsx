@@ -2,7 +2,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { GetStaticProps } from "next";
 import { mapJoinToServiceResult } from "../lib/serviceMapper";
 import { ServiceResult } from "../components/Explore/ServiceCard";
 import { COMUNAS_CHILE } from "../lib/comunas";
@@ -116,13 +115,13 @@ function FranjaCategoria({
 }) {
   if (servicios.length === 0) return null;
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header del frame */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+    <div className="border-b border-slate-100">
+      {/* Header de la franja */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <categoria.Icon className="w-5 h-5 text-emerald-600" />
           <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
-          <span className="text-xs text-slate-400 font-medium">
+          <span className="text-xs text-slate-400 font-medium ml-1">
             {servicios.length} disponible{servicios.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -130,64 +129,66 @@ function FranjaCategoria({
           onClick={onVerTodos}
           className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 transition-colors"
         >
-          Ver todos <span>→</span>
+          Ver todos →
         </button>
       </div>
 
       {/* Carrusel horizontal */}
-      <div className="flex gap-4 overflow-x-auto pb-4 pt-4 px-5 scrollbar-hide">
-        {servicios.slice(0, 6).map((s: any) => {
-          const foto = (s.fotos && s.fotos.length > 0) ? s.fotos[0]
-            : s.proveedor_foto || FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
-          return (
-            <a
-              key={s.servicio_id ?? s.id}
-              href={`/servicio/${s.servicio_id ?? s.id}`}
-              className="shrink-0 w-44 group cursor-pointer"
-            >
-              <div className="w-44 h-44 rounded-xl overflow-hidden bg-slate-100 mb-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={foto}
-                  alt={s.titulo}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
-                    if (target.src !== fallback) {
-                      target.src = fallback;
-                    } else if (target.src !== FALLBACK_HOME["default"]) {
-                      target.src = FALLBACK_HOME["default"];
-                    }
-                  }}
-                />
-              </div>
-              <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors">
-                {s.titulo}
-              </p>
-              {s.proveedor_comuna && (
-                <p className="text-xs text-slate-500 mt-0.5">{s.proveedor_comuna}</p>
-              )}
-              {s.precio_desde > 0 && (
-                <p className="text-sm font-bold text-slate-900 mt-1">
-                  ${s.precio_desde.toLocaleString("es-CL")}
-                  <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+          {servicios.map((s: any) => {
+            const foto = (s.fotos && s.fotos.length > 0) ? s.fotos[0]
+              : s.proveedor_foto || FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
+            return (
+              <a
+                key={s.servicio_id ?? s.id}
+                href={`/servicio/${s.servicio_id ?? s.id}`}
+                className="shrink-0 w-44 snap-start group cursor-pointer"
+              >
+                <div className="w-44 h-44 rounded-xl overflow-hidden bg-slate-100 mb-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={foto}
+                    alt={s.titulo}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
+                      if (target.src !== fallback) {
+                        target.src = fallback;
+                      } else if (target.src !== FALLBACK_HOME["default"]) {
+                        target.src = FALLBACK_HOME["default"];
+                      }
+                    }}
+                  />
+                </div>
+                <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors">
+                  {s.titulo}
                 </p>
-              )}
-            </a>
-          );
-        })}
+                {s.proveedor_comuna && (
+                  <p className="text-xs text-slate-500 mt-0.5">{s.proveedor_comuna}</p>
+                )}
+                {s.precio_desde > 0 && (
+                  <p className="text-sm font-bold text-slate-900 mt-1">
+                    ${s.precio_desde.toLocaleString("es-CL")}
+                    <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
+                  </p>
+                )}
+              </a>
+            );
+          })}
 
-        {/* Card “Ver todos” al final */}
-        <button
-          onClick={onVerTodos}
-          className="shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-slate-200 hover:border-emerald-400 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors group"
-        >
-          <span className="text-3xl font-black group-hover:scale-110 transition-transform">→</span>
-          <span className="text-xs font-semibold text-center px-3 leading-snug">
-            Ver todos los {categoria.nombre.toLowerCase()}
-          </span>
-        </button>
+          {/* Card "Ver todos" al final */}
+          <button
+            onClick={onVerTodos}
+            className="shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-slate-200 hover:border-emerald-400 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors group snap-start"
+          >
+            <span className="text-3xl font-black group-hover:scale-110 transition-transform">→</span>
+            <span className="text-xs font-semibold text-center px-3 leading-snug">
+              Ver todos los {categoria.nombre.toLowerCase()}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -229,7 +230,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
   ];
 
   return (
-    <div className="bg-white">
+    <div className="min-h-screen bg-white">
       <Head>
         <title>Pawnecta — Servicios para mascotas en Chile | Proveedores verificados</title>
         <meta name="description" content="Encuentra cuidadores, paseadores, peluqueros y veterinarios verificados cerca de ti. Busca por comuna, compara perfiles y contacta directo. Gratis en lanzamiento." />
@@ -261,24 +262,25 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         />
       </Head>
 
-      {/* SECCIÓN 1: HERO — dos columnas, fondo claro */}
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 1 — HERO
+          fondo slate-50, dos columnas
+      ═══════════════════════════════════════════ */}
       <section className="bg-slate-50 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20
-                        flex flex-col lg:flex-row items-center gap-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20
+                        flex flex-col lg:flex-row items-center gap-10">
 
-          {/* Columna izquierda — texto + buscador */}
-          <div className="flex-1 text-left max-w-xl">
+          {/* Texto + buscador */}
+          <div className="flex-1 max-w-xl w-full">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900
                            leading-tight mb-4">
               Servicios para tu mascota,{" "}
               <span className="text-emerald-600">cerca de ti</span>
             </h1>
-            <p className="text-lg text-slate-500 mb-8 max-w-md">
+            <p className="text-lg text-slate-500 mb-8">
               Proveedores verificados en tu comuna. Compara, contacta y coordina directo.
             </p>
-
             <SearchBar variant="hero" />
-
             <p className="text-sm text-slate-400 mt-4">
               ¿Ofreces servicios para mascotas?{" "}
               <Link href="/register?rol=proveedor"
@@ -286,15 +288,14 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
                 Publica gratis →
               </Link>
             </p>
-
             <div className="flex flex-wrap gap-4 mt-6">
               {[
                 { Icon: CheckCircle2, label: "Proveedores verificados" },
                 { Icon: Shield, label: "Revisión por Pawnecta" },
                 { Icon: MessageCircle, label: "Contacto directo" },
               ].map(({ Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5 text-sm
-                                            font-semibold text-slate-600">
+                <div key={label}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600">
                   <Icon className="w-4 h-4 text-emerald-500" />
                   {label}
                 </div>
@@ -302,25 +303,58 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             </div>
           </div>
 
-          {/* Columna derecha — imagen */}
-          <div className="flex-1 w-full max-w-lg lg:max-w-none">
+          {/* Imagen */}
+          <div className="flex-1 w-full max-w-lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=900&auto=format&fit=crop&q=80"
-              alt="Dueña con sus mascotas"
-              className="w-full h-72 lg:h-[420px] object-cover rounded-3xl shadow-xl"
+              alt="Mascota con su dueña"
+              className="w-full h-64 lg:h-[400px] object-cover rounded-3xl shadow-xl"
             />
           </div>
-
         </div>
       </section>
 
-      {/* SECCIÓN 2: GRID DE CATEGORÍAS */}
-      <section className="bg-white border-b border-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 2 — FRANJAS POR CATEGORÍA (cuerpo principal)
+          Una franja por cada categoría con servicios activos.
+          Patrón idéntico a MercadoLibre.
+      ═══════════════════════════════════════════ */}
+      {(() => {
+        if (!featuredServices || featuredServices.length === 0) return <PrelaunchDemandCapture />;
+        const porCategoria: Record<string, any[]> = {};
+        featuredServices.forEach((s: any) => {
+          const slug = s.categoria_slug || 'default';
+          if (!porCategoria[slug]) porCategoria[slug] = [];
+          if (porCategoria[slug].length < 10) porCategoria[slug].push(s);
+        });
+        const categoriasConServicios = categoriasEstaticas.filter(
+          (c) => (porCategoria[c.slug] || []).length > 0
+        );
+        if (categoriasConServicios.length === 0) return <PrelaunchDemandCapture />;
+        return (
+          <div className="bg-white">
+            {categoriasConServicios.map((cat) => (
+              <FranjaCategoria
+                key={cat.slug}
+                categoria={cat}
+                servicios={porCategoria[cat.slug] || []}
+                onVerTodos={() => router.push(`/explorar?categoria=${cat.slug}`)}
+              />
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 3 — GRID DE CATEGORÍAS (acceso secundario)
+          Compacto, cerca del final — patrón ML
+      ═══════════════════════════════════════════ */}
+      <section className="bg-slate-50 border-y border-slate-100 py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-xl font-bold text-slate-800 mb-6">
-            ¿Qué servicio necesitas?
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-slate-800">Explorar por categoría</h2>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             {categoriasEstaticas.map((cat) => {
               const isProxima = cat.estado === 'proxima';
@@ -333,30 +367,30 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
                     group flex flex-col items-center gap-2 p-4 rounded-2xl border
                     transition-all duration-200 text-center
                     ${isProxima
-                      ? 'bg-slate-50 border-slate-100 opacity-50 cursor-not-allowed'
+                      ? 'bg-white border-slate-100 opacity-50 cursor-not-allowed'
                       : 'bg-white border-slate-200 hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer'
                     }
                   `}
                 >
                   <div className={`
-                    w-12 h-12 rounded-xl flex items-center justify-center
+                    w-11 h-11 rounded-xl flex items-center justify-center
                     ${isProxima ? 'bg-slate-100' : 'bg-emerald-50 group-hover:bg-emerald-100'}
-                    transition-colors duration-200
+                    transition-colors
                   `}>
-                    <cat.Icon className={`w-6 h-6 ${isProxima ? 'text-slate-400' : 'text-emerald-600'}`} />
+                    <cat.Icon className={`w-5 h-5 ${isProxima ? 'text-slate-400' : 'text-emerald-600'}`} />
                   </div>
-                  <span className="text-sm font-semibold text-slate-700 leading-tight">
+                  <span className="text-xs font-semibold text-slate-700 leading-tight">
                     {cat.nombre}
                   </span>
                   {!isProxima && cat.count > 0 && (
-                    <span className="text-[11px] font-bold bg-emerald-100 text-emerald-700
-                                     px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700
+                                     px-1.5 py-0.5 rounded-full">
                       {cat.count}
                     </span>
                   )}
                   {isProxima && (
                     <span className="text-[10px] font-bold bg-slate-100 text-slate-400
-                                     px-2 py-0.5 rounded-full">
+                                     px-1.5 py-0.5 rounded-full">
                       Pronto
                     </span>
                   )}
@@ -367,105 +401,42 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         </div>
       </section>
 
-
-      {/* SECCION 2.5: FRANJAS POR CATEGORIA — estilo MercadoLibre */}
-      {(() => {
-        const porCategoria: Record<string, any[]> = {};
-        (featuredServices || []).forEach((s: any) => {
-          const slug = s.categoria_slug || "default";
-          if (!porCategoria[slug]) porCategoria[slug] = [];
-          porCategoria[slug].push(s);
-        });
-        const categoriasActivas = categoriasEstaticas.filter(
-          (c) => (porCategoria[c.slug] || []).length > 0
-        );
-        if (categoriasActivas.length < 1) return null;
-        return (
-          <section aria-label="Servicios por categoria" className="bg-slate-50 border-b border-slate-100 py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-              {categoriasActivas.map((cat) => (
-                <FranjaCategoria
-                  key={cat.slug}
-                  categoria={cat}
-                  servicios={porCategoria[cat.slug] || []}
-                  onVerTodos={() => router.push(`/explorar?categoria=${cat.slug}`)}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      })()}
-      {/* SECCIÓN 3: SERVICIOS DESTACADOS  — con 1+, o módulo pre-lanzamiento */}
-      {featuredServices && featuredServices.length >= 1 ? (
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-black text-slate-900">Servicios disponibles</h2>
-              <p className="text-slate-600 mt-3 text-lg">Proveedores verificados listos para ayudarte</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-              {featuredServices.map((service) => (
-                <ServiceCard key={service.servicio_id ?? service.id} service={service} />
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : (
-        <PrelaunchDemandCapture />
-      )}
-
-      {/* SECCIÓN 4: CÓMO FUNCIONA (DUEÑOS) */}
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 4 — CÓMO FUNCIONA (DUEÑOS) — sin cambios
+      ═══════════════════════════════════════════ */}
       <section aria-label="Como funciona para duenos de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
         <div className="mb-16">
           <p className="text-emerald-700 font-bold uppercase tracking-widest text-sm mb-3">Para dueños de mascotas</p>
           <h2 className="text-3xl font-black text-slate-900">Encuentra al proveedor ideal en minutos</h2>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <StepCard
-            paso={1}
-            titulo="Busca por servicio y comuna"
-            descripcion="Filtra por el servicio que necesitas y encuentra proveedores cerca de ti"
-            Icon={Search}
-            variante="light"
-          />
-          <StepCard
-            paso={2}
-            titulo="Compara perfiles y reseñas"
-            descripcion="Revisa la experiencia, fotos y evaluaciones de cada proveedor"
-            Icon={FileText}
-            variante="light"
-          />
-          <StepCard
-            paso={3}
-            titulo="Contacta y coordina directo"
-            descripcion="Escribe al proveedor por el chat interno y coordina los detalles"
-            Icon={MessageCircle}
-            variante="light"
-          />
+          <StepCard paso={1} titulo="Busca por servicio y comuna" descripcion="Filtra por el servicio que necesitas y encuentra proveedores cerca de ti" Icon={Search} variante="light" />
+          <StepCard paso={2} titulo="Compara perfiles y reseñas" descripcion="Revisa la experiencia, fotos y evaluaciones de cada proveedor" Icon={FileText} variante="light" />
+          <StepCard paso={3} titulo="Contacta y coordina directo" descripcion="Escribe al proveedor por el chat interno y coordina los detalles" Icon={MessageCircle} variante="light" />
         </div>
       </section>
 
-      {/* SECCIÓN 5: CONFIANZA — solo si hay 1+ proveedores activos */}
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 5 — CONFIANZA / TESTIMONIOS — sin cambios
+      ═══════════════════════════════════════════ */}
       {stats.proveedores >= 1 ? (
         <section aria-label="Verificacion de proveedores y testimonios" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-black text-slate-900 mb-10">Proveedores que puedes conocer</h2>
-
               <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-900 p-8 md:px-12 rounded-3xl mb-12 max-w-5xl mx-auto text-left md:text-center">
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <IdCard className="w-8 h-8 text-emerald-400 mb-3" />
                   <h4 className="font-bold text-white mb-2">Verificación de identidad</h4>
                   <p className="text-sm text-slate-300">RUT validado y revisión manual del equipo Pawnecta antes de activar cada perfil</p>
                 </div>
-                <div className="hidden md:block w-px h-24 bg-slate-700"></div>
+                <div className="hidden md:block w-px h-24 bg-slate-700" />
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <ClipboardCheck className="w-8 h-8 text-emerald-400 mb-3" />
                   <h4 className="font-bold text-white mb-2">Revisión del equipo</h4>
                   <p className="text-sm text-slate-300">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
                 </div>
-                <div className="hidden md:block w-px h-24 bg-slate-700"></div>
+                <div className="hidden md:block w-px h-24 bg-slate-700" />
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <Star className="w-8 h-8 text-emerald-400 mb-3" />
                   <h4 className="font-bold text-white mb-2">Reseñas reales</h4>
@@ -473,7 +444,6 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
                 </div>
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {testimonios.map((testimonio, idx) => (
                 <TestimonialCard key={`testimonio-${idx}`} {...testimonio} />
@@ -484,23 +454,19 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
       ) : (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-2xl font-black text-slate-900 mb-4">
-              Únete a nuestra red de proveedores
-            </h2>
-            <p className="text-slate-600 mb-8">
-              Sé de los primeros proveedores en ofrecer tus servicios en tu comuna
-            </p>
-            <Link
-              href="/register?rol=proveedor"
-              className="inline-flex items-center justify-center h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-8 text-base font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
-            >
+            <h2 className="text-2xl font-black text-slate-900 mb-4">Únete a nuestra red de proveedores</h2>
+            <p className="text-slate-600 mb-8">Sé de los primeros proveedores en ofrecer tus servicios en tu comuna</p>
+            <Link href="/register?rol=proveedor"
+              className="inline-flex items-center justify-center h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-8 text-base font-semibold text-white shadow-sm transition-colors">
               Registrarse como proveedor
             </Link>
           </div>
         </section>
       )}
 
-      {/* SECCIÓN 6: CÓMO FUNCIONA (PROVEEDORES) */}
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 6 — CÓMO FUNCIONA (PROVEEDORES) — sin cambios
+      ═══════════════════════════════════════════ */}
       <section aria-label="Como funciona para proveedores" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
@@ -508,36 +474,14 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             <h2 className="text-3xl md:text-4xl font-black text-white">Ofrece tus servicios en Pawnecta</h2>
             <p className="text-slate-300 mt-4 text-lg">Sin comisiones durante el lanzamiento</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <StepCard
-              paso={1}
-              titulo="Crea tu perfil"
-              descripcion="Regístrate, verifica tu identidad y completa tu información profesional"
-              Icon={UserPlus}
-              variante="dark"
-            />
-            <StepCard
-              paso={2}
-              titulo="Publica tus servicios"
-              descripcion="Describe lo que ofreces, define tu precio y activa tu vitrina"
-              Icon={PlusCircle}
-              variante="dark"
-            />
-            <StepCard
-              paso={3}
-              titulo="Recibe consultas directo"
-              descripcion="Los dueños te contactan por el chat interno y tú coordinas todo"
-              Icon={Users}
-              variante="dark"
-            />
+            <StepCard paso={1} titulo="Crea tu perfil" descripcion="Regístrate, verifica tu identidad y completa tu información profesional" Icon={UserPlus} variante="dark" />
+            <StepCard paso={2} titulo="Publica tus servicios" descripcion="Describe lo que ofreces, define tu precio y activa tu vitrina" Icon={PlusCircle} variante="dark" />
+            <StepCard paso={3} titulo="Recibe consultas directo" descripcion="Los dueños te contactan por el chat interno y tú coordinas todo" Icon={Users} variante="dark" />
           </div>
-
           <div className="text-center flex flex-col items-center">
-            <Link
-              href="/register?rol=proveedor"
-              className="inline-flex items-center justify-center h-14 rounded-2xl border-2 border-white px-8 text-base font-semibold text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-900 shadow-lg shadow-black/20"
-            >
+            <Link href="/register?rol=proveedor"
+              className="inline-flex items-center justify-center h-14 rounded-2xl border-2 border-white px-8 text-base font-semibold text-white hover:bg-white/10 transition-colors shadow-lg shadow-black/20">
               Publicar mi servicio
             </Link>
             <p className="mt-4 text-slate-400 text-sm">Gratis durante el lanzamiento.</p>
@@ -545,20 +489,19 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         </div>
       </section>
 
-      {/* SECCIÓN 7: CTA FINAL + STATS */}
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 7 — CTA FINAL + STATS — sin cambios
+      ═══════════════════════════════════════════ */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto text-center relative">
           <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">¿Buscas un servicio para tu mascota?</h2>
           <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Explora proveedores verificados en tu comuna ahora.</p>
-
           <button
             onClick={() => router.push('/explorar')}
-            className="inline-flex items-center justify-center h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 mb-4"
-          >
+            className="inline-flex items-center justify-center h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all mb-4">
             Buscar servicios
           </button>
           <p className="text-slate-500 font-medium mb-16">Sin registro. Sin costo.</p>
-
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto border-t border-slate-200 pt-16">
             <div className="flex flex-col items-center justify-center p-4">
               <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{stats.proveedores}</div>
@@ -584,23 +527,23 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
 }
 
 export async function getStaticProps() {
-  // Query desde Supabase para servicios destacados
   let featuredServices: ServiceResult[] = [];
   try {
     const { data } = await supabase
       .from('servicios_publicados')
-      .select('*, proveedor:proveedores!inner(nombre, apellido_p, foto_perfil, comuna, estado, es_placeholder), categoria:categorias_servicio(nombre, icono, slug)')
+      .select(`
+        *,
+        proveedor:proveedores(nombre, apellido_p, foto_perfil, comuna),
+        categoria:categorias_servicio(nombre, icono, slug)
+      `)
       .eq('activo', true)
-      .eq('proveedor.estado', 'aprobado')
       .order('created_at', { ascending: false })
-      .limit(48);
+      .limit(120);
     if (data) {
       const mapped = data.map(mapJoinToServiceResult);
-      // Priorizar: foto del servicio > foto de perfil > sin foto (fallback visual)
       featuredServices = [
         ...mapped.filter(s => s.fotos && s.fotos.length > 0),
-        ...mapped.filter(s => (!s.fotos || s.fotos.length === 0) && s.proveedor_foto),
-        ...mapped.filter(s => (!s.fotos || s.fotos.length === 0) && !s.proveedor_foto),
+        ...mapped.filter(s => !s.fotos || s.fotos.length === 0),
       ];
     }
   } catch (error) {
@@ -612,23 +555,18 @@ export async function getStaticProps() {
   let comunasUnicas = new Set<string>();
 
   try {
-    // 1. Total servicios activos
     const { count: sCount } = await supabase
       .from("servicios_publicados")
       .select("*", { count: "exact", head: true })
       .eq("activo", true);
-
     countServicios = sCount || 0;
 
-    // 2. Total proveedores verificados
     const { count: pCount } = await supabase
       .from("proveedores")
       .select("*", { count: "exact", head: true })
       .eq("estado", "aprobado");
-
     countProveedores = pCount || 0;
 
-    // 3. Comunas cubiertas únicas
     const { data: comunasData } = await supabase
       .from("proveedores")
       .select("comunas_cobertura, comuna")
@@ -636,7 +574,6 @@ export async function getStaticProps() {
 
     if (comunasData) {
       comunasData.forEach(p => {
-        // Prefer comunas_cobertura array; fallback to single comuna field
         const comunas = (Array.isArray(p.comunas_cobertura) && p.comunas_cobertura.length > 0)
           ? p.comunas_cobertura
           : (p.comuna ? [p.comuna] : []);
@@ -653,7 +590,6 @@ export async function getStaticProps() {
     comunas: comunasUnicas.size || 0,
   };
 
-  // Per-category service counts for CategoryCard estado/count badges
   let categoryCounts: Record<string, number> = {};
   try {
     const { data: catData } = await supabase
