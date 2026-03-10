@@ -379,7 +379,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
         const categoriasActivas = categoriasEstaticas.filter(
           (c) => (porCategoria[c.slug] || []).length > 0
         );
-        if (categoriasActivas.length < 2) return null;
+        if (categoriasActivas.length < 1) return null;
         return (
           <section aria-label="Servicios por categoria" className="bg-slate-50 border-b border-slate-100 py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
@@ -593,7 +593,7 @@ export async function getStaticProps() {
       .eq('activo', true)
       .eq('proveedor.estado', 'aprobado')
       .order('created_at', { ascending: false })
-      .limit(12);
+      .limit(48);
     if (data) {
       const mapped = data.map(mapJoinToServiceResult);
       // Priorizar: foto del servicio > foto de perfil > sin foto (fallback visual)
@@ -601,7 +601,7 @@ export async function getStaticProps() {
         ...mapped.filter(s => s.fotos && s.fotos.length > 0),
         ...mapped.filter(s => (!s.fotos || s.fotos.length === 0) && s.proveedor_foto),
         ...mapped.filter(s => (!s.fotos || s.fotos.length === 0) && !s.proveedor_foto),
-      ].slice(0, 6);
+      ];
     }
   } catch (error) {
     console.error("Error fetching featured services:", error);
