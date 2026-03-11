@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { apiLimiter } from '../../lib/rateLimit';
+import { logConsentSchema } from '../../lib/validations';
 
 // Inicializar cliente con Service Role para poder escribir en la tabla segura
 // [SECURITY] Esto se mantiene porque 'consent_logs' debe ser write-only/admin
@@ -22,17 +24,13 @@ export default async function handler(
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
+    if (!apiLimiter(req, res)) return;
 
-    const { documentVersion } = req.body;
-
-    // 1. Validate Input
-    if (!documentVersion || !VALID_DOCUMENTS.includes(documentVersion)) {
-        // Fallback for MVP if enum strictness is an issue, but safer to enforce
-        // If we don't know the exact versions, let's at least ensure it's a string and reasonably short
-        if (typeof documentVersion !== 'string' || documentVersion.length > 50) {
-            return res.status(400).json({ message: 'Invalid documentVersion' });
-        }
+    const parsed = logConsentSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ message: 'Invalid documentVersion' });
     }
+    const { documentVersion } = parsed.data;
 
     // 2. Derive User ID from Session (Server-Side)
     // Try getting token from Authorization header (Bearer) or Cookie

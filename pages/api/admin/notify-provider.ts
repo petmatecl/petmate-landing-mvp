@@ -1,14 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { resend } from '../../../lib/resend';
 import { createClient } from '@supabase/supabase-js';
+import { emailLimiter } from '../../../lib/rateLimit';
+import { escapeHtml } from '../../../lib/sanitize';
+import { notifyProviderSchema } from '../../../lib/validations';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+    if (!emailLimiter(req, res)) return;
 
     try {
-        const { email: emailDirecto, auth_user_id, nombre, estado, motivo } = req.body;
+        const parsed = notifyProviderSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
+        }
+        const { email: emailDirecto, auth_user_id, nombre, estado, motivo } = parsed.data;
 
         let email = emailDirecto;
 
@@ -18,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 process.env.SUPABASE_SERVICE_ROLE_KEY!
             );
             const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(auth_user_id);
-            email = authUser?.user?.email || null;
+            email = authUser?.user?.email || undefined;
         }
 
         if (!email || !nombre || !estado) {
@@ -33,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             htmlBody = `
                 <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h1 style="color: #059669; font-size: 24px; margin-bottom: 16px;">
-                        ¡Felicitaciones, ${nombre}!
+                        ¡Felicitaciones, ${escapeHtml(nombre)}!
                     </h1>
                     <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
                         Tu perfil de proveedor en Pawnecta ha sido <strong>aprobado</strong> por nuestro equipo de confianza. Ya estás oficialmente activo en la plataforma y listo para ofrecer tus servicios.
@@ -51,14 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             htmlBody = `
                 <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h1 style="color: #ea580c; font-size: 24px; margin-bottom: 16px;">
-                        Hola, ${nombre}
+                        Hola, ${escapeHtml(nombre)}
                     </h1>
                     <p style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
                         Hemos revisado tu solicitud para ser proveedor en Pawnecta con mucha atención. Lamentablemente, en esta ocasión no podemos aprobar tu perfil.
                     </p>
                     <div style="background-color: #f8fafc; border-left: 4px solid #94a3b8; padding: 16px; margin-bottom: 24px;">
                         <strong style="color: #475569;">Motivo del rechazo:</strong><br/>
-                        <span style="color: #1e293b; font-size: 15px;">${motivo || 'No cumple con las directrices de calidad y seguridad de la plataforma.'}</span>
+                        <span style="color: #1e293b; font-size: 15px;">${motivo ? escapeHtml(motivo) : 'No cumple con las directrices de calidad y seguridad de la plataforma.'}</span>
                     </div>
                     <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
                         Si crees que esto es un error o tienes nueva información para subsanar el motivo, por favor responde a este correo.

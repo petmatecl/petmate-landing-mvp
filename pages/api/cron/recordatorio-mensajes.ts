@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
+import { escapeHtml } from '../../../lib/sanitize';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -80,8 +81,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 subject: 'Tienes una consulta sin responder en Pawnecta',
                 html: `
                     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1e293b">
-                        <h2 style="color:#1A6B4A">Hola, ${proveedor?.nombre || 'Proveedor'}</h2>
-                        <p>Tienes un mensaje pendiente de respuesta en tu servicio <strong>${servicioTitulo}</strong>.</p>
+                        <h2 style="color:#1A6B4A">Hola, ${escapeHtml(proveedor?.nombre || 'Proveedor')}</h2>
+                        <p>Tienes un mensaje pendiente de respuesta en tu servicio <strong>${escapeHtml(servicioTitulo)}</strong>.</p>
                         <p>Tu cliente lleva más de 24 horas esperando respuesta. Responder rápido aumenta tus probabilidades de conseguir la reserva.</p>
                         <a href="${chatUrl}" style="display:inline-block;background:#1A6B4A;color:white;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:bold;margin-top:16px">
                             Ver mensaje

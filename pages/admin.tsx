@@ -38,32 +38,17 @@ export default function AdminDashboard() {
                 throw new Error('No session');
             }
 
-            const email = session.user.email;
-            if (!email) throw new Error('No email');
+            // Verificación por rol en la base de datos (única fuente de verdad)
+            const { data: profile } = await supabase
+                .from('proveedores')
+                .select('roles')
+                .eq('auth_user_id', session.user.id)
+                .eq('estado', 'aprobado')
+                .maybeSingle();
 
-            // 1. Verificación por Lista Dura (Hardcoded Fallback de Seguridad)
-            const ADMIN_EMAILS = [
-                'cano.caldera@gmail.com',
-                'admin@pawnecta.com',
-            ];
+            const hasAdminAccess = profile?.roles && Array.isArray(profile.roles) && profile.roles.includes('admin');
 
-            let hasAdminAccess = ADMIN_EMAILS.includes(email);
-
-            // 2. Verificación por Rol en la base de datos (Si no pasó la lista dura)
-            if (!hasAdminAccess) {
-                const { data: profile } = await supabase
-                    .from('proveedores')
-                    .select('roles')
-                    .eq('auth_user_id', session.user.id)
-                    .eq('estado', 'aprobado')
-                    .maybeSingle();
-
-                if (profile?.roles && Array.isArray(profile.roles) && profile.roles.includes('admin')) {
-                    hasAdminAccess = true;
-                }
-            }
-
-            setIsAdmin(hasAdminAccess);
+            setIsAdmin(!!hasAdminAccess);
         } catch (error) {
             clearTimeout(safetyTimer);
             console.error('Error checking auth:', error);

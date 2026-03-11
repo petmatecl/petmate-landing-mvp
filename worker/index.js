@@ -19,7 +19,10 @@ self.addEventListener('notificationclick', function (event) {
     event.notification.close();
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
-            const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
+            // Validate URL: only allow same-origin paths to prevent open redirect
+            var rawUrl = event.notification.data.url || '/';
+            var parsed = new URL(rawUrl, self.location.origin);
+            var urlToOpen = parsed.origin === self.location.origin ? parsed.href : self.location.origin + '/';
 
             if (clientList.length > 0) {
                 let client = clientList[0];

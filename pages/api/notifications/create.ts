@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { apiLimiter } from '../../../lib/rateLimit';
+import { notificationCreateSchema } from '../../../lib/validations';
 
 // Use Service Role to insert notifications (bypass RLS which might block users inserting for others)
 const supabaseAdmin = createClient(
@@ -16,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
+    if (!apiLimiter(req, res)) return;
 
     // 1. Authenticate Caller
     const token = req.headers.authorization?.split(' ')[1];
@@ -25,11 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (authError || !user) return res.status(401).json({ message: 'Invalid token' });
 
     // 2. Validate Payload
-    const { userId, type, title, message, link, metadata } = req.body;
-
-    if (!userId || !type || !title || !message) {
-        return res.status(400).json({ message: 'Missing required fields' });
+    const parsed = notificationCreateSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ message: 'Invalid input' });
     }
+    const { userId, type, title, message, link, metadata } = parsed.data;
 
     // [Security] Prevent spam? 
     // We implicitly trust authenticated users to send notifications regarding their interactions.

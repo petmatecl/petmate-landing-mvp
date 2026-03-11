@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { apiLimiter } from '../../../lib/rateLimit';
+import { autoModerarSchema } from '../../../lib/validations';
 
 // Palabras que marcan una evaluacion como sospechosa y requieren revision manual
 const BLACKLIST = [
@@ -15,12 +17,13 @@ function containsBlacklisted(text: string): boolean {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).end();
+    if (!apiLimiter(req, res)) return;
 
-    const { evaluacionId, servicioId, clienteId, rating, comentario } = req.body;
-
-    if (!evaluacionId || !servicioId || !clienteId || rating == null || !comentario) {
-        return res.status(400).json({ error: 'Faltan campos requeridos' });
+    const parsed = autoModerarSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: 'Invalid input' });
     }
+    const { evaluacionId, servicioId, clienteId, rating, comentario } = parsed.data;
 
     // Use service role for server-side operations
     const supabase = createClient(
