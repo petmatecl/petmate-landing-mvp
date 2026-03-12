@@ -275,75 +275,47 @@ export default function RegisterWizard() {
 
     setLoading(true);
 
-    // Timeout de seguridad: si el proceso tarda más de 25 segundos, resetea
+    // Timeout de seguridad: si el proceso tarda más de 30 segundos, resetea
     const safetyTimer = setTimeout(() => {
       setLoading(false);
       setError("La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.");
-    }, 60000);
+    }, 30000);
 
     try {
-      // 1. Sign up user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (authError) throw authError;
-
-      const userId = authData.user?.id;
-      if (!userId) throw new Error("No se pudo obtener el ID del usuario.");
-
-      // 2. Insert into respective tables
-      if (rol === 'usuario') {
-        const { error: insertError } = await supabase.from('usuarios_buscadores').insert([{
-          auth_user_id: userId,
+      // 1. Call server-side signup API (rate-limited)
+      const signupRes = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          rol,
           nombre: nombre.trim(),
           apellido_p: apellidoP.trim(),
-          apellido_m: apellidoM.trim() || null,
+          apellido_m: apellidoM.trim() || undefined,
           rut: formatRut(rut),
-        }]);
-        if (insertError) {
-          console.error('Insert error in usuarios_buscadores:', insertError.message, insertError.code, insertError.details);
-          throw new Error('Error guardando datos de usuario: ' + insertError.message);
+          ...(rol === 'proveedor' ? {
+            comuna: comunaQuery.trim(),
+            tipo_entidad: tipoEntidad,
+            razon_social: tipoEntidad === 'empresa' ? razonSocial.trim() : undefined,
+            rut_empresa: tipoEntidad === 'empresa' ? formatRut(rutEmpresa) : undefined,
+            nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia.trim() : undefined,
+            giro: tipoEntidad === 'empresa' ? giro.trim() : undefined,
+            datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : undefined,
+          } : {}),
+        }),
+      });
+
+      const signupData = await signupRes.json();
+
+      if (!signupRes.ok) {
+        if (signupRes.status === 429) {
+          throw new Error('Demasiados intentos. Espera un momento antes de intentar nuevamente.');
         }
-      } else if (rol === 'proveedor') {
-        const { error: insertError } = await supabase.rpc('registrar_proveedor', {
-          p_auth_user_id: userId,
-          p_nombre: nombre.trim(),
-          p_apellido_p: apellidoP.trim(),
-          p_apellido_m: apellidoM.trim() || null,
-          p_rut: formatRut(rut),
-          p_comuna: comunaQuery.trim(),
-          p_tipo_entidad: tipoEntidad,
-          p_razon_social: tipoEntidad === 'empresa' ? razonSocial.trim() : null,
-          p_rut_empresa: tipoEntidad === 'empresa' ? formatRut(rutEmpresa) : null,
-          p_nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia.trim() : null,
-          p_giro: tipoEntidad === 'empresa' ? giro.trim() : null,
-          p_datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : null,
-        });
-        if (insertError) {
-          console.error('Insert error in proveedores:', insertError.message, insertError.code, insertError.details);
-          throw new Error('Error guardando datos de proveedor: ' + insertError.message);
-        }
+        throw new Error(signupData.error || 'Error al crear la cuenta.');
       }
 
-      // 3. Trigger Welcome Email API — no debe bloquear el flujo
-      const welcomeController = new AbortController();
-      const welcomeTimeout = setTimeout(() => welcomeController.abort(), 5000);
-      try {
-        await fetch('/api/auth/welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, email, nombre: nombre.trim(), rol }),
-          signal: welcomeController.signal,
-        });
-      } catch (welcomeErr) {
-        console.warn('Welcome email no enviado (no bloquea el registro):', welcomeErr);
-      } finally {
-        clearTimeout(welcomeTimeout);
-      }
-
-      // 4. Move to Success Screen
+      // 2. Move to Success Screen (welcome email is sent server-side)
       clearTimeout(safetyTimer);
       setStep(4);
     } catch (err: any) {
@@ -777,15 +749,21 @@ export default function RegisterWizard() {
                 </div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-4">¡Registro Exitoso!</h2>
 
+                <p className="text-slate-600 mb-4 max-w-md mx-auto">
+                  <strong>Revisa tu correo electrónico</strong> ({email}) y haz clic en el enlace de confirmación para activar tu cuenta.
+                </p>
                 {rol === 'usuario' ? (
-                  <p className="text-slate-600 mb-8 max-w-md mx-auto">
-                    Hemos enviado un mensaje de bienvenida a tu correo. Revisa tu bandeja de entrada o carpeta de spam para verificar tu cuenta y comenzar a explorar servicios.
+                  <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm">
+                    Una vez confirmado tu correo, podrás iniciar sesión y explorar servicios para tu mascota.
                   </p>
                 ) : (
-                  <p className="text-slate-600 mb-8 max-w-md mx-auto">
-                    Hemos recibido tu solicitud. Nuestro equipo revisará tus datos en las próximas 24-48 horas y te notificaremos por correo electrónico cuando tu perfil esté aprobado.
+                  <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm">
+                    Una vez confirmado tu correo, nuestro equipo revisará tus datos en las próximas 24-48 horas y te notificaremos cuando tu perfil esté aprobado.
                   </p>
                 )}
+                <p className="text-xs text-slate-400 mb-8 max-w-md mx-auto">
+                  ¿No lo encuentras? Revisa tu carpeta de spam o correo no deseado.
+                </p>
 
                 <button
                   onClick={() => router.push('/')}

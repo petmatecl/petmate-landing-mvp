@@ -16,6 +16,7 @@ import { Toaster } from 'sonner';
 import { OnlineStatusProvider } from "../components/Shared/OnlineStatusProvider";
 
 import { RoleSelectionInterceptor } from "../components/Auth/RoleSelectionInterceptor";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -72,7 +73,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           {showLayout && <Header />}
 
           <main className="flex-1">
-            <Component {...pageProps} />
+            <ErrorBoundary>
+              <Component {...pageProps} />
+            </ErrorBoundary>
           </main>
 
           {showLayout && <Footer />}

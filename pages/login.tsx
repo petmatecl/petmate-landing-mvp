@@ -2,44 +2,28 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/router";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { RoleSelector, Role } from "../components/Auth/RoleSelector";
 
 const inputClass =
   "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors";
 
 export default function LoginPage() {
   const router = useRouter();
-  const redirect = typeof router.query.redirect === "string" ? router.query.redirect : null;
+  // Validate redirect is a safe relative path (prevent open redirect)
+  const rawRedirect = typeof router.query.redirect === "string" ? router.query.redirect : null;
+  const redirect = rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : null;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
-
-  // Role selector state (multi-role users)
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
-  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
-  const [userName, setUserName] = useState<string>("");
 
   React.useEffect(() => {
     if (router.query.timeout === "true") {
       setError("Por seguridad, tu sesión se cerró tras 10 minutos de inactividad.");
     }
   }, [router.query.timeout]);
-
-  const handleRoleSelect = (selectedRole: Role) => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("activeRole", selectedRole);
-    }
-    if (selectedRole === "admin") {
-      router.push("/admin");
-    } else {
-      router.push(selectedRole === "usuario" ? "/usuario" : "/proveedor");
-    }
-  };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -62,7 +46,7 @@ export default function LoginPage() {
 
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("activeRole");
-        window.localStorage.removeItem("pm_auth_role_pending");
+        window.localStorage.removeItem("pawnecta_pending_role");
       }
       setLoading(true);
 
@@ -96,16 +80,6 @@ export default function LoginPage() {
       setError("No pudimos conectar con el servidor. Verifica tu conexión e inténtalo de nuevo. Si el problema persiste, recarga la página.");
       setLoading(false);
     }
-  }
-
-  if (showRoleSelector) {
-    return (
-      <RoleSelector
-        roles={availableRoles}
-        userName={userName}
-        onSelect={handleRoleSelect}
-      />
-    );
   }
 
   return (
