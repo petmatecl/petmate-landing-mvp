@@ -749,15 +749,21 @@ export default function RegisterWizard() {
                 </div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-4">¡Registro Exitoso!</h2>
 
+                <p className="text-slate-600 mb-4 max-w-md mx-auto">
+                  <strong>Revisa tu correo electrónico</strong> ({email}) y haz clic en el enlace de confirmación para activar tu cuenta.
+                </p>
                 {rol === 'usuario' ? (
-                  <p className="text-slate-600 mb-8 max-w-md mx-auto">
-                    Hemos enviado un mensaje de bienvenida a tu correo. Revisa tu bandeja de entrada o carpeta de spam para verificar tu cuenta y comenzar a explorar servicios.
+                  <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm">
+                    Una vez confirmado tu correo, podrás iniciar sesión y explorar servicios para tu mascota.
                   </p>
                 ) : (
-                  <p className="text-slate-600 mb-8 max-w-md mx-auto">
-                    Hemos recibido tu solicitud. Nuestro equipo revisará tus datos en las próximas 24-48 horas y te notificaremos por correo electrónico cuando tu perfil esté aprobado.
+                  <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm">
+                    Una vez confirmado tu correo, nuestro equipo revisará tus datos en las próximas 24-48 horas y te notificaremos cuando tu perfil esté aprobado.
                   </p>
                 )}
+                <p className="text-xs text-slate-400 mb-8 max-w-md mx-auto">
+                  ¿No lo encuentras? Revisa tu carpeta de spam o correo no deseado.
+                </p>
 
                 <button
                   onClick={() => router.push('/')}

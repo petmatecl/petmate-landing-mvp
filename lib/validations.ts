@@ -16,6 +16,7 @@ export const welcomeSchema = z.object({
   email: email,
   nombre: z.string().min(1).max(100),
   rol: z.enum(['usuario', 'proveedor']),
+  confirmationUrl: z.string().url().optional().nullable(),
 });
 
 export const loginSchema = z.object({

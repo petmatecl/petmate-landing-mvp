@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    // 1. Create auth user
+    // 1. Create auth user (email_confirm: false — we'll send confirmation manually)
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -64,6 +64,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const userId = authData.user?.id;
     if (!userId) throw new Error('No user ID returned');
+
+    // 1b. Generate email confirmation link
+    let confirmationUrl: string | null = null;
+    try {
+      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'signup',
+        email,
+        password,
+      });
+      if (linkError) {
+        console.warn('Failed to generate confirmation link:', linkError.message);
+      } else if (linkData?.properties?.action_link) {
+        confirmationUrl = linkData.properties.action_link;
+      }
+    } catch (linkErr) {
+      console.warn('Confirmation link generation failed (non-blocking):', linkErr);
+    }
 
     // 2. Insert profile
     if (rol === 'usuario') {
@@ -103,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           'Content-Type': 'application/json',
           'x-internal-secret': process.env.INTERNAL_API_SECRET || 'pawnecta-internal',
         },
-        body: JSON.stringify({ userId, email, nombre: nombre.trim(), rol }),
+        body: JSON.stringify({ userId, email, nombre: nombre.trim(), rol, confirmationUrl }),
       });
     } catch (welcomeErr) {
       console.warn('Welcome email failed (non-blocking):', welcomeErr);

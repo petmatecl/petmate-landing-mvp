@@ -5,7 +5,7 @@ import { escapeHtml } from '../../../lib/sanitize';
 import { welcomeSchema } from '../../../lib/validations';
 
 // Email templates inline as HTML strings
-const UserWelcomeEmail = ({ nombre }: { nombre: string }) => `
+const UserWelcomeEmail = ({ nombre, confirmationUrl }: { nombre: string; confirmationUrl?: string | null }) => `
     <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #047857; font-size: 24px; margin-bottom: 16px;">
             ¡Bienvenido a Pawnecta, ${escapeHtml(nombre)}!
@@ -13,19 +13,31 @@ const UserWelcomeEmail = ({ nombre }: { nombre: string }) => `
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
             Estamos muy felices de que te unas a nuestra comunidad. Ya puedes buscar proveedores verificados en tu comuna para cuidar, pasear, o atender a tu mascota.
         </p>
-        <a 
-            href="https://pawnecta.com/explorar" 
+        ${confirmationUrl ? `
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
+            <strong>Primero, confirma tu correo electrónico</strong> haciendo clic en el botón de abajo:
+        </p>
+        <a
+            href="${confirmationUrl}"
+            style="display: inline-block; background-color: #047857; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-bottom: 24px; font-size: 16px;"
+        >
+            Confirmar mi correo
+        </a>
+        ` : `
+        <a
+            href="https://www.pawnecta.com/explorar"
             style="display: inline-block; background-color: #047857; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-bottom: 24px;"
         >
             Explorar servicios
         </a>
+        `}
         <p style="font-size: 14px; color: #64748b;">
             Saludos cordiales,<br/>El equipo de Pawnecta
         </p>
     </div>
 `;
 
-const ProviderWelcomeEmail = ({ nombre }: { nombre: string }) => `
+const ProviderWelcomeEmail = ({ nombre, confirmationUrl }: { nombre: string; confirmationUrl?: string | null }) => `
     <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #047857; font-size: 24px; margin-bottom: 16px;">
             ¡Recibimos tu solicitud, ${escapeHtml(nombre)}!
@@ -33,10 +45,21 @@ const ProviderWelcomeEmail = ({ nombre }: { nombre: string }) => `
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
             Gracias por registrarte como proveedor en Pawnecta. Estamos emocionados por conocerte.
         </p>
+        ${confirmationUrl ? `
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
+            <strong>Primero, confirma tu correo electrónico</strong> para que podamos verificar tu cuenta:
+        </p>
+        <a
+            href="${confirmationUrl}"
+            style="display: inline-block; background-color: #047857; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-bottom: 24px; font-size: 16px;"
+        >
+            Confirmar mi correo
+        </a>
+        ` : ''}
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
             <strong>Revisaremos tu información en las próximas 24 a 48 horas.</strong> Te avisaremos por este correo cuando tu perfil esté activo y listo para operar.
         </p>
-        
+
         <h3 style="font-size: 18px; margin-top: 24px; margin-bottom: 12px;">¿Qué viene después?</h3>
         <ul style="font-size: 16px; line-height: 1.5; padding-left: 20px; margin-bottom: 24px;">
             <li style="margin-bottom: 8px;">Completar tu perfil con fotos atractivas de tu hogar o servicios.</li>
@@ -67,17 +90,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!parsed.success) {
             return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
         }
-        const { userId, email, nombre, rol } = parsed.data;
+        const { userId, email, nombre, rol, confirmationUrl } = parsed.data;
 
         let subject = '';
         let htmlComponent = '';
 
         if (rol === 'usuario') {
-            subject = `Bienvenido a Pawnecta, ${nombre}`;
-            htmlComponent = UserWelcomeEmail({ nombre });
+            subject = confirmationUrl
+                ? `Confirma tu correo — Bienvenido a Pawnecta, ${nombre}`
+                : `Bienvenido a Pawnecta, ${nombre}`;
+            htmlComponent = UserWelcomeEmail({ nombre, confirmationUrl });
         } else if (rol === 'proveedor') {
-            subject = `Recibimos tu solicitud, ${nombre}`;
-            htmlComponent = ProviderWelcomeEmail({ nombre });
+            subject = confirmationUrl
+                ? `Confirma tu correo — Recibimos tu solicitud, ${nombre}`
+                : `Recibimos tu solicitud, ${nombre}`;
+            htmlComponent = ProviderWelcomeEmail({ nombre, confirmationUrl });
         } else {
             return res.status(400).json({ error: 'Invalid rol. Must be usuario or proveedor.' });
         }
