@@ -1,0 +1,12 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/recordatorio-onboarding",
+            "schedule": "0 14 * * *"
+        },
+        {
+            "path": "/api/cron/recordatorio-mensajes",
+            "schedule": "0 10 * * *"
+        }
+    ]
+}
