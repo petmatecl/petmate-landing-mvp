@@ -340,7 +340,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
             {/* Typing / Online indicator */}
             {otherUser && (
               <div className="px-4 py-1.5 text-xs text-slate-400 bg-white border-t border-slate-100">
-                {onlineUsers.includes(otherUser.auth_user_id) ? (
+                {onlineUsers.has(otherUser.auth_user_id) ? (
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
                     {otherUser.nombre} en línea
