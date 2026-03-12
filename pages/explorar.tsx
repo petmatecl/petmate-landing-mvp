@@ -207,9 +207,23 @@ export default function ExplorarPage() {
     }, [user]);
 
     // 2. Sincronizar estado local con Query Params de la URL
+    //    Si no hay query params, restaurar última búsqueda de localStorage
     useEffect(() => {
         if (!router.isReady) return;
         const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam } = router.query;
+
+        const hasQueryParams = q || categoria || comuna || mascota || precioMin || precioMax || orden;
+
+        if (!hasQueryParams && typeof window !== 'undefined') {
+            const saved = localStorage.getItem('pawnecta_last_search');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    router.replace({ pathname: '/explorar', query: parsed }, undefined, { shallow: true });
+                    return;
+                } catch { /* ignore */ }
+            }
+        }
 
         setFilters({
             q: (q as string) || "",
@@ -379,7 +393,7 @@ export default function ExplorarPage() {
         }, 50);
     }, [filters, router, totalCount]);
 
-    // 5. Actualizar filtros (resetea a página 1)
+    // 5. Actualizar filtros (resetea a página 1) y guardar en localStorage
     const updateQueryParams = (newParams: Partial<typeof filters>) => {
         const combined = { ...filters, ...newParams };
 
@@ -394,10 +408,18 @@ export default function ExplorarPage() {
         if (combined.precioMax) query.precioMax = combined.precioMax;
         if (combined.orden && combined.orden !== 'relevancia') query.orden = combined.orden;
 
+        // Persist last search for when user returns to /explorar
+        if (typeof window !== 'undefined' && Object.keys(query).length > 0) {
+            localStorage.setItem('pawnecta_last_search', JSON.stringify(query));
+        }
+
         router.push({ pathname: '/explorar', query }, undefined, { shallow: true });
     };
 
     const handleClearFilters = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('pawnecta_last_search');
+        }
         router.push({ pathname: '/explorar' }, undefined, { shallow: true });
     };
 

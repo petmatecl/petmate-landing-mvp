@@ -337,6 +337,23 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 )}
             </div>
 
+            {/* Typing / Online indicator */}
+            {otherUser && (
+              <div className="px-4 py-1.5 text-xs text-slate-400 bg-white border-t border-slate-100">
+                {onlineUsers.includes(otherUser.auth_user_id) ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                    {otherUser.nombre} en línea
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-slate-300 inline-block" />
+                    {otherUser.nombre} desconectado
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Input Area */}
             <div className="p-4 bg-white border-t border-slate-300">
                 <form onSubmit={handleSend} className="flex gap-2 relative">
@@ -346,6 +363,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Escribe un mensaje..."
                         className="flex-1 rounded-full border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:ring-emerald-600 focus:border-emerald-600 transition-shadow outline-none"
+                        maxLength={1000}
                     />
                     <button
                         type="submit"

@@ -4,11 +4,13 @@ import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
 import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, TrendingUp } from 'lucide-react';
 
-import AdminMetrics from '../components/Admin/AdminMetrics';
-import ProveedorApprovalList from '../components/Admin/ProveedorApprovalList';
-import EvaluacionModerationList from '../components/Admin/EvaluacionModerationList';
-import ProveedorManagementList from '../components/Admin/ProveedorManagementList';
-import ConversionMetrics from '../components/Admin/ConversionMetrics';
+import dynamic from 'next/dynamic';
+
+const AdminMetrics = dynamic(() => import('../components/Admin/AdminMetrics'), { ssr: false });
+const ProveedorApprovalList = dynamic(() => import('../components/Admin/ProveedorApprovalList'), { ssr: false });
+const EvaluacionModerationList = dynamic(() => import('../components/Admin/EvaluacionModerationList'), { ssr: false });
+const ProveedorManagementList = dynamic(() => import('../components/Admin/ProveedorManagementList'), { ssr: false });
+const ConversionMetrics = dynamic(() => import('../components/Admin/ConversionMetrics'), { ssr: false });
 
 export default function AdminDashboard() {
     const router = useRouter();

@@ -111,7 +111,43 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={desc} />
                 <meta property="og:image" content={proveedor.foto_perfil || '/og-default.png'} />
-                <link rel="canonical" href={`https://pawnecta.cl/proveedor/${proveedor.id}`} />
+                <link rel="canonical" href={`https://www.pawnecta.com/proveedor/${proveedor.id}`} />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'LocalBusiness',
+                            name: `${proveedor.nombre} ${proveedor.apellido_p}`,
+                            description: desc,
+                            image: proveedor.foto_perfil || undefined,
+                            url: `https://www.pawnecta.com/proveedor/${proveedor.id}`,
+                            address: {
+                                '@type': 'PostalAddress',
+                                addressLocality: proveedor.comuna,
+                                addressCountry: 'CL',
+                            },
+                            ...(globalTotalEvaluaciones > 0 ? {
+                                aggregateRating: {
+                                    '@type': 'AggregateRating',
+                                    ratingValue: globalRatingPromedio,
+                                    reviewCount: globalTotalEvaluaciones,
+                                },
+                            } : {}),
+                            ...(servicios.length > 0 ? {
+                                makesOffer: servicios.map(s => ({
+                                    '@type': 'Offer',
+                                    itemOffered: {
+                                        '@type': 'Service',
+                                        name: s.titulo,
+                                    },
+                                    price: s.precio_desde,
+                                    priceCurrency: 'CLP',
+                                })),
+                            } : {}),
+                        }),
+                    }}
+                />
             </Head>
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-5">
