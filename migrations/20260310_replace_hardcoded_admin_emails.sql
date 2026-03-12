@@ -5,7 +5,7 @@
 -- Run this BEFORE applying:
 --   UPDATE proveedores SET roles = array_append(COALESCE(roles, '{}'), 'admin')
 --   WHERE auth_user_id IN (
---     SELECT id FROM auth.users WHERE email IN ('admin@pawnecta.com', 'cano.caldera@gmail.com')
+--     SELECT id FROM auth.users WHERE email IN ('canocortes@gmail.com')
 --   ) AND NOT ('admin' = ANY(COALESCE(roles, '{}')));
 
 -- 1. Create a reusable function to check admin role
