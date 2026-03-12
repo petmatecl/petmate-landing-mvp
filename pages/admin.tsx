@@ -43,12 +43,12 @@ export default function AdminDashboard() {
             // Verificación por rol en la base de datos (única fuente de verdad)
             const { data: profile } = await supabase
                 .from('proveedores')
-                .select('roles')
+                .select('roles, estado')
                 .eq('auth_user_id', session.user.id)
-                .eq('estado', 'aprobado')
                 .maybeSingle();
 
-            const hasAdminAccess = profile?.roles && Array.isArray(profile.roles) && profile.roles.includes('admin');
+            const roles = Array.isArray(profile?.roles) ? profile.roles : [];
+            const hasAdminAccess = roles.includes('admin') && profile?.estado === 'aprobado';
 
             setIsAdmin(!!hasAdminAccess);
         } catch (error) {
@@ -77,32 +77,61 @@ export default function AdminDashboard() {
                 password: adminPassword,
             });
 
-            if (error || !data.user) {
-                setLoginError('Credenciales incorrectas.');
+            if (error) {
+                const msg = error.message.toLowerCase();
+                if (msg.includes('email not confirmed')) {
+                    setLoginError('Debes confirmar tu correo antes de ingresar. Revisa tu bandeja de entrada.');
+                } else if (msg.includes('invalid login credentials') || msg.includes('invalid')) {
+                    setLoginError('El correo o la contraseña no son correctos.');
+                } else {
+                    setLoginError(`Error de autenticación: ${error.message}`);
+                }
                 setLoginLoading(false);
                 return;
             }
 
-            // Verificar rol admin en DB
-            const { data: proveedorData } = await supabase
+            if (!data.user) {
+                setLoginError('No se pudo obtener la sesión. Intenta nuevamente.');
+                setLoginLoading(false);
+                return;
+            }
+
+            // Verificar rol admin en DB (sin filtrar por estado para dar mejor feedback)
+            const { data: proveedorData, error: queryError } = await supabase
                 .from('proveedores')
                 .select('roles, estado')
                 .eq('auth_user_id', data.user.id)
                 .maybeSingle();
 
-            if (!proveedorData) {
+            if (queryError) {
+                console.error('Admin query error:', queryError);
                 await supabase.auth.signOut();
-                setLoginError('Credenciales incorrectas.');
+                setLoginError('Error al verificar permisos. Contacta al administrador.');
                 setLoginLoading(false);
                 return;
             }
 
-            const isAdminCheck = proveedorData.roles?.includes('admin')
-                && proveedorData.estado === 'aprobado';
-
-            if (!isAdminCheck) {
+            if (!proveedorData) {
                 await supabase.auth.signOut();
-                setLoginError('Credenciales incorrectas.');
+                setLoginError('Esta cuenta no tiene un perfil de proveedor asociado.');
+                setLoginLoading(false);
+                return;
+            }
+
+            const roles = Array.isArray(proveedorData.roles) ? proveedorData.roles : [];
+            const hasAdminRole = roles.includes('admin');
+            const isApproved = proveedorData.estado === 'aprobado';
+
+            if (!hasAdminRole) {
+                await supabase.auth.signOut();
+                setLoginError('Esta cuenta no tiene permisos de administrador.');
+                setLoginLoading(false);
+                return;
+            }
+
+            if (!isApproved) {
+                await supabase.auth.signOut();
+                setLoginError(`Tu perfil de proveedor tiene estado "${proveedorData.estado}". Debe estar aprobado para acceder al admin.`);
                 setLoginLoading(false);
                 return;
             }
@@ -111,6 +140,7 @@ export default function AdminDashboard() {
             window.location.reload();
 
         } catch (err) {
+            console.error('Admin login error:', err);
             setLoginError('Error al iniciar sesión. Intenta nuevamente.');
             setLoginLoading(false);
         }
