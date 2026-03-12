@@ -2,6 +2,7 @@
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown } from 'lucide-react';
+import { SERVICE_DETAILS_CONFIG, DIAS_SEMANA, type ServiceField } from '../../lib/serviceDetailsConfig';
 
 interface ServiceFormModalProps {
     isOpen: boolean;
@@ -37,6 +38,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [uploadingFotos, setUploadingFotos] = useState(false);
     const [showMobilePreview, setShowMobilePreview] = useState(false);
 
+    // Detalles específicos por categoría (JSONB)
+    const [detallesServicio, setDetallesServicio] = useState<Record<string, any>>({});
+
     useEffect(() => {
         if (isOpen) {
             fetchCategorias();
@@ -63,10 +67,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setTamanoGrande(false);
         setDisponibilidad('');
         setFotos([]);
+        setDetallesServicio({});
     };
 
     const fetchCategorias = async () => {
-        const { data, error } = await supabase.from('categorias_servicio').select('id, nombre, icono').order('nombre');
+        const { data, error } = await supabase.from('categorias_servicio').select('id, nombre, icono, slug').order('nombre');
         if (!error && data) {
             setCategorias(data);
             if (!existingServiceId && data.length > 0) {
@@ -96,6 +101,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
             setDisponibilidad(data.disponibilidad || '');
             setFotos(data.fotos || []);
+            setDetallesServicio(data.detalles_servicio || {});
         }
         setFetching(false);
     };
@@ -179,7 +185,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             acepta_otras: otras,
             tamanos_aceptados: perros ? sizes : [],
             disponibilidad,
-            fotos
+            fotos,
+            detalles_servicio: detallesServicio
         };
 
         if (existingServiceId) {
@@ -204,9 +211,24 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setLoading(false);
     };
 
+    const updateDetalle = (key: string, value: any) => {
+        setDetallesServicio(prev => ({ ...prev, [key]: value }));
+    };
+
+    const toggleDia = (dia: string) => {
+        const current: string[] = detallesServicio.dias_disponibles || [];
+        if (current.includes(dia)) {
+            updateDetalle('dias_disponibles', current.filter((d: string) => d !== dia));
+        } else {
+            updateDetalle('dias_disponibles', [...current, dia]);
+        }
+    };
+
     if (!isOpen) return null;
 
     const selectedCat = categorias.find(c => c.id === categoriaId);
+    const categorySlug = selectedCat?.slug || '';
+    const detailsConfig = SERVICE_DETAILS_CONFIG[categorySlug];
     const coverPreview = fotos[0] || null;
 
     const PreviewCard = () => (
@@ -405,6 +427,126 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                 />
                             </div>
+
+                            {/* Detalles específicos del servicio */}
+                            {detailsConfig && (
+                                <div className="border border-emerald-200 bg-emerald-50/50 rounded-2xl p-5 space-y-4">
+                                    <h3 className="text-sm font-bold text-emerald-900 flex items-center gap-2">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                        {detailsConfig.sectionTitle}
+                                    </h3>
+                                    <p className="text-xs text-emerald-700/70">Estos datos ayudan a los clientes a tomar mejores decisiones. Completa lo que aplique a tu servicio.</p>
+
+                                    <div className="space-y-4">
+                                        {detailsConfig.fields.map((field) => {
+                                            if (field.type === 'days') {
+                                                const selectedDays: string[] = detallesServicio.dias_disponibles || [];
+                                                return (
+                                                    <div key={field.key}>
+                                                        <label className="block text-sm font-semibold text-slate-700 mb-2">{field.icon} {field.label}</label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {DIAS_SEMANA.map(dia => (
+                                                                <button
+                                                                    key={dia}
+                                                                    type="button"
+                                                                    onClick={() => toggleDia(dia)}
+                                                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                                                        selectedDays.includes(dia)
+                                                                            ? 'bg-emerald-600 text-white'
+                                                                            : 'bg-white border border-slate-200 text-slate-600 hover:border-emerald-400'
+                                                                    }`}
+                                                                >
+                                                                    {dia}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            if (field.type === 'time') {
+                                                return (
+                                                    <div key={field.key} className="inline-block mr-4">
+                                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">{field.icon} {field.label}</label>
+                                                        <input
+                                                            type="time"
+                                                            value={detallesServicio[field.key] || ''}
+                                                            onChange={e => updateDetalle(field.key, e.target.value)}
+                                                            className="w-36 h-10 px-3 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                                                        />
+                                                    </div>
+                                                );
+                                            }
+
+                                            if (field.type === 'select') {
+                                                return (
+                                                    <div key={field.key}>
+                                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">{field.icon} {field.label}</label>
+                                                        <select
+                                                            value={detallesServicio[field.key] || ''}
+                                                            onChange={e => updateDetalle(field.key, e.target.value)}
+                                                            className="w-full h-10 px-3 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                                                        >
+                                                            <option value="">{field.placeholder || 'Seleccionar...'}</option>
+                                                            {field.options?.map(opt => (
+                                                                <option key={opt} value={opt}>{opt}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                );
+                                            }
+
+                                            if (field.type === 'number') {
+                                                return (
+                                                    <div key={field.key}>
+                                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">{field.icon} {field.label}</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="number"
+                                                                value={detallesServicio[field.key] || ''}
+                                                                onChange={e => updateDetalle(field.key, e.target.value ? Number(e.target.value) : '')}
+                                                                min={1}
+                                                                placeholder={field.placeholder}
+                                                                className="w-28 h-10 px-3 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                                                            />
+                                                            {field.suffix && <span className="text-xs text-slate-500">{field.suffix}</span>}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            if (field.type === 'boolean') {
+                                                return (
+                                                    <label key={field.key} className="flex items-center gap-3 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={detallesServicio[field.key] || false}
+                                                            onChange={e => updateDetalle(field.key, e.target.checked)}
+                                                            className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600"
+                                                        />
+                                                        <span className="text-sm text-slate-700">{field.icon} {field.label}</span>
+                                                    </label>
+                                                );
+                                            }
+
+                                            // text
+                                            return (
+                                                <div key={field.key}>
+                                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">{field.icon} {field.label}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={detallesServicio[field.key] || ''}
+                                                        onChange={e => updateDetalle(field.key, e.target.value)}
+                                                        placeholder={field.placeholder}
+                                                        className="w-full h-10 px-3 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder:text-slate-400 transition-colors"
+                                                    />
+                                                    {field.helpText && <p className="text-xs text-slate-400 mt-1">{field.helpText}</p>}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Fotos */}
                             <div>

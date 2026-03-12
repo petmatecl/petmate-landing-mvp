@@ -15,9 +15,10 @@ import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
-    Briefcase, Award, Globe, Instagram,
+    Briefcase, Award, Globe, Instagram, Clock, Users, Car, MapPinned, CheckCircle2,
     LucideIcon
 } from 'lucide-react';
+import { SERVICE_DETAILS_CONFIG, BOOLEAN_LABELS } from '../../lib/serviceDetailsConfig';
 import { toast } from 'sonner';
 
 interface ServiceDetailProps {
@@ -391,6 +392,106 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 </div>
                             </div>
                         )}
+
+                        {/* Detalles específicos del servicio */}
+                        {service.detalles_servicio && Object.keys(service.detalles_servicio).length > 0 && (() => {
+                            const catSlug = categoria?.slug;
+                            const config = catSlug ? SERVICE_DETAILS_CONFIG[catSlug] : null;
+                            if (!config) return null;
+
+                            const detalles = service.detalles_servicio;
+                            // Filter to only fields that have values
+                            const filledFields = config.fields.filter(f => {
+                                const val = detalles[f.key];
+                                if (val === undefined || val === null || val === '' || val === false) return false;
+                                if (Array.isArray(val) && val.length === 0) return false;
+                                return true;
+                            });
+
+                            if (filledFields.length === 0) return null;
+
+                            return (
+                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                    <h3 className="text-xl font-bold text-slate-900 mb-5 flex items-center gap-2">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                                        {config.sectionTitle}
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {filledFields.map(field => {
+                                            const val = detalles[field.key];
+
+                                            if (field.type === 'days') {
+                                                return (
+                                                    <div key={field.key} className="sm:col-span-2">
+                                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{field.icon} {field.label}</span>
+                                                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                                            {(val as string[]).map((dia: string) => (
+                                                                <span key={dia} className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2.5 py-1 rounded-lg">
+                                                                    {dia}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            if (field.type === 'boolean') {
+                                                const labels = BOOLEAN_LABELS[field.key];
+                                                const displayText = labels?.true || field.label;
+                                                return (
+                                                    <div key={field.key} className="flex items-center gap-2">
+                                                        <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                                                        <span className="text-sm text-slate-700 font-medium">{field.icon} {displayText}</span>
+                                                    </div>
+                                                );
+                                            }
+
+                                            if (field.type === 'time') {
+                                                // Combine horario_inicio and horario_fin if both exist
+                                                if (field.key === 'horario_fin' && detalles.horario_inicio) return null;
+                                                if (field.key === 'horario_inicio') {
+                                                    const inicio = detalles.horario_inicio;
+                                                    const fin = detalles.horario_fin;
+                                                    return (
+                                                        <div key={field.key} className="flex items-start gap-3">
+                                                            <Clock size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                            <div>
+                                                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block">Horario</span>
+                                                                <span className="text-sm text-slate-800 font-medium">{inicio}{fin ? ` - ${fin}` : ''}</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }
+
+                                            if (field.type === 'number') {
+                                                return (
+                                                    <div key={field.key} className="flex items-start gap-3">
+                                                        <Users size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                        <div>
+                                                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block">{field.label}</span>
+                                                            <span className="text-sm text-slate-800 font-medium">{val} {field.suffix || ''}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            // text and select
+                                            return (
+                                                <div key={field.key} className={`flex items-start gap-3 ${field.type === 'text' ? 'sm:col-span-2' : ''}`}>
+                                                    <MapPinned size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block">{field.label}</span>
+                                                        <span className="text-sm text-slate-800 font-medium">{val}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* Descripcion */}
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
