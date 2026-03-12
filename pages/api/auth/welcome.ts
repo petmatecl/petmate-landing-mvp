@@ -56,6 +56,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (!emailLimiter(req, res)) return;
 
+    // Validate via internal secret to prevent external abuse
+    const internalSecret = req.headers['x-internal-secret'];
+    if (internalSecret !== (process.env.INTERNAL_API_SECRET || 'pawnecta-internal')) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+
     try {
         const parsed = welcomeSchema.safeParse(req.body);
         if (!parsed.success) {

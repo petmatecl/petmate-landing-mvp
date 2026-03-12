@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Props = {
-    role?: "cliente" | "sitter" | "client" | null; // supporting legacy "client" string
+    role?: "usuario" | "proveedor" | null;
     text?: string;
     source?: 'login' | 'register';
 };
@@ -25,9 +25,9 @@ export default function GoogleAuthButton({ role, text = "Continuar con Google", 
                 window.localStorage.removeItem('activeRole');
             }
 
-            // Save role ONLY if explicitly provided (e.g. registration or explicit login choice)
+            // Save role to localStorage for email-confirmado callback to read
             if (typeof window !== 'undefined' && role) {
-                window.localStorage.setItem('pm_auth_role_pending', role);
+                window.localStorage.setItem('pawnecta_pending_role', role);
             }
 
             const { error } = await supabase.auth.signInWithOAuth({
@@ -36,7 +36,7 @@ export default function GoogleAuthButton({ role, text = "Continuar con Google", 
                     redirectTo: `${window.location.origin}/email-confirmado?flow=${source}`, // We can reuse this or a specific callback page
                     queryParams: {
                         access_type: 'offline',
-                        prompt: 'consent',
+                        prompt: source === 'register' ? 'consent' : 'select_account',
                     },
                 },
             });

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Props = {
-    role: "cliente" | "sitter" | "client" | null; // supporting legacy "client" string
+    role?: "usuario" | "proveedor" | null;
     text?: string;
     source?: 'login' | 'register';
 };
@@ -12,16 +12,15 @@ export default function LinkedInAuthButton({ role, text = "Continuar con LinkedI
 
     const handleLinkedInLogin = async () => {
         try {
-            if (!role) {
+            if (source === 'register' && !role) {
                 alert("Por favor selecciona si buscas cuidado (Usuario) o quieres cuidar (Proveedor).");
                 return;
             }
 
             setLoading(true);
-            // Save role to handle redirection/profile creation after callback
-            // (Shared logic with GoogleAuthButton)
-            if (typeof window !== 'undefined') {
-                window.localStorage.setItem('pm_auth_role_pending', role);
+            // Save role to localStorage for email-confirmado callback to read
+            if (typeof window !== 'undefined' && role) {
+                window.localStorage.setItem('pawnecta_pending_role', role);
             }
 
             const { error } = await supabase.auth.signInWithOAuth({
