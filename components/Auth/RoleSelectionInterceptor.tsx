@@ -29,8 +29,11 @@ export const RoleSelectionInterceptor: React.FC = () => {
     const isExcludedRoute = ['/logout', '/register', '/login', '/admin'].includes(router.pathname);
     if (isExcludedRoute) return null;
 
-    // If only one role, UserContext should have auto-selected it. 
-    // If it didn't, it means we have multiple roles and no preference.
+    // If only one role, auto-select it — no need to show the modal
+    if (roles.length === 1) {
+        switchRole(roles[0] as Role);
+        return null;
+    }
 
     const handleSelect = (role: Role) => {
         switchRole(role);
