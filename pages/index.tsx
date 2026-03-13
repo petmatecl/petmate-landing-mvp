@@ -135,43 +135,58 @@ function FranjaCategoria({
 
       {/* Carrusel horizontal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+        <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory">
           {servicios.map((s: any) => {
             const foto = (s.fotos && s.fotos.length > 0) ? s.fotos[0]
               : s.proveedor_foto || FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
+            const rating = s.rating_promedio ? Number(s.rating_promedio) : 0;
+            const hasRating = rating > 0;
             return (
               <a
                 key={s.servicio_id ?? s.id}
                 href={`/servicio/${s.servicio_id ?? s.id}`}
-                className="shrink-0 w-44 snap-start group cursor-pointer"
+                className="shrink-0 w-64 snap-start group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col"
               >
-                <div className="w-44 h-44 rounded-xl overflow-hidden bg-slate-100 mb-3">
+                {/* Foto */}
+                <div className="w-full h-44 overflow-hidden bg-slate-100 relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={foto}
                     alt={s.titulo}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement;
                       const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
-                      if (img.src !== fallback) {
-                        img.src = fallback;
-                      }
+                      if (img.src !== fallback) img.src = fallback;
                     }}
                   />
+                  {/* Rating badge */}
+                  {hasRating && (
+                    <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm flex items-center gap-1">
+                      <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                      {rating.toFixed(1)}
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors">
-                  {s.titulo}
-                </p>
-                {s.proveedor_comuna && (
-                  <p className="text-xs text-slate-500 mt-0.5">{s.proveedor_comuna}</p>
-                )}
-                {s.precio_desde > 0 && (
-                  <p className="text-sm font-bold text-slate-900 mt-1">
-                    ${s.precio_desde.toLocaleString("es-CL")}
-                    <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
+
+                {/* Contenido */}
+                <div className="p-4 flex flex-col flex-1">
+                  <p className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
+                    {s.titulo}
                   </p>
-                )}
+                  {s.proveedor_nombre && (
+                    <p className="text-xs text-slate-500 mb-1 truncate">{s.proveedor_nombre}</p>
+                  )}
+                  {s.proveedor_comuna && (
+                    <p className="text-xs text-slate-400 truncate">{s.proveedor_comuna}</p>
+                  )}
+                  {s.precio_desde > 0 && (
+                    <p className="text-sm font-bold text-slate-900 mt-auto pt-3 border-t border-slate-100">
+                      ${s.precio_desde.toLocaleString("es-CL")}
+                      <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
+                    </p>
+                  )}
+                </div>
               </a>
             );
           })}
@@ -179,7 +194,7 @@ function FranjaCategoria({
           {/* Card "Ver todos" al final */}
           <button
             onClick={onVerTodos}
-            className="shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-slate-200 hover:border-emerald-400 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors group snap-start"
+            className="shrink-0 w-64 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors group snap-start min-h-[220px]"
           >
             <span className="text-3xl font-black group-hover:scale-110 transition-transform">→</span>
             <span className="text-xs font-semibold text-center px-3 leading-snug">
