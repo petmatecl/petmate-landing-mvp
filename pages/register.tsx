@@ -203,7 +203,7 @@ export default function RegisterWizard() {
 
   const proceedToNextStep = () => {
     setError("");
-    if (!nombre || !apellidoP || !email || !password || !passwordConfirm) {
+    if (!nombre || !apellidoP || !apellidoM || !email || !password || !passwordConfirm) {
       setError("Por favor completa los campos obligatorios.");
       return;
     }
@@ -479,11 +479,8 @@ export default function RegisterWizard() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Apellido Materno
-                    <span className="ml-1.5 text-xs font-normal text-slate-400">(Opcional)</span>
-                  </label>
-                  <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className={inputClass} />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Materno *</label>
+                  <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} required className={inputClass} />
                 </div>
 
                 <div>
@@ -683,7 +680,12 @@ export default function RegisterWizard() {
                                   <input
                                     type={campo.tipo === 'number' ? 'number' : 'text'}
                                     value={datosDinamicos[campo.key] || ''}
-                                    onChange={e => setDatoDinamico(campo.key, e.target.value)}
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      if (campo.tipo === 'number' && Number(val) < 0) return;
+                                      setDatoDinamico(campo.key, val);
+                                    }}
+                                    min={campo.tipo === 'number' ? 0 : undefined}
                                     placeholder={campo.placeholder}
                                     className={inputClass}
                                   />
