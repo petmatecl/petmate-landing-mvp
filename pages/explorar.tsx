@@ -343,7 +343,6 @@ export default function ExplorarPage() {
                 const { data: altData } = await supabase.rpc('buscar_servicios', {
                     p_categoria_slug: primarySlug,
                     p_comuna: null,
-                    p_tipo_mascota: null,
                     p_tamano: null,
                     p_precio_max: null,
                     p_precio_min: null,
