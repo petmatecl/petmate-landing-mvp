@@ -322,16 +322,6 @@ export default function DashboardContent() {
                 </div>
             )}
 
-            {/* --- WELCOME HEADER --- */}
-            <section className="bg-white border border-slate-200 rounded-2xl p-6 mb-2">
-                <p className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                    Bienvenido de vuelta
-                </p>
-                <h1 className="text-2xl font-bold text-slate-900">{firstName}</h1>
-                <p className="text-slate-500 mt-1 max-w-xl">
-                    Aquí puedes ver tus mensajes, favoritos y los servicios que has consultado.
-                </p>
-            </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 

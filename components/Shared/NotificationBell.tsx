@@ -134,14 +134,23 @@ export default function NotificationBell() {
                     <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
                             <h3 className="font-bold text-slate-900">Notificaciones</h3>
-                            {unreadCount > 0 && (
+                            <div className="flex items-center gap-3">
+                                {unreadCount > 0 && (
+                                    <button
+                                        onClick={handleMarkAllRead}
+                                        className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                                    >
+                                        <Check size={14} /> Marcar leídas
+                                    </button>
+                                )}
                                 <button
-                                    onClick={handleMarkAllRead}
-                                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                                    aria-label="Cerrar notificaciones"
                                 >
-                                    <Check size={14} /> Marcar todas leídas
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                                 </button>
-                            )}
+                            </div>
                         </div>
 
                         <div className="max-h-[60vh] overflow-y-auto">
