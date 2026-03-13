@@ -39,12 +39,13 @@ export default function MensajesPage() {
     if (!userId) return null; // Redirecting
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
             <Head>
-                <title>Mensajes | Pawnecta</title>
+                <title>Tus Mensajes — Pawnecta</title>
+                <meta name="description" content="Comunícate directamente con proveedores o clientes en Pawnecta." />
             </Head>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-64px-64px)] flex flex-col">
+            <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
                 <div className="mb-6 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">

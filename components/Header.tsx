@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useUser } from "../contexts/UserContext"; // Context Unificado
 import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
-import UnreadBadge from "./Shared/UnreadBadge";
 import QuickSearch from "./Header/QuickSearch";
 import { Search, Briefcase } from "lucide-react";
 

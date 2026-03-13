@@ -17,8 +17,6 @@ interface ClientLayoutProps {
 export default function ClientLayout({ children, userId, title = "Panel Usuario — Pawnecta" }: ClientLayoutProps) {
     const router = useRouter();
     const [clientProfile, setClientProfile] = useState<any>(null);
-    const [nombre, setNombre] = useState<string | null>(null);
-    const [uploading, setUploading] = useState(false);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [alertConfig, setAlertConfig] = useState<{
         isOpen: boolean;
@@ -35,13 +33,6 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
     useEffect(() => {
         if (userId) {
             fetchClientProfile(userId);
-            supabase.auth.getUser().then(({ data }) => {
-                if (data.user) {
-                    if (data.user.user_metadata?.nombre) {
-                        setNombre(data.user.user_metadata.nombre);
-                    }
-                }
-            });
         }
     }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -54,7 +45,6 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
         if (buscadorData) {
             setClientProfile(buscadorData);
-            if (buscadorData.nombre && !nombre) setNombre(buscadorData.nombre);
             return;
         }
 
@@ -66,18 +56,26 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
         if (proveedorData) {
             setClientProfile(proveedorData);
-            if (proveedorData.nombre && !nombre) setNombre(proveedorData.nombre);
         }
     }
+
+    const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+        setAlertConfig({ isOpen: true, title, message, type });
+    };
+
+    const closeAlert = () => {
+        setAlertConfig(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push("/login");
+    };
 
     const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!userId) return;
         try {
-            setUploading(true);
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error('Debes seleccionar una imagen.');
-            }
-
+            if (!event.target.files || event.target.files.length === 0) return;
             const file = event.target.files[0];
             const fileExt = file.name.split('.').pop();
             const fileName = `${userId}-${Math.random()}.${fileExt}`;
@@ -85,7 +83,6 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
             const { error: uploadError } = await supabase.storage
                 .from('avatars')
                 .upload(fileName, file);
-
             if (uploadError) throw uploadError;
 
             const { data: { publicUrl } } = supabase.storage
@@ -109,45 +106,32 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
             setClientProfile((prev: any) => ({ ...prev, foto_perfil: publicUrl }));
             showAlert('¡Foto actualizada!', 'Tu foto de perfil ha sido actualizada correctamente.', 'success');
-
         } catch (error: any) {
             console.error('Error uploading photo:', error);
             showAlert('Error', error.message || 'Error subiendo la imagen.', 'error');
-        } finally {
-            setUploading(false);
         }
     };
 
-    const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
-        setAlertConfig({ isOpen: true, title, message, type });
-    };
-
-    const closeAlert = () => {
-        setAlertConfig(prev => ({ ...prev, isOpen: false }));
-    };
-
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        router.push("/login");
-    };
-
-    // suppress unused warning — handleLogout kept for future nav item
+    // Declare for use in future nav items
     void handleLogout;
-    void uploading;
-    void handlePhotoUpload;
 
     return (
         <div className="ambient-bg min-h-screen">
             <Head>
                 <title>{title}</title>
+                <meta name="description" content="Tu panel de usuario en Pawnecta. Gestiona tus mensajes, favoritos y servicios consultados." />
             </Head>
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-                {/* Header */}
-                <header className="mb-6 sm:mb-8 flex justify-between items-center">
+                {/* #11 Fix: was <header> causing duplicate semantic header — now a <div> */}
+                <div className="mb-6 sm:mb-8 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        {/* Mobile Avatar */}
-                        <div className="md:hidden relative w-10 h-10 rounded-full overflow-hidden border-2 border-slate-300 bg-white shrink-0">
+                        {/* Avatar con opción de cambio de foto */}
+                        <label
+                            htmlFor="avatar-upload"
+                            className="md:hidden relative w-10 h-10 rounded-full overflow-hidden border-2 border-slate-300 bg-white shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                            title="Cambiar foto de perfil"
+                        >
                             {clientProfile?.foto_perfil ? (
                                 <Image
                                     src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
@@ -159,20 +143,26 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                             ) : (
                                 <div className="flex items-center justify-center h-full text-slate-300 text-lg"><User size={24} /></div>
                             )}
-                        </div>
+                        </label>
+                        <input
+                            id="avatar-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handlePhotoUpload}
+                        />
 
                         <div>
                             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
                                 {title !== "Panel Usuario — Pawnecta" ? title : null}
                             </h1>
-                            {/* Mobile Status Badge */}
                             <div className="md:hidden mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                 Usuario Verificado
                             </div>
                         </div>
                     </div>
-                </header>
+                </div>
 
                 <div>
                     {children}

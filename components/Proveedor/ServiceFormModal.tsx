@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown } from 'lucide-react';
@@ -46,6 +46,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 resetForm();
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, existingServiceId]);
 
     const resetForm = () => {
@@ -65,7 +66,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setFotos([]);
     };
 
-    const fetchCategorias = async () => {
+    const fetchCategorias = useCallback(async () => {
         const { data, error } = await supabase.from('categorias_servicio').select('id, nombre, icono').order('nombre');
         if (!error && data) {
             setCategorias(data);
@@ -73,7 +74,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 setCategoriaId(data[0].id);
             }
         }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const fetchService = async (id: string) => {
         setFetching(true);

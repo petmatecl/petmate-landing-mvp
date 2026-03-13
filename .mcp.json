@@ -13,6 +13,15 @@
       "headers": {
         "Authorization": "Bearer ${SUPABASE_ACCESS_TOKEN}"
       }
+    },
+    "stitch": {
+      "command": "npx",
+      "args": [
+        "stitch-mcp"
+      ],
+      "env": {
+        "STITCH_API_KEY": "AQ.Ab8RN6K3PgbNsEbTb9EdL5wT_pTLEbYI6F3U4iLB5F065VA7vQ"
+      }
     }
   }
 }

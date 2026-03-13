@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 
 export default function SessionTimeout() {
     const router = useRouter();
-    const INACTIVITY_LIMIT_MS = 10 * 60 * 1000; // 10 minutos
     const STORAGE_KEY = 'pawnecta_last_activity';
 
     useEffect(() => {
+        const INACTIVITY_LIMIT_MS = 10 * 60 * 1000; // 10 minutos
         let timeoutId: NodeJS.Timeout;
 
         const checkInactivityOnMount = async () => {
@@ -83,6 +83,7 @@ export default function SessionTimeout() {
                 window.removeEventListener(event, resetTimer);
             });
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     return null; // Componente sin UI visible

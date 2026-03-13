@@ -130,7 +130,7 @@ export function useProveedorStats(provId: string, authId: string) {
         } finally {
             setLoading(false);
         }
-    }, [provId, authId]);
+    }, [provId]);
 
     return { stats, loading, refetch };
 }

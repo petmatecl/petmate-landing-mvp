@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { X, BellRing } from 'lucide-react';
 
@@ -23,19 +23,7 @@ export default function PushNotifications() {
     const { user } = useUser();
     const [showPrompt, setShowPrompt] = useState(false);
 
-    useEffect(() => {
-        if (!user || typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
-
-        if (Notification.permission === 'default') {
-            // Delay prompt a bit so it's not super aggressive
-            const t = setTimeout(() => setShowPrompt(true), 3000);
-            return () => clearTimeout(t);
-        } else if (Notification.permission === 'granted') {
-            subscribeToPush();
-        }
-    }, [user]);
-
-    const subscribeToPush = async () => {
+    const subscribeToPush = useCallback(async () => {
         try {
             if (Notification.permission === 'default') {
                 const permission = await Notification.requestPermission();
@@ -68,7 +56,19 @@ export default function PushNotifications() {
         } catch (err) {
             console.error('Push error', err);
         }
-    };
+    }, [user]);
+
+    useEffect(() => {
+        if (!user || typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+        if (Notification.permission === 'default') {
+            // Delay prompt a bit so it's not super aggressive
+            const t = setTimeout(() => setShowPrompt(true), 3000);
+            return () => clearTimeout(t);
+        } else if (Notification.permission === 'granted') {
+            subscribeToPush();
+        }
+    }, [user, subscribeToPush]);
 
     if (!showPrompt) return null;
 

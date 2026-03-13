@@ -1,37 +1,24 @@
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
-
-// ==== Íconos mono (inline SVG) ====
-const LockIcon = (props: any) => (
-    <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        {...props}
-    >
-        <rect x="4" y="11" width="16" height="9" rx="2" />
-        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
-);
+import { Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function ResetPasswordPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     useEffect(() => {
-        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
             if (event === "PASSWORD_RECOVERY") {
-                // El usuario está en modo recuperación
+                // User is in password recovery mode — no action needed here
             }
         });
-
         return () => {
             authListener.subscription.unsubscribe();
         };
@@ -49,12 +36,10 @@ export default function ResetPasswordPage() {
             setMessage({ type: "error", text: "Completa todos los campos." });
             return;
         }
-
         if (password !== confirmPassword) {
             setMessage({ type: "error", text: "Las contraseñas no coinciden." });
             return;
         }
-
         if (password.length < 8) {
             setMessage({ type: "error", text: "La contraseña debe tener al menos 8 caracteres." });
             return;
@@ -62,23 +47,14 @@ export default function ResetPasswordPage() {
 
         try {
             setLoading(true);
-
-            const { data, error } = await supabase.auth.updateUser({
-                password: password
-            });
+            const { error } = await supabase.auth.updateUser({ password });
 
             if (error) {
                 console.error(error);
                 setMessage({ type: "error", text: "No se pudo actualizar la contraseña. Token inválido o expirado." });
             } else {
-                setMessage({
-                    type: "success",
-                    text: "Contraseña actualizada correctamente.",
-                });
-                // Redirigir después de unos segundos
-                setTimeout(() => {
-                    router.push("/login");
-                }, 2000);
+                setMessage({ type: "success", text: "Contraseña actualizada correctamente. Redirigiendo..." });
+                setTimeout(() => { router.push("/login"); }, 2000);
             }
         } catch (err) {
             console.error(err);
@@ -91,71 +67,98 @@ export default function ResetPasswordPage() {
     return (
         <>
             <Head>
-                <title>Restablecer Contraseña | Pawnecta</title>
+                <title>Nueva Contraseña | Pawnecta</title>
+                <meta name="description" content="Establece una nueva contraseña para tu cuenta de Pawnecta." />
             </Head>
 
-            <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-md shadow-sm">
-                    <h1 className="text-2xl font-bold text-slate-900 mb-2">Nueva contraseña</h1>
-                    <p className="text-sm text-slate-500 mb-6">
-                        Ingresa tu nueva contraseña para acceder a tu cuenta.
-                    </p>
+            <div className="min-h-screen bg-slate-50 flex flex-col">
+                {/* Mini header */}
+                <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between max-w-7xl mx-auto w-full">
+                    <Link href="/">
+                        <Image src="/pawnecta_logo_final-trans.png" alt="Pawnecta" width={110} height={32} className="h-7 w-auto" />
+                    </Link>
+                    <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">
+                        ← Volver al inicio de sesión
+                    </Link>
+                </header>
 
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-1 mb-4">
-                            <label htmlFor="password" className="text-sm font-medium text-slate-700 block">
-                                Nueva contraseña
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <LockIcon />
-                                </span>
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    required
-                                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
-                                />
-                            </div>
+                <main className="flex-1 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-md shadow-sm">
+                        <div className="mb-6">
+                            <h1 className="text-2xl font-bold text-slate-900 mb-2">Nueva contraseña</h1>
+                            <p className="text-sm text-slate-500">Ingresa tu nueva contraseña para acceder a tu cuenta.</p>
                         </div>
 
-                        <div className="flex flex-col gap-1 mb-4">
-                            <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 block">
-                                Confirmar contraseña
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <LockIcon />
-                                </span>
-                                <input
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    required
-                                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
-                                />
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                            {/* Nueva contraseña */}
+                            <div className="flex flex-col gap-1">
+                                <label htmlFor="password" className="text-sm font-medium text-slate-700 block">
+                                    Nueva contraseña
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                        <Lock size={18} />
+                                    </span>
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Mínimo 8 caracteres"
+                                        required
+                                        className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                    />
+                                    <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        {message && (
-                            <div className={`p-4 rounded-lg text-sm font-medium ${message.type === "error" ? "bg-red-100 text-red-700 border-red-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"} border`} role="alert">
-                                {message.text}
+                            {/* Confirmar contraseña */}
+                            <div className="flex flex-col gap-1">
+                                <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 block">
+                                    Confirmar contraseña
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                        <Lock size={18} />
+                                    </span>
+                                    <input
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        type={showConfirm ? "text" : "password"}
+                                        placeholder="Repite tu contraseña"
+                                        required
+                                        className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                    />
+                                    <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                        {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
-                        )}
 
-                        <button
-                            type="submit"
-                            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-                            disabled={loading}
-                        >
-                            {loading ? "Actualizando..." : "Actualizar contraseña"}
-                        </button>
-                    </form>
-                </div>
-            </main>
+                            {message && (
+                                <div
+                                    className={`p-4 rounded-lg text-sm font-medium border ${message.type === "error"
+                                            ? "bg-red-50 text-red-700 border-red-200"
+                                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                        }`}
+                                    role="alert"
+                                >
+                                    {message.text}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                                disabled={loading}
+                            >
+                                {loading ? <><Loader2 size={18} className="animate-spin" /> Actualizando...</> : "Actualizar contraseña"}
+                            </button>
+                        </form>
+                    </div>
+                </main>
+            </div>
         </>
     );
 }
