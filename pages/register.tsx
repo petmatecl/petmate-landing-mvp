@@ -165,6 +165,14 @@ export default function RegisterWizard() {
   const setDatoDinamico = (key: string, value: any) =>
     setDatosDinamicos(prev => ({ ...prev, [key]: value }));
   const comunaRef = useRef<HTMLDivElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to error when it appears
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   const comunasFiltradas = COMUNAS_CHILE.filter(c =>
     c.toLowerCase().includes(comunaQuery.toLowerCase())
@@ -362,7 +370,7 @@ export default function RegisterWizard() {
 
           <div className="p-6 sm:px-10 sm:py-8">
             {error && (
-              <div className="p-4 mb-6 text-sm text-red-700 bg-red-50 rounded-xl border border-red-100">
+              <div ref={errorRef} className="p-4 mb-6 text-sm text-red-700 bg-red-50 rounded-xl border border-red-100">
                 {error}
               </div>
             )}
