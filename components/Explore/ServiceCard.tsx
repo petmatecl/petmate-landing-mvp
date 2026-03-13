@@ -43,7 +43,7 @@ export default function ServiceCard({ service, isFavorite }: Props) {
     const [showLoginModal, setShowLoginModal] = useState(false);
 
     // Use first photo of service, fallback to provider photo, fallback to generic
-    const defaultImage = "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=600";
+    const defaultImage = "/images/categories/default.jpg";
     const coverImage = service.fotos?.[0] || service.proveedor_foto || defaultImage;
 
     // Cargar estado inicial del favorito solo si no se pasa prop isFavorite (evita N+1 queries)
@@ -137,7 +137,7 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                     loading="lazy"
                     onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement;
-                        if (target.src !== defaultImage) {
+                        if (!target.src.endsWith(defaultImage)) {
                             target.src = defaultImage;
                         }
                     }}

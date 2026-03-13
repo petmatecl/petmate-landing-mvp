@@ -93,15 +93,15 @@ function PrelaunchDemandCapture() {
 }
 
 const FALLBACK_HOME: Record<string, string> = {
-  hospedaje: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&auto=format&fit=crop&q=70",
-  guarderia: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&auto=format&fit=crop&q=70",
-  paseos: "https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=400&auto=format&fit=crop&q=70",
-  domicilio: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&auto=format&fit=crop&q=70",
-  peluqueria: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=400&auto=format&fit=crop&q=70",
-  adiestramiento: "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=400&auto=format&fit=crop&q=70",
-  veterinario: "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&auto=format&fit=crop&q=70",
-  traslado: "https://images.unsplash.com/photo-1544568100-847a948585b9?w=400&auto=format&fit=crop&q=70",
-  default: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&auto=format&fit=crop&q=70",
+  hospedaje: "/images/categories/hospedaje.jpg",
+  guarderia: "/images/categories/guarderia.jpg",
+  paseos: "/images/categories/paseos.jpg",
+  domicilio: "/images/categories/domicilio.jpg",
+  peluqueria: "/images/categories/peluqueria.jpg",
+  adiestramiento: "/images/categories/adiestramiento.jpg",
+  veterinario: "/images/categories/veterinario.jpg",
+  traslado: "/images/categories/traslado.jpg",
+  default: "/images/categories/default.jpg",
 };
 
 function FranjaCategoria({
@@ -154,7 +154,7 @@ function FranjaCategoria({
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement;
                       const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
-                      if (img.src !== fallback) {
+                      if (!img.src.endsWith(fallback)) {
                         img.src = fallback;
                       }
                     }}
@@ -305,21 +305,9 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
           <div className="flex-1 w-full max-w-lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=900&auto=format&fit=crop&q=80"
+              src="/images/hero-perro.jpg"
               alt="Mascota con su dueña"
               className="w-full h-64 lg:h-[400px] object-cover rounded-3xl shadow-xl"
-              onError={(e) => {
-                const HERO_FALLBACKS = [
-                  "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&auto=format&fit=crop&q=80",
-                  "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=900&auto=format&fit=crop&q=80",
-                ];
-                const img = e.currentTarget as HTMLImageElement;
-                const tried = Number(img.dataset.fallbackIndex ?? 0);
-                if (tried < HERO_FALLBACKS.length) {
-                  img.dataset.fallbackIndex = String(tried + 1);
-                  img.src = HERO_FALLBACKS[tried];
-                }
-              }}
             />
           </div>
         </div>

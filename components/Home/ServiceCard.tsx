@@ -8,16 +8,16 @@ export default function ServiceCard({ service }: { service: any }) {
 
     // Use flat fields from mapJoinToServiceResult — no raw JOIN arrays
     const FOTO_FALLBACK: Record<string, string> = {
-        hospedaje: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&auto=format&fit=crop&q=80',
-        guarderia: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&auto=format&fit=crop&q=80',
-        paseos: 'https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=600&auto=format&fit=crop&q=80',
-        domicilio: 'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=600&auto=format&fit=crop&q=80',
-        peluqueria: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=600&auto=format&fit=crop&q=80',
-        adiestramiento: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=600&auto=format&fit=crop&q=80',
-        veterinario: 'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=600&auto=format&fit=crop&q=80',
-        traslado: 'https://images.unsplash.com/photo-1544568100-847a948585b9?w=600&auto=format&fit=crop&q=80',
+        hospedaje: '/images/categories/hospedaje.jpg',
+        guarderia: '/images/categories/guarderia.jpg',
+        paseos: '/images/categories/paseos.jpg',
+        domicilio: '/images/categories/domicilio.jpg',
+        peluqueria: '/images/categories/peluqueria.jpg',
+        adiestramiento: '/images/categories/adiestramiento.jpg',
+        veterinario: '/images/categories/veterinario.jpg',
+        traslado: '/images/categories/traslado.jpg',
     };
-    const FOTO_DEFAULT = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&auto=format&fit=crop&q=80';
+    const FOTO_DEFAULT = '/images/categories/default.jpg';
 
     const fotoUrl =
         (service.fotos && service.fotos.length > 0) ? service.fotos[0]
