@@ -104,108 +104,165 @@ const FALLBACK_HOME: Record<string, string> = {
   default: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&auto=format&fit=crop&q=70",
 };
 
+// ─── Shared card ─────────────────────────────────────────────────────────────
+function ServiceCardItem({ s }: { s: any }) {
+  const foto = (s.fotos && s.fotos.length > 0) ? s.fotos[0]
+    : s.proveedor_foto || FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME['default'];
+  const rating = s.rating_promedio ? Number(s.rating_promedio) : 0;
+  const hasRating = rating > 0;
+  return (
+    <a
+      href={`/servicio/${s.servicio_id ?? s.id}`}
+      className="group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col"
+    >
+      <div className="w-full h-44 overflow-hidden bg-slate-100 relative">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={foto}
+          alt={s.titulo}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            const img = e.currentTarget as HTMLImageElement;
+            const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME['default'];
+            if (img.src !== fallback) img.src = fallback;
+          }}
+        />
+        {s.categoria_nombre && (
+          <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-700">
+            {s.categoria_nombre}
+          </div>
+        )}
+        {hasRating && (
+          <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm flex items-center gap-1">
+            <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+            {rating.toFixed(1)}
+          </div>
+        )}
+      </div>
+      <div className="p-4 flex flex-col flex-1">
+        <p className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
+          {s.titulo}
+        </p>
+        {s.proveedor_nombre && (
+          <p className="text-xs text-slate-500 mb-1 truncate">{s.proveedor_nombre}</p>
+        )}
+        {s.proveedor_comuna && (
+          <p className="text-xs text-slate-400 truncate">{s.proveedor_comuna}</p>
+        )}
+        {s.precio_desde > 0 && (
+          <p className="text-sm font-bold text-slate-900 mt-auto pt-3 border-t border-slate-100">
+            ${s.precio_desde.toLocaleString('es-CL')}
+            <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
+          </p>
+        )}
+      </div>
+    </a>
+  );
+}
+
+// ─── Dual category block: 2 categories merged, grid layout, no scroll ─────────
+function FranjaDual({
+  titulo, IconA, IconB, serviciosA, serviciosB,
+  onVerTodosA, onVerTodosB, labelA, labelB,
+}: {
+  titulo: string; IconA: any; IconB: any;
+  serviciosA: any[]; serviciosB: any[];
+  onVerTodosA: () => void; onVerTodosB: () => void;
+  labelA: string; labelB: string;
+}) {
+  // Interleave: A, B, A, B up to 4 total
+  const combined: any[] = [];
+  let ai = 0, bi = 0;
+  while (combined.length < 4 && (ai < serviciosA.length || bi < serviciosB.length)) {
+    if (ai < serviciosA.length) combined.push(serviciosA[ai++]);
+    if (combined.length < 4 && bi < serviciosB.length) combined.push(serviciosB[bi++]);
+  }
+  const total = serviciosA.length + serviciosB.length;
+  const hasMore = total > 4;
+  if (total === 0) return null;
+
+  return (
+    <div className="border-b border-slate-100 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <IconA className="w-5 h-5 text-emerald-600" />
+              <IconB className="w-4 h-4 text-emerald-400" />
+            </div>
+            <h2 className="text-base font-bold text-slate-900">{titulo}</h2>
+            <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-4 text-sm font-semibold text-emerald-700">
+            {serviciosA.length > 0 && <button onClick={onVerTodosA} className="hover:text-emerald-900 transition-colors">{labelA} →</button>}
+            {serviciosB.length > 0 && <button onClick={onVerTodosB} className="hover:text-emerald-900 transition-colors">{labelB} →</button>}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {combined.map((s: any, i: number) => (
+            <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+          ))}
+        </div>
+        {hasMore && (
+          <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {serviciosA.length > 0 && (
+              <button onClick={onVerTodosA} className="w-full sm:w-auto px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
+                Ver todos: {labelA.toLowerCase()}
+              </button>
+            )}
+            {serviciosB.length > 0 && (
+              <button onClick={onVerTodosB} className="w-full sm:w-auto px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
+                Ver todos: {labelB.toLowerCase()}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Single-category fallback (grid, no scroll) ───────────────────────────────
 function FranjaCategoria({
-  categoria,
-  servicios,
-  onVerTodos,
+  categoria, servicios, onVerTodos,
 }: {
   categoria: { slug: string; nombre: string; Icon: any };
   servicios: any[];
   onVerTodos: () => void;
 }) {
-  if (servicios.length === 0) return null;
+  const visible = servicios.slice(0, 4);
+  const hasMore = servicios.length > 4;
+  if (visible.length === 0) return null;
   return (
-    <div className="border-b border-slate-100">
-      {/* Header de la franja */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <categoria.Icon className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
-          <span className="text-xs text-slate-400 font-medium ml-1">
-            {servicios.length} disponible{servicios.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-        <button
-          onClick={onVerTodos}
-          className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 transition-colors"
-        >
-          Ver todos →
-        </button>
-      </div>
-
-      {/* Carrusel horizontal */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory">
-          {servicios.map((s: any) => {
-            const foto = (s.fotos && s.fotos.length > 0) ? s.fotos[0]
-              : s.proveedor_foto || FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
-            const rating = s.rating_promedio ? Number(s.rating_promedio) : 0;
-            const hasRating = rating > 0;
-            return (
-              <a
-                key={s.servicio_id ?? s.id}
-                href={`/servicio/${s.servicio_id ?? s.id}`}
-                className="shrink-0 w-64 snap-start group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col"
-              >
-                {/* Foto */}
-                <div className="w-full h-44 overflow-hidden bg-slate-100 relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={foto}
-                    alt={s.titulo}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
-                    onError={(e) => {
-                      const img = e.currentTarget as HTMLImageElement;
-                      const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME["default"];
-                      if (img.src !== fallback) img.src = fallback;
-                    }}
-                  />
-                  {/* Rating badge */}
-                  {hasRating && (
-                    <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm flex items-center gap-1">
-                      <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                      {rating.toFixed(1)}
-                    </div>
-                  )}
-                </div>
-
-                {/* Contenido */}
-                <div className="p-4 flex flex-col flex-1">
-                  <p className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
-                    {s.titulo}
-                  </p>
-                  {s.proveedor_nombre && (
-                    <p className="text-xs text-slate-500 mb-1 truncate">{s.proveedor_nombre}</p>
-                  )}
-                  {s.proveedor_comuna && (
-                    <p className="text-xs text-slate-400 truncate">{s.proveedor_comuna}</p>
-                  )}
-                  {s.precio_desde > 0 && (
-                    <p className="text-sm font-bold text-slate-900 mt-auto pt-3 border-t border-slate-100">
-                      ${s.precio_desde.toLocaleString("es-CL")}
-                      <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
-                    </p>
-                  )}
-                </div>
-              </a>
-            );
-          })}
-
-          {/* Card "Ver todos" al final */}
-          <button
-            onClick={onVerTodos}
-            className="shrink-0 w-64 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors group snap-start min-h-[220px]"
-          >
-            <span className="text-3xl font-black group-hover:scale-110 transition-transform">→</span>
-            <span className="text-xs font-semibold text-center px-3 leading-snug">
-              Ver todos los {categoria.nombre.toLowerCase()}
-            </span>
+    <div className="border-b border-slate-100 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <categoria.Icon className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
+            <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
+          </div>
+          <button onClick={onVerTodos} className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+            Ver todos →
           </button>
         </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {visible.map((s: any, i: number) => (
+            <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+          ))}
+        </div>
+        {hasMore && (
+          <div className="mt-5 text-center">
+            <button onClick={onVerTodos} className="px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
+              Ver todos los {categoria.nombre.toLowerCase()}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
 
 interface HomePageProps {
   featuredServices: any[];
@@ -341,35 +398,55 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECCIÓN 2 — FRANJAS POR CATEGORÍA (cuerpo principal)
-          Una franja por cada categoría con servicios activos.
-          Patrón idéntico a MercadoLibre.
+          SECCIÓN 2 — FRANJAS POR CATEGORÍA (pares)
       ═══════════════════════════════════════════ */}
       {(() => {
         if (!featuredServices || featuredServices.length === 0) return <PrelaunchDemandCapture />;
-        const porCategoria: Record<string, any[]> = {};
+        const por: Record<string, any[]> = {};
         featuredServices.forEach((s: any) => {
           const slug = s.categoria_slug || 'default';
-          if (!porCategoria[slug]) porCategoria[slug] = [];
-          if (porCategoria[slug].length < 10) porCategoria[slug].push(s);
+          if (!por[slug]) por[slug] = [];
+          if (por[slug].length < 10) por[slug].push(s);
         });
-        const categoriasConServicios = categoriasEstaticas.filter(
-          (c) => (porCategoria[c.slug] || []).length > 0
-        );
-        if (categoriasConServicios.length === 0) return <PrelaunchDemandCapture />;
+        const get = (slug: string) => por[slug] || [];
+        const totalAll = featuredServices.length;
+        if (totalAll === 0) return <PrelaunchDemandCapture />;
+
+        const pairs: Array<{
+          titulo: string; IconA: any; IconB: any;
+          slugA: string; slugB: string; labelA: string; labelB: string;
+        }> = [
+            { titulo: 'Hospedaje y Guardería', IconA: Home, IconB: Sun, slugA: 'hospedaje', slugB: 'guarderia', labelA: 'Hospedaje', labelB: 'Guardería' },
+            { titulo: 'Paseos y Adiestramiento', IconA: Footprints, IconB: Award, slugA: 'paseos', slugB: 'adiestramiento', labelA: 'Paseos', labelB: 'Adiestramiento' },
+            { titulo: 'Veterinario y Peluquería', IconA: Stethoscope, IconB: Scissors, slugA: 'veterinario', slugB: 'peluqueria', labelA: 'Veterinario', labelB: 'Peluquería' },
+            { titulo: 'Domicilio y Traslado', IconA: MapPin, IconB: Car, slugA: 'domicilio', slugB: 'traslado', labelA: 'Domicilio', labelB: 'Traslado' },
+          ];
+
         return (
           <div className="bg-white">
-            {categoriasConServicios.map((cat) => (
-              <FranjaCategoria
-                key={cat.slug}
-                categoria={cat}
-                servicios={porCategoria[cat.slug] || []}
-                onVerTodos={() => router.push(`/explorar?categoria=${cat.slug}`)}
-              />
-            ))}
+            {pairs.map((p) => {
+              const sA = get(p.slugA);
+              const sB = get(p.slugB);
+              if (sA.length + sB.length === 0) return null;
+              return (
+                <FranjaDual
+                  key={`${p.slugA}-${p.slugB}`}
+                  titulo={p.titulo}
+                  IconA={p.IconA}
+                  IconB={p.IconB}
+                  serviciosA={sA}
+                  serviciosB={sB}
+                  labelA={p.labelA}
+                  labelB={p.labelB}
+                  onVerTodosA={() => router.push(`/explorar?categoria=${p.slugA}`)}
+                  onVerTodosB={() => router.push(`/explorar?categoria=${p.slugB}`)}
+                />
+              );
+            })}
           </div>
         );
       })()}
+
 
       {/* ═══════════════════════════════════════════
           SECCIÓN 3 — GRID DE CATEGORÍAS (acceso secundario)
