@@ -47,19 +47,7 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
           },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://*.supabase.co https://www.googletagmanager.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com",
-              "img-src 'self' data: blob: https: http:",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' data: https://fonts.gstatic.com",
-              "frame-src 'self'",
-              "frame-ancestors 'none'"
-            ].join('; ')
-          }
+
         ]
       }
     ]
