@@ -206,6 +206,11 @@ export default function ExplorarPage() {
         fetchFavoritos();
     }, [user]);
 
+    // Serializar router.query para evitar re-renders infinitos.
+    // router.query en Next.js crea una nueva referencia en cada render,
+    // lo que dispararía el efecto infinitamente si se usara el objeto directamente.
+    const queryKey = router.isReady ? JSON.stringify(router.query) : null;
+
     // 2+3. Unificado: leer URL → syncear filters → buscar.
     //       Un solo efecto evita race conditions entre sync y fetch.
     useEffect(() => {
@@ -358,7 +363,7 @@ export default function ExplorarPage() {
 
         run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router.isReady, router.query]);
+    }, [queryKey]);
 
     // goToPage actualiza la URL (lo que dispara el efecto de arriba)
     const goToPage = useCallback((p: number) => {
