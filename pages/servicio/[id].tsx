@@ -46,7 +46,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     const [imgError, setImgError] = useState(false);
 
     // Use shared UserContext — avoids double session fetch
-    const { user } = useUser();
+    const { user, isLoading: isUserLoading } = useUser();
 
     // Check if this user already reviewed this service
     const [yaEvaluo, setYaEvaluo] = useState(false);
@@ -82,6 +82,9 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     const totalReviews = reviews.length;
 
     const handleChatClick = async () => {
+        // Si el contexto aún está cargando la sesión, no actuar
+        if (isUserLoading) return;
+
         // Verificar login con el contexto (ya cargado, sin latencia de red)
         if (!user) {
             setLoginModalOpen(true);
@@ -586,10 +589,10 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             <div className="flex flex-col gap-3">
                                 <button
                                     onClick={handleChatClick}
-                                    disabled={isChatLoading}
+                                    disabled={isChatLoading || isUserLoading}
                                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
                                 >
-                                    {isChatLoading
+                                    {(isChatLoading || isUserLoading)
                                         ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                         : <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
                                     }
