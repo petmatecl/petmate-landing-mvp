@@ -38,46 +38,49 @@ export default function LoginPage() {
       return;
     }
 
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("activeRole");
+      window.localStorage.removeItem("pawnecta_pending_role");
+    }
+
+    setLoading(true);
+    setError(null);
+
     try {
-      const safetyTimer = setTimeout(() => {
-        setLoading(false);
-        setError("El inicio de sesión tardó demasiado. Verifica tu conexión e inténtalo de nuevo.");
-      }, 30000);
+      // Timeout de 8 segundos — si Supabase no responde, mostramos error inmediato
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("TIMEOUT")), 8000)
+      );
 
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("activeRole");
-        window.localStorage.removeItem("pawnecta_pending_role");
-      }
-      setLoading(true);
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        timeout,
+      ]);
 
       if (error) {
-        clearTimeout(safetyTimer);
         const msg = error.message.toLowerCase();
         if (msg.includes("email not confirmed")) {
           setError("Debes confirmar tu correo antes de ingresar. Revisa tu bandeja de entrada o carpeta de spam.");
         } else {
           setError("El correo o la contraseña no son correctos. Inténtalo de nuevo.");
         }
-        setLoading(false);
         return;
       }
 
       if (!data?.user) {
-        clearTimeout(safetyTimer);
         setError("No se pudo iniciar sesión. Inténtalo de nuevo.");
-        setLoading(false);
         return;
       }
 
-      // UserContext.onAuthStateChange se encarga de cargar el perfil (proveedores / usuarios_buscadores).
-      // No hacemos queries adicionales aquí para evitar doble fetch y carreras de condición.
-      clearTimeout(safetyTimer);
+      // Éxito — redirigir
       window.location.replace(redirect || '/explorar');
     } catch (err: any) {
-      console.error(err);
-      setError("No pudimos conectar con el servidor. Verifica tu conexión e inténtalo de nuevo. Si el problema persiste, recarga la página.");
+      if (err?.message === "TIMEOUT") {
+        setError("El correo o la contraseña no son correctos, o hay un problema de conexión. Inténtalo de nuevo.");
+      } else {
+        setError("No pudimos conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.");
+      }
+    } finally {
       setLoading(false);
     }
   }
