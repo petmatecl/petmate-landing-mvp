@@ -168,6 +168,8 @@ export default function ExplorarPage() {
     const [pagina, setPagina] = useState(1);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [vista, setVista] = useState<'lista' | 'mapa'>('lista');
+    // Guard: prevents fetchServices from running before URL params are synced into filters
+    const [filtersReady, setFiltersReady] = useState(false);
 
     // Per-category count from current results (client-side, no extra query)
     const categoryCounts = useMemo(() =>
@@ -241,11 +243,12 @@ export default function ExplorarPage() {
 
         const p = parseInt(paginaParam as string);
         setPagina(Number.isFinite(p) && p >= 1 ? p : 1);
+        setFiltersReady(true);
     }, [router.isReady, router.query]);
 
     // 3. Ejecutar búsqueda
     const fetchServices = useCallback(async () => {
-        if (!router.isReady) return;
+        if (!router.isReady || !filtersReady) return;
 
         setLoading(true);
         setComunasSugeridas([]);
@@ -362,7 +365,7 @@ export default function ExplorarPage() {
         } finally {
             setLoading(false);
         }
-    }, [filters, pagina, router.isReady]);
+    }, [filters, pagina, router.isReady, filtersReady]);
 
     useEffect(() => {
         fetchServices();
