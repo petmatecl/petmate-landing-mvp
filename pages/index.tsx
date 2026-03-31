@@ -183,25 +183,27 @@ function FranjaDual({
   if (total === 0) return null;
 
   return (
-    <div className="border-b border-slate-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <IconA className="w-5 h-5 text-emerald-600" />
-              <IconB className="w-4 h-4 text-emerald-400" />
+    <div className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <IconA className="w-5 h-5 text-emerald-600" />
+                <IconB className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h2 className="text-base font-bold text-slate-900">{titulo}</h2>
+              <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
             </div>
-            <h2 className="text-base font-bold text-slate-900">{titulo}</h2>
-            <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
+            <button onClick={onVerMas} className="hidden sm:block text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+              Ver más →
+            </button>
           </div>
-          <button onClick={onVerMas} className="hidden sm:block text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
-            Ver más →
-          </button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {combined.map((s: any, i: number) => (
-            <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
-          ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {combined.map((s: any, i: number) => (
+              <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -219,22 +221,24 @@ function FranjaCategoria({
   const visible = servicios.slice(0, 4);
   if (visible.length === 0) return null;
   return (
-    <div className="border-b border-slate-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <categoria.Icon className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
-            <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
+    <div className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <categoria.Icon className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
+              <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
+            </div>
+            <button onClick={onVerTodos} className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+              Ver más →
+            </button>
           </div>
-          <button onClick={onVerTodos} className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
-            Ver más →
-          </button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {visible.map((s: any, i: number) => (
-            <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
-          ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {visible.map((s: any, i: number) => (
+              <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

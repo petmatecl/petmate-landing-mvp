@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft } from 'lucide-react';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
@@ -77,6 +78,7 @@ function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number
 }
 
 export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones }: ProveedorProps) {
+    const router = useRouter();
     const { user } = useUser();
     const [loginModalOpen, setLoginModalOpen] = useState(false);
 
@@ -95,7 +97,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
         );
     }
 
-    const anosEnPawnecta = new Date().getFullYear() - new Date(proveedor.created_at).getFullYear();
+    const miembroDesde = new Date(proveedor.created_at).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
     const bioTexto: string | null = proveedor.bio || proveedor.sobre_mi || null;
     const tieneTrustSignals = proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda || proveedor.miembro_asociacion;
     const tieneDatosEspecificos = proveedor.datos_especificos && Object.entries(proveedor.datos_especificos).filter(([, v]) => v !== null && v !== '' && v !== false).length > 0;
@@ -151,6 +153,13 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
             </Head>
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-5">
+                {/* Volver */}
+                <button
+                    onClick={() => router.back()}
+                    className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors mb-2"
+                >
+                    <ChevronLeft size={16} /> Volver
+                </button>
 
                 {/* ══ HERO ══════════════════════════════════════════════════ */}
                 <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -198,7 +207,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                                 <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
                                     <Clock size={12} className="text-slate-400" />
-                                    {anosEnPawnecta === 0 ? 'Nuevo en Pawnecta' : `${anosEnPawnecta} año${anosEnPawnecta > 1 ? 's' : ''} en Pawnecta`}
+                                    En Pawnecta desde {miembroDesde}
                                 </span>
                                 {globalTotalEvaluaciones > 0 && (
                                     <span className="flex items-center gap-1.5 bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium px-3 py-1.5 rounded-full">
@@ -377,8 +386,18 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* ══ EVALUACIONES ══════════════════════════════════════════ */}
                 <section className="space-y-4">
                     <h2 className="text-xl font-bold text-slate-900">Evaluaciones</h2>
-                    <ReviewSummary proveedorId={proveedor.id} />
-                    <ReviewList proveedorId={proveedor.id} />
+                    {globalTotalEvaluaciones === 0 ? (
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+                            <Star size={32} className="text-slate-200 mx-auto mb-3" />
+                            <p className="text-slate-500 font-medium">Este proveedor aún no tiene evaluaciones.</p>
+                            <p className="text-slate-400 text-sm mt-1">¡Sé el primero en contactarlo y dejar una reseña!</p>
+                        </div>
+                    ) : (
+                        <>
+                            <ReviewSummary proveedorId={proveedor.id} />
+                            <ReviewList proveedorId={proveedor.id} />
+                        </>
+                    )}
                 </section>
 
             </div>
