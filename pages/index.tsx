@@ -203,11 +203,6 @@ function FranjaDual({
             <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
           ))}
         </div>
-        <div className="mt-5 text-center">
-          <button onClick={onVerMas} className="px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
-            Ver más
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -240,11 +235,6 @@ function FranjaCategoria({
           {visible.map((s: any, i: number) => (
             <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
           ))}
-        </div>
-        <div className="mt-5 text-center">
-          <button onClick={onVerTodos} className="px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
-            Ver más
-          </button>
         </div>
       </div>
     </div>
