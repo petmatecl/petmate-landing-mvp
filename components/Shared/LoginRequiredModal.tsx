@@ -42,7 +42,7 @@ export default function LoginRequiredModal({
 
                 <div className="flex flex-col gap-3">
                     <button
-                        onClick={() => router.push('/ingresar')}
+                        onClick={() => router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`)}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-colors"
                     >
                         Ingresar a mi cuenta
