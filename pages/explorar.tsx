@@ -168,8 +168,6 @@ export default function ExplorarPage() {
     const [pagina, setPagina] = useState(1);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [vista, setVista] = useState<'lista' | 'mapa'>('lista');
-    // Guard: prevents fetchServices from running before URL params are synced into filters
-    const [filtersReady, setFiltersReady] = useState(false);
 
     // Per-category count from current results (client-side, no extra query)
     const categoryCounts = useMemo(() =>
@@ -208,170 +206,161 @@ export default function ExplorarPage() {
         fetchFavoritos();
     }, [user]);
 
-    // 2. Sincronizar estado local con Query Params de la URL
-    //    Si no hay query params, restaurar última búsqueda de localStorage
+    // 2+3. Unificado: leer URL → syncear filters → buscar.
+    //       Un solo efecto evita race conditions entre sync y fetch.
     useEffect(() => {
         if (!router.isReady) return;
-        const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam } = router.query;
 
+        const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam, fecha } = router.query;
         const hasQueryParams = q || categoria || comuna || mascota || precioMin || precioMax || orden;
 
+        // Si no hay params en la URL, intentar restaurar última búsqueda
         if (!hasQueryParams && typeof window !== 'undefined') {
             const saved = localStorage.getItem('pawnecta_last_search');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    router.replace({ pathname: '/explorar', query: parsed }, undefined, { shallow: true });
-                    return;
+                    if (parsed && Object.keys(parsed).length > 0) {
+                        // router.replace disparará este mismo efecto con los nuevos params
+                        router.replace({ pathname: '/explorar', query: parsed }, undefined, { shallow: true });
+                        return;
+                    }
                 } catch { /* ignore */ }
             }
         }
 
-        setFilters({
-            q: (q as string) || "",
-            categorias: categoria
-                ? (typeof categoria === 'string' ? categoria.split(',').filter(Boolean) : (categoria as string[]))
-                : [],
-            comuna: (comuna as string) || "",
-            fecha: (router.query.fecha as string) || "",
-            mascota: (mascota as "perro" | "gato" | "otro" | "any") || "any",
-            tamano: (tamano as "pequeno" | "mediano" | "grande" | null) || null,
-            precioMin: (precioMin as string) || "",
-            precioMax: (precioMax as string) || "",
-            orden: (orden as "relevancia" | "rating" | "precio_asc" | "precio_desc") || "relevancia"
-        });
-
+        // Derivar filtros directamente desde router.query (fuente de verdad)
+        const currentCategorias: string[] = categoria
+            ? (typeof categoria === 'string' ? categoria.split(',').filter(Boolean) : (categoria as string[]))
+            : [];
+        const currentComuna = (comuna as string) || '';
+        const currentQ = (q as string) || '';
+        const currentFecha = (fecha as string) || '';
+        const currentMascota = (mascota as 'perro' | 'gato' | 'otro' | 'any') || 'any';
+        const currentTamano = (tamano as 'pequeno' | 'mediano' | 'grande' | null) || null;
+        const currentPrecioMin = (precioMin as string) || '';
+        const currentPrecioMax = (precioMax as string) || '';
+        const currentOrden = (orden as 'relevancia' | 'rating' | 'precio_asc' | 'precio_desc') || 'relevancia';
         const p = parseInt(paginaParam as string);
-        setPagina(Number.isFinite(p) && p >= 1 ? p : 1);
-        setFiltersReady(true);
-    }, [router.isReady, router.query]);
+        const currentPagina = Number.isFinite(p) && p >= 1 ? p : 1;
 
-    // 3. Ejecutar búsqueda
-    const fetchServices = useCallback(async () => {
-        if (!router.isReady || !filtersReady) return;
+        // Sincronizar estado (para UI: chips, sidebar, header)
+        setFilters({
+            q: currentQ,
+            categorias: currentCategorias,
+            comuna: currentComuna,
+            fecha: currentFecha,
+            mascota: currentMascota,
+            tamano: currentTamano,
+            precioMin: currentPrecioMin,
+            precioMax: currentPrecioMax,
+            orden: currentOrden,
+        });
+        setPagina(currentPagina);
 
+        // ── Fetch inmediato con los valores leídos de router.query ──
         setLoading(true);
         setComunasSugeridas([]);
-        try {
-            const baseParams = {
-                p_comuna: filters.comuna || null,
-                p_tamano: filters.tamano || null,
-                p_precio_max: filters.precioMax ? parseInt(filters.precioMax) : null,
-                p_precio_min: filters.precioMin ? parseInt(filters.precioMin) : null,
-                p_texto: filters.q || null,
-                p_limit: PAGE_SIZE,
-                p_offset: (pagina - 1) * PAGE_SIZE
-            };
 
-            let allData: any[] = [];
-            let serverTotal = 0;
+        const baseParams = {
+            p_comuna: currentComuna || null,
+            p_tamano: currentTamano || null,
+            p_precio_max: currentPrecioMax ? parseInt(currentPrecioMax) : null,
+            p_precio_min: currentPrecioMin ? parseInt(currentPrecioMin) : null,
+            p_texto: currentQ || null,
+            p_limit: PAGE_SIZE,
+            p_offset: (currentPagina - 1) * PAGE_SIZE,
+        };
 
-            if (filters.categorias.length <= 1) {
-                // Single query (0 = todas, 1 = una categoria)
-                const { data, error } = await supabase.rpc('buscar_servicios', {
-                    ...baseParams,
-                    p_categoria_slug: filters.categorias[0] || null
-                });
-                if (error) throw error;
-                allData = data || [];
-                serverTotal = allData.length > 0 ? Number(allData[0].total_count) : 0;
-            } else {
-                // Parallel queries for each selected category — fetch all, paginate client-side
-                const results = await Promise.all(
-                    filters.categorias.map(slug =>
-                        supabase.rpc('buscar_servicios', {
-                            ...baseParams,
-                            p_categoria_slug: slug,
-                            p_limit: 100,   // fetch all for multi-cat; paginate in client
-                            p_offset: 0
-                        })
-                    )
-                );
-                const seen = new Set<string>();
-                for (const { data } of results) {
-                    if (!data) continue;
-                    for (const item of data as any[]) {
-                        const uniqueKey = item.servicio_id ?? item.id;
-                        if (!seen.has(uniqueKey)) {
-                            seen.add(uniqueKey);
-                            allData.push(item);
+        async function run() {
+            try {
+                let allData: any[] = [];
+                let serverTotal = 0;
+
+                if (currentCategorias.length <= 1) {
+                    const { data, error } = await supabase.rpc('buscar_servicios', {
+                        ...baseParams,
+                        p_categoria_slug: currentCategorias[0] || null,
+                    });
+                    if (error) throw error;
+                    allData = data || [];
+                    serverTotal = allData.length > 0 ? Number(allData[0].total_count) : 0;
+                } else {
+                    const results = await Promise.all(
+                        currentCategorias.map(slug =>
+                            supabase.rpc('buscar_servicios', {
+                                ...baseParams,
+                                p_categoria_slug: slug,
+                                p_limit: 100,
+                                p_offset: 0,
+                            })
+                        )
+                    );
+                    const seen = new Set<string>();
+                    for (const { data } of results) {
+                        if (!data) continue;
+                        for (const item of data as any[]) {
+                            const uniqueKey = item.servicio_id ?? item.id;
+                            if (!seen.has(uniqueKey)) { seen.add(uniqueKey); allData.push(item); }
                         }
                     }
+                    serverTotal = allData.length;
                 }
-                // For multi-cat, total is the merged deduplicated count
-                serverTotal = allData.length;
-            }
 
-            // Client-side sort
-            const rankingScore = (item: any): number => {
-                const rating = (item.rating_promedio / 5) * 0.35;
-                const hasPhoto = item.foto_perfil ? 0.10 : 0;
-                const hasReviews = item.total_evaluaciones > 0 ? 0.15 : 0;
-                const isDestacado = item.destacado ? 0.10 : 0;
-                // Recency: use servicio_id as proxy when updated_at not in payload
-                // (decay applied uniformly; SQL-level score can refine later)
-                const recency = 0.10;
-                return rating + hasPhoto + hasReviews + isDestacado + recency;
-            };
+                // Sort client-side
+                const rankingScore = (item: any) =>
+                    (item.rating_promedio / 5) * 0.35 +
+                    (item.foto_perfil ? 0.10 : 0) +
+                    (item.total_evaluaciones > 0 ? 0.15 : 0) +
+                    (item.destacado ? 0.10 : 0) +
+                    0.10;
 
-            allData.sort((a: any, b: any) => {
-                if (filters.orden === "rating") {
-                    if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
-                    return b.total_evaluaciones - a.total_evaluaciones;
-                }
-                if (filters.orden === "precio_asc") return a.precio_desde - b.precio_desde;
-                if (filters.orden === "precio_desc") return b.precio_desde - a.precio_desde;
-                // relevancia: weighted ranking score
-                return rankingScore(b) - rankingScore(a);
-            });
-
-
-            setTotalCount(serverTotal);
-
-            // Map RPC fields → ServiceResult
-            const mapped = allData.map(mapRpcToServiceResult);
-
-            // Client-side mascota filter (p_tipo_mascota removed from RPC in SCH-05)
-            const filteredByMascota = mapped.filter(s => {
-                if (filters.mascota === 'perro') return s.acepta_perros !== false;
-                if (filters.mascota === 'gato') return s.acepta_gatos !== false;
-                return true;
-            });
-
-            setServices(filteredByMascota);
-
-            // Si no hay resultados con comuna + al menos una categoria → sugerir comunas
-            if (allData.length === 0 && filters.comuna && filters.categorias.length > 0) {
-                const primarySlug = filters.categorias[0];
-                const { data: altData } = await supabase.rpc('buscar_servicios', {
-                    p_categoria_slug: primarySlug,
-                    p_comuna: null,
-                    p_tamano: null,
-                    p_precio_max: null,
-                    p_precio_min: null,
-                    p_texto: null,
-                    p_limit: 50,
-                    p_offset: 0
+                allData.sort((a: any, b: any) => {
+                    if (currentOrden === 'rating') {
+                        if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
+                        return b.total_evaluaciones - a.total_evaluaciones;
+                    }
+                    if (currentOrden === 'precio_asc') return a.precio_desde - b.precio_desde;
+                    if (currentOrden === 'precio_desc') return b.precio_desde - a.precio_desde;
+                    return rankingScore(b) - rankingScore(a);
                 });
-                if (altData && altData.length > 0) {
-                    const comunas = Array.from(new Set(
-                        (altData as any[]).map(s => s.comuna).filter(Boolean)
-                    )).slice(0, 4) as string[];
-                    setComunasSugeridas(comunas);
+
+                setTotalCount(serverTotal);
+
+                const mapped = allData.map(mapRpcToServiceResult);
+                const filteredByMascota = mapped.filter(s => {
+                    if (currentMascota === 'perro') return s.acepta_perros !== false;
+                    if (currentMascota === 'gato') return s.acepta_gatos !== false;
+                    return true;
+                });
+                setServices(filteredByMascota);
+
+                // Sugerir comunas alternativas si no hay resultados
+                if (allData.length === 0 && currentComuna && currentCategorias.length > 0) {
+                    const { data: altData } = await supabase.rpc('buscar_servicios', {
+                        p_categoria_slug: currentCategorias[0],
+                        p_comuna: null, p_tamano: null, p_precio_max: null,
+                        p_precio_min: null, p_texto: null, p_limit: 50, p_offset: 0,
+                    });
+                    if (altData && altData.length > 0) {
+                        const comunas = Array.from(new Set(
+                            (altData as any[]).map((s: any) => s.comuna).filter(Boolean)
+                        )).slice(0, 4) as string[];
+                        setComunasSugeridas(comunas);
+                    }
                 }
+            } catch (err) {
+                console.error('Error fetching services:', err);
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            console.error("Error fetching services:", err);
-        } finally {
-            setLoading(false);
         }
-    }, [filters, pagina, router.isReady, filtersReady]);
 
-    useEffect(() => {
-        fetchServices();
-    }, [fetchServices]);
+        run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, router.query]);
 
-    // 4. Cambio de página con scroll a grilla
+    // goToPage actualiza la URL (lo que dispara el efecto de arriba)
     const goToPage = useCallback((p: number) => {
         const total = Math.ceil(totalCount / PAGE_SIZE);
         if (p < 1 || p > total) return;

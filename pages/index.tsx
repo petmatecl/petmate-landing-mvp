@@ -164,11 +164,13 @@ function ServiceCardItem({ s }: { s: any }) {
 function FranjaDual({
   titulo, IconA, IconB, serviciosA, serviciosB,
   onVerTodosA, onVerTodosB, labelA, labelB,
+  onVerMas,
 }: {
   titulo: string; IconA: any; IconB: any;
   serviciosA: any[]; serviciosB: any[];
   onVerTodosA: () => void; onVerTodosB: () => void;
   labelA: string; labelB: string;
+  onVerMas: () => void;
 }) {
   // Interleave: A, B, A, B up to 4 total
   const combined: any[] = [];
@@ -178,7 +180,6 @@ function FranjaDual({
     if (combined.length < 4 && bi < serviciosB.length) combined.push(serviciosB[bi++]);
   }
   const total = serviciosA.length + serviciosB.length;
-  const hasMore = total > 4;
   if (total === 0) return null;
 
   return (
@@ -193,30 +194,20 @@ function FranjaDual({
             <h2 className="text-base font-bold text-slate-900">{titulo}</h2>
             <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
           </div>
-          <div className="hidden sm:flex items-center gap-4 text-sm font-semibold text-emerald-700">
-            {serviciosA.length > 0 && <button onClick={onVerTodosA} className="hover:text-emerald-900 transition-colors">{labelA} →</button>}
-            {serviciosB.length > 0 && <button onClick={onVerTodosB} className="hover:text-emerald-900 transition-colors">{labelB} →</button>}
-          </div>
+          <button onClick={onVerMas} className="hidden sm:block text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+            Ver más →
+          </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {combined.map((s: any, i: number) => (
             <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
           ))}
         </div>
-        {hasMore && (
-          <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
-            {serviciosA.length > 0 && (
-              <button onClick={onVerTodosA} className="w-full sm:w-auto px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
-                Ver todos: {labelA.toLowerCase()}
-              </button>
-            )}
-            {serviciosB.length > 0 && (
-              <button onClick={onVerTodosB} className="w-full sm:w-auto px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
-                Ver todos: {labelB.toLowerCase()}
-              </button>
-            )}
-          </div>
-        )}
+        <div className="mt-5 text-center">
+          <button onClick={onVerMas} className="px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
+            Ver más
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -231,7 +222,6 @@ function FranjaCategoria({
   onVerTodos: () => void;
 }) {
   const visible = servicios.slice(0, 4);
-  const hasMore = servicios.length > 4;
   if (visible.length === 0) return null;
   return (
     <div className="border-b border-slate-100 py-8">
@@ -243,7 +233,7 @@ function FranjaCategoria({
             <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
           </div>
           <button onClick={onVerTodos} className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
-            Ver todos →
+            Ver más →
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -251,13 +241,11 @@ function FranjaCategoria({
             <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
           ))}
         </div>
-        {hasMore && (
-          <div className="mt-5 text-center">
-            <button onClick={onVerTodos} className="px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
-              Ver todos los {categoria.nombre.toLowerCase()}
-            </button>
-          </div>
-        )}
+        <div className="mt-5 text-center">
+          <button onClick={onVerTodos} className="px-6 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors bg-white">
+            Ver más
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -440,6 +428,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
                   labelB={p.labelB}
                   onVerTodosA={() => router.push(`/explorar?categoria=${p.slugA}`)}
                   onVerTodosB={() => router.push(`/explorar?categoria=${p.slugB}`)}
+                  onVerMas={() => router.push(`/explorar?categoria=${p.slugA},${p.slugB}`)}
                 />
               );
             })}
