@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { getProxyImageUrl } from '../../lib/utils';
 import { getParticipantProfile } from '../../lib/profileUtils';
+import EmptyState from '../Shared/EmptyState';
 
 interface Props {
     selectedId: string | null;
@@ -141,12 +142,11 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
 
     if (conversations.length === 0) {
         return (
-            <div className="p-8 text-center text-slate-500">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <MessageCircle size={24} className="text-slate-300" />
-                </div>
-                <p className="text-sm">No tienes mensajes aún.</p>
-            </div>
+            <EmptyState
+                icon={<MessageCircle size={32} />}
+                title="Sin mensajes aún"
+                description="Cuando contactes a un proveedor o te escriban, tus conversaciones aparecerán aquí."
+            />
         );
     }
 

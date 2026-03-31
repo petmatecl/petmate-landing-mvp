@@ -24,6 +24,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
     const bottomRef = useRef<HTMLDivElement>(null);
 
     const [myUser, setMyUser] = useState<{ nombre: string } | null>(null);
+    const [fetchError, setFetchError] = useState(false);
 
     useEffect(() => {
         if (conversationId && userId) {
@@ -115,7 +116,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
             }
         } catch (err) {
             console.error('Error fetching messages:', err);
-            toast.error('Error al cargar mensajes');
+            setFetchError(true);
         } finally {
             setLoading(false);
         }
@@ -249,6 +250,20 @@ export default function MessageThread({ conversationId, userId }: Props) {
             <div className="flex flex-col items-center gap-2">
                 <span className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></span>
                 <span>Cargando...</span>
+            </div>
+        </div>
+    );
+
+    if (fetchError) return (
+        <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+                <p className="text-slate-500 text-sm mb-3">No se pudieron cargar los mensajes.</p>
+                <button
+                    onClick={() => { setFetchError(false); fetchMessages(); }}
+                    className="text-sm text-emerald-600 font-medium hover:underline"
+                >
+                    Reintentar
+                </button>
             </div>
         </div>
     );

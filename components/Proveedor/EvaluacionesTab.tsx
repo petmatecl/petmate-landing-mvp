@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import { toast } from 'sonner';
+import EmptyState from '../Shared/EmptyState';
 
 interface Props {
     evaluaciones: any[];
@@ -46,9 +47,12 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
             </div>
 
             {evaluaciones.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-800 mb-2">Aún no tienes evaluaciones</h3>
-                    <p className="text-slate-500">Cuando tus primeros clientes te contraten podrán dejarte una reseña.</p>
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                    <EmptyState
+                        icon={<Star size={36} />}
+                        title="Aún no tienes evaluaciones"
+                        description="Cuando tus primeros clientes te contraten podrán dejarte una reseña aquí."
+                    />
                 </div>
             ) : (
                 <div className="grid gap-4">

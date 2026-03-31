@@ -28,75 +28,75 @@ const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
   hospedaje: [
     { key: "tipo_vivienda", label: "Tipo de vivienda donde cuidas", tipo: "select", opciones: [{ value: "casa", label: "Casa" }, { value: "departamento", label: "Departamento" }], requerido: true },
     { key: "metros_espacio", label: "Metros cuadrados del espacio disponible para la mascota", tipo: "number", placeholder: "Ej: 30" },
-    { key: "capacidad_maxima", label: "Capacidad maxima (mascotas simultaneas)", tipo: "number", placeholder: "Ej: 2", requerido: true },
-    { key: "tiene_patio", label: "Tengo patio o jardin con acceso directo", tipo: "boolean" },
+    { key: "capacidad_maxima", label: "Capacidad máxima (mascotas simultáneas)", tipo: "number", placeholder: "Ej: 2", requerido: true },
+    { key: "tiene_patio", label: "Tengo patio o jardín con acceso directo", tipo: "boolean" },
     { key: "piso_departamento", label: "Piso del departamento", tipo: "number", placeholder: "Ej: 5", condicionalDe: "tipo_vivienda", condicionalValor: "departamento" },
     { key: "tiene_mallas_seguridad", label: "Tengo mallas de seguridad en ventanas y balcones", tipo: "boolean", condicionalDe: "tipo_vivienda", condicionalValor: "departamento" },
     { key: "otras_mascotas_hogar", label: "Tengo mascotas propias en el hogar", tipo: "boolean" },
-    { key: "tipo_mascotas_propias", label: "Que mascotas tienes? (describe)", tipo: "text", placeholder: "Ej: 1 gato castrado tranquilo", condicionalDe: "otras_mascotas_hogar", condicionalValor: true },
-    { key: "tiene_ninos", label: "Hay ninos menores de 12 anos en el hogar", tipo: "boolean" },
+    { key: "tipo_mascotas_propias", label: "¿Qué mascotas tienes? (describe)", tipo: "text", placeholder: "Ej: 1 gato castrado tranquilo", condicionalDe: "otras_mascotas_hogar", condicionalValor: true },
+    { key: "tiene_ninos", label: "Hay niños menores de 12 años en el hogar", tipo: "boolean" },
     { key: "acepta_separacion", label: "Puedo mantener mascotas separadas si es necesario", tipo: "boolean" },
   ],
   domicilio: [
     { key: 'info_domicilio', label: 'Tú vas a la casa del cliente. No necesitas espacio propio para mascotas.', tipo: 'info' },
-    { key: 'visitas_por_dia', label: 'Visitas por dia que puedes hacer', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
-    { key: 'duracion_visita', label: 'Duracion de cada visita (minutos)', tipo: 'number', placeholder: 'Ej: 45', requerido: true },
-    { key: 'servicios_incluidos', label: 'Que incluye cada visita', tipo: 'text', placeholder: 'Ej: Alimentacion, paseo corto, limpieza' },
-    { key: 'radio_cobertura_km', label: 'Radio maximo de cobertura (km desde tu comuna)', tipo: 'number', placeholder: 'Ej: 5' },
+    { key: 'visitas_por_dia', label: 'Visitas por día que puedes hacer', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
+    { key: 'duracion_visita', label: 'Duración de cada visita (minutos)', tipo: 'number', placeholder: 'Ej: 45', requerido: true },
+    { key: 'servicios_incluidos', label: '¿Qué incluye cada visita?', tipo: 'text', placeholder: 'Ej: Alimentación, paseo corto, limpieza' },
+    { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura (km desde tu comuna)', tipo: 'number', placeholder: 'Ej: 5' },
     { key: 'incluye_medicamentos', label: 'Puedo administrar medicamentos segun instrucciones', tipo: 'boolean' },
     { key: 'incluye_foto_reporte', label: 'Envio foto y reporte de cada visita', tipo: 'boolean' },
   ],
   paseos: [
-    { key: "max_perros_simultaneos", label: "Maximo de perros simultaneos", tipo: "number", placeholder: "Ej: 3", requerido: true },
-    { key: "duracion_minutos", label: "Duracion estandar del paseo (min)", tipo: "number", placeholder: "Ej: 45" },
+    { key: "max_perros_simultaneos", label: "Máximo de perros simultáneos", tipo: "number", placeholder: "Ej: 3", requerido: true },
+    { key: "duracion_minutos", label: "Duración estándar del paseo (min)", tipo: "number", placeholder: "Ej: 45" },
     { key: "radio_cobertura_km", label: "Radio de cobertura en km desde tu comuna", tipo: "number", placeholder: "Ej: 3" },
     { key: "comunas_adicionales", label: "Otras comunas donde paseas (opcional)", tipo: "text", placeholder: "Ej: Nunoa, Macul" },
     { key: "acepta_razas_grandes", label: "Acepto razas grandes o de fuerza (rottweiler, pitbull, etc.)", tipo: "boolean" },
     { key: "usa_gps", label: "Uso GPS o app de seguimiento durante el paseo", tipo: "boolean" },
-    { key: "envia_reporte_fotos", label: "Envio foto y reporte al dueno tras cada paseo", tipo: "boolean" },
+    { key: "envia_reporte_fotos", label: "Envío foto y reporte al dueño tras cada paseo", tipo: "boolean" },
   ],
   veterinario: [
     { key: "universidad", label: "Universidad donde estudio", tipo: "text", placeholder: "Ej: Universidad de Chile", requerido: true },
-    { key: "anio_titulacion", label: "Ano de titulacion", tipo: "number", placeholder: "Ej: 2018" },
-    { key: "numero_registro", label: "N de registro profesional", tipo: "text", placeholder: "Ej: 12345" },
-    { key: "especialidad", label: "Especialidad (opcional)", tipo: "text", placeholder: "Ej: Dermatologia, Cirugia..." },
-    { key: "radio_cobertura_km", label: "Radio maximo de cobertura a domicilio (km)", tipo: "number", placeholder: "Ej: 10" },
+    { key: "anio_titulacion", label: "Año de titulación", tipo: "number", placeholder: "Ej: 2018" },
+    { key: "numero_registro", label: "N.° de registro profesional", tipo: "text", placeholder: "Ej: 12345" },
+    { key: "especialidad", label: "Especialidad (opcional)", tipo: "text", placeholder: "Ej: Dermatología, Cirugía..." },
+    { key: "radio_cobertura_km", label: "Radio máximo de cobertura a domicilio (km)", tipo: "number", placeholder: "Ej: 10" },
     { key: "comunas_cobertura", label: "Comunas donde atiendes a domicilio", tipo: "text", placeholder: "Ej: Providencia, Las Condes, Vitacura" },
-    { key: "hace_urgencias", label: "Atencion de urgencias / horario extendido", tipo: "boolean" },
+    { key: "hace_urgencias", label: "Atención de urgencias / horario extendido", tipo: "boolean" },
   ],
   traslado: [
-    { key: "tipo_vehiculo", label: "Tipo de vehiculo", tipo: "select", opciones: [{ value: "auto", label: "Auto" }, { value: "van", label: "Van" }, { value: "furgon", label: "Furgon" }], requerido: true },
-    { key: "radio_cobertura_km", label: "Radio maximo de cobertura (km)", tipo: "number", placeholder: "Ej: 20" },
+    { key: "tipo_vehiculo", label: "Tipo de vehículo", tipo: "select", opciones: [{ value: "auto", label: "Auto" }, { value: "van", label: "Van" }, { value: "furgon", label: "Furgón" }], requerido: true },
+    { key: "radio_cobertura_km", label: "Radio máximo de cobertura (km)", tipo: "number", placeholder: "Ej: 20" },
     { key: "comunas_cobertura", label: "Comunas de origen y destino que cubres", tipo: "text", placeholder: "Ej: Todo Santiago, Region Metropolitana" },
     { key: "tiene_jaula", label: "Tengo jaula o transportin para el traslado", tipo: "boolean" },
-    { key: "acepta_mascotas_grandes", label: "Acepto mascotas grandes (mas de 30kg)", tipo: "boolean" },
-    { key: "capacidad_mascotas", label: "Capacidad maxima de mascotas por viaje", tipo: "number", placeholder: "Ej: 2" },
+    { key: "acepta_mascotas_grandes", label: "Acepto mascotas grandes (más de 30 kg)", tipo: "boolean" },
+    { key: "capacidad_mascotas", label: "Capacidad máxima de mascotas por viaje", tipo: "number", placeholder: "Ej: 2" },
     { key: "tiene_empresa", label: "Opero con empresa o emito boleta", tipo: "boolean" },
   ],
   peluqueria: [
-    { key: "anios_experiencia", label: "Anos de experiencia", tipo: "number", placeholder: "Ej: 5", requerido: true },
-    { key: "atiende_en", label: "Donde atiendes", tipo: "select", opciones: [{ value: "local_propio", label: "En mi local propio" }, { value: "domicilio", label: "Voy al domicilio del cliente" }, { value: "ambos", label: "Ambas opciones" }], requerido: true },
-    { key: "tiene_mesa_hidraulica", label: "Cuento con mesa hidraulica profesional", tipo: "boolean" },
+    { key: "anios_experiencia", label: "Años de experiencia", tipo: "number", placeholder: "Ej: 5", requerido: true },
+    { key: "atiende_en", label: "¿Dónde atiendes?", tipo: "select", opciones: [{ value: "local_propio", label: "En mi local propio" }, { value: "domicilio", label: "Voy al domicilio del cliente" }, { value: "ambos", label: "Ambas opciones" }], requerido: true },
+    { key: "tiene_mesa_hidraulica", label: "Cuento con mesa hidráulica profesional", tipo: "boolean" },
     { key: "certificaciones", label: "Cursos o certificaciones", tipo: "text", placeholder: "Ej: Curso Groomex 2022, Especialidad Nordic" },
     { key: "razas_especiales", label: "Razas especiales que manejas (opcional)", tipo: "text", placeholder: "Ej: Poodle, Cocker, Schnauzer" },
     { key: "radio_cobertura_km", label: "Radio de cobertura si vas a domicilio (km)", tipo: "number", placeholder: "Ej: 5", condicionalDe: "atiende_en", condicionalValor: "domicilio" },
   ],
   adiestramiento: [
-    { key: "metodo", label: "Metodo de adiestramiento", tipo: "select", opciones: [{ value: "positivo", label: "Refuerzo positivo" }, { value: "mixto", label: "Mixto" }, { value: "tradicional", label: "Tradicional" }], requerido: true },
-    { key: "anios_experiencia", label: "Anos de experiencia", tipo: "number", placeholder: "Ej: 3" },
+    { key: "metodo", label: "Método de adiestramiento", tipo: "select", opciones: [{ value: "positivo", label: "Refuerzo positivo" }, { value: "mixto", label: "Mixto" }, { value: "tradicional", label: "Tradicional" }], requerido: true },
+    { key: "anios_experiencia", label: "Años de experiencia", tipo: "number", placeholder: "Ej: 3" },
     { key: "modalidad", label: "Modalidad de trabajo", tipo: "select", opciones: [{ value: "individual", label: "Sesiones individuales" }, { value: "grupal", label: "Clases grupales" }, { value: "ambas", label: "Ambas modalidades" }], requerido: true },
     { key: "va_domicilio", label: "Puedo ir al domicilio del cliente", tipo: "boolean" },
-    { key: "duracion_sesion", label: "Duracion de la sesion (minutos)", tipo: "number", placeholder: "Ej: 60" },
-    { key: "certificacion", label: "Certificacion profesional", tipo: "text", placeholder: "Ej: CPDT-KA, IAA" },
+    { key: "duracion_sesion", label: "Duración de la sesión (minutos)", tipo: "number", placeholder: "Ej: 60" },
+    { key: "certificacion", label: "Certificación profesional", tipo: "text", placeholder: "Ej: CPDT-KA, IAA" },
     { key: "radio_cobertura_km", label: "Radio de cobertura si vas a domicilio (km)", tipo: "number", condicionalDe: "va_domicilio", condicionalValor: true },
   ],
   guarderia: [
-    { key: "capacidad_maxima", label: "Capacidad maxima de mascotas simultaneas", tipo: "number", placeholder: "Ej: 5", requerido: true },
-    { key: "horario", label: "Horario de atencion", tipo: "text", placeholder: "Ej: Lunes a viernes 8:00-18:00", requerido: true },
-    { key: "tipo_guarderia", label: "Tipo de guarderia", tipo: "select", opciones: [{ value: "diurna", label: "Solo diurna (horas)" }, { value: "nocturna", label: "Incluye quedarse de noche" }, { value: "ambas", label: "Ambas opciones" }], requerido: true },
-    { key: "tiene_patio", label: "Tengo patio o jardin con acceso directo", tipo: "boolean" },
-    { key: "tiene_camara", label: "Tengo camara para que el dueno vea a su mascota", tipo: "boolean" },
-    { key: "envia_fotos", label: "Envio fotos durante el dia al dueno", tipo: "boolean" },
+    { key: "capacidad_maxima", label: "Capacidad máxima de mascotas simultáneas", tipo: "number", placeholder: "Ej: 5", requerido: true },
+    { key: "horario", label: "Horario de atención", tipo: "text", placeholder: "Ej: Lunes a viernes 8:00-18:00", requerido: true },
+    { key: "tipo_guarderia", label: "Tipo de guardería", tipo: "select", opciones: [{ value: "diurna", label: "Solo diurna (horas)" }, { value: "nocturna", label: "Incluye quedarse de noche" }, { value: "ambas", label: "Ambas opciones" }], requerido: true },
+    { key: "tiene_patio", label: "Tengo patio o jardín con acceso directo", tipo: "boolean" },
+    { key: "tiene_camara", label: "Tengo cámara para que el dueño vea a su mascota", tipo: "boolean" },
+    { key: "envia_fotos", label: "Envío fotos durante el día al dueño", tipo: "boolean" },
   ],
 };
 
@@ -152,6 +152,7 @@ export default function RegisterWizard() {
   // Step 2+3: RUT (common)
   const [rut, setRut] = useState('');
   const [rutError, setRutError] = useState('');
+  const [passwordConfirmError, setPasswordConfirmError] = useState('');
 
   // Step 3: Provider Info
   const [comunaQuery, setComunaQuery] = useState('');
@@ -553,10 +554,17 @@ export default function RegisterWizard() {
                       <input
                         type={showPasswordConfirm ? "text" : "password"}
                         value={passwordConfirm}
-                        onChange={e => setPasswordConfirm(e.target.value)}
+                        onChange={e => { setPasswordConfirm(e.target.value); if (passwordConfirmError) setPasswordConfirmError(''); }}
+                        onBlur={() => {
+                          if (passwordConfirm && password !== passwordConfirm) {
+                            setPasswordConfirmError('Las contraseñas no coinciden.');
+                          } else {
+                            setPasswordConfirmError('');
+                          }
+                        }}
                         required
                         minLength={8}
-                        className={`${inputClass} pr-12`}
+                        className={`${inputClass} pr-12 ${passwordConfirmError ? 'border-red-400 focus:ring-red-400 focus:border-red-400' : ''}`}
                       />
                       <button
                         type="button"
@@ -567,6 +575,9 @@ export default function RegisterWizard() {
                         {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
+                    {passwordConfirmError && (
+                      <p className="text-xs text-red-600 mt-1 font-medium">{passwordConfirmError}</p>
+                    )}
                   </div>
                 </div>
 

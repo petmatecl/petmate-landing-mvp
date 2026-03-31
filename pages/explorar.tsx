@@ -81,7 +81,7 @@ function ExplorarPrelaunch() {
 
     const CATS = [
         { slug: 'hospedaje', label: 'Hospedaje' },
-        { slug: 'guarderia', label: 'Guadería diurna' },
+        { slug: 'guarderia', label: 'Guardería diurna' },
         { slug: 'domicilio', label: 'Visita a domicilio' },
         { slug: 'paseos', label: 'Paseo de perros' },
         { slug: 'peluqueria', label: 'Peluquería' },
@@ -149,6 +149,7 @@ export default function ExplorarPage() {
     const [categories, setCategories] = useState<Category[]>(STATIC_CATEGORIES);;
     const [services, setServices] = useState<ServiceResult[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
     const [favoritoIds, setFavoritoIds] = useState<string[]>([]);
     const [comunasSugeridas, setComunasSugeridas] = useState<string[]>([]);
@@ -356,6 +357,7 @@ export default function ExplorarPage() {
                 }
             } catch (err) {
                 console.error('Error fetching services:', err);
+                setFetchError(true);
             } finally {
                 setLoading(false);
             }
@@ -593,15 +595,28 @@ export default function ExplorarPage() {
                                 </div>
                             )}
 
+                        {/* Error de carga */}
+                        {!loading && fetchError && (
+                            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+                                <p className="text-slate-500 mb-3">No se pudieron cargar los servicios.</p>
+                                <button
+                                    onClick={() => { setFetchError(false); setLoading(true); }}
+                                    className="text-sm text-emerald-600 font-medium hover:underline"
+                                >
+                                    Reintentar
+                                </button>
+                            </div>
+                        )}
+
                         {/* Grilla */}
-                        {loading ? (
+                        {!fetchError && loading ? (
                             <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                                 <ServiceSkeleton />
                                 <ServiceSkeleton />
                                 <ServiceSkeleton />
                                 <ServiceSkeleton />
                             </div>
-                        ) : services.length === 0 ? (
+                        ) : !fetchError && services.length === 0 ? (
                             (() => {
                                 const hasActiveFilters =
                                     filters.categorias.length > 0 ||

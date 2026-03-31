@@ -591,7 +591,7 @@ export default function ProveedorDashboard() {
                                     <p className="text-slate-500 mb-6">Ofrece hospedaje, guardería, paseos o visitas para empezar a ganar clientes.</p>
                                     <button
                                         onClick={() => { setEditingServiceId(null); setIsServiceModalOpen(true); }}
-                                        className="bg-[#1A6B4A] text-white font-bold py-2.5 px-6 rounded-xl"
+                                        className="bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-bold py-2.5 px-6 rounded-xl"
                                     >
                                         Crear mi primer servicio
                                     </button>
