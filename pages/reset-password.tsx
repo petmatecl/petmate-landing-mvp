@@ -57,18 +57,28 @@ export default function ResetPasswordPage() {
 
         try {
             setLoading(true);
-            const { error } = await supabase.auth.updateUser({ password });
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT')), 8000)
+            );
+            const { error } = await Promise.race([
+                supabase.auth.updateUser({ password }),
+                timeout,
+            ]) as { error: any };
 
             if (error) {
                 console.error(error);
-                setMessage({ type: "error", text: "No se pudo actualizar la contraseña. Token inválido o expirado." });
+                setMessage({ type: "error", text: "No se pudo actualizar la contraseña. El token puede haber expirado." });
             } else {
                 setMessage({ type: "success", text: "Contraseña actualizada correctamente. Redirigiendo..." });
                 setTimeout(() => { router.push("/login"); }, 2000);
             }
-        } catch (err) {
-            console.error(err);
-            setMessage({ type: "error", text: "Ocurrió un error inesperado." });
+        } catch (err: any) {
+            if (err?.message === 'TIMEOUT') {
+                setMessage({ type: "error", text: "La solicitud tardó demasiado. Verifica tu conexión e inténtalo de nuevo." });
+            } else {
+                console.error(err);
+                setMessage({ type: "error", text: "Ocurrió un error inesperado." });
+            }
         } finally {
             setLoading(false);
         }
