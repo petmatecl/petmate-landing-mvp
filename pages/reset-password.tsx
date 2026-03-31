@@ -13,7 +13,17 @@ export default function ResetPasswordPage() {
     const [showConfirm, setShowConfirm] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+    const [linkError, setLinkError] = useState<string | null>(null);
+
     useEffect(() => {
+        // Detectar error en el hash del URL (ej: otp_expired, access_denied)
+        if (typeof window !== 'undefined') {
+            const hash = window.location.hash;
+            if (hash.includes('error=access_denied') || hash.includes('error_code=otp_expired')) {
+                setLinkError('El enlace de recuperación expiró o ya fue usado. Solicita uno nuevo desde la página de login.');
+            }
+        }
+
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
             if (event === "PASSWORD_RECOVERY") {
                 // User is in password recovery mode — no action needed here
@@ -84,81 +94,103 @@ export default function ResetPasswordPage() {
 
                 <main className="flex-1 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-md shadow-sm">
-                        <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-slate-900 mb-2">Nueva contraseña</h1>
-                            <p className="text-sm text-slate-500">Ingresa tu nueva contraseña para acceder a tu cuenta.</p>
-                        </div>
 
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                            {/* Nueva contraseña */}
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="password" className="text-sm font-medium text-slate-700 block">
-                                    Nueva contraseña
-                                </label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                        <Lock size={18} />
-                                    </span>
-                                    <input
-                                        id="password"
-                                        name="password"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Mínimo 8 caracteres"
-                                        required
-                                        className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
-                                    />
-                                    <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
+                        {linkError ? (
+                            /* Estado: link expirado */
+                            <div className="text-center">
+                                <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Lock size={24} className="text-red-400" />
                                 </div>
-                            </div>
-
-                            {/* Confirmar contraseña */}
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 block">
-                                    Confirmar contraseña
-                                </label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                        <Lock size={18} />
-                                    </span>
-                                    <input
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        type={showConfirm ? "text" : "password"}
-                                        placeholder="Repite tu contraseña"
-                                        required
-                                        className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
-                                    />
-                                    <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                        {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {message && (
-                                <div
-                                    className={`p-4 rounded-lg text-sm font-medium border ${message.type === "error"
-                                            ? "bg-red-50 text-red-700 border-red-200"
-                                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                        }`}
-                                    role="alert"
+                                <h1 className="text-xl font-bold text-slate-900 mb-2">Enlace expirado</h1>
+                                <p className="text-sm text-slate-500 mb-6">{linkError}</p>
+                                <Link
+                                    href="/forgot-password"
+                                    className="inline-block w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors leading-[3rem] text-center text-sm"
                                 >
-                                    {message.text}
+                                    Solicitar nuevo enlace
+                                </Link>
+                            </div>
+                        ) : (
+                            /* Formulario normal */
+                            <>
+                                <div className="mb-6">
+                                    <h1 className="text-2xl font-bold text-slate-900 mb-2">Nueva contraseña</h1>
+                                    <p className="text-sm text-slate-500">Ingresa tu nueva contraseña para acceder a tu cuenta.</p>
                                 </div>
-                            )}
 
-                            <button
-                                type="submit"
-                                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-                                disabled={loading}
-                            >
-                                {loading ? <><Loader2 size={18} className="animate-spin" /> Actualizando...</> : "Actualizar contraseña"}
-                            </button>
-                        </form>
+                                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                                    {/* Nueva contraseña */}
+                                    <div className="flex flex-col gap-1">
+                                        <label htmlFor="password" className="text-sm font-medium text-slate-700 block">
+                                            Nueva contraseña
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <Lock size={18} />
+                                            </span>
+                                            <input
+                                                id="password"
+                                                name="password"
+                                                type={showPassword ? "text" : "password"}
+                                                placeholder="Mínimo 8 caracteres"
+                                                required
+                                                className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                            />
+                                            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Confirmar contraseña */}
+                                    <div className="flex flex-col gap-1">
+                                        <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 block">
+                                            Confirmar contraseña
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <Lock size={18} />
+                                            </span>
+                                            <input
+                                                id="confirmPassword"
+                                                name="confirmPassword"
+                                                type={showConfirm ? "text" : "password"}
+                                                placeholder="Repite tu contraseña"
+                                                required
+                                                className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                            />
+                                            <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {message && (
+                                        <div
+                                            className={`p-4 rounded-lg text-sm font-medium border ${message.type === "error"
+                                                    ? "bg-red-50 text-red-700 border-red-200"
+                                                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                }`}
+                                            role="alert"
+                                        >
+                                            {message.text}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                                        disabled={loading}
+                                    >
+                                        {loading ? <><Loader2 size={18} className="animate-spin" /> Actualizando...</> : "Actualizar contraseña"}
+                                    </button>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </main>
             </div>
         </>
     );
 }
+
