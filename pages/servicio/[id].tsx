@@ -82,19 +82,20 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     const totalReviews = reviews.length;
 
     const handleChatClick = async () => {
+        // Verificar login con el contexto (ya cargado, sin latencia de red)
+        if (!user) {
+            setLoginModalOpen(true);
+            return;
+        }
+
         setIsChatLoading(true);
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-
-            if (!session) {
-                setLoginModalOpen(true);
-                return;
-            }
+            const userId = user.id;
 
             // Registrar evento click_chat
             void supabase.from('eventos_tracking').insert({
                 tipo: 'click_chat',
-                user_id: session.user.id,
+                user_id: userId,
                 servicio_id: service.id,
             });
 
@@ -102,7 +103,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
             const { data: existingConv } = await supabase
                 .from('conversations')
                 .select('id')
-                .eq('client_id', session.user.id)
+                .eq('client_id', userId)
                 .eq('sitter_id', proveedor.id)
                 .eq('servicio_id', service.id)
                 .maybeSingle();
@@ -117,7 +118,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
             const { count: convCount } = await supabase
                 .from('conversations')
                 .select('id', { count: 'exact', head: true })
-                .eq('client_id', session.user.id)
+                .eq('client_id', userId)
                 .gte('created_at', since24h);
 
             const CONV_LIMIT = Number(process.env.NEXT_PUBLIC_CONV_DAILY_LIMIT ?? 10);
@@ -130,7 +131,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
             const { data: newConv, error } = await supabase
                 .from('conversations')
                 .insert({
-                    client_id: session.user.id,
+                    client_id: userId,
                     sitter_id: proveedor.id,
                     servicio_id: service.id,
                     proveedor_auth_id: proveedor.auth_user_id
@@ -145,7 +146,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
         } catch (error) {
             console.error('Error starting conversation:', error);
-            alert('Hubo un error al intentar abrir el chat.');
+            toast.error('Hubo un error al intentar abrir el chat. Intenta de nuevo.');
         } finally {
             setIsChatLoading(false);
         }
@@ -693,7 +694,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                                     <div className="flex items-center gap-2 text-xs text-slate-400 pt-1">
                                         <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                                        <span>En Pawnecta desde {new Date(proveedor.created_at ?? Date.now()).getFullYear()}</span>
+                                        <span>En Pawnecta desde {new Date(proveedor.created_at ?? Date.now()).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}</span>
                                     </div>
                                 </div>
 
