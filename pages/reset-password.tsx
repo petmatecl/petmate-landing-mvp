@@ -13,17 +13,17 @@ export default function ResetPasswordPage() {
     const [showConfirm, setShowConfirm] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-    const [linkError, setLinkError] = useState<string | null>(null);
+    // Leer el hash ANTES de que Supabase lo limpie — debe ser lazy initializer
+    const [linkError, setLinkError] = useState<string | null>(() => {
+        if (typeof window === 'undefined') return null;
+        const hash = window.location.hash;
+        if (hash.includes('error=access_denied') || hash.includes('error_code=otp_expired')) {
+            return 'El enlace expiró (tienen validez de 1 hora). Solicita uno nuevo desde la página de login.';
+        }
+        return null;
+    });
 
     useEffect(() => {
-        // Detectar error en el hash del URL (ej: otp_expired, access_denied)
-        if (typeof window !== 'undefined') {
-            const hash = window.location.hash;
-            if (hash.includes('error=access_denied') || hash.includes('error_code=otp_expired')) {
-                setLinkError('El enlace de recuperación expiró o ya fue usado. Solicita uno nuevo desde la página de login.');
-            }
-        }
-
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
             if (event === "PASSWORD_RECOVERY") {
                 // User is in password recovery mode — no action needed here
