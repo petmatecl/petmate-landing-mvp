@@ -137,7 +137,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // 3. Consultar `usuarios_buscadores`
             const { data: seekerData } = await supabase
                 .from('usuarios_buscadores')
-                .select('id, nombre, apellido_p')
+                .select('id, nombre')
                 .eq('auth_user_id', session.user.id)
                 .maybeSingle();
 
@@ -158,9 +158,9 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             } else if (seekerData) {
                 finalProfile = {
                     nombre: seekerData.nombre,
-                    apellido_p: seekerData.apellido_p,
+                    apellido_p: '',
                     roles: ['usuario'],
-                    aprobado: true // Los usuarios básicos no se moderan
+                    aprobado: true
                 };
             }
 

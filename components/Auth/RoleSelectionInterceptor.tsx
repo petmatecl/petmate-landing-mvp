@@ -26,7 +26,7 @@ export const RoleSelectionInterceptor: React.FC = () => {
     // So YES, intercept everywhere except maybe 'register' or 'logout'.
 
     // Exclude Admin from interception too
-    const isExcludedRoute = ['/logout', '/register', '/login', '/admin'].includes(router.pathname);
+    const isExcludedRoute = ['/logout', '/register', '/login', '/admin', '/reset-password', '/forgot-password'].includes(router.pathname);
     if (isExcludedRoute) return null;
 
     // If only one role, auto-select it — no need to show the modal
