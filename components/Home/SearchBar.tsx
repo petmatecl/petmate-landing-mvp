@@ -87,7 +87,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                     value={comunaQuery}
                     onChange={(e) => { setComunaQuery(e.target.value); setShowComunaList(true); setErrorMsg(""); }}
                     onFocus={() => setShowComunaList(true)}
-                    placeholder="¿Dónde?"
+                    placeholder="¿En qué comuna?"
                     autoComplete="off"
                     className="flex-1 bg-transparent text-slate-900 text-sm font-medium focus:outline-none placeholder:text-slate-400 placeholder:font-normal min-w-0"
                 />
