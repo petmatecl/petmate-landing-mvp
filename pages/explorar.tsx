@@ -406,8 +406,12 @@ export default function ExplorarPage() {
         if (combined.orden && combined.orden !== 'relevancia') query.orden = combined.orden;
 
         // Persist last search for when user returns to /explorar
-        if (typeof window !== 'undefined' && Object.keys(query).length > 0) {
-            localStorage.setItem('pawnecta_last_search', JSON.stringify(query));
+        if (typeof window !== 'undefined') {
+            if (Object.keys(query).length > 0) {
+                localStorage.setItem('pawnecta_last_search', JSON.stringify(query));
+            } else {
+                localStorage.removeItem('pawnecta_last_search');
+            }
         }
 
         router.push({ pathname: '/explorar', query }, undefined, { shallow: true });
