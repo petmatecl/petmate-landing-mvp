@@ -344,7 +344,7 @@ export default function ExplorarPage() {
                 if (allData.length === 0 && currentComuna && currentCategorias.length > 0) {
                     const { data: altData } = await supabase.rpc('buscar_servicios', {
                         p_categoria_slug: currentCategorias[0],
-                        p_comuna: null, p_tamano: null, p_precio_max: null,
+                        p_comuna: null, p_precio_max: null,
                         p_precio_min: null, p_texto: null, p_limit: 50, p_offset: 0,
                     });
                     if (altData && altData.length > 0) {
