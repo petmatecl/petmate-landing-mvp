@@ -238,8 +238,8 @@ export default function ProveedorManagementList() {
                                                     <button
                                                         onClick={() => { setProviderToSuspend(prov); setSuspendModalOpen(true); }}
                                                         disabled={actionId === prov.id}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors tooltip tooltip-left"
-                                                        data-tip="Suspender Cuenta"
+                                                        title="Suspender cuenta"
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                     >
                                                         {actionId === prov.id ? <Loader2 size={18} className="animate-spin" /> : <ShieldAlert size={18} />}
                                                     </button>
@@ -249,6 +249,7 @@ export default function ProveedorManagementList() {
                                                     <button
                                                         onClick={() => handleReactivate(prov.id)}
                                                         disabled={actionId === prov.id}
+                                                        title="Reactivar cuenta"
                                                         className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5"
                                                     >
                                                         {actionId === prov.id ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />} Reactivar
@@ -256,10 +257,11 @@ export default function ProveedorManagementList() {
                                                 )}
 
                                                 <a
-                                                    href={`/admin/proveedor/${prov.id}`} // Enlace hipotético por si a futuro quieren un detalle completo
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors tooltip tooltip-left"
-                                                    data-tip="Ver Detalle"
-                                                    onClick={(e) => { e.preventDefault(); toast.info('Detalle del proveedor en desarrollo'); }}
+                                                    href={`/proveedor/${prov.id}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    title="Ver perfil público"
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                 >
                                                     <ExternalLink size={18} />
                                                 </a>
