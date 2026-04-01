@@ -702,29 +702,33 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             </div>
 
                             {/* ── PROVEEDOR ─────────────────────────────────────── */}
-                            <div className="border-t border-slate-100 pt-4 space-y-4">
+                            <div className="border-t border-slate-100 pt-5 space-y-4">
 
-                                {/* Fila: foto + nombre + link al perfil */}
-                                <div className="flex items-center gap-3">
-                                    {/* Foto — se mantiene como estaba originalmente */}
-                                    <div className="w-12 h-12 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 shrink-0">
-                                        {proveedor.foto_perfil
-                                            ? <img src={getProxyImageUrl(proveedor.foto_perfil) || ''} alt={proveedor.nombre} className="w-full h-full object-cover" />
-                                            : <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                                        }
+                                {/* Foto grande + nombre centrado */}
+                                <div className="flex flex-col items-center text-center">
+                                    <Link href={`/proveedor/${proveedor.id}`} className="group">
+                                        <div className="w-20 h-20 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 mb-3 group-hover:border-emerald-400 transition-colors">
+                                            {proveedor.foto_perfil
+                                                ? <img src={getProxyImageUrl(proveedor.foto_perfil) || ''} alt={proveedor.nombre} className="w-full h-full object-cover" />
+                                                : <svg className="w-full h-full text-slate-400 p-3" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                            }
+                                        </div>
+                                    </Link>
+                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                        <span className="font-bold text-slate-900 text-sm">
+                                            {proveedor.nombre} {proveedor.apellido_p}
+                                        </span>
+                                        {proveedor.rut_verificado && (
+                                            <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
+                                        )}
                                     </div>
-                                    {/* Nombre + link */}
-                                    <div className="flex-1 min-w-0">
-                                        <Link href={`/proveedor/${proveedor.id}`} className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors">
-                                            <span className="font-bold text-sm truncate">
-                                                {proveedor.nombre} {proveedor.apellido_p}
-                                            </span>
-                                            {proveedor.rut_verificado && (
-                                                <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
-                                            )}
-                                        </Link>
-                                        <p className="text-xs text-slate-400">{proveedor.comuna}</p>
-                                    </div>
+                                    <p className="text-xs text-slate-400 mb-2">{proveedor.comuna}</p>
+                                    <Link
+                                        href={`/proveedor/${proveedor.id}`}
+                                        className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-4 py-1.5 rounded-full transition-colors"
+                                    >
+                                        Ver perfil completo
+                                    </Link>
                                 </div>
 
                                 {/* Sobre el proveedor — siempre visible, con fallback */}
