@@ -269,9 +269,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (titulo.length > 80) return toast.error("El título es muy largo.");
-        if (descripcion.length > 500) return toast.error("La descripción es muy larga.");
+        if (!categoriaId) return toast.error("Selecciona una categoría.");
+        if (!titulo.trim()) return toast.error("El título es obligatorio.");
+        if (titulo.length > 80) return toast.error("El título es muy largo (máx. 80 caracteres).");
+        if (!descripcion.trim()) return toast.error("La descripción es obligatoria.");
+        if (descripcion.length > 500) return toast.error("La descripción es muy larga (máx. 500 caracteres).");
         if (!precioDesde) return toast.error("El precio desde es obligatorio.");
+        if (!perros && !gatos && !otras) return toast.error("Selecciona al menos un tipo de mascota aceptada.");
+        if (comunasCobertura.length === 0) return toast.error("Selecciona al menos una comuna de cobertura.");
 
         setLoading(true);
 
@@ -407,148 +412,158 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 ) : (
                     <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-0 min-h-0">
                         {/* FORM */}
-                        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 lg:border-r lg:border-slate-100">
+                        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-0 lg:border-r lg:border-slate-100">
 
-                            {/* Categoría y Título */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="md:col-span-1">
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Categoría</label>
-                                    <select
-                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
-                                        value={categoriaId}
-                                        onChange={(e) => { setCategoriaId(e.target.value); setDetalles({}); }}
-                                        required
-                                    >
-                                        {categorias.map(c => (
-                                            <option key={c.id} value={c.id}>{c.icono} {c.nombre}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Título <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="text"
-                                        value={titulo}
-                                        onChange={e => setTitulo(e.target.value)}
-                                        maxLength={80}
-                                        required
-                                        placeholder="Ej: Hospedaje cariñoso con amplio patio"
-                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                                    />
-                                    <div className="text-right text-xs text-slate-400 mt-1">{titulo.length}/80</div>
+                            {/* ── SECCIÓN 1: Información básica ── */}
+                            <div className="pb-6">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Información básica</p>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="md:col-span-1">
+                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Categoría</label>
+                                            <select
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                                value={categoriaId}
+                                                onChange={(e) => { setCategoriaId(e.target.value); setDetalles({}); }}
+                                                required
+                                            >
+                                                {categorias.map(c => (
+                                                    <option key={c.id} value={c.id}>{c.icono} {c.nombre}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Título <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={titulo}
+                                                onChange={e => setTitulo(e.target.value)}
+                                                maxLength={80}
+                                                required
+                                                placeholder="Ej: Hospedaje cariñoso con amplio patio"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                            />
+                                            <div className="text-right text-xs text-slate-400 mt-1">{titulo.length}/80</div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Descripción <span className="text-red-500">*</span></label>
+                                        <textarea
+                                            value={descripcion}
+                                            onChange={e => setDescripcion(e.target.value)}
+                                            maxLength={500}
+                                            rows={3}
+                                            placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
+                                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                        />
+                                        <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/500</div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Descripción */}
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Descripción</label>
-                                <textarea
-                                    value={descripcion}
-                                    onChange={e => setDescripcion(e.target.value)}
-                                    maxLength={500}
-                                    rows={4}
-                                    placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
-                                />
-                                <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/500</div>
+                            {/* ── SECCIÓN 2: Precio y disponibilidad ── */}
+                            <div className="border-t border-slate-100 py-6">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Desde ($) <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={precioDesde ? Number(precioDesde).toLocaleString('es-CL') : ''}
+                                                onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioDesde(raw ? Number(raw) : ''); }}
+                                                required
+                                                placeholder="15.000"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Hasta ($)</label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={precioHasta ? Number(precioHasta).toLocaleString('es-CL') : ''}
+                                                onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioHasta(raw ? Number(raw) : ''); }}
+                                                placeholder="Opcional"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Unidad</label>
+                                            <select
+                                                value={unidadPrecio}
+                                                onChange={e => setUnidadPrecio(e.target.value)}
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                            >
+                                                <option value="por noche">por noche</option>
+                                                <option value="por hora">por hora</option>
+                                                <option value="por sesión">por sesión</option>
+                                                <option value="por paseo">por paseo</option>
+                                                <option value="por mes">por mes</option>
+                                                <option value="por visita">por visita</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Disponibilidad</label>
+                                        <input
+                                            type="text"
+                                            value={disponibilidad}
+                                            onChange={e => setDisponibilidad(e.target.value)}
+                                            placeholder="Ej: Lunes a viernes, 9:00 a 18:00"
+                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Precios */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Precio desde ($) <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="number"
-                                        value={precioDesde}
-                                        onChange={e => setPrecioDesde(Number(e.target.value))}
-                                        required
-                                        min={0}
-                                        placeholder="15000"
-                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Precio máximo (opcional)</label>
-                                    <input
-                                        type="number"
-                                        value={precioHasta}
-                                        onChange={e => setPrecioHasta(e.target.value ? Number(e.target.value) : '')}
-                                        min={0}
-                                        placeholder="30000"
-                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Unidad</label>
-                                    <select
-                                        value={unidadPrecio}
-                                        onChange={e => setUnidadPrecio(e.target.value)}
-                                        className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
-                                    >
-                                        <option value="por noche">por noche</option>
-                                        <option value="por hora">por hora</option>
-                                        <option value="por sesión">por sesión</option>
-                                        <option value="por paseo">por paseo</option>
-                                        <option value="por mes">por mes</option>
-                                        <option value="por visita">por visita</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Mascotas */}
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Mascotas Aceptadas</label>
-                                <div className="flex flex-wrap gap-4 mb-4">
-                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                        <input type="checkbox" checked={perros} onChange={e => setPerros(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
-                                        Perros
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                        <input type="checkbox" checked={gatos} onChange={e => setGatos(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
-                                        Gatos
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                        <input type="checkbox" checked={otras} onChange={e => setOtras(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600" />
-                                        Otras especies
-                                    </label>
+                            {/* ── SECCIÓN 3: Mascotas ── */}
+                            <div className="border-t border-slate-100 py-6">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {[
+                                        { label: 'Perros', checked: perros, set: setPerros, emoji: '🐶' },
+                                        { label: 'Gatos', checked: gatos, set: setGatos, emoji: '🐱' },
+                                        { label: 'Otras', checked: otras, set: setOtras, emoji: '🐾' },
+                                    ].map(m => (
+                                        <button key={m.label} type="button" onClick={() => m.set(!m.checked)}
+                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${m.checked
+                                                ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                                : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                            }`}>
+                                            <span>{m.emoji}</span> {m.label}
+                                        </button>
+                                    ))}
                                 </div>
 
                                 {perros && (
-                                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex flex-wrap gap-4">
-                                        <span className="text-sm font-semibold text-emerald-900 mr-2 w-full sm:w-auto">Tamaños P. permitidos:</span>
-                                        <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                            <input type="checkbox" checked={tamanoPequeno} onChange={e => setTamanoPequeno(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
-                                            Pequeño
-                                        </label>
-                                        <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                            <input type="checkbox" checked={tamanoMediano} onChange={e => setTamanoMediano(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
-                                            Mediano
-                                        </label>
-                                        <label className="flex items-center gap-2 text-sm text-emerald-800 cursor-pointer">
-                                            <input type="checkbox" checked={tamanoGrande} onChange={e => setTamanoGrande(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-600" />
-                                            Grande
-                                        </label>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs text-slate-500 font-medium mr-1">Tamaños:</span>
+                                        {[
+                                            { label: 'Pequeño', checked: tamanoPequeno, set: setTamanoPequeno },
+                                            { label: 'Mediano', checked: tamanoMediano, set: setTamanoMediano },
+                                            { label: 'Grande', checked: tamanoGrande, set: setTamanoGrande },
+                                        ].map(t => (
+                                            <button key={t.label} type="button" onClick={() => t.set(!t.checked)}
+                                                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${t.checked
+                                                    ? 'bg-slate-900 border-slate-900 text-white'
+                                                    : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                                }`}>
+                                                {t.label}
+                                            </button>
+                                        ))}
                                     </div>
                                 )}
-                            </div>
-
-                            {/* Disponibilidad */}
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Disponibilidad (Texto Libre)</label>
-                                <input
-                                    type="text"
-                                    value={disponibilidad}
-                                    onChange={e => setDisponibilidad(e.target.value)}
-                                    placeholder="Ej: Lunes a viernes, 9:00 a 18:00"
-                                    className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                                />
                             </div>
 
                             {/* ── COMUNAS DE COBERTURA ── */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <MapPin size={14} className="text-emerald-600" />
-                                    Comunas donde prestas el servicio
+                                    Comunas donde prestas el servicio <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-xs text-slate-400 mb-2">
                                     Selecciona todas las comunas donde ofreces este servicio. Los clientes podrán encontrarte al filtrar por su zona.
