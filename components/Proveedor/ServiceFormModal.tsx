@@ -350,7 +350,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 )}
                 {selectedCat && (
                     <span className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-2 py-1 rounded-full border border-slate-200">
-                        {selectedCat.icono} {selectedCat.nombre}
+                        {selectedCat.nombre}
                     </span>
                 )}
             </div>
@@ -428,7 +428,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 required
                                             >
                                                 {categorias.map(c => (
-                                                    <option key={c.id} value={c.id}>{c.icono} {c.nombre}</option>
+                                                    <option key={c.id} value={c.id}>{c.nombre}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -508,14 +508,49 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Disponibilidad</label>
-                                        <input
-                                            type="text"
-                                            value={disponibilidad}
-                                            onChange={e => setDisponibilidad(e.target.value)}
-                                            placeholder="Ej: Lunes a viernes, 9:00 a 18:00"
-                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
-                                        />
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">Disponibilidad</label>
+                                        <div className="space-y-1.5">
+                                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(dia => {
+                                                // Parse from disponibilidad string or use defaults
+                                                const parsed = (() => {
+                                                    try { return JSON.parse(disponibilidad); } catch { return {}; }
+                                                })();
+                                                const dayData = parsed[dia] || { activo: false, desde: '09:00', hasta: '18:00' };
+                                                const updateDay = (field: string, value: any) => {
+                                                    const current = (() => { try { return JSON.parse(disponibilidad); } catch { return {}; } })();
+                                                    current[dia] = { ...current[dia] || { activo: false, desde: '09:00', hasta: '18:00' }, [field]: value };
+                                                    setDisponibilidad(JSON.stringify(current));
+                                                };
+                                                return (
+                                                    <div key={dia} className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateDay('activo', !dayData.activo)}
+                                                            className={`w-20 shrink-0 text-xs font-semibold py-1.5 rounded-lg border text-center transition-colors ${
+                                                                dayData.activo
+                                                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                                                    : 'border-slate-200 text-slate-400'
+                                                            }`}
+                                                        >
+                                                            {dia.slice(0, 3)}
+                                                        </button>
+                                                        {dayData.activo ? (
+                                                            <div className="flex items-center gap-1.5 text-sm">
+                                                                <input type="time" value={dayData.desde}
+                                                                    onChange={e => updateDay('desde', e.target.value)}
+                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600" />
+                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                <input type="time" value={dayData.hasta}
+                                                                    onChange={e => updateDay('hasta', e.target.value)}
+                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600" />
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-slate-300">No disponible</span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -525,16 +560,16 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {[
-                                        { label: 'Perros', checked: perros, set: setPerros, emoji: '🐶' },
-                                        { label: 'Gatos', checked: gatos, set: setGatos, emoji: '🐱' },
-                                        { label: 'Otras', checked: otras, set: setOtras, emoji: '🐾' },
+                                        { label: 'Perros', checked: perros, set: setPerros },
+                                        { label: 'Gatos', checked: gatos, set: setGatos },
+                                        { label: 'Otras', checked: otras, set: setOtras },
                                     ].map(m => (
                                         <button key={m.label} type="button" onClick={() => m.set(!m.checked)}
                                             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${m.checked
                                                 ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                                                 : 'border-slate-200 text-slate-500 hover:border-slate-300'
                                             }`}>
-                                            <span>{m.emoji}</span> {m.label}
+                                            {m.label}
                                         </button>
                                     ))}
                                 </div>
@@ -631,7 +666,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {camposCategoria.length > 0 && (
                                 <div className="border-t border-slate-100 pt-6">
                                     <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                                        <span className="text-base">{selectedCat?.icono}</span>
+                                        <span className="text-sm font-bold text-emerald-600">{selectedCat?.nombre?.charAt(0)}</span>
                                         Detalles de {selectedCat?.nombre}
                                     </h3>
                                     <div className="space-y-4">
