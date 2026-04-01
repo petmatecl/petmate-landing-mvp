@@ -14,6 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
+import { COMUNAS_CHILE } from '../../lib/comunas';
 import Link from 'next/link';
 import {
     Clock, AlertTriangle, Briefcase, User as UserIcon, Shield, ShieldCheck, ShieldX,
@@ -67,6 +68,7 @@ export default function ProveedorDashboard() {
     const [galeria, setGaleria] = useState<string[]>([]);
     const [uploadingGaleria, setUploadingGaleria] = useState(false);
     const [comuna, setComuna] = useState('');
+    const [comunaOpen, setComunaOpen] = useState(false);
     const [whatsapp, setWhatsapp] = useState('');
     const [telefono, setTelefono] = useState('');
     const [emailPublico, setEmailPublico] = useState('');
@@ -263,30 +265,44 @@ export default function ProveedorDashboard() {
     const saveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         setSavingProfile(true);
-        const { error } = await supabase.from('proveedores').update({
-            bio, comuna, whatsapp, telefono, email_publico: emailPublico,
-            mostrar_whatsapp: mostrarWhatsapp, mostrar_telefono: mostrarTelefono, mostrar_email: mostrarEmail,
-            tipo_entidad: tipoEntidad,
-            razon_social: tipoEntidad === 'empresa' ? razonSocial : null,
-            rut_empresa: tipoEntidad === 'empresa' ? rutEmpresa : null,
-            nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia : null,
-            giro: tipoEntidad === 'empresa' ? giro : null,
-            genero: tipoEntidad === 'persona_natural' ? (genero || null) : null,
-            ocupacion: tipoEntidad === 'persona_natural' ? (ocupacion || null) : null,
-            anios_experiencia: aniosExperiencia ? parseInt(aniosExperiencia) : null,
-            certificaciones,
-            sitio_web: sitioWeb,
-            instagram,
-            primera_ayuda: primeraAyuda,
-            miembro_asociacion: miembroAsociacion,
-            galeria,
-        }).eq('auth_user_id', user.id);
+        try {
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT')), 10000)
+            );
+            const updatePromise = supabase.from('proveedores').update({
+                bio, comuna, whatsapp, telefono, email_publico: emailPublico,
+                mostrar_whatsapp: mostrarWhatsapp, mostrar_telefono: mostrarTelefono, mostrar_email: mostrarEmail,
+                tipo_entidad: tipoEntidad,
+                razon_social: tipoEntidad === 'empresa' ? razonSocial : null,
+                rut_empresa: tipoEntidad === 'empresa' ? rutEmpresa : null,
+                nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia : null,
+                giro: tipoEntidad === 'empresa' ? giro : null,
+                genero: tipoEntidad === 'persona_natural' ? (genero || null) : null,
+                ocupacion: tipoEntidad === 'persona_natural' ? (ocupacion || null) : null,
+                anios_experiencia: aniosExperiencia ? parseInt(aniosExperiencia) : null,
+                certificaciones,
+                sitio_web: sitioWeb,
+                instagram,
+                primera_ayuda: primeraAyuda,
+                miembro_asociacion: miembroAsociacion,
+                galeria,
+            }).eq('auth_user_id', user.id);
 
-        setSavingProfile(false);
-        if (error) {
-            toast.error('Error al guardar el perfil');
-        } else {
-            toast.success('Perfil actualizado correctamente');
+            const { error } = await Promise.race([updatePromise, timeout]) as { error: any };
+
+            if (error) {
+                toast.error('Error al guardar el perfil');
+            } else {
+                toast.success('Perfil actualizado correctamente');
+            }
+        } catch (err: any) {
+            if (err?.message === 'TIMEOUT') {
+                toast.error('La solicitud tardó demasiado. Verifica tu conexión e intenta nuevamente.');
+            } else {
+                toast.error('Error al guardar el perfil');
+            }
+        } finally {
+            setSavingProfile(false);
         }
     };
 
@@ -953,12 +969,34 @@ export default function ProveedorDashboard() {
                                         <div className="text-right text-xs text-slate-400 mt-1">{bio?.length || 0}/600</div>
                                     </div>
 
-                                    <div>
+                                    <div className="relative">
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Comuna de Residencia <span className="text-red-500">*</span></label>
                                         <input
-                                            type="text" value={comuna} onChange={e => setComuna(e.target.value)} required
+                                            type="text"
+                                            value={comuna}
+                                            onChange={e => { setComuna(e.target.value); setComunaOpen(true); }}
+                                            onFocus={() => setComunaOpen(true)}
+                                            onBlur={() => setTimeout(() => setComunaOpen(false), 150)}
+                                            placeholder="Escribe tu comuna..."
+                                            autoComplete="off"
+                                            required
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                                         />
+                                        {comunaOpen && comuna && (
+                                            <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                                                {COMUNAS_CHILE.filter(c => c.toLowerCase().includes(comuna.toLowerCase())).slice(0, 8).map(c => (
+                                                    <li key={c}>
+                                                        <button
+                                                            type="button"
+                                                            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                                                            onMouseDown={() => { setComuna(c); setComunaOpen(false); }}
+                                                        >
+                                                            {c}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
                                     </div>
 
                                     <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Credenciales y Confianza</h3>
