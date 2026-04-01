@@ -136,8 +136,9 @@ export default function AdminDashboard() {
                 return;
             }
 
-            // Admin verificado → recargar para que lo detecte
-            window.location.reload();
+            // Admin verificado → activar directamente sin reload
+            setIsAdmin(true);
+            setLoginLoading(false);
 
         } catch (err) {
             console.error('Admin login error:', err);
