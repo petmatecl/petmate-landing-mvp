@@ -136,7 +136,7 @@ export default function ProveedorApprovalList() {
         try {
             const { data, error } = await supabase
                 .from('proveedores')
-                .select('id, nombre, apellido_p, foto_perfil, rut, foto_carnet, comuna, auth_user_id, verificacion_estado, verificacion_nota, created_at')
+                .select('id, nombre, apellido_p, foto_perfil, rut, foto_carnet, foto_carnet_dorso, comuna, auth_user_id, verificacion_estado, verificacion_nota, created_at')
                 .eq('verificacion_estado', 'pendiente')
                 .order('created_at', { ascending: false });
             if (error) throw error;
@@ -362,18 +362,23 @@ export default function ProveedorApprovalList() {
                                             <span className="font-mono font-bold text-slate-900 text-lg">{prov.rut || '—'}</span>
                                         </div>
                                         {prov.foto_carnet ? (
-                                            <div className="flex items-center gap-3">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img
-                                                    src={prov.foto_carnet}
-                                                    alt="Carnet"
-                                                    className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
-                                                    onClick={() => setSelectedImage(prov.foto_carnet)}
-                                                />
-                                                <button onClick={() => setSelectedImage(prov.foto_carnet)}
-                                                    className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
-                                                    <FileImage size={16} /> Ver en grande
-                                                </button>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-3">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={prov.foto_carnet} alt="Carnet frontal"
+                                                        className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                                                        onClick={() => setSelectedImage(prov.foto_carnet)} />
+                                                    <span className="text-xs text-slate-500 font-medium">Frontal</span>
+                                                </div>
+                                                {prov.foto_carnet_dorso && (
+                                                    <div className="flex items-center gap-3">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img src={prov.foto_carnet_dorso} alt="Carnet dorso"
+                                                            className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                                                            onClick={() => setSelectedImage(prov.foto_carnet_dorso)} />
+                                                        <span className="text-xs text-slate-500 font-medium">Dorso</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="flex items-center gap-2 text-sm text-slate-400">

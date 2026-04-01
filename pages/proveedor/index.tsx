@@ -105,6 +105,8 @@ export default function ProveedorDashboard() {
     const [rutInputError, setRutInputError] = useState('');
     const [carnetFile, setCarnetFile] = useState<File | null>(null);
     const [carnetPreview, setCarnetPreview] = useState<string | null>(null);
+    const [carnetDorsoFile, setCarnetDorsoFile] = useState<File | null>(null);
+    const [carnetDorsoPreview, setCarnetDorsoPreview] = useState<string | null>(null);
     const [uploadingCarnet, setUploadingCarnet] = useState(false);
 
     useEffect(() => {
@@ -201,24 +203,32 @@ export default function ProveedorDashboard() {
         if (!file || !user) return;
 
         setUploadingAvatar(true);
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${user.id}/avatar.${fileExt}`;
+        try {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${user.id}/avatar.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+            const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
 
-        if (uploadError) {
-            toast.error('Error al subir imagen');
+            if (uploadError) throw uploadError;
+
+            const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            const url = `${publicData.publicUrl}?t=${Date.now()}`;
+
+            // Show preview immediately from local file
+            setFotoPerfil(URL.createObjectURL(file));
+
+            const { error: updateError } = await supabase.from('proveedores').update({ foto_perfil: url }).eq('auth_user_id', user.id);
+            if (updateError) throw updateError;
+
+            // Update with real URL
+            setFotoPerfil(url);
+            toast.success('Foto de perfil actualizada');
+        } catch (err: any) {
+            console.error('Avatar upload error:', err);
+            toast.error(err.message || 'Error al subir imagen');
+        } finally {
             setUploadingAvatar(false);
-            return;
         }
-
-        const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-        const url = `${publicData.publicUrl}?t=${Date.now()}`;
-        setFotoPerfil(url);
-
-        await supabase.from('proveedores').update({ foto_perfil: url }).eq('auth_user_id', user.id);
-        setUploadingAvatar(false);
-        toast.success('Foto de perfil actualizada');
     };
 
     const uploadGaleriaFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,6 +324,13 @@ export default function ProveedorDashboard() {
         setCarnetPreview(URL.createObjectURL(file));
     };
 
+    const handleCarnetDorsoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setCarnetDorsoFile(file);
+        setCarnetDorsoPreview(URL.createObjectURL(file));
+    };
+
     const handleEnviarVerificacion = async () => {
         // Validate RUT
         const cleanedRut = rutInput.replace(/[^0-9kK]/g, '');
@@ -322,12 +339,17 @@ export default function ProveedorDashboard() {
             return;
         }
         if (!carnetFile && !proveedor.foto_carnet) {
-            toast.error('Debes subir una foto de tu carnet de identidad.');
+            toast.error('Debes subir la foto frontal de tu carnet de identidad.');
+            return;
+        }
+        if (!carnetDorsoFile && !proveedor.foto_carnet_dorso) {
+            toast.error('Debes subir la foto del dorso (trasera) de tu carnet de identidad.');
             return;
         }
         setRutInputError('');
         setUploadingCarnet(true);
         try {
+            // Upload frontal
             let carnetUrl = proveedor.foto_carnet || null;
             if (carnetFile) {
                 const ext = carnetFile.name.split('.').pop();
@@ -339,10 +361,23 @@ export default function ProveedorDashboard() {
                 const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path);
                 carnetUrl = urlData.publicUrl;
             }
+            // Upload dorso
+            let dorsoUrl = proveedor.foto_carnet_dorso || null;
+            if (carnetDorsoFile) {
+                const ext = carnetDorsoFile.name.split('.').pop();
+                const path = `carnets/${user.id}/carnet_dorso.${ext}`;
+                const { error: upErr } = await supabase.storage
+                    .from('documents')
+                    .upload(path, carnetDorsoFile, { upsert: true });
+                if (upErr) throw upErr;
+                const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path);
+                dorsoUrl = urlData.publicUrl;
+            }
             const formatted = formatRut(cleanedRut);
             const { error: saveErr } = await supabase.from('proveedores').update({
                 rut: formatted,
                 foto_carnet: carnetUrl,
+                foto_carnet_dorso: dorsoUrl,
                 verificacion_estado: 'pendiente',
                 verificacion_nota: null,
             }).eq('auth_user_id', user.id);
@@ -865,6 +900,33 @@ export default function ProveedorDashboard() {
                                                                 </>
                                                             )}
                                                             <input type="file" className="hidden" accept="image/*" onChange={handleCarnetChange} />
+                                                        </label>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                                                            Dorso del Carnet <span className="text-red-500">*</span>
+                                                            <span className="text-slate-400 font-normal ml-1">(lado trasero)</span>
+                                                        </label>
+                                                        <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${carnetDorsoPreview ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50'
+                                                            }`}>
+                                                            {carnetDorsoPreview ? (
+                                                                <div className="flex items-center gap-3">
+                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                    <img src={carnetDorsoPreview} alt="Vista previa dorso" className="h-16 w-24 object-cover rounded-lg border border-emerald-200" />
+                                                                    <div>
+                                                                        <p className="text-sm font-bold text-emerald-700">Foto lista</p>
+                                                                        <p className="text-xs text-slate-500">{carnetDorsoFile?.name}</p>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <Upload size={24} className="text-slate-400" />
+                                                                    <p className="text-sm text-slate-500 font-medium">Arrastra o haz click para subir el dorso</p>
+                                                                    <p className="text-xs text-slate-400">JPG, PNG o HEIC — Máx. 5 MB</p>
+                                                                </>
+                                                            )}
+                                                            <input type="file" className="hidden" accept="image/*" onChange={handleCarnetDorsoChange} />
                                                         </label>
                                                     </div>
 
