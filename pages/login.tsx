@@ -72,8 +72,23 @@ export default function LoginPage() {
         return;
       }
 
-      // Éxito — redirigir
-      window.location.replace(redirect || '/explorar');
+      // Determinar destino según rol
+      if (redirect) {
+        window.location.replace(redirect);
+      } else {
+        // Check if user is a provider
+        const { data: provData } = await supabase
+          .from('proveedores')
+          .select('id, estado')
+          .eq('auth_user_id', data.user.id)
+          .maybeSingle();
+
+        if (provData) {
+          window.location.replace('/proveedor');
+        } else {
+          window.location.replace('/explorar');
+        }
+      }
     } catch (err: any) {
       if (err?.message === "TIMEOUT") {
         setError("La solicitud tardó demasiado. Verifica tu conexión e inténtalo de nuevo.");
