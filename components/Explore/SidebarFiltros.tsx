@@ -199,7 +199,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     {checked && <Check size={10} strokeWidth={3} className="text-white" />}
                                 </div>
                                 <CatIcon size={14} className={checked ? 'text-emerald-600' : 'text-slate-400'} />
-                                <span className="text-left flex-1">{cat.nombre}</span>
+                                <span className="text-left flex-1 truncate">{cat.nombre}</span>
                                 {(categoryCounts[cat.slug] ?? 0) > 0 && (
                                     <span className="text-xs text-slate-400 font-normal tabular-nums ml-auto">
                                         {categoryCounts[cat.slug]}
