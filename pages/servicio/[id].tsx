@@ -644,6 +644,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                             {/* PRECIO — protagonista */}
                             <div>
+                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Desde</p>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-4xl font-black text-emerald-700">
                                         ${service.precio_desde?.toLocaleString("es-CL")}
