@@ -76,7 +76,7 @@ export default function LoginPage() {
       window.location.replace(redirect || '/explorar');
     } catch (err: any) {
       if (err?.message === "TIMEOUT") {
-        setError("El correo o la contraseña no son correctos, o hay un problema de conexión. Inténtalo de nuevo.");
+        setError("La solicitud tardó demasiado. Verifica tu conexión e inténtalo de nuevo.");
       } else {
         setError("No pudimos conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.");
       }

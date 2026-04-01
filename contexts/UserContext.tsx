@@ -109,8 +109,15 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     const initializeUser = async () => {
         try {
-            // 1. Get Session
-            const { data: { session } } = await supabase.auth.getSession();
+            // 1. Get Session (with 5s timeout to prevent infinite loading)
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000)
+            );
+
+            const { data: { session } } = await Promise.race([
+                supabase.auth.getSession(),
+                timeout,
+            ]) as { data: { session: any } };
 
             if (!session?.user) {
                 setUser(null);
@@ -207,8 +214,20 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                 else setActiveRole(null);
             }
 
-        } catch (err) {
-            console.error("UserContext Init Error:", err);
+        } catch (err: any) {
+            if (err?.message === 'SESSION_TIMEOUT') {
+                console.warn('UserContext: getSession() timed out after 5s — treating as logged out');
+            } else {
+                console.error("UserContext Init Error:", err);
+            }
+            // On any error, reset to guest state so the app doesn't hang
+            setUser(null);
+            setProfile(null);
+            setActiveRole(null);
+            setActiveMode('buscador');
+            setCanSwitchMode(false);
+            setProviderStatus('none');
+            setCapabilities(GUEST_CAPABILITIES);
         } finally {
             setIsLoading(false);
         }
@@ -216,17 +235,21 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         let mounted = true;
+        let hasCompletedFirstInit = false;
 
         const runInit = async () => {
-            if (mounted) await initializeUser();
+            if (!mounted) return;
+            await initializeUser();
+            hasCompletedFirstInit = true;
         };
 
         runInit();
 
         // Listen for Auth Changes
+        // Skip SIGNED_IN during first init to avoid double initializeUser() race
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN') {
-                if (mounted) await initializeUser();
+                if (mounted && hasCompletedFirstInit) await initializeUser();
             } else if (event === 'SIGNED_OUT') {
                 if (mounted) {
                     setUser(null);

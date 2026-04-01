@@ -72,10 +72,18 @@ export default function AdminDashboard() {
         setLoginLoading(true);
 
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: adminEmail,
-                password: adminPassword,
-            });
+            // Timeout: si Supabase no responde en 10s, mostrar error
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT')), 10000)
+            );
+
+            const { data, error } = await Promise.race([
+                supabase.auth.signInWithPassword({
+                    email: adminEmail,
+                    password: adminPassword,
+                }),
+                timeout,
+            ]) as { data: any; error: any };
 
             if (error) {
                 const msg = error.message.toLowerCase();
@@ -140,9 +148,13 @@ export default function AdminDashboard() {
             setIsAdmin(true);
             setLoginLoading(false);
 
-        } catch (err) {
+        } catch (err: any) {
             console.error('Admin login error:', err);
-            setLoginError('Error al iniciar sesión. Intenta nuevamente.');
+            if (err?.message === 'TIMEOUT') {
+                setLoginError('La solicitud tardó demasiado. Verifica tu conexión e intenta nuevamente.');
+            } else {
+                setLoginError('Error al iniciar sesión. Intenta nuevamente.');
+            }
             setLoginLoading(false);
         }
     };

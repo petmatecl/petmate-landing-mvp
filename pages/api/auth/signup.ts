@@ -82,32 +82,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn('Confirmation link generation failed (non-blocking):', linkErr);
     }
 
-    // 2. Insert profile
-    if (rol === 'usuario') {
-      const { error: insertError } = await supabaseAdmin.from('usuarios_buscadores').insert([{
-        auth_user_id: userId,
-        nombre: nombre.trim(),
-        apellido_p: apellido_p.trim(),
-        apellido_m: apellido_m?.trim() || null,
-        rut,
-      }]);
-      if (insertError) throw new Error('Error guardando datos de usuario: ' + insertError.message);
-    } else {
-      const { error: insertError } = await supabaseAdmin.rpc('registrar_proveedor', {
-        p_auth_user_id: userId,
-        p_nombre: nombre.trim(),
-        p_apellido_p: apellido_p.trim(),
-        p_apellido_m: apellido_m?.trim() || null,
-        p_rut: rut,
-        p_comuna: comuna?.trim() || null,
-        p_tipo_entidad: tipo_entidad || 'persona_natural',
-        p_razon_social: tipo_entidad === 'empresa' ? razon_social?.trim() || null : null,
-        p_rut_empresa: tipo_entidad === 'empresa' ? rut_empresa || null : null,
-        p_nombre_fantasia: tipo_entidad === 'empresa' ? nombre_fantasia?.trim() || null : null,
-        p_giro: tipo_entidad === 'empresa' ? giro?.trim() || null : null,
-        p_datos_especificos: datos_especificos && Object.keys(datos_especificos).length > 0 ? datos_especificos : null,
-      });
-      if (insertError) throw new Error('Error guardando datos de proveedor: ' + insertError.message);
+    // 2. Insert profile (rollback auth user if this fails)
+    try {
+      if (rol === 'usuario') {
+        const { error: insertError } = await supabaseAdmin.from('usuarios_buscadores').insert([{
+          auth_user_id: userId,
+          nombre: nombre.trim(),
+          apellido_p: apellido_p.trim(),
+          apellido_m: apellido_m?.trim() || null,
+          rut,
+        }]);
+        if (insertError) throw new Error('Error guardando datos de usuario: ' + insertError.message);
+      } else {
+        const { error: insertError } = await supabaseAdmin.rpc('registrar_proveedor', {
+          p_auth_user_id: userId,
+          p_nombre: nombre.trim(),
+          p_apellido_p: apellido_p.trim(),
+          p_apellido_m: apellido_m?.trim() || null,
+          p_rut: rut,
+          p_comuna: comuna?.trim() || null,
+          p_tipo_entidad: tipo_entidad || 'persona_natural',
+          p_razon_social: tipo_entidad === 'empresa' ? razon_social?.trim() || null : null,
+          p_rut_empresa: tipo_entidad === 'empresa' ? rut_empresa || null : null,
+          p_nombre_fantasia: tipo_entidad === 'empresa' ? nombre_fantasia?.trim() || null : null,
+          p_giro: tipo_entidad === 'empresa' ? giro?.trim() || null : null,
+          p_datos_especificos: datos_especificos && Object.keys(datos_especificos).length > 0 ? datos_especificos : null,
+        });
+        if (insertError) throw new Error('Error guardando datos de proveedor: ' + insertError.message);
+      }
+    } catch (profileErr: any) {
+      // Rollback: delete the orphaned auth user so the email can be re-registered
+      console.error('Profile insert failed, rolling back auth user:', profileErr.message);
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      throw profileErr;
     }
 
     // 3. Trigger welcome email server-side (non-blocking)
