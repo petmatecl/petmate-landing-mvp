@@ -703,30 +703,30 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             </div>
 
                             {/* ── PROVEEDOR ─────────────────────────────────────── */}
-                            <div className="border-t border-slate-100 pt-5 space-y-4">
+                            <div className="border-t border-slate-100 pt-6 space-y-4">
 
-                                {/* Foto grande + nombre centrado */}
+                                {/* Foto + nombre — protagonista */}
                                 <div className="flex flex-col items-center text-center">
                                     <Link href={`/proveedor/${proveedor.id}`} className="group">
-                                        <div className="w-20 h-20 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 mb-3 group-hover:border-emerald-400 transition-colors">
+                                        <div className="w-24 h-24 rounded-full border-3 border-emerald-200 overflow-hidden bg-slate-100 mb-4 group-hover:border-emerald-400 transition-colors shadow-md">
                                             {proveedor.foto_perfil
                                                 ? <img src={getProxyImageUrl(proveedor.foto_perfil) || ''} alt={proveedor.nombre} className="w-full h-full object-cover" />
-                                                : <svg className="w-full h-full text-slate-400 p-3" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                                : <svg className="w-full h-full text-slate-400 p-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                             }
                                         </div>
                                     </Link>
-                                    <div className="flex items-center gap-1.5 mb-0.5">
-                                        <span className="font-bold text-slate-900 text-sm">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <span className="font-bold text-slate-900 text-base">
                                             {proveedor.nombre} {proveedor.apellido_p}
                                         </span>
                                         {proveedor.rut_verificado && (
-                                            <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
+                                            <ShieldCheck size={15} className="text-emerald-500 shrink-0" />
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-400 mb-2">{proveedor.comuna}</p>
+                                    <p className="text-sm text-slate-500 mb-3">{proveedor.comuna}</p>
                                     <Link
                                         href={`/proveedor/${proveedor.id}`}
-                                        className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-4 py-1.5 rounded-full transition-colors"
+                                        className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-5 py-2 rounded-full transition-colors"
                                     >
                                         Ver perfil completo
                                     </Link>
