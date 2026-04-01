@@ -741,7 +741,7 @@ export default function ExplorarPage() {
                                         <button
                                             onClick={() => goToPage(pagina - 1)}
                                             disabled={pagina === 1}
-                                            className={`flex items - center gap - 1 border border - slate - 200 text - slate - 700 rounded - lg px - 3 py - 2 text - sm font - medium transition - colors ${pagina === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'} `}
+                                            className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
                                             aria-label="Página anterior"
                                         >
                                             <ChevronLeft size={16} />
@@ -751,12 +751,12 @@ export default function ExplorarPage() {
                                         <div className="hidden sm:flex items-center gap-1.5">
                                             {paginationItems.map((item, idx) =>
                                                 item === "..." ? (
-                                                    <span key={`ellipsis - ${idx} `} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
+                                                    <span key={`ellipsis-${idx}`} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
                                                 ) : (
                                                     <button
                                                         key={item}
                                                         onClick={() => goToPage(item as number)}
-                                                        className={`rounded - lg px - 3 py - 2 text - sm font - medium transition - colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'} `}
+                                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
                                                         aria-current={item === pagina ? 'page' : undefined}
                                                     >
                                                         {item}
@@ -772,7 +772,7 @@ export default function ExplorarPage() {
                                         <button
                                             onClick={() => goToPage(pagina + 1)}
                                             disabled={pagina === totalPaginas}
-                                            className={`flex items - center gap - 1 border border - slate - 200 text - slate - 700 rounded - lg px - 3 py - 2 text - sm font - medium transition - colors ${pagina === totalPaginas ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'} `}
+                                            className={`flex items-center gap-1 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pagina === totalPaginas ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}
                                             aria-label="Página siguiente"
                                         >
                                             <span className="hidden sm:inline">Siguiente</span>
