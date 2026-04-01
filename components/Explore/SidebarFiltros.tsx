@@ -148,7 +148,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         type="text"
                         value={filters.q}
                         onChange={(e) => onFilterChange({ q: e.target.value })}
-                        placeholder="Ej: paseo de perros..."
+                        placeholder="Servicio o nombre del proveedor..."
                         className="w-full h-10 pl-9 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm
                                    focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white
                                    placeholder:text-slate-400 transition-colors"
