@@ -343,22 +343,28 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                 </label>
                 <div className="flex items-center gap-2">
                     <input
-                        type="number"
-                        value={filters.precioMin}
-                        onChange={e => onFilterChange({ precioMin: e.target.value })}
+                        type="text"
+                        inputMode="numeric"
+                        value={filters.precioMin ? Number(filters.precioMin).toLocaleString('es-CL') : ''}
+                        onChange={e => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            onFilterChange({ precioMin: raw });
+                        }}
                         placeholder="Mín"
-                        min="0"
                         className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
                                    placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600
                                    focus:border-emerald-600 focus:bg-white transition-colors"
                     />
                     <span className="text-slate-400 text-sm font-medium select-none shrink-0">a</span>
                     <input
-                        type="number"
-                        value={filters.precioMax}
-                        onChange={e => onFilterChange({ precioMax: e.target.value })}
+                        type="text"
+                        inputMode="numeric"
+                        value={filters.precioMax ? Number(filters.precioMax).toLocaleString('es-CL') : ''}
+                        onChange={e => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            onFilterChange({ precioMax: raw });
+                        }}
                         placeholder="Máx"
-                        min="0"
                         className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
                                    placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600
                                    focus:border-emerald-600 focus:bg-white transition-colors"
