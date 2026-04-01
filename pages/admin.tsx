@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
@@ -167,6 +167,23 @@ export default function AdminDashboard() {
         { id: 'proveedores', label: 'Proveedores', icon: Users },
     ];
 
+    // Detect real header height (navbar + optional banner)
+    const [headerH, setHeaderH] = useState(72);
+    useEffect(() => {
+        const measure = () => {
+            const header = document.querySelector('header');
+            if (header) {
+                const rect = header.getBoundingClientRect();
+                setHeaderH(rect.bottom);
+            }
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        // Re-measure after a short delay (banner may close)
+        const t = setTimeout(measure, 500);
+        return () => { window.removeEventListener('resize', measure); clearTimeout(t); };
+    }, [isAdmin]);
+
     if (loading) {
         return (
             <>
@@ -244,9 +261,9 @@ export default function AdminDashboard() {
                 <title>Administración | Pawnecta</title>
             </Head>
 
-            <div className="flex pt-[72px]">
+            <div className="flex" style={{ paddingTop: headerH }}>
                 {/* ── SIDEBAR: navegación sticky izquierda ── */}
-                <aside className="hidden lg:flex flex-col w-60 shrink-0 sticky top-[72px] h-[calc(100vh-72px)] bg-white border-r border-slate-200">
+                <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-white border-r border-slate-200" style={{ position: 'sticky', top: headerH, height: `calc(100vh - ${headerH}px)` }}>
                     <div className="p-5 border-b border-slate-100">
                         <div className="flex items-center gap-2.5">
                             <ShieldCheck className="w-7 h-7 text-emerald-600" />
@@ -278,7 +295,7 @@ export default function AdminDashboard() {
                 </aside>
 
                 {/* ── MOBILE: tabs horizontales ── */}
-                <div className="lg:hidden fixed top-[72px] left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar">
+                <div className="lg:hidden fixed left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar" style={{ top: headerH }}>
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
