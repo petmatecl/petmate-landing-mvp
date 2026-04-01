@@ -745,11 +745,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             )}
 
                             {/* Fotos */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-sm font-semibold text-slate-700">
-                                        Fotos del servicio
-                                    </label>
+                            <div className="border-t border-slate-100 pt-6 mt-2">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos del servicio</p>
                                     <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
                                 </div>
 
