@@ -270,7 +270,6 @@ export default function ExplorarPage() {
 
         const baseParams = {
             p_comuna: currentComuna || null,
-            p_tamano: currentTamano || null,
             p_precio_max: currentPrecioMax ? parseInt(currentPrecioMax) : null,
             p_precio_min: currentPrecioMin ? parseInt(currentPrecioMin) : null,
             p_texto: currentQ || null,

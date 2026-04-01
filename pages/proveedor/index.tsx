@@ -69,6 +69,10 @@ export default function ProveedorDashboard() {
     const [nombreFantasia, setNombreFantasia] = useState('');
     const [giro, setGiro] = useState('');
 
+    // Persona natural
+    const [genero, setGenero] = useState('');
+    const [ocupacion, setOcupacion] = useState('');
+
     // Nuevos campos Perfil-02 (Credenciales)
     const [aniosExperiencia, setAniosExperiencia] = useState<string>('');
     const [certificaciones, setCertificaciones] = useState('');
@@ -123,6 +127,8 @@ export default function ProveedorDashboard() {
             setNombreFantasia(data.nombre_fantasia || '');
             setGiro(data.giro || '');
 
+            setGenero(data.genero || '');
+            setOcupacion(data.ocupacion || '');
             setAniosExperiencia(data.anios_experiencia?.toString() || '');
             setCertificaciones(data.certificaciones || '');
             setSitioWeb(data.sitio_web || '');
@@ -250,6 +256,8 @@ export default function ProveedorDashboard() {
             rut_empresa: tipoEntidad === 'empresa' ? rutEmpresa : null,
             nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia : null,
             giro: tipoEntidad === 'empresa' ? giro : null,
+            genero: tipoEntidad === 'persona_natural' ? (genero || null) : null,
+            ocupacion: tipoEntidad === 'persona_natural' ? (ocupacion || null) : null,
             anios_experiencia: aniosExperiencia ? parseInt(aniosExperiencia) : null,
             certificaciones,
             sitio_web: sitioWeb,
@@ -882,6 +890,34 @@ export default function ProveedorDashboard() {
                                     )}
 
                                     <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Información General</h3>
+
+                                    {tipoEntidad === 'persona_natural' && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ocupación o profesión</label>
+                                                <input
+                                                    type="text"
+                                                    value={ocupacion}
+                                                    onChange={e => setOcupacion(e.target.value)}
+                                                    placeholder="Ej: Veterinaria, Paseadora, Bióloga..."
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Género</label>
+                                                <select
+                                                    value={genero}
+                                                    onChange={e => setGenero(e.target.value)}
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                                >
+                                                    <option value="">Prefiero no indicar</option>
+                                                    <option value="mujer">Mujer</option>
+                                                    <option value="hombre">Hombre</option>
+                                                    <option value="no_binario">No binario</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Editables */}
                                     <div>

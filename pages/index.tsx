@@ -195,8 +195,8 @@ function FranjaDual({
               <h2 className="text-base font-bold text-slate-900">{titulo}</h2>
               <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
             </div>
-            <button onClick={onVerMas} className="hidden sm:block text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
-              Ver más →
+            <button onClick={onVerMas} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label="Ver más">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -230,8 +230,8 @@ function FranjaCategoria({
               <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
               <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
             </div>
-            <button onClick={onVerTodos} className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
-              Ver más →
+            <button onClick={onVerTodos} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label="Ver más">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

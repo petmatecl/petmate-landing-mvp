@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck } from 'lucide-react';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
@@ -99,6 +99,20 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
     const miembroDesde = new Date(proveedor.created_at).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
     const bioTexto: string | null = proveedor.bio || proveedor.sobre_mi || null;
+
+    // Calcular edad a partir de fecha_nacimiento
+    const calcularEdad = (fechaNac: string | null): number | null => {
+        if (!fechaNac) return null;
+        const hoy = new Date();
+        const nac = new Date(fechaNac);
+        let edad = hoy.getFullYear() - nac.getFullYear();
+        if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) edad--;
+        return edad > 0 && edad < 100 ? edad : null;
+    };
+    const edad = calcularEdad(proveedor.fecha_nacimiento);
+    const generoLabel: Record<string, string> = { mujer: 'Mujer', hombre: 'Hombre', no_binario: 'No binario' };
+    const esPersonaNatural = !proveedor.tipo_entidad || proveedor.tipo_entidad === 'persona_natural';
+    const tieneInfoPersonal = esPersonaNatural && (edad || proveedor.genero || proveedor.ocupacion || proveedor.anios_experiencia);
     const tieneTrustSignals = proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda || proveedor.miembro_asociacion;
     const tieneDatosEspecificos = proveedor.datos_especificos && Object.entries(proveedor.datos_especificos).filter(([, v]) => v !== null && v !== '' && v !== false).length > 0;
     const tieneGaleria = proveedor.galeria && proveedor.galeria.length > 0;
@@ -246,10 +260,54 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     )}
                 </section>
 
+                {/* ══ QUIÉN SOY (persona natural) ═══════════════════════════ */}
+                {tieneInfoPersonal && (
+                    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <User size={16} className="text-emerald-600" />
+                            Quién soy
+                        </h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {proveedor.ocupacion && (
+                                <div className="flex flex-col gap-0.5 bg-emerald-50 border border-emerald-100 rounded-xl p-3.5">
+                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Profesión</span>
+                                    <span className="text-sm font-semibold text-slate-800">{proveedor.ocupacion}</span>
+                                </div>
+                            )}
+                            {edad && (
+                                <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Edad</span>
+                                    <span className="text-sm font-semibold text-slate-800">{edad} años</span>
+                                </div>
+                            )}
+                            {proveedor.genero && generoLabel[proveedor.genero] && (
+                                <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</span>
+                                    <span className="text-sm font-semibold text-slate-800">{generoLabel[proveedor.genero]}</span>
+                                </div>
+                            )}
+                            {proveedor.anios_experiencia > 0 && (
+                                <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Experiencia</span>
+                                    <span className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</span>
+                                </div>
+                            )}
+                            <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">En Pawnecta</span>
+                                <span className="text-sm font-semibold text-slate-800">desde {miembroDesde}</span>
+                            </div>
+                            <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Servicios activos</span>
+                                <span className="text-sm font-semibold text-slate-800">{servicios.length}</span>
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* ══ BIO ═══════════════════════════════════════════════════ */}
                 {bioTexto && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 className="text-base font-bold text-slate-900 mb-3">Sobre el proveedor</h2>
+                        <h2 className="text-base font-bold text-slate-900 mb-3">{esPersonaNatural ? 'Sobre mí' : 'Sobre el proveedor'}</h2>
                         <BioExpandible bio={bioTexto} maxChars={400} />
                     </section>
                 )}
