@@ -156,26 +156,14 @@ export default function Header() {
                 </div>
               )}
 
-              {/* Legacy Admin Switcher if needed */}
+              {/* Admin link — directo sin dropdown */}
               {(!canSwitchMode && profile?.roles && profile.roles.includes('admin')) && (
-                <div className="relative group">
-                  <button className="inline-flex items-center gap-1 rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors uppercase tracking-wide">
-                    Admin
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hidden group-hover:block animate-in fade-in zoom-in-95 duration-200">
-                    <div className="p-2 space-y-1">
-                      <button
-                        onClick={() => {
-                          if (activeRole !== 'admin') switchRole('admin');
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeRole === 'admin' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
-                      >
-                        Admin Dashboard
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors uppercase tracking-wide"
+                >
+                  Admin
+                </Link>
               )}
 
               <Link
