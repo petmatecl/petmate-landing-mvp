@@ -250,9 +250,16 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         </div>
                     </div>
 
-                    {/* Redes — franja inferior */}
-                    {(proveedor.sitio_web || proveedor.instagram) && (
-                        <div className="border-t border-slate-100 px-6 md:px-8 py-3 flex gap-5">
+                    {/* Contacto y redes — franja inferior */}
+                    {(proveedor.email_publico || proveedor.sitio_web || proveedor.instagram) && (
+                        <div className="border-t border-slate-100 px-6 md:px-8 py-3 flex flex-wrap gap-x-5 gap-y-2">
+                            {proveedor.email_publico && proveedor.mostrar_email && (
+                                <a href={`mailto:${proveedor.email_publico}`}
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors font-medium">
+                                    <MapPin size={15} className="hidden" /><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                    {proveedor.email_publico}
+                                </a>
+                            )}
                             {proveedor.sitio_web && (
                                 <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
                                     onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
@@ -274,42 +281,72 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* ══ QUIÉN SOY (persona natural) ═══════════════════════════ */}
                 {tieneInfoPersonal && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <h2 className="text-base font-bold text-slate-900 mb-5 flex items-center gap-2">
                             <User size={16} className="text-emerald-600" />
                             Quién soy
                         </h2>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                             {proveedor.ocupacion && (
-                                <div className="flex flex-col gap-0.5 bg-emerald-50 border border-emerald-100 rounded-xl p-3.5">
-                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Profesión</span>
-                                    <span className="text-sm font-semibold text-slate-800">{proveedor.ocupacion}</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                                        <Briefcase size={16} className="text-emerald-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-medium">Profesión</p>
+                                        <p className="text-sm font-semibold text-slate-800">{proveedor.ocupacion}</p>
+                                    </div>
                                 </div>
                             )}
                             {edad && (
-                                <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Edad</span>
-                                    <span className="text-sm font-semibold text-slate-800">{edad} años</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                                        <Cake size={16} className="text-slate-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-medium">Edad</p>
+                                        <p className="text-sm font-semibold text-slate-800">{edad} años</p>
+                                    </div>
                                 </div>
                             )}
                             {proveedor.genero && generoLabel[proveedor.genero] && (
-                                <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</span>
-                                    <span className="text-sm font-semibold text-slate-800">{generoLabel[proveedor.genero]}</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                                        <User size={16} className="text-slate-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-medium">Género</p>
+                                        <p className="text-sm font-semibold text-slate-800">{generoLabel[proveedor.genero]}</p>
+                                    </div>
                                 </div>
                             )}
                             {proveedor.anios_experiencia > 0 && (
-                                <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Experiencia</span>
-                                    <span className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                                        <Award size={16} className="text-slate-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-medium">Experiencia</p>
+                                        <p className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</p>
+                                    </div>
                                 </div>
                             )}
-                            <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">En Pawnecta</span>
-                                <span className="text-sm font-semibold text-slate-800">desde {miembroDesde}</span>
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                                    <Clock size={16} className="text-slate-400" />
+                                </div>
+                                <div>
+                                    <p className="text-[11px] text-slate-400 font-medium">En Pawnecta</p>
+                                    <p className="text-sm font-semibold text-slate-800">Desde {miembroDesde}</p>
+                                </div>
                             </div>
-                            <div className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Servicios activos</span>
-                                <span className="text-sm font-semibold text-slate-800">{servicios.length}</span>
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                                    <Briefcase size={16} className="text-slate-400" />
+                                </div>
+                                <div>
+                                    <p className="text-[11px] text-slate-400 font-medium">Servicios activos</p>
+                                    <p className="text-sm font-semibold text-slate-800">{servicios.length}</p>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -440,7 +477,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <section>
                     <h2 className="text-xl font-bold text-slate-900 mb-4">Servicios ofrecidos</h2>
                     {servicios.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             {servicios.map((srv) => (
                                 <ServiceCard key={srv.servicio_id} service={srv} />
                             ))}
