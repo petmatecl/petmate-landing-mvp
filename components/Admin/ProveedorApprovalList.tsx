@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Check, X, FileImage, ExternalLink, Mail, Phone, MapPin, Loader2, AlertTriangle, ShieldCheck, ShieldX, Shield, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import ConfirmDialog from './ConfirmDialog';
 
 type AdminTab = 'incorporacion' | 'verificacion';
 
@@ -31,6 +32,11 @@ export default function ProveedorApprovalList() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Confirm dialog state
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean; title: string; message: string; confirmLabel: string; onConfirm: () => void;
+    }>({ open: false, title: '', message: '', confirmLabel: '', onConfirm: () => {} });
+
     useEffect(() => {
         fetchPendientes();
         fetchVerificaciones();
@@ -56,8 +62,8 @@ export default function ProveedorApprovalList() {
         }
     };
 
-    const handleAprobar = async (prov: any) => {
-        if (!confirm(`¿Estás seguro de aprobar a ${prov.nombre} ${prov.apellido_p}?`)) return;
+    const doAprobar = async (prov: any) => {
+        setConfirmDialog(d => ({ ...d, open: false }));
         setIsSubmitting(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -81,6 +87,16 @@ export default function ProveedorApprovalList() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleAprobar = (prov: any) => {
+        setConfirmDialog({
+            open: true,
+            title: 'Aprobar proveedor',
+            message: `¿Confirmas la aprobación de ${prov.nombre} ${prov.apellido_p}? Podrá publicar servicios inmediatamente.`,
+            confirmLabel: 'Aprobar',
+            onConfirm: () => doAprobar(prov),
+        });
     };
 
     const handleRechazar = async (e: React.FormEvent) => {
@@ -133,8 +149,8 @@ export default function ProveedorApprovalList() {
         }
     };
 
-    const handleAprobarVerif = async (prov: any) => {
-        if (!confirm(`¿Aprobar verificación de identidad de ${prov.nombre}?`)) return;
+    const doAprobarVerif = async (prov: any) => {
+        setConfirmDialog(d => ({ ...d, open: false }));
         setIsSubmitting(true);
         try {
             const { error } = await supabase.from('proveedores').update({
@@ -150,6 +166,16 @@ export default function ProveedorApprovalList() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleAprobarVerif = (prov: any) => {
+        setConfirmDialog({
+            open: true,
+            title: 'Verificar identidad',
+            message: `¿Confirmas la verificación de identidad de ${prov.nombre} ${prov.apellido_p}?`,
+            confirmLabel: 'Verificar',
+            onConfirm: () => doAprobarVerif(prov),
+        });
     };
 
     const handleRechazarVerif = async (e: React.FormEvent) => {
@@ -232,7 +258,11 @@ export default function ProveedorApprovalList() {
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900">{prov.nombre} {prov.apellido_p}</h3>
+                                            <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
+                                                className="text-lg font-bold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                                                {prov.nombre} {prov.apellido_p}
+                                                <ExternalLink size={14} className="text-slate-300" />
+                                            </a>
                                             <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5"><MapPin size={14} /> {prov.comuna || 'Sin comuna'}</p>
                                             <p className="text-xs font-semibold text-slate-400 mt-2 bg-slate-50 inline-block px-2 py-1 rounded">
                                                 {format(new Date(prov.created_at), "d 'de' MMMM, yyyy", { locale: es })}
@@ -312,7 +342,11 @@ export default function ProveedorApprovalList() {
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900">{prov.nombre} {prov.apellido_p}</h3>
+                                            <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
+                                                className="font-bold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                                                {prov.nombre} {prov.apellido_p}
+                                                <ExternalLink size={12} className="text-slate-300" />
+                                            </a>
                                             <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1"><MapPin size={12} /> {prov.comuna || '—'}</p>
                                             <div className="flex items-center gap-1.5 mt-2">
                                                 <Clock size={12} className="text-amber-500" />
@@ -439,6 +473,17 @@ export default function ProveedorApprovalList() {
                     </div>
                 </div>
             )}
+
+            {/* ============================== CONFIRM DIALOG ============================== */}
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmLabel={confirmDialog.confirmLabel}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                loading={isSubmitting}
+            />
         </div>
     );
 }

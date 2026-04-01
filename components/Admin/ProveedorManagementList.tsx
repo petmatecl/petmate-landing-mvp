@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function ProveedorManagementList() {
     const [proveedores, setProveedores] = useState<any[]>([]);
@@ -18,6 +19,11 @@ export default function ProveedorManagementList() {
     const [suspendModalOpen, setSuspendModalOpen] = useState(false);
     const [providerToSuspend, setProviderToSuspend] = useState<any>(null);
     const [suspensionReason, setSuspensionReason] = useState('');
+
+    // Confirm dialog
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean; title: string; message: string; confirmLabel: string; onConfirm: () => void;
+    }>({ open: false, title: '', message: '', confirmLabel: '', onConfirm: () => {} });
 
     useEffect(() => {
         fetchProveedores();
@@ -73,9 +79,8 @@ export default function ProveedorManagementList() {
         }
     };
 
-    const handleReactivate = async (provId: string) => {
-        if (!confirm('¿Seguro que deseas reactivar a este proveedor?')) return;
-
+    const doReactivate = async (provId: string) => {
+        setConfirmDialog(d => ({ ...d, open: false }));
         setActionId(provId);
         try {
             const { error } = await supabase
@@ -93,6 +98,17 @@ export default function ProveedorManagementList() {
         } finally {
             setActionId(null);
         }
+    };
+
+    const handleReactivate = (provId: string) => {
+        const prov = proveedores.find(p => p.id === provId);
+        setConfirmDialog({
+            open: true,
+            title: 'Reactivar proveedor',
+            message: `¿Confirmas la reactivación de ${prov?.nombre || 'este proveedor'}?`,
+            confirmLabel: 'Reactivar',
+            onConfirm: () => doReactivate(provId),
+        });
     };
 
     // Aplicar filtros localmente
@@ -184,7 +200,11 @@ export default function ProveedorManagementList() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-slate-900">{prov.nombre} {prov.apellido_p}</p>
+                                                    <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
+                                                        className="font-bold text-slate-900 hover:text-emerald-700 transition-colors inline-flex items-center gap-1">
+                                                        {prov.nombre} {prov.apellido_p}
+                                                        <ExternalLink size={12} className="text-slate-300" />
+                                                    </a>
                                                     <p className="text-xs text-slate-500">RUT: {prov.rut || 'N/A'}</p>
                                                 </div>
                                             </div>
@@ -293,6 +313,15 @@ export default function ProveedorManagementList() {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmLabel={confirmDialog.confirmLabel}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(d => ({ ...d, open: false }))}
+            />
         </div>
     );
 }
