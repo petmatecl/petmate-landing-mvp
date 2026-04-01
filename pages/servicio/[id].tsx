@@ -586,20 +586,6 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             </div>
                         )}
 
-                        {/* Otros proveedores de la misma categoría en la misma comuna */}
-                        {otrosServicios && otrosServicios.length > 0 && (
-                            <section className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                <h2 className="text-xl font-bold text-slate-900 mb-6">
-                                    Otros proveedores de {categoria.nombre} en {proveedor.comuna}
-                                </h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {otrosServicios.map(s => (
-                                        <ServiceCard key={s.servicio_id} service={s} />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
                         {/* Evaluaciones */}
 
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
@@ -654,7 +640,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                     {/* COLUMNA DERECHA: SIDEBAR (Sticky) */}
                     <div className="w-full lg:w-1/3 space-y-6">
-                        <div className="sticky top-24 bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5">
+                        <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5">
 
                             {/* PRECIO — protagonista */}
                             <div>
@@ -824,6 +810,20 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                     </div>
                 </div>
+
+                {/* Otros proveedores — ancho completo */}
+                {otrosServicios && otrosServicios.length > 0 && (
+                    <section className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900 mb-6">
+                            Otros proveedores de {categoria.nombre} en {proveedor.comuna}
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {otrosServicios.map(s => (
+                                <ServiceCard key={s.servicio_id} service={s} />
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
 
             <LoginRequiredModal
