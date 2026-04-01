@@ -415,6 +415,9 @@ export default function ExplorarPage() {
         }
 
         router.push({ pathname: '/explorar', query }, undefined, { shallow: true });
+
+        // Scroll to top so user sees results after filter change
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleClearFilters = () => {
