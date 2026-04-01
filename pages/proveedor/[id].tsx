@@ -175,6 +175,17 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     <ChevronLeft size={16} /> Volver
                 </button>
 
+                {/* Banner para perfiles no aprobados */}
+                {proveedor.estado !== 'aprobado' && (
+                    <div className={`rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2 ${
+                        proveedor.estado === 'pendiente' ? 'bg-amber-50 text-amber-800 border border-amber-200' :
+                        'bg-red-50 text-red-800 border border-red-200'
+                    }`}>
+                        <span className="text-base">⚠</span>
+                        Este perfil tiene estado <strong className="ml-1">{proveedor.estado}</strong>. No es visible públicamente para usuarios.
+                    </div>
+                )}
+
                 {/* ══ HERO ══════════════════════════════════════════════════ */}
                 <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -476,7 +487,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .from('proveedores')
             .select('*')
             .eq('id', id)
-            .eq('estado', 'aprobado')
             .maybeSingle();
 
         if (provError || !proveedor) {
