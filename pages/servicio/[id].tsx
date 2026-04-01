@@ -715,22 +715,16 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     </div>
                                     {/* Nombre + link */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="font-bold text-slate-900 text-sm truncate">
+                                        <Link href={`/proveedor/${proveedor.id}`} className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors">
+                                            <span className="font-bold text-sm truncate">
                                                 {proveedor.nombre} {proveedor.apellido_p}
                                             </span>
                                             {proveedor.rut_verificado && (
                                                 <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
                                             )}
-                                        </div>
+                                        </Link>
                                         <p className="text-xs text-slate-400">{proveedor.comuna}</p>
                                     </div>
-                                    <Link
-                                        href={`/proveedor/${proveedor.id}`}
-                                        className="shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
-                                    >
-                                        Ver perfil →
-                                    </Link>
                                 </div>
 
                                 {/* Sobre el proveedor — siempre visible, con fallback */}
