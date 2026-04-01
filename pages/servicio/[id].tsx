@@ -19,6 +19,49 @@ import {
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getProxyImageUrl } from '../../lib/utils';
+
+// Label map for category-specific detail fields
+const DETALLE_LABELS: Record<string, Record<string, string>> = {
+    hospedaje: {
+        capacidad: 'Capacidad máxima', tipo_espacio: 'Tipo de espacio', tiene_patio: 'Patio o jardín',
+        camara_vigilancia: 'Cámara de vigilancia', incluye_alimentacion: 'Incluye alimentación',
+        incluye_paseos: 'Incluye paseos', mascotas_propias: 'Mascotas propias en el hogar',
+        ninos_en_hogar: 'Niños en el hogar', fotos_durante_estadia: 'Envía fotos durante la estadía',
+    },
+    guarderia: {
+        horario: 'Horario', capacidad: 'Capacidad máxima', tiene_patio: 'Patio o área exterior',
+        actividades: 'Actividades incluidas', camara_vigilancia: 'Cámara de vigilancia',
+        fotos_durante: 'Envía fotos / reporte del día',
+    },
+    paseos: {
+        duracion_minutos: 'Duración del paseo', max_perros: 'Máx. perros por paseo',
+        zona_paseo: 'Zona de paseo', lleva_gps: 'Usa GPS', envia_fotos: 'Envía fotos',
+        razas_fuerza: 'Acepta razas de fuerza',
+    },
+    peluqueria: {
+        modalidad: 'Modalidad', duracion_estimada: 'Duración estimada', que_incluye: 'Qué incluye',
+        razas_especiales: 'Razas especiales / doble pelaje', mesa_hidraulica: 'Mesa hidráulica',
+    },
+    veterinario: {
+        servicios_ofrecidos: 'Servicios ofrecidos', atiende_urgencias: 'Atiende urgencias',
+        emite_boleta: 'Emite boleta', especialidades: 'Especialidades',
+        examenes_disponibles: 'Exámenes disponibles',
+    },
+    adiestramiento: {
+        metodo: 'Método', modalidad: 'Modalidad', duracion_sesion: 'Duración por sesión (min)',
+        problemas_que_resuelve: 'Problemas que trabaja', certificaciones: 'Certificaciones',
+    },
+    traslado: {
+        tipo_vehiculo: 'Tipo de vehículo', equipamiento: 'Equipamiento de seguridad',
+        mascotas_grandes: 'Acepta mascotas grandes',
+    },
+    domicilio: {
+        visitas_por_dia: 'Visitas por día', duracion_visita: 'Duración por visita (min)',
+        que_incluye: 'Qué incluye la visita', envia_foto_reporte: 'Envía foto y reporte',
+        administra_medicamentos: 'Administra medicamentos',
+    },
+};
 
 interface ServiceDetailProps {
     service: any;
@@ -407,6 +450,60 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             </div>
                         </div>
 
+                        {/* Detalles específicos de categoría */}
+                        {service.detalles && Object.keys(service.detalles).length > 0 && (() => {
+                            const slug = categoria?.slug ?? '';
+                            const labels = DETALLE_LABELS[slug] ?? {};
+                            const entries = Object.entries(service.detalles).filter(([, v]) => v !== '' && v !== null && v !== undefined && v !== 0);
+                            if (entries.length === 0) return null;
+                            return (
+                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                    <h3 className="text-xl font-bold text-slate-900 mb-5 flex items-center gap-2">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                        Información del servicio
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {entries.map(([key, val]) => {
+                                            const label = labels[key] || key.replace(/_/g, ' ');
+                                            const isBoolean = typeof val === 'boolean';
+                                            if (isBoolean && !val) return null;
+                                            return (
+                                                <div key={key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
+                                                    {isBoolean ? (
+                                                        <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                                    ) : (
+                                                        <svg className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs text-slate-500 font-medium capitalize">{label}</p>
+                                                        {!isBoolean && <p className="text-sm text-slate-800 font-semibold mt-0.5 break-words">{String(val)}</p>}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Comunas de cobertura */}
+                        {service.comunas_cobertura && service.comunas_cobertura.length > 0 && (
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                    <MapPin size={22} className="text-emerald-500" />
+                                    Zona de cobertura
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {service.comunas_cobertura.map((c: string) => (
+                                        <span key={c} className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm font-medium px-3 py-1.5 rounded-full">
+                                            <MapPin size={12} />
+                                            {c}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Que Incluye */}
                         {service.que_incluye && service.que_incluye.length > 0 && (
                             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
@@ -589,10 +686,10 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             <div className="flex flex-col gap-3">
                                 <button
                                     onClick={handleChatClick}
-                                    disabled={isChatLoading || isUserLoading}
+                                    disabled={isChatLoading}
                                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
                                 >
-                                    {(isChatLoading || isUserLoading)
+                                    {isChatLoading
                                         ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                         : <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
                                     }
@@ -626,7 +723,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     {/* Foto — se mantiene como estaba originalmente */}
                                     <div className="w-12 h-12 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 shrink-0">
                                         {proveedor.foto_perfil
-                                            ? <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
+                                            ? <img src={getProxyImageUrl(proveedor.foto_perfil) || ''} alt={proveedor.nombre} className="w-full h-full object-cover" />
                                             : <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                         }
                                     </div>

@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
-import { X, Upload, Loader2, Image as ImageIcon, ChevronDown } from 'lucide-react';
+import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
+import { COMUNAS_CHILE } from '../../lib/comunas';
 
 interface ServiceFormModalProps {
     isOpen: boolean;
@@ -10,6 +11,85 @@ interface ServiceFormModalProps {
     existingServiceId?: string | null;
     onSuccess: () => void;
 }
+
+// ─── Category-specific field definitions ──────────────────────────────────────
+
+type FieldType = 'boolean' | 'text' | 'number' | 'select' | 'textarea';
+
+interface CategoryField {
+    key: string;
+    label: string;
+    type: FieldType;
+    options?: string[];        // for select
+    placeholder?: string;
+    hint?: string;
+    unit?: string;             // shown after number inputs
+}
+
+const CAMPOS_POR_CATEGORIA: Record<string, CategoryField[]> = {
+    hospedaje: [
+        { key: 'capacidad', label: 'Capacidad máxima de mascotas', type: 'number', placeholder: '2', unit: 'mascotas' },
+        { key: 'tipo_espacio', label: 'Tipo de espacio', type: 'select', options: ['Casa', 'Departamento', 'Campo / parcela'] },
+        { key: 'tiene_patio', label: 'Tiene patio o jardín', type: 'boolean' },
+        { key: 'camara_vigilancia', label: 'Cámara de vigilancia', type: 'boolean' },
+        { key: 'incluye_alimentacion', label: 'Incluye alimentación', type: 'boolean' },
+        { key: 'incluye_paseos', label: 'Incluye paseos diarios', type: 'boolean' },
+        { key: 'mascotas_propias', label: 'Hay mascotas propias en el hogar', type: 'boolean' },
+        { key: 'ninos_en_hogar', label: 'Hay niños en el hogar', type: 'boolean' },
+        { key: 'fotos_durante_estadia', label: 'Envía fotos durante la estadía', type: 'boolean' },
+    ],
+    guarderia: [
+        { key: 'horario', label: 'Horario de atención', type: 'text', placeholder: 'Lun–Vie 8:00–18:00' },
+        { key: 'capacidad', label: 'Capacidad máxima', type: 'number', placeholder: '5', unit: 'mascotas' },
+        { key: 'tiene_patio', label: 'Tiene patio o área al aire libre', type: 'boolean' },
+        { key: 'actividades', label: 'Actividades incluidas', type: 'text', placeholder: 'Socialización, juegos, siesta...' },
+        { key: 'camara_vigilancia', label: 'Cámara de vigilancia', type: 'boolean' },
+        { key: 'fotos_durante', label: 'Envía fotos / reporte del día', type: 'boolean' },
+    ],
+    paseos: [
+        { key: 'duracion_minutos', label: 'Duración del paseo', type: 'select', options: ['30 minutos', '45 minutos', '60 minutos', '90 minutos'] },
+        { key: 'max_perros', label: 'Máx. perros por paseo', type: 'number', placeholder: '4', unit: 'perros' },
+        { key: 'zona_paseo', label: 'Zona / parque donde se pasea', type: 'text', placeholder: 'Parque O\'Higgins, Parque Forestal...' },
+        { key: 'lleva_gps', label: 'Usa GPS durante el paseo', type: 'boolean' },
+        { key: 'envia_fotos', label: 'Envía fotos del paseo', type: 'boolean' },
+        { key: 'razas_fuerza', label: 'Acepta razas de fuerza / gran porte', type: 'boolean' },
+    ],
+    peluqueria: [
+        { key: 'modalidad', label: 'Modalidad', type: 'select', options: ['En local', 'A domicilio', 'Ambas'] },
+        { key: 'duracion_estimada', label: 'Duración estimada', type: 'text', placeholder: '1–2 horas según tamaño' },
+        { key: 'que_incluye', label: 'Qué incluye el servicio', type: 'textarea', placeholder: 'Baño, corte, secado, corte de uñas...' },
+        { key: 'razas_especiales', label: 'Trabaja razas de doble pelaje / razas especiales', type: 'boolean' },
+        { key: 'mesa_hidraulica', label: 'Cuenta con mesa hidráulica', type: 'boolean' },
+    ],
+    veterinario: [
+        { key: 'servicios_ofrecidos', label: 'Servicios ofrecidos', type: 'textarea', placeholder: 'Consulta general, vacunas, desparasitación...' },
+        { key: 'atiende_urgencias', label: 'Atiende urgencias', type: 'boolean' },
+        { key: 'emite_boleta', label: 'Emite boleta / factura', type: 'boolean' },
+        { key: 'especialidades', label: 'Especialidades (si aplica)', type: 'text', placeholder: 'Dermatología, cardiología...' },
+        { key: 'examenes_disponibles', label: 'Exámenes disponibles', type: 'text', placeholder: 'Hemograma, ecografía, radiografía...' },
+    ],
+    adiestramiento: [
+        { key: 'metodo', label: 'Método de entrenamiento', type: 'select', options: ['Refuerzo positivo', 'Mixto', 'Clicker training', 'Otro'] },
+        { key: 'modalidad', label: 'Modalidad', type: 'select', options: ['A domicilio', 'Online', 'Academia / local'] },
+        { key: 'duracion_sesion', label: 'Duración de sesión', type: 'number', placeholder: '60', unit: 'minutos' },
+        { key: 'problemas_que_resuelve', label: 'Problemas que trabaja', type: 'textarea', placeholder: 'Ansiedad por separación, agresividad, ladrido...' },
+        { key: 'certificaciones', label: 'Certificaciones o estudios', type: 'text', placeholder: 'Certificado IAC, Universidad...' },
+    ],
+    traslado: [
+        { key: 'tipo_vehiculo', label: 'Tipo de vehículo', type: 'text', placeholder: 'Van, SUV, furgón...' },
+        { key: 'equipamiento', label: 'Equipamiento de seguridad', type: 'text', placeholder: 'Jaulas certificadas, arnés, red divisoria...' },
+        { key: 'mascotas_grandes', label: 'Acepta mascotas de gran tamaño', type: 'boolean' },
+    ],
+    domicilio: [
+        { key: 'visitas_por_dia', label: 'Visitas por día', type: 'number', placeholder: '2', unit: 'visitas' },
+        { key: 'duracion_visita', label: 'Duración de cada visita', type: 'number', placeholder: '30', unit: 'minutos' },
+        { key: 'que_incluye', label: 'Qué incluye la visita', type: 'textarea', placeholder: 'Alimentación, juego, paseo corto, limpieza...' },
+        { key: 'envia_foto_reporte', label: 'Envía foto y reporte de cada visita', type: 'boolean' },
+        { key: 'administra_medicamentos', label: 'Administra medicamentos', type: 'boolean' },
+    ],
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ServiceFormModal({ isOpen, onClose, proveedorId, existingServiceId, onSuccess }: ServiceFormModalProps) {
     const [loading, setLoading] = useState(false);
@@ -37,6 +117,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [uploadingFotos, setUploadingFotos] = useState(false);
     const [showMobilePreview, setShowMobilePreview] = useState(false);
 
+    // Category-specific fields (stored as JSONB)
+    const [detalles, setDetalles] = useState<Record<string, any>>({});
+
+    // Comunas coverage
+    const [comunasCobertura, setComunasCobertura] = useState<string[]>([]);
+    const [comunaSearch, setComunaSearch] = useState('');
+    const [comunaDropdownOpen, setComunaDropdownOpen] = useState(false);
+    const comunaRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         if (isOpen) {
             fetchCategorias();
@@ -48,6 +137,17 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, existingServiceId]);
+
+    // Close comunas dropdown on outside click
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (comunaRef.current && !comunaRef.current.contains(e.target as Node)) {
+                setComunaDropdownOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
 
     const resetForm = () => {
         setCategoriaId('');
@@ -64,10 +164,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setTamanoGrande(false);
         setDisponibilidad('');
         setFotos([]);
+        setDetalles({});
+        setComunasCobertura([]);
+        setComunaSearch('');
     };
 
     const fetchCategorias = useCallback(async () => {
-        const { data, error } = await supabase.from('categorias_servicio').select('id, nombre, icono').order('nombre');
+        const { data, error } = await supabase.from('categorias_servicio').select('id, nombre, icono, slug').order('nombre');
         if (!error && data) {
             setCategorias(data);
             if (!existingServiceId && data.length > 0) {
@@ -98,6 +201,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
             setDisponibilidad(data.disponibilidad || '');
             setFotos(data.fotos || []);
+            setDetalles(data.detalles || {});
+            setComunasCobertura(data.comunas_cobertura || []);
         }
         setFetching(false);
     };
@@ -114,7 +219,6 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         const newUrls: string[] = [];
 
         for (const file of files) {
-            // Check sizes/types briefly
             if (file.size > 5 * 1024 * 1024) {
                 toast.error(`La imagen ${file.name} es muy grande. Máximo 5MB`);
                 continue;
@@ -153,6 +257,16 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         });
     };
 
+    const setDetalle = (key: string, val: any) => {
+        setDetalles(prev => ({ ...prev, [key]: val }));
+    };
+
+    const toggleComuna = (comuna: string) => {
+        setComunasCobertura(prev =>
+            prev.includes(comuna) ? prev.filter(c => c !== comuna) : [...prev, comuna]
+        );
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (titulo.length > 80) return toast.error("El título es muy largo.");
@@ -181,7 +295,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             acepta_otras: otras,
             tamanos_aceptados: perros ? sizes : [],
             disponibilidad,
-            fotos
+            fotos,
+            detalles,
+            comunas_cobertura: comunasCobertura,
         };
 
         if (existingServiceId) {
@@ -209,7 +325,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     if (!isOpen) return null;
 
     const selectedCat = categorias.find(c => c.id === categoriaId);
+    const selectedCatSlug = selectedCat?.slug || '';
+    const camposCategoria = CAMPOS_POR_CATEGORIA[selectedCatSlug] || [];
     const coverPreview = fotos[0] || null;
+
+    const comunasFiltradas = COMUNAS_CHILE.filter(c =>
+        comunaSearch ? c.toLowerCase().includes(comunaSearch.toLowerCase()) : true
+    ).slice(0, 50);
 
     const PreviewCard = () => (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
@@ -233,6 +355,18 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 </h3>
                 {descripcion && (
                     <p className="text-xs text-slate-500 line-clamp-2 mb-2">{descripcion}</p>
+                )}
+                {comunasCobertura.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                        {comunasCobertura.slice(0, 3).map(c => (
+                            <span key={c} className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-100">
+                                {c}
+                            </span>
+                        ))}
+                        {comunasCobertura.length > 3 && (
+                            <span className="text-[10px] text-slate-400">+{comunasCobertura.length - 3} más</span>
+                        )}
+                    </div>
                 )}
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                     <div>
@@ -274,6 +408,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-0 min-h-0">
                         {/* FORM */}
                         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 lg:border-r lg:border-slate-100">
+
                             {/* Categoría y Título */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="md:col-span-1">
@@ -281,7 +416,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     <select
                                         className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
                                         value={categoriaId}
-                                        onChange={(e) => setCategoriaId(e.target.value)}
+                                        onChange={(e) => { setCategoriaId(e.target.value); setDetalles({}); }}
                                         required
                                     >
                                         {categorias.map(c => (
@@ -355,6 +490,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         <option value="por sesión">por sesión</option>
                                         <option value="por paseo">por paseo</option>
                                         <option value="por mes">por mes</option>
+                                        <option value="por visita">por visita</option>
                                     </select>
                                 </div>
                             </div>
@@ -408,6 +544,156 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 />
                             </div>
 
+                            {/* ── COMUNAS DE COBERTURA ── */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <MapPin size={14} className="text-emerald-600" />
+                                    Comunas donde prestas el servicio
+                                </label>
+                                <p className="text-xs text-slate-400 mb-2">
+                                    Selecciona todas las comunas donde ofreces este servicio. Los clientes podrán encontrarte al filtrar por su zona.
+                                </p>
+
+                                {/* Selected chips */}
+                                {comunasCobertura.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 mb-2">
+                                        {comunasCobertura.map(c => (
+                                            <button
+                                                key={c}
+                                                type="button"
+                                                onClick={() => toggleComuna(c)}
+                                                className="flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-1 rounded-full hover:bg-emerald-200 transition-colors"
+                                            >
+                                                {c}
+                                                <X size={10} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Dropdown */}
+                                <div ref={comunaRef} className="relative">
+                                    <div
+                                        className="flex items-center gap-2 w-full h-10 px-3 border border-slate-200 rounded-xl bg-slate-50 cursor-text"
+                                        onClick={() => setComunaDropdownOpen(true)}
+                                    >
+                                        <Search size={14} className="text-slate-400 shrink-0" />
+                                        <input
+                                            type="text"
+                                            value={comunaSearch}
+                                            onChange={e => { setComunaSearch(e.target.value); setComunaDropdownOpen(true); }}
+                                            onFocus={() => setComunaDropdownOpen(true)}
+                                            placeholder="Buscar y agregar comunas..."
+                                            className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                                        />
+                                    </div>
+
+                                    {comunaDropdownOpen && (
+                                        <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                                            {comunasFiltradas.length === 0 ? (
+                                                <p className="text-xs text-slate-400 p-3 text-center">Sin resultados</p>
+                                            ) : (
+                                                comunasFiltradas.map(c => (
+                                                    <button
+                                                        key={c}
+                                                        type="button"
+                                                        onClick={() => { toggleComuna(c); setComunaSearch(''); }}
+                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${comunasCobertura.includes(c) ? 'text-emerald-700 font-semibold' : 'text-slate-700'}`}
+                                                    >
+                                                        {c}
+                                                        {comunasCobertura.includes(c) && (
+                                                            <span className="text-emerald-500 text-xs">✓</span>
+                                                        )}
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ── CAMPOS ESPECÍFICOS POR CATEGORÍA ── */}
+                            {camposCategoria.length > 0 && (
+                                <div className="border-t border-slate-100 pt-6">
+                                    <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                        <span className="text-base">{selectedCat?.icono}</span>
+                                        Detalles de {selectedCat?.nombre}
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {camposCategoria.map(campo => (
+                                            <div key={campo.key}>
+                                                {campo.type === 'boolean' ? (
+                                                    <label className="flex items-center gap-3 cursor-pointer">
+                                                        <div className="relative shrink-0">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={!!detalles[campo.key]}
+                                                                onChange={e => setDetalle(campo.key, e.target.checked)}
+                                                                className="sr-only peer"
+                                                            />
+                                                            <div className="w-10 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full transition-colors" />
+                                                            <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                                                        </div>
+                                                        <span className="text-sm text-slate-700">{campo.label}</span>
+                                                    </label>
+                                                ) : campo.type === 'select' ? (
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <select
+                                                            value={detalles[campo.key] || ''}
+                                                            onChange={e => setDetalle(campo.key, e.target.value)}
+                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                                        >
+                                                            <option value="">Seleccionar...</option>
+                                                            {campo.options?.map(opt => (
+                                                                <option key={opt} value={opt}>{opt}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                ) : campo.type === 'textarea' ? (
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <textarea
+                                                            value={detalles[campo.key] || ''}
+                                                            onChange={e => setDetalle(campo.key, e.target.value)}
+                                                            placeholder={campo.placeholder}
+                                                            rows={2}
+                                                            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                                        />
+                                                    </div>
+                                                ) : campo.type === 'number' ? (
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="number"
+                                                                value={detalles[campo.key] || ''}
+                                                                onChange={e => setDetalle(campo.key, e.target.value ? Number(e.target.value) : '')}
+                                                                placeholder={campo.placeholder}
+                                                                min={0}
+                                                                className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                            />
+                                                            {campo.unit && <span className="text-sm text-slate-500">{campo.unit}</span>}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <input
+                                                            type="text"
+                                                            value={detalles[campo.key] || ''}
+                                                            onChange={e => setDetalle(campo.key, e.target.value)}
+                                                            placeholder={campo.placeholder}
+                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Fotos */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
@@ -417,27 +703,23 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
                                 </div>
 
-                                {/* Barra de progreso al subir */}
                                 {uploadingFotos && (
                                     <div className="w-full h-1 bg-slate-100 rounded-full mb-3 overflow-hidden">
                                         <div className="h-full bg-emerald-500 animate-pulse w-2/3 rounded-full" />
                                     </div>
                                 )}
 
-                                {/* Grid de fotos + boton de subir */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                                     {fotos.map((url, i) => (
                                         <div key={url} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
                                             <img src={url} alt={"Foto " + (i + 1)} className="w-full h-full object-cover" />
 
-                                            {/* Badge portada solo en la primera */}
                                             {i === 0 && (
                                                 <div className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
                                                     PORTADA
                                                 </div>
                                             )}
 
-                                            {/* Controles: flechas + eliminar (visible al hover) */}
                                             <div className="absolute bottom-1.5 inset-x-1.5 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity gap-1">
                                                 <div className="flex gap-1">
                                                     {i > 0 && (
@@ -464,7 +746,6 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         </div>
                                     ))}
 
-                                    {/* Boton de subir — mas grande si no hay fotos aun */}
                                     {fotos.length < 8 && (
                                         <label className={[
                                             "rounded-xl border-2 border-dashed border-slate-300 bg-slate-50",
@@ -494,7 +775,6 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     )}
                                 </div>
 
-                                {/* Texto de ayuda */}
                                 <p className="text-xs text-slate-400 leading-relaxed">
                                     <span className="font-semibold text-emerald-700">La primera foto es la portada</span>
                                     {" "}y es la que aparece en el listado. Usa las flechas para reordenar. Puedes subir hasta 8 fotos (JPG, PNG, WebP, max 5MB cada una).
