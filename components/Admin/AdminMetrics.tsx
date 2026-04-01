@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import {
-    Users, Star, LayoutDashboard, Briefcase, AlertTriangle,
-    CheckCircle, UserIcon, RefreshCw, ArrowRight
+    Users, Star, LayoutDashboard,
+    AlertTriangle, CheckCircle, UserIcon, RefreshCw
 } from 'lucide-react';
 
 interface AdminStats {
@@ -66,167 +66,111 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
         fetchMetrics();
     }, []);
 
+    const navigate = (tab: string) => {
+        if (setActiveTab) setActiveTab(tab);
+    };
+
     if (loading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(6)].map((_, i) => (
-                    <div key={i} className="h-32 bg-slate-100 rounded-2xl animate-pulse"></div>
+                    <div key={i} className="h-28 bg-slate-100 rounded-xl animate-pulse"></div>
                 ))}
             </div>
         );
     }
 
+    const cards = [
+        {
+            label: 'Proveedores totales',
+            value: stats.proveedoresTotales,
+            icon: Users,
+            tab: 'proveedores',
+        },
+        {
+            label: 'Pendientes de aprobación',
+            value: stats.proveedoresPendientes,
+            icon: AlertTriangle,
+            tab: 'aprobaciones',
+            urgent: stats.proveedoresPendientes > 0,
+        },
+        {
+            label: 'Proveedores aprobados',
+            value: stats.proveedoresAprobados,
+            icon: CheckCircle,
+            tab: 'proveedores',
+        },
+        {
+            label: 'Servicios activos',
+            value: stats.serviciosActivos,
+            icon: LayoutDashboard,
+            tab: 'proveedores',
+        },
+        {
+            label: 'Usuarios buscadores',
+            value: stats.usuariosBuscadores,
+            icon: UserIcon,
+            tab: null,
+        },
+        {
+            label: 'Evaluaciones pendientes',
+            value: stats.evaluacionesPendientes,
+            icon: Star,
+            tab: 'moderacion',
+            urgent: stats.evaluacionesPendientes > 0,
+        },
+    ];
+
     return (
-        <div className="space-y-8 animate-fade-in">
-            {/* Encabezado del Dashboard Interno */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-800">Resumen General</h2>
-                    <p className="text-sm text-slate-500">Métricas principales de la plataforma en tiempo real.</p>
+                    <h2 className="text-lg font-semibold text-slate-800">Resumen general</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Datos en tiempo real de la plataforma.</p>
                 </div>
                 <button
                     onClick={() => fetchMetrics(true)}
                     disabled={refreshing}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors text-sm font-semibold shadow-sm disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
-                    <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                    {refreshing ? 'Actualizando...' : 'Actualizar'}
+                    <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+                    {refreshing ? 'Actualizando' : 'Actualizar'}
                 </button>
             </div>
 
-            {/* Grid de Métricas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                {/* 1. Proveedores Totales */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center">
-                            <Users size={24} />
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-4xl font-black text-slate-900 mb-1">{stats.proveedoresTotales}</p>
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Proveedores Totales</p>
-                    </div>
-                </div>
-
-                {/* 2. Proveedores Pendientes */}
-                <div className={`p-6 rounded-2xl shadow-sm border flex flex-col justify-between transition-colors ${stats.proveedoresPendientes > 0 ? 'bg-amber-50/30 border-amber-300' : 'bg-white border-slate-200'}`}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stats.proveedoresPendientes > 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
-                            <AlertTriangle size={24} />
-                        </div>
-                        {stats.proveedoresPendientes > 0 && (
-                            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
-                                Requieren revisión
-                            </span>
-                        )}
-                    </div>
-                    <div>
-                        <p className={`text-4xl font-black mb-1 ${stats.proveedoresPendientes > 0 ? 'text-amber-600' : 'text-slate-900'}`}>{stats.proveedoresPendientes}</p>
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Proveedores Pendientes</p>
-                    </div>
-                </div>
-
-                {/* 3. Proveedores Aprobados Activos */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                            <CheckCircle size={24} />
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-4xl font-black text-slate-900 mb-1">{stats.proveedoresAprobados}</p>
-                        <p className="text-sm font-bold text-emerald-600/80 uppercase tracking-wider">Proveedores Aprobados</p>
-                    </div>
-                </div>
-
-                {/* 4. Servicios Publicados */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center">
-                            <LayoutDashboard size={24} />
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-4xl font-black text-indigo-600 mb-1">{stats.serviciosActivos}</p>
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Servicios Activos</p>
-                    </div>
-                </div>
-
-                {/* 5. Usuarios Buscadores */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center">
-                            <UserIcon size={24} />
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-4xl font-black text-sky-600 mb-1">{stats.usuariosBuscadores}</p>
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Usuarios Buscadores</p>
-                    </div>
-                </div>
-
-                {/* 6. Evaluaciones Pendientes */}
-                <div className={`p-6 rounded-2xl shadow-sm border flex flex-col justify-between transition-colors ${stats.evaluacionesPendientes > 0 ? 'bg-amber-50/30 border-amber-300' : 'bg-white border-slate-200'}`}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stats.evaluacionesPendientes > 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
-                            <Star size={24} />
-                        </div>
-                        {stats.evaluacionesPendientes > 0 && (
-                            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
-                                Moderación requerida
-                            </span>
-                        )}
-                    </div>
-                    <div>
-                        <p className={`text-4xl font-black mb-1 ${stats.evaluacionesPendientes > 0 ? 'text-amber-600' : 'text-slate-900'}`}>{stats.evaluacionesPendientes}</p>
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Evaluaciones Pendientes</p>
-                    </div>
-                </div>
-
+            {/* Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {cards.map((card) => {
+                    const Icon = card.icon;
+                    const isClickable = !!card.tab;
+                    return (
+                        <button
+                            key={card.label}
+                            onClick={() => card.tab && navigate(card.tab)}
+                            disabled={!isClickable}
+                            className={`text-left p-5 rounded-xl border transition-all ${
+                                card.urgent
+                                    ? 'bg-white border-amber-200 hover:border-amber-300'
+                                    : 'bg-white border-slate-200 hover:border-slate-300'
+                            } ${isClickable ? 'cursor-pointer hover:shadow-sm' : 'cursor-default'}`}
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <Icon size={18} className={card.urgent ? 'text-amber-500' : 'text-slate-400'} />
+                                {card.urgent && (
+                                    <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                                        Requiere acción
+                                    </span>
+                                )}
+                            </div>
+                            <p className={`text-3xl font-bold tracking-tight ${card.urgent ? 'text-amber-600' : 'text-slate-900'}`}>
+                                {card.value}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1 font-medium">{card.label}</p>
+                        </button>
+                    );
+                })}
             </div>
-
-            {/* Accesos Rápidos */}
-            {setActiveTab && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-8">
-                    <h3 className="font-bold text-slate-800 mb-4 px-2">Accesos Rápidos</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <button
-                            onClick={() => setActiveTab('aprobaciones')}
-                            className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 transition-all text-left text-slate-600 group"
-                        >
-                            <span className="font-semibold text-sm flex items-center gap-2">
-                                <AlertTriangle size={18} className="text-amber-500" />
-                                Ver proveedores pendientes
-                            </span>
-                            <ArrowRight size={18} className="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('moderacion')}
-                            className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 transition-all text-left text-slate-600 group"
-                        >
-                            <span className="font-semibold text-sm flex items-center gap-2">
-                                <Star size={18} className="text-amber-500" />
-                                Ver evaluaciones pendientes
-                            </span>
-                            <ArrowRight size={18} className="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('proveedores')}
-                            className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 transition-all text-left text-slate-600 group"
-                        >
-                            <span className="font-semibold text-sm flex items-center gap-2">
-                                <Briefcase size={18} className="text-indigo-400" />
-                                Ver todos los servicios
-                            </span>
-                            <ArrowRight size={18} className="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
