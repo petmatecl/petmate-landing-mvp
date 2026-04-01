@@ -239,25 +239,46 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+        <div className="min-h-screen bg-[#F8FAFC] font-sans">
             <Head>
                 <title>Administración | Pawnecta</title>
             </Head>
 
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-24">
-                {/* Header del Dashboard */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                    <div>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-                            <ShieldCheck className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-600" />
-                            Panel de Administración
-                        </h1>
-                        <p className="mt-2 text-slate-600">Herramientas de gestión y moderación del marketplace.</p>
+            <div className="flex pt-[72px]">
+                {/* ── SIDEBAR: navegación sticky izquierda ── */}
+                <aside className="hidden lg:flex flex-col w-60 shrink-0 sticky top-[72px] h-[calc(100vh-72px)] bg-white border-r border-slate-200">
+                    <div className="p-5 border-b border-slate-100">
+                        <div className="flex items-center gap-2.5">
+                            <ShieldCheck className="w-7 h-7 text-emerald-600" />
+                            <div>
+                                <h2 className="text-sm font-bold text-slate-900 leading-tight">Admin</h2>
+                                <p className="text-[11px] text-slate-400">Pawnecta</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    <nav className="flex-1 p-3 space-y-1">
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                                        ? 'bg-emerald-50 text-emerald-700 font-bold'
+                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        }`}
+                                >
+                                    <Icon size={18} className={isActive ? 'text-emerald-600' : 'text-slate-400'} />
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </aside>
 
-                {/* Navegación por Tabs */}
-                <div className="flex gap-2 overflow-x-auto pb-4 mb-4 border-b border-slate-200 hide-scrollbar">
+                {/* ── MOBILE: tabs horizontales ── */}
+                <div className="lg:hidden fixed top-[72px] left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -265,27 +286,38 @@ export default function AdminDashboard() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${isActive
-                                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                                    : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 hover:border-emerald-200 hover:text-emerald-700'
+                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-xs whitespace-nowrap transition-all ${isActive
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
-                                <Icon size={18} />
+                                <Icon size={14} />
                                 {tab.label}
                             </button>
                         );
                     })}
                 </div>
 
-                {/* Contenedor de las Tab */}
-                <div className="mt-8">
-                    {activeTab === 'dashboard' && <AdminMetrics setActiveTab={setActiveTab} />}
-                    {activeTab === 'conversion' && <ConversionMetrics />}
-                    {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
-                    {activeTab === 'moderacion' && <EvaluacionModerationList />}
-                    {activeTab === 'proveedores' && <ProveedorManagementList />}
-                </div>
-            </main>
+                {/* ── CONTENIDO PRINCIPAL ── */}
+                <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-12 lg:mt-0">
+                    <div className="max-w-6xl">
+                        {/* Header */}
+                        <div className="mb-8">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                                {tabs.find(t => t.id === activeTab)?.label || 'Panel de Administración'}
+                            </h1>
+                            <p className="mt-1 text-sm text-slate-500">Herramientas de gestión y moderación del marketplace.</p>
+                        </div>
+
+                        {/* Tab content */}
+                        {activeTab === 'dashboard' && <AdminMetrics setActiveTab={setActiveTab} />}
+                        {activeTab === 'conversion' && <ConversionMetrics />}
+                        {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
+                        {activeTab === 'moderacion' && <EvaluacionModerationList />}
+                        {activeTab === 'proveedores' && <ProveedorManagementList />}
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }
