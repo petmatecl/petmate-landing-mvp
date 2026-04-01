@@ -270,19 +270,6 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                             ))}
                         </ul>
                     )}
-                    <button
-                        type="button"
-                        onClick={handleGeolocate}
-                        disabled={geoLoading}
-                        title="Usar mi ubicación actual"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-emerald-600 hover:bg-emerald-50
-                                   rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600
-                                   disabled:opacity-50 z-10"
-                    >
-                        {geoLoading
-                            ? <Loader2 size={15} className="animate-spin" />
-                            : <Crosshair size={15} />}
-                    </button>
                 </div>
             </div>
 
