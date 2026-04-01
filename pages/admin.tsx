@@ -26,11 +26,11 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('dashboard');
 
     const checkAuth = React.useCallback(async () => {
-        // Safety timeout: if getSession() hangs (e.g. expired token refresh), escape after 8s
+        // Safety timeout: if getSession() hangs (e.g. expired token refresh), escape after 3s
         const safetyTimer = setTimeout(() => {
             setLoading(false);
             setIsAdmin(false);
-        }, 8000);
+        }, 3000);
 
         try {
             const { data: { session }, error } = await supabase.auth.getSession();
