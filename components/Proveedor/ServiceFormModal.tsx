@@ -664,7 +664,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* ── CAMPOS ESPECÍFICOS POR CATEGORÍA ── */}
                             {camposCategoria.length > 0 && (
-                                <div className="border-t border-slate-100 pt-6">
+                                <div className="border-t border-slate-100 pt-6 pb-2">
                                     <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
                                         <span className="text-sm font-bold text-emerald-600">{selectedCat?.nombre?.charAt(0)}</span>
                                         Detalles de {selectedCat?.nombre}
@@ -745,7 +745,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             )}
 
                             {/* Fotos */}
-                            <div className="border-t border-slate-100 pt-6 mt-2">
+                            <div className="border-t border-slate-100 pt-6 mt-6">
                                 <div className="flex items-center justify-between mb-3">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos del servicio</p>
                                     <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
