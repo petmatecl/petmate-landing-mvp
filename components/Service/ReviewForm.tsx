@@ -66,21 +66,8 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
         );
     }
 
-    if (!hasConversacion) {
-        return (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <div className="shrink-0">
-                    <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div className="flex-1">
-                    <p className="text-sm font-semibold">Solo puedes evaluar un servicio que hayas contactado previamente.</p>
-                    <p className="text-xs text-amber-700 mt-0.5">Inicia una conversación con el proveedor para poder dejar tu evaluación.</p>
-                </div>
-            </div>
-        );
-    }
+    // No conversation = no form (the "Dejar evaluación" button handles validation via toast)
+    if (!hasConversacion) return null;
 
     // ——— Form submit ———
 
