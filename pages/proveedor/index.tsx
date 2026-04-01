@@ -14,13 +14,28 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
+import Link from 'next/link';
 import {
     Clock, AlertTriangle, Briefcase, User as UserIcon, Shield, ShieldCheck, ShieldX,
     Star, MessageSquare, BarChart, Edit, Trash2, LayoutDashboard, Eye, Camera,
-    Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload
+    Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink
 } from 'lucide-react';
 
 type TabType = 'servicios' | 'perfil' | 'evaluaciones' | 'mensajes' | 'estadisticas';
+
+/** Convert a relative storage path to a full public URL */
+function toServicePhotoUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
+    if (!base) return null;
+    const KNOWN_BUCKETS = ['avatars', 'servicios-fotos', 'documents'];
+    const bucket = KNOWN_BUCKETS.find(b => path.startsWith(b + '/'));
+    if (bucket) {
+        return `${base}/storage/v1/object/public/${path}`;
+    }
+    return `${base}/storage/v1/object/public/servicios-fotos/${path}`;
+}
 
 export default function ProveedorDashboard() {
     const router = useRouter();
@@ -612,7 +627,7 @@ export default function ProveedorDashboard() {
                                             <div className="w-full sm:w-40 sm:h-32 h-40 shrink-0 rounded-xl overflow-hidden bg-slate-100 relative">
                                                 {servicio.fotos && servicio.fotos[0] ? (
                                                     /* eslint-disable-next-line @next/next/no-img-element */
-                                                    <img src={servicio.fotos[0]} alt={servicio.titulo} className="w-full h-full object-cover" />
+                                                    <img src={toServicePhotoUrl(servicio.fotos[0]) || ''} alt={servicio.titulo} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-slate-300"><ImageIcon size={32} /></div>
                                                 )}
@@ -643,6 +658,13 @@ export default function ProveedorDashboard() {
                                                         <span className="text-sm font-bold text-slate-700">{servicio.activo ? 'Activo' : 'Pausado'}</span>
                                                     </label>
 
+                                                    <Link
+                                                        href={`/servicio/${servicio.id}`}
+                                                        target="_blank"
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-semibold"
+                                                    >
+                                                        <ExternalLink size={16} /> <span className="hidden sm:inline">Ver</span>
+                                                    </Link>
                                                     <button
                                                         onClick={() => { setEditingServiceId(servicio.id); setIsServiceModalOpen(true); }}
                                                         className="p-2 text-slate-400 hover:text-[#1A6B4A] hover:bg-emerald-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
