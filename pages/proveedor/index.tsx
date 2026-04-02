@@ -113,8 +113,13 @@ export default function ProveedorDashboard() {
     const [uploadingCarnet, setUploadingCarnet] = useState(false);
 
     useEffect(() => {
-        if (user && !userLoading) {
+        if (userLoading) return;
+        if (user) {
             checkProviderStatus();
+        } else {
+            // No user after loading = session expired, redirect to login
+            setStatusLoading(false);
+            router.push('/login?redirect=/proveedor');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, userLoading]);
@@ -433,6 +438,17 @@ export default function ProveedorDashboard() {
         }
     };
 
+
+    // Safety: redirect to login if loading takes too long (10s)
+    useEffect(() => {
+        if (!userLoading && !statusLoading) return;
+        const timer = setTimeout(() => {
+            if (userLoading || statusLoading) {
+                router.push('/login?redirect=/proveedor');
+            }
+        }, 10000);
+        return () => clearTimeout(timer);
+    }, [userLoading, statusLoading, router]);
 
     if (userLoading || statusLoading) {
         return (
