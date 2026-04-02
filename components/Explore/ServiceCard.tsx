@@ -29,6 +29,8 @@ export interface ServiceResult {
     proveedor_updated_at?: string;
     proveedor_lat?: number | null;
     proveedor_lng?: number | null;
+    proveedor_verificado?: boolean;
+    proveedor_primera_ayuda?: boolean;
 }
 
 interface Props {
@@ -186,19 +188,26 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                         )}
                 </div>
 
-                {/* Trust Score Badge */}
-                {(() => {
-                    const signals = [];
-                    if (service.proveedor_foto) signals.push('foto');
-                    if (service.rating_promedio > 0) signals.push('rating');
-                    if ((service.descripcion?.length ?? 0) > 100) signals.push('bio');
-                    return signals.length >= 2 ? (
-                        <div className="flex items-center gap-1 mb-3 px-2 py-1 bg-emerald-50 text-emerald-700 rounded-full w-fit text-[11px] font-bold">
-                            <ShieldCheck size={12} />
-                            <span>Verificado</span>
-                        </div>
-                    ) : <div className="mb-3" />;
-                })()}
+                {/* Trust badges */}
+                {(service.proveedor_verificado || service.total_evaluaciones >= 3 || service.proveedor_primera_ayuda) ? (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                        {service.proveedor_verificado && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-semibold">
+                                <ShieldCheck size={10} /> Verificado
+                            </span>
+                        )}
+                        {service.total_evaluaciones >= 3 && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-[10px] font-semibold">
+                                <Star size={10} className="fill-amber-400 text-amber-400" /> {service.total_evaluaciones}+ evaluaciones
+                            </span>
+                        )}
+                        {service.proveedor_primera_ayuda && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-[10px] font-semibold">
+                                <span className="text-[8px] font-black">+</span> Primeros auxilios
+                            </span>
+                        )}
+                    </div>
+                ) : <div className="mb-3" />}
 
                 <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex flex-col">

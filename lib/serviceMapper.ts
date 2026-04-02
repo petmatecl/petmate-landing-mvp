@@ -92,6 +92,8 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         proveedor_updated_at: item.proveedor_updated_at ?? undefined,
         proveedor_lat: item.proveedor_lat != null ? Number(item.proveedor_lat) : null,
         proveedor_lng: item.proveedor_lng != null ? Number(item.proveedor_lng) : null,
+        proveedor_verificado: item.proveedor_verificado ?? false,
+        proveedor_primera_ayuda: item.proveedor_primera_ayuda ?? false,
     };
 }
 
