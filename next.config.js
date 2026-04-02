@@ -80,6 +80,11 @@ const nextConfig = {
         destination: 'https://www.pawnecta.com/:path*',
         permanent: true,
       },
+      {
+        source: '/usuario',
+        destination: '/explorar',
+        permanent: false,
+      },
     ]
   },
 

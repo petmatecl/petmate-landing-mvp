@@ -277,7 +277,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             window.localStorage.setItem('activeRole', role);
             if (role === 'proveedor') router.push('/proveedor');
             else if (role === 'admin') router.push('/admin');
-            else router.push('/usuario');
+            else router.push('/explorar');
         }
     };
 
