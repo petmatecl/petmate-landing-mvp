@@ -1135,7 +1135,7 @@ export default function ProveedorDashboard() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Sitio Web</label>
-                                            <input type="url" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Tu página web, linktree o similar..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            <input type="text" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Ej: www.pawnecta.com o https://linktr.ee/tu-perfil" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Instagram</label>
