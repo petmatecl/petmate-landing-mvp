@@ -598,12 +598,14 @@ export default function ProveedorDashboard() {
                             {/* INDICADOR DE COMPLETITUD */}
                             {(() => {
                                 const pasos = [
-                                    { label: 'Foto de perfil', done: !!fotoPerfil, puntos: 20 },
-                                    { label: 'Descripción de más de 100 caracteres', done: (bio?.length || 0) > 100, puntos: 20 },
+                                    { label: 'Foto de perfil', done: !!fotoPerfil, puntos: 15 },
+                                    { label: 'Nombre público definido', done: !!nombrePublico, puntos: 10 },
+                                    { label: 'Descripción de más de 100 caracteres', done: (bio?.length || 0) > 100, puntos: 15 },
                                     { label: 'Número de WhatsApp o teléfono', done: !!(whatsapp || telefono), puntos: 15 },
                                     { label: 'Al menos 1 servicio activo', done: servicios.some(s => s.activo), puntos: 15 },
                                     { label: 'Fotos de tu espacio (3+ fotos)', done: galeria.length >= 3, puntos: 10 },
-                                    { label: 'Credenciales completadas (experiencia o certificación)', done: !!(aniosExperiencia || certificaciones), puntos: 20 },
+                                    { label: 'Comuna de residencia', done: !!comuna, puntos: 10 },
+                                    { label: 'Experiencia o certificación', done: !!(aniosExperiencia || certificaciones), puntos: 10 },
                                 ];
                                 const computedScore = pasos.filter(p => p.done).reduce((a, p) => a + p.puntos, 0);
                                 const score = computedScore > 100 ? 100 : computedScore;

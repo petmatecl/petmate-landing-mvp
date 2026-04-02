@@ -25,11 +25,7 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
             try {
                 let query = supabase
                     .from('evaluaciones')
-                    .select(`
-                        id, rating, comentario, created_at,
-                        respuesta_proveedor, respuesta_at,
-                        usuarios_buscadores(nombre, apellido_p, foto_perfil)
-                    `)
+                    .select('id, rating, comentario, created_at, respuesta_proveedor, respuesta_at, usuario_id')
                     .eq('estado', 'aprobado')
                     .order('created_at', { ascending: false });
 
@@ -39,10 +35,37 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
                     query = query.eq('proveedor_id', proveedorId);
                 }
 
-                const { data, error } = await query;
-
+                const { data: evals, error } = await query;
                 if (error) throw error;
-                setReviews(data || []);
+                if (!evals || evals.length === 0) { setReviews([]); return; }
+
+                // Fetch user profiles by auth_user_id (usuario_id = auth.users.id)
+                const userIds = [...new Set(evals.map(e => e.usuario_id).filter(Boolean))];
+                const { data: users } = await supabase
+                    .from('usuarios_buscadores')
+                    .select('auth_user_id, nombre, apellido_p, foto_perfil')
+                    .in('auth_user_id', userIds);
+
+                const userMap = new Map((users || []).map(u => [u.auth_user_id, u]));
+
+                // Also check proveedores (in case reviewer is a provider)
+                const missingIds = userIds.filter(id => !userMap.has(id));
+                if (missingIds.length > 0) {
+                    const { data: provs } = await supabase
+                        .from('proveedores')
+                        .select('auth_user_id, nombre, apellido_p, foto_perfil, nombre_publico')
+                        .in('auth_user_id', missingIds);
+                    (provs || []).forEach(p => userMap.set(p.auth_user_id, {
+                        nombre: p.nombre_publico || p.nombre,
+                        apellido_p: p.nombre_publico ? '' : p.apellido_p,
+                        foto_perfil: p.foto_perfil,
+                    }));
+                }
+
+                setReviews(evals.map(e => ({
+                    ...e,
+                    _user: userMap.get(e.usuario_id) || null,
+                })));
 
             } catch (err) {
                 console.error("Error cargando lista de evaluaciones:", err);
@@ -72,7 +95,7 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
         <>
             <div className="flex flex-col gap-6">
                 {reviews.map(review => {
-                    const u = review.usuarios_buscadores;
+                    const u = review._user;
                     return (
                         <div key={review.id} className="border-t border-slate-100 pt-6 flex flex-col gap-2">
                             <div className="flex justify-between items-start">
@@ -86,7 +109,7 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
                                         )}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-900 text-sm">{u?.nombre} {u?.apellido_p}</h4>
+                                        <h4 className="font-bold text-slate-900 text-sm">{u?.nombre || 'Usuario'} {u?.apellido_p || ''}</h4>
                                         <p className="text-xs text-slate-500">
                                             Hace {formatDistanceToNow(new Date(review.created_at), { locale: es })}
                                         </p>

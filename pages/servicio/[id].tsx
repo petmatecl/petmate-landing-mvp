@@ -504,6 +504,49 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                             </div>
                         )}
 
+                        {/* Disponibilidad */}
+                        {service.disponibilidad && (() => {
+                            // Try parsing as JSON (new structured format)
+                            let parsed: Record<string, any> | null = null;
+                            try { parsed = JSON.parse(service.disponibilidad); } catch {}
+
+                            if (parsed && typeof parsed === 'object') {
+                                const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                                const activeDays = days.filter(d => parsed![d]?.activo);
+                                if (activeDays.length === 0) return null;
+                                return (
+                                    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                        <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            Disponibilidad
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {days.map(dia => {
+                                                const d = parsed![dia];
+                                                if (!d?.activo) return null;
+                                                return (
+                                                    <div key={dia} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                                                        <span className="text-sm font-semibold text-slate-700">{dia}</span>
+                                                        <span className="text-sm text-slate-500">{d.desde} — {d.hasta}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            // Fallback: plain text
+                            return (
+                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                    <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        Disponibilidad
+                                    </h3>
+                                    <p className="text-sm text-slate-600">{service.disponibilidad}</p>
+                                </div>
+                            );
+                        })()}
+
                         {/* Que Incluye */}
                         {service.que_incluye && service.que_incluye.length > 0 && (
                             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
