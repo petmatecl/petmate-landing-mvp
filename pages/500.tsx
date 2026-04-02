@@ -11,9 +11,9 @@ export default function Custom500() {
             <div className="min-h-[70vh] flex items-center justify-center px-4">
                 <div className="text-center max-w-md">
                     <p className="text-7xl font-black text-slate-200 mb-4">500</p>
-                    <h1 className="text-xl font-bold text-slate-900 mb-2">Algo salio mal</h1>
+                    <h1 className="text-xl font-bold text-slate-900 mb-2">Algo salió mal</h1>
                     <p className="text-sm text-slate-500 mb-8">
-                        Ocurrio un error inesperado. Estamos trabajando para solucionarlo.
+                        Ocurrió un error inesperado. Estamos trabajando para solucionarlo.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <button

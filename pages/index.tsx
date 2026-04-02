@@ -476,7 +476,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
       {/* ═══════════════════════════════════════════
           SECCIÓN 4 — CÓMO FUNCIONA (DUEÑOS) — sin cambios
       ═══════════════════════════════════════════ */}
-      <section aria-label="Como funciona para duenos de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
+      <section aria-label="Cómo funciona para dueños de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
         <div className="mb-16">
           <p className="text-emerald-700 font-bold uppercase tracking-widest text-sm mb-3">Para dueños de mascotas</p>
           <h2 className="text-3xl font-black text-slate-900">Encuentra al proveedor ideal en minutos</h2>
@@ -492,7 +492,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
           SECCIÓN 5 — CONFIANZA / TESTIMONIOS — sin cambios
       ═══════════════════════════════════════════ */}
       {stats.proveedores >= 1 ? (
-        <section aria-label="Verificacion de proveedores y testimonios" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
+        <section aria-label="Verificación de proveedores y testimonios" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-black text-slate-900 mb-10">Proveedores que puedes conocer</h2>
@@ -539,7 +539,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
       {/* ═══════════════════════════════════════════
           SECCIÓN 6 — CÓMO FUNCIONA (PROVEEDORES) — sin cambios
       ═══════════════════════════════════════════ */}
-      <section aria-label="Como funciona para proveedores" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
+      <section aria-label="Cómo funciona para proveedores" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <p className="text-emerald-400 font-bold uppercase tracking-widest text-sm mb-3">Para proveedores</p>
