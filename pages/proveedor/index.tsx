@@ -544,7 +544,7 @@ export default function ProveedorDashboard() {
             <Head><title>Mi Panel | Pawnecta</title></Head>
             <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
                 {/* Desktop Sidebar */}
-                <aside className="hidden lg:flex w-[260px] flex-col bg-white border-r border-slate-200 h-[calc(100vh-64px)] shrink-0 sticky top-16">
+                <aside className="hidden lg:flex w-[260px] flex-col bg-white border-r border-slate-200 shrink-0 sticky top-0 h-screen overflow-y-auto">
                     <div className="p-6">
                         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 mt-2">Menú Principal</h2>
                         <nav className="flex flex-col gap-2">

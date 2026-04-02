@@ -803,13 +803,6 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                         </div>
                                     )}
 
-                                    {proveedor.miembro_asociacion && (
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <Award size={15} className="text-emerald-600 shrink-0" />
-                                            <span className="font-medium">Miembro de Asociación</span>
-                                        </div>
-                                    )}
-
                                     {proveedor.tipo_entidad === 'empresa' && (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
                                             <Briefcase size={15} className="text-emerald-600 shrink-0 mt-0.5" />
@@ -826,21 +819,30 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     </div>
                                 </div>
 
-                                {/* Redes sociales */}
-                                {(proveedor.sitio_web || proveedor.instagram) && (
-                                    <div className="flex gap-2 pt-1 border-t border-slate-100">
+                                {/* Contacto y redes */}
+                                {(proveedor.email_publico || proveedor.sitio_web || proveedor.instagram) && (
+                                    <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                                        {proveedor.email_publico && proveedor.mostrar_email && (
+                                            <a href={`mailto:${proveedor.email_publico}`}
+                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-600 transition-colors font-medium truncate">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                                {proveedor.email_publico}
+                                            </a>
+                                        )}
                                         {proveedor.sitio_web && (
                                             <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
                                                 target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
-                                                className="text-slate-400 hover:text-emerald-600 p-2 bg-slate-50 rounded-lg transition-colors">
-                                                <Globe size={16} />
+                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-600 transition-colors font-medium truncate">
+                                                <Globe size={14} className="shrink-0" />
+                                                {proveedor.sitio_web.replace(/^https?:\/\//, '')}
                                             </a>
                                         )}
                                         {proveedor.instagram && (
                                             <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
                                                 target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
-                                                className="text-slate-400 hover:text-pink-500 p-2 bg-slate-50 rounded-lg transition-colors">
-                                                <Instagram size={16} />
+                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-pink-500 transition-colors font-medium">
+                                                <Instagram size={14} className="shrink-0" />
+                                                @{proveedor.instagram.replace('@', '')}
                                             </a>
                                         )}
                                     </div>
