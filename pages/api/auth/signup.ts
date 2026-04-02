@@ -87,9 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (rol === 'usuario') {
         const { error: insertError } = await supabaseAdmin.from('usuarios_buscadores').insert([{
           auth_user_id: userId,
-          nombre: nombre.trim(),
-          apellido_p: apellido_p.trim(),
-          apellido_m: apellido_m?.trim() || null,
+          nombre: `${nombre.trim()} ${apellido_p.trim()}${apellido_m ? ' ' + apellido_m.trim() : ''}`,
           rut,
         }]);
         if (insertError) throw new Error('Error guardando datos de usuario: ' + insertError.message);

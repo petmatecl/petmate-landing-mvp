@@ -922,7 +922,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .from('evaluaciones')
             .select(`
                 *,
-                usuarios_buscadores(nombre, apellido_p, foto_perfil)
+                usuarios_buscadores(nombre)
             `)
             .eq('servicio_id', id)
             .eq('estado', 'aprobado')

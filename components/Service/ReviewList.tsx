@@ -41,12 +41,14 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
 
                 // Fetch user profiles by auth_user_id (usuario_id = auth.users.id)
                 const userIds = [...new Set(evals.map(e => e.usuario_id).filter(Boolean))];
+
+                // usuarios_buscadores only has: nombre (no apellido_p, no foto_perfil)
                 const { data: users } = await supabase
                     .from('usuarios_buscadores')
-                    .select('auth_user_id, nombre, apellido_p, foto_perfil')
+                    .select('auth_user_id, nombre')
                     .in('auth_user_id', userIds);
 
-                const userMap = new Map((users || []).map(u => [u.auth_user_id, u]));
+                const userMap = new Map((users || []).map(u => [u.auth_user_id, { nombre: u.nombre, foto_perfil: null }]));
 
                 // Also check proveedores (in case reviewer is a provider)
                 const missingIds = userIds.filter(id => !userMap.has(id));
@@ -56,8 +58,7 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
                         .select('auth_user_id, nombre, apellido_p, foto_perfil, nombre_publico')
                         .in('auth_user_id', missingIds);
                     (provs || []).forEach(p => userMap.set(p.auth_user_id, {
-                        nombre: p.nombre_publico || p.nombre,
-                        apellido_p: p.nombre_publico ? '' : p.apellido_p,
+                        nombre: p.nombre_publico || `${p.nombre} ${p.apellido_p}`,
                         foto_perfil: p.foto_perfil,
                     }));
                 }
@@ -109,7 +110,7 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
                                         )}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-900 text-sm">{u?.nombre || 'Usuario'} {u?.apellido_p || ''}</h4>
+                                        <h4 className="font-bold text-slate-900 text-sm">{u?.nombre || 'Usuario'}</h4>
                                         <p className="text-xs text-slate-500">
                                             Hace {formatDistanceToNow(new Date(review.created_at), { locale: es })}
                                         </p>
