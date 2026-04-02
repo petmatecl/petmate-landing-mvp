@@ -14,13 +14,24 @@ export default function MensajesPage() {
 
     useEffect(() => {
         const checkUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                setUserId(session.user.id);
-            } else {
+            try {
+                const timeout = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('TIMEOUT')), 5000)
+                );
+                const { data: { session } } = await Promise.race([
+                    supabase.auth.getSession(),
+                    timeout,
+                ]) as { data: { session: any } };
+                if (session?.user) {
+                    setUserId(session.user.id);
+                } else {
+                    router.push('/login?redirect=/mensajes');
+                }
+            } catch {
                 router.push('/login?redirect=/mensajes');
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         checkUser();
     }, [router]);
