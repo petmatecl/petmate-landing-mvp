@@ -349,7 +349,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                         {/* Galeria / Portada */}
                         <div className="relative">
                             {/* Foto principal */}
-                            <div className="w-full h-[340px] md:h-[500px] bg-slate-200 rounded-none lg:rounded-2xl overflow-hidden relative shadow-sm -mx-4 sm:-mx-6 lg:mx-0 w-screen sm:w-[calc(100%+3rem)] lg:w-full">
+                            <div className="w-full h-[340px] md:h-[500px] bg-slate-200 rounded-none lg:rounded-2xl overflow-hidden relative shadow-sm -mx-4 sm:-mx-6 lg:mx-0 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] lg:w-full">
                                 {imgError ? (
                                     <div className="w-full h-full flex items-center justify-center bg-slate-100">
                                         {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={64} className="text-slate-300" />; })()}

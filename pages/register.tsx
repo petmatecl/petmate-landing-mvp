@@ -439,7 +439,7 @@ export default function RegisterWizard() {
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Tipo de cuenta de proveedor
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <button type="button"
                         onClick={() => setTipoEntidad("persona_natural")}
                         className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"

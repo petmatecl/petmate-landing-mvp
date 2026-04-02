@@ -119,7 +119,7 @@ export default function ServiceCard({ service, isFavorite }: Props) {
             <button
                 onClick={handleToggleFavorite}
                 disabled={isLoadingFav}
-                className="absolute top-3 right-3 z-20 w-8 h-8 bg-white/90 rounded-full shadow-sm flex items-center justify-center hover:scale-110 transition-transform duration-150 disabled:opacity-50"
+                className="absolute top-3 right-3 z-20 w-10 h-10 bg-white/90 rounded-full shadow-sm flex items-center justify-center hover:scale-110 transition-transform duration-150 disabled:opacity-50"
                 aria-label={isFavorito ? "Quitar de favoritos" : "Añadir a favoritos"}
             >
                 <Heart
@@ -192,17 +192,17 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                 {(service.proveedor_verificado || service.total_evaluaciones >= 3 || service.proveedor_primera_ayuda) ? (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                         {service.proveedor_verificado && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-semibold">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-semibold">
                                 <ShieldCheck size={10} /> Verificado
                             </span>
                         )}
                         {service.total_evaluaciones >= 3 && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-[10px] font-semibold">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-[11px] font-semibold">
                                 <Star size={10} className="fill-amber-400 text-amber-400" /> {service.total_evaluaciones}+ evaluaciones
                             </span>
                         )}
                         {service.proveedor_primera_ayuda && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-[10px] font-semibold">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-[11px] font-semibold">
                                 <span className="text-[8px] font-black">+</span> Primeros auxilios
                             </span>
                         )}

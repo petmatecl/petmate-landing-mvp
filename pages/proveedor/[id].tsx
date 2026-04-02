@@ -437,7 +437,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 <img src={proveedor.galeria[0]} alt="" className="w-full h-full object-cover" />
                             </div>
                         ) : proveedor.galeria.length <= 3 ? (
-                            <div className={`grid gap-2 h-64 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                            <div className={`grid gap-2 h-64 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
                                 {proveedor.galeria.map((url: string, i: number) => (
                                     <div key={i} className="rounded-xl overflow-hidden">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}

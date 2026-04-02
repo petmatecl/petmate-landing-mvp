@@ -475,7 +475,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             <div className="border-t border-slate-100 py-6">
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-1.5">Desde ($) <span className="text-red-500">*</span></label>
                                             <input
@@ -531,7 +531,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     setDisponibilidad(JSON.stringify(current));
                                                 };
                                                 return (
-                                                    <div key={dia} className="flex items-center gap-2">
+                                                    <div key={dia} className="flex flex-wrap items-center gap-2">
                                                         <button
                                                             type="button"
                                                             onClick={() => updateDay('activo', !dayData.activo)}
