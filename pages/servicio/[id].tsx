@@ -15,7 +15,7 @@ import PreguntasSection from '../../components/Service/PreguntasSection';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import {
     ShieldCheck, Star, User as UserIcon2,
-    Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
+    Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Briefcase, Award, Globe, Instagram,
     LucideIcon
 } from 'lucide-react';
@@ -62,6 +62,13 @@ const DETALLE_LABELS: Record<string, Record<string, string>> = {
         que_incluye: 'Qué incluye la visita', envia_foto_reporte: 'Envía foto y reporte',
         administra_medicamentos: 'Administra medicamentos',
     },
+    fotografia: {
+        tipo_sesion: 'Tipo de sesión', duracion_sesion: 'Duración de la sesión',
+        fotos_entregadas: 'Fotos entregadas', incluye_edicion: 'Incluye edición profesional',
+        entrega_digitales: 'Entrega digital en alta resolución',
+        acepta_multiples_mascotas: 'Sesiones con más de una mascota',
+        equipo: 'Equipo fotográfico',
+    },
 };
 
 interface ServiceDetailProps {
@@ -79,6 +86,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
     veterinario: Stethoscope,
     adiestramiento: Dumbbell,
     domicilio: MapPin,
+    fotografia: Camera,
 };
 
 export default function ServicioPage({ service, reviews, otrosServicios }: ServiceDetailProps) {

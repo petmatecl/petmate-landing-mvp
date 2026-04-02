@@ -39,6 +39,7 @@ const STATIC_CATEGORIES: Category[] = [
     { id: 'paseos', slug: 'paseos', nombre: 'Paseo de Perros', icono: '🦮' },
     { id: 'peluqueria', slug: 'peluqueria', nombre: 'Peluquería', icono: '✂️' },
     { id: 'traslado', slug: 'traslado', nombre: 'Traslado', icono: '🚗' },
+    { id: 'fotografia', slug: 'fotografia', nombre: 'Fotografía de Mascotas', icono: '📷' },
     { id: 'veterinario', slug: 'veterinario', nombre: 'Veterinario a Domicilio', icono: '🩺' },
 ];
 

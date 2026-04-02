@@ -13,6 +13,7 @@ const CATEGORIAS = [
     { slug: 'adiestramiento', label: 'Adiestramiento' },
     { slug: 'veterinario', label: 'Veterinaria' },
     { slug: 'traslado', label: 'Traslado' },
+    { slug: 'fotografia', label: 'Fotografía de Mascotas' },
 ];
 
 interface SearchBarProps {

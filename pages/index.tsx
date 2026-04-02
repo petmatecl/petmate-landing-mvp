@@ -6,7 +6,7 @@ import { mapJoinToServiceResult } from "../lib/serviceMapper";
 import { ServiceResult } from "../components/Explore/ServiceCard";
 import { COMUNAS_CHILE } from "../lib/comunas";
 import {
-  Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car,
+  Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car, Camera,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
   CheckCircle2, Shield
 } from "lucide-react";
@@ -269,6 +269,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
     { slug: 'adiestramiento', nombre: 'Adiestramiento', descripcion: 'Entrenamiento y corrección conductual', Icon: Award },
     { slug: 'veterinario', nombre: 'Veterinaria', descripcion: 'Consultas y atención médica cercana', Icon: Stethoscope },
     { slug: 'traslado', nombre: 'Traslado', descripcion: 'Transporte seguro para tu mascota', Icon: Car },
+    { slug: 'fotografia', nombre: 'Fotografía', descripcion: 'Sesiones fotográficas profesionales para tu mascota', Icon: Camera },
   ].map(cat => ({
     ...cat,
     count: categoryCounts[cat.slug] ?? 0,

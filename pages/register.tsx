@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import {
   Search, Briefcase, CheckCircle2, Eye, EyeOff, ArrowLeft, Loader2,
-  Stethoscope, Car, Scissors, GraduationCap, Home, Sun, Footprints, MapPin
+  Stethoscope, Car, Scissors, GraduationCap, Home, Sun, Footprints, MapPin, Camera
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
@@ -98,6 +98,13 @@ const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     { key: "tiene_camara", label: "Tengo cámara para que el dueño vea a su mascota", tipo: "boolean" },
     { key: "envia_fotos", label: "Envío fotos durante el día al dueño", tipo: "boolean" },
   ],
+  fotografia: [
+    { key: "tipo_sesion", label: "Tipo de sesión", tipo: "select", opciones: [{ value: "exterior", label: "Exterior" }, { value: "estudio", label: "Estudio" }, { value: "domicilio", label: "A domicilio" }, { value: "todas", label: "Todas las anteriores" }], requerido: true },
+    { key: "anios_experiencia", label: "Años de experiencia en fotografía", tipo: "number", placeholder: "Ej: 3" },
+    { key: "equipo", label: "Equipo fotográfico que utilizas", tipo: "text", placeholder: "Ej: Canon R6, lentes 50mm y 85mm" },
+    { key: "portfolio_url", label: "Link a tu portfolio (opcional)", tipo: "text", placeholder: "Ej: www.miportfolio.com" },
+    { key: "edicion_profesional", label: "Incluyo edición profesional de las fotos", tipo: "boolean" },
+  ],
 };
 
 const CATEGORIA_ICONS: Record<string, React.ElementType> = {
@@ -109,6 +116,7 @@ const CATEGORIA_ICONS: Record<string, React.ElementType> = {
   guarderia: Sun,
   paseos: Footprints,
   domicilio: MapPin,
+  fotografia: Camera,
 };
 
 type Role = "usuario" | "proveedor";
@@ -122,6 +130,7 @@ const CATEGORIES = [
   { value: 'adiestramiento', label: 'Adiestramiento' },
   { value: 'veterinario', label: 'Veterinario a Domicilio' },
   { value: 'traslado', label: 'Traslado' },
+  { value: 'fotografia', label: 'Fotografía de Mascotas' },
 ];
 
 

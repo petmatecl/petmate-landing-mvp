@@ -56,6 +56,7 @@ interface ProveedorProps {
     servicios: ServiceResult[];
     globalRatingPromedio: number;
     globalTotalEvaluaciones: number;
+    contactosCount: number;
 }
 
 function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number }) {
@@ -77,7 +78,7 @@ function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number
     );
 }
 
-export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones }: ProveedorProps) {
+export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount }: ProveedorProps) {
     const router = useRouter();
     const { user } = useUser();
     const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -245,6 +246,12 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
                                         <Briefcase size={12} className="text-slate-400" />
                                         {servicios.length} servicio{servicios.length !== 1 ? 's' : ''} activo{servicios.length !== 1 ? 's' : ''}
+                                    </span>
+                                )}
+                                {contactosCount > 0 && (
+                                    <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        {contactosCount} contacto{contactosCount !== 1 ? 's' : ''}
                                     </span>
                                 )}
                             </div>
@@ -574,8 +581,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             });
         }
 
+        // Contact count (all time)
+        const { count: contactosCount } = await supabase
+            .from('contactos')
+            .select('*', { head: true, count: 'exact' })
+            .eq('proveedor_id', id);
+
         return {
-            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones }
+            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0 }
         };
 
     } catch (e) {

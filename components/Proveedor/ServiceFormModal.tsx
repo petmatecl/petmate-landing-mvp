@@ -87,6 +87,15 @@ const CAMPOS_POR_CATEGORIA: Record<string, CategoryField[]> = {
         { key: 'envia_foto_reporte', label: 'Envía foto y reporte de cada visita', type: 'boolean' },
         { key: 'administra_medicamentos', label: 'Administra medicamentos', type: 'boolean' },
     ],
+    fotografia: [
+        { key: 'tipo_sesion', label: 'Tipo de sesión', type: 'select', options: ['Exterior', 'Estudio', 'A domicilio', 'Todas las anteriores'] },
+        { key: 'duracion_sesion', label: 'Duración estimada de la sesión', type: 'text', placeholder: '1 a 2 horas' },
+        { key: 'fotos_entregadas', label: 'Cantidad de fotos entregadas', type: 'text', placeholder: 'Ej: 20 fotos editadas' },
+        { key: 'incluye_edicion', label: 'Incluye edición profesional', type: 'boolean' },
+        { key: 'entrega_digitales', label: 'Entrega en formato digital (alta resolución)', type: 'boolean' },
+        { key: 'acepta_multiples_mascotas', label: 'Acepta sesiones con más de una mascota', type: 'boolean' },
+        { key: 'equipo', label: 'Equipo que utilizas', type: 'text', placeholder: 'Ej: Canon R6, lentes 50mm y 85mm, flash...' },
+    ],
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
