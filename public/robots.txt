@@ -1,14 +1,18 @@
 # *
 User-agent: *
 Allow: /
+Allow: /proveedor/
+Allow: /servicio/
 Disallow: /admin
 Disallow: /usuario
-Disallow: /proveedor
 Disallow: /mensajes
 Disallow: /sitter
 Disallow: /login
 Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
 Disallow: /api/*
+Disallow: /security-logout
 
 # Host
 Host: https://www.pawnecta.com

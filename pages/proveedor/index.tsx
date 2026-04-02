@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
+import { getProxyImageUrl } from '../../lib/utils';
 import { useProveedorStats } from '../../lib/useProveedorStats';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
@@ -138,8 +139,8 @@ export default function ProveedorDashboard() {
             setMostrarWhatsapp(data.mostrar_whatsapp ?? true);
             setMostrarTelefono(data.mostrar_telefono ?? false);
             setMostrarEmail(data.mostrar_email ?? false);
-            setFotoPerfil(data.foto_perfil || '');
-            setGaleria(data.galeria || []);
+            setFotoPerfil(getProxyImageUrl(data.foto_perfil) || data.foto_perfil || '');
+            setGaleria((data.galeria || []).map((url: string) => getProxyImageUrl(url) || url));
 
             setTipoEntidad(data.tipo_entidad || 'persona_natural');
             setRazonSocial(data.razon_social || '');
@@ -276,46 +277,52 @@ export default function ProveedorDashboard() {
 
     const saveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user?.id) {
+            toast.error('Tu sesión expiró. Recarga la página e intenta nuevamente.');
+            return;
+        }
         setSavingProfile(true);
         try {
-            const timeout = new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('TIMEOUT')), 10000)
-            );
-            const updatePromise = supabase.from('proveedores').update({
+            const payload: Record<string, any> = {
                 nombre_publico: nombrePublico.trim() || null,
-                bio, comuna, whatsapp, telefono, email_publico: emailPublico,
-                mostrar_whatsapp: mostrarWhatsapp, mostrar_telefono: mostrarTelefono, mostrar_email: mostrarEmail,
+                bio: bio || null,
+                comuna: comuna || null,
+                whatsapp: whatsapp || null,
+                telefono: telefono || null,
+                email_publico: emailPublico || null,
+                mostrar_whatsapp: mostrarWhatsapp,
+                mostrar_telefono: mostrarTelefono,
+                mostrar_email: mostrarEmail,
                 tipo_entidad: tipoEntidad,
-                razon_social: tipoEntidad === 'empresa' ? razonSocial : null,
-                rut_empresa: tipoEntidad === 'empresa' ? rutEmpresa : null,
-                nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia : null,
-                giro: tipoEntidad === 'empresa' ? giro : null,
+                razon_social: tipoEntidad === 'empresa' ? (razonSocial || null) : null,
+                rut_empresa: tipoEntidad === 'empresa' ? (rutEmpresa || null) : null,
+                nombre_fantasia: tipoEntidad === 'empresa' ? (nombreFantasia || null) : null,
+                giro: tipoEntidad === 'empresa' ? (giro || null) : null,
                 genero: tipoEntidad === 'persona_natural' ? (genero || null) : null,
                 ocupacion: tipoEntidad === 'persona_natural' ? (ocupacion || null) : null,
                 anios_experiencia: aniosExperiencia && !isNaN(Number(aniosExperiencia)) ? parseInt(aniosExperiencia) : null,
-                certificaciones,
-                sitio_web: sitioWeb,
-                instagram,
+                certificaciones: certificaciones || null,
+                sitio_web: sitioWeb || null,
+                instagram: instagram || null,
                 primera_ayuda: primeraAyuda,
-                miembro_asociacion: miembroAsociacion,
                 galeria,
-            }).eq('auth_user_id', user.id);
+            };
 
-            const { error } = await Promise.race([updatePromise, timeout]) as { error: any };
+            const { error } = await supabase
+                .from('proveedores')
+                .update(payload)
+                .eq('auth_user_id', user.id);
 
             if (error) {
                 console.error('Save profile error:', error);
-                toast.error(`Error al guardar: ${error.message || 'Verifica los datos e intenta nuevamente.'}`);
+                toast.error(`Error al guardar: ${error.message}`);
             } else {
                 toast.success('Perfil actualizado correctamente');
             }
         } catch (err: any) {
             console.error('Save profile exception:', err);
-            if (err?.message === 'TIMEOUT') {
-                toast.error('La solicitud tardó demasiado. Verifica tu conexión e intenta nuevamente.');
-            } else {
-                toast.error(`Error al guardar: ${err?.message || 'Error inesperado'}`);
-            }
+            toast.error(`Error al guardar: ${err?.message || 'Error inesperado. Recarga la página.'}`);
+
         } finally {
             setSavingProfile(false);
         }

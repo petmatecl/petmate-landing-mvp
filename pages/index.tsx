@@ -120,6 +120,7 @@ function ServiceCardItem({ s }: { s: any }) {
         <img
           src={foto}
           alt={s.titulo}
+          loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             const img = e.currentTarget as HTMLImageElement;

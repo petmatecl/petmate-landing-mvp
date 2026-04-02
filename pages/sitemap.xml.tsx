@@ -2,47 +2,49 @@ import { GetServerSideProps } from "next";
 import { supabase } from "../lib/supabaseClient";
 
 const STATIC_ROUTES = [
-    "/", "/explorar", "/quienes-somos",
-    "/hospedaje", "/guarderia-diurna", "/paseo",
-    "/visita-domicilio", "/peluqueria", "/adiestramiento",
-    "/veterinaria", "/traslado",
+    "/", "/explorar", "/blog", "/faq", "/terminos", "/privacidad",
 ];
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
+    // Fetch approved providers
     const { data: proveedores } = await supabase
         .from("proveedores")
-        .select("comunas_cobertura")
+        .select("id, updated_at")
         .eq("estado", "aprobado");
 
-    const categorias = [
-        "hospedaje", "guarderia-diurna", "paseo", "visita-domicilio",
-        "peluqueria", "adiestramiento", "veterinaria", "traslado",
-    ];
+    // Fetch active services
+    const { data: servicios } = await supabase
+        .from("servicios_publicados")
+        .select("id, updated_at")
+        .eq("activo", true);
 
-    const comunas = new Set<string>();
-    proveedores?.forEach(p => {
-        if (Array.isArray(p.comunas_cobertura)) {
-            p.comunas_cobertura.forEach((c: string) =>
-                comunas.add(c.toLowerCase().replace(/ /g, "-"))
-            );
-        }
-    });
+    const now = new Date().toISOString().split('T')[0];
 
-    const dinamicas = categorias.flatMap(cat =>
-        Array.from(comunas).map(com => `/${cat}/${com}`)
+    let urls = STATIC_ROUTES.map(r =>
+        `  <url><loc>https://pawnecta.com${r}</loc><lastmod>${now}</lastmod><priority>${r === '/' ? '1.0' : '0.7'}</priority></url>`
     );
 
-    const allRoutes = [...STATIC_ROUTES, ...dinamicas];
-    const urls = allRoutes
-        .map(r => `  <url><loc>https://pawnecta.com${r}</loc></url>`)
-        .join("\n");
+    // Provider profiles
+    if (proveedores) {
+        urls = urls.concat(proveedores.map(p =>
+            `  <url><loc>https://pawnecta.com/proveedor/${p.id}</loc><lastmod>${(p.updated_at || now).split('T')[0]}</lastmod><priority>0.8</priority></url>`
+        ));
+    }
+
+    // Service pages
+    if (servicios) {
+        urls = urls.concat(servicios.map(s =>
+            `  <url><loc>https://pawnecta.com/servicio/${s.id}</loc><lastmod>${(s.updated_at || now).split('T')[0]}</lastmod><priority>0.9</priority></url>`
+        ));
+    }
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
+${urls.join("\n")}
 </urlset>`;
 
     res.setHeader("Content-Type", "text/xml");
+    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate");
     res.write(xml);
     res.end();
 
