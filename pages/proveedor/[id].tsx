@@ -521,7 +521,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
         const { data: proveedor, error: provError } = await supabase
             .from('proveedores')
-            .select('*')
+            .select(`
+                id, nombre, apellido_p, nombre_publico, foto_perfil, bio, comuna,
+                tipo_entidad, razon_social, nombre_fantasia, giro,
+                genero, ocupacion, fecha_nacimiento, anios_experiencia,
+                certificaciones, primera_ayuda, rut_verificado, verificacion_estado,
+                sitio_web, instagram, email_publico, mostrar_email,
+                mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
+                galeria, estado, created_at, datos_especificos
+            `)
             .eq('id', id)
             .maybeSingle();
 

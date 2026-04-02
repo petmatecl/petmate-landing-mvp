@@ -12,8 +12,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Security check: Only allow Supabase URLs
-    if (!url.includes('supabase.co')) {
-        return res.status(400).json({ error: 'Invalid URL domain' });
+    try {
+        const parsed = new URL(url);
+        if (!parsed.hostname.endsWith('.supabase.co')) {
+            return res.status(400).json({ error: 'Invalid URL' });
+        }
+    } catch {
+        return res.status(400).json({ error: 'Invalid URL' });
     }
 
     try {

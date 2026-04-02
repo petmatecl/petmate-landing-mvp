@@ -1,20 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
+import { verifySession } from '../../../lib/apiAuth';
 
 /**
  * POST /api/referidos/generar-codigo
  * Generates a unique referral code for an authenticated user.
- * Body: { userId: string }
+ * Requires Authorization: Bearer <token> header.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!apiLimiter(req, res)) return;
 
-  const { userId } = req.body;
-  if (!userId || typeof userId !== 'string') {
-    return res.status(400).json({ error: 'userId required' });
-  }
+  const userId = await verifySession(req);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

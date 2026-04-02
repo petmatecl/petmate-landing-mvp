@@ -4,11 +4,13 @@ import { createClient } from "@supabase/supabase-js";
 import { emailLimiter } from '../../../lib/rateLimit';
 import { escapeHtml } from '../../../lib/sanitize';
 import { newMessageSchema } from '../../../lib/validations';
+import { verifyInternalSecret } from '../../../lib/apiAuth';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405).end();
+    if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
     if (!emailLimiter(req, res)) return;
 
     const parsed = newMessageSchema.safeParse(req.body);

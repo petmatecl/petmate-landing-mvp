@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { autoModerarSchema } from '../../../lib/validations';
+import { verifyInternalSecret } from '../../../lib/apiAuth';
 
 // Palabras que marcan una evaluacion como sospechosa y requieren revision manual
 const BLACKLIST = [
@@ -17,6 +18,7 @@ function containsBlacklisted(text: string): boolean {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).end();
+    if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
     if (!apiLimiter(req, res)) return;
 
     const parsed = autoModerarSchema.safeParse(req.body);

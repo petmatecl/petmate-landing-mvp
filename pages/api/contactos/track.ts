@@ -1,12 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { verifySession } from '../../../lib/apiAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { auth_user_id, servicio_id, proveedor_id, canal } = req.body;
+    const userId = await verifySession(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    if (!auth_user_id || !servicio_id || !proveedor_id || !canal) {
+    const { servicio_id, proveedor_id, canal } = req.body;
+
+    if (!servicio_id || !proveedor_id || !canal) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -22,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const { error } = await supabaseAdmin.from('contactos').insert({
-            auth_user_id,
+            auth_user_id: userId,
             servicio_id,
             proveedor_id,
             canal,

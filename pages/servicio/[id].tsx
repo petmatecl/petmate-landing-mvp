@@ -134,18 +134,24 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     const totalReviews = reviews.length;
 
     // Track contact event (non-blocking)
-    const trackContacto = (canal: 'mensaje' | 'whatsapp' | 'llamada' | 'email_copiado') => {
+    const trackContacto = async (canal: 'mensaje' | 'whatsapp' | 'llamada' | 'email_copiado') => {
         if (!user) return;
-        fetch('/api/contactos/track', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                auth_user_id: user.id,
-                servicio_id: service.id,
-                proveedor_id: proveedor.id,
-                canal,
-            }),
-        }).catch(() => {}); // fire and forget
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.access_token) return;
+            fetch('/api/contactos/track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                    servicio_id: service.id,
+                    proveedor_id: proveedor.id,
+                    canal,
+                }),
+            }).catch(() => {});
+        } catch {}
     };
 
     const handleChatClick = async () => {
@@ -933,8 +939,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .select(`
                 *,
                 proveedores!inner(
-                    id, auth_user_id, nombre, apellido_p, rut_verificado, foto_perfil, comuna, mostrar_whatsapp, mostrar_telefono, telefono, created_at,
-                    tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, anios_experiencia, certificaciones, sitio_web, instagram, primera_ayuda, miembro_asociacion, galeria
+                    id, auth_user_id, nombre, apellido_p, nombre_publico, rut_verificado, foto_perfil, comuna,
+                    mostrar_whatsapp, mostrar_telefono, mostrar_email, telefono, email_publico, created_at,
+                    tipo_entidad, razon_social, nombre_fantasia, giro, anios_experiencia,
+                    certificaciones, sitio_web, instagram, primera_ayuda, galeria
                 ),
                 categorias_servicio!inner(
                     nombre, slug, icono

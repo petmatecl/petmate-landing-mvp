@@ -81,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Validate via internal secret to prevent external abuse
     const internalSecret = req.headers['x-internal-secret'];
-    if (internalSecret !== (process.env.INTERNAL_API_SECRET || 'pawnecta-internal')) {
+    if (!process.env.INTERNAL_API_SECRET || internalSecret !== process.env.INTERNAL_API_SECRET) {
         return res.status(403).json({ error: 'Forbidden' });
     }
 

@@ -4,11 +4,13 @@ import { resend } from '../../../lib/resend';
 import NewEvaluationEmail from '../../../components/Emails/NewEvaluationEmail';
 import { emailLimiter } from '../../../lib/rateLimit';
 import { evaluacionNotifySchema } from '../../../lib/validations';
+import { verifyInternalSecret } from '../../../lib/apiAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+    if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
     if (!emailLimiter(req, res)) return;
 
     const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;

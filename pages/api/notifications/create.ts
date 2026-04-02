@@ -34,11 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const { userId, type, title, message, link, metadata } = parsed.data;
 
-    // [Security] Prevent spam? 
-    // We implicitly trust authenticated users to send notifications regarding their interactions.
-    // Ideally we'd validate that 'user' has a relationship with 'userId' (recipient),
-    // e.g., an existing conversation or booking.
-    // For MVP, knowing the sender is authenticated is a good step up from public RPC.
+    // [Security] TODO: validate that sender has a relationship with recipient (conversation/booking)
+    if (user.id === userId) {
+        console.warn(`[notifications/create] User ${user.id} sending notification to themselves`);
+    }
 
     try {
         const { error } = await supabaseAdmin
