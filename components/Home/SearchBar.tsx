@@ -48,14 +48,28 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!categoria && !comunaQuery.trim()) {
+
+        // Auto-select first matching comuna if user typed partial text
+        let finalComuna = comunaQuery.trim();
+        if (finalComuna && !COMUNAS_CHILE.includes(finalComuna)) {
+            const match = COMUNAS_CHILE.find(c =>
+                c.toLowerCase().startsWith(finalComuna.toLowerCase())
+            );
+            if (match) {
+                finalComuna = match;
+                setComunaQuery(match);
+            }
+        }
+
+        if (!categoria && !finalComuna) {
             setErrorMsg('Ingresa al menos un servicio o comuna para buscar');
             return;
         }
         setErrorMsg('');
+        setShowComunaList(false);
         const query: Record<string, string> = {};
         if (categoria) query.categoria = categoria;
-        if (comunaQuery.trim()) query.comuna = comunaQuery.trim();
+        if (finalComuna) query.comuna = finalComuna;
         router.push({ pathname: '/explorar', query });
     };
 

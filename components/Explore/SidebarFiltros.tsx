@@ -235,8 +235,19 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         onFocus={() => setComunaOpen(true)}
                         onKeyDown={e => {
-                            if ((e.key === 'Enter' || e.key === 'Tab') && comunaInput === '') {
-                                onFilterChange({ comuna: '' });
+                            if (e.key === 'Enter' || e.key === 'Tab') {
+                                e.preventDefault();
+                                const trimmed = comunaInput.trim();
+                                if (!trimmed) {
+                                    onFilterChange({ comuna: '' });
+                                } else {
+                                    // Auto-match first comuna
+                                    const match = comunasFiltradas[0];
+                                    if (match) {
+                                        setComunaInput(match);
+                                        onFilterChange({ comuna: match });
+                                    }
+                                }
                                 setComunaOpen(false);
                             }
                             if (e.key === 'Escape') {
@@ -245,9 +256,20 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                             }
                         }}
                         onBlur={() => {
-                            // Si el usuario sale sin seleccionar, restaurar el valor confirmado
                             setTimeout(() => {
-                                setComunaInput(filters.comuna);
+                                // Auto-match on blur too
+                                const trimmed = comunaInput.trim();
+                                if (trimmed && trimmed !== filters.comuna) {
+                                    const match = COMUNAS_CHILE.find(c => c.toLowerCase().startsWith(trimmed.toLowerCase()));
+                                    if (match) {
+                                        setComunaInput(match);
+                                        onFilterChange({ comuna: match });
+                                    } else {
+                                        setComunaInput(filters.comuna);
+                                    }
+                                } else if (!trimmed && filters.comuna) {
+                                    onFilterChange({ comuna: '' });
+                                }
                                 setComunaOpen(false);
                             }, 200);
                         }}
