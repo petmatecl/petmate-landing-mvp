@@ -124,6 +124,21 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
     const totalReviews = reviews.length;
 
+    // Track contact event (non-blocking)
+    const trackContacto = (canal: 'mensaje' | 'whatsapp' | 'llamada' | 'email_copiado') => {
+        if (!user) return;
+        fetch('/api/contactos/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                auth_user_id: user.id,
+                servicio_id: service.id,
+                proveedor_id: proveedor.id,
+                canal,
+            }),
+        }).catch(() => {}); // fire and forget
+    };
+
     const handleChatClick = async () => {
         // Si el contexto aún está cargando la sesión, no actuar
         if (isUserLoading) return;
@@ -135,6 +150,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
         }
 
         setIsChatLoading(true);
+        trackContacto('mensaje');
         try {
             const userId = user.id;
 
@@ -212,6 +228,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
             user_id: user.id,
             metadata: { proveedor_id: proveedor.id },
         });
+        trackContacto('whatsapp');
         const phone = proveedor.telefono.replace(/\D/g, '');
         const text = encodeURIComponent(`Hola ${proveedor.nombre}, te contacto desde Pawnecta por tu servicio de "${service.titulo}".`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
@@ -222,6 +239,11 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
             e.preventDefault();
             setLoginModalOpen(true);
         }
+    };
+
+    const handleCallClick = (e: React.MouseEvent) => {
+        if (!user) { e.preventDefault(); setLoginModalOpen(true); return; }
+        trackContacto('llamada');
     };
 
     const handleLeaveReview = async () => {
@@ -736,7 +758,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                                 {proveedor.mostrar_telefono && proveedor.telefono && (
                                     <a href={`tel:${proveedor.telefono}`}
-                                        onClick={handleProtectedLinkClick}
+                                        onClick={handleCallClick}
                                         className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                                     >
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
