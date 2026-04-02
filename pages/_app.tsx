@@ -17,6 +17,7 @@ import { OnlineStatusProvider } from "../components/Shared/OnlineStatusProvider"
 
 import { RoleSelectionInterceptor } from "../components/Auth/RoleSelectionInterceptor";
 import ErrorBoundary from "../components/ErrorBoundary";
+import FeedbackWidget from "../components/Shared/FeedbackWidget";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           </main>
 
           {showLayout && <Footer />}
+          {showLayout && <FeedbackWidget />}
         </div>
       </OnlineStatusProvider>
     </UserContextProvider>
