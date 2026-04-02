@@ -113,11 +113,12 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     const generoLabel: Record<string, string> = { mujer: 'Mujer', hombre: 'Hombre', no_binario: 'No binario' };
     const esPersonaNatural = !proveedor.tipo_entidad || proveedor.tipo_entidad === 'persona_natural';
     const tieneInfoPersonal = esPersonaNatural && (edad || proveedor.genero || proveedor.ocupacion || proveedor.anios_experiencia);
-    const tieneTrustSignals = proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda || proveedor.miembro_asociacion;
+    const tieneTrustSignals = proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda;
     const tieneDatosEspecificos = proveedor.datos_especificos && Object.entries(proveedor.datos_especificos).filter(([, v]) => v !== null && v !== '' && v !== false).length > 0;
     const tieneGaleria = proveedor.galeria && proveedor.galeria.length > 0;
-    const title = `${proveedor.nombre} ${proveedor.apellido_p} — ${proveedor.comuna} | Pawnecta`;
-    const desc = `Conoce a ${proveedor.nombre}, proveedor de servicios para mascotas en ${proveedor.comuna}. Revisa sus servicios, tarifas y evaluaciones en Pawnecta.`;
+    const displayName = proveedor.nombre_publico || `${proveedor.nombre} ${proveedor.apellido_p}`;
+    const title = `${displayName} — ${proveedor.comuna} | Pawnecta`;
+    const desc = `Conoce a ${displayName}, proveedor de servicios para mascotas en ${proveedor.comuna}. Revisa sus servicios, tarifas y evaluaciones en Pawnecta.`;
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
@@ -134,7 +135,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         __html: JSON.stringify({
                             '@context': 'https://schema.org',
                             '@type': 'LocalBusiness',
-                            name: `${proveedor.nombre} ${proveedor.apellido_p}`,
+                            name: displayName,
                             description: desc,
                             image: proveedor.foto_perfil || undefined,
                             url: `https://www.pawnecta.com/proveedor/${proveedor.id}`,
@@ -206,7 +207,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         <div className="flex-1 text-center sm:text-left">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                                 <h1 className="text-2xl font-bold text-slate-900">
-                                    {proveedor.nombre} {proveedor.apellido_p}
+                                    {displayName}
                                 </h1>
                                 {(proveedor.rut_verificado || proveedor.verificacion_estado === 'aprobado') && (
                                     <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
@@ -399,15 +400,6 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 </div>
                             )}
 
-                            {proveedor.miembro_asociacion && (
-                                <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                                    <Award size={17} className="text-emerald-600 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Asociación</p>
-                                        <p className="text-sm font-semibold text-slate-800">Miembro activo</p>
-                                    </div>
-                                </div>
-                            )}
 
                             {tieneDatosEspecificos && Object.entries(proveedor.datos_especificos)
                                 .filter(([, v]) => v !== null && v !== '' && v !== false)
@@ -572,7 +564,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     categoria_slug: cat.slug,
                     categoria_icono: cat.icono,
                     proveedor_id: proveedor.id,
-                    proveedor_nombre: `${proveedor.nombre} ${proveedor.apellido_p}`,
+                    proveedor_nombre: proveedor.nombre_publico || `${proveedor.nombre} ${proveedor.apellido_p}`,
                     proveedor_foto: proveedor.foto_perfil,
                     proveedor_comuna: proveedor.comuna,
                     destacado: !!rs.destacado,

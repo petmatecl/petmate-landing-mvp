@@ -89,6 +89,7 @@ export default function ProveedorDashboard() {
     // Persona natural
     const [genero, setGenero] = useState('');
     const [ocupacion, setOcupacion] = useState('');
+    const [nombrePublico, setNombrePublico] = useState('');
 
     // Nuevos campos Perfil-02 (Credenciales)
     const [aniosExperiencia, setAniosExperiencia] = useState<string>('');
@@ -148,6 +149,7 @@ export default function ProveedorDashboard() {
 
             setGenero(data.genero || '');
             setOcupacion(data.ocupacion || '');
+            setNombrePublico(data.nombre_publico || '');
             setAniosExperiencia(data.anios_experiencia?.toString() || '');
             setCertificaciones(data.certificaciones || '');
             setSitioWeb(data.sitio_web || '');
@@ -280,6 +282,7 @@ export default function ProveedorDashboard() {
                 setTimeout(() => reject(new Error('TIMEOUT')), 10000)
             );
             const updatePromise = supabase.from('proveedores').update({
+                nombre_publico: nombrePublico.trim() || null,
                 bio, comuna, whatsapp, telefono, email_publico: emailPublico,
                 mostrar_whatsapp: mostrarWhatsapp, mostrar_telefono: mostrarTelefono, mostrar_email: mostrarEmail,
                 tipo_entidad: tipoEntidad,
@@ -779,14 +782,27 @@ export default function ProveedorDashboard() {
                                 </div>
 
                                 <div className="p-6 sm:p-8 space-y-6">
-                                    {/* Datos no editables */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-70">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-slate-500 mb-1.5">Nombre Completo</label>
+                                    {/* Datos legales (no editables) + nombre público */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="opacity-70">
+                                            <label className="block text-sm font-semibold text-slate-500 mb-1.5">Nombre legal</label>
                                             <div className="bg-slate-100 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium flex items-center justify-between">
-                                                {proveedor.nombre} {proveedor.apellido_p}
+                                                {proveedor.nombre} {proveedor.apellido_p} {proveedor.apellido_m}
                                                 <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                             </div>
+                                            <p className="text-[11px] text-slate-400 mt-1">Datos de registro. No se muestran públicamente.</p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre público</label>
+                                            <input
+                                                type="text"
+                                                value={nombrePublico}
+                                                onChange={e => setNombrePublico(e.target.value)}
+                                                placeholder={`${proveedor.nombre} ${proveedor.apellido_p}`}
+                                                maxLength={60}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                            />
+                                            <p className="text-[11px] text-slate-400 mt-1">Así te verán los clientes en tu perfil y servicios.</p>
                                         </div>
                                     </div>
 
@@ -1074,19 +1090,12 @@ export default function ProveedorDashboard() {
                                             <input type="text" value={certificaciones} onChange={e => setCertificaciones(e.target.value)} placeholder="Ej: Adiestrador CCPDT, Auxiliar Veterinario..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                    <div className="mt-4">
+                                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 border border-slate-200 rounded-xl w-fit">
                                             <input type="checkbox" checked={primeraAyuda} onChange={e => setPrimeraAyuda(e.target.checked)} className="w-5 h-5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500" />
                                             <div>
-                                                <span className="text-sm font-bold text-slate-800 block">Sabe Primeros Auxilios Pe.</span>
-                                                <span className="text-xs text-slate-500 block">Tienes conocimientos en primeros auxilios para mascotas</span>
-                                            </div>
-                                        </label>
-                                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                                            <input type="checkbox" checked={miembroAsociacion} onChange={e => setMiembroAsociacion(e.target.checked)} className="w-5 h-5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500" />
-                                            <div>
-                                                <span className="text-sm font-bold text-slate-800 block">Miembro Asociación</span>
-                                                <span className="text-xs text-slate-500 block">Perteneces a alguna agrupación oficial del rubro</span>
+                                                <span className="text-sm font-bold text-slate-800 block">Primeros auxilios para mascotas</span>
+                                                <span className="text-xs text-slate-500 block">Tengo conocimientos en primeros auxilios veterinarios</span>
                                             </div>
                                         </label>
                                     </div>
