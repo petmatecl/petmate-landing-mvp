@@ -289,7 +289,7 @@ export default function ProveedorDashboard() {
                 giro: tipoEntidad === 'empresa' ? giro : null,
                 genero: tipoEntidad === 'persona_natural' ? (genero || null) : null,
                 ocupacion: tipoEntidad === 'persona_natural' ? (ocupacion || null) : null,
-                anios_experiencia: aniosExperiencia ? parseInt(aniosExperiencia) : null,
+                anios_experiencia: aniosExperiencia && !isNaN(Number(aniosExperiencia)) ? parseInt(aniosExperiencia) : null,
                 certificaciones,
                 sitio_web: sitioWeb,
                 instagram,
@@ -301,15 +301,17 @@ export default function ProveedorDashboard() {
             const { error } = await Promise.race([updatePromise, timeout]) as { error: any };
 
             if (error) {
-                toast.error('Error al guardar el perfil');
+                console.error('Save profile error:', error);
+                toast.error(`Error al guardar: ${error.message || 'Verifica los datos e intenta nuevamente.'}`);
             } else {
                 toast.success('Perfil actualizado correctamente');
             }
         } catch (err: any) {
+            console.error('Save profile exception:', err);
             if (err?.message === 'TIMEOUT') {
                 toast.error('La solicitud tardó demasiado. Verifica tu conexión e intenta nuevamente.');
             } else {
-                toast.error('Error al guardar el perfil');
+                toast.error(`Error al guardar: ${err?.message || 'Error inesperado'}`);
             }
         } finally {
             setSavingProfile(false);
