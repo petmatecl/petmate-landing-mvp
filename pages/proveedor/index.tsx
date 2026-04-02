@@ -11,6 +11,7 @@ import ConversationList from '../../components/Chat/ConversationList';
 import MessageThread from '../../components/Chat/MessageThread';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
+import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
@@ -1109,6 +1110,11 @@ export default function ProveedorDashboard() {
                                         </label>
                                     </div>
 
+                                    {/* Certificaciones verificables */}
+                                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Certificaciones y diplomas</h3>
+                                    <p className="text-sm text-slate-500 mb-4">Sube tus certificaciones para que Pawnecta las verifique. Los usuarios verán un badge de certificación verificada en tu perfil.</p>
+                                    <CertificacionesSection proveedorId={proveedor.id} />
+
                                     <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Fotos de tu espacio / galería</h3>
                                     <p className="text-sm text-slate-500 mb-4">Muestra tu espacio, ambiente y forma de trabajar (Máx 8 fotos).</p>
 
@@ -1273,6 +1279,16 @@ export default function ProveedorDashboard() {
                                     </div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.whatsappClicks}</h3>
                                     <p className="text-slate-500 text-sm">Clics en WhatsApp (30 días)</p>
+                                </div>
+
+                                {/* STAT: Contactos totales */}
+                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
+                                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-3">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                    </div>
+                                    <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.contactosTotal}</h3>
+                                    <p className="text-slate-500 text-sm">Contactos recibidos (30 días)</p>
+                                    <p className="text-xs text-slate-400 mt-1">Mensajes + WhatsApp + Llamadas</p>
                                 </div>
 
                                 {/* STAT 4: Tasa de Conversión */}

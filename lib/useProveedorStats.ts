@@ -7,6 +7,7 @@ interface ProveedorStats {
     vistasTrendValue: number;
     consultas: number;
     whatsappClicks: number;
+    contactosTotal: number;
     conversionRate: string;
     ratingAvg: string;
     evalCount: number;
@@ -20,6 +21,7 @@ const DEFAULT_STATS: ProveedorStats = {
     vistasTrendValue: 0,
     consultas: 0,
     whatsappClicks: 0,
+    contactosTotal: 0,
     conversionRate: '0%',
     ratingAvg: '0.0',
     evalCount: 0,
@@ -99,8 +101,17 @@ export function useProveedorStats(provId: string, authId: string) {
             const consultas = consultas30d || 0;
             const whatsappClicks = wpClicks30d || 0;
 
+            // 2c. Contactos totales desde tabla contactos (30 días)
+            const { count: contactos30d } = await supabase
+                .from('contactos')
+                .select('*', { head: true, count: 'exact' })
+                .eq('proveedor_id', provId)
+                .gte('created_at', last30Days);
+
+            const contactosTotal = contactos30d || 0;
+
             // Calculo de conversión
-            const totalContactos = consultas + whatsappClicks;
+            const totalContactos = contactosTotal > 0 ? contactosTotal : (consultas + whatsappClicks);
             const conversionRate = vistas > 0 ? ((totalContactos / vistas) * 100).toFixed(1) + '%' : '0%';
 
             // 3. Rating promedio
@@ -124,7 +135,7 @@ export function useProveedorStats(provId: string, authId: string) {
             const activos = servs?.filter((s: any) => s.activo).length || 0;
             const totalActivos = servs?.length || 0;
 
-            setStats({ vistas, vistasTrend, vistasTrendValue, consultas, whatsappClicks, conversionRate, ratingAvg, evalCount, activos, totalActivos });
+            setStats({ vistas, vistasTrend, vistasTrendValue, consultas, whatsappClicks, contactosTotal, conversionRate, ratingAvg, evalCount, activos, totalActivos });
         } catch (e) {
             console.error('useProveedorStats error:', e);
         } finally {

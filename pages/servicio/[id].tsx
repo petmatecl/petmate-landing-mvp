@@ -11,6 +11,7 @@ import ReviewModal from '../../components/Service/ReviewModal';
 import ReviewForm from '../../components/Service/ReviewForm';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
+import PreguntasSection from '../../components/Service/PreguntasSection';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import {
     ShieldCheck, Star, User as UserIcon2,
@@ -700,6 +701,13 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 )}
                             </div>
                         )}
+
+                        {/* Preguntas al proveedor */}
+                        <PreguntasSection
+                            servicioId={service.id}
+                            proveedorId={proveedor.id}
+                            proveedorAuthId={proveedor.auth_user_id}
+                        />
 
                     </div>
 
