@@ -40,7 +40,7 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
                 if (!evals || evals.length === 0) { setReviews([]); return; }
 
                 // Fetch user profiles by auth_user_id (usuario_id = auth.users.id)
-                const userIds = [...new Set(evals.map(e => e.usuario_id).filter(Boolean))];
+                const userIds = Array.from(new Set(evals.map(e => e.usuario_id).filter(Boolean)));
 
                 // usuarios_buscadores only has: nombre (no apellido_p, no foto_perfil)
                 const { data: users } = await supabase

@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, ShieldCheck } from 'lucide-react';
+import { Heart, ShieldCheck, Star } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { supabase } from '../../lib/supabaseClient';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
