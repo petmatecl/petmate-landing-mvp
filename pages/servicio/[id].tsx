@@ -176,12 +176,13 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                 servicio_id: service.id,
             });
 
-            // Look for existing conversation
+            // Look for existing conversation (sitter_id = auth_user_id, not proveedores.id)
+            const proveedorAuthId = proveedor.auth_user_id;
             const { data: existingConv } = await supabase
                 .from('conversations')
                 .select('id')
                 .eq('client_id', userId)
-                .eq('sitter_id', proveedor.id)
+                .eq('sitter_id', proveedorAuthId)
                 .eq('servicio_id', service.id)
                 .maybeSingle();
 
@@ -204,14 +205,14 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                 return;
             }
 
-            // Create new conversation
+            // Create new conversation (sitter_id must be auth.users.id)
             const { data: newConv, error } = await supabase
                 .from('conversations')
                 .insert({
                     client_id: userId,
-                    sitter_id: proveedor.id,
+                    sitter_id: proveedorAuthId,
                     servicio_id: service.id,
-                    proveedor_auth_id: proveedor.auth_user_id
+                    proveedor_auth_id: proveedorAuthId
                 })
                 .select()
                 .single();

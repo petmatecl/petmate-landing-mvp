@@ -29,9 +29,12 @@ export const RoleSelectionInterceptor: React.FC = () => {
     const isExcludedRoute = ['/logout', '/register', '/login', '/admin', '/reset-password', '/forgot-password'].includes(router.pathname);
     if (isExcludedRoute) return null;
 
-    // If only one role, auto-select it — no need to show the modal
+    // If only one role, set it silently without redirect
     if (roles.length === 1) {
-        switchRole(roles[0] as Role);
+        // Don't use switchRole (it navigates) — just set the state directly
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem('activeRole', roles[0]);
+        }
         return null;
     }
 
