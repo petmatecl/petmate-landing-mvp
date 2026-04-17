@@ -43,3 +43,12 @@ public/sw.js
 public/workbox-*.js
 public/worker-*.js
 public/fallback-*.js
+
+# Staging setup — keep READMEs committed, ignore everything else
+staging-setup/*.sql
+staging-setup/*.json
+staging-setup/*.js
+staging-setup/*.log
+staging-setup/.env*
+staging-setup/credentials*
+staging-setup/*secret*
