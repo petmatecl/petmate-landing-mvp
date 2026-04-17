@@ -108,31 +108,40 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     };
 
     const initializeUser = async () => {
+        // 1. Get Session (with 5s timeout) — failure here = logged out
+        let session: any = null;
         try {
-            // 1. Get Session (with 5s timeout to prevent infinite loading)
             const timeout = new Promise<never>((_, reject) =>
                 setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000)
             );
-
-            const { data: { session } } = await Promise.race([
+            const res = await Promise.race([
                 supabase.auth.getSession(),
                 timeout,
             ]) as { data: { session: any } };
+            session = res?.data?.session || null;
+        } catch (err: any) {
+            console.warn('UserContext: getSession failed —', err?.message);
+            session = null;
+        }
 
-            if (!session?.user) {
-                setUser(null);
-                setProfile(null);
-                setActiveRole(null);
-                setActiveMode('buscador'); // Default para no logueados
-                setCanSwitchMode(false);
-                setProviderStatus('none');
-                setCapabilities(GUEST_CAPABILITIES);
-                setOnboardingStatus('COMPLETE');
-                setIsLoading(false);
-                return;
-            }
+        if (!session?.user) {
+            setUser(null);
+            setProfile(null);
+            setActiveRole(null);
+            setActiveMode('buscador');
+            setCanSwitchMode(false);
+            setProviderStatus('none');
+            setCapabilities(GUEST_CAPABILITIES);
+            setOnboardingStatus('COMPLETE');
+            setIsLoading(false);
+            return;
+        }
 
-            setUser(session.user);
+        // Session is valid — set user immediately
+        setUser(session.user);
+
+        // 2. Profile queries — failure here should NOT log the user out
+        try {
 
             // 2. Consultar `proveedores` 
             const { data: proveedorData } = await supabase
@@ -215,15 +224,9 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             }
 
         } catch (err: any) {
-            if (err?.message === 'SESSION_TIMEOUT') {
-                console.warn('UserContext: getSession() timed out after 5s — treating as logged out');
-            } else {
-                console.error("UserContext Init Error:", err);
-            }
-            // On any error, reset to guest state so the app doesn't hang
-            setUser(null);
+            // Profile query failed — KEEP the user logged in, just with minimal state
+            console.error("UserContext: profile query failed (user stays logged in):", err);
             setProfile(null);
-            setActiveRole(null);
             setActiveMode('buscador');
             setCanSwitchMode(false);
             setProviderStatus('none');

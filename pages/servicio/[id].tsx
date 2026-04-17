@@ -155,19 +155,19 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     };
 
     const handleChatClick = async () => {
-        // Si el contexto aún está cargando la sesión, no actuar
-        if (isUserLoading) return;
+        setIsChatLoading(true);
 
-        // Verificar login con el contexto (ya cargado, sin latencia de red)
-        if (!user) {
+        // Fresh session check — context might be stale
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+            setIsChatLoading(false);
             setLoginModalOpen(true);
             return;
         }
 
-        setIsChatLoading(true);
         trackContacto('mensaje');
         try {
-            const userId = user.id;
+            const userId = session.user.id;
 
             // Registrar evento click_chat
             void supabase.from('eventos_tracking').insert({
@@ -230,18 +230,18 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
         }
     };
 
-    const handleWhatsApp = (e?: React.MouseEvent) => {
+    const handleWhatsApp = async (e?: React.MouseEvent) => {
         e?.preventDefault();
-        if (!user) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
             setLoginModalOpen(true);
             return;
         }
         if (!proveedor.telefono) return;
-        // Registrar evento click_whatsapp
         void supabase.from('eventos_tracking').insert({
             tipo: 'click_whatsapp',
             servicio_id: service.id,
-            user_id: user.id,
+            user_id: session.user.id,
             metadata: { proveedor_id: proveedor.id },
         });
         trackContacto('whatsapp');
