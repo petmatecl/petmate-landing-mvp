@@ -271,11 +271,12 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
         }
 
         // Verificar si ha contactado al proveedor (por chat)
+        // sitter_id references auth.users.id, not proveedores.id
         const { data: conv } = await supabase
             .from('conversations')
             .select('id')
             .eq('client_id', session.user.id)
-            .eq('sitter_id', proveedor.id)
+            .eq('sitter_id', proveedor.auth_user_id)
             .limit(1)
             .maybeSingle();
 
@@ -304,8 +305,20 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             <Head>
-                <title>{service.titulo} - {proveedor.nombre} | Pawnecta</title>
+                <title>{service.titulo} - {proveedor.nombre_publico || proveedor.nombre} | Pawnecta</title>
                 <meta name="description" content={service.descripcion?.substring(0, 160)} />
+                <link rel="canonical" href={`https://www.pawnecta.com/servicio/${service.id}`} />
+                <meta property="og:title" content={`${service.titulo} | Pawnecta`} />
+                <meta property="og:description" content={service.descripcion?.substring(0, 160)} />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={`https://www.pawnecta.com/servicio/${service.id}`} />
+                <meta property="og:image" content={service.fotos?.[0] || 'https://www.pawnecta.com/og-image.jpg'} />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={`${service.titulo} | Pawnecta`} />
+                <meta name="twitter:description" content={service.descripcion?.substring(0, 160)} />
+                <meta name="twitter:image" content={service.fotos?.[0] || 'https://www.pawnecta.com/og-image.jpg'} />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

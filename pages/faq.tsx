@@ -109,7 +109,7 @@ export default function FAQ() {
                         <h3 className="text-xl font-bold text-slate-900 mb-2">¿No encontraste la respuesta?</h3>
                         <p className="text-slate-600 mb-6">Estamos aquí para ayudarte. Contáctanos directamente.</p>
                         <a
-                            href="mailto:contacto@pawnecta.cl"
+                            href="mailto:contacto@pawnecta.com"
                             className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 transition w-full sm:w-auto"
                         >
                             Contactar Soporte

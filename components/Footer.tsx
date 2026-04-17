@@ -23,7 +23,12 @@ export function Footer() {
             </Link>
           </div>
           <p className="text-sm text-slate-500 leading-relaxed">
-            El marketplace de servicios para mascotas más confiable de Chile.
+            El directorio de servicios para mascotas más confiable de Chile.
+          </p>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Interactive SpA<br />
+            Irarrázaval 2150 D519<br />
+            Ñuñoa, Santiago
           </p>
         </div>
 

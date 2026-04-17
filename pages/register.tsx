@@ -617,6 +617,14 @@ export default function RegisterWizard() {
                     ) : rol === "proveedor" ? "Siguiente" : "Crear Cuenta"}
                   </button>
                 </div>
+                {rol === 'usuario' && (
+                  <p className="text-xs text-slate-500 text-center mt-3">
+                    Al crear tu cuenta aceptas los{' '}
+                    <Link href="/terminos" target="_blank" className="text-emerald-700 hover:underline">Términos y Condiciones</Link>
+                    {' '}y la{' '}
+                    <Link href="/privacidad" target="_blank" className="text-emerald-700 hover:underline">Política de Privacidad</Link>.
+                  </p>
+                )}
               </div>
             )}
 
@@ -752,11 +760,15 @@ export default function RegisterWizard() {
                     className="mt-1 rounded border-slate-300 accent-emerald-600 cursor-pointer"
                   />
                   <label htmlFor="politica" className="text-sm text-slate-600 cursor-pointer">
-                    Entiendo que mi perfil será revisado por el equipo de Pawnecta y que debo cumplir con las{' '}
+                    Acepto los{' '}
                     <Link href="/terminos" target="_blank" className="text-emerald-700 hover:underline">
-                      políticas de publicación
+                      Términos y Condiciones
                     </Link>
-                    {' '}para mantener mi cuenta activa.
+                    {' '}y la{' '}
+                    <Link href="/privacidad" target="_blank" className="text-emerald-700 hover:underline">
+                      Política de Privacidad
+                    </Link>
+                    . Entiendo que mi perfil será revisado por el equipo de Pawnecta antes de ser publicado.
                   </label>
                 </div>
 

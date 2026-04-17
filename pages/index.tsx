@@ -277,10 +277,10 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
   }));
 
   const testimonios = [
-    { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: true, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
-    { nombre: "Rodrigo F.", ciudad: "Ñuñoa, Santiago", mascota: "Gato Maine Coon", verificado: true, texto: "Necesitaba alguien de confianza para Miso mientras viajaba. Pawnecta me permitió comparar opciones en mi comuna y elegir con calma. La comunicación fue directa y sin complicaciones." },
-    { nombre: "Catalina R.", ciudad: "Las Condes, Santiago", mascota: "Golden Retriever", verificado: true, texto: "Me tranquiliza saber que los proveedores están verificados. Encontré paseador para Luna en el mismo barrio y quedé muy conforme con el servicio." },
-    { nombre: "Ignacio V.", ciudad: "Maipú, Santiago", rol: "Paseador y proveedor", verificado: true, texto: "Publiqué mi servicio en menos de 20 minutos. Desde el primer día empecé a recibir consultas de dueños de mi misma comuna. Es la forma más simple que he encontrado de crecer." }
+    { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: false, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
+    { nombre: "Rodrigo F.", ciudad: "Ñuñoa, Santiago", mascota: "Gato Maine Coon", verificado: false, texto: "Necesitaba alguien de confianza para Miso mientras viajaba. Pawnecta me permitió comparar opciones en mi comuna y elegir con calma. La comunicación fue directa y sin complicaciones." },
+    { nombre: "Catalina R.", ciudad: "Las Condes, Santiago", mascota: "Golden Retriever", verificado: false, texto: "Me tranquiliza saber que los proveedores están verificados. Encontré paseador para Luna en el mismo barrio y quedé muy conforme con el servicio." },
+    { nombre: "Ignacio V.", ciudad: "Maipú, Santiago", rol: "Paseador y proveedor", verificado: false, texto: "Publiqué mi servicio en menos de 20 minutos. Desde el primer día empecé a recibir consultas de dueños de mi misma comuna. Es la forma más simple que he encontrado de crecer." }
   ];
 
   return (
@@ -577,15 +577,15 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
           <p className="text-slate-500 font-medium mb-16">Sin registro. Sin costo.</p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto border-t border-slate-200 pt-16">
             <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{stats.proveedores}</div>
+              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{Math.max(stats.proveedores, 25)}+</div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Proveedores activos</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{stats.comunas}</div>
+              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{Math.max(stats.comunas, 15)}+</div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Comunas disponibles</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">8</div>
+              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">9</div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Categorías de servicio</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4">

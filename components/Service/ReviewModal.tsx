@@ -27,8 +27,8 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
             return;
         }
 
-        if (comentario.trim().length < 10) {
-            setErrorMsg('Por favor escribe un comentario de al menos 10 caracteres.');
+        if (comentario.trim().length < 20) {
+            setErrorMsg('Por favor escribe un comentario de al menos 20 caracteres.');
             return;
         }
 
@@ -39,6 +39,19 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
                 setErrorMsg('Debes iniciar sesión para dejar una evaluación.');
+                return;
+            }
+
+            // Verify the user has contacted this service (chat, whatsapp, or llamada)
+            const { count: contactosCount } = await supabase
+                .from('contactos')
+                .select('*', { head: true, count: 'exact' })
+                .eq('auth_user_id', session.user.id)
+                .eq('servicio_id', servicioId);
+
+            if (!contactosCount || contactosCount === 0) {
+                setErrorMsg('Solo puedes evaluar servicios que hayas contactado previamente.');
+                setIsSubmitting(false);
                 return;
             }
 
@@ -154,8 +167,8 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                                     disabled={isSubmitting}
                                 ></textarea>
                                 <div className="flex justify-between items-center text-xs">
-                                    <span className={comentario.length > 0 && comentario.length < 10 ? 'text-amber-600' : 'text-slate-400'}>
-                                        Mínimo 10 caracteres
+                                    <span className={comentario.length > 0 && comentario.length < 20 ? 'text-amber-600' : 'text-slate-400'}>
+                                        Mínimo 20 caracteres
                                     </span>
                                     <span className={comentario.length > 500 ? 'text-red-500' : 'text-slate-400'}>
                                         {comentario.length}/500

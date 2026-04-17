@@ -128,7 +128,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <meta name="description" content={desc} />
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={desc} />
-                <meta property="og:image" content={proveedor.foto_perfil || '/og-default.png'} />
+                <meta property="og:image" content={proveedor.foto_perfil || 'https://www.pawnecta.com/og-image.jpg'} />
                 <link rel="canonical" href={`https://www.pawnecta.com/proveedor/${proveedor.id}`} />
                 <script
                     type="application/ld+json"
