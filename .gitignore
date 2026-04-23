@@ -48,6 +48,7 @@ public/fallback-*.js
 staging-setup/*.sql
 staging-setup/*.json
 staging-setup/*.js
+staging-setup/*.sh
 staging-setup/*.log
 staging-setup/.env*
 staging-setup/credentials*
