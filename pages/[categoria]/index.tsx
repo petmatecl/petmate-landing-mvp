@@ -131,12 +131,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
 
     // 2. Buscar servicios (sin filtro de comuna, pero podríamos limitar a los 100 mejores para SEO inicial)
+    // Filtros adicionales (mascota, precio_min, etc.) se pueden agregar si esta página
+    // se hace interactiva en el futuro. Por ahora SEO listing sin filtros adicionales.
     const { data: services, error: servicesError } = await supabase.rpc('buscar_servicios', {
         p_categoria_slug: categorySlug,
         // Dejamos comuna null para traer todos
         p_comuna: null,
-        p_tipo_mascota: null,
-        p_tamano: null,
         p_precio_max: null
     });
 
