@@ -553,7 +553,7 @@ export default function ExplorarPage() {
                                             {categories.find(c => c.slug === slug)?.nombre ?? slug}
                                             <button
                                                 onClick={() => updateQueryParams({ categorias: filters.categorias.filter(s => s !== slug) })}
-                                                className="text-emerald-600 hover:text-emerald-900 leading-none ml-0.5"
+                                                className="text-emerald-700 hover:text-emerald-900 leading-none ml-0.5"
                                                 aria-label="Quitar categoría"
                                             >×</button>
                                         </span>
@@ -595,7 +595,7 @@ export default function ExplorarPage() {
                                             📅 {new Date(filters.fecha + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
                                             <button
                                                 onClick={() => updateQueryParams({ fecha: '' })}
-                                                className="text-emerald-600 hover:text-emerald-900 leading-none ml-0.5"
+                                                className="text-emerald-700 hover:text-emerald-900 leading-none ml-0.5"
                                             >×</button>
                                         </span>
                                     )}
@@ -608,7 +608,7 @@ export default function ExplorarPage() {
                                 <p className="text-slate-500 mb-3">No se pudieron cargar los servicios.</p>
                                 <button
                                     onClick={() => { setFetchError(false); setLoading(true); }}
-                                    className="text-sm text-emerald-600 font-medium hover:underline"
+                                    className="text-sm text-emerald-700 font-medium hover:underline"
                                 >
                                     Reintentar
                                 </button>

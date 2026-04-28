@@ -260,7 +260,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 <p className="text-slate-500 text-sm mb-3">No se pudieron cargar los mensajes.</p>
                 <button
                     onClick={() => { setFetchError(false); fetchMessages(); }}
-                    className="text-sm text-emerald-600 font-medium hover:underline"
+                    className="text-sm text-emerald-700 font-medium hover:underline"
                 >
                     Reintentar
                 </button>
@@ -298,7 +298,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                             {otherUser.nombre} {otherUser.apellido_p}
                         </h3>
                         {isOnline ? (
-                            <span className="text-[10px] font-bold text-emerald-600 animate-pulse">
+                            <span className="text-[10px] font-bold text-emerald-700 animate-pulse">
                                 ● En línea
                             </span>
                         ) : (

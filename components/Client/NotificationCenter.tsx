@@ -122,7 +122,7 @@ export default function NotificationCenter({ userId }: Props) {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all"
+                className="relative p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-all"
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (
@@ -137,7 +137,7 @@ export default function NotificationCenter({ userId }: Props) {
                         <div className="p-3 border-b border-slate-300 flex justify-between items-center bg-slate-50">
                             <h3 className="text-sm font-bold text-slate-900">Notificaciones</h3>
                             {unreadCount > 0 && (
-                                <button onClick={markAllAsRead} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
+                                <button onClick={markAllAsRead} className="text-xs text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1">
                                     <Check size={12} /> Marcar todo
                                 </button>
                             )}

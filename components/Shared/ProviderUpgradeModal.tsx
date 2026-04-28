@@ -186,7 +186,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                                 <input type="file" required accept="image/jpeg, image/png, image/webp" onChange={e => setFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="text-center pointer-events-none p-4">
                                     {file ? (
-                                        <div className="text-emerald-600 font-semibold">{file.name}</div>
+                                        <div className="text-emerald-700 font-semibold">{file.name}</div>
                                     ) : (
                                         <div className="text-slate-500 flex flex-col items-center gap-2">
                                             <svg className="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -210,7 +210,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
 
                     {step === 3 && (
                         <div className="text-center py-8 animate-fade-in flex flex-col items-center">
-                            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                            <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mb-4">
                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 mb-2">¡Solicitud enviada!</h3>

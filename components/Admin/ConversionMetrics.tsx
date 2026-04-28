@@ -143,7 +143,7 @@ export default function ConversionMetrics() {
 
     const cards = [
         { label: 'Nuevos usuarios (30d)', value: stats.nuevosUsuarios30d, icon: Users, color: 'text-sky-600', bg: 'bg-sky-50' },
-        { label: 'Conversaciones (30d)', value: stats.conversaciones30d, icon: MessageSquare, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Conversaciones (30d)', value: stats.conversaciones30d, icon: MessageSquare, color: 'text-emerald-700', bg: 'bg-emerald-50' },
         { label: 'Evaluaciones (30d)', value: stats.evaluaciones30d, icon: Star, color: 'text-amber-600', bg: 'bg-amber-50' },
         { label: 'Ratio conversión', value: `${ratio}%`, icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     ];

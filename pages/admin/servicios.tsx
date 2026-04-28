@@ -339,7 +339,7 @@ export default function GestionServicios() {
                                             <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-[10px] font-bold whitespace-nowrap"><Tag size={10} /> {s.categoria_nombre}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="font-bold text-emerald-600">${s.precio_desde.toLocaleString('es-CL')}</p>
+                                            <p className="font-bold text-emerald-700">${s.precio_desde.toLocaleString('es-CL')}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="text-slate-600 font-medium flex items-center gap-1.5"><Eye size={12} className="text-slate-400" /> {s.vistas}</p>
@@ -365,7 +365,7 @@ export default function GestionServicios() {
                                                     <button
                                                         disabled={actionLoading}
                                                         onClick={() => toggleEstadoServicio(s.id, true)}
-                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 font-bold rounded-lg text-[10px] uppercase transition-colors"
+                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 font-bold rounded-lg text-[10px] uppercase transition-colors"
                                                     >
                                                         Activar
                                                     </button>
@@ -409,7 +409,7 @@ export default function GestionServicios() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tarifa Base</p>
-                                    <p className="text-2xl font-bold text-emerald-600">${modalData.precio_desde.toLocaleString('es-CL')}</p>
+                                    <p className="text-2xl font-bold text-emerald-700">${modalData.precio_desde.toLocaleString('es-CL')}</p>
                                 </div>
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Métricas</p>

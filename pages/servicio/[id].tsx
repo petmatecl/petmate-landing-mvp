@@ -355,7 +355,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                 {/* Back Link */}
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors mb-6"
+                    className="flex items-center gap-2 text-slate-500 hover:text-emerald-700 font-medium transition-colors mb-6"
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     Volver
@@ -455,7 +455,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 </h1>
                                 <div className="flex flex-wrap items-center gap-4 text-slate-600 text-sm md:text-base font-medium">
                                     <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-lg">
-                                        <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        <svg className="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                         {proveedor.comuna}
                                     </span>
                                     {totalReviews > 0 && (
@@ -837,7 +837,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 <div className="space-y-2">
                                     {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 ? (
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <svg className="w-4 h-4 text-emerald-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             <span className="font-medium">{proveedor.anios_experiencia} años de experiencia</span>
                                         </div>
                                     ) : (
@@ -849,7 +849,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                                     {proveedor.certificaciones && (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <ShieldCheck size={15} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <ShieldCheck size={15} className="text-emerald-700 shrink-0 mt-0.5" />
                                             <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
                                         </div>
                                     )}
@@ -863,7 +863,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
 
                                     {proveedor.tipo_entidad === 'empresa' && (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <Briefcase size={15} className="text-emerald-600 shrink-0 mt-0.5" />
+                                            <Briefcase size={15} className="text-emerald-700 shrink-0 mt-0.5" />
                                             <div>
                                                 <span className="font-bold text-slate-800 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
                                                 {proveedor.giro && <span className="text-xs text-slate-400">{proveedor.giro}</span>}
@@ -882,7 +882,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
                                         {proveedor.email_publico && proveedor.mostrar_email && (
                                             <a href={`mailto:${proveedor.email_publico}`}
-                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-600 transition-colors font-medium truncate">
+                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-700 transition-colors font-medium truncate">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                                                 {proveedor.email_publico}
                                             </a>
@@ -890,7 +890,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                         {proveedor.sitio_web && (
                                             <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
                                                 target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
-                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-600 transition-colors font-medium truncate">
+                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-700 transition-colors font-medium truncate">
                                                 <Globe size={14} className="shrink-0" />
                                                 {proveedor.sitio_web.replace(/^https?:\/\//, '')}
                                             </a>

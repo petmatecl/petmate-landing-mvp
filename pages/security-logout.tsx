@@ -11,7 +11,7 @@ export default function SecurityLogout() {
 
             <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border-2 border-slate-300">
                 <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <ShieldAlert className="w-10 h-10 text-emerald-600" />
+                    <ShieldAlert className="w-10 h-10 text-emerald-700" />
                 </div>
 
                 <h1 className="text-2xl font-bold text-slate-900 mb-2">

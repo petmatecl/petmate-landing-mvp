@@ -44,7 +44,7 @@ const ShareButton = ({ title, text }: { title: string, text: string }) => {
     return (
         <button
             onClick={handleShare}
-            className={`flex items-center gap-2 transition-all duration-300 ${copied ? "text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full" : "hover:text-emerald-600"
+            className={`flex items-center gap-2 transition-all duration-300 ${copied ? "text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full" : "hover:text-emerald-700"
                 }`}
             title="Compartir"
         >
@@ -79,7 +79,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
             <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                 {/* Back Link */}
                 <div className="mb-8">
-                    <Link href="/blog" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors">
+                    <Link href="/blog" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors">
                         <ChevronLeft size={16} className="mr-1" /> Volver al Blog
                     </Link>
                 </div>
@@ -135,7 +135,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         className="prose prose-slate prose-lg max-w-none 
                         prose-headings:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight
                         prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg
-                        prose-a:text-emerald-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                        prose-a:text-emerald-700 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
                         prose-strong:text-slate-800 prose-strong:font-bold
                         prose-li:text-slate-600 prose-li:marker:text-emerald-500
                         prose-blockquote:border-l-4 prose-blockquote:border-emerald-200 prose-blockquote:bg-emerald-50/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
@@ -172,13 +172,13 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
 
                                         {/* Content */}
                                         <div className="p-5 flex flex-col flex-grow">
-                                            <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors line-clamp-2">
+                                            <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-2">
                                                 {relatedPost.title}
                                             </h3>
                                             <p className="text-slate-500 text-sm line-clamp-2 mb-4">
                                                 {relatedPost.excerpt}
                                             </p>
-                                            <div className="mt-auto flex items-center text-emerald-600 font-bold text-xs uppercase tracking-wide">
+                                            <div className="mt-auto flex items-center text-emerald-700 font-bold text-xs uppercase tracking-wide">
                                                 Leer más <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
                                             </div>
                                         </div>

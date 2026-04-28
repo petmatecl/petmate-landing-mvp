@@ -229,7 +229,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                                 style={{ width: 'calc(100% + 32px)', marginLeft: '-16px', marginTop: '-16px' }}
                                             />
                                         )}
-                                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{s.categoria_nombre}</p>
+                                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-0.5">{s.categoria_nombre}</p>
                                         <h3 className="font-bold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">{s.titulo}</h3>
                                         <p className="text-xs text-slate-500 mb-2 truncate">{s.proveedor_nombre} · {s.proveedor_comuna}</p>
 

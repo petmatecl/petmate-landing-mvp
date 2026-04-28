@@ -111,11 +111,11 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
 
                     {/* Breadcrumb */}
                     <nav className="flex items-center gap-2 text-sm text-slate-500 mb-8" aria-label="Breadcrumb">
-                        <Link href="/" className="hover:text-emerald-600 transition-colors">Inicio</Link>
+                        <Link href="/" className="hover:text-emerald-700 transition-colors">Inicio</Link>
                         <span>/</span>
-                        <Link href="/explorar" className="hover:text-emerald-600 transition-colors">Explorar</Link>
+                        <Link href="/explorar" className="hover:text-emerald-700 transition-colors">Explorar</Link>
                         <span>/</span>
-                        <Link href={`/explorar?categoria=${categoria.slug}`} className="hover:text-emerald-600 transition-colors capitalize">{categoria.nombre}</Link>
+                        <Link href={`/explorar?categoria=${categoria.slug}`} className="hover:text-emerald-700 transition-colors capitalize">{categoria.nombre}</Link>
                         <span>/</span>
                         <span className="text-slate-800 font-medium">{comuna}</span>
                     </nav>

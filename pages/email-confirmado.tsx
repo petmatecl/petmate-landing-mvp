@@ -257,7 +257,7 @@ export default function EmailConfirmadoPage() {
                 ) : isSuccess ? (
 
                     <Card padding="l" className="w-full max-w-[500px] text-center animate-in zoom-in-95 duration-500">
-                        <CheckCircle size={64} className="text-emerald-600 mx-auto mb-6 drop-shadow-sm" />
+                        <CheckCircle size={64} className="text-emerald-700 mx-auto mb-6 drop-shadow-sm" />
                         <h1 className="text-3xl font-bold text-slate-900 mb-3">¡Correo Confirmado!</h1>
                         <p className="text-lg text-slate-600 mb-2">Gracias por verificar tu cuenta electrónica.</p>
                         <p className="text-emerald-700 font-semibold mb-6 animate-pulse">

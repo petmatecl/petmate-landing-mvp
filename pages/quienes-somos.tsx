@@ -48,7 +48,7 @@ export default function QuienesSomos() {
                             </div>
 
                             <div className="w-full lg:w-2/3">
-                                <h2 className="text-3xl font-bold text-emerald-600 mb-6">Nuestra misión</h2>
+                                <h2 className="text-3xl font-bold text-emerald-700 mb-6">Nuestra misión</h2>
                                 <p className="text-lg">
                                     Conectar a los dueños de mascotas con los mejores profesionales de su comuna — de forma simple, transparente y segura. Creemos que cada mascota merece atención de calidad, y cada dueño merece la tranquilidad de saber con quién la deja.
                                 </p>

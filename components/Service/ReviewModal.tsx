@@ -109,7 +109,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                 <div className="p-6">
                     {success ? (
                         <div className="text-center py-8">
-                            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </div>
                             <h3 className="text-2xl font-bold text-slate-800 mb-2">¡Gracias por tu reseña!</h3>

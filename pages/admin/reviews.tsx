@@ -205,7 +205,7 @@ export default function AdminReviews() {
                                                     <>
                                                         <button
                                                             onClick={() => handleStatusChange(review.id, 'aprobado')}
-                                                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                                                            className="p-1 text-emerald-700 hover:bg-emerald-50 rounded"
                                                             title="Aprobar"
                                                         >
                                                             <CheckCircle size={18} />
@@ -230,7 +230,7 @@ export default function AdminReviews() {
                                                 {review.estado === 'rechazado' && (
                                                     <button
                                                         onClick={() => handleStatusChange(review.id, 'aprobado')}
-                                                        className="text-xs text-emerald-600 hover:underline"
+                                                        className="text-xs text-emerald-700 hover:underline"
                                                     >
                                                         Aprobar
                                                     </button>

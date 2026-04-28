@@ -62,7 +62,7 @@ export default function FAQ() {
             <div className="flex-grow py-12 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">
                 <div className="max-w-3xl mx-auto">
                     <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center p-3 bg-emerald-100 text-emerald-600 rounded-full mb-4">
+                        <div className="inline-flex items-center justify-center p-3 bg-emerald-100 text-emerald-700 rounded-full mb-4">
                             <HelpCircle size={32} />
                         </div>
                         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">

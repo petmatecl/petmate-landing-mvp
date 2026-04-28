@@ -575,7 +575,7 @@ export default function DashboardContent() {
                                         </Link>
                                     ))}
                                     <div className="pt-2 border-t border-slate-100 mt-2">
-                                        <Link href="/explorar" className="text-sm font-bold text-emerald-600 hover:text-emerald-700 block text-center mt-2">
+                                        <Link href="/explorar" className="text-sm font-bold text-emerald-700 hover:text-emerald-800 block text-center mt-2">
                                             Buscar más servicios &rarr;
                                         </Link>
                                     </div>

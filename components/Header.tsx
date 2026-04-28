@@ -84,20 +84,20 @@ export default function Header() {
         <nav className="hidden items-center gap-3 sm:flex">
           <Link
             href="/blog"
-            className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-4"
+            className="text-sm font-semibold text-gray-600 hover:text-emerald-700 mr-4"
           >
             Blog
           </Link>
           <Link
             href="/explorar"
-            className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-2"
+            className="text-sm font-semibold text-gray-600 hover:text-emerald-700 mr-2"
           >
             Explorar servicios
           </Link>
           {(!isAuthenticated || loggingOut) && (
             <Link
               href="/register?rol=proveedor"
-              className="text-sm font-semibold text-gray-600 hover:text-emerald-600 mr-4"
+              className="text-sm font-semibold text-gray-600 hover:text-emerald-700 mr-4"
             >
               Publicar servicio
             </Link>
@@ -106,7 +106,7 @@ export default function Header() {
             <>
               <Link
                 href="/login"
-                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-600 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
               >
                 Ingresar
               </Link>
@@ -230,28 +230,28 @@ export default function Header() {
               <>
                 <Link
                   href="/blog"
-                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-700"
                   onClick={() => setOpen(false)}
                 >
                   Blog
                 </Link>
                 <Link
                   href="/explorar"
-                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-700"
                   onClick={() => setOpen(false)}
                 >
                   Explorar servicios
                 </Link>
                 <Link
                   href="/register?rol=proveedor"
-                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-700"
                   onClick={() => setOpen(false)}
                 >
                   Publicar servicio
                 </Link>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-600 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   Ingresar
@@ -268,7 +268,7 @@ export default function Header() {
               <>
                 <Link
                   href="/explorar"
-                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-600 mb-2"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-700 mb-2"
                   onClick={() => setOpen(false)}
                 >
                   Explorar servicios

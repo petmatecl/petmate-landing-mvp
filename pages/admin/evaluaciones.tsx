@@ -229,7 +229,7 @@ export default function GestionEvaluaciones() {
                             </div>
                         </div>
                         <div>
-                            <p className="text-4xl font-bold text-emerald-600 mb-1">{stats.aprobadasMes}</p>
+                            <p className="text-4xl font-bold text-emerald-700 mb-1">{stats.aprobadasMes}</p>
                             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Aprobadas este mes</p>
                         </div>
                     </div>

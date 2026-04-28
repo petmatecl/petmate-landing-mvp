@@ -23,7 +23,7 @@ export default function BlogIndex() {
                         </span>
                         <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
                             Aprende a cuidar mejor <br />
-                            <span className="text-emerald-600">a tu mejor amigo</span>
+                            <span className="text-emerald-700">a tu mejor amigo</span>
                         </h1>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                             Consejos expertos, guías de salud y todo lo que necesitas saber para la felicidad de tus mascotas.
@@ -68,14 +68,14 @@ export default function BlogIndex() {
                                             </div>
                                         </div>
 
-                                        <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-emerald-600 transition-colors line-clamp-2">
+                                        <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">
                                             {post.title}
                                         </h2>
                                         <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3">
                                             {post.excerpt}
                                         </p>
 
-                                        <div className="mt-auto flex items-center text-emerald-600 font-bold text-sm">
+                                        <div className="mt-auto flex items-center text-emerald-700 font-bold text-sm">
                                             Leer artículo <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>

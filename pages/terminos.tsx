@@ -14,24 +14,24 @@ export default function TerminosPage() {
                         <div className="bg-slate-50 p-6 rounded-2xl border-2 border-slate-300">
                             <p className="font-semibold text-slate-900">Última actualización: 16 de diciembre de 2025</p>
                             <p className="mt-2">
-                                Estos Términos regulan el acceso y uso de <a href="https://www.pawnecta.com" className="text-emerald-600 font-medium hover:underline">www.pawnecta.com</a> (el “Sitio”). Al crear una cuenta o usar el Sitio, aceptas estos Términos.
+                                Estos Términos regulan el acceso y uso de <a href="https://www.pawnecta.com" className="text-emerald-700 font-medium hover:underline">www.pawnecta.com</a> (el “Sitio”). Al crear una cuenta o usar el Sitio, aceptas estos Términos.
                             </p>
                         </div>
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">1</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">1</span>
                                 Titularidad y operador
                             </h3>
                             <div className="pl-11">
                                 <p className="mb-2">El Sitio es operado por <strong>Interactive SpA, RUT 77.420.852-6</strong>, con domicilio tributario en <strong>Irarrázaval 2150 D519, Ñuñoa, Región Metropolitana, Chile</strong> (“Pawnecta”).</p>
-                                <p>Contacto: <a href="mailto:contacto@pawnecta.com" className="text-emerald-600 font-medium hover:underline">contacto@pawnecta.com</a>.</p>
+                                <p>Contacto: <a href="mailto:contacto@pawnecta.com" className="text-emerald-700 font-medium hover:underline">contacto@pawnecta.com</a>.</p>
                             </div>
                         </section>
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">2</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">2</span>
                                 Definiciones
                             </h3>
                             <div className="pl-11">
@@ -62,7 +62,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">3</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">3</span>
                                 Rol de Pawnecta (intermediación)
                             </h3>
                             <div className="pl-11 space-y-4">
@@ -76,7 +76,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">4</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">4</span>
                                 Pagos
                             </h3>
                             <div className="pl-11">
@@ -86,7 +86,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">5</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">5</span>
                                 Elegibilidad y cuenta
                             </h3>
                             <div className="pl-11">
@@ -101,7 +101,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">6</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">6</span>
                                 RUT y documentación de seguridad (verificación)
                             </h3>
                             <div className="pl-11">
@@ -117,7 +117,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">7</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">7</span>
                                 Reglas de uso
                             </h3>
                             <div className="pl-11 space-y-4">
@@ -133,7 +133,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">8</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">8</span>
                                 Responsabilidades del Usuario
                             </h3>
                             <div className="pl-11">
@@ -150,7 +150,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">9</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">9</span>
                                 Responsabilidades del Proveedor de servicios
                             </h3>
                             <div className="pl-11">
@@ -167,7 +167,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">10</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">10</span>
                                 Acuerdo Usuario–Proveedor (recomendación)
                             </h3>
                             <div className="pl-11">
@@ -183,7 +183,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">11</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">11</span>
                                 Contenido, perfiles y reseñas
                             </h3>
                             <div className="pl-11">
@@ -197,7 +197,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">12</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">12</span>
                                 Exención de responsabilidad de Pawnecta
                             </h3>
                             <div className="pl-11">
@@ -212,7 +212,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">13</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">13</span>
                                 Asunción de riesgo
                             </h3>
                             <div className="pl-11">
@@ -222,7 +222,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">14</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">14</span>
                                 Indemnidad
                             </h3>
                             <div className="pl-11">
@@ -238,7 +238,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">15</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">15</span>
                                 Modificaciones del Sitio y de los Términos
                             </h3>
                             <div className="pl-11">
@@ -248,7 +248,7 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">16</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">16</span>
                                 Ley aplicable y jurisdicción
                             </h3>
                             <div className="pl-11">
@@ -258,11 +258,11 @@ export default function TerminosPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">17</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">17</span>
                                 Contacto
                             </h3>
                             <div className="pl-11">
-                                <p>Para soporte, reportes o solicitudes: <a href="mailto:contacto@pawnecta.com" className="text-emerald-600 font-medium hover:underline">contacto@pawnecta.com</a>.</p>
+                                <p>Para soporte, reportes o solicitudes: <a href="mailto:contacto@pawnecta.com" className="text-emerald-700 font-medium hover:underline">contacto@pawnecta.com</a>.</p>
                             </div>
                         </section>
                     </div>

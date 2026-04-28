@@ -33,16 +33,16 @@ export default function ChatLayout({ userId, initialConversationId, returnTo, on
             <div className={`w-full md:w-80 border-r border-slate-300 flex flex-col ${selectedConversationId ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-slate-300 bg-slate-50/50 flex justify-between items-center">
                     <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                        <MessageSquare size={18} className="text-emerald-600" />
+                        <MessageSquare size={18} className="text-emerald-700" />
                         Mensajes
                     </h2>
                     {(onBack || returnTo) && (
                         onBack ? (
-                            <button onClick={onBack} className="text-xs font-bold text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                            <button onClick={onBack} className="text-xs font-bold text-slate-500 hover:text-emerald-700 flex items-center gap-1">
                                 <ArrowLeft size={14} /> Volver
                             </button>
                         ) : (
-                            <Link href={returnTo!} className="text-xs font-bold text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                            <Link href={returnTo!} className="text-xs font-bold text-slate-500 hover:text-emerald-700 flex items-center gap-1">
                                 <ArrowLeft size={14} /> Volver
                             </Link>
                         )

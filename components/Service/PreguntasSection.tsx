@@ -130,7 +130,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                     {visible.map(q => (
                         <div key={q.id} className="border-t border-slate-100 pt-4">
                             <div className="flex items-start gap-2">
-                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
+                                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
                                 <div className="flex-1">
                                     <p className="text-sm text-slate-800">{q.pregunta}</p>
                                     <p className="text-[11px] text-slate-400 mt-1">

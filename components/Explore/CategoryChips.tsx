@@ -71,11 +71,11 @@ export default function CategorySelect({ categories, selectedCategories, onChang
                     : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-white'
                     }`}
             >
-                <Grid2x2 size={15} className={isActive ? 'text-emerald-600' : 'text-slate-400'} />
+                <Grid2x2 size={15} className={isActive ? 'text-emerald-700' : 'text-slate-400'} />
                 <span>{label}</span>
                 <ChevronDown
                     size={14}
-                    className={`transition-transform duration-200 ${open ? 'rotate-180' : ''} ${isActive ? 'text-emerald-600' : 'text-slate-400'}`}
+                    className={`transition-transform duration-200 ${open ? 'rotate-180' : ''} ${isActive ? 'text-emerald-700' : 'text-slate-400'}`}
                 />
             </button>
 
@@ -114,7 +114,7 @@ export default function CategorySelect({ categories, selectedCategories, onChang
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'}`}>
                                         {checked && <Check size={10} strokeWidth={3} className="text-white" />}
                                     </div>
-                                    <CatIcon size={14} className={checked ? 'text-emerald-600' : 'text-slate-400'} />
+                                    <CatIcon size={14} className={checked ? 'text-emerald-700' : 'text-slate-400'} />
                                     <span className="font-medium">{cat.nombre}</span>
                                 </button>
                             );

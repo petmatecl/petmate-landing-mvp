@@ -175,7 +175,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }`}>
                         {filters.categorias.length === 0 && <Check size={10} strokeWidth={3} className="text-white" />}
                     </div>
-                    <Grid2x2 size={14} className={filters.categorias.length === 0 ? 'text-emerald-600' : 'text-slate-400'} />
+                    <Grid2x2 size={14} className={filters.categorias.length === 0 ? 'text-emerald-700' : 'text-slate-400'} />
                     <span>Todas las categorías</span>
                 </button>
 
@@ -198,7 +198,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     }`}>
                                     {checked && <Check size={10} strokeWidth={3} className="text-white" />}
                                 </div>
-                                <CatIcon size={14} className={checked ? 'text-emerald-600' : 'text-slate-400'} />
+                                <CatIcon size={14} className={checked ? 'text-emerald-700' : 'text-slate-400'} />
                                 <span className="text-left flex-1 truncate">{cat.nombre}</span>
                                 {(categoryCounts[cat.slug] ?? 0) > 0 && (
                                     <span className="text-xs text-slate-400 font-normal tabular-nums ml-auto">
@@ -316,7 +316,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-200 hover:bg-white'
                                 }`}
                         >
-                            <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-emerald-600' : 'text-slate-400'} />
+                            <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-emerald-700' : 'text-slate-400'} />
                             <span>{opt.label}</span>
                         </button>
                     ))}

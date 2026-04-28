@@ -41,7 +41,7 @@ export default function MensajesPage() {
         return (
             <>
                 <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-emerald-700 animate-spin" />
                 </div>
             </>
         );
@@ -60,7 +60,7 @@ export default function MensajesPage() {
                 <div className="mb-6 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                            <MessageSquare className="text-emerald-600" size={32} />
+                            <MessageSquare className="text-emerald-700" size={32} />
                             Mensajes
                         </h1>
                         <p className="text-slate-600 mt-2">
@@ -70,7 +70,7 @@ export default function MensajesPage() {
                     <div>
                         <Link
                             href={returnTo || '/'}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-bold hover:text-emerald-600 hover:border-emerald-300 transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-bold hover:text-emerald-700 hover:border-emerald-300 transition-colors shadow-sm"
                         >
                             <ArrowLeft size={18} />
                             Volver al Panel

@@ -14,24 +14,24 @@ export default function PrivacidadPage() {
                         <div className="bg-slate-50 p-6 rounded-2xl border-2 border-slate-300">
                             <p className="font-semibold text-slate-900">Última actualización: 16 de diciembre de 2025</p>
                             <p className="mt-2">
-                                En Pawnecta valoramos tu privacidad. Esta Política de Privacidad explica qué datos personales tratamos cuando usas <a href="https://www.pawnecta.com" className="text-emerald-600 font-medium hover:underline">www.pawnecta.com</a> (el “Sitio”), para qué los usamos, con quién los compartimos y cuáles son tus derechos.
+                                En Pawnecta valoramos tu privacidad. Esta Política de Privacidad explica qué datos personales tratamos cuando usas <a href="https://www.pawnecta.com" className="text-emerald-700 font-medium hover:underline">www.pawnecta.com</a> (el “Sitio”), para qué los usamos, con quién los compartimos y cuáles son tus derechos.
                             </p>
                         </div>
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">1</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">1</span>
                                 Responsable del tratamiento
                             </h3>
                             <div className="pl-11">
                                 <p className="mb-2">El Sitio es operado por <strong>Interactive SpA, RUT 77.420.852-6</strong>, con domicilio tributario en <strong>Irarrázaval 2150 D519, Ñuñoa, Región Metropolitana, Chile</strong> (“Pawnecta”, “nosotros” o el “Responsable”).</p>
-                                <p>Correo de contacto: <a href="mailto:contacto@pawnecta.com" className="text-emerald-600 font-medium hover:underline">contacto@pawnecta.com</a>.</p>
+                                <p>Correo de contacto: <a href="mailto:contacto@pawnecta.com" className="text-emerald-700 font-medium hover:underline">contacto@pawnecta.com</a>.</p>
                             </div>
                         </section>
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">2</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">2</span>
                                 Qué es Pawnecta
                             </h3>
                             <div className="pl-11">
@@ -41,7 +41,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">3</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">3</span>
                                 Datos personales que recopilamos
                             </h3>
                             <div className="pl-11 space-y-4">
@@ -63,7 +63,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">4</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">4</span>
                                 Finalidades del tratamiento
                             </h3>
                             <div className="pl-11">
@@ -81,7 +81,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">5</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">5</span>
                                 Base de tratamiento
                             </h3>
                             <div className="pl-11">
@@ -91,7 +91,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">6</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">6</span>
                                 Con quién compartimos tus datos
                             </h3>
                             <div className="pl-11 space-y-4">
@@ -108,7 +108,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">7</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">7</span>
                                 Pagos y datos financieros
                             </h3>
                             <div className="pl-11">
@@ -118,7 +118,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">8</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">8</span>
                                 Cookies y tecnologías similares
                             </h3>
                             <div className="pl-11">
@@ -134,7 +134,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">9</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">9</span>
                                 Conservación de datos
                             </h3>
                             <div className="pl-11">
@@ -148,18 +148,18 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">10</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">10</span>
                                 Tus derechos y cómo ejercerlos
                             </h3>
                             <div className="pl-11">
                                 <p className="mb-2">Puedes solicitar acceso, rectificación, actualización, cancelación/eliminación o bloqueo de tus datos, según corresponda.</p>
-                                <p>Para ejercerlos, escribe a <a href="mailto:contacto@pawnecta.com" className="text-emerald-600 font-medium hover:underline">contacto@pawnecta.com</a> indicando tu solicitud y el correo asociado a tu cuenta.</p>
+                                <p>Para ejercerlos, escribe a <a href="mailto:contacto@pawnecta.com" className="text-emerald-700 font-medium hover:underline">contacto@pawnecta.com</a> indicando tu solicitud y el correo asociado a tu cuenta.</p>
                             </div>
                         </section>
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">11</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">11</span>
                                 Seguridad
                             </h3>
                             <div className="pl-11">
@@ -169,7 +169,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">12</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">12</span>
                                 Menores de edad
                             </h3>
                             <div className="pl-11">
@@ -179,7 +179,7 @@ export default function PrivacidadPage() {
 
                         <section>
                             <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">13</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">13</span>
                                 Cambios a esta Política
                             </h3>
                             <div className="pl-11">

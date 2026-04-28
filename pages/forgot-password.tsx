@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
           <Link href="/">
             <Image src="/pawnecta_logo_final-trans.png" alt="Pawnecta" width={110} height={32} className="h-7 w-auto" />
           </Link>
-          <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">
+          <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-emerald-700 transition-colors">
             ← Volver al inicio de sesión
           </Link>
         </header>

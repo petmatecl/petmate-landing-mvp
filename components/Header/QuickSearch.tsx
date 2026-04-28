@@ -51,7 +51,7 @@ export default function QuickSearch() {
             <div className="sm:hidden flex items-center mr-2">
                 <button
                     onClick={() => setIsOpenMobile(!isOpenMobile)}
-                    className="p-2 text-slate-500 hover:text-emerald-600 focus:outline-none rounded-full focus:bg-slate-100"
+                    className="p-2 text-slate-500 hover:text-emerald-700 focus:outline-none rounded-full focus:bg-slate-100"
                     aria-label="Search"
                 >
                     <Search size={20} />

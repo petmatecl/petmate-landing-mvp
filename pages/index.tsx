@@ -190,7 +190,7 @@ function FranjaDual({
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <IconA className="w-5 h-5 text-emerald-600" />
+                <IconA className="w-5 h-5 text-emerald-700" />
                 <IconB className="w-4 h-4 text-emerald-400" />
               </div>
               <h2 className="text-base font-bold text-slate-900">{titulo}</h2>
@@ -227,7 +227,7 @@ function FranjaCategoria({
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <categoria.Icon className="w-5 h-5 text-emerald-600" />
+              <categoria.Icon className="w-5 h-5 text-emerald-700" />
               <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
               <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
             </div>
@@ -329,7 +329,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900
                            leading-tight mb-4">
               Servicios para tu mascota,{" "}
-              <span className="text-emerald-600">cerca de ti</span>
+              <span className="text-emerald-700">cerca de ti</span>
             </h1>
             <p className="text-lg text-slate-500 mb-8">
               Proveedores verificados en tu comuna. Compara, contacta y coordina directo.
@@ -338,7 +338,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             <p className="text-sm text-slate-400 mt-4">
               ¿Ofreces servicios para mascotas?{" "}
               <Link href="/register?rol=proveedor"
-                className="text-emerald-600 font-semibold hover:underline">
+                className="text-emerald-700 font-semibold hover:underline">
                 Publica gratis →
               </Link>
             </p>

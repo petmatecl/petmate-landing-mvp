@@ -266,7 +266,7 @@ export default function AdminDashboard() {
                 <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-white border-r border-slate-200" style={{ position: 'sticky', top: headerH, height: `calc(100vh - ${headerH}px)` }}>
                     <div className="p-5 border-b border-slate-100">
                         <div className="flex items-center gap-2.5">
-                            <ShieldCheck className="w-7 h-7 text-emerald-600" />
+                            <ShieldCheck className="w-7 h-7 text-emerald-700" />
                             <div>
                                 <h2 className="text-sm font-bold text-slate-900 leading-tight">Admin</h2>
                                 <p className="text-[11px] text-slate-400">Pawnecta</p>
@@ -286,7 +286,7 @@ export default function AdminDashboard() {
                                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
-                                    <Icon size={18} className={isActive ? 'text-emerald-600' : 'text-slate-400'} />
+                                    <Icon size={18} className={isActive ? 'text-emerald-700' : 'text-slate-400'} />
                                     {tab.label}
                                 </button>
                             );

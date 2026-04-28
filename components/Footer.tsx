@@ -36,14 +36,14 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
-            <li><Link href="/explorar?categoria=hospedaje" className="hover:text-emerald-600 transition-colors">Hospedaje</Link></li>
-            <li><Link href="/explorar?categoria=guarderia" className="hover:text-emerald-600 transition-colors">Guardería diurna</Link></li>
-            <li><Link href="/explorar?categoria=domicilio" className="hover:text-emerald-600 transition-colors">Visita a domicilio</Link></li>
-            <li><Link href="/explorar?categoria=paseos" className="hover:text-emerald-600 transition-colors">Paseador de perros</Link></li>
-            <li><Link href="/explorar?categoria=peluqueria" className="hover:text-emerald-600 transition-colors">Peluquería</Link></li>
-            <li><Link href="/explorar?categoria=adiestramiento" className="hover:text-emerald-600 transition-colors">Adiestramiento</Link></li>
-            <li><Link href="/explorar?categoria=veterinario" className="hover:text-emerald-600 transition-colors">Veterinario a domicilio</Link></li>
-            <li><Link href="/explorar?categoria=traslado" className="hover:text-emerald-600 transition-colors">Traslado</Link></li>
+            <li><Link href="/explorar?categoria=hospedaje" className="hover:text-emerald-700 transition-colors">Hospedaje</Link></li>
+            <li><Link href="/explorar?categoria=guarderia" className="hover:text-emerald-700 transition-colors">Guardería diurna</Link></li>
+            <li><Link href="/explorar?categoria=domicilio" className="hover:text-emerald-700 transition-colors">Visita a domicilio</Link></li>
+            <li><Link href="/explorar?categoria=paseos" className="hover:text-emerald-700 transition-colors">Paseador de perros</Link></li>
+            <li><Link href="/explorar?categoria=peluqueria" className="hover:text-emerald-700 transition-colors">Peluquería</Link></li>
+            <li><Link href="/explorar?categoria=adiestramiento" className="hover:text-emerald-700 transition-colors">Adiestramiento</Link></li>
+            <li><Link href="/explorar?categoria=veterinario" className="hover:text-emerald-700 transition-colors">Veterinario a domicilio</Link></li>
+            <li><Link href="/explorar?categoria=traslado" className="hover:text-emerald-700 transition-colors">Traslado</Link></li>
           </ul>
         </div>
 
@@ -51,10 +51,10 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Pawnecta</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
-            <li><Link href="/quienes-somos" className="hover:text-emerald-600 transition-colors">Quiénes somos</Link></li>
-            <li><Link href="/faq" className="hover:text-emerald-600 transition-colors">Preguntas frecuentes</Link></li>
-            <li><Link href="/blog" className="hover:text-emerald-600 transition-colors">Blog</Link></li>
-            <li><Link href="/register?rol=proveedor" className="hover:text-emerald-600 transition-colors">Publicar mi servicio</Link></li>
+            <li><Link href="/quienes-somos" className="hover:text-emerald-700 transition-colors">Quiénes somos</Link></li>
+            <li><Link href="/faq" className="hover:text-emerald-700 transition-colors">Preguntas frecuentes</Link></li>
+            <li><Link href="/blog" className="hover:text-emerald-700 transition-colors">Blog</Link></li>
+            <li><Link href="/register?rol=proveedor" className="hover:text-emerald-700 transition-colors">Publicar mi servicio</Link></li>
           </ul>
         </div>
 
@@ -62,7 +62,7 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Contacto</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
-            <li><Link href="mailto:contacto@pawnecta.com" className="hover:text-emerald-600 transition-colors">contacto@pawnecta.com</Link></li>
+            <li><Link href="mailto:contacto@pawnecta.com" className="hover:text-emerald-700 transition-colors">contacto@pawnecta.com</Link></li>
           </ul>
         </div>
 
@@ -78,11 +78,11 @@ export function Footer() {
             <div>
               <Link href="/explorar?categoria=hospedaje" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Hospedaje</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/explorar?categoria=hospedaje&comuna=Providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/explorar?categoria=hospedaje&comuna=Las Condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/explorar?categoria=hospedaje&comuna=Ñuñoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/explorar?categoria=hospedaje&comuna=Vitacura" className="hover:text-emerald-600 transition-colors">Vitacura</Link></li>
-                <li><Link href="/explorar?categoria=hospedaje&comuna=Santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&comuna=Ñuñoa" className="hover:text-emerald-700 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&comuna=Vitacura" className="hover:text-emerald-700 transition-colors">Vitacura</Link></li>
+                <li><Link href="/explorar?categoria=hospedaje&comuna=Santiago" className="hover:text-emerald-700 transition-colors">Santiago Centro</Link></li>
               </ul>
             </div>
 
@@ -90,11 +90,11 @@ export function Footer() {
             <div>
               <Link href="/explorar?categoria=domicilio" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Visita a domicilio</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/explorar?categoria=domicilio&comuna=Providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/explorar?categoria=domicilio&comuna=Las Condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/explorar?categoria=domicilio&comuna=Ñuñoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/explorar?categoria=domicilio&comuna=La Florida" className="hover:text-emerald-600 transition-colors">La Florida</Link></li>
-                <li><Link href="/explorar?categoria=domicilio&comuna=Maipú" className="hover:text-emerald-600 transition-colors">Maipú</Link></li>
+                <li><Link href="/explorar?categoria=domicilio&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=domicilio&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=domicilio&comuna=Ñuñoa" className="hover:text-emerald-700 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=domicilio&comuna=La Florida" className="hover:text-emerald-700 transition-colors">La Florida</Link></li>
+                <li><Link href="/explorar?categoria=domicilio&comuna=Maipú" className="hover:text-emerald-700 transition-colors">Maipú</Link></li>
               </ul>
             </div>
 
@@ -102,11 +102,11 @@ export function Footer() {
             <div>
               <Link href="/explorar?categoria=paseos" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Paseadores</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/explorar?categoria=paseos&comuna=Providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/explorar?categoria=paseos&comuna=Las Condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/explorar?categoria=paseos&comuna=Ñuñoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/explorar?categoria=paseos&comuna=Santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
-                <li><Link href="/explorar?categoria=paseos&comuna=Macul" className="hover:text-emerald-600 transition-colors">Macul</Link></li>
+                <li><Link href="/explorar?categoria=paseos&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=paseos&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=paseos&comuna=Ñuñoa" className="hover:text-emerald-700 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=paseos&comuna=Santiago" className="hover:text-emerald-700 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/explorar?categoria=paseos&comuna=Macul" className="hover:text-emerald-700 transition-colors">Macul</Link></li>
               </ul>
             </div>
 
@@ -114,11 +114,11 @@ export function Footer() {
             <div>
               <Link href="/explorar?categoria=peluqueria" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Peluquería</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/explorar?categoria=peluqueria&comuna=Providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/explorar?categoria=peluqueria&comuna=Las Condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/explorar?categoria=peluqueria&comuna=Ñuñoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/explorar?categoria=peluqueria&comuna=Peñalolén" className="hover:text-emerald-600 transition-colors">Peñalolén</Link></li>
-                <li><Link href="/explorar?categoria=peluqueria&comuna=La Reina" className="hover:text-emerald-600 transition-colors">La Reina</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&comuna=Ñuñoa" className="hover:text-emerald-700 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&comuna=Peñalolén" className="hover:text-emerald-700 transition-colors">Peñalolén</Link></li>
+                <li><Link href="/explorar?categoria=peluqueria&comuna=La Reina" className="hover:text-emerald-700 transition-colors">La Reina</Link></li>
               </ul>
             </div>
 
@@ -126,11 +126,11 @@ export function Footer() {
             <div>
               <Link href="/explorar?categoria=veterinario" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Veterinarios</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/explorar?categoria=veterinario&comuna=Providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/explorar?categoria=veterinario&comuna=Las Condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/explorar?categoria=veterinario&comuna=Ñuñoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/explorar?categoria=veterinario&comuna=San Miguel" className="hover:text-emerald-600 transition-colors">San Miguel</Link></li>
-                <li><Link href="/explorar?categoria=veterinario&comuna=Santiago" className="hover:text-emerald-600 transition-colors">Santiago Centro</Link></li>
+                <li><Link href="/explorar?categoria=veterinario&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=veterinario&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=veterinario&comuna=Ñuñoa" className="hover:text-emerald-700 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=veterinario&comuna=San Miguel" className="hover:text-emerald-700 transition-colors">San Miguel</Link></li>
+                <li><Link href="/explorar?categoria=veterinario&comuna=Santiago" className="hover:text-emerald-700 transition-colors">Santiago Centro</Link></li>
               </ul>
             </div>
 
@@ -138,11 +138,11 @@ export function Footer() {
             <div>
               <Link href="/explorar?categoria=adiestramiento" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Adiestramiento</Link>
               <ul className="space-y-3 text-[13px] text-slate-500">
-                <li><Link href="/explorar?categoria=adiestramiento&comuna=Providencia" className="hover:text-emerald-600 transition-colors">Providencia</Link></li>
-                <li><Link href="/explorar?categoria=adiestramiento&comuna=Las Condes" className="hover:text-emerald-600 transition-colors">Las Condes</Link></li>
-                <li><Link href="/explorar?categoria=adiestramiento&comuna=Ñuñoa" className="hover:text-emerald-600 transition-colors">Ñuñoa</Link></li>
-                <li><Link href="/explorar?categoria=adiestramiento&comuna=Lo Barnechea" className="hover:text-emerald-600 transition-colors">Lo Barnechea</Link></li>
-                <li><Link href="/explorar?categoria=adiestramiento&comuna=Vitacura" className="hover:text-emerald-600 transition-colors">Vitacura</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&comuna=Ñuñoa" className="hover:text-emerald-700 transition-colors">Ñuñoa</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&comuna=Lo Barnechea" className="hover:text-emerald-700 transition-colors">Lo Barnechea</Link></li>
+                <li><Link href="/explorar?categoria=adiestramiento&comuna=Vitacura" className="hover:text-emerald-700 transition-colors">Vitacura</Link></li>
               </ul>
             </div>
 
@@ -155,13 +155,13 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-400">© 2026 Pawnecta. Todos los derechos reservados.</p>
           <div className="flex items-center gap-4 text-sm text-slate-500">
-            <Link href="/terminos" className="hover:text-emerald-600 transition-colors">Términos y Condiciones</Link>
+            <Link href="/terminos" className="hover:text-emerald-700 transition-colors">Términos y Condiciones</Link>
             <span className="text-slate-300">·</span>
-            <Link href="/privacidad" className="hover:text-emerald-600 transition-colors">Política de Privacidad</Link>
+            <Link href="/privacidad" className="hover:text-emerald-700 transition-colors">Política de Privacidad</Link>
           </div>
           <Link
             href="https://www.instagram.com/pawnecta"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all"
             aria-label="Instagram"
             target="_blank"
           >

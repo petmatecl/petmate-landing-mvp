@@ -150,7 +150,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
     if (isSuccess) {
         return (
             <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center animate-in fade-in duration-500">
-                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
                 <h4 className="text-emerald-800 font-bold text-lg mb-2">¡Gracias por tu evaluación!</h4>

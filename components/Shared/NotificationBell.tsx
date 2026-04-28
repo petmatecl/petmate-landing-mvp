@@ -138,7 +138,7 @@ export default function NotificationBell() {
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={handleMarkAllRead}
-                                        className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                                        className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
                                     >
                                         <Check size={14} /> Marcar leídas
                                     </button>
@@ -185,7 +185,7 @@ export default function NotificationBell() {
                         </div>
 
                         <div className="p-2 border-t border-slate-300 bg-slate-50/50 text-center">
-                            <Link href="/notificaciones" className="text-xs font-bold text-slate-600 hover:text-emerald-600">
+                            <Link href="/notificaciones" className="text-xs font-bold text-slate-600 hover:text-emerald-700">
                                 Ver todas
                             </Link>
                         </div>

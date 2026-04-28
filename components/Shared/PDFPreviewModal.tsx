@@ -47,7 +47,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                                 {/* Header */}
                                 <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50">
                                     <Dialog.Title as="h3" className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                        <FileText className="text-emerald-600" size={20} />
+                                        <FileText className="text-emerald-700" size={20} />
                                         {title}
                                     </Dialog.Title>
                                     <div className="flex items-center gap-2">

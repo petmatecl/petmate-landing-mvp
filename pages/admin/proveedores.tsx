@@ -397,7 +397,7 @@ export default function GestionProveedores() {
                     {/* Modal Aprobar */}
                     {modalConfig.type === 'aprobar' && (
                         <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center">
-                            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle2 size={32} />
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 mb-2">Aprobar Proveedor</h3>
@@ -462,7 +462,7 @@ export default function GestionProveedores() {
                     {/* Modales Simples: Suspender / Reactivar */}
                     {(modalConfig.type === 'suspender' || modalConfig.type === 'reactivar') && (
                         <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${modalConfig.type === 'suspender' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${modalConfig.type === 'suspender' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-700'}`}>
                                 {modalConfig.type === 'suspender' ? <AlertTriangle size={32} /> : <CheckCircle2 size={32} />}
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 mb-2 capitalize">{modalConfig.type} Cuenta</h3>

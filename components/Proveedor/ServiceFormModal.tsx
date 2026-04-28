@@ -606,7 +606,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {/* ── COMUNAS DE COBERTURA ── */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                                    <MapPin size={14} className="text-emerald-600" />
+                                    <MapPin size={14} className="text-emerald-700" />
                                     Comunas donde prestas el servicio <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-xs text-slate-400 mb-2">
@@ -675,7 +675,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {camposCategoria.length > 0 && (
                                 <div className="border-t border-slate-100 pt-6 pb-2">
                                     <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                                        <span className="text-sm font-bold text-emerald-600">{selectedCat?.nombre?.charAt(0)}</span>
+                                        <span className="text-sm font-bold text-emerald-700">{selectedCat?.nombre?.charAt(0)}</span>
                                         Detalles de {selectedCat?.nombre}
                                     </h3>
                                     <div className="space-y-4">

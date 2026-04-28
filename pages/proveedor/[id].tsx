@@ -198,7 +198,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-600 font-bold text-4xl">
+                                <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-700 font-bold text-4xl">
                                     {proveedor.nombre.charAt(0)}
                                 </div>
                             )}
@@ -219,7 +219,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
                             {proveedor.tipo_entidad === 'empresa' && (
                                 <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
-                                    <Briefcase size={13} className="text-emerald-600 shrink-0" />
+                                    <Briefcase size={13} className="text-emerald-700 shrink-0" />
                                     <span className="font-medium">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
                                     {proveedor.giro && <span className="text-slate-400">· {proveedor.giro}</span>}
                                 </p>
@@ -263,7 +263,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         <div className="border-t border-slate-100 px-6 md:px-8 py-3 flex flex-wrap gap-x-5 gap-y-2">
                             {proveedor.email_publico && proveedor.mostrar_email && (
                                 <a href={`mailto:${proveedor.email_publico}`}
-                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors font-medium">
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors font-medium">
                                     <MapPin size={15} className="hidden" /><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                                     {proveedor.email_publico}
                                 </a>
@@ -271,7 +271,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {proveedor.sitio_web && (
                                 <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
                                     onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors font-medium">
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors font-medium">
                                     <Globe size={15} /> Sitio web
                                 </a>
                             )}
@@ -290,14 +290,14 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {tieneInfoPersonal && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-bold text-slate-900 mb-5 flex items-center gap-2">
-                            <User size={16} className="text-emerald-600" />
+                            <User size={16} className="text-emerald-700" />
                             Quién soy
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                             {proveedor.ocupacion && (
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                                        <Briefcase size={16} className="text-emerald-600" />
+                                        <Briefcase size={16} className="text-emerald-700" />
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Profesión</p>
@@ -372,14 +372,14 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {(tieneTrustSignals || tieneDatosEspecificos) && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <ShieldCheck size={17} className="text-emerald-600" />
+                            <ShieldCheck size={17} className="text-emerald-700" />
                             Experiencia y credenciales
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                             {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 && (
                                 <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                                    <Clock size={17} className="text-emerald-600 shrink-0 mt-0.5" />
+                                    <Clock size={17} className="text-emerald-700 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Experiencia</p>
                                         <p className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</p>
@@ -389,7 +389,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
                             {proveedor.certificaciones && (
                                 <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                                    <ShieldCheck size={17} className="text-emerald-600 shrink-0 mt-0.5" />
+                                    <ShieldCheck size={17} className="text-emerald-700 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Certificaciones</p>
                                         <p className="text-sm font-semibold text-slate-800">{proveedor.certificaciones}</p>
@@ -428,7 +428,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {tieneGaleria && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <Camera size={17} className="text-emerald-600" />
+                            <Camera size={17} className="text-emerald-700" />
                             Fotos del espacio
                         </h2>
                         {proveedor.galeria.length === 1 ? (

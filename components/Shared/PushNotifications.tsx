@@ -78,7 +78,7 @@ export default function PushNotifications() {
                 <X size={16} />
             </button>
             <div className="flex items-start gap-3 mt-1">
-                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center shrink-0">
                     <BellRing size={20} />
                 </div>
                 <div>
