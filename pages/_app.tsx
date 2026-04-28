@@ -71,9 +71,18 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           <PushNotifications />
           <SessionTimeout />
           <Toaster position="top-center" richColors />
+
+          {/* Skip link — a11y: permite saltar nav y llegar directo al contenido principal */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-emerald-700 focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-700"
+          >
+            Saltar al contenido principal
+          </a>
+
           {showLayout && <Header />}
 
-          <main className="flex-1">
+          <main id="main-content" className="flex-1">
             <ErrorBoundary>
               <Component {...pageProps} />
             </ErrorBoundary>
