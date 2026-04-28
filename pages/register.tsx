@@ -467,43 +467,46 @@ export default function RegisterWizard() {
                 {rol === 'proveedor' && tipoEntidad === 'empresa' && (
                   <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Razón social *</label>
-                      <input type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} placeholder="Ej: Patitas Felices SpA" required className={inputClass} />
+                      <label htmlFor="razon-social" className="block text-sm font-medium text-slate-700 mb-1">Razón social *</label>
+                      <input id="razon-social" name="razon-social" autoComplete="organization" type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} placeholder="Ej: Patitas Felices SpA" required className={inputClass} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">RUT de la empresa *</label>
-                      <input type="text" value={rutEmpresa} onChange={e => setRutEmpresa(formatRut(e.target.value))} placeholder="Ej: 76.123.456-7" required maxLength={12} className={inputClass} />
+                      <label htmlFor="rut-empresa" className="block text-sm font-medium text-slate-700 mb-1">RUT de la empresa *</label>
+                      <input id="rut-empresa" name="rut-empresa" autoComplete="off" type="text" value={rutEmpresa} onChange={e => setRutEmpresa(formatRut(e.target.value))} placeholder="Ej: 76.123.456-7" required maxLength={12} className={inputClass} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Nombre fantasía (marca)</label>
-                      <input type="text" value={nombreFantasia} onChange={e => setNombreFantasia(e.target.value)} placeholder="Ej: Patitas Felices" className={inputClass} />
+                      <label htmlFor="nombre-fantasia" className="block text-sm font-medium text-slate-700 mb-1">Nombre fantasía (marca)</label>
+                      <input id="nombre-fantasia" name="nombre-fantasia" autoComplete="organization" type="text" value={nombreFantasia} onChange={e => setNombreFantasia(e.target.value)} placeholder="Ej: Patitas Felices" className={inputClass} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Giro o rubro</label>
-                      <input type="text" value={giro} onChange={e => setGiro(e.target.value)} placeholder="Ej: Servicios de cuidado de mascotas" className={inputClass} />
+                      <label htmlFor="giro" className="block text-sm font-medium text-slate-700 mb-1">Giro o rubro</label>
+                      <input id="giro" name="giro" autoComplete="off" type="text" value={giro} onChange={e => setGiro(e.target.value)} placeholder="Ej: Servicios de cuidado de mascotas" className={inputClass} />
                     </div>
                   </div>
                 )}
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
-                    <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} required className={inputClass} />
+                    <label htmlFor="nombre" className="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
+                    <input id="nombre" name="nombre" autoComplete="given-name" type="text" value={nombre} onChange={e => setNombre(e.target.value)} required className={inputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Paterno *</label>
-                    <input type="text" value={apellidoP} onChange={e => setApellidoP(e.target.value)} required className={inputClass} />
+                    <label htmlFor="apellido-p" className="block text-sm font-medium text-slate-700 mb-1">Apellido Paterno *</label>
+                    <input id="apellido-p" name="apellido-p" autoComplete="family-name" type="text" value={apellidoP} onChange={e => setApellidoP(e.target.value)} required className={inputClass} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Apellido Materno *</label>
-                  <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} required className={inputClass} />
+                  <label htmlFor="apellido-m" className="block text-sm font-medium text-slate-700 mb-1">Apellido Materno *</label>
+                  <input id="apellido-m" name="apellido-m" autoComplete="family-name" type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} required className={inputClass} />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">RUT *</label>
+                  <label htmlFor="rut" className="block text-sm font-medium text-slate-700 mb-1">RUT *</label>
                   <input
+                    id="rut"
+                    name="rut"
+                    autoComplete="off"
                     type="text"
                     value={rut}
                     onChange={e => {
@@ -530,15 +533,18 @@ export default function RegisterWizard() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico *</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputClass} />
+                  <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico *</label>
+                  <input id="email" name="email" autoComplete="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputClass} />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña *</label>
+                    <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">Contraseña *</label>
                     <div className="relative">
                       <input
+                        id="password"
+                        name="password"
+                        autoComplete="new-password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={e => setPassword(e.target.value)}
@@ -558,9 +564,12 @@ export default function RegisterWizard() {
                     <span className="text-xs text-slate-500 mt-1 block">Mínimo 8 caracteres</span>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar Contraseña *</label>
+                    <label htmlFor="password-confirm" className="block text-sm font-medium text-slate-700 mb-1">Confirmar Contraseña *</label>
                     <div className="relative">
                       <input
+                        id="password-confirm"
+                        name="password-confirm"
+                        autoComplete="new-password"
                         type={showPasswordConfirm ? "text" : "password"}
                         value={passwordConfirm}
                         onChange={e => { setPasswordConfirm(e.target.value); if (passwordConfirmError) setPasswordConfirmError(''); }}
@@ -635,9 +644,11 @@ export default function RegisterWizard() {
 
                 {/* Combobox de comunas */}
                 <div ref={comunaRef}>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">¿Dónde ofreces tus servicios? *</label>
+                  <label htmlFor="comuna" className="block text-sm font-medium text-slate-700 mb-1">¿Dónde ofreces tus servicios? *</label>
                   <div className="relative">
                     <input
+                      id="comuna"
+                      name="comuna"
                       type="text"
                       value={comunaQuery}
                       onChange={e => { setComunaQuery(e.target.value); setShowComunaList(true); }}
@@ -688,12 +699,14 @@ export default function RegisterWizard() {
                               </p>
                             ) : (
                               <>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1">
                                   {campo.label}{campo.requerido && <span className="text-red-500 ml-1">*</span>}
                                 </label>
                                 {campo.tipo === 'boolean' ? (
                                   <label className="flex items-center gap-3 cursor-pointer">
                                     <input
+                                      id={`campo-${campo.key}`}
+                                      name={`campo-${campo.key}`}
                                       type="checkbox"
                                       checked={!!datosDinamicos[campo.key]}
                                       onChange={e => setDatoDinamico(campo.key, e.target.checked)}
@@ -703,6 +716,8 @@ export default function RegisterWizard() {
                                   </label>
                                 ) : campo.tipo === 'select' ? (
                                   <select
+                                    id={`campo-${campo.key}`}
+                                    name={`campo-${campo.key}`}
                                     value={datosDinamicos[campo.key] || ''}
                                     onChange={e => setDatoDinamico(campo.key, e.target.value)}
                                     className={`${inputClass} cursor-pointer`}
@@ -714,6 +729,9 @@ export default function RegisterWizard() {
                                   </select>
                                 ) : (
                                   <input
+                                    id={`campo-${campo.key}`}
+                                    name={`campo-${campo.key}`}
+                                    autoComplete="off"
                                     type={campo.tipo === 'number' ? 'number' : 'text'}
                                     value={datosDinamicos[campo.key] || ''}
                                     onChange={e => {
