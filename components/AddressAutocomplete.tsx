@@ -30,6 +30,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
     const [results, setResults] = useState<AddressResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState<number>(-1);
 
     // Debounce ref
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -42,12 +43,20 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
+                setActiveIndex(-1);
             }
         };
 
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (activeIndex >= 0) {
+            const el = document.getElementById(`address-option-${activeIndex}`);
+            el?.scrollIntoView({ block: 'nearest' });
+        }
+    }, [activeIndex]);
 
     const searchAddress = async (searchTerm: string) => {
         if (!searchTerm || searchTerm.length < 3) {
@@ -71,12 +80,45 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
     const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setQuery(val);
+        setActiveIndex(-1);
 
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
         timeoutRef.current = setTimeout(() => {
             searchAddress(val);
         }, 500); // 500ms debounce
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!isOpen || results.length === 0) {
+            if (e.key === 'ArrowDown' && results.length > 0) {
+                e.preventDefault();
+                setIsOpen(true);
+                setActiveIndex(0);
+            }
+            return;
+        }
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setActiveIndex(prev => (prev + 1) % results.length);
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setActiveIndex(prev => prev <= 0 ? results.length - 1 : prev - 1);
+                break;
+            case 'Enter':
+                if (activeIndex >= 0 && activeIndex < results.length) {
+                    e.preventDefault();
+                    handleSelect(results[activeIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setIsOpen(false);
+                setActiveIndex(-1);
+                break;
+        }
     };
 
     const handleSelect = (r: AddressResult) => {
@@ -93,6 +135,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
 
         setQuery(mainName);
         setIsOpen(false);
+        setActiveIndex(-1);
         onSelect(r);
     };
 
@@ -106,10 +149,12 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                     aria-controls="address-autocomplete-listbox"
                     aria-autocomplete="list"
                     aria-haspopup="listbox"
+                    aria-activedescendant={activeIndex >= 0 ? `address-option-${activeIndex}` : undefined}
                     className="w-full text-sm rounded-lg px-3 py-2 border-2 border-slate-300 outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all pl-9"
                     placeholder={placeholder}
                     value={query}
                     onChange={handleInput}
+                    onKeyDown={handleKeyDown}
                     onFocus={() => { if (results.length > 0) setIsOpen(true); }}
                 />
                 {/* Search Icon */}
@@ -132,11 +177,15 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                     {results.map((result, idx) => (
                         <button
                             key={idx}
+                            id={`address-option-${idx}`}
                             type="button"
                             role="option"
-                            aria-selected={false}
+                            aria-selected={idx === activeIndex}
                             onClick={() => handleSelect(result)}
-                            className="w-full text-left px-4 py-3 text-xs hover:bg-emerald-50 border-b border-slate-50 last:border-0 flex flex-col gap-0.5 group"
+                            onMouseEnter={() => setActiveIndex(idx)}
+                            className={`w-full text-left px-4 py-3 text-xs border-b border-slate-50 last:border-0 flex flex-col gap-0.5 group ${
+                                idx === activeIndex ? 'bg-emerald-50' : 'hover:bg-emerald-50'
+                            }`}
                         >
                             <span className="font-bold text-slate-800 block truncate group-hover:text-emerald-700">
                                 {result.display_name.split(',')[0]}
