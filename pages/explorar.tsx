@@ -477,9 +477,9 @@ export default function ExplorarPage() {
                         className="lg:hidden fixed inset-0 bg-black/40 z-40"
                         onClick={() => setMobileFiltersOpen(false)}
                     />
-                    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
+                    <div role="dialog" aria-modal="true" aria-labelledby="mobile-filters-title" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                            <h3 className="text-base font-bold text-slate-900">Filtros</h3>
+                            <h2 id="mobile-filters-title" className="text-base font-bold text-slate-900">Filtros</h2>
                             <button
                                 onClick={() => setMobileFiltersOpen(false)}
                                 className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
@@ -513,7 +513,7 @@ export default function ExplorarPage() {
                 <div className="flex gap-8 items-start">
 
                     {/* SIDEBAR — solo desktop */}
-                    <aside className="hidden lg:block w-72 shrink-0 sticky top-24">
+                    <aside aria-label="Filtros" className="hidden lg:block w-72 shrink-0 sticky top-24">
                         <SidebarFiltros
                             filters={filters}
                             categories={categories}

@@ -126,7 +126,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
         <div>
             {/* ── 1. Header ── */}
             <div className="flex items-center justify-between mb-5">
-                <h3 className="text-base font-bold text-slate-900">Filtros</h3>
+                <span className="text-base font-bold text-slate-900" aria-hidden="true">Filtros</span>
                 {hasActiveFilters && (
                     <button
                         onClick={onClear}
