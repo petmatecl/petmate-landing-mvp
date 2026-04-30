@@ -148,6 +148,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         id="sidebar-search"
                         name="q"
                         type="text"
+                        autoComplete="off"
                         value={filters.q}
                         onChange={(e) => onFilterChange({ q: e.target.value })}
                         placeholder="Servicio o nombre del proveedor..."
@@ -368,6 +369,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         aria-label="Precio mínimo"
                         type="text"
                         inputMode="numeric"
+                        autoComplete="off"
                         value={filters.precioMin ? Number(filters.precioMin).toLocaleString('es-CL') : ''}
                         onChange={e => {
                             const raw = e.target.value.replace(/\D/g, '');
@@ -385,6 +387,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         aria-label="Precio máximo"
                         type="text"
                         inputMode="numeric"
+                        autoComplete="off"
                         value={filters.precioMax ? Number(filters.precioMax).toLocaleString('es-CL') : ''}
                         onChange={e => {
                             const raw = e.target.value.replace(/\D/g, '');

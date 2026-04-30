@@ -153,7 +153,17 @@ function ServiceCardItem({ s }: { s: any }) {
           {s.titulo}
         </p>
         {s.proveedor_nombre && (
-          <p className="text-xs text-slate-500 mb-1 truncate">{s.proveedor_nombre}</p>
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-5 h-5 rounded-full overflow-hidden bg-emerald-100 shrink-0 flex items-center justify-center">
+              {s.proveedor_foto ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={s.proveedor_foto} alt={s.proveedor_nombre} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[9px] font-bold text-emerald-700">{s.proveedor_nombre.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 truncate">{s.proveedor_nombre}</p>
+          </div>
         )}
         {s.proveedor_comuna && (
           <p className="text-xs text-slate-400 truncate">{s.proveedor_comuna}</p>
