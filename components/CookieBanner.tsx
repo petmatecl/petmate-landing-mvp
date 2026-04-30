@@ -92,7 +92,7 @@ export default function CookieBanner() {
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 shrink-0">
                         <button
-                            onClick={rejectAll}
+                            onClick={() => { rejectAll(); setView(null); }}
                             className="px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
                         >
                             Rechazar todas
@@ -107,7 +107,7 @@ export default function CookieBanner() {
                             Personalizar
                         </button>
                         <button
-                            onClick={acceptAll}
+                            onClick={() => { acceptAll(); setView(null); }}
                             className="px-4 py-2 text-sm font-semibold text-white bg-emerald-700 rounded-xl hover:bg-emerald-800 transition-colors"
                         >
                             Aceptar todas
