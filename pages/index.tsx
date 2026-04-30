@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useId } from "react";
 import { mapJoinToServiceResult } from "../lib/serviceMapper";
 import { ServiceResult } from "../components/Explore/ServiceCard";
 import { COMUNAS_CHILE } from "../lib/comunas";
@@ -191,6 +191,7 @@ function FranjaDual({
   labelA: string; labelB: string;
   onVerMas: () => void;
 }) {
+  const titleId = useId();
   // Interleave: A, B, A, B up to 4 total
   const combined: any[] = [];
   let ai = 0, bi = 0;
@@ -202,7 +203,7 @@ function FranjaDual({
   if (total === 0) return null;
 
   return (
-    <div className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
+    <section aria-labelledby={titleId} className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5">
@@ -211,7 +212,7 @@ function FranjaDual({
                 <IconA className="w-5 h-5 text-emerald-700" />
                 <IconB className="w-4 h-4 text-emerald-400" />
               </div>
-              <h2 className="text-base font-bold text-slate-900">{titulo}</h2>
+              <h2 id={titleId} className="text-base font-bold text-slate-900">{titulo}</h2>
               <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
             </div>
             <button onClick={onVerMas} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${titulo}`}>
@@ -225,7 +226,7 @@ function FranjaDual({
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -237,16 +238,17 @@ function FranjaCategoria({
   servicios: any[];
   onVerTodos: () => void;
 }) {
+  const titleId = useId();
   const visible = servicios.slice(0, 4);
   if (visible.length === 0) return null;
   return (
-    <div className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
+    <section aria-labelledby={titleId} className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <categoria.Icon className="w-5 h-5 text-emerald-700" />
-              <h2 className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
+              <h2 id={titleId} className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
               <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
             </div>
             <button onClick={onVerTodos} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${categoria.nombre}`}>
@@ -260,7 +262,7 @@ function FranjaCategoria({
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

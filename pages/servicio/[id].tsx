@@ -382,9 +382,29 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                     <div className="w-full lg:w-2/3 flex flex-col gap-8">
 
                         {/* Galeria / Portada */}
-                        <div className="relative">
+                        <section
+                            role="region"
+                            aria-roledescription="carousel"
+                            aria-label="Fotos del servicio"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (!service.fotos || service.fotos.length <= 1) return;
+                                if (e.key === 'ArrowLeft') {
+                                    e.preventDefault();
+                                    setFotoActiva(i => (i - 1 + service.fotos.length) % service.fotos.length);
+                                } else if (e.key === 'ArrowRight') {
+                                    e.preventDefault();
+                                    setFotoActiva(i => (i + 1) % service.fotos.length);
+                                }
+                            }}
+                            className="relative focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:rounded-2xl"
+                        >
                             {/* Foto principal */}
-                            <div className="w-full h-[340px] md:h-[500px] bg-slate-200 rounded-none lg:rounded-2xl overflow-hidden relative shadow-sm -mx-4 sm:-mx-6 lg:mx-0 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] lg:w-full">
+                            <div
+                                id="gallery-main-image"
+                                aria-live="polite"
+                                className="w-full h-[340px] md:h-[500px] bg-slate-200 rounded-none lg:rounded-2xl overflow-hidden relative shadow-sm -mx-4 sm:-mx-6 lg:mx-0 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] lg:w-full"
+                            >
                                 {imgError ? (
                                     <div className="w-full h-full flex items-center justify-center bg-slate-100">
                                         {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={64} className="text-slate-300" />; })()}
@@ -393,7 +413,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     /* eslint-disable-next-line @next/next/no-img-element */
                                     <img
                                         src={service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage}
-                                        alt={service.titulo}
+                                        alt={service.fotos?.length > 1 ? `Foto ${fotoActiva + 1} de ${service.fotos.length} — ${service.titulo}` : service.titulo}
                                         className="w-full h-full object-cover transition-opacity duration-200"
                                         onError={() => setImgError(true)}
                                     />
@@ -423,15 +443,17 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                     <>
                                         <button
                                             onClick={() => setFotoActiva(i => (i - 1 + service.fotos.length) % service.fotos.length)}
-                                            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-colors z-10"
+                                            aria-controls="gallery-main-image"
                                             aria-label="Foto anterior"
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-colors z-10"
                                         >
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
                                         </button>
                                         <button
                                             onClick={() => setFotoActiva(i => (i + 1) % service.fotos.length)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-colors z-10"
+                                            aria-controls="gallery-main-image"
                                             aria-label="Foto siguiente"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-colors z-10"
                                         >
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
                                         </button>
@@ -451,16 +473,18 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                         <button
                                             key={i}
                                             onClick={() => setFotoActiva(i)}
+                                            aria-label={`Ver foto ${i + 1}`}
+                                            aria-current={fotoActiva === i ? 'true' : undefined}
                                             className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${fotoActiva === i ? 'border-emerald-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
                                                 }`}
                                         >
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={foto} alt="" className="w-full h-full object-cover" />
+                                            <img src={foto} alt={`Miniatura foto ${i + 1}`} className="w-full h-full object-cover" />
                                         </button>
                                     ))}
                                 </div>
                             )}
-                        </div>
+                        </section>
 
                         {/* Encabezado del Servicio */}
                         {imgError && (
