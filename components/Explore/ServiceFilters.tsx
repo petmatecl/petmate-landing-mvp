@@ -94,6 +94,8 @@ export default function ServiceFilters({ filters, categories, services = [], onF
                         </span>
                         <input
                             type="text"
+                            name="q"
+                            aria-label="Buscar servicios"
                             value={filters.q}
                             onChange={(e) => onFilterChange({ q: e.target.value })}
                             placeholder="Buscar servicios..."
@@ -193,6 +195,8 @@ export default function ServiceFilters({ filters, categories, services = [], onF
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
+                                name="precio-min"
+                                aria-label="Precio mínimo"
                                 value={filters.precioMin}
                                 onChange={e => onFilterChange({ precioMin: e.target.value })}
                                 placeholder="$ Min"
@@ -202,6 +206,8 @@ export default function ServiceFilters({ filters, categories, services = [], onF
                             <span className="text-slate-400 text-sm font-medium select-none">a</span>
                             <input
                                 type="number"
+                                name="precio-max"
+                                aria-label="Precio máximo"
                                 value={filters.precioMax}
                                 onChange={e => onFilterChange({ precioMax: e.target.value })}
                                 placeholder="$ Max"

@@ -139,12 +139,14 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 2. Búsqueda ── */}
             <div className="mb-5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                <label htmlFor="sidebar-search" className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Buscar
                 </label>
                 <div className="relative">
                     <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     <input
+                        id="sidebar-search"
+                        name="q"
                         type="text"
                         value={filters.q}
                         onChange={(e) => onFilterChange({ q: e.target.value })}
@@ -213,7 +215,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 4. Comuna ── */}
             <div className="mb-5 border-t border-slate-100 pt-5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                <label htmlFor="sidebar-comuna" className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Comuna
                 </label>
                 <div className="relative" ref={comunaRef}>
@@ -226,6 +228,13 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         </svg>
                     </span>
                     <input
+                        id="sidebar-comuna"
+                        name="comuna"
+                        role="combobox"
+                        aria-expanded={comunaOpen}
+                        aria-controls="sidebar-comuna-listbox"
+                        aria-autocomplete="list"
+                        aria-haspopup="listbox"
                         type="text"
                         value={comunaInput}
                         onChange={e => {
@@ -278,11 +287,13 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-slate-400 transition-colors"
                     />
                     {comunaOpen && comunasFiltradas.length > 0 && (
-                        <ul className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                        <ul id="sidebar-comuna-listbox" role="listbox" aria-label="Sugerencias de comuna" className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
                             {comunasFiltradas.map(c => (
                                 <li key={c}>
                                     <button
                                         type="button"
+                                        role="option"
+                                        aria-selected={false}
                                         className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                                         onMouseDown={() => { onFilterChange({ comuna: c }); setComunaOpen(false); }}
                                     >
@@ -347,11 +358,14 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 6. Precio ── */}
             <div className="border-t border-slate-100 pt-5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
                     Precio (CLP)
-                </label>
+                </span>
                 <div className="flex items-center gap-2">
                     <input
+                        id="sidebar-precio-min"
+                        name="precio-min"
+                        aria-label="Precio mínimo"
                         type="text"
                         inputMode="numeric"
                         value={filters.precioMin ? Number(filters.precioMin).toLocaleString('es-CL') : ''}
@@ -366,6 +380,9 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     />
                     <span className="text-slate-400 text-sm font-medium select-none shrink-0">a</span>
                     <input
+                        id="sidebar-precio-max"
+                        name="precio-max"
+                        aria-label="Precio máximo"
                         type="text"
                         inputMode="numeric"
                         value={filters.precioMax ? Number(filters.precioMax).toLocaleString('es-CL') : ''}
