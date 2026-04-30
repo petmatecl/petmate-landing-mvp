@@ -442,8 +442,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             </select>
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Título <span className="text-red-500">*</span></label>
+                                            <label htmlFor="servicio-titulo" className="block text-sm font-medium text-slate-700 mb-1.5">Título <span className="text-red-500">*</span></label>
                                             <input
+                                                id="servicio-titulo"
+                                                name="servicio-titulo"
+                                                autoComplete="off"
                                                 type="text"
                                                 value={titulo}
                                                 onChange={e => setTitulo(e.target.value)}
@@ -457,8 +460,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Descripción <span className="text-red-500">*</span></label>
+                                        <label htmlFor="servicio-descripcion" className="block text-sm font-medium text-slate-700 mb-1.5">Descripción <span className="text-red-500">*</span></label>
                                         <textarea
+                                            id="servicio-descripcion"
+                                            name="servicio-descripcion"
+                                            autoComplete="off"
                                             value={descripcion}
                                             onChange={e => setDescripcion(e.target.value)}
                                             maxLength={500}
@@ -477,8 +483,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Desde ($) <span className="text-red-500">*</span></label>
+                                            <label htmlFor="servicio-precio-desde" className="block text-sm font-medium text-slate-700 mb-1.5">Desde ($) <span className="text-red-500">*</span></label>
                                             <input
+                                                id="servicio-precio-desde"
+                                                name="servicio-precio-desde"
+                                                autoComplete="off"
                                                 type="text"
                                                 inputMode="numeric"
                                                 value={precioDesde ? Number(precioDesde).toLocaleString('es-CL') : ''}
@@ -489,8 +498,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Hasta ($)</label>
+                                            <label htmlFor="servicio-precio-hasta" className="block text-sm font-medium text-slate-700 mb-1.5">Hasta ($)</label>
                                             <input
+                                                id="servicio-precio-hasta"
+                                                name="servicio-precio-hasta"
+                                                autoComplete="off"
                                                 type="text"
                                                 inputMode="numeric"
                                                 value={precioHasta ? Number(precioHasta).toLocaleString('es-CL') : ''}
@@ -545,11 +557,21 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         </button>
                                                         {dayData.activo ? (
                                                             <div className="flex items-center gap-1.5 text-sm">
-                                                                <input type="time" value={dayData.desde}
+                                                                <label htmlFor={`hora-desde-${dia}`} className="sr-only">{dia}: hora de inicio</label>
+                                                                <input
+                                                                    id={`hora-desde-${dia}`}
+                                                                    name={`hora-desde-${dia}`}
+                                                                    type="time"
+                                                                    value={dayData.desde}
                                                                     onChange={e => updateDay('desde', e.target.value)}
                                                                     className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600" />
                                                                 <span className="text-slate-400 text-xs">a</span>
-                                                                <input type="time" value={dayData.hasta}
+                                                                <label htmlFor={`hora-hasta-${dia}`} className="sr-only">{dia}: hora de fin</label>
+                                                                <input
+                                                                    id={`hora-hasta-${dia}`}
+                                                                    name={`hora-hasta-${dia}`}
+                                                                    type="time"
+                                                                    value={dayData.hasta}
                                                                     onChange={e => updateDay('hasta', e.target.value)}
                                                                     className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600" />
                                                             </div>
@@ -637,7 +659,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         onClick={() => setComunaDropdownOpen(true)}
                                     >
                                         <Search size={14} className="text-slate-400 shrink-0" />
+                                        <label htmlFor="comuna-search" className="sr-only">Buscar comuna</label>
                                         <input
+                                            id="comuna-search"
+                                            name="comuna-search"
+                                            autoComplete="off"
                                             type="text"
                                             value={comunaSearch}
                                             onChange={e => { setComunaSearch(e.target.value); setComunaDropdownOpen(true); }}
@@ -697,8 +723,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     </label>
                                                 ) : campo.type === 'select' ? (
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <select
+                                                            id={`campo-${campo.key}`}
+                                                            name={`campo-${campo.key}`}
                                                             value={detalles[campo.key] || ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
@@ -711,8 +739,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     </div>
                                                 ) : campo.type === 'textarea' ? (
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <textarea
+                                                            id={`campo-${campo.key}`}
+                                                            name={`campo-${campo.key}`}
+                                                            autoComplete="off"
                                                             value={detalles[campo.key] || ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             placeholder={campo.placeholder}
@@ -722,9 +753,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     </div>
                                                 ) : campo.type === 'number' ? (
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <div className="flex items-center gap-2">
                                                             <input
+                                                                id={`campo-${campo.key}`}
+                                                                name={`campo-${campo.key}`}
+                                                                autoComplete="off"
                                                                 type="number"
                                                                 value={detalles[campo.key] || ''}
                                                                 onChange={e => setDetalle(campo.key, e.target.value ? Number(e.target.value) : '')}
@@ -737,8 +771,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     </div>
                                                 ) : (
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                        <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <input
+                                                            id={`campo-${campo.key}`}
+                                                            name={`campo-${campo.key}`}
+                                                            autoComplete="off"
                                                             type="text"
                                                             value={detalles[campo.key] || ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
