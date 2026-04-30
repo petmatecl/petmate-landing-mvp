@@ -819,8 +819,11 @@ export default function ProveedorDashboard() {
                                             <p className="text-[11px] text-slate-400 mt-1">Datos de registro. No se muestran públicamente.</p>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre público</label>
+                                            <label htmlFor="nombre-publico" className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre público</label>
                                             <input
+                                                id="nombre-publico"
+                                                name="nombre-publico"
+                                                autoComplete="off"
                                                 type="text"
                                                 value={nombrePublico}
                                                 onChange={e => setNombrePublico(e.target.value)}
@@ -903,8 +906,11 @@ export default function ProveedorDashboard() {
                                             {verificacionEstado === 'sin_enviar' && (
                                                 <div className="space-y-4">
                                                     <div>
-                                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">RUT Chileno <span className="text-red-500">*</span></label>
+                                                        <label htmlFor="verif-rut" className="block text-sm font-semibold text-slate-700 mb-1.5">RUT Chileno <span className="text-red-500">*</span></label>
                                                         <input
+                                                            id="verif-rut"
+                                                            name="verif-rut"
+                                                            autoComplete="off"
                                                             type="text"
                                                             value={rutInput}
                                                             onChange={e => {
@@ -1015,20 +1021,20 @@ export default function ProveedorDashboard() {
                                     {tipoEntidad === 'empresa' && (
                                         <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-1">Razón social *</label>
-                                                <input type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} required className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <label htmlFor="razon-social" className="block text-sm font-medium text-slate-700 mb-1">Razón social *</label>
+                                                <input id="razon-social" name="razon-social" autoComplete="organization" type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} required className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-1">RUT de la empresa *</label>
-                                                <input type="text" value={rutEmpresa} onChange={e => setRutEmpresa(e.target.value)} required maxLength={12} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <label htmlFor="rut-empresa" className="block text-sm font-medium text-slate-700 mb-1">RUT de la empresa *</label>
+                                                <input id="rut-empresa" name="rut-empresa" autoComplete="off" type="text" value={rutEmpresa} onChange={e => setRutEmpresa(e.target.value)} required maxLength={12} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-1">Nombre fantasía (marca)</label>
-                                                <input type="text" value={nombreFantasia} onChange={e => setNombreFantasia(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <label htmlFor="nombre-fantasia" className="block text-sm font-medium text-slate-700 mb-1">Nombre fantasía (marca)</label>
+                                                <input id="nombre-fantasia" name="nombre-fantasia" autoComplete="organization" type="text" value={nombreFantasia} onChange={e => setNombreFantasia(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-1">Giro o rubro</label>
-                                                <input type="text" value={giro} onChange={e => setGiro(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <label htmlFor="giro" className="block text-sm font-medium text-slate-700 mb-1">Giro o rubro</label>
+                                                <input id="giro" name="giro" autoComplete="off" type="text" value={giro} onChange={e => setGiro(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                         </div>
                                     )}
@@ -1038,8 +1044,11 @@ export default function ProveedorDashboard() {
                                     {tipoEntidad === 'persona_natural' && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ocupación o profesión</label>
+                                                <label htmlFor="ocupacion" className="block text-sm font-semibold text-slate-700 mb-1.5">Ocupación o profesión</label>
                                                 <input
+                                                    id="ocupacion"
+                                                    name="ocupacion"
+                                                    autoComplete="off"
                                                     type="text"
                                                     value={ocupacion}
                                                     onChange={e => setOcupacion(e.target.value)}
@@ -1065,8 +1074,11 @@ export default function ProveedorDashboard() {
 
                                     {/* Editables */}
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Biografía / Acerca de mí</label>
+                                        <label htmlFor="bio" className="block text-sm font-semibold text-slate-700 mb-1.5">Biografía / Acerca de mí</label>
                                         <textarea
+                                            id="bio"
+                                            name="bio"
+                                            autoComplete="off"
                                             value={bio} onChange={e => setBio(e.target.value)}
                                             rows={6} maxLength={600}
                                             placeholder="Cuéntale a los clientes sobre tu experiencia y amor por las mascotas..."
@@ -1076,15 +1088,17 @@ export default function ProveedorDashboard() {
                                     </div>
 
                                     <div className="relative">
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Comuna de Residencia <span className="text-red-500">*</span></label>
+                                        <label htmlFor="comuna" className="block text-sm font-semibold text-slate-700 mb-1.5">Comuna de Residencia <span className="text-red-500">*</span></label>
                                         <input
+                                            id="comuna"
+                                            name="comuna"
+                                            autoComplete="off"
                                             type="text"
                                             value={comuna}
                                             onChange={e => { setComuna(e.target.value); setComunaOpen(true); }}
                                             onFocus={() => setComunaOpen(true)}
                                             onBlur={() => setTimeout(() => setComunaOpen(false), 150)}
                                             placeholder="Escribe tu comuna..."
-                                            autoComplete="off"
                                             required
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                                         />
@@ -1108,12 +1122,12 @@ export default function ProveedorDashboard() {
                                     <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Credenciales y Confianza</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Años de experiencia (Gral.)</label>
-                                            <input type="number" min="0" value={aniosExperiencia} onChange={e => setAniosExperiencia(e.target.value)} placeholder="Ej: 3" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            <label htmlFor="anios-experiencia" className="block text-sm font-semibold text-slate-700 mb-1.5">Años de experiencia (Gral.)</label>
+                                            <input id="anios-experiencia" name="anios-experiencia" autoComplete="off" type="number" min="0" value={aniosExperiencia} onChange={e => setAniosExperiencia(e.target.value)} placeholder="Ej: 3" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Certificaciones Relevantes</label>
-                                            <input type="text" value={certificaciones} onChange={e => setCertificaciones(e.target.value)} placeholder="Ej: Adiestrador CCPDT, Auxiliar Veterinario..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            <label htmlFor="certificaciones" className="block text-sm font-semibold text-slate-700 mb-1.5">Certificaciones Relevantes</label>
+                                            <input id="certificaciones" name="certificaciones" autoComplete="off" type="text" value={certificaciones} onChange={e => setCertificaciones(e.target.value)} placeholder="Ej: Adiestrador CCPDT, Auxiliar Veterinario..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                     </div>
                                     <div className="mt-4">
@@ -1176,12 +1190,12 @@ export default function ProveedorDashboard() {
                                     <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Presencia Web</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Sitio Web</label>
-                                            <input type="text" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Ej: www.pawnecta.com o https://linktr.ee/tu-perfil" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            <label htmlFor="sitio-web" className="block text-sm font-semibold text-slate-700 mb-1.5">Sitio Web</label>
+                                            <input id="sitio-web" name="sitio-web" autoComplete="url" type="text" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Ej: www.pawnecta.com o https://linktr.ee/tu-perfil" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Instagram</label>
-                                            <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="Ej: @tucuenta" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            <label htmlFor="instagram" className="block text-sm font-semibold text-slate-700 mb-1.5">Instagram</label>
+                                            <input id="instagram" name="instagram" autoComplete="off" type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="Ej: @tucuenta" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                     </div>
 
@@ -1197,8 +1211,8 @@ export default function ProveedorDashboard() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">WhatsApp</label>
-                                                <input type="text" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+56912345678" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <label htmlFor="whatsapp" className="block text-sm font-semibold text-slate-700 mb-1.5">WhatsApp</label>
+                                                <input id="whatsapp" name="whatsapp" autoComplete="tel" type="text" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+56912345678" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <label className="flex items-center gap-3 cursor-pointer">
                                                 <input type="checkbox" checked={mostrarWhatsapp} onChange={e => setMostrarWhatsapp(e.target.checked)} className="w-5 h-5 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500" />
@@ -1207,8 +1221,8 @@ export default function ProveedorDashboard() {
                                         </div>
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono Alternativo</label>
-                                                <input type="text" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56912345678" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <label htmlFor="telefono" className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono Alternativo</label>
+                                                <input id="telefono" name="telefono" autoComplete="tel" type="text" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56912345678" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <label className="flex items-center gap-3 cursor-pointer">
                                                 <input type="checkbox" checked={mostrarTelefono} onChange={e => setMostrarTelefono(e.target.checked)} className="w-5 h-5 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500" />
