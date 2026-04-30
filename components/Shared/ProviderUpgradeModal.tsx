@@ -1,6 +1,5 @@
 ﻿import React, { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { validateRut, formatRut } from '../../lib/rutValidation';
 
 interface ProviderUpgradeModalProps {
     isOpen: boolean;
@@ -13,7 +12,6 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
     const [nombre, setNombre] = useState('');
     const [apellidoP, setApellidoP] = useState('');
     const [apellidoM, setApellidoM] = useState('');
-    const [rut, setRut] = useState('');
     const [telefono, setTelefono] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [comuna, setComuna] = useState('');
@@ -31,10 +29,6 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        if (!validateRut(rut)) {
-            setError('El RUT ingresado no es válido.');
-            return;
-        }
         setStep(2);
     };
 
@@ -70,7 +64,6 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                 nombre: nombre.trim(),
                 apellido_p: apellidoP.trim(),
                 apellido_m: apellidoM.trim() || null,
-                rut: formatRut(rut),
                 telefono: telefono.trim(),
                 whatsapp: whatsapp.trim() || null,
                 comuna: comuna.trim(),
@@ -152,10 +145,6 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">Apellido Materno (Opcional)</label>
                                     <input type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
-                                </div>
-                                <div className="grid gap-1">
-                                    <label className="text-sm font-semibold text-slate-700">RUT</label>
-                                    <input type="text" required value={rut} onChange={e => setRut(formatRut(e.target.value))} placeholder="12.345.678-9" className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none transition-all text-sm" />
                                 </div>
                                 <div className="grid gap-1">
                                     <label className="text-sm font-semibold text-slate-700">Teléfono</label>

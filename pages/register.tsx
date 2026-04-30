@@ -158,9 +158,6 @@ export default function RegisterWizard() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
-  // Step 2+3: RUT (common)
-  const [rut, setRut] = useState('');
-  const [rutError, setRutError] = useState('');
   const [passwordConfirmError, setPasswordConfirmError] = useState('');
 
   // Step 3: Provider Info
@@ -233,16 +230,6 @@ export default function RegisterWizard() {
       setError("Las contraseñas no coinciden.");
       return;
     }
-    if (!rut) {
-      setError("El RUT es obligatorio para registrarse.");
-      return;
-    }
-    if (!validateRut(rut)) {
-      setError("El RUT ingresado no es válido. Verifica el número y dígito verificador.");
-      setRutError("RUT inválido — verifica el número y dígito verificador.");
-      return;
-    }
-    setRutError('');
 
     if (rol === "proveedor" && tipoEntidad === "empresa") {
       if (!razonSocial || !rutEmpresa) {
@@ -311,7 +298,6 @@ export default function RegisterWizard() {
           nombre: nombre.trim(),
           apellido_p: apellidoP.trim(),
           apellido_m: apellidoM.trim() || undefined,
-          rut: formatRut(rut),
           ...(rol === 'proveedor' ? {
             comuna: comunaQuery.trim(),
             tipo_entidad: tipoEntidad,
@@ -499,37 +485,6 @@ export default function RegisterWizard() {
                 <div>
                   <label htmlFor="apellido-m" className="block text-sm font-medium text-slate-700 mb-1">Apellido Materno *</label>
                   <input id="apellido-m" name="apellido-m" autoComplete="family-name" type="text" value={apellidoM} onChange={e => setApellidoM(e.target.value)} required className={inputClass} />
-                </div>
-
-                <div>
-                  <label htmlFor="rut" className="block text-sm font-medium text-slate-700 mb-1">RUT *</label>
-                  <input
-                    id="rut"
-                    name="rut"
-                    autoComplete="off"
-                    type="text"
-                    value={rut}
-                    onChange={e => {
-                      setRut(formatRut(e.target.value));
-                      if (rutError) setRutError('');
-                    }}
-                    onBlur={() => {
-                      if (rut && !validateRut(rut)) {
-                        setRutError('RUT inválido — verifica el número y dígito verificador.');
-                      } else {
-                        setRutError('');
-                      }
-                    }}
-                    required
-                    placeholder="12.345.678-9"
-                    maxLength={12}
-                    className={`${inputClass} ${rutError ? 'border-red-400 focus:ring-red-400 focus:border-red-400' : ''}`}
-                  />
-                  {rutError ? (
-                    <p className="text-xs text-red-600 mt-1 font-medium">{rutError}</p>
-                  ) : (
-                    <p className="text-xs text-slate-500 mt-1">Solo lo usamos para verificar tu identidad. No se muestra públicamente.</p>
-                  )}
                 </div>
 
                 <div>
