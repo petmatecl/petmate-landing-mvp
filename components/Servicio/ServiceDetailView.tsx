@@ -74,6 +74,7 @@ export interface ServiceDetailViewProps {
     service: any;
     reviews: any[];
     otrosServicios: ServiceResult[];
+    isExample?: boolean;
 }
 
 const SLUG_ICONS: Record<string, LucideIcon> = {
@@ -88,7 +89,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
     fotografia: Camera,
 };
 
-export default function ServiceDetailView({ service, reviews, otrosServicios }: ServiceDetailViewProps) {
+export default function ServiceDetailView({ service, reviews, otrosServicios, isExample = false }: ServiceDetailViewProps) {
     const router = useRouter();
     const [fotoActiva, setFotoActiva] = useState(0);
     const [loginModalOpen, setLoginModalOpen] = useState(false);
