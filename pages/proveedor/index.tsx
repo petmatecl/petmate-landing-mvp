@@ -7,6 +7,7 @@ import { getProxyImageUrl } from '../../lib/utils';
 import { useProveedorStats } from '../../lib/useProveedorStats';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
+import VerificationGateModal from '../../components/Proveedor/VerificationGateModal';
 import ConversationList from '../../components/Chat/ConversationList';
 import MessageThread from '../../components/Chat/MessageThread';
 import ReviewSummary from '../../components/Service/ReviewSummary';
@@ -111,6 +112,24 @@ export default function ProveedorDashboard() {
     const [carnetDorsoFile, setCarnetDorsoFile] = useState<File | null>(null);
     const [carnetDorsoPreview, setCarnetDorsoPreview] = useState<string | null>(null);
     const [uploadingCarnet, setUploadingCarnet] = useState(false);
+    const [showVerificationGate, setShowVerificationGate] = useState(false);
+
+    const handlePublishClick = () => {
+        if (verificacionEstado !== 'aprobado') {
+            setShowVerificationGate(true);
+            return;
+        }
+        setEditingServiceId(null);
+        setIsServiceModalOpen(true);
+    };
+
+    const handleGoToVerification = () => {
+        setShowVerificationGate(false);
+        setActiveTab('perfil');
+        setTimeout(() => {
+            document.getElementById('verificacion-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
 
     useEffect(() => {
         if (userLoading) return;
@@ -680,7 +699,7 @@ export default function ProveedorDashboard() {
                             <div className="flex justify-between items-center mb-8">
                                 <h1 className="text-2xl font-black text-slate-900">Mis Servicios</h1>
                                 <button
-                                    onClick={() => { setEditingServiceId(null); setIsServiceModalOpen(true); }}
+                                    onClick={handlePublishClick}
                                     className="bg-[#1A6B4A] hover:bg-emerald-800 text-white font-bold py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
                                 >
                                     <span>+</span><span className="hidden sm:inline">Publicar nuevo servicio</span><span className="sm:hidden">Nuevo</span>
@@ -695,7 +714,7 @@ export default function ProveedorDashboard() {
                                     <h3 className="text-lg font-bold text-slate-800 mb-2">No tienes servicios publicados</h3>
                                     <p className="text-slate-500 mb-6">Ofrece hospedaje, guardería, paseos o visitas para empezar a ganar clientes.</p>
                                     <button
-                                        onClick={() => { setEditingServiceId(null); setIsServiceModalOpen(true); }}
+                                        onClick={handlePublishClick}
                                         className="bg-emerald-700 hover:bg-emerald-800 transition-colors text-white font-bold py-2.5 px-6 rounded-xl"
                                     >
                                         Crear mi primer servicio
@@ -836,7 +855,7 @@ export default function ProveedorDashboard() {
                                     </div>
 
                                     {/* === P12: VERIFICACIÓN DE IDENTIDAD === */}
-                                    <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                                    <div id="verificacion-section" className="border border-slate-200 rounded-2xl overflow-hidden">
                                         <div className="flex items-center gap-3 p-5 border-b border-slate-100 bg-slate-50/50">
                                             {verificacionEstado === 'aprobado'
                                                 ? <ShieldCheck size={22} className="text-emerald-700" />
@@ -1366,6 +1385,13 @@ export default function ProveedorDashboard() {
 
                 </div>
             </div>
+            <VerificationGateModal
+                isOpen={showVerificationGate}
+                onClose={() => setShowVerificationGate(false)}
+                verificacionEstado={verificacionEstado}
+                verificacionNota={verificacionNota}
+                onGoToVerification={handleGoToVerification}
+            />
             <Toaster position="top-center" richColors />
         </>
     );
