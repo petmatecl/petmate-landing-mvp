@@ -81,7 +81,7 @@ export default function Header() {
         </div>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-3 sm:flex">
+        <nav aria-label="Navegación principal" className="hidden items-center gap-3 sm:flex">
           <Link
             href="/blog"
             className="text-sm font-semibold text-gray-600 hover:text-emerald-700 mr-4"

@@ -41,11 +41,11 @@ export default function ServiceCard({ service }: { service: any }) {
                 </div>
             </div>
             <div className="p-5 flex flex-col flex-1">
-                <h3 className="font-bold text-slate-900 text-lg mb-2 line-clamp-2">{service.titulo}</h3>
+                <h3 title={service.titulo} className="font-bold text-slate-900 text-lg mb-2 line-clamp-2">{service.titulo}</h3>
 
                 <div className="flex items-center gap-2 mb-4 text-slate-500 text-sm font-medium">
                     <MapPin className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span className="truncate">{service.proveedor_comuna || 'Comuna no especificada'}</span>
+                    <span title={service.proveedor_comuna || 'Comuna no especificada'} className="truncate">{service.proveedor_comuna || 'Comuna no especificada'}</span>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">

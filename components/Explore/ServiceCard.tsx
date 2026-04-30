@@ -156,7 +156,7 @@ export default function ServiceCard({ service, isFavorite }: Props) {
 
                 {/* Encabezado: Titulo y Rating */}
                 <div className="flex justify-between items-start gap-3 mb-2">
-                    <h3 className="font-bold text-lg leading-tight text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                    <h3 title={service.titulo} className="font-bold text-lg leading-tight text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
                         {service.titulo}
                     </h3>
                     <div className="flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2 py-1 rounded-lg shrink-0">
@@ -175,7 +175,7 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                             <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         )}
                     </div>
-                    <p className="text-sm text-slate-500 font-medium truncate">
+                    <p title={`${service.proveedor_nombre} • ${service.proveedor_comuna}`} className="text-sm text-slate-500 font-medium truncate">
                         {service.proveedor_nombre} <span className="text-slate-300 mx-1">•</span> {service.proveedor_comuna}
                     </p>
                     {service.proveedor_updated_at && (
