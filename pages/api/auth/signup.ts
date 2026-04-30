@@ -10,7 +10,7 @@ const signupSchema = z.object({
   nombre: z.string().min(1).max(100),
   apellido_p: z.string().min(1).max(100),
   apellido_m: z.string().max(100).optional(),
-  rut: z.string().min(3).max(12),
+  rut: z.string().min(3).max(12).optional(),
   // Provider-specific (optional)
   comuna: z.string().max(100).optional(),
   tipo_entidad: z.enum(['persona_natural', 'empresa']).optional(),
@@ -88,7 +88,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { error: insertError } = await supabaseAdmin.from('usuarios_buscadores').insert([{
           auth_user_id: userId,
           nombre: `${nombre.trim()} ${apellido_p.trim()}${apellido_m ? ' ' + apellido_m.trim() : ''}`,
-          rut,
         }]);
         if (insertError) throw new Error('Error guardando datos de usuario: ' + insertError.message);
       } else {
@@ -97,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           p_nombre: nombre.trim(),
           p_apellido_p: apellido_p.trim(),
           p_apellido_m: apellido_m?.trim() || null,
-          p_rut: rut,
+          p_rut: rut || null,
           p_comuna: comuna?.trim() || null,
           p_tipo_entidad: tipo_entidad || 'persona_natural',
           p_razon_social: tipo_entidad === 'empresa' ? razon_social?.trim() || null : null,
