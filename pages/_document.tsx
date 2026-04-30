@@ -4,7 +4,6 @@ export default function Document() {
     return (
         <Html lang="es">
             <Head>
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon_sin_fondo_png.png" type="image/png" />
                 <link rel="apple-touch-icon" href="/favicon_sin_fondo_png.png" />
                 <link rel="manifest" href="/manifest.json" />

@@ -1,4 +1,5 @@
 import type { AppProps } from "next/app";
+import Head from "next/head";
 import { UserContextProvider } from "../contexts/UserContext";
 import Script from "next/script";
 import { useRouter } from "next/router";
@@ -45,6 +46,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <UserContextProvider>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
       <OnlineStatusProvider>
         <div className="min-h-screen flex flex-col bg-slate-50">
           <RoleSelectionInterceptor />
