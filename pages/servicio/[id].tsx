@@ -349,6 +349,21 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                         })
                     }}
                 />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'BreadcrumbList',
+                            itemListElement: [
+                                { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://www.pawnecta.com/' },
+                                { '@type': 'ListItem', position: 2, name: 'Explorar', item: 'https://www.pawnecta.com/explorar' },
+                                { '@type': 'ListItem', position: 3, name: categoria.nombre, item: `https://www.pawnecta.com/explorar?categoria=${categoria.slug}` },
+                                { '@type': 'ListItem', position: 4, name: service.titulo },
+                            ],
+                        })
+                    }}
+                />
             </Head>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
