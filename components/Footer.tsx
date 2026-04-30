@@ -161,6 +161,13 @@ export function Footer() {
             <Link href="/terminos" className="hover:text-emerald-700 transition-colors">Términos y Condiciones</Link>
             <span className="text-slate-300">·</span>
             <Link href="/privacidad" className="hover:text-emerald-700 transition-colors">Política de Privacidad</Link>
+            <span className="text-slate-300">·</span>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-settings'))}
+              className="hover:text-emerald-700 transition-colors text-left"
+            >
+              Configurar cookies
+            </button>
           </div>
           <div className="flex items-center gap-2">
             {socialLinks.map(({ name, href, Icon }) => (
