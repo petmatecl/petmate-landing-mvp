@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
+import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
 import ReviewModal from '../Service/ReviewModal';
 import ReviewForm from '../Service/ReviewForm';
 import ReviewSummary from '../Service/ReviewSummary';
@@ -96,6 +97,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [imgError, setImgError] = useState(false);
+    const [exampleModalAction, setExampleModalAction] = useState<ExampleAction | null>(null);
 
     // Use shared UserContext — avoids double session fetch
     const { user, isLoading: isUserLoading } = useUser();
@@ -103,7 +105,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     // Check if this user already reviewed this service
     const [yaEvaluo, setYaEvaluo] = useState(false);
     React.useEffect(() => {
-        if (!user || !service?.id) return;
+        if (isExample || !user || !service?.id) return;
         supabase
             .from('evaluaciones')
             .select('id')
@@ -111,11 +113,11 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
             .eq('usuario_id', user.id)
             .maybeSingle()
             .then(({ data }) => setYaEvaluo(!!data));
-    }, [user, service?.id]);
+    }, [isExample, user, service?.id]);
 
     // Tracking: registrar vista al entrar a la pagina
     React.useEffect(() => {
-        if (!service?.id) return;
+        if (isExample || !service?.id) return;
         // Fire-and-forget — no bloquea el render
         void supabase.from('eventos_tracking').insert({
             tipo: 'vista_servicio',
@@ -124,7 +126,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
         });
         // Incrementar contador de vistas en servicios_publicados
         void supabase.rpc('incrementar_vistas', { p_servicio_id: service.id });
-    }, [service?.id]);
+    }, [isExample, service?.id]);
 
     // Derived state
     const proveedor = service.proveedores;
@@ -155,6 +157,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     };
 
     const handleChatClick = async () => {
+        if (isExample) { setExampleModalAction('mensaje'); return; }
         setIsChatLoading(true);
 
         // Fresh session check — context might be stale
@@ -232,6 +235,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
     const handleWhatsApp = async (e?: React.MouseEvent) => {
         e?.preventDefault();
+        if (isExample) { setExampleModalAction('whatsapp'); return; }
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) {
             setLoginModalOpen(true);
@@ -251,6 +255,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     };
 
     const handleProtectedLinkClick = (e: React.MouseEvent) => {
+        if (isExample) { e.preventDefault(); setExampleModalAction('mensaje'); return; }
         if (!user) {
             e.preventDefault();
             setLoginModalOpen(true);
@@ -258,11 +263,13 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     };
 
     const handleCallClick = (e: React.MouseEvent) => {
+        if (isExample) { e.preventDefault(); setExampleModalAction('llamar'); return; }
         if (!user) { e.preventDefault(); setLoginModalOpen(true); return; }
         trackContacto('llamada');
     };
 
     const handleLeaveReview = async () => {
+        if (isExample) { setExampleModalAction('evaluar'); return; }
         if (yaEvaluo) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
@@ -773,6 +780,8 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             servicioId={service.id}
                             proveedorId={proveedor.id}
                             proveedorAuthId={proveedor.auth_user_id}
+                            isExample={isExample}
+                            onExampleAction={() => setExampleModalAction('pregunta')}
                         />
 
                     </div>
@@ -979,6 +988,11 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                 servicioId={service.id}
                 proveedorId={proveedor.id}
                 serviceTitle={service.titulo}
+            />
+            <ExampleCTAModal
+                isOpen={exampleModalAction !== null}
+                onClose={() => setExampleModalAction(null)}
+                action={exampleModalAction ?? undefined}
             />
         </div>
     );

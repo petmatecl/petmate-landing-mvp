@@ -10,12 +10,14 @@ interface Props {
     servicioId: string;
     proveedorId: string;
     proveedorAuthId: string;
+    isExample?: boolean;
+    onExampleAction?: () => void;
 }
 
-export default function PreguntasSection({ servicioId, proveedorId, proveedorAuthId }: Props) {
+export default function PreguntasSection({ servicioId, proveedorId, proveedorAuthId, isExample = false, onExampleAction }: Props) {
     const { user } = useUser();
     const [preguntas, setPreguntas] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!isExample);
     const [pregunta, setPregunta] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [showAll, setShowAll] = useState(false);
@@ -26,8 +28,9 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
     const isProveedor = user?.id === proveedorAuthId;
 
     useEffect(() => {
+        if (isExample) return;
         fetchPreguntas();
-    }, [servicioId]);
+    }, [servicioId, isExample]);
 
     const fetchPreguntas = async () => {
         const { data } = await supabase
@@ -41,6 +44,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isExample) { onExampleAction?.(); return; }
         if (!user) { toast.error('Inicia sesión para hacer una pregunta'); return; }
         if (!pregunta.trim()) return;
         if (pregunta.trim().length < 10) { toast.error('La pregunta debe tener al menos 10 caracteres'); return; }
