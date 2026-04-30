@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useState } from "react";
-import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, HelpCircle, Search } from "lucide-react";
 
 const faqs = [
     {
@@ -47,6 +47,16 @@ const faqs = [
 
 export default function FAQ() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
+    const [query, setQuery] = useState("");
+
+    const filteredFaqs = query.trim() === ""
+        ? faqs.map((faq, index) => ({ ...faq, originalIndex: index }))
+        : faqs
+            .map((faq, index) => ({ ...faq, originalIndex: index }))
+            .filter(faq =>
+                faq.question.toLowerCase().includes(query.toLowerCase()) ||
+                faq.answer.toLowerCase().includes(query.toLowerCase())
+            );
 
     const toggleFAQ = (index: number) => {
         setOpenIndex(openIndex === index ? null : index);
@@ -73,8 +83,36 @@ export default function FAQ() {
                         </p>
                     </div>
 
+                    {/* Buscador */}
+                    <div className="relative mb-8">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+                        <label htmlFor="faq-search" className="sr-only">Buscar en preguntas frecuentes</label>
+                        <input
+                            id="faq-search"
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Busca una pregunta o palabra clave..."
+                            className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-2xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder:text-slate-400 transition-colors"
+                        />
+                    </div>
+
                     <div className="space-y-4">
-                        {faqs.map((faq, index) => (
+                        {filteredFaqs.length === 0 ? (
+                            <div className="text-center py-12 bg-white rounded-2xl border border-slate-200">
+                                <p className="text-slate-500 text-sm mb-3">
+                                    No se encontraron preguntas que coincidan con &ldquo;{query}&rdquo;
+                                </p>
+                                <button
+                                    onClick={() => setQuery("")}
+                                    className="text-sm text-emerald-700 hover:text-emerald-800 font-medium underline underline-offset-2"
+                                >
+                                    Limpiar búsqueda
+                                </button>
+                            </div>
+                        ) : filteredFaqs.map((faq) => {
+                            const index = faq.originalIndex;
+                            return (
                             <div
                                 key={index}
                                 className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
@@ -108,7 +146,8 @@ export default function FAQ() {
                                     {faq.answer}
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     <div className="mt-12 text-center bg-white p-8 rounded-2xl border-2 border-slate-300 shadow-sm">
