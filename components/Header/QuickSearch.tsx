@@ -52,7 +52,9 @@ export default function QuickSearch() {
                 <button
                     onClick={() => setIsOpenMobile(!isOpenMobile)}
                     className="p-2 text-slate-500 hover:text-emerald-700 focus:outline-none rounded-full focus:bg-slate-100"
-                    aria-label="Search"
+                    aria-label="Buscar"
+                    aria-expanded={isOpenMobile}
+                    aria-controls="quick-search-mobile-panel"
                 >
                     <Search size={20} />
                 </button>
@@ -60,7 +62,7 @@ export default function QuickSearch() {
 
             {/* Mobile Unfolded View */}
             {isOpenMobile && (
-                <div className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 px-4 py-3 sm:hidden z-50 animate-in slide-in-from-top-2">
+                <div id="quick-search-mobile-panel" role="region" aria-label="Buscador de servicios" className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 px-4 py-3 sm:hidden z-50 animate-in slide-in-from-top-2">
                     <form onSubmit={handleSubmit} className="relative w-full flex">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search size={16} className="text-slate-400" />

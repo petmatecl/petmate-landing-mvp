@@ -115,6 +115,10 @@ export default function NotificationBell() {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-label="Notificaciones"
+                aria-haspopup="menu"
+                aria-expanded={isOpen}
+                aria-controls="notification-bell-menu"
                 className="relative p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
             >
                 <Bell size={20} />
@@ -131,7 +135,7 @@ export default function NotificationBell() {
                         onClick={() => setIsOpen(false)}
                     />
 
-                    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div id="notification-bell-menu" role="menu" aria-label="Lista de notificaciones" className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
                             <h3 className="font-bold text-slate-900">Notificaciones</h3>
                             <div className="flex items-center gap-3">

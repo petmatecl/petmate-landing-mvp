@@ -101,6 +101,11 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
             <div className="relative">
                 <input
                     type="text"
+                    role="combobox"
+                    aria-expanded={isOpen && results.length > 0}
+                    aria-controls="address-autocomplete-listbox"
+                    aria-autocomplete="list"
+                    aria-haspopup="listbox"
                     className="w-full text-sm rounded-lg px-3 py-2 border-2 border-slate-300 outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all pl-9"
                     placeholder={placeholder}
                     value={query}
@@ -123,11 +128,13 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
             </div>
 
             {isOpen && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white rounded-xl shadow-xl border-2 border-slate-300 max-h-60 overflow-y-auto">
+                <div id="address-autocomplete-listbox" role="listbox" aria-label="Sugerencias de dirección" className="absolute top-full left-0 right-0 z-50 mt-1 bg-white rounded-xl shadow-xl border-2 border-slate-300 max-h-60 overflow-y-auto">
                     {results.map((result, idx) => (
                         <button
                             key={idx}
                             type="button"
+                            role="option"
+                            aria-selected={false}
                             onClick={() => handleSelect(result)}
                             className="w-full text-left px-4 py-3 text-xs hover:bg-emerald-50 border-b border-slate-50 last:border-0 flex flex-col gap-0.5 group"
                         >

@@ -42,6 +42,9 @@ export default function FeedbackWidget() {
             {!open && (
                 <button
                     onClick={() => setOpen(true)}
+                    aria-haspopup="dialog"
+                    aria-expanded={false}
+                    aria-controls="feedback-widget-panel"
                     className="fixed bottom-6 left-6 z-40 flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:border-emerald-300 px-4 py-2.5 rounded-full shadow-lg text-sm font-medium transition-colors"
                 >
                     <MessageCircle size={16} />
@@ -51,11 +54,11 @@ export default function FeedbackWidget() {
 
             {/* Panel */}
             {open && (
-                <div className="fixed bottom-6 left-6 z-50 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+                <div id="feedback-widget-panel" role="dialog" aria-label="Enviar feedback" aria-modal="false" className="fixed bottom-6 left-6 z-50 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                         <h3 className="text-sm font-bold text-slate-900">Tu opinión nos importa</h3>
-                        <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">
+                        <button onClick={() => setOpen(false)} aria-label="Cerrar feedback" className="text-slate-400 hover:text-slate-600">
                             <X size={16} />
                         </button>
                     </div>

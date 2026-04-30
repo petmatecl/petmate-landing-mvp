@@ -193,6 +193,7 @@ export default function Header() {
           onClick={() => setOpen((v) => !v)}
           className="inline-flex items-center justify-center rounded-xl border p-2 text-gray-700 sm:hidden"
           aria-label="Abrir menú"
+          aria-haspopup="menu"
           aria-expanded={open}
           aria-controls="mobile-menu"
         >
@@ -224,7 +225,7 @@ export default function Header() {
 
       {/* Menú mobile */}
       {open && (
-        <div id="mobile-menu" className="border-t bg-white sm:hidden">
+        <div id="mobile-menu" role="menu" aria-label="Menú principal" className="border-t bg-white sm:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3">
             {(!isAuthenticated || loggingOut) ? (
               <>

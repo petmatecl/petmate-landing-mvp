@@ -83,6 +83,9 @@ export default function FAQ() {
                                     }`}
                             >
                                 <button
+                                    id={`faq-button-${index}`}
+                                    aria-expanded={openIndex === index}
+                                    aria-controls={`faq-panel-${index}`}
                                     onClick={() => toggleFAQ(index)}
                                     className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
                                 >
@@ -96,6 +99,9 @@ export default function FAQ() {
                                     )}
                                 </button>
                                 <div
+                                    id={`faq-panel-${index}`}
+                                    role="region"
+                                    aria-labelledby={`faq-button-${index}`}
                                     className={`px-5 pb-5 text-slate-600 leading-relaxed transition-all duration-300 ease-in-out ${openIndex === index ? "block opacity-100" : "hidden opacity-0"
                                         }`}
                                 >

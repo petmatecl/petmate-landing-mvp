@@ -122,6 +122,10 @@ export default function NotificationCenter({ userId }: Props) {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-label="Notificaciones"
+                aria-haspopup="menu"
+                aria-expanded={isOpen}
+                aria-controls="notification-center-menu"
                 className="relative p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-all"
             >
                 <Bell size={20} />
@@ -133,7 +137,7 @@ export default function NotificationCenter({ userId }: Props) {
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div id="notification-center-menu" role="menu" aria-label="Lista de notificaciones" className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-3 border-b border-slate-300 flex justify-between items-center bg-slate-50">
                             <h3 className="text-sm font-bold text-slate-900">Notificaciones</h3>
                             {unreadCount > 0 && (

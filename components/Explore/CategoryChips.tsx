@@ -66,6 +66,9 @@ export default function CategorySelect({ categories, selectedCategories, onChang
             <button
                 type="button"
                 onClick={() => setOpen(v => !v)}
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                aria-controls="category-chips-listbox"
                 className={`flex items-center gap-2 h-10 pl-3 pr-3 rounded-xl border text-sm font-medium transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 ${isActive
                     ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-sm'
                     : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-white'
@@ -80,10 +83,12 @@ export default function CategorySelect({ categories, selectedCategories, onChang
             </button>
 
             {open && (
-                <div className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                <div id="category-chips-listbox" role="listbox" aria-multiselectable="true" aria-label="Filtrar por categorías" className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                     {/* "Todas" option */}
                     <button
                         type="button"
+                        role="option"
+                        aria-selected={selectedCategories.length === 0}
                         onMouseDown={e => { e.preventDefault(); clearAll(); setOpen(false); }}
                         className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold border-b border-slate-100 transition-colors ${selectedCategories.length === 0
                             ? 'bg-emerald-50 text-emerald-800'
@@ -105,6 +110,8 @@ export default function CategorySelect({ categories, selectedCategories, onChang
                                 <button
                                     key={cat.id}
                                     type="button"
+                                    role="option"
+                                    aria-selected={checked}
                                     onMouseDown={e => { e.preventDefault(); toggle(cat.slug); }}
                                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${checked
                                         ? 'bg-emerald-50 text-emerald-800'
