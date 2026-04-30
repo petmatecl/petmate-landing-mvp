@@ -232,7 +232,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 <button
                     type="submit"
                     disabled={isSubmitting || rating === 0 || comentario.trim().length < 20 || comentario.length > 500}
-                    className="w-full sm:w-auto self-end bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-xl flex items-center justify-center gap-2 transition-all mt-2"
+                    className="w-full sm:w-auto self-end bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:hover:bg-emerald-800 text-white font-bold py-3 px-8 rounded-xl flex items-center justify-center gap-2 transition-all mt-2"
                 >
                     {isSubmitting ? (
                         <>

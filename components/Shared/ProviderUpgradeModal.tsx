@@ -171,7 +171,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                                 </div>
                             </div>
 
-                            <button type="submit" className="w-full h-12 mt-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-sm">
+                            <button type="submit" className="w-full h-12 mt-4 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition shadow-sm">
                                 Siguiente
                             </button>
                         </form>
@@ -200,7 +200,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                                 <button type="button" onClick={() => setStep(1)} disabled={loading} className="w-1/3 h-12 border border-slate-300 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition">
                                     Atrás
                                 </button>
-                                <button type="submit" disabled={loading} className="w-2/3 h-12 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-2">
+                                <button type="submit" disabled={loading} className="w-2/3 h-12 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-2">
                                     {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : null}
                                     {loading ? 'Procesando...' : 'Enviar Solicitud'}
                                 </button>

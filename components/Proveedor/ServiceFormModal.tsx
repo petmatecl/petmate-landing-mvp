@@ -772,7 +772,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             <img src={url} alt={"Foto " + (i + 1)} className="w-full h-full object-cover" />
 
                                             {i === 0 && (
-                                                <div className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                                                <div className="absolute top-1.5 left-1.5 bg-emerald-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
                                                     PORTADA
                                                 </div>
                                             )}
@@ -873,7 +873,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     <button
                         onClick={handleSubmit}
                         disabled={loading || fetching || uploadingFotos}
-                        className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-2.5 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2"
                     >
                         {loading && <Loader2 size={16} className="animate-spin" />}
                         {existingServiceId ? 'Guardar Cambios' : 'Publicar Servicio'}

@@ -99,7 +99,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                                                 <button
                                                                     onClick={() => handleSubmitReply(ev.id)}
                                                                     disabled={!replyTexts[ev.id]?.trim() || submitting === ev.id}
-                                                                    className="flex items-center gap-1.5 text-sm font-bold bg-emerald-600 text-white px-4 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                                                    className="flex items-center gap-1.5 text-sm font-bold bg-emerald-700 text-white px-4 py-1.5 rounded-lg hover:bg-emerald-800 transition-colors disabled:opacity-50"
                                                                 >
                                                                     {submitting === ev.id && <Loader2 size={12} className="animate-spin" />}
                                                                     Publicar respuesta

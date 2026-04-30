@@ -248,7 +248,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
 
                                         <Link
                                             href={`/proveedor/${s.proveedor_id}`}
-                                            className="block w-full py-2 bg-emerald-600 text-white text-center rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+                                            className="block w-full py-2 bg-emerald-700 text-white text-center rounded-xl text-sm font-bold hover:bg-emerald-800 transition-colors shadow-sm"
                                         >
                                             Ver perfil completo
                                         </Link>

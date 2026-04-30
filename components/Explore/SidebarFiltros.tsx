@@ -173,7 +173,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                         }`}
                 >
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${filters.categorias.length === 0 ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${filters.categorias.length === 0 ? 'bg-emerald-700 border-emerald-600' : 'border-slate-300'
                         }`}>
                         {filters.categorias.length === 0 && <Check size={10} strokeWidth={3} className="text-white" />}
                     </div>
@@ -196,7 +196,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                                     }`}
                             >
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300'
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-700 border-emerald-600' : 'border-slate-300'
                                     }`}>
                                     {checked && <Check size={10} strokeWidth={3} className="text-white" />}
                                 </div>

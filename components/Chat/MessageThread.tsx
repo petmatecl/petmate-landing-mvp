@@ -327,7 +327,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                             <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                 <div
                                     className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-sm text-sm ${isMe
-                                        ? 'bg-emerald-600 text-white rounded-tr-none'
+                                        ? 'bg-emerald-700 text-white rounded-tr-none'
                                         : 'bg-white text-slate-800 rounded-tl-none border-2 border-slate-300'
                                         } ${isTemp ? 'opacity-70' : ''}`}
                                 >
@@ -383,7 +383,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     <button
                         type="submit"
                         disabled={!newMessage.trim()}
-                        className="bg-emerald-600 text-white p-3 rounded-full hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/20 active:scale-95 flex items-center justify-center shrink-0"
+                        className="bg-emerald-700 text-white p-3 rounded-full hover:bg-emerald-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/20 active:scale-95 flex items-center justify-center shrink-0"
                     >
                         <Send size={18} />
                     </button>

@@ -295,7 +295,7 @@ export default function ProveedorApprovalList() {
                                     </div>
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobar(prov)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
                                             <Check size={18} /> <span className="hidden sm:inline">Aprobar</span>
                                         </button>
                                         <button onClick={() => setRejectingId(prov.id)} disabled={isSubmitting}
@@ -391,7 +391,7 @@ export default function ProveedorApprovalList() {
                                     {/* Actions */}
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobarVerif(prov)} disabled={isSubmitting || !prov.foto_carnet}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
                                             <ShieldCheck size={16} /> <span className="hidden sm:inline">Verificar</span>
                                         </button>
                                         <button onClick={() => setRejectingVerifId(prov.id)} disabled={isSubmitting}

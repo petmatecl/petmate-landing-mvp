@@ -437,7 +437,7 @@ export default function DashboardContent() {
                             </p>
                             <Link
                                 href="/explorar"
-                                className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+                                className="bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-800 transition-colors shadow-sm"
                             >
                                 Buscar proveedores
                             </Link>

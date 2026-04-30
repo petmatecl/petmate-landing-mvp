@@ -34,7 +34,7 @@ export default function ModalAlert({ isOpen, onClose, title, message, type = 'wa
 
                 <button
                     onClick={onClose}
-                    className="w-full inline-flex justify-center rounded-xl bg-emerald-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                    className="w-full inline-flex justify-center rounded-xl bg-emerald-700 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                 >
                     Entendido
                 </button>

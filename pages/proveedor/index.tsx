@@ -663,7 +663,7 @@ export default function ProveedorDashboard() {
                                             <span className="text-sm font-bold text-emerald-700">{score}%</span>
                                         </div>
                                         <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-emerald-600 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
+                                            <div className="h-full bg-emerald-700 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
                                         </div>
                                         <div className="mt-4 space-y-2">
                                             {pendientes.map(p => (
@@ -696,7 +696,7 @@ export default function ProveedorDashboard() {
                                     <p className="text-slate-500 mb-6">Ofrece hospedaje, guardería, paseos o visitas para empezar a ganar clientes.</p>
                                     <button
                                         onClick={() => { setEditingServiceId(null); setIsServiceModalOpen(true); }}
-                                        className="bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-bold py-2.5 px-6 rounded-xl"
+                                        className="bg-emerald-700 hover:bg-emerald-800 transition-colors text-white font-bold py-2.5 px-6 rounded-xl"
                                     >
                                         Crear mi primer servicio
                                     </button>
@@ -1340,7 +1340,7 @@ export default function ProveedorDashboard() {
                                     {/* Emerald Progress Bar */}
                                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                                         <div
-                                            className="bg-emerald-600 h-full rounded-full transition-all duration-500"
+                                            className="bg-emerald-700 h-full rounded-full transition-all duration-500"
                                             style={{ width: `${stats.totalActivos > 0 ? (stats.activos / stats.totalActivos) * 100 : 0}%` }}
                                         ></div>
                                     </div>

@@ -257,7 +257,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                         }}
                         className={`px-6 py-2 rounded-lg text-white font-bold text-sm shadow-sm transition-all ${sitter.aprobado
                             ? "bg-red-500 hover:bg-red-600 ring-4 ring-red-500/20"
-                            : "bg-emerald-600 hover:bg-emerald-700 ring-4 ring-emerald-600/20"
+                            : "bg-emerald-700 hover:bg-emerald-800 ring-4 ring-emerald-600/20"
                             }`}
                     >
                         {sitter.aprobado ? "Revocar Aprobación" : "Aprobar Proveedor"}

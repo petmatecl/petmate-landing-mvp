@@ -153,7 +153,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
             {/* Botón buscar */}
             <button
                 type="submit"
-                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 sm:py-2.5 sm:my-1.5 sm:mr-1.5 rounded-xl transition-colors shrink-0 text-sm"
+                className="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3 sm:py-2.5 sm:my-1.5 sm:mr-1.5 rounded-xl transition-colors shrink-0 text-sm"
             >
                 <Search className="w-5 h-5" />
                 <span>Buscar</span>

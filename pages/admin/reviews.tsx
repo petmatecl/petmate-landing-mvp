@@ -110,7 +110,7 @@ export default function AdminReviews() {
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-700 transition"
+                        className="flex items-center gap-2 bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-800 transition"
                     >
                         <Plus size={20} />
                         Generar Review
@@ -129,7 +129,7 @@ export default function AdminReviews() {
                             key={f.id}
                             onClick={() => setFilter(f.id as any)}
                             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === f.id
-                                ? 'bg-emerald-600 text-white shadow-md'
+                                ? 'bg-emerald-700 text-white shadow-md'
                                 : 'bg-white text-slate-600 border-2 border-slate-300 hover:bg-slate-50'
                                 }`}
                         >
@@ -372,7 +372,7 @@ export default function AdminReviews() {
 
                             <div className="flex justify-end pt-4 gap-3">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">Cancelar</button>
-                                <button type="submit" className="px-6 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-600/20">Crear Review</button>
+                                <button type="submit" className="px-6 py-2 bg-emerald-700 text-white rounded-lg text-sm font-bold hover:bg-emerald-800 shadow-lg shadow-emerald-600/20">Crear Review</button>
                             </div>
                         </form>
                     </div>

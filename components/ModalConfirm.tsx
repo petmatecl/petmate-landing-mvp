@@ -52,7 +52,7 @@ export default function ModalConfirm({
                         onClick={onConfirm}
                         className={`flex-1 justify-center rounded-xl px-3 py-3 text-sm font-semibold text-white shadow-sm transition-colors ${isDestructive
                                 ? 'bg-red-600 hover:bg-red-500'
-                                : 'bg-emerald-600 hover:bg-emerald-500'
+                                : 'bg-emerald-700 hover:bg-emerald-500'
                             }`}
                     >
                         {confirmText}

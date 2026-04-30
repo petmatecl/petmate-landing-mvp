@@ -90,7 +90,7 @@ export default function PushNotifications() {
             </div>
             <button
                 onClick={subscribeToPush}
-                className="w-full mt-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow-sm"
+                className="w-full mt-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow-sm"
             >
                 Activar notificaciones
             </button>

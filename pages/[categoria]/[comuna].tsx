@@ -148,7 +148,7 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                             </p>
                             <Link
                                 href={`/explorar?categoria=${categoria.slug}`}
-                                className="inline-flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
                             >
                                 Ver todos los proveedores de {categoria.nombre}
                             </Link>

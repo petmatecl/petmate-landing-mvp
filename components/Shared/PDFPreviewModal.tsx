@@ -54,7 +54,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                                         {onDownload && (
                                             <button
                                                 onClick={onDownload}
-                                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors text-sm"
+                                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition-colors text-sm"
                                             >
                                                 <Download size={16} /> Descargar
                                             </button>
@@ -84,7 +84,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                                     <div className="sm:hidden p-4 border-t border-slate-300 bg-white">
                                         <button
                                             onClick={onDownload}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
                                         >
                                             <Download size={18} /> Descargar PDF
                                         </button>

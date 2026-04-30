@@ -406,7 +406,7 @@ export default function GestionProveedores() {
                             </p>
                             <div className="flex gap-3">
                                 <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200">Cancelar</button>
-                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-50">
+                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-bold hover:bg-emerald-800 disabled:opacity-50">
                                     {actionLoading ? 'Procesando...' : 'Sí, Aprobar'}
                                 </button>
                             </div>
@@ -474,7 +474,7 @@ export default function GestionProveedores() {
                                 <button
                                     onClick={() => updateStatusSimple(modalConfig.prov.id, modalConfig.type === 'suspender' ? 'suspendido' : 'aprobado')}
                                     disabled={actionLoading}
-                                    className={`flex-1 px-4 py-2.5 rounded-xl font-bold text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                                    className={`flex-1 px-4 py-2.5 rounded-xl font-bold text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-700 hover:bg-emerald-800'}`}
                                 >
                                     Confirmar
                                 </button>

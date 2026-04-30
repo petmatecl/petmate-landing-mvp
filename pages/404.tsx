@@ -16,7 +16,7 @@ export default function Custom404() {
                         Lo sentimos, la página que buscas no existe o fue movida.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                        <Link href="/explorar" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm">
+                        <Link href="/explorar" className="inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm">
                             <Search size={16} />
                             Explorar servicios
                         </Link>

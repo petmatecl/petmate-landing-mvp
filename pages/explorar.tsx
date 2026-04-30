@@ -124,7 +124,7 @@ function ExplorarPrelaunch() {
                     </select>
                     <button
                         type="submit"
-                        className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
+                        className="h-12 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
                     >
                         Avisarme cuando haya disponibles
                     </button>
@@ -499,7 +499,7 @@ export default function ExplorarPage() {
                         <div className="p-5 border-t border-slate-100">
                             <button
                                 onClick={() => setMobileFiltersOpen(false)}
-                                className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-colors"
+                                className="w-full bg-emerald-700 text-white font-bold py-3 rounded-xl hover:bg-emerald-800 transition-colors"
                             >
                                 Ver {totalCount} resultado{totalCount !== 1 ? 's' : ''}
                             </button>
@@ -764,7 +764,7 @@ export default function ExplorarPage() {
                                                     <button
                                                         key={item}
                                                         onClick={() => goToPage(item as number)}
-                                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-700 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
                                                         aria-current={item === pagina ? 'page' : undefined}
                                                     >
                                                         {item}
@@ -773,7 +773,7 @@ export default function ExplorarPage() {
                                             )}
                                         </div>
 
-                                        <span className="sm:hidden rounded-lg px-3 py-2 text-sm font-medium bg-emerald-600 text-white">
+                                        <span className="sm:hidden rounded-lg px-3 py-2 text-sm font-medium bg-emerald-700 text-white">
                                             {pagina}
                                         </span>
 
@@ -806,7 +806,7 @@ export default function ExplorarPage() {
                         </p>
                         <Link
                             href="/register?rol=proveedor"
-                            className="inline-block px-8 py-4 bg-emerald-600 text-white font-semibold rounded-2xl hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 shadow-sm"
+                            className="inline-block px-8 py-4 bg-emerald-700 text-white font-semibold rounded-2xl hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 shadow-sm"
                         >
                             Publicar mi servicio
                         </Link>

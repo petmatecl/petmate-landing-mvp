@@ -196,7 +196,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-colors flex justify-center items-center shadow-md shadow-emerald-200"
+                                    className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl transition-colors flex justify-center items-center shadow-md shadow-emerald-200"
                                     disabled={isSubmitting || comentario.length > 500}
                                 >
                                     {isSubmitting ? (

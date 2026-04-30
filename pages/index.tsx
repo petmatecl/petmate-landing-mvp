@@ -80,7 +80,7 @@ function PrelaunchDemandCapture() {
             </select>
             <button
               type="submit"
-              className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
+              className="h-12 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
             >
               Avisarme
             </button>
@@ -530,7 +530,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             <h2 className="text-2xl font-black text-slate-900 mb-4">Únete a nuestra red de proveedores</h2>
             <p className="text-slate-600 mb-8">Sé de los primeros proveedores en ofrecer tus servicios en tu comuna</p>
             <Link href="/register?rol=proveedor"
-              className="inline-flex items-center justify-center h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-8 text-base font-semibold text-white shadow-sm transition-colors">
+              className="inline-flex items-center justify-center h-12 rounded-2xl bg-emerald-700 hover:bg-emerald-800 px-8 text-base font-semibold text-white shadow-sm transition-colors">
               Registrarse como proveedor
             </Link>
           </div>
@@ -571,7 +571,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
           <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Explora proveedores verificados en tu comuna ahora.</p>
           <button
             onClick={() => router.push('/explorar')}
-            className="inline-flex items-center justify-center h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all mb-4">
+            className="inline-flex items-center justify-center h-14 rounded-2xl bg-emerald-700 hover:bg-emerald-800 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all mb-4">
             Buscar servicios
           </button>
           <p className="text-slate-500 font-medium mb-16">Sin registro. Sin costo.</p>

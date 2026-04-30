@@ -775,7 +775,7 @@ export default function ServicioPage({ service, reviews, otrosServicios }: Servi
                                 <button
                                     onClick={handleChatClick}
                                     disabled={isChatLoading}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
+                                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
                                 >
                                     {isChatLoading
                                         ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

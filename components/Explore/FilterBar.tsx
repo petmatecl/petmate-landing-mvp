@@ -54,7 +54,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                         <button
                             className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
                                 ${filters.serviceType === "hospedaje"
-                                    ? "bg-emerald-600 border-emerald-600 text-white"
+                                    ? "bg-emerald-700 border-emerald-600 text-white"
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                             onClick={() => onFilterChange("serviceType", filters.serviceType === "hospedaje" ? "all" : "hospedaje")}
                         >
@@ -64,7 +64,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                         <button
                             className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
                                 ${filters.serviceType === "a_domicilio"
-                                    ? "bg-emerald-600 border-emerald-600 text-white"
+                                    ? "bg-emerald-700 border-emerald-600 text-white"
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                             onClick={() => onFilterChange("serviceType", filters.serviceType === "a_domicilio" ? "all" : "a_domicilio")}
                         >

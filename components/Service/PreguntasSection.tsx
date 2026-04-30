@@ -111,7 +111,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                         <button
                             type="submit"
                             disabled={submitting || !user || !pregunta.trim()}
-                            className="px-4 h-10 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                            className="px-4 h-10 bg-emerald-700 text-white text-sm font-semibold rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
                         >
                             {submitting && <Loader2 size={14} className="animate-spin" />}
                             Preguntar

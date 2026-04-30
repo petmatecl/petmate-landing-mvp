@@ -365,7 +365,7 @@ export default function GestionServicios() {
                                                     <button
                                                         disabled={actionLoading}
                                                         onClick={() => toggleEstadoServicio(s.id, true)}
-                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 font-bold rounded-lg text-[10px] uppercase transition-colors"
+                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-800 hover:text-white border border-emerald-200 font-bold rounded-lg text-[10px] uppercase transition-colors"
                                                     >
                                                         Activar
                                                     </button>

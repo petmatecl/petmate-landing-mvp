@@ -112,7 +112,7 @@ export default function Header() {
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center rounded-lg px-6 py-2 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                className="inline-flex items-center rounded-lg px-6 py-2 bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
               >
                 Registrarse
               </Link>
@@ -121,7 +121,7 @@ export default function Header() {
             <>
               {/* Chip usuario demo */}
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white tracking-widest">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-700 text-[10px] font-bold text-white tracking-widest">
                   {userInitials}
                 </span>
                 <span className="text-sm font-medium text-emerald-900">{userName}</span>
@@ -136,7 +136,7 @@ export default function Header() {
                   <button
                     onClick={() => switchMode('buscador')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'buscador'
-                      ? 'bg-emerald-600 text-white shadow-sm'
+                      ? 'bg-emerald-700 text-white shadow-sm'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
@@ -146,7 +146,7 @@ export default function Header() {
                   <button
                     onClick={() => switchMode('proveedor')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'proveedor'
-                      ? 'bg-emerald-600 text-white shadow-sm'
+                      ? 'bg-emerald-700 text-white shadow-sm'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
@@ -168,7 +168,7 @@ export default function Header() {
 
               <Link
                 href={dashboardLink}
-                className="inline-flex items-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                className="inline-flex items-center rounded-xl bg-emerald-700 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800"
               >
                 Mi panel
               </Link>
@@ -259,7 +259,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center rounded-lg px-6 py-2 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                  className="inline-flex items-center justify-center rounded-lg px-6 py-2 bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   Registrarse
@@ -275,7 +275,7 @@ export default function Header() {
                   Explorar servicios
                 </Link>
                 <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white tracking-widest">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-700 text-xs font-bold text-white tracking-widest">
                     {userInitials}
                   </span>
                   <div className="flex flex-col">
@@ -288,7 +288,7 @@ export default function Header() {
                 </div>
                 <Link
                   href={dashboardLink}
-                  className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                  className="inline-flex items-center justify-center rounded-xl bg-emerald-700 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800"
                   onClick={() => setOpen(false)}
                 >
                   Mi panel

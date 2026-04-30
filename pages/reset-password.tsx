@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
                                 <p className="text-sm text-slate-500 mb-6">{linkError}</p>
                                 <Link
                                     href="/forgot-password"
-                                    className="inline-block w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors leading-[3rem] text-center text-sm"
+                                    className="inline-block w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors leading-[3rem] text-center text-sm"
                                 >
                                     Solicitar nuevo enlace
                                 </Link>
@@ -189,7 +189,7 @@ export default function ResetPasswordPage() {
 
                                     <button
                                         type="submit"
-                                        className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                                        className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
                                         disabled={loading}
                                     >
                                         {loading ? <><Loader2 size={18} className="animate-spin" /> Actualizando...</> : "Actualizar contraseña"}

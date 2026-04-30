@@ -18,7 +18,7 @@ export default function Custom500() {
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <button
                             onClick={() => window.location.reload()}
-                            className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+                            className="inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
                         >
                             <RefreshCw size={16} />
                             Reintentar

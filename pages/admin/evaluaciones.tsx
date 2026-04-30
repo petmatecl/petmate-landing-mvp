@@ -360,7 +360,7 @@ export default function GestionEvaluaciones() {
                                         <button
                                             onClick={() => handleAprobar(evaluacion.id)}
                                             disabled={actionLoading}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-emerald-50 hover:bg-emerald-800 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
                                         >
                                             <CheckCircle2 size={16} /> Aprobar
                                         </button>

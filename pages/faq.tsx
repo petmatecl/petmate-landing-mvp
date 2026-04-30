@@ -116,7 +116,7 @@ export default function FAQ() {
                         <p className="text-slate-600 mb-6">Estamos aquí para ayudarte. Contáctanos directamente.</p>
                         <a
                             href="mailto:contacto@pawnecta.com"
-                            className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 transition w-full sm:w-auto"
+                            className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-emerald-700 hover:bg-emerald-800 transition w-full sm:w-auto"
                         >
                             Contactar Soporte
                         </a>

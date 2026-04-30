@@ -142,7 +142,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
                     <div className="flex gap-2 justify-end">
                         <button type="button" onClick={() => setShowForm(false)} className="text-sm text-slate-500 px-3 py-1.5 rounded-lg hover:bg-slate-50">Cancelar</button>
                         <button type="submit" disabled={uploading}
-                            className="text-sm font-bold bg-emerald-600 text-white px-4 py-1.5 rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-1.5">
+                            className="text-sm font-bold bg-emerald-700 text-white px-4 py-1.5 rounded-lg hover:bg-emerald-800 disabled:opacity-50 flex items-center gap-1.5">
                             {uploading && <Loader2 size={14} className="animate-spin" />}
                             Enviar para revisión
                         </button>

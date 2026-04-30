@@ -99,7 +99,7 @@ export default function QuienesSomos() {
                         <div className="mt-8 flex items-center justify-center gap-x-6">
                             <Link
                                 href="/register"
-                                className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                className="rounded-xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                             >
                                 Únete a Pawnecta
                             </Link>
