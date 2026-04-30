@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
+import Breadcrumb from '../../components/Shared/Breadcrumb';
 
 // --- Comunas for SEO ---
 export const COMUNAS_SEO: { slug: string; name: string }[] = [
@@ -104,21 +105,32 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'BreadcrumbList',
+                            itemListElement: [
+                                { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://www.pawnecta.com/' },
+                                { '@type': 'ListItem', position: 2, name: 'Explorar', item: 'https://www.pawnecta.com/explorar' },
+                                { '@type': 'ListItem', position: 3, name: categoria.nombre, item: `https://www.pawnecta.com/explorar?categoria=${categoria.slug}` },
+                                { '@type': 'ListItem', position: 4, name: comuna },
+                            ],
+                        })
+                    }}
+                />
             </Head>
 
             <div className="min-h-screen bg-slate-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-                    {/* Breadcrumb */}
-                    <nav className="flex items-center gap-2 text-sm text-slate-500 mb-8" aria-label="Breadcrumb">
-                        <Link href="/" className="hover:text-emerald-700 transition-colors">Inicio</Link>
-                        <span>/</span>
-                        <Link href="/explorar" className="hover:text-emerald-700 transition-colors">Explorar</Link>
-                        <span>/</span>
-                        <Link href={`/explorar?categoria=${categoria.slug}`} className="hover:text-emerald-700 transition-colors capitalize">{categoria.nombre}</Link>
-                        <span>/</span>
-                        <span className="text-slate-800 font-medium">{comuna}</span>
-                    </nav>
+                    <Breadcrumb items={[
+                        { label: 'Inicio', href: '/' },
+                        { label: 'Explorar', href: '/explorar' },
+                        { label: categoria.nombre, href: `/explorar?categoria=${categoria.slug}` },
+                        { label: comuna },
+                    ]} />
 
                     {/* Header */}
                     <div className="mb-10">

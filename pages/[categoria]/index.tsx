@@ -28,6 +28,20 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 <meta name="description" content={pageDescription} />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={pageDescription} />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'BreadcrumbList',
+                            itemListElement: [
+                                { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://www.pawnecta.com/' },
+                                { '@type': 'ListItem', position: 2, name: 'Explorar', item: 'https://www.pawnecta.com/explorar' },
+                                { '@type': 'ListItem', position: 3, name: categoria.nombre },
+                            ],
+                        })
+                    }}
+                />
             </Head>
 
             <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
