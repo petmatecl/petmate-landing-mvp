@@ -92,6 +92,10 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                 <button
                     type="button"
                     onClick={() => { setCatOpen(!catOpen); setShowComunaList(false); }}
+                    aria-haspopup="listbox"
+                    aria-expanded={catOpen}
+                    aria-controls="hero-categoria-listbox"
+                    aria-label="Seleccionar categoría de servicio"
                     className="flex-1 flex items-center justify-between bg-transparent text-sm font-medium focus:outline-none cursor-pointer min-w-0"
                 >
                     <span className={selectedCatLabel ? 'text-slate-900' : 'text-slate-400'}>
@@ -101,9 +105,11 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                 </button>
 
                 {catOpen && (
-                    <ul className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto py-1">
+                    <ul id="hero-categoria-listbox" role="listbox" aria-label="Categorías de servicio" className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto py-1">
                         <li>
                             <button type="button"
+                                role="option"
+                                aria-selected={!categoria}
                                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!categoria ? 'text-emerald-700 font-semibold bg-emerald-50' : 'text-slate-600 hover:bg-slate-50'}`}
                                 onMouseDown={() => { setCategoria(''); setCatOpen(false); setErrorMsg(''); }}
                             >
@@ -113,6 +119,8 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                         {CATEGORIAS.map(c => (
                             <li key={c.slug}>
                                 <button type="button"
+                                    role="option"
+                                    aria-selected={categoria === c.slug}
                                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${categoria === c.slug ? 'text-emerald-700 font-semibold bg-emerald-50' : 'text-slate-700 hover:bg-slate-50'}`}
                                     onMouseDown={() => { setCategoria(c.slug); setCatOpen(false); setErrorMsg(''); }}
                                 >
@@ -127,7 +135,15 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
             {/* Campo Comuna */}
             <div ref={comunaRef} className="relative flex items-center flex-1 px-4 py-3 gap-3 min-w-0">
                 <MapPin className="w-5 h-5 text-slate-400 shrink-0" />
+                <label htmlFor="hero-comuna-input" className="sr-only">Comuna</label>
                 <input
+                    id="hero-comuna-input"
+                    name="comuna"
+                    role="combobox"
+                    aria-expanded={showComunaList && comunasFiltradas.length > 0}
+                    aria-controls="hero-comuna-listbox"
+                    aria-autocomplete="list"
+                    aria-haspopup="listbox"
                     type="text"
                     value={comunaQuery}
                     onChange={(e) => { setComunaQuery(e.target.value); setShowComunaList(true); setCatOpen(false); setErrorMsg(""); }}
@@ -137,10 +153,12 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                     className="flex-1 bg-transparent text-slate-900 text-sm font-medium focus:outline-none placeholder:text-slate-400 placeholder:font-normal min-w-0"
                 />
                 {showComunaList && comunasFiltradas.length > 0 && (
-                    <ul className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto py-1">
+                    <ul id="hero-comuna-listbox" role="listbox" aria-label="Sugerencias de comuna" className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto py-1">
                         {comunasFiltradas.map(c => (
                             <li key={c}>
                                 <button type="button"
+                                    role="option"
+                                    aria-selected={false}
                                     className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                                     onMouseDown={() => { setComunaQuery(c); setShowComunaList(false); }}
                                 >{c}</button>
