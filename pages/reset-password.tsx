@@ -102,7 +102,7 @@ export default function ResetPasswordPage() {
                     </Link>
                 </header>
 
-                <main className="flex-1 flex items-center justify-center p-4">
+                <div className="flex-1 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-md shadow-sm">
 
                         {linkError ? (
@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
                             </>
                         )}
                     </div>
-                </main>
+                </div>
             </div>
         </>
     );

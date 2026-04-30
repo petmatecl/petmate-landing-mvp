@@ -20,7 +20,7 @@ export default function StyleGuide() {
                     </div>
                 </header>
 
-                <main>
+                <div>
                     {/* SECTION 1: SURFACES */}
                     <Section variant="default">
                         <h2 className="text-2xl font-bold mb-8">1. Surfaces & Cards (On Slate-100)</h2>
@@ -97,7 +97,7 @@ export default function StyleGuide() {
                             <p>Maximum pop.</p>
                         </Card>
                     </Section>
-                </main>
+                </div>
             </div>
         </>
     );

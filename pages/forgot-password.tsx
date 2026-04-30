@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
           </Link>
         </header>
 
-        <main className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-md shadow-sm">
             <Link href="/login" className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors mb-4">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -131,7 +131,7 @@ export default function ForgotPasswordPage() {
               </div>
             </form>
           </div>
-        </main>
+        </div>
       </div>
     </>
   );

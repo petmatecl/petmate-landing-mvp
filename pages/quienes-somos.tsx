@@ -10,7 +10,7 @@ export default function QuienesSomos() {
                 <meta name="description" content="La historia detrás de Pawnecta: una pareja, dos gatitos y la búsqueda del cuidado perfecto." />
             </Head>
 
-            <main className="bg-white">
+            <div className="bg-white">
                 {/* Hero Section */}
                 <section className="relative isolate overflow-hidden bg-white px-6 py-10 sm:py-16 lg:px-8">
                     <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.emerald.100),white)] opacity-20" />
@@ -109,7 +109,7 @@ export default function QuienesSomos() {
                         </div>
                     </div>
                 </section>
-            </main>
+            </div>
         </>
     );
 }

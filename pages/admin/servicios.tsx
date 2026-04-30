@@ -189,7 +189,7 @@ export default function GestionServicios() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
 
                 {/* Grid Superior de Estadisticas Rápidas */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -378,7 +378,7 @@ export default function GestionServicios() {
                         </table>
                     </div>
                 </div>
-            </main>
+            </div>
 
             {/* MODAL DETALLE DE SERVICIO */}
             {modalData && (

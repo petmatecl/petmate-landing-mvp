@@ -525,7 +525,7 @@ export default function ExplorarPage() {
                     </aside>
 
                     {/* ÁREA DE RESULTADOS */}
-                    <main className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0">
 
                         {/* Encabezado */}
                         <div className="mb-6">
@@ -790,7 +790,7 @@ export default function ExplorarPage() {
                                 )}
                             </>
                         )}
-                    </main>
+                    </div>
                 </div>
             </div>
 

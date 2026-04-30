@@ -107,7 +107,7 @@ export default function LoginPage() {
         <meta name="description" content="Ingresa a tu cuenta de Pawnecta y accede a proveedores verificados para el cuidado de tu mascota." />
       </Head>
 
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
 
           {/* Context banner when coming from protected action */}
@@ -209,7 +209,7 @@ export default function LoginPage() {
             </form>
           </div>
         </div>
-      </main>
+      </div>
 
 
     </>

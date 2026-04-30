@@ -316,7 +316,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* ── CONTENIDO PRINCIPAL ── */}
-                <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-12 lg:mt-0">
+                <div className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-12 lg:mt-0">
                     <div className="max-w-6xl">
                         {/* Header */}
                         <div className="mb-8">
@@ -333,7 +333,7 @@ export default function AdminDashboard() {
                         {activeTab === 'moderacion' && <EvaluacionModerationList />}
                         {activeTab === 'proveedores' && <ProveedorManagementList />}
                     </div>
-                </main>
+                </div>
             </div>
         </div>
     );

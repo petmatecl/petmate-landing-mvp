@@ -14,7 +14,7 @@ export default function BlogIndex() {
                 <meta name="description" content="Descubre consejos, guías y noticias sobre el cuidado de perros y gatos en el Blog de Pawnecta Chile." />
             </Head>
 
-            <main className="pt-24 pb-20">
+            <div className="pt-24 pb-20">
                 {/* Hero Section */}
                 <div className="bg-slate-50 py-16 mb-16 border-b border-slate-300">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -84,7 +84,7 @@ export default function BlogIndex() {
                         ))}
                     </div>
                 </div>
-            </main >
+            </div>
         </div >
     );
 }

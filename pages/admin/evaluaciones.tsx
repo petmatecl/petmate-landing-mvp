@@ -206,7 +206,7 @@ export default function GestionEvaluaciones() {
                 </div>
             </header>
 
-            <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-top-8">
+            <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-top-8">
 
                 {/* Estadísticas Rápidas */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
@@ -377,7 +377,7 @@ export default function GestionEvaluaciones() {
                         </div>
                     ))}
                 </div>
-            </main>
+            </div>
 
             {/* Modal Rechazar Evaluación */}
             {rechazoModal.isOpen && (

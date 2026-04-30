@@ -228,7 +228,7 @@ export default function EmailConfirmadoPage() {
                 <title>¡Correo confirmado! — Pawnecta</title>
             </Head>
 
-            <main className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-emerald-50 to-white">
+            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-emerald-50 to-white">
 
                 {registrationConflict ? (
                     <Card padding="l" className="w-full max-w-[520px] text-center relative pointer-events-auto">
@@ -296,7 +296,7 @@ export default function EmailConfirmadoPage() {
                     </div>
 
                 )}
-            </main>
+            </div>
         </>
     );
 }

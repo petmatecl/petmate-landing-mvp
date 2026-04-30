@@ -356,7 +356,7 @@ export default function RegisterWizard() {
         <meta name="description" content="Regístrate en Pawnecta. Crea tu cuenta gratis para encontrar o publicar servicios para mascotas en Chile." />
       </Head>
 
-      <main className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 py-10">
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 py-10">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
           {/* Progress header */}
@@ -845,7 +845,7 @@ export default function RegisterWizard() {
             </Link>
           </div>
         )}
-      </main>
+      </div>
 
 
     </>

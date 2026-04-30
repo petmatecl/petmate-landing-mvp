@@ -240,7 +240,7 @@ export default function GestionProveedores() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 {/* Controles y Filtros */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 justify-between">
@@ -388,7 +388,7 @@ export default function GestionProveedores() {
                         </table>
                     </div>
                 </div>
-            </main>
+            </div>
 
             {/* MODALES OVERLAYS */}
             {modalConfig.type && (

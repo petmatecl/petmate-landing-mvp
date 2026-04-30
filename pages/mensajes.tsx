@@ -56,7 +56,7 @@ export default function MensajesPage() {
                 <meta name="description" content="Comunícate directamente con proveedores o clientes en Pawnecta." />
             </Head>
 
-            <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
+            <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
                 <div className="mb-6 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
@@ -85,7 +85,7 @@ export default function MensajesPage() {
                         returnTo={returnTo}
                     />
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

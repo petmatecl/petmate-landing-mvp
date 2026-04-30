@@ -30,7 +30,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 <meta property="og:description" content={pageDescription} />
             </Head>
 
-            <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+            <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
                 <Breadcrumb items={[
                     { label: 'Inicio', href: '/' },
                     { label: categoria.nombre },
@@ -100,7 +100,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                         </div>
                     </>
                 )}
-            </main>
+            </div>
         </div>
     );
 }

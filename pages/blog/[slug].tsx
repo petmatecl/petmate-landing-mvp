@@ -76,7 +76,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                 <meta property="og:type" content="article" />
             </Head>
 
-            <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                 {/* Back Link */}
                 <div className="mb-8">
                     <Link href="/blog" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors">
@@ -188,7 +188,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         </div>
                     </section>
                 )}
-            </main>
+            </div>
         </div>
     );
 }
