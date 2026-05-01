@@ -220,10 +220,23 @@ export default function ProveedorDashboard() {
 
     const handleTabChange = (tab: TabType) => {
         setActiveTab(tab);
+        // Sync URL so users can share/bookmark a specific tab
+        router.replace({ query: { ...router.query, tab } }, undefined, { shallow: true });
         if (proveedor) {
             loadTabData(tab, proveedor.id, proveedor.auth_user_id);
         }
     };
+
+    // URL sync — read ?tab= on mount and when query changes
+    useEffect(() => {
+        if (!router.isReady) return;
+        const queryTab = router.query.tab as TabType | undefined;
+        const validTabs: TabType[] = ['servicios', 'perfil', 'evaluaciones', 'mensajes', 'estadisticas'];
+        if (queryTab && validTabs.includes(queryTab) && queryTab !== activeTab) {
+            setActiveTab(queryTab);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, router.query.tab]);
 
     // Profile Handlers
     const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {

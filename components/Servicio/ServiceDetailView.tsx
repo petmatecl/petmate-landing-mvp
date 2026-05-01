@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
 import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
+import EmptyFieldState from './EmptyFieldState';
 import ReviewModal from '../Service/ReviewModal';
 import ReviewForm from '../Service/ReviewForm';
 import ReviewSummary from '../Service/ReviewSummary';
@@ -131,6 +132,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     // Derived state
     const proveedor = service.proveedores;
     const categoria = service.categorias_servicio;
+    const isOwner = !isExample && !!user && user.id === proveedor.auth_user_id;
     const coverImage = service.fotos?.[0] || proveedor.foto_perfil || 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
     const totalReviews = reviews.length;
@@ -311,6 +313,21 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
+            {isOwner && (
+                <div role="region" aria-label="Vista de previsualización del proveedor" className="sticky top-0 z-30 bg-slate-700 text-white border-b border-slate-600 shadow-md">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <p className="text-sm sm:text-base font-medium text-center sm:text-left">
+                            Estás viendo tu servicio como lo ven los tutores. Los cambios se hacen desde tu panel.
+                        </p>
+                        <Link
+                            href="/proveedor?tab=servicios"
+                            className="shrink-0 inline-flex items-center bg-white text-slate-700 font-bold text-sm px-5 py-2 rounded-xl hover:bg-slate-50 transition-colors whitespace-nowrap"
+                        >
+                            Editar mi servicio →
+                        </Link>
+                    </div>
+                </div>
+            )}
             <Head>
                 <title>{service.titulo} - {proveedor.nombre_publico || proveedor.nombre} | Pawnecta</title>
                 <meta name="description" content={service.descripcion?.substring(0, 160)} />
@@ -444,6 +461,18 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     <span>{categoria.nombre}</span>
                                 </div>
 
+                                {/* Overlay para owner sin fotos del servicio */}
+                                {isOwner && (!service.fotos || service.fotos.length === 0) && (
+                                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 px-6 text-center">
+                                        <Link
+                                            href="/proveedor?tab=servicios"
+                                            className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md text-slate-800 text-sm font-semibold px-5 py-3 rounded-xl shadow-lg hover:bg-white transition-colors"
+                                        >
+                                            Agregá fotos para destacar tu servicio →
+                                        </Link>
+                                    </div>
+                                )}
+
                                 {/* Flechas de navegación — solo si hay más de 1 foto */}
                                 {service.fotos?.length > 1 && (
                                     <>
@@ -541,9 +570,37 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                                 Acerca del Servicio
                             </h3>
-                            <div className="prose prose-slate prose-emerald max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
-                                {service.descripcion}
-                            </div>
+                            {service.descripcion ? (
+                                <div className="prose prose-slate prose-emerald max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
+                                    {service.descripcion}
+                                </div>
+                            ) : (
+                                <EmptyFieldState
+                                    label="descripción"
+                                    isOwner={isOwner}
+                                    ownerCTA={{ text: 'Agregar descripción', href: '/proveedor?tab=servicios' }}
+                                />
+                            )}
+                        </div>
+
+                        {/* Sobre el proveedor (bio) */}
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <UserIcon2 size={22} className="text-emerald-500" />
+                                Sobre {proveedor.nombre_publico || proveedor.nombre}
+                            </h3>
+                            {proveedor.bio ? (
+                                <div className="prose prose-slate max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
+                                    {proveedor.bio}
+                                </div>
+                            ) : (
+                                <EmptyFieldState
+                                    label="información personal"
+                                    isOwner={isOwner}
+                                    ownerCTA={{ text: 'Contale a los tutores quién sos', href: '/proveedor?tab=perfil' }}
+                                    tutorMessage="Este proveedor no agregó información personal aún"
+                                />
+                            )}
                         </div>
 
                         {/* Detalles específicos de categoría */}
@@ -661,15 +718,20 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             </div>
                         )}
 
-                        {proveedor.galeria && proveedor.galeria.length > 0 && (
-                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                    {/* Icono cámara */}
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
-                                    Fotos del espacio
-                                </h3>
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                {/* Icono cámara */}
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+                                Fotos del espacio
+                            </h3>
 
-                                {proveedor.galeria.length === 1 ? (
+                            {!proveedor.galeria || proveedor.galeria.length === 0 ? (
+                                <EmptyFieldState
+                                    label="fotos del espacio"
+                                    isOwner={isOwner}
+                                    ownerCTA={{ text: 'Subí fotos', href: '/proveedor?tab=perfil' }}
+                                />
+                            ) : proveedor.galeria.length === 1 ? (
                                     // Una foto — full width
                                     <div className="w-full h-64 rounded-xl overflow-hidden">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -717,13 +779,12 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </div>
                                 )}
 
-                                <Link href={`/proveedor/${proveedor.id}`}
-                                    className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
-                                    Ver perfil completo de {proveedor.nombre}
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-                                </Link>
-                            </div>
-                        )}
+                            <Link href={`/proveedor/${proveedor.id}`}
+                                className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+                                Ver perfil completo de {proveedor.nombre}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                            </Link>
+                        </div>
 
                         {/* Evaluaciones */}
 
@@ -891,16 +952,33 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                             <span className="font-medium">{proveedor.anios_experiencia} años de experiencia</span>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-2 text-sm text-slate-400">
-                                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            <span>Proveedor verificado en Pawnecta</span>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <EmptyFieldState
+                                                label="años de experiencia"
+                                                isOwner={isOwner}
+                                                ownerCTA={{ text: 'Agregá tu experiencia', href: '/proveedor?tab=perfil' }}
+                                                tutorMessage="Experiencia no especificada"
+                                                variant="inline"
+                                            />
                                         </div>
                                     )}
 
-                                    {proveedor.certificaciones && (
+                                    {proveedor.certificaciones ? (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
                                             <ShieldCheck size={15} className="text-emerald-700 shrink-0 mt-0.5" />
                                             <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-start gap-2 text-sm">
+                                            <ShieldCheck size={15} className="text-slate-400 shrink-0 mt-0.5" />
+                                            <EmptyFieldState
+                                                label="certificaciones"
+                                                isOwner={isOwner}
+                                                ownerCTA={{ text: 'Agregá una', href: '/proveedor?tab=perfil' }}
+                                                tutorMessage="Sin certificaciones agregadas"
+                                                variant="inline"
+                                            />
                                         </div>
                                     )}
 
@@ -928,33 +1006,47 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 </div>
 
                                 {/* Contacto y redes */}
-                                {(proveedor.email_publico || proveedor.sitio_web || proveedor.instagram) && (
-                                    <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
-                                        {proveedor.email_publico && proveedor.mostrar_email && (
-                                            <a href={`mailto:${proveedor.email_publico}`}
-                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-700 transition-colors font-medium truncate">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                                                {proveedor.email_publico}
-                                            </a>
-                                        )}
-                                        {proveedor.sitio_web && (
-                                            <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
-                                                target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
-                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-700 transition-colors font-medium truncate">
-                                                <Globe size={14} className="shrink-0" />
-                                                {proveedor.sitio_web.replace(/^https?:\/\//, '')}
-                                            </a>
-                                        )}
-                                        {proveedor.instagram && (
-                                            <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
-                                                target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
-                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-pink-500 transition-colors font-medium">
-                                                <Instagram size={14} className="shrink-0" />
-                                                @{proveedor.instagram.replace('@', '')}
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
+                                {(() => {
+                                    const showEmail = proveedor.email_publico && proveedor.mostrar_email;
+                                    const hasAny = showEmail || proveedor.sitio_web || proveedor.instagram;
+                                    return (
+                                        <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                                            {hasAny ? (
+                                                <>
+                                                    {showEmail && (
+                                                        <a href={`mailto:${proveedor.email_publico}`}
+                                                            className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-700 transition-colors font-medium truncate">
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                                            {proveedor.email_publico}
+                                                        </a>
+                                                    )}
+                                                    {proveedor.sitio_web && (
+                                                        <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
+                                                            target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
+                                                            className="flex items-center gap-2 text-xs text-slate-500 hover:text-emerald-700 transition-colors font-medium truncate">
+                                                            <Globe size={14} className="shrink-0" />
+                                                            {proveedor.sitio_web.replace(/^https?:\/\//, '')}
+                                                        </a>
+                                                    )}
+                                                    {proveedor.instagram && (
+                                                        <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
+                                                            target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
+                                                            className="flex items-center gap-2 text-xs text-slate-500 hover:text-pink-500 transition-colors font-medium">
+                                                            <Instagram size={14} className="shrink-0" />
+                                                            @{proveedor.instagram.replace('@', '')}
+                                                        </a>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <EmptyFieldState
+                                                    label="canales de contacto"
+                                                    isOwner={isOwner}
+                                                    ownerCTA={{ text: 'Agregá tus redes', href: '/proveedor?tab=perfil' }}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                })()}
 
                             </div>
 
