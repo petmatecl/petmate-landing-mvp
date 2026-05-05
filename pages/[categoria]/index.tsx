@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
+import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
 import { MapPinIcon } from '@heroicons/react/24/outline';
 import { Search } from 'lucide-react';
 import Breadcrumb from '../../components/Shared/Breadcrumb';
@@ -110,6 +111,13 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {services.map((service) => (
                                 <ServiceCard key={service.servicio_id} service={service} />
+                            ))}
+                            {services.length < 8 && Array.from({ length: 8 - services.length }).map((_, i) => (
+                                <ServicePlaceholderCard
+                                    key={`placeholder-${i}`}
+                                    categoriaSlug={categoria.slug}
+                                    variant="full"
+                                />
                             ))}
                         </div>
                     </>

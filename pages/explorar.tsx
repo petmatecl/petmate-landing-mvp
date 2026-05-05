@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import SidebarFiltros from "../components/Explore/SidebarFiltros";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
+import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard";
 import { mapRpcToServiceResult } from "../lib/serviceMapper";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
 import { COMUNAS_CHILE } from "../lib/comunas";
@@ -752,6 +753,14 @@ export default function ExplorarPage() {
                                     <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                                         {services.map((service) => (
                                             <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
+                                        ))}
+                                        {pagina === 1 && services.length > 0 && totalCount < 12 && Array.from({ length: 12 - services.length }).map((_, i) => (
+                                            <ServicePlaceholderCard
+                                                key={`placeholder-${i}`}
+                                                categoriaSlug={filters.categorias[0] || undefined}
+                                                comuna={filters.comuna || undefined}
+                                                variant="full"
+                                            />
                                         ))}
                                     </div>
                                 )}

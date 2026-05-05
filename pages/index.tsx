@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import SearchBar from "../components/Home/SearchBar";
 import StepCard from "../components/Home/StepCard";
 import TestimonialCard from "../components/Home/TestimonialCard";
+import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard";
 
 // ─── PrelaunchDemandCapture ─────────────────────────────────────────────────
 function PrelaunchDemandCapture() {
@@ -195,12 +196,13 @@ function ServiceCardItem({ s }: { s: any }) {
 
 // ─── Dual category block: 2 categories merged, grid layout, no scroll ─────────
 function FranjaDual({
-  titulo, IconA, IconB, serviciosA, serviciosB,
+  titulo, IconA, IconB, serviciosA, serviciosB, slugA, slugB,
   onVerTodosA, onVerTodosB, labelA, labelB,
   onVerMas,
 }: {
   titulo: string; IconA: any; IconB: any;
   serviciosA: any[]; serviciosB: any[];
+  slugA: string; slugB: string;
   onVerTodosA: () => void; onVerTodosB: () => void;
   labelA: string; labelB: string;
   onVerMas: () => void;
@@ -237,6 +239,13 @@ function FranjaDual({
             {combined.map((s: any, i: number) => (
               <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
             ))}
+            {combined.length < 4 && Array.from({ length: 4 - combined.length }).map((_, i) => (
+              <ServicePlaceholderCard
+                key={`placeholder-${i}`}
+                categoriaSlug={i % 2 === 0 ? slugA : slugB}
+                variant="compact"
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -272,6 +281,13 @@ function FranjaCategoria({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {visible.map((s: any, i: number) => (
               <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+            ))}
+            {visible.length < 4 && Array.from({ length: 4 - visible.length }).map((_, i) => (
+              <ServicePlaceholderCard
+                key={`placeholder-${i}`}
+                categoriaSlug={categoria.slug}
+                variant="compact"
+              />
             ))}
           </div>
         </div>
@@ -454,6 +470,8 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
                   IconB={p.IconB}
                   serviciosA={sA}
                   serviciosB={sB}
+                  slugA={p.slugA}
+                  slugB={p.slugB}
                   labelA={p.labelA}
                   labelB={p.labelB}
                   onVerTodosA={() => router.push(`/explorar?categoria=${p.slugA}`)}

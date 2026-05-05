@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
+import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
 import Breadcrumb from '../../components/Shared/Breadcrumb';
+import { buildRegisterUrl } from '../../lib/placeholderCopy';
 
 // --- Comunas for SEO ---
 export const COMUNAS_SEO: { slug: string; name: string }[] = [
@@ -153,18 +155,33 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm max-w-xl mx-auto">
-                            <p className="text-lg font-bold text-slate-800 mb-2">Sin proveedores por el momento</p>
-                            <p className="text-slate-500 text-sm mb-6">
-                                Aún no hay proveedores de {categoria.nombre.toLowerCase()} en {comuna}. Prueba buscar en comunas cercanas.
-                            </p>
-                            <Link
-                                href={`/explorar?categoria=${categoria.slug}`}
-                                className="inline-flex items-center justify-center px-6 py-3 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
-                            >
-                                Ver todos los proveedores de {categoria.nombre}
-                            </Link>
-                        </div>
+                        <>
+                            {/* Banner sé el primero */}
+                            <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 sm:p-8 mb-8 text-center">
+                                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+                                    Aún no hay {categoria.nombre.toLowerCase()} en {comuna}. Sé el primero.
+                                </h2>
+                                <p className="text-slate-600 mb-5 max-w-2xl mx-auto">
+                                    Pawnecta es nuevo en tu zona. Únete antes que nadie y aparece primero en las búsquedas.
+                                </p>
+                                <Link
+                                    href={buildRegisterUrl(categoria.slug, comuna)}
+                                    className="inline-flex items-center justify-center px-6 py-3 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
+                                >
+                                    Publica gratis tu servicio →
+                                </Link>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <ServicePlaceholderCard
+                                        key={`placeholder-${i}`}
+                                        categoriaSlug={categoria.slug}
+                                        comuna={comuna}
+                                        variant="full"
+                                    />
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>

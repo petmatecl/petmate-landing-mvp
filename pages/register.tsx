@@ -207,6 +207,16 @@ export default function RegisterWizard() {
     }
   }, [router.isReady, router.query.rol]);
 
+  // Pre-fill categoría y comuna desde query params (placeholder cards link aquí
+  // con /register?rol=proveedor&categoria=hospedaje&comuna=Las%20Condes)
+  useEffect(() => {
+    if (!router.isReady) return;
+    const queryCategoria = router.query.categoria as string | undefined;
+    const queryComuna = router.query.comuna as string | undefined;
+    if (queryCategoria) setCategoria(queryCategoria);
+    if (queryComuna) setComunaQuery(queryComuna);
+  }, [router.isReady, router.query.categoria, router.query.comuna]);
+
   const proceedToStep2 = () => {
     if (!rol) {
       setError("Por favor, selecciona el tipo de cuenta que quieres crear.");
