@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabaseClient';
 interface ReviewSummaryProps {
     servicioId?: string;
     proveedorId?: string;
+    reviewsOverride?: any[];
 }
 
 interface Stats {
@@ -16,11 +17,29 @@ interface Stats {
     uno: number;
 }
 
-export default function ReviewSummary({ servicioId, proveedorId }: ReviewSummaryProps) {
+export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride }: ReviewSummaryProps) {
     const [stats, setStats] = useState<Stats | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!reviewsOverride);
 
     useEffect(() => {
+        // Override mode: compute stats from passed-in reviews, skip fetch
+        if (reviewsOverride) {
+            const counts = { uno: 0, dos: 0, tres: 0, cuatro: 0, cinco: 0 };
+            let sum = 0;
+            const total = reviewsOverride.length;
+            reviewsOverride.forEach(r => {
+                sum += r.rating;
+                if (r.rating === 1) counts.uno++;
+                else if (r.rating === 2) counts.dos++;
+                else if (r.rating === 3) counts.tres++;
+                else if (r.rating === 4) counts.cuatro++;
+                else if (r.rating === 5) counts.cinco++;
+            });
+            setStats({ total, promedio: total > 0 ? sum / total : 0, ...counts });
+            setLoading(false);
+            return;
+        }
+
         const fetchRatings = async () => {
             if (!servicioId && !proveedorId) {
                 setLoading(false);
@@ -72,7 +91,7 @@ export default function ReviewSummary({ servicioId, proveedorId }: ReviewSummary
         };
 
         fetchRatings();
-    }, [servicioId, proveedorId]);
+    }, [servicioId, proveedorId, reviewsOverride]);
 
     if (loading) {
         return <div className="animate-pulse bg-slate-100 rounded-2xl h-48 w-full border border-slate-200"></div>;

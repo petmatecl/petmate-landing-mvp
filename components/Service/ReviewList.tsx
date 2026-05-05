@@ -8,14 +8,22 @@ import ReportModal from '../Shared/ReportModal';
 interface ReviewListProps {
     servicioId?: string;
     proveedorId?: string;
+    reviewsOverride?: any[];
 }
 
-export default function ReviewList({ servicioId, proveedorId }: ReviewListProps) {
-    const [reviews, setReviews] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function ReviewList({ servicioId, proveedorId, reviewsOverride }: ReviewListProps) {
+    const [reviews, setReviews] = useState<any[]>(reviewsOverride ?? []);
+    const [loading, setLoading] = useState(!reviewsOverride);
     const [reportTarget, setReportTarget] = useState<string | null>(null);
 
     useEffect(() => {
+        // Override mode: use passed-in reviews directly, skip fetch
+        if (reviewsOverride) {
+            setReviews(reviewsOverride);
+            setLoading(false);
+            return;
+        }
+
         const fetchReviews = async () => {
             if (!servicioId && !proveedorId) {
                 setLoading(false);
@@ -76,7 +84,7 @@ export default function ReviewList({ servicioId, proveedorId }: ReviewListProps)
         };
 
         fetchReviews();
-    }, [servicioId, proveedorId]);
+    }, [servicioId, proveedorId, reviewsOverride]);
 
     if (loading) {
         return (

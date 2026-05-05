@@ -25,10 +25,10 @@ export default function MensajesPage() {
                 if (session?.user) {
                     setUserId(session.user.id);
                 } else {
-                    router.push('/login?redirect=/mensajes');
+                    router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
                 }
             } catch {
-                router.push('/login?redirect=/mensajes');
+                router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
             } finally {
                 setLoading(false);
             }

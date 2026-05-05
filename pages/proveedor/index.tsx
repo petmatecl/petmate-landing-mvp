@@ -137,8 +137,9 @@ export default function ProveedorDashboard() {
             checkProviderStatus();
         } else {
             // No user after loading = session expired, redirect to login
-            setStatusLoading(false);
-            router.push('/login?redirect=/proveedor');
+            // Keep statusLoading=true so spinner persists during redirect
+            // (avoids JSX render with proveedor=null between redirect call and unmount)
+            router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, userLoading]);
@@ -476,13 +477,13 @@ export default function ProveedorDashboard() {
         if (!userLoading && !statusLoading) return;
         const timer = setTimeout(() => {
             if (userLoading || statusLoading) {
-                router.push('/login?redirect=/proveedor');
+                router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
             }
         }, 10000);
         return () => clearTimeout(timer);
     }, [userLoading, statusLoading, router]);
 
-    if (userLoading || statusLoading) {
+    if (userLoading || statusLoading || !proveedor) {
         return (
             <>
                 <div className="min-h-screen flex items-center justify-center bg-slate-50">

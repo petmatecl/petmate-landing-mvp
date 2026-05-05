@@ -73,7 +73,13 @@ export const exampleService = {
         sitio_web: '',
         instagram: 'carolina_pawsitter',
         primera_ayuda: true,
-        galeria: [],
+        bio: 'Soy Carolina, tengo 32 años y vivo en Providencia con mi familia. Estudié educación parvularia pero hace 5 años descubrí mi vocación cuidando mascotas. Mis propias perras (Mota y Luna) son la prueba de que en mi casa los animales son uno más. Me certifiqué en primeros auxilios para mascotas y me actualizo constantemente leyendo sobre comportamiento canino y felino. Lo que más me gusta es ver cómo se relajan en mi hogar después de unos días.',
+        galeria: [
+            'https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=1200&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=1200&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=1200&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1546975490-e8b92a360b24?w=1200&auto=format&fit=crop&q=80',
+        ],
     },
     categorias_servicio: {
         nombre: 'Hospedaje',
@@ -97,6 +103,7 @@ export const exampleReviews = [
         respuesta_proveedor: '¡Gracias! Luna fue una compañera adorable. Te esperamos cuando quieran.',
         created_at: '2025-03-20T10:30:00Z',
         usuarios_buscadores: { nombre: 'María José T.' },
+        _user: { nombre: 'María José T.', foto_perfil: null },
     },
     {
         id: '00000000-0000-0000-0000-0000000000a2',
@@ -109,6 +116,7 @@ export const exampleReviews = [
         respuesta_proveedor: null,
         created_at: '2025-03-05T14:00:00Z',
         usuarios_buscadores: { nombre: 'Andrés P.' },
+        _user: { nombre: 'Andrés P.', foto_perfil: null },
     },
     {
         id: '00000000-0000-0000-0000-0000000000a3',
@@ -124,5 +132,6 @@ export const exampleReviews = [
         respuesta_proveedor: '¡Gracias por el feedback! Tomé nota, voy a enviar más fotos a quienes lo prefieran.',
         created_at: '2025-02-18T09:15:00Z',
         usuarios_buscadores: { nombre: 'Sofía L.' },
+        _user: { nombre: 'Sofía L.', foto_perfil: null },
     },
 ];

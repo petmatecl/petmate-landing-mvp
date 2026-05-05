@@ -803,13 +803,13 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             </div>
 
                             <div className="mb-10">
-                                <ReviewSummary servicioId={service.id} />
+                                <ReviewSummary servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
                             </div>
 
                             {totalReviews > 0 ? (
                                 <div>
                                     {/* Lista de Reviews */}
-                                    <ReviewList servicioId={service.id} />
+                                    <ReviewList servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
                                 </div>
                             ) : null}
 
