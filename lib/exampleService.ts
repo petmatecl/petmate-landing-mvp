@@ -73,6 +73,7 @@ export const exampleService = {
         sitio_web: '',
         instagram: 'carolina_pawsitter',
         primera_ayuda: true,
+        perfil_completo: true,
         bio: 'Soy Carolina, tengo 32 años y vivo en Providencia con mi familia. Estudié educación parvularia pero hace 5 años descubrí mi vocación cuidando mascotas. Mis propias perras (Mota y Luna) son la prueba de que en mi casa los animales son uno más. Me certifiqué en primeros auxilios para mascotas y me actualizo constantemente leyendo sobre comportamiento canino y felino. Lo que más me gusta es ver cómo se relajan en mi hogar después de unos días.',
         galeria: [
             'https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=1200&auto=format&fit=crop&q=80',

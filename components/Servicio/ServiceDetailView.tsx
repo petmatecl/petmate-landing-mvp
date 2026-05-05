@@ -17,7 +17,7 @@ import Breadcrumb from '../Shared/Breadcrumb';
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
-    Briefcase, Award, Globe, Instagram,
+    Briefcase, Award, Globe, Instagram, BadgeCheck,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -936,6 +936,11 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                         )}
                                     </div>
                                     <p className="text-sm text-slate-500 mb-3">{proveedor.comuna}</p>
+                                    {proveedor.perfil_completo && (
+                                        <span className="flex items-center gap-1 px-2.5 py-1 mb-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">
+                                            <BadgeCheck size={12} /> Perfil completo
+                                        </span>
+                                    )}
                                     <Link
                                         href={`/proveedor/${proveedor.id}`}
                                         className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-5 py-2 rounded-full transition-colors"

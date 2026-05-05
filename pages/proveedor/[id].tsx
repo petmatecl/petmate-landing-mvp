@@ -215,6 +215,11 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                         <ShieldCheck size={12} /> Identidad Verificada
                                     </span>
                                 )}
+                                {proveedor.perfil_completo && (
+                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
+                                        <BadgeCheck size={12} /> Perfil completo
+                                    </span>
+                                )}
                             </div>
 
                             {proveedor.tipo_entidad === 'empresa' && (
@@ -528,7 +533,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 certificaciones, primera_ayuda, rut_verificado, verificacion_estado,
                 sitio_web, instagram, email_publico, mostrar_email,
                 mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
-                galeria, estado, created_at, datos_especificos
+                galeria, estado, created_at, datos_especificos, perfil_completo
             `)
             .eq('id', id)
             .maybeSingle();
