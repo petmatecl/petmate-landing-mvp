@@ -52,10 +52,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         // Fetch Reviews
         const { data: reviews, error: reviewsError } = await supabase
             .from('evaluaciones')
-            .select(`
-                *,
-                usuarios_buscadores(nombre)
-            `)
+            .select('*')
             .eq('servicio_id', id)
             .eq('estado', 'aprobado')
             .order('created_at', { ascending: false });

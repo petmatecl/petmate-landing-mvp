@@ -126,7 +126,7 @@ function ServiceCardItem({ s }: { s: any }) {
           }}
         />
         {s.categoria_nombre && (
-          <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-700">
+          <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-700 max-w-[60%] truncate">
             {s.categoria_nombre}
           </div>
         )}

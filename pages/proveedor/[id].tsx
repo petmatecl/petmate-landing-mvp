@@ -610,6 +610,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     destacado: !!rs.destacado,
                     rating_promedio: promServ,
                     total_evaluaciones: totServ,
+                    proveedor_perfil_completo: proveedor.perfil_completo ?? false,
+                    proveedor_es_ejemplo: proveedor.es_ejemplo ?? false,
                 };
             });
         }
