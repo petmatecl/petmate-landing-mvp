@@ -2,9 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent horizontal overflow on mobile */
+/* Prevent horizontal overflow on mobile.
+   Use `clip` instead of `hidden` so descendant `position: sticky` keeps working
+   (overflow-x: hidden creates a scroll container that breaks sticky positioning).
+   `overflow: clip` clips visually without creating a scroll container. */
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 :root {
