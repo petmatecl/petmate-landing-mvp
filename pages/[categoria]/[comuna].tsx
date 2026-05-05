@@ -7,6 +7,7 @@ import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard
 import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
 import Breadcrumb from '../../components/Shared/Breadcrumb';
 import { buildRegisterUrl } from '../../lib/placeholderCopy';
+import { Sparkles, ArrowRight } from 'lucide-react';
 
 // --- Comunas for SEO ---
 export const COMUNAS_SEO: { slug: string; name: string }[] = [
@@ -157,18 +158,22 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                     ) : (
                         <>
                             {/* Banner sé el primero */}
-                            <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 sm:p-8 mb-8 text-center">
-                                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+                            <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-10 mb-8 text-center">
+                                <div className="flex justify-center mb-4 text-emerald-600">
+                                    <Sparkles size={32} strokeWidth={1.5} aria-hidden="true" />
+                                </div>
+                                <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-3">
                                     Aún no hay {categoria.nombre.toLowerCase()} en {comuna}. Sé el primero.
                                 </h2>
-                                <p className="text-slate-600 mb-5 max-w-2xl mx-auto">
+                                <p className="text-slate-500 mb-6 max-w-xl mx-auto leading-relaxed">
                                     Pawnecta es nuevo en tu zona. Únete antes que nadie y aparece primero en las búsquedas.
                                 </p>
                                 <Link
                                     href={buildRegisterUrl(categoria.slug, comuna)}
-                                    className="inline-flex items-center justify-center px-6 py-3 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
+                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-700 text-white font-semibold rounded-xl hover:bg-emerald-800 transition-colors"
                                 >
-                                    Publica gratis tu servicio →
+                                    Publica gratis tu servicio
+                                    <ArrowRight size={16} aria-hidden="true" />
                                 </Link>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
