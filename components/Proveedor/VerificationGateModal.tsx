@@ -60,7 +60,7 @@ export default function VerificationGateModal({
         icon = Clock;
         iconColor = 'text-amber-600 bg-amber-50';
         title = 'Verificación en revisión';
-        body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisamos por email cuando esté lista (24-48h). Mientras tanto, no podés publicar servicios.';
+        body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisaremos por email cuando esté lista (24-48h). Mientras tanto, no puedes publicar servicios.';
         primaryLabel = 'Entendido';
         primaryAction = onClose;
     } else if (verificacionEstado === 'rechazado') {
@@ -69,7 +69,7 @@ export default function VerificationGateModal({
         title = 'Verificación rechazada';
         body = verificacionNota
             ? `Tu verificación fue rechazada: ${verificacionNota}`
-            : 'Tu verificación fue rechazada. Revisá tu perfil y reenviá los documentos.';
+            : 'Tu verificación fue rechazada. Revisa tu perfil y reenvía los documentos.';
         primaryLabel = 'Ir a mi perfil';
         primaryAction = onGoToVerification;
     } else {
@@ -77,7 +77,7 @@ export default function VerificationGateModal({
         icon = Shield;
         iconColor = 'text-emerald-700 bg-emerald-50';
         title = 'Verificá tu identidad para publicar';
-        body = 'Para publicar tu primer servicio necesitás verificar tu identidad. Esto incluye tu RUT y una foto de tu carnet (frontal y dorso). Es por seguridad de la plataforma y de quienes contratan tus servicios.';
+        body = 'Para publicar tu primer servicio necesitas verificar tu identidad. Esto incluye tu RUT y una foto de tu carnet (frontal y dorso). Es por seguridad de la plataforma y de quienes contratan tus servicios.';
         primaryLabel = 'Verificar ahora';
         primaryAction = onGoToVerification;
     }

@@ -16,7 +16,7 @@ export default function EjemploPage({ service, reviews, otrosServicios }: Ejempl
         <>
             <Head>
                 <title>Vista de ejemplo | Pawnecta</title>
-                <meta name="description" content="Así se ve un perfil completo en Pawnecta. Mirá todo lo que podés ofrecer en tu servicio para mascotas." />
+                <meta name="description" content="Así se ve un perfil completo en Pawnecta. Mira todo lo que puedes ofrecer en tu servicio para mascotas." />
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
@@ -30,7 +30,7 @@ export default function EjemploPage({ service, reviews, otrosServicios }: Ejempl
                         href="/register?rol=proveedor"
                         className="shrink-0 inline-flex items-center bg-white text-emerald-700 font-bold text-sm px-5 py-2 rounded-xl hover:bg-emerald-50 transition-colors whitespace-nowrap"
                     >
-                        Publicá el tuyo gratis →
+                        Publica el tuyo gratis →
                     </Link>
                 </div>
             </div>

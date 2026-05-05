@@ -468,7 +468,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                             href="/proveedor?tab=servicios"
                                             className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md text-slate-800 text-sm font-semibold px-5 py-3 rounded-xl shadow-lg hover:bg-white transition-colors"
                                         >
-                                            Agregá fotos para destacar tu servicio →
+                                            Agrega fotos para destacar tu servicio →
                                         </Link>
                                     </div>
                                 )}
@@ -597,7 +597,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 <EmptyFieldState
                                     label="información personal"
                                     isOwner={isOwner}
-                                    ownerCTA={{ text: 'Contale a los tutores quién sos', href: '/proveedor?tab=perfil' }}
+                                    ownerCTA={{ text: 'Cuéntale a los tutores quién eres', href: '/proveedor?tab=perfil' }}
                                     tutorMessage="Este proveedor no agregó información personal aún"
                                 />
                             )}
@@ -729,7 +729,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 <EmptyFieldState
                                     label="fotos del espacio"
                                     isOwner={isOwner}
-                                    ownerCTA={{ text: 'Subí fotos', href: '/proveedor?tab=perfil' }}
+                                    ownerCTA={{ text: 'Sube fotos', href: '/proveedor?tab=perfil' }}
                                 />
                             ) : proveedor.galeria.length === 1 ? (
                                     // Una foto — full width
@@ -957,7 +957,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                             <EmptyFieldState
                                                 label="años de experiencia"
                                                 isOwner={isOwner}
-                                                ownerCTA={{ text: 'Agregá tu experiencia', href: '/proveedor?tab=perfil' }}
+                                                ownerCTA={{ text: 'Agrega tu experiencia', href: '/proveedor?tab=perfil' }}
                                                 tutorMessage="Experiencia no especificada"
                                                 variant="inline"
                                             />
@@ -975,7 +975,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                             <EmptyFieldState
                                                 label="certificaciones"
                                                 isOwner={isOwner}
-                                                ownerCTA={{ text: 'Agregá una', href: '/proveedor?tab=perfil' }}
+                                                ownerCTA={{ text: 'Agrega una', href: '/proveedor?tab=perfil' }}
                                                 tutorMessage="Sin certificaciones agregadas"
                                                 variant="inline"
                                             />
@@ -1041,7 +1041,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                 <EmptyFieldState
                                                     label="canales de contacto"
                                                     isOwner={isOwner}
-                                                    ownerCTA={{ text: 'Agregá tus redes', href: '/proveedor?tab=perfil' }}
+                                                    ownerCTA={{ text: 'Agrega tus redes', href: '/proveedor?tab=perfil' }}
                                                 />
                                             )}
                                         </div>

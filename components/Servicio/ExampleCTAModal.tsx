@@ -92,7 +92,7 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                     {/* Body */}
                     <div className="px-5 py-4">
                         <p id="example-cta-desc" className="text-sm text-slate-600 leading-relaxed">
-                            Para {actionText} con un proveedor real necesitás registrarte en Pawnecta. Es gratis y tarda menos de un minuto.
+                            Para {actionText} con un proveedor real necesitas registrarte en Pawnecta. Es gratis y tarda menos de un minuto.
                         </p>
                     </div>
 

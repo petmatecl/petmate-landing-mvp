@@ -83,7 +83,7 @@ export default function CookieBanner() {
                         <Cookie className="text-emerald-700 shrink-0 mt-0.5" size={20} aria-hidden="true" />
                         <p className="text-sm text-slate-600 leading-relaxed">
                             Usamos cookies para mejorar tu experiencia y analizar el uso del sitio. Las necesarias son
-                            obligatorias. Podés aceptar todas, rechazar las opcionales o personalizar tus preferencias.{' '}
+                            obligatorias. Puedes aceptar todas, rechazar las opcionales o personalizar tus preferencias.{' '}
                             <Link href="/privacidad" className="text-emerald-700 underline hover:text-emerald-800">
                                 Más información
                             </Link>
@@ -152,8 +152,8 @@ export default function CookieBanner() {
                     {/* Body */}
                     <div className="px-6 py-5 space-y-5">
                         <p id="cookie-prefs-desc" className="text-sm text-slate-600 leading-relaxed">
-                            Elegí qué tipos de cookies querés permitir. Tu elección se guarda en este dispositivo y
-                            podés cambiarla cuando quieras desde el footer.
+                            Elige qué tipos de cookies quieres permitir. Tu elección se guarda en este dispositivo y
+                            puedes cambiarla cuando quieras desde el footer.
                         </p>
 
                         {/* Necesarias */}
