@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X } from 'lucide-react';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
@@ -82,6 +82,12 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     const router = useRouter();
     const { user } = useUser();
     const [loginModalOpen, setLoginModalOpen] = useState(false);
+    const [exampleBannerVisible, setExampleBannerVisible] = useState(true);
+
+    // Reset banner visibility when navigating to a different provider
+    useEffect(() => {
+        setExampleBannerVisible(true);
+    }, [proveedor?.id]);
 
     const handleProtectedLinkClick = (e: React.MouseEvent) => {
         if (!user) {
@@ -168,22 +174,31 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 />
             </Head>
 
-            {proveedor.es_ejemplo && (
-                <div role="region" aria-label="Aviso proveedor de ejemplo" className="sticky top-0 z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-2 text-center sm:text-left">
-                        <div className="flex items-center gap-2">
-                            <Sparkles size={18} aria-hidden="true" className="shrink-0" />
-                            <p className="text-sm font-medium">
+            {proveedor.es_ejemplo && exampleBannerVisible && (
+                <div role="region" aria-label="Aviso proveedor de ejemplo" className="sticky top-16 z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Sparkles size={16} aria-hidden="true" className="shrink-0" />
+                            <p className="text-sm truncate">
                                 <strong className="font-bold uppercase tracking-wide">Ejemplo:</strong>{' '}
                                 Este proveedor es ficticio. Para contactar a uno real, regístrate. Es gratis.
                             </p>
                         </div>
-                        <Link
-                            href="/register?rol=usuario"
-                            className="shrink-0 inline-flex items-center bg-amber-900 text-amber-50 font-bold text-xs uppercase tracking-wide px-4 py-2 rounded-xl hover:bg-amber-800 transition-colors whitespace-nowrap"
-                        >
-                            Registrarme →
-                        </Link>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Link
+                                href="/register?rol=usuario"
+                                className="inline-flex items-center bg-amber-900 text-amber-50 font-bold text-xs uppercase tracking-wide px-3 py-1.5 rounded-md hover:bg-amber-800 transition-colors whitespace-nowrap"
+                            >
+                                Registrarme →
+                            </Link>
+                            <button
+                                onClick={() => setExampleBannerVisible(false)}
+                                aria-label="Cerrar aviso de ejemplo"
+                                className="text-amber-700 hover:text-amber-900 transition-colors"
+                            >
+                                <X size={16} aria-hidden="true" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

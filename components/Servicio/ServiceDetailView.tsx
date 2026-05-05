@@ -17,7 +17,7 @@ import Breadcrumb from '../Shared/Breadcrumb';
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
-    Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles,
+    Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles, X,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -99,6 +99,12 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [imgError, setImgError] = useState(false);
     const [exampleModalAction, setExampleModalAction] = useState<ExampleAction | null>(null);
+    const [exampleBannerVisible, setExampleBannerVisible] = useState(true);
+
+    // Reset banner visibility when navigating to a different service
+    React.useEffect(() => {
+        setExampleBannerVisible(true);
+    }, [service?.id]);
 
     // Use shared UserContext — avoids double session fetch
     const { user, isLoading: isUserLoading } = useUser();
@@ -313,22 +319,31 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
-            {isExample && (
-                <div role="region" aria-label="Aviso proveedor de ejemplo" className="sticky top-0 z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-2 text-center sm:text-left">
-                        <div className="flex items-center gap-2">
-                            <Sparkles size={18} aria-hidden="true" className="shrink-0" />
-                            <p className="text-sm font-medium">
+            {isExample && exampleBannerVisible && (
+                <div role="region" aria-label="Aviso proveedor de ejemplo" className="sticky top-16 z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Sparkles size={16} aria-hidden="true" className="shrink-0" />
+                            <p className="text-sm truncate">
                                 <strong className="font-bold uppercase tracking-wide">Ejemplo:</strong>{' '}
                                 Este proveedor es ficticio. Para contactar a uno real, regístrate. Es gratis.
                             </p>
                         </div>
-                        <Link
-                            href="/register?rol=usuario"
-                            className="shrink-0 inline-flex items-center bg-amber-900 text-amber-50 font-bold text-xs uppercase tracking-wide px-4 py-2 rounded-xl hover:bg-amber-800 transition-colors whitespace-nowrap"
-                        >
-                            Registrarme →
-                        </Link>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Link
+                                href="/register?rol=usuario"
+                                className="inline-flex items-center bg-amber-900 text-amber-50 font-bold text-xs uppercase tracking-wide px-3 py-1.5 rounded-md hover:bg-amber-800 transition-colors whitespace-nowrap"
+                            >
+                                Registrarme →
+                            </Link>
+                            <button
+                                onClick={() => setExampleBannerVisible(false)}
+                                aria-label="Cerrar aviso de ejemplo"
+                                className="text-amber-700 hover:text-amber-900 transition-colors"
+                            >
+                                <X size={16} aria-hidden="true" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
