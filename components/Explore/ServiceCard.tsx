@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, ShieldCheck, Star, BadgeCheck } from 'lucide-react';
+import { Heart, ShieldCheck, Star, BadgeCheck, Sparkles } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { supabase } from '../../lib/supabaseClient';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
@@ -32,6 +32,7 @@ export interface ServiceResult {
     proveedor_verificado?: boolean;
     proveedor_primera_ayuda?: boolean;
     proveedor_perfil_completo?: boolean;
+    proveedor_es_ejemplo?: boolean;
 }
 
 interface Props {
@@ -196,8 +197,16 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                 </div>
 
                 {/* Trust badges */}
-                {(service.proveedor_verificado || service.proveedor_perfil_completo || service.total_evaluaciones >= 3 || service.proveedor_primera_ayuda) ? (
+                {(service.proveedor_es_ejemplo || service.proveedor_verificado || service.proveedor_perfil_completo || service.total_evaluaciones >= 3 || service.proveedor_primera_ayuda) ? (
                     <div className="flex flex-wrap gap-1.5 mb-3">
+                        {service.proveedor_es_ejemplo && (
+                            <span
+                                title="Este es un proveedor de ejemplo, no real. Regístrate para publicar tu servicio."
+                                className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-[11px] font-bold uppercase tracking-wide"
+                            >
+                                <Sparkles size={10} aria-hidden="true" /> EJEMPLO
+                            </span>
+                        )}
                         {service.proveedor_verificado && (
                             <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-semibold">
                                 <ShieldCheck size={10} /> Verificado

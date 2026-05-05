@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles } from 'lucide-react';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
@@ -167,6 +167,26 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     }}
                 />
             </Head>
+
+            {proveedor.es_ejemplo && (
+                <div role="region" aria-label="Aviso proveedor de ejemplo" className="sticky top-0 z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-2 text-center sm:text-left">
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={18} aria-hidden="true" className="shrink-0" />
+                            <p className="text-sm font-medium">
+                                <strong className="font-bold uppercase tracking-wide">Ejemplo:</strong>{' '}
+                                Este proveedor es ficticio. Para contactar a uno real, regístrate. Es gratis.
+                            </p>
+                        </div>
+                        <Link
+                            href="/register?rol=usuario"
+                            className="shrink-0 inline-flex items-center bg-amber-900 text-amber-50 font-bold text-xs uppercase tracking-wide px-4 py-2 rounded-xl hover:bg-amber-800 transition-colors whitespace-nowrap"
+                        >
+                            Registrarme →
+                        </Link>
+                    </div>
+                </div>
+            )}
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-5">
                 {/* Volver */}
@@ -533,7 +553,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 certificaciones, primera_ayuda, rut_verificado, verificacion_estado,
                 sitio_web, instagram, email_publico, mostrar_email,
                 mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
-                galeria, estado, created_at, datos_especificos, perfil_completo
+                galeria, estado, created_at, datos_especificos, perfil_completo, es_ejemplo
             `)
             .eq('id', id)
             .maybeSingle();

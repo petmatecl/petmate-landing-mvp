@@ -17,7 +17,7 @@ import Breadcrumb from '../Shared/Breadcrumb';
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
-    Briefcase, Award, Globe, Instagram, BadgeCheck,
+    Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -313,6 +313,25 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
+            {isExample && (
+                <div role="region" aria-label="Aviso proveedor de ejemplo" className="sticky top-0 z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-2 text-center sm:text-left">
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={18} aria-hidden="true" className="shrink-0" />
+                            <p className="text-sm font-medium">
+                                <strong className="font-bold uppercase tracking-wide">Ejemplo:</strong>{' '}
+                                Este proveedor es ficticio. Para contactar a uno real, regístrate. Es gratis.
+                            </p>
+                        </div>
+                        <Link
+                            href="/register?rol=usuario"
+                            className="shrink-0 inline-flex items-center bg-amber-900 text-amber-50 font-bold text-xs uppercase tracking-wide px-4 py-2 rounded-xl hover:bg-amber-800 transition-colors whitespace-nowrap"
+                        >
+                            Registrarme →
+                        </Link>
+                    </div>
+                </div>
+            )}
             {isOwner && (
                 <div role="region" aria-label="Vista de previsualización del proveedor" className="sticky top-0 z-30 bg-slate-700 text-white border-b border-slate-600 shadow-md">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">

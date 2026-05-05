@@ -33,7 +33,7 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
             try {
                 let query = supabase
                     .from('evaluaciones')
-                    .select('id, rating, comentario, created_at, respuesta_proveedor, respuesta_at, usuario_id')
+                    .select('id, rating, comentario, created_at, respuesta_proveedor, respuesta_at, usuario_id, nombre_autor')
                     .eq('estado', 'aprobado')
                     .order('created_at', { ascending: false });
 
@@ -105,6 +105,7 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
             <div className="flex flex-col gap-6">
                 {reviews.map(review => {
                     const u = review._user;
+                    const displayName = u?.nombre || review.nombre_autor || 'Usuario';
                     return (
                         <div key={review.id} className="border-t border-slate-100 pt-6 flex flex-col gap-2">
                             <div className="flex justify-between items-start">
@@ -112,13 +113,13 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
                                     <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
                                         {u?.foto_perfil ? (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={u.foto_perfil} alt={u.nombre} className="w-full h-full object-cover" />
+                                            <img src={u.foto_perfil} alt={displayName} className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm">{u?.nombre?.[0] || '?'}</div>
+                                            <div className="w-full h-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm">{displayName[0]}</div>
                                         )}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-900 text-sm">{u?.nombre || 'Usuario'}</h4>
+                                        <h4 className="font-bold text-slate-900 text-sm">{displayName}</h4>
                                         <p className="text-xs text-slate-500">
                                             Hace {formatDistanceToNow(new Date(review.created_at), { locale: es })}
                                         </p>

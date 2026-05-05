@@ -95,6 +95,7 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         proveedor_verificado: item.proveedor_verificado ?? false,
         proveedor_primera_ayuda: item.proveedor_primera_ayuda ?? false,
         proveedor_perfil_completo: item.proveedor_perfil_completo ?? false,
+        proveedor_es_ejemplo: item.proveedor_es_ejemplo ?? false,
     };
 }
 
@@ -127,5 +128,6 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         acepta_gatos: item.acepta_gatos ?? true,
         acepta_otras: item.acepta_otras ?? false,
         proveedor_perfil_completo: item.proveedor?.perfil_completo ?? false,
+        proveedor_es_ejemplo: item.proveedor?.es_ejemplo ?? false,
     };
 }

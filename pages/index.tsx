@@ -8,7 +8,7 @@ import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car, Camera,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
-  CheckCircle2, Shield, BadgeCheck
+  CheckCircle2, Shield, BadgeCheck, Sparkles
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { toast } from "sonner";
@@ -145,6 +145,15 @@ function ServiceCardItem({ s }: { s: any }) {
           <div className="absolute top-2.5 left-2.5 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             Destacado
+          </div>
+        )}
+        {s.proveedor_es_ejemplo && (
+          <div
+            title="Este es un proveedor de ejemplo, no real. Regístrate para publicar tu servicio."
+            aria-label="Proveedor de ejemplo"
+            className="absolute bottom-2.5 left-2.5 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm"
+          >
+            <Sparkles size={10} aria-hidden="true" /> Ejemplo
           </div>
         )}
         {s.proveedor_perfil_completo && (
@@ -631,7 +640,7 @@ export async function getStaticProps() {
       .from('servicios_publicados')
       .select(`
         *,
-        proveedor:proveedores(nombre, apellido_p, foto_perfil, comuna, perfil_completo),
+        proveedor:proveedores(nombre, apellido_p, foto_perfil, comuna, perfil_completo, es_ejemplo),
         categoria:categorias_servicio(nombre, icono, slug)
       `)
       .eq('activo', true)

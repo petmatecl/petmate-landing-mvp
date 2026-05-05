@@ -11,7 +11,8 @@ interface ServiceDetailProps {
 }
 
 export default function ServicioPage(props: ServiceDetailProps) {
-    return <ServiceDetailView {...props} />;
+    const isExample = props.service?.proveedores?.es_ejemplo === true;
+    return <ServiceDetailView {...props} isExample={isExample} />;
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -27,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     id, auth_user_id, nombre, apellido_p, nombre_publico, rut_verificado, foto_perfil, comuna,
                     mostrar_whatsapp, mostrar_telefono, mostrar_email, telefono, email_publico, created_at,
                     tipo_entidad, razon_social, nombre_fantasia, giro, anios_experiencia,
-                    certificaciones, sitio_web, instagram, primera_ayuda, galeria, perfil_completo, bio
+                    certificaciones, sitio_web, instagram, primera_ayuda, galeria, perfil_completo, bio, es_ejemplo
                 ),
                 categorias_servicio!inner(
                     nombre, slug, icono
