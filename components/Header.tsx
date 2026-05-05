@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "../contexts/UserContext"; // Context Unificado
 import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
@@ -17,6 +17,13 @@ export default function Header() {
 
   // Use Unified Context
   const { user, profile, isAuthenticated, activeRole, activeMode, canSwitchMode, switchMode, logout, switchRole, roles } = useUser();
+
+  // Sync --header-height CSS variable for sticky descendants (e.g., banner amber EJEMPLO).
+  // 105px when launch banner visible (40 topbar + 65 navbar), 64px when collapsed.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--header-height', showBanner ? '105px' : '64px');
+  }, [showBanner]);
 
   // Nombre a mostrar
   const userName = profile?.nombre || user?.user_metadata?.nombre || "Usuario";

@@ -320,7 +320,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {isExample && exampleBannerVisible && (
-                <div role="region" aria-label="Aviso proveedor de ejemplo" className="sticky top-16 z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
+                <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Sparkles size={16} aria-hidden="true" className="shrink-0" />
@@ -337,6 +337,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 Registrarme →
                             </Link>
                             <button
+                                type="button"
                                 onClick={() => setExampleBannerVisible(false)}
                                 aria-label="Cerrar aviso de ejemplo"
                                 className="text-amber-700 hover:text-amber-900 transition-colors"

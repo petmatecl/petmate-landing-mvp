@@ -13,6 +13,11 @@ html, body {
 :root {
   --font-outfit: 'Outfit', sans-serif;
 
+  /* Dynamic header height — updated by Header.tsx based on launch banner visibility.
+     Default 105px assumes launch banner is showing (40 topbar + 65 navbar).
+     Used by sticky elements that need to position below the header. */
+  --header-height: 105px;
+
   /* --- High Contrast Surface Tokens (Definitive System) --- */
   --page-bg: #f8fafc;
   /* Slate-50 */
