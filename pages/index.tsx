@@ -336,16 +336,16 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
   return (
     <div className="min-h-screen bg-white">
       <Head>
-        <title>Pawnecta — Servicios para mascotas en Chile | Proveedores verificados</title>
+        <title>Pawnecta — Marketplace de servicios para mascotas</title>
         <meta name="description" content="Encuentra cuidadores, paseadores, peluqueros y veterinarios verificados cerca de ti. Busca por comuna, compara perfiles y contacta directo. Gratis en lanzamiento." />
         <link rel="canonical" href="https://pawnecta.com" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pawnecta.com" />
-        <meta property="og:title" content="Pawnecta — Servicios para mascotas en Chile" />
+        <meta property="og:title" content="Pawnecta — Marketplace de servicios para mascotas" />
         <meta property="og:description" content="Encuentra cuidadores, paseadores y veterinarios verificados cerca de ti." />
         <meta property="og:image" content="https://pawnecta.com/og-image.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Pawnecta — Servicios para mascotas en Chile" />
+        <meta name="twitter:title" content="Pawnecta — Marketplace de servicios para mascotas" />
         <meta name="twitter:description" content="Proveedores verificados en tu comuna." />
         <meta name="twitter:image" content="https://pawnecta.com/og-image.jpg" />
         <script

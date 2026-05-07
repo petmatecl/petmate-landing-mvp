@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Flag } from 'lucide-react';
 import ReportModal from '../Shared/ReportModal';
@@ -121,7 +121,7 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
                                     <div>
                                         <h4 className="font-bold text-slate-900 text-sm">{displayName}</h4>
                                         <p className="text-xs text-slate-500">
-                                            Hace {formatDistanceToNow(new Date(review.created_at), { locale: es })}
+                                            {formatDistanceToNow(parseISO(review.created_at), { addSuffix: true, locale: es })}
                                         </p>
                                     </div>
                                 </div>

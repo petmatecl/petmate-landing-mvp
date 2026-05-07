@@ -3,7 +3,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { BLOG_POSTS, BlogPost } from "../../lib/blogData";
-import { Calendar, Clock, User, ChevronLeft, Share2, ArrowRight } from "lucide-react";
+import { Calendar, Clock, User, ChevronLeft, Share2, ArrowRight, Sparkles } from "lucide-react";
+
+// Mapeo categoría → copy específico del CTA contextual
+const CATEGORIA_CTA_COPY: Record<string, { titulo: string; href: string }> = {
+    veterinario: { titulo: "¿Necesitas un veterinario verificado?", href: "/veterinario" },
+    hospedaje: { titulo: "¿Buscas hospedaje confiable para tu mascota?", href: "/hospedaje" },
+    guarderia: { titulo: "¿Necesitas guardería diurna en tu comuna?", href: "/guarderia" },
+    paseos: { titulo: "¿Buscas un paseador profesional?", href: "/paseos" },
+    domicilio: { titulo: "¿Necesitas cuidado a domicilio?", href: "/domicilio" },
+    peluqueria: { titulo: "¿Buscas peluquería para tu mascota?", href: "/peluqueria" },
+    adiestramiento: { titulo: "¿Necesitas un adiestrador profesional?", href: "/adiestramiento" },
+    traslado: { titulo: "¿Necesitas traslado seguro para tu mascota?", href: "/traslado" },
+    fotografia: { titulo: "¿Buscas un fotógrafo de mascotas?", href: "/fotografia" },
+};
 
 interface Props {
     post: BlogPost;
@@ -142,6 +155,35 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         prose-img:rounded-2xl prose-img:shadow-sm"
                         dangerouslySetInnerHTML={{ __html: post.content }}
                     />
+
+                    {/* CTA contextual — vincula tráfico orgánico a producto */}
+                    {(() => {
+                        const ctaCopy = post.categoriaRelacionada
+                            ? CATEGORIA_CTA_COPY[post.categoriaRelacionada]
+                            : null;
+                        const titulo = ctaCopy?.titulo ?? "Encuentra servicios verificados para tu mascota";
+                        const href = ctaCopy?.href ?? "/explorar";
+                        return (
+                            <div className="mt-16 rounded-2xl border border-emerald-100 bg-white p-8 text-center">
+                                <div className="flex justify-center mb-4 text-emerald-600">
+                                    <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                                    {titulo}
+                                </h3>
+                                <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
+                                    Conecta directo con profesionales en tu comuna en Pawnecta.
+                                </p>
+                                <Link
+                                    href={href}
+                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-700 text-white font-semibold rounded-xl hover:bg-emerald-800 transition-colors"
+                                >
+                                    Ver profesionales
+                                    <ArrowRight size={16} aria-hidden="true" />
+                                </Link>
+                            </div>
+                        );
+                    })()}
 
                     {/* Share / Footer of Article */}
                     <div className="mt-16 pt-8 border-t border-slate-300 flex items-center justify-between text-slate-400 text-sm">

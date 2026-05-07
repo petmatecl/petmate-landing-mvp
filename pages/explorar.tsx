@@ -31,17 +31,18 @@ interface Category {
     icono: string;
 }
 
-// Fallback estático en caso de que la DB demore o falle
+// Fallback estático en caso de que la DB demore o falle.
+// Iconos se renderizan vía SLUG_ICONS map en SidebarFiltros (Lucide), no por este campo.
 const STATIC_CATEGORIES: Category[] = [
-    { id: 'adiestramiento', slug: 'adiestramiento', nombre: 'Adiestramiento', icono: '🎓' },
-    { id: 'domicilio', slug: 'domicilio', nombre: 'Cuidado a Domicilio', icono: '🏡' },
-    { id: 'guarderia', slug: 'guarderia', nombre: 'Guardería Diurna', icono: '☀️' },
-    { id: 'hospedaje', slug: 'hospedaje', nombre: 'Hospedaje', icono: '🏠' },
-    { id: 'paseos', slug: 'paseos', nombre: 'Paseo de Perros', icono: '🦮' },
-    { id: 'peluqueria', slug: 'peluqueria', nombre: 'Peluquería', icono: '✂️' },
-    { id: 'traslado', slug: 'traslado', nombre: 'Traslado', icono: '🚗' },
-    { id: 'fotografia', slug: 'fotografia', nombre: 'Fotografía de Mascotas', icono: '📷' },
-    { id: 'veterinario', slug: 'veterinario', nombre: 'Veterinario a Domicilio', icono: '🩺' },
+    { id: 'adiestramiento', slug: 'adiestramiento', nombre: 'Adiestramiento', icono: '' },
+    { id: 'domicilio', slug: 'domicilio', nombre: 'Cuidado a Domicilio', icono: '' },
+    { id: 'guarderia', slug: 'guarderia', nombre: 'Guardería Diurna', icono: '' },
+    { id: 'hospedaje', slug: 'hospedaje', nombre: 'Hospedaje', icono: '' },
+    { id: 'paseos', slug: 'paseos', nombre: 'Paseo de Perros', icono: '' },
+    { id: 'peluqueria', slug: 'peluqueria', nombre: 'Peluquería', icono: '' },
+    { id: 'traslado', slug: 'traslado', nombre: 'Traslado', icono: '' },
+    { id: 'fotografia', slug: 'fotografia', nombre: 'Fotografía de Mascotas', icono: '' },
+    { id: 'veterinario', slug: 'veterinario', nombre: 'Veterinario a Domicilio', icono: '' },
 ];
 
 const PAGE_SIZE = 20;

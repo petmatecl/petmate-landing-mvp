@@ -9,6 +9,8 @@ export interface BlogPost {
     readTime: string; // "5 min"
     content: string; // HTML/Markdown mixture for simplicity
     tags: string[];
+    /** Slug de categoría a vincular en el CTA contextual del final del artículo. Si null, CTA genérico → /explorar */
+    categoriaRelacionada?: string;
 }
 
 const RAW_POSTS: BlogPost[] = [
@@ -106,6 +108,7 @@ const RAW_POSTS: BlogPost[] = [
         author: "Dra. Valentina (Vet Pawnecta)",
         readTime: "6 min lectura",
         tags: ["Emergencia", "Salud", "Prevención"],
+        categoriaRelacionada: "veterinario",
         content: `
             <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
                 El <strong>golpe de calor</strong> ocurre cuando la temperatura corporal de tu mascota sube peligrosamente y no puede regularla. Es una situación crítica que requiere acción inmediata.
@@ -475,6 +478,7 @@ const RAW_POSTS: BlogPost[] = [
         author: "Equipo Pawnecta",
         readTime: "7 min lectura",
         tags: ["Bienestar Animal", "Estrés", "Tips de Viaje"],
+        categoriaRelacionada: "hospedaje",
         content: `
             <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
                 Cuando planeamos vacaciones, surge la eterna duda: ¿Llevamos a la mascota, la dejamos en una guardería o contratamos un sitter a domicilio? Aunque la idea de una guardería suena divertida, <strong>la evidencia veterinaria sugiere que mantener a tu mascota en su propio hogar es, en la mayoría de los casos, la opción más saludable y menos estresante.</strong>
@@ -569,6 +573,7 @@ const RAW_POSTS: BlogPost[] = [
         author: "Equipo Pawnecta",
         readTime: "6 min lectura",
         tags: ["Comparativa", "Hoteles", "Bienestar"],
+        categoriaRelacionada: "hospedaje",
         content: `
             <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
                 Cuando no podemos llevar a nuestra mascota de viaje, los <strong>hoteles o guarderías caninas</strong> suelen ser la primera opción que se nos viene a la mente. Ofrecen instalaciones profesionales y vigilancia, pero ¿son realmente el "paraíso" que prometen? Analizamos sus pros y contras sin filtros.

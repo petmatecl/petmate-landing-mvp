@@ -1,6 +1,7 @@
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
+import { PawPrint } from 'lucide-react';
 import ServiceDetailView from '../components/Servicio/ServiceDetailView';
 import { ServiceResult } from '../components/Explore/ServiceCard';
 import { exampleService, exampleReviews } from '../lib/exampleService';
@@ -23,8 +24,9 @@ export default function EjemploPage({ service, reviews, otrosServicios }: Ejempl
             {/* Banner ejemplo — sticky superior */}
             <div className="sticky top-0 z-30 bg-emerald-700 text-white shadow-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <p className="text-sm sm:text-base font-medium text-center sm:text-left">
-                        🐾 Esto es un ejemplo de cómo se verá tu servicio en Pawnecta. ¿Te gusta lo que ves?
+                    <p className="text-sm sm:text-base font-medium text-center sm:text-left inline-flex items-center gap-2">
+                        <PawPrint size={16} aria-hidden="true" className="shrink-0" />
+                        Esto es un ejemplo de cómo se verá tu servicio en Pawnecta. ¿Te gusta lo que ves?
                     </p>
                     <Link
                         href="/register?rol=proveedor"

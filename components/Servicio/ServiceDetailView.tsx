@@ -18,6 +18,7 @@ import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles, X,
+    Dog, Cat, Bird,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -583,11 +584,11 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 <h3 className="text-lg font-bold text-slate-900 mb-4">Tipos de mascota</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {service.tipos_mascota.map((tm: string) => (
-                                        <div key={tm} className="bg-slate-50 text-slate-700 font-medium border border-slate-200 px-4 py-2 rounded-full uppercase text-sm tracking-wide">
-                                            {tm === 'perros' && '🐕 Perros'}
-                                            {tm === 'gatos' && '🐈 Gatos'}
-                                            {tm === 'exoticos' && '🦜 Exóticos'}
-                                            {!['perros', 'gatos', 'exoticos'].includes(tm) && `🐾 ${tm}`}
+                                        <div key={tm} className="bg-slate-50 text-slate-700 font-medium border border-slate-200 px-4 py-2 rounded-full uppercase text-sm tracking-wide inline-flex items-center gap-1.5">
+                                            {tm === 'perros' && <><Dog size={14} aria-hidden="true" /> Perros</>}
+                                            {tm === 'gatos' && <><Cat size={14} aria-hidden="true" /> Gatos</>}
+                                            {tm === 'exoticos' && <><Bird size={14} aria-hidden="true" /> Exóticos</>}
+                                            {!['perros', 'gatos', 'exoticos'].includes(tm) && <><PawPrint size={14} aria-hidden="true" /> {tm}</>}
                                         </div>
                                     ))}
                                     {service.tamanos_permitidos?.length > 0 && (

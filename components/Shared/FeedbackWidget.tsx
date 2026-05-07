@@ -38,23 +38,24 @@ export default function FeedbackWidget() {
 
     return (
         <>
-            {/* Floating button */}
+            {/* Floating button: icon-only en mobile, con texto en desktop */}
             {!open && (
                 <button
                     onClick={() => setOpen(true)}
                     aria-haspopup="dialog"
                     aria-expanded={false}
                     aria-controls="feedback-widget-panel"
-                    className="fixed bottom-6 left-6 z-40 flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:border-emerald-300 px-4 py-2.5 rounded-full shadow-lg text-sm font-medium transition-colors"
+                    aria-label="Enviar feedback"
+                    className="fixed bottom-6 right-6 z-40 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:border-emerald-300 rounded-full shadow-lg font-medium opacity-60 hover:opacity-100 transition-all w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 sm:text-sm"
                 >
-                    <MessageCircle size={16} />
-                    Feedback
+                    <MessageCircle size={16} aria-hidden="true" />
+                    <span className="hidden sm:inline">Feedback</span>
                 </button>
             )}
 
             {/* Panel */}
             {open && (
-                <div id="feedback-widget-panel" role="dialog" aria-label="Enviar feedback" aria-modal="false" className="fixed bottom-6 left-6 z-50 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+                <div id="feedback-widget-panel" role="dialog" aria-label="Enviar feedback" aria-modal="false" className="fixed bottom-6 right-6 left-6 sm:left-auto z-50 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                         <h3 className="text-sm font-bold text-slate-900">Tu opinión nos importa</h3>

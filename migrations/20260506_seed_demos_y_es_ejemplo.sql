@@ -514,21 +514,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000001'::uuid, NULL, 'María José T.',
  5, 'Carolina cuidó a Luna durante una semana mientras estábamos de vacaciones. Recibí fotos todos los días, mensajes con detalles del comportamiento y noté que la hizo dormir en su rutina habitual. El jardín le encantó, llegó cansada y feliz. Ya tuvimos malas experiencias en otros lugares y de verdad no tiene comparación. Súper recomendada, ya reservé para las próximas vacaciones.',
  'aprobado', '¡Gracias María José! Luna fue una compañera adorable. Te esperamos cuando quieran.',
- '2026-03-20 10:30:00+00'),
+ NOW() - INTERVAL '12 days'),
 
 ('e1000001-0000-4000-8000-000000000002'::uuid,
  'c1000001-0000-4000-8000-000000000001'::uuid,
  'b1000001-0000-4000-8000-000000000001'::uuid, NULL, 'Andrés P.',
  5, 'Excelente atención con mi gato Pelusa. Es tímido y normalmente se estresa, pero con Carolina pudo descansar sin problemas. Volvería sin dudar.',
  'aprobado', NULL,
- '2026-03-05 14:00:00+00'),
+ NOW() - INTERVAL '30 days'),
 
 ('e1000001-0000-4000-8000-000000000003'::uuid,
  'c1000001-0000-4000-8000-000000000001'::uuid,
  'b1000001-0000-4000-8000-000000000001'::uuid, NULL, 'Sofía L.',
  4, 'Muy buena experiencia. La comunicación fue impecable y mi perro se notaba cómodo. Le pondría 4 estrellas porque me hubiese gustado más fotos durante el día, pero es algo personal.',
  'aprobado', '¡Gracias por el feedback! Tomé nota, voy a enviar más fotos a quienes lo prefieran.',
- '2026-02-18 09:15:00+00'),
+ NOW() - INTERVAL '45 days'),
 
 -- ───────── Demo 2: Daniela (Guardería) ─────────
 ('e1000001-0000-4000-8000-000000000004'::uuid,
@@ -536,21 +536,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000002'::uuid, NULL, 'Mauricio R.',
  5, 'Llevo a mi Husky Thor a la guardería de Daniela hace 3 meses y la diferencia conductual es notoria. Llegaba ansioso a casa después del trabajo y ahora viene relajado. La socialización con otros perros le hizo muy bien. Daniela mantiene grupos pequeños y eso se nota: cada perro recibe atención. Las cámaras me dejaron tranquilo las primeras semanas.',
  'aprobado', '¡Gracias Mauricio! Thor se integró súper bien al grupo, es un encanto.',
- '2026-04-10 16:20:00+00'),
+ NOW() - INTERVAL '6 days'),
 
 ('e1000001-0000-4000-8000-000000000005'::uuid,
  'c1000001-0000-4000-8000-000000000002'::uuid,
  'b1000001-0000-4000-8000-000000000002'::uuid, NULL, 'Valentina C.',
  5, 'La rutina diaria que tiene Daniela es lo que más valoro. Mi perrita ya sabe los horarios y se entusiasma cuando la voy a dejar. Los reportes con fotos del día son un plus.',
  'aprobado', NULL,
- '2026-03-12 11:05:00+00'),
+ NOW() - INTERVAL '11 days'),
 
 ('e1000001-0000-4000-8000-000000000006'::uuid,
  'c1000001-0000-4000-8000-000000000002'::uuid,
  'b1000001-0000-4000-8000-000000000002'::uuid, NULL, 'Cristóbal V.',
  4, 'Buena guardería, mi perro vuelve cansado y contento. El espacio podría ser un poco más grande, pero el cuidado es muy bueno.',
  'aprobado', NULL,
- '2026-02-22 08:40:00+00'),
+ NOW() - INTERVAL '75 days'),
 
 -- ───────── Demo 3: Sebastián (Domicilio) ─────────
 ('e1000001-0000-4000-8000-000000000007'::uuid,
@@ -558,21 +558,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000003'::uuid, NULL, 'Constanza M.',
  5, 'Tengo dos gatas que detestan moverse de la casa. Sebastián viene dos veces al día cuando estoy de viaje y siempre me deja tranquila con sus reportes. Las gatas lo aceptaron rápido, lo cual ya es un milagro. Le confié las llaves sin dudar después de la primera visita coordinada. Súper profesional y comunicativo.',
  'aprobado', '¡Gracias Constanza! Mishi y Pelusa son adorables, ya las extraño cuando no están en la pauta.',
- '2026-04-25 19:00:00+00'),
+ NOW() - INTERVAL '14 days'),
 
 ('e1000001-0000-4000-8000-000000000008'::uuid,
  'c1000001-0000-4000-8000-000000000003'::uuid,
  'b1000001-0000-4000-8000-000000000003'::uuid, NULL, 'Diego H.',
  5, 'Puntualidad impecable. Los videos cortos que envía después de cada visita son geniales. Mi perro lo recibe contento, ya forman un vínculo.',
  'aprobado', NULL,
- '2026-03-30 13:25:00+00'),
+ NOW() - INTERVAL '35 days'),
 
 ('e1000001-0000-4000-8000-000000000009'::uuid,
  'c1000001-0000-4000-8000-000000000003'::uuid,
  'b1000001-0000-4000-8000-000000000003'::uuid, NULL, 'Trinidad N.',
  4, 'Servicio confiable. Mi gato pudo quedarse en casa sin estresarse mientras yo viajaba. Recomendado.',
  'aprobado', NULL,
- '2026-02-08 10:15:00+00'),
+ NOW() - INTERVAL '90 days'),
 
 -- ───────── Demo 4: Matías (Paseos) ─────────
 ('e1000001-0000-4000-8000-000000000010'::uuid,
@@ -580,21 +580,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000004'::uuid, NULL, 'Rodrigo P.',
  5, 'Tengo un Husky que necesita ejercicio intenso y Matías es el primero que realmente le da el ritmo que requiere. Las rutas largas en el Parque Bicentenario son perfectas. El GPS en tiempo real me da tranquilidad y las fotos durante el paseo son un detalle. Mi perro vuelve agotado y feliz, justo lo que necesitaba.',
  'aprobado', '¡Gracias Rodrigo! Bruno tiene una energía increíble, es un gusto pasearlo.',
- '2026-04-18 17:45:00+00'),
+ NOW() - INTERVAL '2 days'),
 
 ('e1000001-0000-4000-8000-000000000011'::uuid,
  'c1000001-0000-4000-8000-000000000004'::uuid,
  'b1000001-0000-4000-8000-000000000004'::uuid, NULL, 'Bárbara S.',
  4, 'Buen servicio, mi perrita disfruta los paseos en grupo. Las fotos son un plus. A veces me gustaría rutas más cortas para los días de lluvia, pero en general muy bien.',
  'aprobado', NULL,
- '2026-03-22 12:10:00+00'),
+ NOW() - INTERVAL '16 days'),
 
 ('e1000001-0000-4000-8000-000000000012'::uuid,
  'c1000001-0000-4000-8000-000000000004'::uuid,
  'b1000001-0000-4000-8000-000000000004'::uuid, NULL, 'Camila L.',
  5, 'Confiable y deportista. Mi labrador llega cansado, justo lo que buscaba.',
  'aprobado', NULL,
- '2026-02-14 09:30:00+00'),
+ NOW() - INTERVAL '85 days'),
 
 -- ───────── Demo 5: Patricia (Peluquería) ─────────
 ('e1000001-0000-4000-8000-000000000013'::uuid,
@@ -602,21 +602,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000005'::uuid, NULL, 'Tamara A.',
  5, 'Mi gata Persa odiaba ir al peluquero. Patricia es la única persona que ha logrado hacer un buen trabajo sin que termine arañando a alguien. Le tiene una paciencia infinita y sabe leer cuándo parar. Productos hipoalergénicos perfectos para su piel sensible. La mesa hidráulica también ayuda a que no se forcé. Mi gata sale con los nudos sacados y oliendo rico, sin trauma.',
  'aprobado', '¡Gracias Tamara! Coco es una reina, hay que respetarle sus tiempos. Te esperamos en 6 semanas.',
- '2026-04-05 15:00:00+00'),
+ NOW() - INTERVAL '18 days'),
 
 ('e1000001-0000-4000-8000-000000000014'::uuid,
  'c1000001-0000-4000-8000-000000000005'::uuid,
  'b1000001-0000-4000-8000-000000000005'::uuid, NULL, 'Javiera B.',
  5, 'Mi Schnauzer salió perfecto. El corte respeta la estructura de la raza, algo que no encontraba en otros lugares. Volveré seguro.',
  'aprobado', NULL,
- '2026-03-08 11:45:00+00'),
+ NOW() - INTERVAL '28 days'),
 
 ('e1000001-0000-4000-8000-000000000015'::uuid,
  'c1000001-0000-4000-8000-000000000005'::uuid,
  'b1000001-0000-4000-8000-000000000005'::uuid, NULL, 'Macarena Q.',
  4, 'Buena atención y ambiente tranquilo. Mi perrito normalmente se altera y aquí estuvo bien.',
  'aprobado', NULL,
- '2026-02-01 16:20:00+00'),
+ NOW() - INTERVAL '95 days'),
 
 -- ───────── Demo 6: Felipe (Adiestramiento) ─────────
 ('e1000001-0000-4000-8000-000000000016'::uuid,
@@ -624,21 +624,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000006'::uuid, NULL, 'Pablo F.',
  5, 'Adopté un perro adulto con ansiedad por separación severa: destruía la casa cuando me iba. Después de 8 sesiones con Felipe, puedo salir tranquilo. Su método con refuerzo positivo es respetuoso y de verdad funciona. Lo importante es que me enseñó a mí también, no solo entrenó al perro. Felipe acompaña el proceso entre sesiones por mensaje.',
  'aprobado', '¡Gracias Pablo! Luca avanzó mucho gracias a tu compromiso. El refuerzo positivo requiere paciencia pero los resultados duran.',
- '2026-04-30 18:30:00+00'),
+ NOW() - INTERVAL '5 days'),
 
 ('e1000001-0000-4000-8000-000000000017'::uuid,
  'c1000001-0000-4000-8000-000000000006'::uuid,
  'b1000001-0000-4000-8000-000000000006'::uuid, NULL, 'Andrea V.',
  5, 'Mi perra reactiva ahora puede pasar al lado de otros perros sin explotar. Felipe sabe lo que hace, sin métodos invasivos.',
  'aprobado', NULL,
- '2026-03-25 14:50:00+00'),
+ NOW() - INTERVAL '40 days'),
 
 ('e1000001-0000-4000-8000-000000000018'::uuid,
  'c1000001-0000-4000-8000-000000000006'::uuid,
  'b1000001-0000-4000-8000-000000000006'::uuid, NULL, 'Daniela O.',
  4, 'Trabajamos obediencia básica con mi cachorro. Buen profesional, claro al explicar. Las tareas entre sesiones son fundamentales.',
  'aprobado', NULL,
- '2026-01-28 10:00:00+00'),
+ NOW() - INTERVAL '100 days'),
 
 -- ───────── Demo 7: Tomás (Veterinario) ─────────
 ('e1000001-0000-4000-8000-000000000019'::uuid,
@@ -646,21 +646,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000007'::uuid, NULL, 'Paulina R.',
  5, 'Mi gato se estresa muchísimo en clínicas, hasta el punto de no poder hacer un examen completo. Que el Dr. Tomás venga a casa cambió todo: pudo revisarlo tranquilo, le sacó muestra de sangre sin drama. Recibí los resultados rápido y emite boleta para reembolso del seguro. La consulta previa por WhatsApp también es muy útil. Lo recomiendo cien por ciento.',
  'aprobado', '¡Gracias Paulina! Mauro es un caballero cuando está en su entorno. Cualquier consulta me avisas.',
- '2026-04-15 11:30:00+00'),
+ NOW() - INTERVAL '4 days'),
 
 ('e1000001-0000-4000-8000-000000000020'::uuid,
  'c1000001-0000-4000-8000-000000000007'::uuid,
  'b1000001-0000-4000-8000-000000000007'::uuid, NULL, 'Felipe M.',
  5, 'Vino a hacer los controles preventivos anuales de mis dos perros. Profesionalismo total, explica todo, deja recomendaciones por escrito. Volveré.',
  'aprobado', NULL,
- '2026-03-18 09:00:00+00'),
+ NOW() - INTERVAL '32 days'),
 
 ('e1000001-0000-4000-8000-000000000021'::uuid,
  'c1000001-0000-4000-8000-000000000007'::uuid,
  'b1000001-0000-4000-8000-000000000007'::uuid, NULL, 'Andrés W.',
  5, 'Atención excelente. Vacunas a domicilio sin estrés.',
  'aprobado', NULL,
- '2026-02-26 16:15:00+00'),
+ NOW() - INTERVAL '80 days'),
 
 -- ───────── Demo 8: Javiera (Traslado) ─────────
 ('e1000001-0000-4000-8000-000000000022'::uuid,
@@ -668,21 +668,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000008'::uuid, NULL, 'Ignacio L.',
  5, 'Necesitaba trasladar a mi golden al aeropuerto para un viaje internacional con toda la documentación. Javiera coordinó todo perfecto: vehículo acondicionado, jaulas IATA, llegó con tiempo y me mantuvo informado por mensaje durante el trayecto. La camioneta tiene ventilación independiente y mi perro viajó tranquilo. Para razas grandes es la mejor opción que encontré.',
  'aprobado', '¡Gracias Ignacio! Cooper viajó como un campeón. Buen vuelo a ambos.',
- '2026-04-22 06:45:00+00'),
+ NOW() - INTERVAL '10 days'),
 
 ('e1000001-0000-4000-8000-000000000023'::uuid,
  'c1000001-0000-4000-8000-000000000008'::uuid,
  'b1000001-0000-4000-8000-000000000008'::uuid, NULL, 'Carla T.',
  4, 'Hice una mudanza con mis dos perros desde Maipú a Las Condes. Comunicación constante durante el viaje. Tarifa clara desde el principio, sin sorpresas.',
  'aprobado', NULL,
- '2026-03-14 13:00:00+00'),
+ NOW() - INTERVAL '38 days'),
 
 ('e1000001-0000-4000-8000-000000000024'::uuid,
  'c1000001-0000-4000-8000-000000000008'::uuid,
  'b1000001-0000-4000-8000-000000000008'::uuid, NULL, 'Sebastián K.',
  5, 'Confiable y puntual. Trasladó a mi gato a la veterinaria sin estrés.',
  'aprobado', NULL,
- '2026-01-15 08:20:00+00'),
+ NOW() - INTERVAL '110 days'),
 
 -- ───────── Demo 9: Andrea (Fotografía) ─────────
 ('e1000001-0000-4000-8000-000000000025'::uuid,
@@ -690,21 +690,21 @@ INSERT INTO evaluaciones (
  'b1000001-0000-4000-8000-000000000009'::uuid, NULL, 'Macarena D.',
  5, 'Hice una sesión de fotos con mi perro tímido en un parque. Andrea fue increíblemente paciente, no lo presionó en ningún momento y consiguió retratos hermosos. Las fotos finales superaron mis expectativas, captó su personalidad. Entrega rápida (5 días) en alta resolución y muy buena edición. Ya estoy planeando una sesión familiar incluyendo a mi gato.',
  'aprobado', '¡Gracias Macarena! Toby tiene una mirada única. Te espero para la sesión familiar cuando quieran.',
- '2026-05-01 14:30:00+00'),
+ NOW() - INTERVAL '3 days'),
 
 ('e1000001-0000-4000-8000-000000000026'::uuid,
  'c1000001-0000-4000-8000-000000000009'::uuid,
  'b1000001-0000-4000-8000-000000000009'::uuid, NULL, 'Vicente A.',
  5, 'Edición impecable y entrega más rápida de lo prometido. Las fotos las usamos para Instagram y los amigos preguntan quién las hizo.',
  'aprobado', NULL,
- '2026-03-28 17:00:00+00'),
+ NOW() - INTERVAL '20 days'),
 
 ('e1000001-0000-4000-8000-000000000027'::uuid,
  'c1000001-0000-4000-8000-000000000009'::uuid,
  'b1000001-0000-4000-8000-000000000009'::uuid, NULL, 'Antonia P.',
  4, 'Buenas fotos, ambiente relajado durante la sesión. Recomendable.',
  'aprobado', NULL,
- '2026-02-10 11:20:00+00');
+ NOW() - INTERVAL '25 days');
 
 
 -- 5C — Verificación PARTE 5 (descomentar para correr):
