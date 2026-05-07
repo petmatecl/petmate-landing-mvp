@@ -20,6 +20,8 @@ interface SearchBarProps {
     variant?: "hero" | "inline";
 }
 
+const ROTATING_HINTS = ['Paseador', 'Peluquería canina', 'Hospedaje fin de semana'];
+
 export default function SearchBar({ variant = "inline" }: SearchBarProps) {
     const router = useRouter();
     const [categoria, setCategoria] = useState('');
@@ -27,8 +29,18 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
     const [comunaQuery, setComunaQuery] = useState('');
     const [showComunaList, setShowComunaList] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [hintIndex, setHintIndex] = useState(0);
     const catRef = useRef<HTMLDivElement>(null);
     const comunaRef = useRef<HTMLDivElement>(null);
+
+    // Rotar hint cada 3s mientras no haya selección ni dropdown abierto
+    useEffect(() => {
+        if (categoria || catOpen) return;
+        const id = setInterval(() => {
+            setHintIndex(i => (i + 1) % ROTATING_HINTS.length);
+        }, 3000);
+        return () => clearInterval(id);
+    }, [categoria, catOpen]);
 
     const comunasFiltradas = (comunaQuery.length === 0
         ? COMUNAS_CHILE
@@ -98,8 +110,8 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                     aria-label="Seleccionar categoría de servicio"
                     className="flex-1 flex items-center justify-between bg-transparent text-sm font-medium focus:outline-none cursor-pointer min-w-0"
                 >
-                    <span className={selectedCatLabel ? 'text-slate-900' : 'text-slate-400'}>
-                        {selectedCatLabel || '¿Qué servicio?'}
+                    <span className={selectedCatLabel ? 'text-slate-900' : 'text-slate-400 transition-opacity duration-500'}>
+                        {selectedCatLabel || ROTATING_HINTS[hintIndex]}
                     </span>
                     <ChevronDown size={16} className={`text-slate-400 transition-transform shrink-0 ml-1 ${catOpen ? 'rotate-180' : ''}`} />
                 </button>

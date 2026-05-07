@@ -609,7 +609,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
               className="inline-flex items-center justify-center h-14 rounded-2xl border-2 border-white px-8 text-base font-semibold text-white hover:bg-white/10 transition-colors shadow-lg shadow-black/20">
               Publicar mi servicio
             </Link>
-            <p className="mt-4 text-slate-400 text-sm">Gratis.</p>
+            <p className="mt-4 text-slate-400 text-sm">Sin costo de registro</p>
           </div>
         </div>
       </section>
@@ -627,7 +627,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             Buscar servicios
           </button>
           <p className="text-slate-500 font-medium mb-16">Sin registro. Sin costo.</p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto border-t border-slate-200 pt-16">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto border-t border-slate-200 pt-16">
             <div className="flex flex-col items-center justify-center p-4">
               <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{Math.max(stats.proveedores, 25)}+</div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Proveedores activos</div>
@@ -639,10 +639,6 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             <div className="flex flex-col items-center justify-center p-4">
               <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">9</div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Categorías de servicio</div>
-            </div>
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-2xl font-black text-emerald-700 mb-3 tracking-tight leading-tight">Visibilidad</div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">En búsquedas de tu comuna</div>
             </div>
           </div>
         </div>

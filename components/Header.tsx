@@ -98,27 +98,25 @@ export default function Header() {
           >
             Explorar servicios
           </Link>
-          {(!isAuthenticated || loggingOut) && (
-            <Link
-              href="/register?rol=proveedor"
-              className="text-sm font-semibold text-gray-600 hover:text-emerald-700 mr-4"
-            >
-              Publicar servicio
-            </Link>
-          )}
           {(!isAuthenticated || loggingOut) ? (
             <>
               <Link
                 href="/login"
-                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                className="text-sm font-semibold text-gray-600 hover:text-emerald-700 mr-2"
               >
                 Ingresar
               </Link>
               <Link
-                href="/register"
+                href="/register?rol=usuario"
+                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+              >
+                Soy tutor
+              </Link>
+              <Link
+                href="/register?rol=proveedor"
                 className="inline-flex items-center rounded-lg px-6 py-2 bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
               >
-                Registrarse
+                Soy proveedor
               </Link>
             </>
           ) : (
@@ -248,25 +246,25 @@ export default function Header() {
                   Explorar servicios
                 </Link>
                 <Link
-                  href="/register?rol=proveedor"
-                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-700"
-                  onClick={() => setOpen(false)}
-                >
-                  Publicar servicio
-                </Link>
-                <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-emerald-700"
                   onClick={() => setOpen(false)}
                 >
                   Ingresar
                 </Link>
                 <Link
-                  href="/register"
+                  href="/register?rol=usuario"
+                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                  onClick={() => setOpen(false)}
+                >
+                  Soy tutor
+                </Link>
+                <Link
+                  href="/register?rol=proveedor"
                   className="inline-flex items-center justify-center rounded-lg px-6 py-2 bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
-                  Registrarse
+                  Soy proveedor
                 </Link>
               </>
             ) : (

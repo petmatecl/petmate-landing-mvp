@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, ShieldCheck, Star, BadgeCheck, Sparkles } from 'lucide-react';
+import { Heart, ShieldCheck, Star, Sparkles } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { supabase } from '../../lib/supabaseClient';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
@@ -196,8 +196,8 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                         )}
                 </div>
 
-                {/* Trust badges */}
-                {(service.proveedor_es_ejemplo || service.proveedor_verificado || service.proveedor_perfil_completo || service.total_evaluaciones >= 3 || service.proveedor_primera_ayuda) ? (
+                {/* Trust badges (máx 3): EJEMPLO + Verificado + rating */}
+                {(service.proveedor_es_ejemplo || service.proveedor_verificado || service.total_evaluaciones > 0) ? (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                         {service.proveedor_es_ejemplo && (
                             <span
@@ -212,19 +212,9 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                                 <ShieldCheck size={10} /> Verificado
                             </span>
                         )}
-                        {service.proveedor_perfil_completo && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-semibold">
-                                <BadgeCheck size={10} /> Perfil completo
-                            </span>
-                        )}
-                        {service.total_evaluaciones >= 3 && (
+                        {service.total_evaluaciones > 0 && (
                             <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-[11px] font-semibold">
-                                <Star size={10} className="fill-amber-400 text-amber-400" /> {service.total_evaluaciones}+ evaluaciones
-                            </span>
-                        )}
-                        {service.proveedor_primera_ayuda && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-[11px] font-semibold">
-                                <span className="text-[8px] font-black">+</span> Primeros auxilios
+                                <Star size={10} className="fill-amber-400 text-amber-400" /> {Number(service.rating_promedio).toFixed(1)} ({service.total_evaluaciones})
                             </span>
                         )}
                     </div>

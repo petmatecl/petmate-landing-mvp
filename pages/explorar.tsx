@@ -553,7 +553,7 @@ export default function ExplorarPage() {
                                 )}
                             </h1>
                             <p className="text-sm text-slate-500">
-                                Descubre los mejores profesionales y amantes de las mascotas en Pawnecta.
+                                Descubre los mejores profesionales para tu mascota en Pawnecta.
                             </p>
                         </div>
 

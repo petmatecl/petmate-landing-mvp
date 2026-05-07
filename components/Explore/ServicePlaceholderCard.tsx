@@ -7,14 +7,17 @@ interface ServicePlaceholderCardProps {
     comuna?: string;
     /** 'full' = grid de /explorar, /[categoria]; 'compact' = franjas del home */
     variant?: 'full' | 'compact';
+    /** Override del título principal (opcional). Si no, se genera con getPlaceholderQuestion */
+    customTitle?: string;
 }
 
 export default function ServicePlaceholderCard({
     categoriaSlug,
     comuna,
     variant = 'full',
+    customTitle,
 }: ServicePlaceholderCardProps) {
-    const question = getPlaceholderQuestion(categoriaSlug, comuna);
+    const question = customTitle ?? getPlaceholderQuestion(categoriaSlug, comuna);
     const href = buildRegisterUrl(categoriaSlug, comuna);
 
     if (variant === 'compact') {

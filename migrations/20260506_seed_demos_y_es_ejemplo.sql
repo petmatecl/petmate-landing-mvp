@@ -325,7 +325,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'hospedaje'),
  'Hospedaje hogareño en Providencia con jardín y cuidado personalizado',
  'Recibo a tu mascota como un miembro más de mi familia. Mi hogar tiene un jardín cerrado de 80 m², cocina equipada con productos para mascotas y un espacio tranquilo para el descanso. Cuento con experiencia en perros de todos los tamaños, gatos sociables y mascotas con necesidades especiales (medicación diaria, dietas restrictivas). Envío fotos y videos cada día para que sepas cómo está tu compañero. Salidas al parque dos veces al día, alimentación según tu indicación y juegos en casa. Cuento con certificación en primeros auxilios para mascotas y trabajé como voluntaria en un refugio durante tres años antes de empezar a hospedar profesionalmente. La idea es que vuelvas y encuentres a tu mascota más feliz que cuando la dejaste.',
- 25000, 35000, 'por noche',
+ 24990, 35000, 'por noche',
  ARRAY[
    'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1674376360420-b344eafcc3d2?w=1200&auto=format&fit=crop&q=80',
@@ -343,7 +343,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'guarderia'),
  'Guardería diurna en Ñuñoa con grupos pequeños y actividades supervisadas',
  'Mi guardería funciona en una casa adaptada con patio amplio cerrado y zona interior climatizada. Recibo grupos pequeños (máximo 6 perros) para que cada mascota tenga atención personalizada. La jornada incluye dos paseos en grupo, juegos colaborativos en el patio, descanso supervisado en colchonetas individuales y un break de mediodía con agua fresca. Conozco a cada perro antes de aceptarlo (entrevista previa) para asegurar buena convivencia. Tengo cámaras de vigilancia accesibles para los tutores durante la jornada. Acepto perros de cualquier tamaño siempre que sean sociables y estén vacunados. Si tu perro tiene necesidades especiales (medicación, dieta) lo conversamos. Servicio de lunes a viernes en horario laboral.',
- 12000, 15000, 'por día',
+ 11990, 15000, 'por día',
  ARRAY[
    'https://images.unsplash.com/photo-1597595735637-05a49627ee29?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1750967028517-31b4b2faad5c?w=1200&auto=format&fit=crop&q=80',
@@ -361,7 +361,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'domicilio'),
  'Cuidado en casa del cliente — visitas a domicilio para gatos y perros',
  'Voy a tu casa a cuidar a tu mascota mientras estás de viaje o trabajando largas jornadas. Mi servicio incluye alimentación según tu indicación, limpieza de bandeja sanitaria, paseos cortos para perros, juegos, compañía y administración de medicamentos si es necesario. Hago una visita de coordinación previa sin costo para conocer a tu mascota y revisar dónde está todo (comida, correa, medicamentos, datos del veterinario). Durante cada visita envío reporte con fotos y video corto. Las llaves se manejan con protocolo seguro y respeto absoluto a tu hogar. Tengo experiencia con gatos tímidos, perros mayores y mascotas con tratamientos médicos. Cubro Las Condes y comunas vecinas en bicicleta o caminando, lo que mantiene los costos bajos.',
- 8000, 12000, 'por visita',
+ 7990, 12000, 'por visita',
  ARRAY[
    'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=1200&auto=format&fit=crop&q=80',
@@ -379,7 +379,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'paseos'),
  'Paseos profesionales en Las Condes con grupos pequeños y GPS activo',
  'Tu perro se merece un paseo de verdad, no una vuelta a la manzana. Llevo grupos pequeños (máximo 4 perros) para asegurar control y atención personalizada. Camino rutas largas con desniveles en parques de Las Condes y Vitacura cuando los perros tienen condición física para ello. Para perros mayores o pequeños hago rutas más planas y cortas. Mantengo GPS activo durante todo el paseo y puedes seguir el recorrido en tiempo real. Envío fotos y un video corto durante o después del paseo. Tengo experiencia con razas grandes (Husky, Pastor Alemán, Labrador) y razas potencialmente peligrosas con manejo adecuado. Recojo y dejo al perro en tu domicilio sin costo extra dentro del radio.',
- 10000, 18000, 'por paseo',
+ 9990, 18000, 'por paseo',
  ARRAY[
    'https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1200&auto=format&fit=crop&q=80',
@@ -397,7 +397,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'peluqueria'),
  'Peluquería canina y felina en Providencia con paciencia y mesa hidráulica',
  'Atiendo en mi domicilio en Providencia, en un espacio acondicionado para que las mascotas no se estresen. Tengo mesa hidráulica para no forzar posturas y trabajo con productos hipoalergénicos. Mi especialidad son las razas de pelaje complicado (Schnauzer, Caniche, Yorkshire, Persa, Maine Coon) y soy paciente con animales nerviosos o que tuvieron malas experiencias en otros lugares. Si tu mascota no tolera el secado o el corte, paramos y reagendamos: nunca uso fuerza ni sedación. El servicio completo incluye baño con shampoo según tipo de pelaje, secado controlado, corte de pelo, corte de uñas, limpieza de oídos, perfume y un mini regalito para llevar. Atiendo con cita previa y horarios flexibles.',
- 15000, 28000, 'por sesión',
+ 14990, 28000, 'por sesión',
  ARRAY[
    'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=1200&auto=format&fit=crop&q=80',
@@ -415,7 +415,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'adiestramiento'),
  'Adiestramiento canino con refuerzo positivo en Vitacura y comunas cercanas',
  'Trabajo exclusivamente con métodos basados en evidencia científica: refuerzo positivo, gestión del entorno y comunicación clara. No uso collares de castigo, ahorcadores ni técnicas aversivas. Mi enfoque combina obediencia básica (sentarse, venir, caminar al lado, quedarse) con resolución de problemas de comportamiento más complejos: ansiedad por separación, reactividad hacia otros perros, miedos, robo de objetos. Acompaño al tutor durante todo el proceso porque el verdadero cambio sucede en casa, no en una sesión semanal. Trabajo desde cachorros hasta perros adultos rescatados que necesitan adaptación. Las sesiones son en tu domicilio o en parques tranquilos según el caso. Programa básico: 6 a 8 sesiones semanales con tareas entre clases.',
- 25000, 40000, 'por sesión',
+ 23990, 40000, 'por sesión',
  ARRAY[
    'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1200&auto=format&fit=crop&q=80',
@@ -433,7 +433,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'veterinario'),
  'Veterinario a domicilio — controles, vacunas y consultas en tu hogar',
  'Atiendo a domicilio porque muchos animales se estresan en clínicas y eso interfiere con el diagnóstico. Llevo maletín portátil con todo lo necesario para una consulta completa: instrumental para examen físico, vacunas refrigeradas, medicamentos básicos, equipo para toma de muestra de sangre. Realizo controles preventivos, vacunación, desparasitación, atención de cuadros leves a moderados (gastritis, infecciones cutáneas, otitis). Para casos complejos derivo a clínicas de confianza con las que tengo convenio. Emito boleta electrónica para reembolsos de seguros (Pet Plan, Hipaa, etc.). Consulta de coordinación previa por WhatsApp para anticipar el caso. Atiendo perros, gatos y mascotas exóticas (conejos, hámsters, aves pequeñas).',
- 35000, 55000, 'por consulta',
+ 34990, 55000, 'por consulta',
  ARRAY[
    'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1750967028517-31b4b2faad5c?w=1200&auto=format&fit=crop&q=80',
@@ -451,7 +451,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'traslado'),
  'Traslado seguro de mascotas en camioneta acondicionada para Santiago y regiones',
  'Mi camioneta está acondicionada exclusivamente para transporte de mascotas: jaulas tamaño grande y mediano fijas al piso, cinturones para arneses, ventilación independiente, agua disponible y mantas. Cubro toda la Región Metropolitana y traslados a regiones cercanas (Quinta Región, Sexto, Séptima). Servicios típicos: acompañamiento a clínicas veterinarias, mudanzas dentro o fuera de la ciudad, traslado al aeropuerto con documentación de vuelo, viajes de vacaciones con la familia. Para razas grandes tengo jaula reforzada. Manejo defensivo, soy puntual y mantengo comunicación constante durante el viaje (mensajes con ubicación, foto de tu mascota tranquila). Tarifas según distancia, sin cobros sorpresa.',
- 18000, 80000, 'por viaje',
+ 17990, 80000, 'por viaje',
  ARRAY[
    'https://images.unsplash.com/photo-1544568100-847a948585b9?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1750967028517-31b4b2faad5c?w=1200&auto=format&fit=crop&q=80',
@@ -469,7 +469,7 @@ INSERT INTO servicios_publicados (
  (SELECT id FROM categorias_servicio WHERE slug = 'fotografia'),
  'Fotografía profesional de mascotas en exteriores e interior',
  'Hago retratos profesionales de mascotas y sus familias. Trabajo principalmente en exteriores (parques, playas) porque la luz natural y un ambiente relajado dan resultados más auténticos. Para sesiones en interior llevo equipo portátil de iluminación y rebotadores. Soy paciente con animales tímidos y conozco trucos para captar miradas únicas. Antes de la sesión hacemos una pre-producción corta por mensaje para definir locación, hora y cualquier detalle especial (premios favoritos, juguetes, vestuario). La sesión dura 1 a 2 horas según el animal. Entrego entre 30 y 50 fotos editadas en alta resolución dentro de 7 días vía Drive. Si quieres impresiones, las coordinamos aparte. Acepto sesiones con más de una mascota sin recargo.',
- 60000, 120000, 'por sesión',
+ 59990, 120000, 'por sesión',
  ARRAY[
    'https://images.unsplash.com/photo-1597595735637-05a49627ee29?w=1200&auto=format&fit=crop&q=80',
    'https://images.unsplash.com/photo-1750967028517-31b4b2faad5c?w=1200&auto=format&fit=crop&q=80',

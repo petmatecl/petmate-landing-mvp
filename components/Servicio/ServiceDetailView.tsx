@@ -765,6 +765,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     label="fotos del espacio"
                                     isOwner={isOwner}
                                     ownerCTA={{ text: 'Sube fotos', href: '/proveedor?tab=perfil' }}
+                                    tutorMessage="Sin fotos del espacio agregadas"
                                 />
                             ) : proveedor.galeria.length === 1 ? (
                                     // Una foto — full width
@@ -1082,6 +1083,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                     label="canales de contacto"
                                                     isOwner={isOwner}
                                                     ownerCTA={{ text: 'Agrega tus redes', href: '/proveedor?tab=perfil' }}
+                                                    tutorMessage="Sin canales de contacto agregados"
                                                 />
                                             )}
                                         </div>

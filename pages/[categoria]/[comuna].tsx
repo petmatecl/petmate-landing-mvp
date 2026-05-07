@@ -81,7 +81,7 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
     }
 
     const title = `${categoria.nombre} en ${comuna} | Pawnecta`;
-    const description = `Encuentra ${services.length > 0 ? services.length : ''} proveedores de ${categoria.nombre.toLowerCase()} verificados en ${comuna}. Compara perfiles, lee evaluaciones y contacta directo. Gratis.`;
+    const description = `Encuentra ${services.length > 0 ? services.length : ''} proveedores de ${categoria.nombre.toLowerCase()} verificados en ${comuna}. Compara perfiles, lee evaluaciones y contacta directo. Sin costo de registro.`;
 
     // JSON-LD ItemList
     const jsonLd = {
@@ -140,12 +140,11 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                         <h1 className="text-3xl font-bold text-slate-900">
                             {categoria.nombre} en {comuna}
                         </h1>
-                        <p className="text-slate-500 mt-2 max-w-2xl">
-                            {services.length > 0
-                                ? `Encuentra ${services.length} proveedor${services.length !== 1 ? 'es' : ''} de ${categoria.nombre.toLowerCase()} en ${comuna}. Compara perfiles y contacta directo.`
-                                : `Proveedores verificados | Pawnecta`
-                            }
-                        </p>
+                        {services.length > 0 && (
+                            <p className="text-slate-500 mt-2 max-w-2xl">
+                                Encuentra {services.length} proveedor{services.length !== 1 ? 'es' : ''} de {categoria.nombre.toLowerCase()} en {comuna}. Compara perfiles y contacta directo.
+                            </p>
+                        )}
                     </div>
 
                     {/* Grid */}
@@ -177,12 +176,17 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                                 </Link>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {Array.from({ length: 4 }).map((_, i) => (
+                                {[
+                                    undefined,
+                                    `Sé el primero en aparecer cuando alguien busque ${categoria.nombre.toLowerCase()} en ${comuna}`,
+                                    'Conecta con tutores reales sin intermediarios',
+                                ].map((customTitle, i) => (
                                     <ServicePlaceholderCard
                                         key={`placeholder-${i}`}
                                         categoriaSlug={categoria.slug}
                                         comuna={comuna}
                                         variant="full"
+                                        customTitle={customTitle}
                                     />
                                 ))}
                             </div>
