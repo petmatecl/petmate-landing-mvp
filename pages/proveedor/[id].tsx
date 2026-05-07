@@ -473,41 +473,23 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             Fotos del espacio
                         </h2>
                         {proveedor.galeria.length === 1 ? (
-                            <div className="w-full h-72 rounded-xl overflow-hidden">
+                            <div className="w-full aspect-[16/9] rounded-xl overflow-hidden">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={proveedor.galeria[0]} alt="" className="w-full h-full object-cover" />
                             </div>
-                        ) : proveedor.galeria.length <= 3 ? (
-                            <div className={`grid gap-2 h-64 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
-                                {proveedor.galeria.map((url: string, i: number) => (
-                                    <div key={i} className="rounded-xl overflow-hidden">
+                        ) : (
+                            <div className={`grid gap-2 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                                {proveedor.galeria.slice(0, 3).map((url: string, i: number) => (
+                                    <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden relative">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            // 4+ fotos: 1 grande izquierda + grid derecha
-                            <div className="grid grid-cols-2 gap-2 h-72">
-                                <div className="rounded-xl overflow-hidden">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={proveedor.galeria[0]} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                                </div>
-                                <div className="grid grid-rows-2 gap-2">
-                                    <div className="rounded-xl overflow-hidden">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={proveedor.galeria[1]} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                                    </div>
-                                    <div className="rounded-xl overflow-hidden relative">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={proveedor.galeria[2]} alt="" className="w-full h-full object-cover" />
-                                        {proveedor.galeria.length > 3 && (
-                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                                        {i === 2 && proveedor.galeria.length > 3 && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                 <span className="text-white font-bold text-lg">+{proveedor.galeria.length - 3} fotos</span>
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                ))}
                             </div>
                         )}
                     </section>

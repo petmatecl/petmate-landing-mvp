@@ -770,40 +770,19 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 />
                             ) : proveedor.galeria.length === 1 ? (
                                     // Una foto — full width
-                                    <div className="w-full h-64 rounded-xl overflow-hidden">
+                                    <div className="w-full aspect-[16/9] rounded-xl overflow-hidden">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={proveedor.galeria[0]} alt="Espacio del proveedor"
                                             className="w-full h-full object-cover" />
                                     </div>
-                                ) : proveedor.galeria.length <= 3 ? (
-                                    // 2-3 fotos — grid horizontal
-                                    <div className={`grid gap-2 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                                        {proveedor.galeria.map((url: string, i: number) => (
-                                            <div key={i} className="h-48 rounded-xl overflow-hidden">
+                                ) : (
+                                    // 2+ fotos — grid uniforme con aspect-ratio consistente
+                                    <div className={`grid gap-2 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                                        {proveedor.galeria.slice(0, 3).map((url: string, i: number) => (
+                                            <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden relative">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    // 4+ fotos — 1 grande izquierda + grid 2x2 derecha
-                                    <div className="grid grid-cols-2 gap-2 h-64">
-                                        <div className="rounded-xl overflow-hidden">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={proveedor.galeria[0]} alt=""
-                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                                        </div>
-                                        <div className="grid grid-rows-2 gap-2">
-                                            <div className="rounded-xl overflow-hidden">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={proveedor.galeria[1]} alt=""
-                                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                                            </div>
-                                            <div className="relative rounded-xl overflow-hidden">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={proveedor.galeria[2]} alt=""
-                                                    className="w-full h-full object-cover" />
-                                                {proveedor.galeria.length > 3 && (
+                                                {i === 2 && proveedor.galeria.length > 3 && (
                                                     <Link href={`/proveedor/${proveedor.id}`}
                                                         className="absolute inset-0 bg-black/55 flex items-center justify-center hover:bg-black/65 transition-colors">
                                                         <span className="text-white font-bold text-lg">
@@ -812,7 +791,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                     </Link>
                                                 )}
                                             </div>
-                                        </div>
+                                        ))}
                                     </div>
                                 )}
 
