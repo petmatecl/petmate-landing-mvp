@@ -32,7 +32,7 @@ export default function ServicePlaceholderCard({
                         {question}
                     </p>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                        Sé el primero. Sin comisión durante el lanzamiento.
+                        Sé el primero en tu zona
                     </p>
                 </div>
                 <div className="border-t border-slate-100 px-4 py-3.5 bg-slate-50 group-hover:bg-emerald-50 transition-colors">
@@ -60,7 +60,7 @@ export default function ServicePlaceholderCard({
                     {question}
                 </p>
                 <p className="text-sm text-slate-500 leading-relaxed max-w-[260px]">
-                    Sé el primero. Sin comisión durante el lanzamiento.
+                    Sé el primero en tu zona
                 </p>
             </div>
             <div className="border-t border-slate-100 px-5 py-4 bg-slate-50 group-hover:bg-emerald-50 transition-colors">

@@ -50,11 +50,8 @@ export default function Header() {
         <div className="bg-slate-900 text-white text-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-center gap-2">
-              <span className="hidden rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide sm:inline">
-                Exclusivo Lanzamiento
-              </span>
               <p className="text-center font-medium tracking-wide">
-                <Link href="/register?rol=proveedor" className="hover:underline decoration-emerald-500 underline-offset-2">Sin comisión en el lanzamiento — Regístrate como proveedor</Link>
+                <Link href="/register?rol=proveedor" className="hover:underline decoration-emerald-500 underline-offset-2">Estamos en lanzamiento — Regístrate como proveedor</Link>
               </p>
             </div>
             <button

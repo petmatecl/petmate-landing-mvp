@@ -80,7 +80,7 @@ export default function TerminosPage() {
                                 Pagos
                             </h3>
                             <div className="pl-11">
-                                <p>En este MVP, Pawnecta no gestiona pagos ni retiene comisiones. Todo pago, reembolso o cobro se acuerda y ejecuta entre Usuario y Proveedor de servicios, fuera de Pawnecta.</p>
+                                <p>En este MVP, Pawnecta no procesa pagos ni transacciones entre las partes. Todo pago, reembolso o cobro se acuerda y ejecuta entre Usuario y Proveedor de servicios, fuera de Pawnecta.</p>
                             </div>
                         </section>
 

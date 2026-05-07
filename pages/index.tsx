@@ -597,7 +597,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
           <div className="text-center mb-16">
             <p className="text-emerald-400 font-bold uppercase tracking-widest text-sm mb-3">Para proveedores</p>
             <h2 className="text-3xl md:text-4xl font-black text-white">Ofrece tus servicios en Pawnecta</h2>
-            <p className="text-slate-300 mt-4 text-lg">Sin comisiones durante el lanzamiento</p>
+            <p className="text-slate-300 mt-4 text-lg">Visibilidad en búsquedas en tu comuna</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <StepCard paso={1} titulo="Crea tu perfil" descripcion="Regístrate, verifica tu identidad y completa tu información profesional" Icon={UserPlus} variante="dark" />
@@ -609,7 +609,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
               className="inline-flex items-center justify-center h-14 rounded-2xl border-2 border-white px-8 text-base font-semibold text-white hover:bg-white/10 transition-colors shadow-lg shadow-black/20">
               Publicar mi servicio
             </Link>
-            <p className="mt-4 text-slate-400 text-sm">Gratis durante el lanzamiento.</p>
+            <p className="mt-4 text-slate-400 text-sm">Gratis.</p>
           </div>
         </div>
       </section>
@@ -641,8 +641,8 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Categorías de servicio</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-2xl font-black text-emerald-700 mb-3 tracking-tight leading-tight">Sin comisiones</div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Durante el lanzamiento</div>
+              <div className="text-2xl font-black text-emerald-700 mb-3 tracking-tight leading-tight">Visibilidad</div>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">En búsquedas de tu comuna</div>
             </div>
           </div>
         </div>

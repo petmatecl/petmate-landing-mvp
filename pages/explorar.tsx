@@ -836,7 +836,7 @@ export default function ExplorarPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
                             {[
                                 { label: 'Registro gratuito', sub: 'Sin costos de alta' },
-                                { label: 'Sin comisión', sub: 'En el período de lanzamiento' },
+                                { label: 'Visibilidad en búsquedas', sub: 'Aparece en tu comuna' },
                                 { label: 'Clientes reales', sub: 'Conecta con dueños verificados' },
                             ].map((b, i) => (
                                 <div key={b.label} className="text-center">
