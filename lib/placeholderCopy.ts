@@ -41,6 +41,28 @@ export function getPlaceholderQuestion(categoriaSlug?: string, comuna?: string):
 }
 
 /**
+ * Subtítulo del placeholder (1 línea bajo la pregunta principal).
+ * Una variación distinta por categoría → evita la repetición de
+ * "Sé el primero en tu zona" cuando el home muestra 8+ placeholders.
+ */
+const PLACEHOLDER_SUBTITLES: Record<string, string> = {
+    hospedaje: 'Tutores buscan un hogar de confianza',
+    guarderia: 'Tutores necesitan cuidado durante el día',
+    domicilio: 'Tutores buscan a alguien de confianza',
+    paseos: 'Tutores buscan paseadores con tiempo y energía',
+    peluqueria: 'Tutores con perros que necesitan corte',
+    adiestramiento: 'Tutores buscan ayuda con sus perros',
+    veterinario: 'Tutores prefieren consulta en casa',
+    traslado: 'Tutores necesitan trasladar a sus mascotas',
+    fotografia: 'Tutores quieren retratar a sus mascotas',
+};
+
+export function getPlaceholderSubtitle(categoriaSlug?: string): string {
+    if (!categoriaSlug) return 'Sé el primero en tu zona';
+    return PLACEHOLDER_SUBTITLES[categoriaSlug] ?? 'Sé el primero en tu zona';
+}
+
+/**
  * Construye la URL de registro con pre-fill via query params.
  * Pre-fill leído por pages/register.tsx en useEffect.
  */

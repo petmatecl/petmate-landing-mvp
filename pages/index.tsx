@@ -8,7 +8,7 @@ import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car, Camera,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
-  CheckCircle2, Shield, BadgeCheck, Sparkles
+  BadgeCheck, Sparkles
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { toast } from "sonner";
@@ -304,6 +304,7 @@ interface HomePageProps {
     servicios: number;
     proveedores: number;
     comunas: number;
+    categorias: number;
   };
   categoryCounts: Record<string, number>;
   totalVisitasMes: number;
@@ -384,7 +385,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               <span className="text-emerald-700">cerca de ti</span>
             </h1>
             <p className="text-lg text-slate-500 mb-8">
-              Proveedores verificados en tu comuna. Compara, contacta y coordina directo.
+              Encuentra a alguien de confianza para tu mascota, en tu barrio.
             </p>
             <SearchBar variant="hero" />
             <p className="text-sm text-slate-400 mt-4">
@@ -394,19 +395,6 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                 Publica gratis →
               </Link>
             </p>
-            <div className="flex flex-wrap gap-4 mt-6">
-              {[
-                { Icon: CheckCircle2, label: "Proveedores verificados" },
-                { Icon: Shield, label: "Revisión por Pawnecta" },
-                { Icon: MessageCircle, label: "Contacto directo" },
-              ].map(({ Icon, label }) => (
-                <div key={label}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600">
-                  <Icon className="w-4 h-4 text-emerald-500" />
-                  {label}
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Imagen */}
@@ -429,6 +417,44 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                 }
               }}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 1.5 — POR QUÉ CONFIAR EN PAWNECTA
+      ═══════════════════════════════════════════ */}
+      <section aria-labelledby="trust-heading" className="bg-white py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
+        <div className="max-w-6xl mx-auto">
+          <h2 id="trust-heading" className="text-3xl md:text-4xl font-black text-slate-900 text-center mb-12 tracking-tight">
+            Por qué confiar en Pawnecta
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                Icon: ShieldCheck,
+                titulo: 'Verificación con RUT',
+                desc: 'Cada proveedor confirma su identidad antes de publicar',
+              },
+              {
+                Icon: BadgeCheck,
+                titulo: 'Revisión por Pawnecta',
+                desc: 'Revisamos cada perfil antes de aprobarlo',
+              },
+              {
+                Icon: MessageCircle,
+                titulo: 'Contacto directo',
+                desc: 'Coordinas y pagas directamente con el proveedor, sin intermediarios',
+              },
+            ].map(({ Icon, titulo, desc }) => (
+              <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 mb-4">
+                  <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{titulo}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -633,20 +659,29 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
           {/* Social proof: oculto bajo 5.000 visitas/mes */}
           <HomeVisitorCounter totalVisitasMes={totalVisitasMes} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto border-t border-slate-200 pt-16">
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{Math.max(stats.proveedores, 25)}+</div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Proveedores activos</div>
-            </div>
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{Math.max(stats.comunas, 15)}+</div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Comunas disponibles</div>
-            </div>
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">9</div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Categorías de servicio</div>
-            </div>
-          </div>
+          {/* Stats dinámicos: usan el count real de BD, sin '+', con singular/plural */}
+          {(() => {
+            const statsList = [
+              { value: stats.servicios, singular: 'servicio verificado', plural: 'servicios verificados' },
+              { value: stats.comunas, singular: 'comuna', plural: 'comunas' },
+              { value: stats.categorias, singular: 'categoría', plural: 'categorías' },
+            ].filter(s => s.value > 0);
+
+            if (statsList.length === 0) return null;
+
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto border-t border-slate-200 pt-16">
+                {statsList.map((s, i) => (
+                  <div key={i} className="flex flex-col items-center justify-center p-4">
+                    <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{s.value}</div>
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">
+                      {s.value === 1 ? s.singular : s.plural}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </section>
     </div>
@@ -679,6 +714,7 @@ export async function getStaticProps() {
 
   let countServicios = 0;
   let countProveedores = 0;
+  let countCategorias = 0;
   let comunasUnicas = new Set<string>();
 
   try {
@@ -693,6 +729,11 @@ export async function getStaticProps() {
       .select("*", { count: "exact", head: true })
       .eq("estado", "aprobado");
     countProveedores = pCount || 0;
+
+    const { count: cCount } = await supabase
+      .from("categorias_servicio")
+      .select("*", { count: "exact", head: true });
+    countCategorias = cCount || 0;
 
     const { data: comunasData } = await supabase
       .from("proveedores")
@@ -715,6 +756,7 @@ export async function getStaticProps() {
     servicios: countServicios || 0,
     proveedores: countProveedores || 0,
     comunas: comunasUnicas.size || 0,
+    categorias: countCategorias || 0,
   };
 
   // Total de visitas del mes en curso, sumado desde servicios activos.

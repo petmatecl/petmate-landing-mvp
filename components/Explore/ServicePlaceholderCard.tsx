@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Sparkles, ArrowRight } from 'lucide-react';
-import { getPlaceholderQuestion, buildRegisterUrl } from '../../lib/placeholderCopy';
+import { getPlaceholderQuestion, getPlaceholderSubtitle, buildRegisterUrl } from '../../lib/placeholderCopy';
 
 interface ServicePlaceholderCardProps {
     categoriaSlug?: string;
@@ -18,6 +18,7 @@ export default function ServicePlaceholderCard({
     customTitle,
 }: ServicePlaceholderCardProps) {
     const question = customTitle ?? getPlaceholderQuestion(categoriaSlug, comuna);
+    const subtitle = getPlaceholderSubtitle(categoriaSlug);
     const href = buildRegisterUrl(categoriaSlug, comuna);
 
     if (variant === 'compact') {
@@ -35,7 +36,7 @@ export default function ServicePlaceholderCard({
                         {question}
                     </p>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                        Sé el primero en tu zona
+                        {subtitle}
                     </p>
                 </div>
                 <div className="border-t border-slate-100 px-4 py-3.5 bg-slate-50 group-hover:bg-emerald-50 transition-colors">
@@ -63,7 +64,7 @@ export default function ServicePlaceholderCard({
                     {question}
                 </p>
                 <p className="text-sm text-slate-500 leading-relaxed max-w-[260px]">
-                    Sé el primero en tu zona
+                    {subtitle}
                 </p>
             </div>
             <div className="border-t border-slate-100 px-5 py-4 bg-slate-50 group-hover:bg-emerald-50 transition-colors">
