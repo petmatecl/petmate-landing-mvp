@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
@@ -46,11 +46,26 @@ export default function FeedbackWidget() {
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
 
     const rolDetectado: Rol = useMemo(
         () => (isAuthenticated ? rolFromUserRoles(roles) : 'tutor'),
         [isAuthenticated, roles]
     );
+
+    // Countdown realtime del rate limit. Decrementa cada segundo hasta llegar a 0.
+    // Al llegar a 0, limpia el error de rate limit (otros errores no se tocan).
+    useEffect(() => {
+        if (rateLimitSeconds <= 0) return;
+        const interval = setInterval(() => {
+            setRateLimitSeconds(prev => {
+                const next = Math.max(0, prev - 1);
+                if (next === 0) setError(null);
+                return next;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [rateLimitSeconds]);
 
     if (router.pathname.startsWith('/admin')) return null;
 
@@ -61,6 +76,7 @@ export default function FeedbackWidget() {
         setPermitirContacto(false);
         setError(null);
         setSent(false);
+        setRateLimitSeconds(0);
     };
 
     const closeAndReset = () => {
@@ -89,6 +105,7 @@ export default function FeedbackWidget() {
             const elapsed = Date.now() - lastSubmit;
             if (elapsed < RATE_LIMIT_MS) {
                 const segundos = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
+                setRateLimitSeconds(segundos);
                 setError(`Espera ${segundos}s antes de enviar otro feedback.`);
                 return;
             }
@@ -255,9 +272,13 @@ export default function FeedbackWidget() {
 
                             {/* Error */}
                             {error && (
-                                <div role="alert" className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                                <div role="alert" aria-live="polite" className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                                     <AlertCircle size={14} className="shrink-0 mt-0.5" aria-hidden="true" />
-                                    <span>{error}</span>
+                                    <span>
+                                        {rateLimitSeconds > 0
+                                            ? `Espera ${rateLimitSeconds}s antes de enviar otro feedback.`
+                                            : error}
+                                    </span>
                                 </div>
                             )}
 
