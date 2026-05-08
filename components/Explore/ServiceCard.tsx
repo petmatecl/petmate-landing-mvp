@@ -4,6 +4,7 @@ import { Heart, ShieldCheck, Star, Sparkles } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { supabase } from '../../lib/supabaseClient';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
+import VisitCounter from '../Shared/VisitCounter';
 
 export interface ServiceResult {
     servicio_id: string;
@@ -33,6 +34,8 @@ export interface ServiceResult {
     proveedor_primera_ayuda?: boolean;
     proveedor_perfil_completo?: boolean;
     proveedor_es_ejemplo?: boolean;
+    visitas_total?: number;
+    visitas_mes?: number;
 }
 
 interface Props {
@@ -195,6 +198,13 @@ export default function ServiceCard({ service, isFavorite }: Props) {
                             </span>
                         )}
                 </div>
+
+                {/* Visitas del mes (compact, solo si > 0) */}
+                {(service.visitas_mes ?? 0) > 0 && (
+                    <div className="flex justify-end mb-2">
+                        <VisitCounter total={service.visitas_total ?? 0} mes={service.visitas_mes ?? 0} variant="compact" />
+                    </div>
+                )}
 
                 {/* Trust badges (máx 3): EJEMPLO + Verificado + rating */}
                 {(service.proveedor_es_ejemplo || service.proveedor_verificado || service.total_evaluaciones > 0) ? (

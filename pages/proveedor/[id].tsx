@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye } from 'lucide-react';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
 import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../../components/Shared/LoginRequiredModal';
+import VisitCounter from '../../components/Shared/VisitCounter';
+import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
 
 const LABELS_CAMPOS: Record<string, string> = {
     universidad: 'Universidad',
@@ -88,6 +90,9 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     useEffect(() => {
         setExampleBannerVisible(true);
     }, [proveedor?.id]);
+
+    // Track visit (no trackea si es el dueño del perfil)
+    useTrackVisit('proveedor', proveedor?.id, proveedor?.auth_user_id);
 
     const handleProtectedLinkClick = (e: React.MouseEvent) => {
         if (!user) {
@@ -293,6 +298,15 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                         {contactosCount} contacto{contactosCount !== 1 ? 's' : ''}
+                                    </span>
+                                )}
+                                {(proveedor.visitas_total ?? 0) > 0 && (
+                                    <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
+                                        <Eye size={12} strokeWidth={1.5} className="text-slate-400" />
+                                        {(proveedor.visitas_total ?? 0).toLocaleString('es-CL')} visitas
+                                        {(proveedor.visitas_mes ?? 0) > 0 && (
+                                            <span className="text-slate-400"> · {proveedor.visitas_mes} este mes</span>
+                                        )}
                                     </span>
                                 )}
                             </div>
@@ -545,13 +559,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const { data: proveedor, error: provError } = await supabase
             .from('proveedores')
             .select(`
-                id, nombre, apellido_p, nombre_publico, foto_perfil, bio, comuna,
+                id, auth_user_id, nombre, apellido_p, nombre_publico, foto_perfil, bio, comuna,
                 tipo_entidad, razon_social, nombre_fantasia, giro,
                 genero, ocupacion, fecha_nacimiento, anios_experiencia,
                 certificaciones, primera_ayuda, rut_verificado, verificacion_estado,
                 sitio_web, instagram, email_publico, mostrar_email,
                 mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
-                galeria, estado, created_at, datos_especificos, perfil_completo, es_ejemplo
+                galeria, estado, created_at, datos_especificos, perfil_completo, es_ejemplo,
+                visitas_total, visitas_mes
             `)
             .eq('id', id)
             .maybeSingle();
@@ -564,6 +579,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .from('servicios_publicados')
             .select(`
                 id, titulo, descripcion, precio_desde, precio_hasta, unidad_precio, fotos, destacado,
+                visitas_total, visitas_mes,
                 categorias_servicio!inner (nombre, slug, icono)
             `)
             .eq('proveedor_id', id)
@@ -610,6 +626,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     total_evaluaciones: totServ,
                     proveedor_perfil_completo: proveedor.perfil_completo ?? false,
                     proveedor_es_ejemplo: proveedor.es_ejemplo ?? false,
+                    visitas_total: rs.visitas_total ?? 0,
+                    visitas_mes: rs.visitas_mes ?? 0,
                 };
             });
         }

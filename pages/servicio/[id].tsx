@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
 import { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServiceDetailView from '../../components/Servicio/ServiceDetailView';
+import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
 
 interface ServiceDetailProps {
     service: any;
@@ -12,6 +13,7 @@ interface ServiceDetailProps {
 
 export default function ServicioPage(props: ServiceDetailProps) {
     const isExample = props.service?.proveedores?.es_ejemplo === true;
+    useTrackVisit('servicio', props.service?.id, props.service?.proveedores?.auth_user_id);
     return <ServiceDetailView {...props} isExample={isExample} />;
 }
 

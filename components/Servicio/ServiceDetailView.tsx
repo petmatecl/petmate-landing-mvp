@@ -7,6 +7,7 @@ import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
 import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
 import EmptyFieldState from './EmptyFieldState';
+import VisitCounter from '../Shared/VisitCounter';
 import ReviewModal from '../Service/ReviewModal';
 import ReviewForm from '../Service/ReviewForm';
 import ReviewSummary from '../Service/ReviewSummary';
@@ -556,6 +557,17 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 </div>
                             )}
                         </section>
+
+                        {/* Contador de visitas — visible siempre que haya datos */}
+                        {(service.visitas_total ?? 0) > 0 && (
+                            <div className="px-1">
+                                <VisitCounter
+                                    total={service.visitas_total ?? 0}
+                                    mes={service.visitas_mes ?? 0}
+                                    variant="full"
+                                />
+                            </div>
+                        )}
 
                         {/* Encabezado del Servicio */}
                         {imgError && (

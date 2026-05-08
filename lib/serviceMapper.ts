@@ -96,6 +96,8 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         proveedor_primera_ayuda: item.proveedor_primera_ayuda ?? false,
         proveedor_perfil_completo: item.proveedor_perfil_completo ?? false,
         proveedor_es_ejemplo: item.proveedor_es_ejemplo ?? false,
+        visitas_total: Number(item.visitas_total ?? 0),
+        visitas_mes: Number(item.visitas_mes ?? 0),
     };
 }
 
@@ -129,5 +131,7 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         acepta_otras: item.acepta_otras ?? false,
         proveedor_perfil_completo: item.proveedor?.perfil_completo ?? false,
         proveedor_es_ejemplo: item.proveedor?.es_ejemplo ?? false,
+        visitas_total: Number(item.visitas_total ?? 0),
+        visitas_mes: Number(item.visitas_mes ?? 0),
     };
 }

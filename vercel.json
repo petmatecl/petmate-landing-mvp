@@ -1,6 +1,8 @@
 {
   "crons": [
     { "path": "/api/cron/recordatorio-onboarding", "schedule": "0 14 * * *" },
-    { "path": "/api/cron/recordatorio-mensajes", "schedule": "0 10 * * *" }
+    { "path": "/api/cron/recordatorio-mensajes", "schedule": "0 10 * * *" },
+    { "path": "/api/cron/reset-visitas-mes", "schedule": "0 0 1 * *" },
+    { "path": "/api/cron/cleanup-visitas-tracking", "schedule": "0 3 * * *" }
   ]
 }
