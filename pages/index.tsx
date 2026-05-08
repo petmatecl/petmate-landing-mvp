@@ -15,6 +15,7 @@ import { toast } from "sonner";
 
 import SearchBar from "../components/Home/SearchBar";
 import StepCard from "../components/Home/StepCard";
+import HomeVisitorCounter from "../components/Home/HomeVisitorCounter";
 import TestimonialCard from "../components/Home/TestimonialCard";
 import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard";
 
@@ -305,9 +306,10 @@ interface HomePageProps {
     comunas: number;
   };
   categoryCounts: Record<string, number>;
+  totalVisitasMes: number;
 }
 
-export default function HomePage({ featuredServices, stats, categoryCounts }: HomePageProps) {
+export default function HomePage({ featuredServices, stats, categoryCounts, totalVisitasMes }: HomePageProps) {
   const router = useRouter();
 
   const categoriasEstaticas = [
@@ -627,6 +629,10 @@ export default function HomePage({ featuredServices, stats, categoryCounts }: Ho
             Buscar servicios
           </button>
           <p className="text-slate-500 font-medium mb-16">Sin registro. Sin costo.</p>
+
+          {/* Social proof: oculto bajo 5.000 visitas/mes */}
+          <HomeVisitorCounter totalVisitasMes={totalVisitasMes} />
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto border-t border-slate-200 pt-16">
             <div className="flex flex-col items-center justify-center p-4">
               <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{Math.max(stats.proveedores, 25)}+</div>
@@ -711,6 +717,23 @@ export async function getStaticProps() {
     comunas: comunasUnicas.size || 0,
   };
 
+  // Total de visitas del mes en curso, sumado desde servicios activos.
+  // Usamos servicios (no proveedores) para evitar doble conteo: un visitante
+  // que ve servicio + perfil cuenta 2 veces si sumamos proveedores.
+  // Suma en JS para no requerir un RPC nuevo (volumen actual: ~10s de filas).
+  let totalVisitasMes = 0;
+  try {
+    const { data: visitasData } = await supabase
+      .from('servicios_publicados')
+      .select('visitas_mes')
+      .eq('activo', true);
+    if (visitasData) {
+      totalVisitasMes = visitasData.reduce((acc, row) => acc + (row.visitas_mes ?? 0), 0);
+    }
+  } catch (err) {
+    console.error("Error fetching total_visitas_mes:", err);
+  }
+
   let categoryCounts: Record<string, number> = {};
   try {
     const { data: catData } = await supabase
@@ -732,6 +755,7 @@ export async function getStaticProps() {
       featuredServices,
       stats: statsObj,
       categoryCounts,
+      totalVisitasMes,
     },
     revalidate: 30,
   };
