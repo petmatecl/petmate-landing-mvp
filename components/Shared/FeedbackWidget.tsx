@@ -72,15 +72,26 @@ export default function FeedbackWidget() {
         e.preventDefault();
         setError(null);
 
-        // Rate limit local
+        // Rate limit local — early return defensivo (sin try/catch envolvente,
+        // getItem no lanza). Validamos explícitamente NaN y lastSubmit > 0.
+        let lastSubmit = 0;
         try {
-            const last = Number(localStorage.getItem(RATE_LIMIT_KEY) ?? 0);
-            if (Date.now() - last < RATE_LIMIT_MS) {
-                setError('Espera unos segundos antes de enviar otro feedback.');
-                return;
+            const stored = localStorage.getItem(RATE_LIMIT_KEY);
+            const parsed = stored ? Number(stored) : 0;
+            if (Number.isFinite(parsed) && parsed > 0) {
+                lastSubmit = parsed;
             }
         } catch {
-            // localStorage puede fallar en modo incógnito — ignoramos
+            // localStorage no disponible (modo incógnito, sandbox) — sin rate limit
+        }
+
+        if (lastSubmit > 0) {
+            const elapsed = Date.now() - lastSubmit;
+            if (elapsed < RATE_LIMIT_MS) {
+                const segundos = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
+                setError(`Espera ${segundos}s antes de enviar otro feedback.`);
+                return;
+            }
         }
 
         // Validaciones

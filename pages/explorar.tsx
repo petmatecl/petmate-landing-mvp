@@ -755,14 +755,21 @@ export default function ExplorarPage() {
                                         {services.map((service) => (
                                             <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
                                         ))}
-                                        {pagina === 1 && services.length > 0 && totalCount < 12 && Array.from({ length: 12 - services.length }).map((_, i) => (
-                                            <ServicePlaceholderCard
-                                                key={`placeholder-${i}`}
-                                                categoriaSlug={filters.categorias[0] || undefined}
-                                                comuna={filters.comuna || undefined}
-                                                variant="full"
-                                            />
-                                        ))}
+                                        {pagina === 1 && services.length > 0 && totalCount < 12 && (() => {
+                                            // Si hay filtro de categoría, todos los placeholders comparten ese slug.
+                                            // Si NO hay filtro, rotamos por las 9 categorías para que cada placeholder
+                                            // muestre un subtítulo distinto (vía getPlaceholderSubtitle).
+                                            const ROTATION_SLUGS = ['hospedaje', 'guarderia', 'paseos', 'domicilio', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado', 'fotografia'];
+                                            const filterSlug = filters.categorias[0];
+                                            return Array.from({ length: 12 - services.length }).map((_, i) => (
+                                                <ServicePlaceholderCard
+                                                    key={`placeholder-${i}`}
+                                                    categoriaSlug={filterSlug || ROTATION_SLUGS[i % ROTATION_SLUGS.length]}
+                                                    comuna={filters.comuna || undefined}
+                                                    variant="full"
+                                                />
+                                            ));
+                                        })()}
                                     </div>
                                 )}
 
