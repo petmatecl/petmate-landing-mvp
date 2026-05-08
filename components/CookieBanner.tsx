@@ -143,7 +143,7 @@ export default function CookieBanner() {
                             ref={firstFocusRef}
                             onClick={() => setView('banner')}
                             aria-label="Volver al aviso"
-                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             <X size={20} />
                         </button>

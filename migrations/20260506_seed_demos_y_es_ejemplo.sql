@@ -353,7 +353,7 @@ INSERT INTO servicios_publicados (
  '{"horario": "08:00 a 19:00", "capacidad": 6, "tiene_patio": true, "actividades": "Paseos, juegos en grupo, descanso supervisado, estimulación mental", "camara_vigilancia": true, "fotos_durante": true}'::jsonb,
  ARRAY['Ñuñoa', 'Providencia', 'Macul', 'La Reina'],
  '{"Lunes":{"activo":true,"desde":"08:00","hasta":"19:00"},"Martes":{"activo":true,"desde":"08:00","hasta":"19:00"},"Miércoles":{"activo":true,"desde":"08:00","hasta":"19:00"},"Jueves":{"activo":true,"desde":"08:00","hasta":"19:00"},"Viernes":{"activo":true,"desde":"08:00","hasta":"19:00"},"Sábado":{"activo":false,"desde":"00:00","hasta":"00:00"},"Domingo":{"activo":false,"desde":"00:00","hasta":"00:00"}}'::jsonb,
- true, false, true, false, false),
+ true, false, true, true, false),
 
 -- 3. Cuidado en Casa (domicilio) — Sebastián
 ('c1000001-0000-4000-8000-000000000003'::uuid,
@@ -371,7 +371,7 @@ INSERT INTO servicios_publicados (
  '{"visitas_por_dia": 2, "duracion_visita": 45, "que_incluye": "Alimentación, limpieza bandeja, paseo corto si aplica, juegos, compañía, fotos", "envia_foto_reporte": true, "administra_medicamentos": true}'::jsonb,
  ARRAY['Las Condes', 'Vitacura', 'Lo Barnechea', 'Providencia'],
  '{"Lunes":{"activo":true,"desde":"07:00","hasta":"21:00"},"Martes":{"activo":true,"desde":"07:00","hasta":"21:00"},"Miércoles":{"activo":true,"desde":"07:00","hasta":"21:00"},"Jueves":{"activo":true,"desde":"07:00","hasta":"21:00"},"Viernes":{"activo":true,"desde":"07:00","hasta":"21:00"},"Sábado":{"activo":true,"desde":"09:00","hasta":"19:00"},"Domingo":{"activo":true,"desde":"09:00","hasta":"19:00"}}'::jsonb,
- true, false, true, true, false),
+ true, false, true, true, true),
 
 -- 4. Paseos — Matías
 ('c1000001-0000-4000-8000-000000000004'::uuid,
@@ -407,7 +407,7 @@ INSERT INTO servicios_publicados (
  '{"modalidad": "En mi domicilio (Providencia)", "duracion_estimada": "1h 30min a 2h 30min según raza", "que_incluye": "Baño, secado, corte, uñas, limpieza oídos, perfume", "razas_especiales": true, "mesa_hidraulica": true}'::jsonb,
  ARRAY['Providencia', 'Ñuñoa', 'Las Condes', 'La Reina'],
  '{"Lunes":{"activo":true,"desde":"09:00","hasta":"19:00"},"Martes":{"activo":true,"desde":"09:00","hasta":"19:00"},"Miércoles":{"activo":true,"desde":"09:00","hasta":"19:00"},"Jueves":{"activo":true,"desde":"09:00","hasta":"19:00"},"Viernes":{"activo":true,"desde":"09:00","hasta":"19:00"},"Sábado":{"activo":true,"desde":"10:00","hasta":"17:00"},"Domingo":{"activo":false,"desde":"00:00","hasta":"00:00"}}'::jsonb,
- true, false, true, true, false),
+ true, false, true, false, false),
 
 -- 6. Adiestramiento — Felipe
 ('c1000001-0000-4000-8000-000000000006'::uuid,

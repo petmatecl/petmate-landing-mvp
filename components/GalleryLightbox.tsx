@@ -86,7 +86,7 @@ export default function GalleryLightbox({ images, initialIndex = 0, isOpen, onCl
                 ref={closeButtonRef}
                 onClick={onClose}
                 aria-label="Cerrar galería"
-                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-black/20 hover:bg-black/50 rounded-full p-2 z-50"
+                className="absolute top-4 right-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-white/70 hover:text-white transition-colors bg-black/20 hover:bg-black/50 rounded-full z-50"
             >
                 <X size={28} />
             </button>

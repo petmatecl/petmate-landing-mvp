@@ -83,7 +83,7 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                             ref={closeButtonRef}
                             onClick={onClose}
                             aria-label="Cerrar"
-                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             <X size={20} />
                         </button>

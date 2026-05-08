@@ -19,7 +19,8 @@ export default function ImageLightbox({ src, alt, isOpen, onClose }: ImageLightb
         >
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors bg-black/50 rounded-full p-2"
+                aria-label="Cerrar imagen"
+                className="absolute top-4 right-4 z-10 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-white hover:text-gray-300 transition-colors bg-black/50 rounded-full"
             >
                 <X size={32} />
             </button>

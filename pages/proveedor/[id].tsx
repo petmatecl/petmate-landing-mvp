@@ -200,7 +200,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 type="button"
                                 onClick={() => setExampleBannerVisible(false)}
                                 aria-label="Cerrar aviso de ejemplo"
-                                className="text-amber-700 hover:text-amber-900 transition-colors"
+                                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-amber-700 hover:text-amber-900 transition-colors"
                             >
                                 <X size={16} aria-hidden="true" />
                             </button>

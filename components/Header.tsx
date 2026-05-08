@@ -57,10 +57,10 @@ export default function Header() {
             <button
               type="button"
               aria-label="Cerrar aviso"
-              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-[10px] text-white hover:bg-white/30"
+              className="ml-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-white hover:bg-white/30 transition-colors"
               onClick={() => setShowBanner(false)}
             >
-              ×
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-[10px]">×</span>
             </button>
           </div>
         </div>

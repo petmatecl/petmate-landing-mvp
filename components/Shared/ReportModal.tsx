@@ -53,7 +53,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
                 <button
                     onClick={handleClose}
-                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute top-2 right-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                     aria-label="Cerrar"
                 >
                     <X size={20} />

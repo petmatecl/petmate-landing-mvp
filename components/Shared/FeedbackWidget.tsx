@@ -59,7 +59,11 @@ export default function FeedbackWidget() {
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                         <h3 className="text-sm font-bold text-slate-900">Tu opinión nos importa</h3>
-                        <button onClick={() => setOpen(false)} aria-label="Cerrar feedback" className="text-slate-400 hover:text-slate-600">
+                        <button
+                            onClick={() => setOpen(false)}
+                            aria-label="Cerrar feedback"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center -mr-2 text-slate-400 hover:text-slate-600"
+                        >
                             <X size={16} />
                         </button>
                     </div>

@@ -8,6 +8,7 @@ import LoginRequiredModal from '../Shared/LoginRequiredModal';
 import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
 import EmptyFieldState from './EmptyFieldState';
 import VisitCounter from '../Shared/VisitCounter';
+import PhoneRevealButton from './PhoneRevealButton';
 import ReviewModal from '../Service/ReviewModal';
 import ReviewForm from '../Service/ReviewForm';
 import ReviewSummary from '../Service/ReviewSummary';
@@ -272,12 +273,6 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
         }
     };
 
-    const handleCallClick = (e: React.MouseEvent) => {
-        if (isExample) { e.preventDefault(); setExampleModalAction('llamar'); return; }
-        if (!user) { e.preventDefault(); setLoginModalOpen(true); return; }
-        trackContacto('llamada');
-    };
-
     const handleLeaveReview = async () => {
         if (isExample) { setExampleModalAction('evaluar'); return; }
         if (yaEvaluo) return;
@@ -342,7 +337,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 type="button"
                                 onClick={() => setExampleBannerVisible(false)}
                                 aria-label="Cerrar aviso de ejemplo"
-                                className="text-amber-700 hover:text-amber-900 transition-colors"
+                                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-amber-700 hover:text-amber-900 transition-colors"
                             >
                                 <X size={16} aria-hidden="true" />
                             </button>
@@ -931,14 +926,15 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 )}
 
                                 {proveedor.mostrar_telefono && proveedor.telefono && (
-                                    <a href={`tel:${proveedor.telefono}`}
-                                        onClick={handleCallClick}
-                                        aria-label={`Llamar a ${proveedor.nombre_publico || proveedor.nombre}`}
-                                        className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                        Llamar
-                                    </a>
+                                    <PhoneRevealButton
+                                        telefono={proveedor.telefono}
+                                        nombre={proveedor.nombre_publico || proveedor.nombre}
+                                        isExample={!!isExample}
+                                        isLoggedIn={!!user}
+                                        onExampleClick={() => setExampleModalAction('llamar')}
+                                        onLoginRequired={() => setLoginModalOpen(true)}
+                                        onCallTracked={() => trackContacto('llamada')}
+                                    />
                                 )}
                             </div>
 

@@ -74,7 +74,11 @@ export default function PushNotifications() {
 
     return (
         <div className="fixed bottom-4 right-4 bg-white p-4 rounded-xl shadow-xl border border-slate-200 z-50 flex flex-col gap-3 w-80 animate-in slide-in-from-bottom">
-            <button onClick={() => setShowPrompt(false)} className="absolute top-2 right-2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+            <button
+                onClick={() => setShowPrompt(false)}
+                aria-label="Cerrar"
+                className="absolute top-1 right-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+            >
                 <X size={16} />
             </button>
             <div className="flex items-start gap-3 mt-1">
