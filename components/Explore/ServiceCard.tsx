@@ -36,6 +36,7 @@ export interface ServiceResult {
     proveedor_es_ejemplo?: boolean;
     visitas_total?: number;
     visitas_mes?: number;
+    favoritos_total?: number;
 }
 
 interface Props {
