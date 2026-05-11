@@ -566,7 +566,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 sitio_web, instagram, email_publico, mostrar_email,
                 mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
                 galeria, estado, created_at, datos_especificos, perfil_completo, es_ejemplo,
-                visitas_total, visitas_mes
+                visitas_total, visitas_mes, favoritos_total
             `)
             .eq('id', id)
             .maybeSingle();
@@ -579,7 +579,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .from('servicios_publicados')
             .select(`
                 id, titulo, descripcion, precio_desde, precio_hasta, unidad_precio, fotos, destacado,
-                visitas_total, visitas_mes,
+                visitas_total, visitas_mes, favoritos_total,
                 categorias_servicio!inner (nombre, slug, icono)
             `)
             .eq('proveedor_id', id)
@@ -628,6 +628,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     proveedor_es_ejemplo: proveedor.es_ejemplo ?? false,
                     visitas_total: rs.visitas_total ?? 0,
                     visitas_mes: rs.visitas_mes ?? 0,
+                    favoritos_total: rs.favoritos_total ?? 0,
                 };
             });
         }
