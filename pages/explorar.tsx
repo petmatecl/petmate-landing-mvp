@@ -154,7 +154,6 @@ export default function ExplorarPage() {
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
-    const [favoritoIds, setFavoritoIds] = useState<string[]>([]);
     const [comunasSugeridas, setComunasSugeridas] = useState<string[]>([]);
 
     const [filters, setFilters] = useState({
@@ -196,19 +195,6 @@ export default function ExplorarPage() {
         }
         fetchCategories();
     }, []);
-
-    // 1b. Cargar IDs de favoritos del usuario autenticado (batch, evita N+1)
-    useEffect(() => {
-        if (!user) { setFavoritoIds([]); return; }
-        async function fetchFavoritos() {
-            const { data } = await supabase
-                .from('favoritos')
-                .select('servicio_id')
-                .eq('auth_user_id', user.id);
-            if (data) setFavoritoIds(data.map((f: any) => f.servicio_id));
-        }
-        fetchFavoritos();
-    }, [user]);
 
     // Serializar router.query para evitar re-renders infinitos.
     // router.query en Next.js crea una nueva referencia en cada render,
@@ -753,7 +739,7 @@ export default function ExplorarPage() {
                                 ) : (
                                     <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                                         {services.map((service) => (
-                                            <ServiceCard key={service.servicio_id} service={service} isFavorite={favoritoIds.includes(service.servicio_id)} />
+                                            <ServiceCard key={service.servicio_id} service={service} />
                                         ))}
                                         {pagina === 1 && services.length > 0 && totalCount < 12 && (() => {
                                             // Si hay filtro de categoría, todos los placeholders comparten ese slug.
