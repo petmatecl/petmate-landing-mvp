@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Sparkles, X } from 'lucide-react';
 
-export type ExampleAction = 'mensaje' | 'whatsapp' | 'llamar' | 'evaluar' | 'pregunta';
+export type ExampleAction = 'mensaje' | 'whatsapp' | 'llamar' | 'evaluar' | 'pregunta' | 'favorito';
 
 interface ExampleCTAModalProps {
     isOpen: boolean;
@@ -16,6 +16,7 @@ const ACTION_TEXT: Record<ExampleAction, string> = {
     llamar: 'llamar',
     evaluar: 'dejar una reseña',
     pregunta: 'hacer una pregunta',
+    favorito: 'guardar en favoritos',
 };
 
 export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAModalProps) {
