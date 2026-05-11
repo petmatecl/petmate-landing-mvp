@@ -98,6 +98,7 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         proveedor_es_ejemplo: item.proveedor_es_ejemplo ?? false,
         visitas_total: Number(item.visitas_total ?? 0),
         visitas_mes: Number(item.visitas_mes ?? 0),
+        favoritos_total: Number(item.favoritos_total ?? 0),
     };
 }
 
@@ -133,5 +134,6 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         proveedor_es_ejemplo: item.proveedor?.es_ejemplo ?? false,
         visitas_total: Number(item.visitas_total ?? 0),
         visitas_mes: Number(item.visitas_mes ?? 0),
+        favoritos_total: Number(item.favoritos_total ?? 0),
     };
 }
