@@ -2,7 +2,7 @@
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
-import { MessagesSquare, Search, Bookmark, Heart, X, Star } from "lucide-react";
+import { MessagesSquare, Search, Heart, X, Star } from "lucide-react";
 import ReviewModal from "../Service/ReviewModal";
 
 // --- Tipos de Datos ---
@@ -12,16 +12,6 @@ interface ConversationPreview {
     partnerPhoto?: string;
     lastMessage: string;
     updatedAt: string;
-}
-
-interface FavoritePreview {
-    id: string;
-    servicio_id: string;
-    titulo: string;
-    foto?: string;
-    precio_desde?: number;
-    unidad_precio?: string;
-    proveedor_nombre?: string;
 }
 
 interface ContactedService {
@@ -47,7 +37,6 @@ export default function DashboardContent() {
     const { user, profile } = useUser();
 
     const [conversations, setConversations] = useState<ConversationPreview[]>([]);
-    const [favorites, setFavorites] = useState<FavoritePreview[]>([]);
     const [contactedServices, setContactedServices] = useState<ContactedService[]>([]);
     const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
     const [evaluadosSet, setEvaluadosSet] = useState<Set<string>>(new Set());
@@ -55,8 +44,6 @@ export default function DashboardContent() {
 
     // UI states
     const [isLoadingConversations, setIsLoadingConversations] = useState(true);
-    const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
-    const [hasFavoritesError, setHasFavoritesError] = useState(false);
     const [showBanner, setShowBanner] = useState(false);
 
     useEffect(() => {
@@ -120,55 +107,7 @@ export default function DashboardContent() {
             }
         };
 
-        // 2. Fetch Favoritos
-        const loadFavorites = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('favoritos')
-                    .select(`
-                        id,
-                        servicio_id,
-                        servicios_publicados (
-                            titulo,
-                            fotos,
-                            precio_desde,
-                            unidad_precio,
-                            proveedores (
-                                nombre,
-                                apellido_p
-                            )
-                        )
-                    `)
-                    .eq('auth_user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-
-                if (error && error.code === '42P01') {
-                    setHasFavoritesError(true);
-                } else if (!error && data) {
-                    const parsedFavs = data.map((item: any) => {
-                        const sp = item.servicios_publicados;
-                        const prov = Array.isArray(sp?.proveedores) ? sp.proveedores[0] : sp?.proveedores;
-                        return {
-                            id: item.id,
-                            servicio_id: item.servicio_id,
-                            titulo: sp?.titulo || 'Servicio no disponible',
-                            foto: sp?.fotos && sp.fotos.length > 0 ? sp.fotos[0] : undefined,
-                            precio_desde: sp?.precio_desde,
-                            unidad_precio: sp?.unidad_precio,
-                            proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor'
-                        };
-                    });
-                    setFavorites(parsedFavs);
-                } else {
-                    setHasFavoritesError(true);
-                }
-            } catch {
-                setHasFavoritesError(true);
-            } finally {
-                if (isMounted) setIsLoadingFavorites(false);
-            }
-        };
+        // Favoritos: feature movido a /favoritos. El dashboard solo linkea.
 
         // 3. Fetch Servicios consultados (DISTINCT por servicio, últimos 6)
         const loadContactedServices = async () => {
@@ -265,21 +204,11 @@ export default function DashboardContent() {
         };
 
         loadConversations();
-        loadFavorites();
         loadContactedServices();
         loadPendingReviews();
 
         return () => { isMounted = false; };
     }, [user]);
-
-    const handleRemoveFavorite = async (idToRemove: string) => {
-        setFavorites(prev => prev.filter(f => f.id !== idToRemove));
-        try {
-            await supabase.from('favoritos').delete().eq('id', idToRemove);
-        } catch (err) {
-            console.error("Error al quitar favorito:", err);
-        }
-    };
 
     const dismissBanner = () => {
         if (user && typeof window !== 'undefined') {
@@ -513,75 +442,34 @@ export default function DashboardContent() {
                         </div>
                     </section>
 
-                    {/* Favoritos */}
+                    {/* Favoritos — link a la página dedicada /favoritos */}
                     <section className="space-y-4">
                         <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
-                            <Bookmark className="text-amber-500" />
-                            Favoritos
+                            <Heart size={20} strokeWidth={1.5} className="text-rose-500" />
+                            Mis favoritos
                         </h2>
 
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center">
-                            {isLoadingFavorites ? (
-                                <div className="animate-pulse space-y-3">
-                                    <div className="h-4 w-3/4 bg-slate-200 rounded mx-auto" />
-                                    <div className="h-3 w-1/2 bg-slate-100 rounded mx-auto" />
+                        <Link
+                            href="/favoritos"
+                            className="block bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all group"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                                    <Heart size={20} strokeWidth={1.5} aria-hidden="true" />
                                 </div>
-                            ) : hasFavoritesError || favorites.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-3">
-                                        <Bookmark size={20} />
-                                    </div>
-                                    <p className="text-slate-500 text-sm font-medium">
-                                        Guarda servicios que te interesen para verlos luego
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">
+                                        Tus servicios y proveedores guardados
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        Toca el corazón en cualquier servicio o perfil para guardarlo.
                                     </p>
                                 </div>
-                            ) : (
-                                <div className="space-y-4 text-left">
-                                    {favorites.map(fav => (
-                                        <Link key={fav.id} href={`/servicio/${fav.servicio_id}`} className="block group">
-                                            <div className="flex gap-3 p-2 -mx-2 rounded-xl group-hover:bg-slate-50 transition-colors relative border border-transparent group-hover:border-slate-100">
-                                                <div className="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
-                                                    {fav.foto ? (
-                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                        <img src={fav.foto} alt={fav.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex justify-center items-center text-slate-400">
-                                                            <Bookmark size={20} />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0 py-0.5">
-                                                    <h3 className="font-bold text-slate-900 text-sm line-clamp-2 group-hover:text-emerald-700 transition-colors pr-8">
-                                                        {fav.titulo}
-                                                    </h3>
-                                                    <p className="text-xs text-slate-500 mt-1 truncate">{fav.proveedor_nombre}</p>
-                                                    <p className="font-bold text-slate-900 text-sm mt-0.5">
-                                                        ${fav.precio_desde?.toLocaleString('es-CL')} <span className="text-[10px] font-normal text-slate-500">/ {fav.unidad_precio}</span>
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        handleRemoveFavorite(fav.id);
-                                                    }}
-                                                    className="absolute top-2 right-0 w-8 h-8 bg-white/90 rounded-full shadow-sm flex items-center justify-center hover:scale-110 transition-transform duration-150 border border-slate-100 z-10"
-                                                    aria-label="Quitar de favoritos"
-                                                    title="Quitar"
-                                                >
-                                                    <Heart fill="currentColor" size={16} className="text-red-500" />
-                                                </button>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                    <div className="pt-2 border-t border-slate-100 mt-2">
-                                        <Link href="/explorar" className="text-sm font-bold text-emerald-700 hover:text-emerald-800 block text-center mt-2">
-                                            Buscar más servicios &rarr;
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                                <span className="text-sm font-bold text-emerald-700 group-hover:text-emerald-800 shrink-0">
+                                    Ver todos →
+                                </span>
+                            </div>
+                        </Link>
                     </section>
                 </div>
             </div>
