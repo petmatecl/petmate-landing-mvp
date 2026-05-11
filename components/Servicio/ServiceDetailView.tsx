@@ -9,6 +9,7 @@ import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
 import EmptyFieldState from './EmptyFieldState';
 import VisitCounter from '../Shared/VisitCounter';
 import PhoneRevealButton from './PhoneRevealButton';
+import FavoritoButton from '../Shared/FavoritoButton';
 import ReviewModal from '../Service/ReviewModal';
 import ReviewForm from '../Service/ReviewForm';
 import ReviewSummary from '../Service/ReviewSummary';
@@ -553,16 +554,23 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             )}
                         </section>
 
-                        {/* Contador de visitas — visible siempre que haya datos */}
-                        {(service.visitas_total ?? 0) > 0 && (
-                            <div className="px-1">
+                        {/* Contador de visitas + botón favorito */}
+                        <div className="flex items-center justify-between gap-3 px-1">
+                            {(service.visitas_total ?? 0) > 0 ? (
                                 <VisitCounter
                                     total={service.visitas_total ?? 0}
                                     mes={service.visitas_mes ?? 0}
                                     variant="full"
                                 />
-                            </div>
-                        )}
+                            ) : <div />}
+                            <FavoritoButton
+                                entidad_tipo="servicio"
+                                entidad_id={service.id}
+                                contador_inicial={service.favoritos_total ?? 0}
+                                es_ejemplo={!!isExample}
+                                variant="icon-with-count"
+                            />
+                        </div>
 
                         {/* Encabezado del Servicio */}
                         {imgError && (

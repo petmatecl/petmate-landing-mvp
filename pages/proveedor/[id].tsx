@@ -11,6 +11,7 @@ import ReviewList from '../../components/Service/ReviewList';
 import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../../components/Shared/LoginRequiredModal';
 import VisitCounter from '../../components/Shared/VisitCounter';
+import FavoritoButton from '../../components/Shared/FavoritoButton';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
 
 const LABELS_CAMPOS: Record<string, string> = {
@@ -309,6 +310,14 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                         )}
                                     </span>
                                 )}
+                                <FavoritoButton
+                                    entidad_tipo="proveedor"
+                                    entidad_id={proveedor.id}
+                                    contador_inicial={proveedor.favoritos_total ?? 0}
+                                    es_ejemplo={!!proveedor.es_ejemplo}
+                                    variant="icon-with-count"
+                                    size="sm"
+                                />
                             </div>
                         </div>
                     </div>
