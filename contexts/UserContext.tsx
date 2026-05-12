@@ -107,23 +107,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         return 'COMPLETE';
     };
 
-    const initializeUser = async () => {
-        // 1. Get Session (with 5s timeout) — failure here = logged out
-        let session: any = null;
-        try {
-            const timeout = new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000)
-            );
-            const res = await Promise.race([
-                supabase.auth.getSession(),
-                timeout,
-            ]) as { data: { session: any } };
-            session = res?.data?.session || null;
-        } catch (err: any) {
-            console.warn('UserContext: getSession failed —', err?.message);
-            session = null;
-        }
-
+    const hydrateFromSession = async (session: any) => {
         if (!session?.user) {
             setUser(null);
             setProfile(null);
@@ -238,35 +222,34 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         let mounted = true;
-        let hasCompletedFirstInit = false;
 
-        const runInit = async () => {
-            if (!mounted) return;
-            await initializeUser();
-            hasCompletedFirstInit = true;
-        };
+        // Canal 1: lectura inicial sincrónica. Sin Promise.race ni timeout —
+        // el noOpLock (lib/supabaseClient.ts) garantiza que getSession()
+        // resuelve sin colgarse en Web Locks orphaned.
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (mounted) hydrateFromSession(session);
+        });
 
-        runInit();
-
-        // Listen for Auth Changes
-        // Skip SIGNED_IN during first init to avoid double initializeUser() race
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN') {
-                if (mounted && hasCompletedFirstInit) await initializeUser();
-            } else if (event === 'SIGNED_OUT') {
-                if (mounted) {
-                    setUser(null);
-                    setProfile(null);
-                    setActiveRole(null);
-                    setActiveMode('buscador');
-                    setCanSwitchMode(false);
-                    setProviderStatus('none');
-                    setCapabilities(GUEST_CAPABILITIES);
-                    setOnboardingStatus('COMPLETE');
-                    setIsLoading(false);
+        // Canal 2: cambios futuros. INITIAL_SESSION intencionalmente fuera
+        // del switch — ya cubierto por el getSession() inicial. Doble
+        // hidratación evitada.
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (event, session) => {
+                if (!mounted) return;
+                switch (event) {
+                    case 'SIGNED_IN':
+                        await hydrateFromSession(session);
+                        break;
+                    case 'TOKEN_REFRESHED':
+                        // No re-hidratar perfil (overhead innecesario).
+                        break;
+                    case 'SIGNED_OUT':
+                        await hydrateFromSession(null);
+                        break;
+                    // INITIAL_SESSION: NO handler. Ya cubierto por getSession() arriba.
                 }
             }
-        });
+        );
 
         return () => {
             mounted = false;
@@ -298,7 +281,8 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     const refreshProfile = async () => {
         setIsLoading(true);
-        await initializeUser();
+        const { data } = await supabase.auth.getSession();
+        await hydrateFromSession(data?.session ?? null);
     };
 
     const logout = async () => {
