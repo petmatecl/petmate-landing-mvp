@@ -107,7 +107,23 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         return 'COMPLETE';
     };
 
-    const hydrateFromSession = async (session: any) => {
+    const initializeUser = async () => {
+        // 1. Get Session (with 5s timeout) — failure here = logged out
+        let session: any = null;
+        try {
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000)
+            );
+            const res = await Promise.race([
+                supabase.auth.getSession(),
+                timeout,
+            ]) as { data: { session: any } };
+            session = res?.data?.session || null;
+        } catch (err: any) {
+            console.warn('UserContext: getSession failed —', err?.message);
+            session = null;
+        }
+
         if (!session?.user) {
             setUser(null);
             setProfile(null);
@@ -222,29 +238,35 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         let mounted = true;
+        let hasCompletedFirstInit = false;
 
-        // INITIAL_SESSION dispara siempre al instanciar el cliente Supabase, con la
-        // sesión cacheada en localStorage si existe. Esto reemplaza el Promise.race
-        // contra getSession() + timeout que tenía el código anterior, evitando que
-        // latencia de red >5s en mobile rompiera la hidratación del user.
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                if (!mounted) return;
-                switch (event) {
-                    case 'INITIAL_SESSION':
-                    case 'SIGNED_IN':
-                        await hydrateFromSession(session);
-                        break;
-                    case 'TOKEN_REFRESHED':
-                        // La sesión se refrescó (mismo user, nuevo access token).
-                        // No re-hidratar el perfil completo — overhead innecesario.
-                        break;
-                    case 'SIGNED_OUT':
-                        await hydrateFromSession(null);
-                        break;
+        const runInit = async () => {
+            if (!mounted) return;
+            await initializeUser();
+            hasCompletedFirstInit = true;
+        };
+
+        runInit();
+
+        // Listen for Auth Changes
+        // Skip SIGNED_IN during first init to avoid double initializeUser() race
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN') {
+                if (mounted && hasCompletedFirstInit) await initializeUser();
+            } else if (event === 'SIGNED_OUT') {
+                if (mounted) {
+                    setUser(null);
+                    setProfile(null);
+                    setActiveRole(null);
+                    setActiveMode('buscador');
+                    setCanSwitchMode(false);
+                    setProviderStatus('none');
+                    setCapabilities(GUEST_CAPABILITIES);
+                    setOnboardingStatus('COMPLETE');
+                    setIsLoading(false);
                 }
             }
-        );
+        });
 
         return () => {
             mounted = false;
@@ -276,8 +298,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     const refreshProfile = async () => {
         setIsLoading(true);
-        const { data } = await supabase.auth.getSession();
-        await hydrateFromSession(data?.session ?? null);
+        await initializeUser();
     };
 
     const logout = async () => {
