@@ -24,10 +24,6 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export default function PushNotifications() {
-    if (process.env.NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS !== 'true') {
-        return null;
-    }
-
     const { user } = useUser();
     const [showPrompt, setShowPrompt] = useState(false);
 
@@ -77,6 +73,10 @@ export default function PushNotifications() {
             subscribeToPush();
         }
     }, [user, subscribeToPush]);
+
+    if (process.env.NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS !== 'true') {
+        return null;
+    }
 
     if (!showPrompt) return null;
 
