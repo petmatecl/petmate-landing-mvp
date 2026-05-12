@@ -1,3 +1,7 @@
+// FEATURE FLAG: oculto vía NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS hasta arreglar
+// el endpoint /api/push/send (verifyInternalSecret no es llamable desde browser → 403).
+// El flujo de suscripción y el SW funcionan; lo que falla es el envío server-side.
+// Para activar tras el fix: setear NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS=true en Vercel.
 import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { X, BellRing } from 'lucide-react';
@@ -20,6 +24,10 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export default function PushNotifications() {
+    if (process.env.NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS !== 'true') {
+        return null;
+    }
+
     const { user } = useUser();
     const [showPrompt, setShowPrompt] = useState(false);
 
