@@ -223,15 +223,21 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     useEffect(() => {
         let mounted = true;
 
-        // INITIAL_SESSION dispara siempre al instanciar el cliente Supabase, con la
-        // sesión cacheada en localStorage si existe. Esto reemplaza el Promise.race
-        // contra getSession() + timeout que tenía el código anterior, evitando que
-        // latencia de red >5s en mobile rompiera la hidratación del user.
+        // Canal 1: leer sesión inicial. getSession() lee de localStorage,
+        // no hace network call si la sesión es válida. Es el patrón canónico
+        // recomendado por Supabase para evitar race conditions con INITIAL_SESSION
+        // (que el cliente puede emitir antes de que useEffect monte el listener).
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (mounted) hydrateFromSession(session);
+        });
+
+        // Canal 2: escuchar cambios futuros. INITIAL_SESSION queda intencionalmente
+        // sin handler — ya lo cubrió el getSession() inicial y agregarlo causaría
+        // doble hidratación al montar.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 if (!mounted) return;
                 switch (event) {
-                    case 'INITIAL_SESSION':
                     case 'SIGNED_IN':
                         await hydrateFromSession(session);
                         break;
@@ -242,6 +248,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     case 'SIGNED_OUT':
                         await hydrateFromSession(null);
                         break;
+                    // INITIAL_SESSION: NO handler. Ya cubierto por getSession() arriba.
                 }
             }
         );
