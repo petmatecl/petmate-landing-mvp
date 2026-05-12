@@ -19,4 +19,16 @@ if (isBrowser) {
     // clientUrl = `${origin}/supabase-proxy`;
 }
 
-export const supabase = createClient(clientUrl, supabaseAnonKey);
+// Workaround para issue supabase-js#2111: el Web Locks API (default del SDK)
+// queda orphaned tras unmount/refresh/bfcache, colgando getSession()
+// indefinidamente. Reemplazamos con un lock no-op que ejecuta directo.
+// Tradeoff: sin protección contra concurrent auth ops entre tabs (aceptable
+// en pre-launch). Plan B: lock custom con timeout explícito si aparecen
+// regresiones multi-tab.
+const noOpLock = async <R>(_name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> => {
+    return await fn();
+};
+
+export const supabase = createClient(clientUrl, supabaseAnonKey, {
+    auth: { lock: noOpLock },
+});
