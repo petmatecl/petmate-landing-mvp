@@ -19,6 +19,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
 
+  // Detecta el flag ?error=registro_fallido (viene de /email-confirmado tras
+  // rollback de auth.users si el insert del perfil OAuth falla).
+  const registroFallido = router.query.error === 'registro_fallido';
+
   React.useEffect(() => {
     if (router.query.timeout === "true") {
       setError("Por seguridad, tu sesión se cerró tras 10 minutos de inactividad.");
@@ -114,6 +118,13 @@ export default function LoginPage() {
           {redirect && (
             <div className="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
               Ingresa a tu cuenta para continuar con tu acción.
+            </div>
+          )}
+
+          {/* Banner cuando OAuth registro falló y se hizo rollback de la sesión */}
+          {registroFallido && (
+            <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+              Hubo un problema al completar tu registro. Por favor intentá de nuevo.
             </div>
           )}
 

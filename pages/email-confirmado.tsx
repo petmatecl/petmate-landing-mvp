@@ -140,10 +140,19 @@ export default function EmailConfirmadoPage() {
 
             } catch (err: any) {
                 console.error("Error processing confirm flow:", err);
-                setStatusText(`Error interno: ${err.message || 'Desconocido'}`);
+                // Rollback: si el insert del perfil falló, cerrar la sesión
+                // recién creada para no dejar un auth.users huérfano. Sin
+                // signOut, el user queda autenticado sin perfil — caso
+                // principal de las cuentas huérfanas detectadas en
+                // diagnóstico de "zona gris".
+                try {
+                    await supabase.auth.signOut();
+                } catch (signOutErr) {
+                    console.warn('signOut tras fallo de insert también falló:', signOutErr);
+                }
                 if (mounted) {
                     setIsProcessing(false);
-                    setShowManualButton(true);
+                    router.replace('/login?error=registro_fallido');
                 }
             }
         };
