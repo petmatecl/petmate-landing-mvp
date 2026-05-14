@@ -182,12 +182,19 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         const { data, error } = await supabase.from('categorias_servicio').select('id, nombre, icono, slug').order('nombre');
         if (!error && data) {
             setCategorias(data);
-            if (!existingServiceId && data.length > 0) {
-                setCategoriaId(data[0].id);
-            }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Default de categoría solo para servicios nuevos. Separado de fetchCategorias
+    // para evitar race condition con fetchService al editar: si fetchCategorias
+    // resolvía último, sobrescribía el categoria_id real con data[0].id (primer
+    // alfabético = 'Adiestramiento'). Riesgo de corrupción si user guardaba sin
+    // tocar el select.
+    useEffect(() => {
+        if (!existingServiceId && categorias.length > 0 && !categoriaId) {
+            setCategoriaId(categorias[0].id);
+        }
+    }, [existingServiceId, categorias, categoriaId]);
 
     const fetchService = async (id: string) => {
         setFetching(true);
