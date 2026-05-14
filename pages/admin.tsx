@@ -26,15 +26,8 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('dashboard');
 
     const checkAuth = React.useCallback(async () => {
-        // Safety timeout: if getSession() hangs (e.g. expired token refresh), escape after 3s
-        const safetyTimer = setTimeout(() => {
-            setLoading(false);
-            setIsAdmin(false);
-        }, 3000);
-
         try {
             const { data: { session }, error } = await supabase.auth.getSession();
-            clearTimeout(safetyTimer);
 
             if (error || !session) {
                 throw new Error('No session');
@@ -52,11 +45,9 @@ export default function AdminDashboard() {
 
             setIsAdmin(!!hasAdminAccess);
         } catch (error) {
-            clearTimeout(safetyTimer);
             console.error('Error checking auth:', error);
             setIsAdmin(false);
         } finally {
-            clearTimeout(safetyTimer);
             setLoading(false);
         }
     }, []);
@@ -72,18 +63,10 @@ export default function AdminDashboard() {
         setLoginLoading(true);
 
         try {
-            // Timeout: si Supabase no responde en 10s, mostrar error
-            const timeout = new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('TIMEOUT')), 10000)
-            );
-
-            const { data, error } = await Promise.race([
-                supabase.auth.signInWithPassword({
-                    email: adminEmail,
-                    password: adminPassword,
-                }),
-                timeout,
-            ]) as { data: any; error: any };
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: adminEmail,
+                password: adminPassword,
+            });
 
             if (error) {
                 const msg = error.message.toLowerCase();
@@ -150,11 +133,7 @@ export default function AdminDashboard() {
 
         } catch (err: any) {
             console.error('Admin login error:', err);
-            if (err?.message === 'TIMEOUT') {
-                setLoginError('La solicitud tardó demasiado. Verifica tu conexión e intenta nuevamente.');
-            } else {
-                setLoginError('Error al iniciar sesión. Intenta nuevamente.');
-            }
+            setLoginError('Error al iniciar sesión. Intenta nuevamente.');
             setLoginLoading(false);
         }
     };
