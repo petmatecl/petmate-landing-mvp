@@ -39,8 +39,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     </Link>
 
                     <Link
-                        href="/admin/reviews"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${isActive('/admin/reviews')
+                        href="/admin/evaluaciones"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${isActive('/admin/evaluaciones')
                             ? 'bg-emerald-50 text-emerald-700 font-bold'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                             }`}
