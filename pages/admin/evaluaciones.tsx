@@ -2,6 +2,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import RoleGuard from '../../components/Shared/RoleGuard';
 import {
     ArrowLeft, Search, Star, MessageSquareWarning,
     CheckCircle2, XCircle, Clock, ShieldCheck, Filter, UserIcon, AlertTriangle
@@ -27,7 +28,7 @@ interface EvaluacionAdmin {
     evaluador_email?: string;
 }
 
-export default function GestionEvaluaciones() {
+function GestionEvaluaciones() {
     const [evaluaciones, setEvaluaciones] = useState<EvaluacionAdmin[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -434,5 +435,13 @@ export default function GestionEvaluaciones() {
 
             <Toaster position="top-center" richColors />
         </div>
+    );
+}
+
+export default function GestionEvaluacionesPage() {
+    return (
+        <RoleGuard requiredRole="admin">
+            <GestionEvaluaciones />
+        </RoleGuard>
     );
 }

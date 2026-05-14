@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import RoleGuard from '../../components/Shared/RoleGuard';
 import {
     ArrowLeft, Search, Briefcase, Eye, EyeOff, CheckCircle2,
     XCircle, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Tag
@@ -34,7 +35,7 @@ interface Categoria {
     nombre: string;
 }
 
-export default function GestionServicios() {
+function GestionServicios() {
     const [servicios, setServicios] = useState<ServicioAdmin[]>([]);
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     const [loading, setLoading] = useState(true);
@@ -449,5 +450,13 @@ export default function GestionServicios() {
 
             <Toaster position="top-center" richColors />
         </div>
+    );
+}
+
+export default function GestionServiciosPage() {
+    return (
+        <RoleGuard requiredRole="admin">
+            <GestionServicios />
+        </RoleGuard>
     );
 }

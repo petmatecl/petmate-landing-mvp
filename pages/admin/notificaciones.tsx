@@ -5,8 +5,9 @@ import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
 import { ArrowLeft, Bell, ChevronRight, User } from "lucide-react";
 import AdminLayout from "../../components/Admin/AdminLayout";
+import RoleGuard from "../../components/Shared/RoleGuard";
 
-export default function AdminNotifications() {
+function AdminNotifications() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
@@ -58,22 +59,13 @@ export default function AdminNotifications() {
         setActivities(combined);
     };
 
-    const checkAuth = async () => {
-        setLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-            router.push("/login");
-            return;
-        }
-
-
-        await fetchData();
-        setLoading(false);
-    };
-
+    // Auth gating delegado a <RoleGuard requiredRole="admin"> en el wrapper.
     useEffect(() => {
-        checkAuth();
+        (async () => {
+            setLoading(true);
+            await fetchData();
+            setLoading(false);
+        })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -187,5 +179,13 @@ export default function AdminNotifications() {
                 )}
             </div>
         </AdminLayout>
+    );
+}
+
+export default function AdminNotificationsPage() {
+    return (
+        <RoleGuard requiredRole="admin">
+            <AdminNotifications />
+        </RoleGuard>
     );
 }

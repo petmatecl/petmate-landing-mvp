@@ -1,12 +1,13 @@
 ﻿import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/Admin/AdminLayout';
+import RoleGuard from '../../components/Shared/RoleGuard';
 import { getAllReviews, updateReviewStatus, Evaluacion } from '../../lib/reviewsService';
 import { CheckCircle, XCircle, Clock, Plus, Loader, MapPin, User, ChevronDown, Search } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import Image from 'next/image';
 
-export default function AdminReviews() {
+function AdminReviews() {
     const [reviews, setReviews] = useState<Evaluacion[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pendiente' | 'aprobado' | 'rechazado'>('all');
@@ -400,5 +401,13 @@ function StatusBadge({ status }: { status: string }) {
             <Icon size={12} />
             {status.charAt(0).toUpperCase() + status.slice(1)}
         </span>
+    );
+}
+
+export default function AdminReviewsPage() {
+    return (
+        <RoleGuard requiredRole="admin">
+            <AdminReviews />
+        </RoleGuard>
     );
 }

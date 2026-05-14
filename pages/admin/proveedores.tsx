@@ -2,6 +2,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import RoleGuard from '../../components/Shared/RoleGuard';
 import {
     ArrowLeft, Search, CheckCircle2, XCircle, Clock, AlertTriangle,
     Eye, ShieldCheck, User as UserIcon, Briefcase, Star, MapPin
@@ -11,7 +12,7 @@ import { toast, Toaster } from 'sonner';
 type EstadoProveedor = 'todos' | 'pendiente' | 'aprobado' | 'suspendido' | 'rechazado' | 'placeholder';
 type OrdenType = 'fecha_desc' | 'fecha_asc' | 'nombre' | 'estado';
 
-export default function GestionProveedores() {
+function GestionProveedores() {
     const [proveedores, setProveedores] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -586,5 +587,13 @@ export default function GestionProveedores() {
             )}
             <Toaster position="top-center" richColors />
         </div>
+    );
+}
+
+export default function GestionProveedoresPage() {
+    return (
+        <RoleGuard requiredRole="admin">
+            <GestionProveedores />
+        </RoleGuard>
     );
 }
