@@ -181,6 +181,15 @@ export default function ExplorarPage() {
         }, {} as Record<string, number>)
         , [services]);
 
+    // Cleanup one-time de la key legacy sin sufijo (compartida entre users).
+    // Reemplazada por `pawnecta_last_search:${user.id}` scopeada. Evita que
+    // sesiones nuevas hereden filtros de cuentas anteriores en el mismo browser.
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('pawnecta_last_search');
+        }
+    }, []);
+
     // 1. Cargar Categorías desde DB (reemplaza el fallback estático si tiene datos)
     useEffect(() => {
         async function fetchCategories() {
@@ -209,9 +218,11 @@ export default function ExplorarPage() {
         const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam, fecha } = router.query;
         const hasQueryParams = q || categoria || comuna || mascota || precioMin || precioMax || orden;
 
-        // Si no hay params en la URL, intentar restaurar última búsqueda
-        if (!hasQueryParams && typeof window !== 'undefined') {
-            const saved = localStorage.getItem('pawnecta_last_search');
+        // Si no hay params en la URL, intentar restaurar última búsqueda.
+        // Solo para usuarios autenticados (key scopeada por user.id). Guests
+        // NO heredan filtros de sesiones previas en el mismo browser.
+        if (!hasQueryParams && typeof window !== 'undefined' && user?.id) {
+            const saved = localStorage.getItem(`pawnecta_last_search:${user.id}`);
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -353,7 +364,7 @@ export default function ExplorarPage() {
 
         run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [queryKey]);
+    }, [queryKey, user?.id]);
 
     // goToPage actualiza la URL (lo que dispara el efecto de arriba)
     const goToPage = useCallback((p: number) => {
@@ -394,12 +405,15 @@ export default function ExplorarPage() {
         if (combined.precioMax) query.precioMax = combined.precioMax;
         if (combined.orden && combined.orden !== 'relevancia') query.orden = combined.orden;
 
-        // Persist last search for when user returns to /explorar
-        if (typeof window !== 'undefined') {
+        // Persist last search scopeado por user.id para que sesiones
+        // distintas en el mismo browser no hereden filtros. Guests no
+        // persisten (decisión de producto).
+        if (typeof window !== 'undefined' && user?.id) {
+            const key = `pawnecta_last_search:${user.id}`;
             if (Object.keys(query).length > 0) {
-                localStorage.setItem('pawnecta_last_search', JSON.stringify(query));
+                localStorage.setItem(key, JSON.stringify(query));
             } else {
-                localStorage.removeItem('pawnecta_last_search');
+                localStorage.removeItem(key);
             }
         }
 
@@ -410,8 +424,8 @@ export default function ExplorarPage() {
     };
 
     const handleClearFilters = () => {
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('pawnecta_last_search');
+        if (typeof window !== 'undefined' && user?.id) {
+            localStorage.removeItem(`pawnecta_last_search:${user.id}`);
         }
         router.push({ pathname: '/explorar' }, undefined, { shallow: true });
     };
