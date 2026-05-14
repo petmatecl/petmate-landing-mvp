@@ -18,12 +18,16 @@ export default function Header() {
   // Use Unified Context
   const { user, profile, isAuthenticated, activeRole, activeMode, canSwitchMode, switchMode, logout, switchRole, roles } = useUser();
 
+  // Banner "Estamos en lanzamiento" es solo para guests — usuarios autenticados
+  // (tutores, proveedores, admins) NO lo ven para evitar invitación redundante.
+  const showLaunchBanner = showBanner && !isAuthenticated;
+
   // Sync --header-height CSS variable for sticky descendants (e.g., banner amber EJEMPLO).
   // 105px when launch banner visible (40 topbar + 65 navbar), 64px when collapsed.
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    document.documentElement.style.setProperty('--header-height', showBanner ? '105px' : '64px');
-  }, [showBanner]);
+    document.documentElement.style.setProperty('--header-height', showLaunchBanner ? '105px' : '64px');
+  }, [showLaunchBanner]);
 
   // Nombre a mostrar
   const userName = profile?.nombre || user?.user_metadata?.nombre || "Usuario";
@@ -45,8 +49,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">
-      {/* Franja superior lanzamiento */}
-      {showBanner && (
+      {/* Franja superior lanzamiento — solo para guests no autenticados */}
+      {showLaunchBanner && (
         <div className="bg-slate-900 text-white text-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-center gap-2">
