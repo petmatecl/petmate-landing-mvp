@@ -158,8 +158,11 @@ export default function Header() {
                 </div>
               )}
 
-              {/* Admin link — directo sin dropdown */}
-              {(!canSwitchMode && profile?.roles && profile.roles.includes('admin')) && (
+              {/* Admin link — directo sin dropdown. Se muestra siempre que
+                  el rol admin esté presente, independientemente del modo dual
+                  (la condicional anterior con !canSwitchMode excluía a admins
+                  con perfil dual tutor+proveedor). */}
+              {profile?.roles && profile.roles.includes('admin') && (
                 <Link
                   href="/admin"
                   className="inline-flex items-center rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors uppercase tracking-wide"
