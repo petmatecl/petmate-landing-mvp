@@ -8,6 +8,7 @@ import {
     XCircle, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Tag
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import ConfirmDialog from '../../components/Admin/ConfirmDialog';
 
 type FiltroEstadoType = 'todos' | 'activos' | 'inactivos';
 
@@ -49,6 +50,12 @@ function GestionServicios() {
     const [modalData, setModalData] = useState<ServicioAdmin | null>(null);
 
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Confirm dialog para ocultar servicio
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean; title: string; message: string; confirmLabel: string;
+        variant: 'default' | 'danger'; onConfirm: () => void;
+    }>({ open: false, title: '', message: '', confirmLabel: '', variant: 'default', onConfirm: () => {} });
 
     const fetchData = async () => {
         setLoading(true);
@@ -110,6 +117,21 @@ function GestionServicios() {
         } finally {
             setActionLoading(false);
         }
+    };
+
+    const requestOcultar = (s: ServicioAdmin) => {
+        const proveedor = `${s.proveedor_nombre || ''} ${s.proveedor_apellido || ''}`.trim() || 'el proveedor';
+        setConfirmDialog({
+            open: true,
+            title: 'Ocultar servicio del catálogo',
+            message: `"${s.titulo}" de ${proveedor} dejará de ser visible en /explorar y en el perfil público. Podrás reactivarlo después.`,
+            confirmLabel: 'Ocultar servicio',
+            variant: 'danger',
+            onConfirm: () => {
+                setConfirmDialog(d => ({ ...d, open: false }));
+                toggleEstadoServicio(s.id, false);
+            },
+        });
     };
 
     // Cálculos para Estadísticas Rápidas
@@ -357,7 +379,7 @@ function GestionServicios() {
                                                 {s.activo ? (
                                                     <button
                                                         disabled={actionLoading}
-                                                        onClick={() => toggleEstadoServicio(s.id, false)}
+                                                        onClick={() => requestOcultar(s)}
                                                         className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 font-bold rounded-lg text-[10px] uppercase transition-colors"
                                                     >
                                                         Ocultar
@@ -447,6 +469,17 @@ function GestionServicios() {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                loading={actionLoading}
+            />
 
             <Toaster position="top-center" richColors />
         </div>

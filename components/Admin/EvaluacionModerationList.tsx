@@ -5,11 +5,18 @@ import { es } from 'date-fns/locale';
 import { Check, X, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { getParticipantProfile } from '../../lib/profileUtils';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function EvaluacionModerationList() {
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
+
+    // Confirm dialog state
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean; title: string; message: string; confirmLabel: string;
+        variant: 'default' | 'danger'; onConfirm: () => void;
+    }>({ open: false, title: '', message: '', confirmLabel: '', variant: 'default', onConfirm: () => {} });
 
     useEffect(() => {
         fetchPendientes();
@@ -49,7 +56,30 @@ export default function EvaluacionModerationList() {
         }
     };
 
-    const handleAction = async (evalId: string, newState: 'aprobado' | 'rechazado') => {
+    const requestAction = (ev: any, newState: 'aprobado' | 'rechazado') => {
+        const proveedor = `${ev.proveedor?.nombre || ''} ${ev.proveedor?.apellido_p || ''}`.trim() || 'el proveedor';
+        if (newState === 'aprobado') {
+            setConfirmDialog({
+                open: true,
+                title: 'Aprobar evaluación',
+                message: `La evaluación se publicará en el perfil de ${proveedor} y será visible para todos los visitantes. ¿Continuar?`,
+                confirmLabel: 'Aprobar y publicar',
+                variant: 'default',
+                onConfirm: () => { setConfirmDialog(d => ({ ...d, open: false })); doAction(ev.id, 'aprobado'); },
+            });
+        } else {
+            setConfirmDialog({
+                open: true,
+                title: 'Rechazar evaluación',
+                message: `La evaluación quedará oculta y no se publicará en el perfil de ${proveedor}. Esta acción no envía notificación al usuario.`,
+                confirmLabel: 'Rechazar',
+                variant: 'danger',
+                onConfirm: () => { setConfirmDialog(d => ({ ...d, open: false })); doAction(ev.id, 'rechazado'); },
+            });
+        }
+    };
+
+    const doAction = async (evalId: string, newState: 'aprobado' | 'rechazado') => {
         setIsSubmitting(evalId);
         try {
             const ev = evaluaciones.find(e => e.id === evalId);
@@ -167,14 +197,14 @@ export default function EvaluacionModerationList() {
                             {/* Actions */}
                             <div className="xl:w-48 flex flex-row xl:flex-col justify-end gap-3 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-100 pt-4 xl:pt-0 xl:pl-6">
                                 <button
-                                    onClick={() => handleAction(ev.id, 'aprobado')}
+                                    onClick={() => requestAction(ev, 'aprobado')}
                                     disabled={isSubmitting === ev.id}
                                     className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     {isSubmitting === ev.id ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />} <span className="hidden sm:inline">Aprobar</span>
                                 </button>
                                 <button
-                                    onClick={() => handleAction(ev.id, 'rechazado')}
+                                    onClick={() => requestAction(ev, 'rechazado')}
                                     disabled={isSubmitting === ev.id}
                                     className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
                                 >
@@ -196,6 +226,17 @@ export default function EvaluacionModerationList() {
                     </div>
                 ))}
             </div>
+
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                loading={isSubmitting !== null}
+            />
         </div>
     );
 }
