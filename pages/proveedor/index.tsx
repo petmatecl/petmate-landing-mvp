@@ -1113,11 +1113,11 @@ export default function ProveedorDashboard() {
                                             name="bio"
                                             autoComplete="off"
                                             value={bio} onChange={e => setBio(e.target.value)}
-                                            rows={6} maxLength={600}
+                                            rows={6} maxLength={1000}
                                             placeholder="Cuéntale a los clientes sobre tu experiencia y amor por las mascotas..."
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none"
                                         />
-                                        <div className="text-right text-xs text-slate-400 mt-1">{bio?.length || 0}/600</div>
+                                        <div className="text-right text-xs text-slate-400 mt-1">{bio?.length || 0}/1000</div>
                                     </div>
 
                                     <div className="relative">
