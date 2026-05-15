@@ -18,7 +18,7 @@ export default function StepCard({ paso, titulo, descripcion, Icon, variante = '
                 <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm border-4 ${isDark ? 'bg-emerald-700 border-slate-900 text-white' : 'bg-emerald-700 border-slate-50 text-white'}`}>
                     {paso}
                 </div>
-                <Icon className={`w-8 h-8 ${isDark ? 'text-white' : 'text-emerald-700'}`} />
+                <Icon className={`w-8 h-8 ${isDark ? 'text-white' : 'text-emerald-600'}`} />
             </div>
             <h3 className="text-xl font-semibold mb-3">{titulo}</h3>
             <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>

@@ -22,12 +22,12 @@ export default function TestimonialCard({ nombre, ciudad, rol, mascota, texto, v
                     <h4 className="font-semibold text-slate-900">{nombre}</h4>
                     <p className="text-xs text-slate-500">{ciudad}</p>
                     {(rol || mascota) && (
-                        <p className="text-xs font-medium text-emerald-700 mt-0.5">
+                        <p className="text-xs font-medium text-slate-500 mt-0.5">
                             {rol || mascota}
                         </p>
                     )}
                     {verificado && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
                             Usuario verificado
                         </span>
                     )}

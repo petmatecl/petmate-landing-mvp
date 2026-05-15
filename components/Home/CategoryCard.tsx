@@ -24,14 +24,14 @@ export default function CategoryCard({ slug, nombre, descripcion, Icon, estado =
             )}
 
             <div className={`w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 ${!isProxima ? 'group-hover:bg-emerald-100' : ''} transition-colors duration-200`}>
-                <Icon className="w-7 h-7 text-emerald-700 transition-colors duration-200" />
+                <Icon className="w-7 h-7 text-emerald-600 transition-colors duration-200" />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 mb-1 transition-colors duration-200">{nombre}</h3>
             <p className="text-sm text-slate-500 leading-relaxed">{descripcion}</p>
 
             {/* Badge count — solo si activa y hay proveedores */}
             {!isProxima && count !== undefined && count > 0 && (
-                <span className="mt-3 inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                <span className="mt-3 inline-block text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
                     {count} disponible{count !== 1 ? 's' : ''}
                 </span>
             )}

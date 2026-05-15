@@ -159,7 +159,7 @@ function ServiceCardItem({ s }: { s: any }) {
           </div>
         )}
         {s.proveedor_perfil_completo && (
-          <div title="Perfil completo" aria-label="Perfil completo" className="absolute bottom-2.5 right-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
+          <div title="Perfil completo" aria-label="Perfil completo" className="absolute bottom-2.5 right-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
             <BadgeCheck size={14} aria-hidden="true" />
           </div>
         )}
@@ -226,14 +226,14 @@ function FranjaDual({
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <IconA className="w-5 h-5 text-emerald-700" />
+                <IconA className="w-5 h-5 text-slate-400" />
                 <IconB className="w-4 h-4 text-emerald-400" />
               </div>
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{titulo}</h2>
               <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
             </div>
             <button onClick={onVerMas} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${titulo}`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -271,12 +271,12 @@ function FranjaCategoria({
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <categoria.Icon className="w-5 h-5 text-emerald-700" />
+              <categoria.Icon className="w-5 h-5 text-slate-400" />
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{categoria.nombre}</h2>
               <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
             </div>
             <button onClick={onVerTodos} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${categoria.nombre}`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -448,7 +448,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               },
             ].map(({ Icon, titulo, desc }) => (
               <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 mb-4">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 mb-4">
                   <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">{titulo}</h3>
