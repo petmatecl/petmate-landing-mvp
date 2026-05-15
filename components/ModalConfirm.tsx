@@ -34,7 +34,7 @@ export default function ModalConfirm({
                     )}
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-2">
                     {title}
                 </h3>
                 <p className="text-sm text-slate-500 mb-6">

@@ -25,7 +25,7 @@ export default function ModalAlert({ isOpen, onClose, title, message, type = 'wa
                     {type === 'info' && <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12v-.008z" /></svg>}
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-2">
                     {title}
                 </h3>
                 <p className="text-sm text-slate-500 mb-6">

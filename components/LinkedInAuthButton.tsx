@@ -44,7 +44,7 @@ export default function LinkedInAuthButton({ role, text = "Continuar con LinkedI
             type="button"
             onClick={handleLinkedInLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-[#0a66c2] hover:bg-[#004182] text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm border border-transparent mt-3"
+            className="w-full flex items-center justify-center gap-3 bg-[#0a66c2] hover:bg-[#004182] text-white font-medium tracking-wide py-3 px-4 rounded-xl transition-all shadow-sm border border-transparent mt-3"
         >
             {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

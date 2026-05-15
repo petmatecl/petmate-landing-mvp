@@ -135,7 +135,7 @@ export default function CookieBanner() {
                     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
                         <div className="flex items-center gap-2">
                             <Cookie className="text-emerald-700" size={20} aria-hidden="true" />
-                            <h2 id="cookie-prefs-title" className="text-lg font-bold text-slate-900">
+                            <h2 id="cookie-prefs-title" className="text-lg font-semibold text-slate-900 tracking-tight">
                                 Preferencias de cookies
                             </h2>
                         </div>
@@ -219,7 +219,7 @@ function ConsentRow({
     return (
         <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-                <h3 className="text-sm font-bold text-slate-900 mb-1">{title}</h3>
+                <h3 className="text-sm font-semibold text-slate-900 mb-1">{title}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
             </div>
             <button

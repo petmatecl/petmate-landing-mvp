@@ -18,7 +18,7 @@ export default function CategoryCard({ slug, nombre, descripcion, Icon, estado =
         <>
             {/* Badge Próximamente */}
             {isProxima && (
-                <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                <span className="absolute top-3 right-3 text-[10px] font-medium uppercase tracking-widest bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
                     Próximamente
                 </span>
             )}
@@ -26,7 +26,7 @@ export default function CategoryCard({ slug, nombre, descripcion, Icon, estado =
             <div className={`w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 ${!isProxima ? 'group-hover:bg-emerald-100' : ''} transition-colors duration-200`}>
                 <Icon className="w-7 h-7 text-emerald-700 transition-colors duration-200" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1 transition-colors duration-200">{nombre}</h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-1 transition-colors duration-200">{nombre}</h3>
             <p className="text-sm text-slate-500 leading-relaxed">{descripcion}</p>
 
             {/* Badge count — solo si activa y hay proveedores */}

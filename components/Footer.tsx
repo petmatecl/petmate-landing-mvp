@@ -39,7 +39,7 @@ export function Footer() {
 
         {/* Servicios */}
         <div>
-          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Servicios</h4>
+          <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li><Link href="/explorar?categoria=hospedaje" className="hover:text-emerald-700 transition-colors">Hospedaje</Link></li>
             <li><Link href="/explorar?categoria=guarderia" className="hover:text-emerald-700 transition-colors">Guardería diurna</Link></li>
@@ -54,7 +54,7 @@ export function Footer() {
 
         {/* Pawnecta + Contacto fusionado */}
         <div>
-          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">Pawnecta</h4>
+          <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Pawnecta</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li><Link href="/quienes-somos" className="hover:text-emerald-700 transition-colors">Quiénes somos</Link></li>
             <li><Link href="/faq" className="hover:text-emerald-700 transition-colors">Preguntas frecuentes</Link></li>
@@ -70,7 +70,7 @@ export function Footer() {
       <div className="border-t border-slate-300 py-12 mt-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <details className="group">
-            <summary className="cursor-pointer list-none flex items-center justify-between [&::-webkit-details-marker]:hidden text-sm font-bold text-slate-900 uppercase tracking-wide hover:text-emerald-700 transition-colors">
+            <summary className="cursor-pointer list-none flex items-center justify-between [&::-webkit-details-marker]:hidden text-xs font-medium text-slate-500 uppercase tracking-widest hover:text-emerald-700 transition-colors">
               <span>Explorar por categoría y comuna</span>
               <ChevronDown size={20} className="text-slate-400 transition-transform group-open:rotate-180" />
             </summary>
@@ -78,7 +78,7 @@ export function Footer() {
 
               {/* Hospedaje */}
               <div>
-                <Link href="/explorar?categoria=hospedaje" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Hospedaje</Link>
+                <Link href="/explorar?categoria=hospedaje" className="text-sm font-semibold text-emerald-700 hover:text-emerald-500 mb-4 block">Hospedaje</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
                   <li><Link href="/explorar?categoria=hospedaje&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
                   <li><Link href="/explorar?categoria=hospedaje&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
@@ -90,7 +90,7 @@ export function Footer() {
 
               {/* Domicilio */}
               <div>
-                <Link href="/explorar?categoria=domicilio" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Visita a domicilio</Link>
+                <Link href="/explorar?categoria=domicilio" className="text-sm font-semibold text-emerald-700 hover:text-emerald-500 mb-4 block">Visita a domicilio</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
                   <li><Link href="/explorar?categoria=domicilio&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
                   <li><Link href="/explorar?categoria=domicilio&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
@@ -102,7 +102,7 @@ export function Footer() {
 
               {/* Paseos */}
               <div>
-                <Link href="/explorar?categoria=paseos" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Paseadores</Link>
+                <Link href="/explorar?categoria=paseos" className="text-sm font-semibold text-emerald-700 hover:text-emerald-500 mb-4 block">Paseadores</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
                   <li><Link href="/explorar?categoria=paseos&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
                   <li><Link href="/explorar?categoria=paseos&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
@@ -114,7 +114,7 @@ export function Footer() {
 
               {/* Peluquería */}
               <div>
-                <Link href="/explorar?categoria=peluqueria" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Peluquería</Link>
+                <Link href="/explorar?categoria=peluqueria" className="text-sm font-semibold text-emerald-700 hover:text-emerald-500 mb-4 block">Peluquería</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
                   <li><Link href="/explorar?categoria=peluqueria&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
                   <li><Link href="/explorar?categoria=peluqueria&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
@@ -126,7 +126,7 @@ export function Footer() {
 
               {/* Veterinario */}
               <div>
-                <Link href="/explorar?categoria=veterinario" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Veterinarios</Link>
+                <Link href="/explorar?categoria=veterinario" className="text-sm font-semibold text-emerald-700 hover:text-emerald-500 mb-4 block">Veterinarios</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
                   <li><Link href="/explorar?categoria=veterinario&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
                   <li><Link href="/explorar?categoria=veterinario&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>
@@ -138,7 +138,7 @@ export function Footer() {
 
               {/* Adiestramiento */}
               <div>
-                <Link href="/explorar?categoria=adiestramiento" className="text-sm font-bold text-emerald-700 hover:text-emerald-500 mb-4 block">Adiestramiento</Link>
+                <Link href="/explorar?categoria=adiestramiento" className="text-sm font-semibold text-emerald-700 hover:text-emerald-500 mb-4 block">Adiestramiento</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
                   <li><Link href="/explorar?categoria=adiestramiento&comuna=Providencia" className="hover:text-emerald-700 transition-colors">Providencia</Link></li>
                   <li><Link href="/explorar?categoria=adiestramiento&comuna=Las Condes" className="hover:text-emerald-700 transition-colors">Las Condes</Link></li>

@@ -187,7 +187,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                                 idx === activeIndex ? 'bg-emerald-50' : 'hover:bg-emerald-50'
                             }`}
                         >
-                            <span className="font-bold text-slate-800 block truncate group-hover:text-emerald-700">
+                            <span className="font-semibold text-slate-700 block truncate group-hover:text-emerald-700">
                                 {result.display_name.split(',')[0]}
                             </span>
                             <span className="text-slate-500 block truncate text-[10px]">

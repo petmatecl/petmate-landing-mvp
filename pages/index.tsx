@@ -57,7 +57,7 @@ function PrelaunchDemandCapture() {
 
         {done ? (
           <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-8 py-10">
-            <p className="text-emerald-800 font-bold text-lg">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
+            <p className="text-emerald-800 font-semibold text-lg">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
@@ -133,7 +133,7 @@ function ServiceCardItem({ s }: { s: any }) {
           </div>
         )}
         {s.total_evaluaciones > 0 ? (
-          <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm flex items-center gap-1">
+          <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-1">
             <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
             {Number(s.rating_promedio).toFixed(1)}
             <span className="text-slate-500 font-normal">({s.total_evaluaciones})</span>
@@ -144,7 +144,7 @@ function ServiceCardItem({ s }: { s: any }) {
           </div>
         )}
         {s.destacado && (
-          <div className="absolute top-2.5 left-2.5 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+          <div className="absolute top-2.5 left-2.5 bg-amber-400 text-amber-900 text-[10px] font-medium px-2 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-sm">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             Destacado
           </div>
@@ -153,7 +153,7 @@ function ServiceCardItem({ s }: { s: any }) {
           <div
             title="Este es un proveedor de ejemplo, no real. Regístrate para publicar tu servicio."
             aria-label="Proveedor de ejemplo"
-            className="absolute bottom-2.5 left-2.5 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm"
+            className="absolute bottom-2.5 left-2.5 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-medium px-2 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-sm"
           >
             <Sparkles size={10} aria-hidden="true" /> Ejemplo
           </div>
@@ -165,7 +165,7 @@ function ServiceCardItem({ s }: { s: any }) {
         )}
       </div>
       <div className="p-4 flex flex-col flex-1">
-        <p className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
+        <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
           {s.titulo}
         </p>
         {s.proveedor_nombre && (
@@ -175,7 +175,7 @@ function ServiceCardItem({ s }: { s: any }) {
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={s.proveedor_foto} alt={s.proveedor_nombre} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-[9px] font-bold text-emerald-700">{s.proveedor_nombre.charAt(0).toUpperCase()}</span>
+                <span className="text-[9px] font-semibold text-emerald-700">{s.proveedor_nombre.charAt(0).toUpperCase()}</span>
               )}
             </div>
             <p className="text-xs text-slate-500 truncate">{s.proveedor_nombre}</p>
@@ -185,7 +185,7 @@ function ServiceCardItem({ s }: { s: any }) {
           <p className="text-xs text-slate-400 truncate">{s.proveedor_comuna}</p>
         )}
         {s.precio_desde > 0 && (
-          <p className="text-sm font-bold text-slate-900 mt-auto pt-3 border-t border-slate-100">
+          <p className="text-sm font-semibold text-slate-900 mt-auto pt-3 border-t border-slate-100">
             ${s.precio_desde.toLocaleString('es-CL')}
             <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
           </p>
@@ -229,7 +229,7 @@ function FranjaDual({
                 <IconA className="w-5 h-5 text-emerald-700" />
                 <IconB className="w-4 h-4 text-emerald-400" />
               </div>
-              <h2 id={titleId} className="text-base font-bold text-slate-900">{titulo}</h2>
+              <h2 id={titleId} className="text-base font-semibold text-slate-900">{titulo}</h2>
               <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
             </div>
             <button onClick={onVerMas} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${titulo}`}>
@@ -272,7 +272,7 @@ function FranjaCategoria({
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <categoria.Icon className="w-5 h-5 text-emerald-700" />
-              <h2 id={titleId} className="text-base font-bold text-slate-900">{categoria.nombre}</h2>
+              <h2 id={titleId} className="text-base font-semibold text-slate-900">{categoria.nombre}</h2>
               <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
             </div>
             <button onClick={onVerTodos} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${categoria.nombre}`}>
@@ -451,7 +451,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 mb-4">
                   <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{titulo}</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{titulo}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
               </div>
             ))}
@@ -519,7 +519,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       ═══════════════════════════════════════════ */}
       <section className="bg-white border-y border-slate-100 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-5">Explorar por categoría</h2>
+          <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-5">Explorar por categoría</h2>
           <div className="flex flex-wrap gap-3">
             {categoriasEstaticas.map((cat) => {
               const isProxima = cat.estado === 'proxima';
@@ -540,12 +540,12 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                   <cat.Icon className={`w-4 h-4 ${isProxima ? 'text-slate-300' : 'text-emerald-500'}`} />
                   {cat.nombre}
                   {!isProxima && cat.count > 0 && (
-                    <span className="text-[11px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">
+                    <span className="text-[11px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">
                       {cat.count}
                     </span>
                   )}
                   {isProxima && (
-                    <span className="text-[10px] font-bold text-slate-400">Pronto</span>
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Pronto</span>
                   )}
                 </button>
               );
@@ -559,7 +559,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       ═══════════════════════════════════════════ */}
       <section aria-label="Cómo funciona para dueños de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
         <div className="mb-16">
-          <p className="text-emerald-700 font-bold uppercase tracking-widest text-sm mb-3">Para dueños de mascotas</p>
+          <p className="text-emerald-700 font-medium uppercase tracking-widest text-xs mb-3">Para dueños de mascotas</p>
           <h2 className="text-3xl font-semibold text-slate-900 tracking-tight">Encuentra al proveedor ideal en minutos</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -580,19 +580,19 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-900 p-8 md:px-12 rounded-3xl mb-12 max-w-5xl mx-auto text-left md:text-center">
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <IdCard className="w-8 h-8 text-emerald-400 mb-3" />
-                  <h4 className="font-bold text-white mb-2">Verificación de identidad</h4>
+                  <h4 className="font-semibold text-white mb-2">Verificación de identidad</h4>
                   <p className="text-sm text-slate-300">RUT validado y revisión manual del equipo Pawnecta antes de activar cada perfil</p>
                 </div>
                 <div className="hidden md:block w-px h-24 bg-slate-700" />
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <ClipboardCheck className="w-8 h-8 text-emerald-400 mb-3" />
-                  <h4 className="font-bold text-white mb-2">Revisión del equipo</h4>
+                  <h4 className="font-semibold text-white mb-2">Revisión del equipo</h4>
                   <p className="text-sm text-slate-300">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
                 </div>
                 <div className="hidden md:block w-px h-24 bg-slate-700" />
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <Star className="w-8 h-8 text-emerald-400 mb-3" />
-                  <h4 className="font-bold text-white mb-2">Reseñas reales</h4>
+                  <h4 className="font-semibold text-white mb-2">Reseñas reales</h4>
                   <p className="text-sm text-slate-300">Solo dueños que contactaron al proveedor pueden dejar evaluaciones</p>
                 </div>
               </div>
@@ -623,7 +623,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       <section aria-label="Cómo funciona para proveedores" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <p className="text-emerald-400 font-bold uppercase tracking-widest text-sm mb-3">Para proveedores</p>
+            <p className="text-emerald-400 font-medium uppercase tracking-widest text-xs mb-3">Para proveedores</p>
             <h2 className="text-3xl md:text-4xl font-semibold text-white tracking-tight">Ofrece tus servicios en Pawnecta</h2>
             <p className="text-slate-300 mt-4 text-lg">Visibilidad en búsquedas en tu comuna</p>
           </div>
@@ -674,7 +674,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                 {statsList.map((s, i) => (
                   <div key={i} className="flex flex-col items-center justify-center p-4">
                     <div className="text-5xl font-bold text-emerald-700 mb-3 tracking-tighter">{s.value}</div>
-                    <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">
+                    <div className="text-xs font-medium text-slate-400 uppercase tracking-widest text-center">
                       {s.value === 1 ? s.singular : s.plural}
                     </div>
                   </div>
