@@ -10,6 +10,11 @@ interface EmptyFieldStateProps {
     label: string;
     isOwner: boolean;
     ownerCTA?: OwnerCTA;
+    /** Si el visitor es guest (no autenticado) y se pasa este CTA, se prioriza
+     *  sobre tutorMessage. Útil para datos que tienen sentido revelar solo
+     *  con sesión (ej: canales de contacto). */
+    isGuest?: boolean;
+    guestCTA?: OwnerCTA;
     tutorMessage?: string;
     variant?: 'block' | 'inline';
 }
@@ -18,6 +23,8 @@ export default function EmptyFieldState({
     label,
     isOwner,
     ownerCTA,
+    isGuest = false,
+    guestCTA,
     tutorMessage,
     variant = 'block',
 }: EmptyFieldStateProps) {
@@ -32,6 +39,13 @@ export default function EmptyFieldState({
                         {ownerCTA.text} →
                     </Link>
                 </span>
+            );
+        }
+        if (isGuest && guestCTA) {
+            return (
+                <Link href={guestCTA.href} className="text-sm font-medium text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
+                    {guestCTA.text}
+                </Link>
             );
         }
         return <span className="text-sm text-slate-400 italic">{tutorText}</span>;
@@ -50,6 +64,14 @@ export default function EmptyFieldState({
                         <ArrowRight size={14} aria-hidden="true" />
                     </Link>
                 </div>
+            ) : isGuest && guestCTA ? (
+                <Link
+                    href={guestCTA.href}
+                    className="flex items-center justify-between gap-3 flex-wrap text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                >
+                    <span>{guestCTA.text}</span>
+                    <ArrowRight size={14} aria-hidden="true" />
+                </Link>
             ) : (
                 <span className="text-sm text-slate-500 italic">{tutorText}</span>
             )}

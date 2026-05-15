@@ -1086,6 +1086,8 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                     label="canales de contacto"
                                                     isOwner={isOwner}
                                                     ownerCTA={{ text: 'Agrega tus redes', href: '/proveedor?tab=perfil' }}
+                                                    isGuest={!user}
+                                                    guestCTA={{ text: 'Inicia sesión para ver el contacto', href: `/login?redirect=${encodeURIComponent(router.asPath)}` }}
                                                     tutorMessage="Sin canales de contacto agregados"
                                                 />
                                             )}
