@@ -229,7 +229,7 @@ export default function DashboardContent() {
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <h2 className="font-bold text-slate-900">
+                            <h2 className="font-semibold text-slate-900 tracking-tight">
                                 Bienvenido a Pawnecta, {firstName}
                             </h2>
                             <p className="text-sm text-slate-600 mt-1">
@@ -238,7 +238,7 @@ export default function DashboardContent() {
                             <div className="flex flex-wrap gap-3 mt-4">
                                 <Link
                                     href="/explorar"
-                                    className="bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-emerald-800 transition-colors"
+                                    className="bg-emerald-700 text-white text-sm font-medium tracking-wide px-4 py-2 rounded-xl hover:bg-emerald-800 transition-colors"
                                 >
                                     Buscar proveedores
                                 </Link>
@@ -258,7 +258,7 @@ export default function DashboardContent() {
                 {pendingReviews.length > 0 && (
                     <section className="lg:col-span-2 space-y-4">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-800">¿Cómo te fue con estos proveedores?</h2>
+                            <h2 className="text-xl font-semibold text-slate-900 tracking-tight">¿Cómo te fue con estos proveedores?</h2>
                             <p className="text-sm text-slate-500 mt-0.5">Tu opinión ayuda a otros tutores a elegir mejor</p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -276,13 +276,13 @@ export default function DashboardContent() {
                                             )}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-bold text-slate-900 text-sm line-clamp-2 leading-tight">{item.titulo}</p>
+                                            <p className="font-semibold text-slate-900 text-sm line-clamp-2 leading-tight">{item.titulo}</p>
                                             <p className="text-xs text-slate-500 truncate">{item.proveedor_nombre}</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => setReviewingId(item.servicio_id)}
-                                        className="w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2 rounded-xl transition-colors"
+                                        className="w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium tracking-wide py-2 rounded-xl transition-colors"
                                     >
                                         <Star size={14} />
                                         Dejar reseña
@@ -313,7 +313,7 @@ export default function DashboardContent() {
 
                 {/* --- SECCIÓN: Servicios que has consultado (2/3 desktop) --- */}
                 <section className="lg:col-span-2 space-y-4">
-                    <h2 className="text-xl font-bold text-slate-800">Servicios que has consultado</h2>
+                    <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Servicios que has consultado</h2>
 
                     {contactedServices.length > 0 ? (
                         <div className="overflow-x-auto pb-2">
@@ -330,24 +330,24 @@ export default function DashboardContent() {
                                                 </div>
                                             )}
                                             {evaluadosSet.has(item.servicio_id) && (
-                                                <span className="absolute top-2 right-2 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+                                                <span className="absolute top-2 right-2 bg-emerald-100 text-emerald-700 text-[10px] font-medium uppercase tracking-widest px-2 py-0.5 rounded-full z-10">
                                                     ✓ Evaluado
                                                 </span>
                                             )}
                                         </div>
                                         <div className="p-3">
-                                            <h3 className="font-bold text-slate-900 text-sm line-clamp-2 mb-0.5">{item.titulo}</h3>
+                                            <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 mb-0.5">{item.titulo}</h3>
                                             <p className="text-xs text-slate-500 mb-3">{item.proveedor_nombre}</p>
                                             <div className="flex gap-2">
                                                 <Link
                                                     href={`/servicio/${item.servicio_id}`}
-                                                    className="flex-1 text-center text-xs font-bold bg-emerald-50 text-emerald-700 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+                                                    className="flex-1 text-center text-xs font-medium bg-emerald-50 text-emerald-700 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
                                                 >
                                                     Ver servicio
                                                 </Link>
                                                 <Link
                                                     href={`/mensajes?id=${item.conversation_id}`}
-                                                    className="flex-1 text-center text-xs font-bold bg-slate-100 text-slate-700 py-1.5 rounded-lg hover:bg-slate-200 transition-colors"
+                                                    className="flex-1 text-center text-xs font-medium bg-slate-100 text-slate-700 py-1.5 rounded-lg hover:bg-slate-200 transition-colors"
                                                 >
                                                     Ver chat
                                                 </Link>
@@ -360,13 +360,13 @@ export default function DashboardContent() {
                     ) : (
                         <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
                             <Search size={32} className="text-slate-300 mb-3" />
-                            <h3 className="text-slate-700 font-bold mb-1">Aún no has consultado ningún servicio</h3>
+                            <h3 className="text-slate-900 font-semibold mb-1">Aún no has consultado ningún servicio</h3>
                             <p className="text-slate-500 text-sm max-w-xs mx-auto mb-4">
                                 Encuentra proveedores verificados en tu comuna y contáctalos directo.
                             </p>
                             <Link
                                 href="/explorar"
-                                className="bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-800 transition-colors shadow-sm"
+                                className="bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-medium tracking-wide hover:bg-emerald-800 transition-colors shadow-sm"
                             >
                                 Buscar proveedores
                             </Link>
@@ -379,7 +379,7 @@ export default function DashboardContent() {
 
                     {/* Conversaciones Recientes */}
                     <section className="space-y-4">
-                        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+                        <h2 className="text-xl font-semibold flex items-center gap-2 text-slate-900 tracking-tight">
                             <MessagesSquare className="text-blue-500" />
                             Mensajes
                         </h2>
@@ -407,14 +407,14 @@ export default function DashboardContent() {
                                                         // eslint-disable-next-line @next/next/no-img-element
                                                         <img src={conv.partnerPhoto} alt={conv.partnerName} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <div className="w-full h-full flex justify-center items-center text-slate-400 font-bold">
+                                                        <div className="w-full h-full flex justify-center items-center text-slate-400 font-semibold">
                                                             {conv.partnerName.charAt(0)}
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-baseline mb-0.5">
-                                                        <p className="font-bold text-slate-900 text-sm truncate">{conv.partnerName}</p>
+                                                        <p className="font-semibold text-slate-900 text-sm truncate">{conv.partnerName}</p>
                                                         <span className="text-[10px] text-slate-400 shrink-0">
                                                             {new Date(conv.updatedAt).toLocaleDateString()}
                                                         </span>
@@ -427,7 +427,7 @@ export default function DashboardContent() {
                                         </Link>
                                     ))}
                                     <div className="pt-2">
-                                        <Link href="/mensajes" className="text-sm font-bold text-blue-600 hover:text-blue-700 block text-center">
+                                        <Link href="/mensajes" className="text-sm font-medium text-blue-600 hover:text-blue-700 block text-center">
                                             Ver todos mis mensajes &rarr;
                                         </Link>
                                     </div>
@@ -444,7 +444,7 @@ export default function DashboardContent() {
 
                     {/* Favoritos — link a la página dedicada /favoritos */}
                     <section className="space-y-4">
-                        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+                        <h2 className="text-xl font-semibold flex items-center gap-2 text-slate-900 tracking-tight">
                             <Heart size={20} strokeWidth={1.5} className="text-rose-500" />
                             Mis favoritos
                         </h2>
@@ -458,14 +458,14 @@ export default function DashboardContent() {
                                     <Heart size={20} strokeWidth={1.5} aria-hidden="true" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">
+                                    <p className="font-semibold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">
                                         Tus servicios y proveedores guardados
                                     </p>
                                     <p className="text-xs text-slate-500 mt-1">
                                         Toca el corazón en cualquier servicio o perfil para guardarlo.
                                     </p>
                                 </div>
-                                <span className="text-sm font-bold text-emerald-700 group-hover:text-emerald-800 shrink-0">
+                                <span className="text-sm font-medium text-emerald-700 group-hover:text-emerald-800 shrink-0">
                                     Ver todos →
                                 </span>
                             </div>
@@ -483,14 +483,14 @@ export default function DashboardContent() {
                         <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl mb-2 backdrop-blur-sm">
                             <Search size={32} className="text-emerald-400" />
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-bold text-white">Encuentra al proveedor ideal</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Encuentra al proveedor ideal</h2>
                         <p className="text-slate-300 text-lg mx-auto">
                             Proveedores verificados en tu comuna, con reseñas reales de tutores como tú.
                         </p>
                         <div className="pt-4">
                             <Link
                                 href="/explorar"
-                                className="inline-flex items-center justify-center h-14 px-8 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1 transition-all"
+                                className="inline-flex items-center justify-center h-14 px-8 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-medium tracking-wide text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1 transition-all"
                             >
                                 Buscar proveedores
                             </Link>

@@ -153,10 +153,10 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                         />
 
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+                            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
                                 {title !== "Panel Usuario — Pawnecta" ? title : null}
                             </h1>
-                            <div className="md:hidden mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                            <div className="md:hidden mt-0.5 inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                 Usuario Verificado
                             </div>

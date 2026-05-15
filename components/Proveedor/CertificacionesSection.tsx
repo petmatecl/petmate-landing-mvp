@@ -79,9 +79,9 @@ export default function CertificacionesSection({ proveedorId }: Props) {
     if (loading) return <div className="h-20 bg-slate-50 rounded-xl animate-pulse" />;
 
     const statusBadge = (estado: string) => {
-        if (estado === 'aprobado') return <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> Verificada</span>;
-        if (estado === 'pendiente') return <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full"><Clock size={10} /> En revisión</span>;
-        return <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full"><XCircle size={10} /> Rechazada</span>;
+        if (estado === 'aprobado') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> Verificada</span>;
+        if (estado === 'pendiente') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full"><Clock size={10} /> En revisión</span>;
+        return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded-full"><XCircle size={10} /> Rechazada</span>;
     };
 
     return (
@@ -142,7 +142,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
                     <div className="flex gap-2 justify-end">
                         <button type="button" onClick={() => setShowForm(false)} className="text-sm text-slate-500 px-3 py-1.5 rounded-lg hover:bg-slate-50">Cancelar</button>
                         <button type="submit" disabled={uploading}
-                            className="text-sm font-bold bg-emerald-700 text-white px-4 py-1.5 rounded-lg hover:bg-emerald-800 disabled:opacity-50 flex items-center gap-1.5">
+                            className="text-sm font-medium tracking-wide bg-emerald-700 text-white px-4 py-1.5 rounded-lg hover:bg-emerald-800 disabled:opacity-50 flex items-center gap-1.5">
                             {uploading && <Loader2 size={14} className="animate-spin" />}
                             Enviar para revisión
                         </button>

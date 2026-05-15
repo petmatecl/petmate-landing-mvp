@@ -371,7 +371,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 )}
             </div>
             <div className="p-4">
-                <h3 className="font-bold text-slate-900 text-sm leading-snug mb-1 line-clamp-2">
+                <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1 line-clamp-2">
                     {titulo || <span className="text-slate-400 font-normal">Título del servicio</span>}
                 </h3>
                 {descripcion && (
@@ -392,7 +392,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                     <div>
                         {precioDesde ? (
-                            <span className="text-emerald-700 font-bold text-sm">
+                            <span className="text-emerald-700 font-semibold text-sm">
                                 ${Number(precioDesde).toLocaleString('es-CL')}
                                 <span className="text-slate-400 font-normal text-xs ml-1">{unidadPrecio}</span>
                             </span>
@@ -413,7 +413,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl relative my-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
-                    <h2 className="text-xl font-bold text-slate-900">
+                    <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
                         {existingServiceId ? 'Editar Servicio' : 'Publicar Nuevo Servicio'}
                     </h2>
                     <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
@@ -432,7 +432,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* ── SECCIÓN 1: Información básica ── */}
                             <div className="pb-6">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Información básica</p>
+                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Información básica</p>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="md:col-span-1">
@@ -486,7 +486,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* ── SECCIÓN 2: Precio y disponibilidad ── */}
                             <div className="border-t border-slate-100 py-6">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
+                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
@@ -595,7 +595,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* ── SECCIÓN 3: Mascotas ── */}
                             <div className="border-t border-slate-100 py-6">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
+                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {[
                                         { label: 'Perros', checked: perros, set: setPerros },
@@ -707,8 +707,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {/* ── CAMPOS ESPECÍFICOS POR CATEGORÍA ── */}
                             {camposCategoria.length > 0 && (
                                 <div className="border-t border-slate-100 pt-6 pb-2">
-                                    <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                                        <span className="text-sm font-bold text-emerald-700">{selectedCat?.nombre?.charAt(0)}</span>
+                                    <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                                        <span className="text-sm font-semibold text-emerald-700">{selectedCat?.nombre?.charAt(0)}</span>
                                         Detalles de {selectedCat?.nombre}
                                     </h3>
                                     <div className="space-y-4">
@@ -800,7 +800,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {/* Fotos */}
                             <div className="border-t border-slate-100 pt-6 mt-6">
                                 <div className="flex items-center justify-between mb-3">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos del servicio</p>
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Fotos del servicio</p>
                                     <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
                                 </div>
 
@@ -816,7 +816,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             <img src={url} alt={"Foto " + (i + 1)} className="w-full h-full object-cover" />
 
                                             {i === 0 && (
-                                                <div className="absolute top-1.5 left-1.5 bg-emerald-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                                                <div className="absolute top-1.5 left-1.5 bg-emerald-700 text-white text-[10px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded-full leading-none">
                                                     PORTADA
                                                 </div>
                                             )}
@@ -825,14 +825,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 <div className="flex gap-1">
                                                     {i > 0 && (
                                                         <button type="button" onClick={() => moveFoto(i, "left")}
-                                                            className="bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors"
+                                                            className="bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold transition-colors"
                                                             title="Mover a la izquierda">
                                                             ←
                                                         </button>
                                                     )}
                                                     {i < fotos.length - 1 && (
                                                         <button type="button" onClick={() => moveFoto(i, "right")}
-                                                            className="bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors"
+                                                            className="bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold transition-colors"
                                                             title="Mover a la derecha">
                                                             →
                                                         </button>
@@ -911,13 +911,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                 {/* Footer Buttons */}
                 <div className="p-6 border-t border-slate-100 flex justify-end gap-3 shrink-0">
-                    <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors">
+                    <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-slate-600 font-normal hover:bg-slate-100 transition-colors">
                         Cancelar
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={loading || fetching || uploadingFotos}
-                        className="px-6 py-2.5 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-2.5 bg-emerald-700 text-white font-medium tracking-wide rounded-xl hover:bg-emerald-800 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2"
                     >
                         {loading && <Loader2 size={16} className="animate-spin" />}
                         {existingServiceId ? 'Guardar Cambios' : 'Publicar Servicio'}

@@ -102,7 +102,7 @@ export default function VerificationGateModal({
                                 <Icon size={20} aria-hidden="true" />
                             </div>
                             <div>
-                                <h2 id="verification-gate-title" className="text-base font-bold text-slate-900">
+                                <h2 id="verification-gate-title" className="text-base font-semibold text-slate-900">
                                     {title}
                                 </h2>
                             </div>
