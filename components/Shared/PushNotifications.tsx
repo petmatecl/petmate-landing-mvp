@@ -94,7 +94,7 @@ export default function PushNotifications() {
                     <BellRing size={20} />
                 </div>
                 <div>
-                    <h4 className="font-bold text-slate-900 text-sm">Notificaciones</h4>
+                    <h4 className="font-semibold text-slate-900 text-sm">Notificaciones</h4>
                     <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                         Activa las alertas para enterarte inmediatamente cuando recibas nuevos mensajes o solicitudes.
                     </p>
@@ -102,7 +102,7 @@ export default function PushNotifications() {
             </div>
             <button
                 onClick={subscribeToPush}
-                className="w-full mt-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow-sm"
+                className="w-full mt-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 rounded-lg text-sm transition-colors shadow-sm"
             >
                 Activar notificaciones
             </button>

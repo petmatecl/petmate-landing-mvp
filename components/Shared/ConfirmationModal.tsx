@@ -52,7 +52,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                             <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                                 {/* Header */}
                                 <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
-                                    <Dialog.Title as="h3" className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                    <Dialog.Title as="h3" className="font-semibold text-lg text-slate-900 tracking-tight flex items-center gap-2">
                                         {isDestructive && <AlertTriangle className="text-amber-500" size={20} />}
                                         {title}
                                     </Dialog.Title>
@@ -84,7 +84,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                                             onConfirm();
                                             onClose();
                                         }}
-                                        className={`px-4 py-2 text-sm font-bold text-white rounded-lg shadow-sm transition-all transform active:scale-95 ${isDestructive
+                                        className={`px-4 py-2 text-sm font-medium tracking-wide text-white rounded-lg shadow-sm transition-all transform active:scale-95 ${isDestructive
                                             ? "bg-red-600 hover:bg-red-700"
                                             : "bg-emerald-700 hover:bg-emerald-800"
                                             }`}

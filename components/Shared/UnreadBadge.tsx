@@ -81,7 +81,7 @@ export default function UnreadBadge({ userId, className }: Props) {
     if (count === 0) return null;
 
     return (
-        <span className={`bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full ${className || ''}`}>
+        <span className={`bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center rounded-full ${className || ''}`}>
             {count > 9 ? '9+' : count}
         </span>
     );

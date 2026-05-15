@@ -205,14 +205,14 @@ export default function ProveedorApprovalList() {
     const TabButton = ({ id, label, count }: { id: AdminTab; label: string; count: number }) => (
         <button
             onClick={() => setTab(id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${tab === id
-                ? 'bg-slate-900 text-white shadow-sm'
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${tab === id
+                ? 'bg-slate-900 text-white font-semibold shadow-sm'
                 : 'text-slate-600 hover:bg-slate-100'
                 }`}
         >
             {label}
             {count > 0 && (
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${tab === id ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tab === id ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
                     {count}
                 </span>
             )}
@@ -240,12 +240,12 @@ export default function ProveedorApprovalList() {
                             <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Check size={32} />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-800 mb-2">¡Todo al día!</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 mb-2">¡Todo al día!</h3>
                             <p className="text-slate-500">No hay solicitudes de proveedores pendientes.</p>
                         </div>
                     ) : (
                         <div className="grid gap-4">
-                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Solicitudes Pendientes ({proveedores.length})</h2>
+                            <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest">Solicitudes Pendientes ({proveedores.length})</h2>
                             {proveedores.map(prov => (
                                 <div key={prov.id} className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col xl:flex-row gap-6 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex items-start gap-4 xl:w-1/3 shrink-0">
@@ -254,12 +254,12 @@ export default function ProveedorApprovalList() {
                                                 // eslint-disable-next-line @next/next/no-img-element
                                                 <img src={prov.foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl uppercase">{prov.nombre.charAt(0)}</div>
+                                                <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold text-xl uppercase">{prov.nombre.charAt(0)}</div>
                                             )}
                                         </div>
                                         <div>
                                             <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                                className="text-lg font-bold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                                                className="text-lg font-semibold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
                                                 {prov.nombre} {prov.apellido_p}
                                                 <ExternalLink size={14} className="text-slate-300" />
                                             </a>
@@ -282,12 +282,12 @@ export default function ProveedorApprovalList() {
                                         </div>
                                         <div className="space-y-3">
                                             <div className="text-sm">
-                                                <span className="text-slate-500 text-xs font-bold uppercase tracking-wider block mb-1">RUT</span>
+                                                <span className="text-slate-400 text-xs font-medium uppercase tracking-widest block mb-1">RUT</span>
                                                 <span className="font-mono font-medium text-slate-800 bg-slate-100 px-2 py-1 rounded">{prov.rut || '—'}</span>
                                             </div>
                                             {(prov.foto_carnet || prov.foto_rut) && (
                                                 <button onClick={() => setSelectedImage(prov.foto_carnet || prov.foto_rut)}
-                                                    className="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg w-fit transition-colors">
+                                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg w-fit transition-colors">
                                                     <FileImage size={16} /> Ver Carnet
                                                 </button>
                                             )}
@@ -295,11 +295,11 @@ export default function ProveedorApprovalList() {
                                     </div>
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobar(prov)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
                                             <Check size={18} /> <span className="hidden sm:inline">Aprobar</span>
                                         </button>
                                         <button onClick={() => setRejectingId(prov.id)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
                                             <X size={18} /> <span className="hidden sm:inline">Rechazar</span>
                                         </button>
                                     </div>
@@ -328,7 +328,7 @@ export default function ProveedorApprovalList() {
                         </div>
                     ) : (
                         <div className="grid gap-4">
-                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Verificaciones de Identidad ({verificaciones.length})</h2>
+                            <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest">Verificaciones de Identidad ({verificaciones.length})</h2>
                             {verificaciones.map(prov => (
                                 <div key={prov.id} className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col xl:flex-row gap-6 shadow-sm hover:shadow-md transition-shadow">
                                     {/* Avatar + Info */}
@@ -338,12 +338,12 @@ export default function ProveedorApprovalList() {
                                                 // eslint-disable-next-line @next/next/no-img-element
                                                 <img src={prov.foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl uppercase">{prov.nombre.charAt(0)}</div>
+                                                <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold text-xl uppercase">{prov.nombre.charAt(0)}</div>
                                             )}
                                         </div>
                                         <div>
                                             <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                                className="font-bold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                                                className="font-semibold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
                                                 {prov.nombre} {prov.apellido_p}
                                                 <ExternalLink size={12} className="text-slate-300" />
                                             </a>
@@ -358,8 +358,8 @@ export default function ProveedorApprovalList() {
                                     {/* RUT + Carnet */}
                                     <div className="flex-1 border-y xl:border-y-0 xl:border-x border-slate-100 py-4 xl:py-0 xl:px-6 space-y-3">
                                         <div>
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">RUT declarado</span>
-                                            <span className="font-mono font-bold text-slate-900 text-lg">{prov.rut || '—'}</span>
+                                            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest block mb-1">RUT declarado</span>
+                                            <span className="font-mono font-semibold text-slate-900 text-lg">{prov.rut || '—'}</span>
                                         </div>
                                         {prov.foto_carnet ? (
                                             <div className="space-y-2">
@@ -391,11 +391,11 @@ export default function ProveedorApprovalList() {
                                     {/* Actions */}
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobarVerif(prov)} disabled={isSubmitting || !prov.foto_carnet}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
                                             <ShieldCheck size={16} /> <span className="hidden sm:inline">Verificar</span>
                                         </button>
                                         <button onClick={() => setRejectingVerifId(prov.id)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
                                             <ShieldX size={16} /> <span className="hidden sm:inline">Rechazar</span>
                                         </button>
                                     </div>
@@ -434,16 +434,16 @@ export default function ProveedorApprovalList() {
                         <p className="text-sm text-slate-500 mb-6">Indica el motivo del rechazo. El usuario recibirá esta información por correo.</p>
                         <form onSubmit={handleRechazar}>
                             <div className="mb-6">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Motivo *</label>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo *</label>
                                 <textarea value={motivoRechazo} onChange={e => setMotivoRechazo(e.target.value)}
                                     placeholder="Ej: Foto de carnet ilegible, datos incompletos..."
                                     className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none resize-none text-sm" required />
                             </div>
                             <div className="flex gap-3 justify-end">
                                 <button type="button" onClick={() => { setRejectingId(null); setMotivoRechazo(''); }}
-                                    className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
+                                    className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
                                 <button type="submit" disabled={isSubmitting || !motivoRechazo.trim()}
-                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
+                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
                                     {isSubmitting && <Loader2 size={16} className="animate-spin" />} Confirmar Rechazo
                                 </button>
                             </div>
@@ -461,16 +461,16 @@ export default function ProveedorApprovalList() {
                         <p className="text-sm text-slate-500 mb-6">El proveedor verá este mensaje en su dashboard y podrá reenviar su solicitud.</p>
                         <form onSubmit={handleRechazarVerif}>
                             <div className="mb-6">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Motivo del rechazo *</label>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo *</label>
                                 <textarea value={notaVerif} onChange={e => setNotaVerif(e.target.value)}
                                     placeholder="Ej: Foto ilegible, carnet vencido, RUT no coincide con la imagen..."
                                     className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none resize-none text-sm" required />
                             </div>
                             <div className="flex gap-3 justify-end">
                                 <button type="button" onClick={() => { setRejectingVerifId(null); setNotaVerif(''); }}
-                                    className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
+                                    className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
                                 <button type="submit" disabled={isSubmitting || !notaVerif.trim()}
-                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
+                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
                                     {isSubmitting && <Loader2 size={16} className="animate-spin" />} Rechazar Verificación
                                 </button>
                             </div>

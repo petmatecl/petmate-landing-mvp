@@ -176,7 +176,7 @@ export default function FeedbackWidget() {
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-900">Tu opinión nos importa</h3>
+                        <h3 className="text-sm font-semibold text-slate-900">Tu opinión nos importa</h3>
                         <button
                             onClick={closeAndReset}
                             aria-label="Cerrar feedback"

@@ -137,12 +137,12 @@ export default function NotificationBell() {
 
                     <div id="notification-bell-menu" role="menu" aria-label="Lista de notificaciones" className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
-                            <h3 className="font-bold text-slate-900">Notificaciones</h3>
+                            <h3 className="font-semibold text-slate-900">Notificaciones</h3>
                             <div className="flex items-center gap-3">
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={handleMarkAllRead}
-                                        className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                                        className="text-xs font-medium text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
                                     >
                                         <Check size={14} /> Marcar leídas
                                     </button>
@@ -172,7 +172,7 @@ export default function NotificationBell() {
                                         >
                                             <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${!n.read ? 'bg-emerald-500' : 'bg-transparent'}`} />
                                             <div className="flex-1">
-                                                <p className={`text-sm ${!n.read ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
+                                                <p className={`text-sm ${!n.read ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
                                                     {n.title}
                                                 </p>
                                                 <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
@@ -189,7 +189,7 @@ export default function NotificationBell() {
                         </div>
 
                         <div className="p-2 border-t border-slate-300 bg-slate-50/50 text-center">
-                            <Link href="/notificaciones" className="text-xs font-bold text-slate-600 hover:text-emerald-700">
+                            <Link href="/notificaciones" className="text-xs font-medium text-slate-600 hover:text-emerald-700">
                                 Ver todas
                             </Link>
                         </div>

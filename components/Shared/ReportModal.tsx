@@ -64,7 +64,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                         <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Flag size={20} className="text-emerald-700" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-2">Reporte enviado</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-2">Reporte enviado</h3>
                         <p className="text-slate-500 text-sm">Tu reporte fue enviado. Lo revisaremos pronto.</p>
                         <button
                             onClick={handleClose}
@@ -79,7 +79,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                             <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
                                 <Flag size={18} className="text-red-500" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900">Reportar contenido</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 tracking-tight">Reportar contenido</h3>
                         </div>
 
                         <div className="space-y-4">

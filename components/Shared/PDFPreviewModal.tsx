@@ -46,7 +46,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                             <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all h-[85vh] flex flex-col border border-slate-200">
                                 {/* Header */}
                                 <div className="px-6 py-4 border-b border-slate-300 flex items-center justify-between bg-slate-50">
-                                    <Dialog.Title as="h3" className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                    <Dialog.Title as="h3" className="font-semibold text-lg text-slate-900 flex items-center gap-2">
                                         <FileText className="text-emerald-700" size={20} />
                                         {title}
                                     </Dialog.Title>
@@ -54,7 +54,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                                         {onDownload && (
                                             <button
                                                 onClick={onDownload}
-                                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+                                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white font-medium tracking-wide rounded-lg hover:bg-emerald-800 transition-colors text-sm"
                                             >
                                                 <Download size={16} /> Descargar
                                             </button>
@@ -84,7 +84,7 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                                     <div className="sm:hidden p-4 border-t border-slate-300 bg-white">
                                         <button
                                             onClick={onDownload}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-700 text-white font-medium tracking-wide rounded-xl hover:bg-emerald-800 transition-colors"
                                         >
                                             <Download size={18} /> Descargar PDF
                                         </button>

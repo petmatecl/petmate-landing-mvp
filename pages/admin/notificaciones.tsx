@@ -85,7 +85,7 @@ function AdminNotifications() {
                         <ArrowLeft size={20} className="text-slate-600" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Centro de Notificaciones</h1>
+                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Centro de Notificaciones</h1>
                         <p className="text-slate-500">Actividad reciente y tareas pendientes</p>
                     </div>
                 </div>
@@ -106,10 +106,10 @@ function AdminNotifications() {
                                         <div className="bg-amber-100 p-2 rounded-lg text-amber-600">
                                             <User size={20} />
                                         </div>
-                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Proveedores Pendientes</p>
+                                        <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Proveedores Pendientes</p>
                                     </div>
-                                    <p className="text-4xl font-extrabold text-slate-900">{stats.proveedoresPendientes}</p>
-                                    <Link href="/admin/proveedores?estado=pendiente" className="mt-4 text-amber-600 font-bold text-sm hover:underline flex items-center gap-1">
+                                    <p className="text-4xl font-bold text-slate-900 tracking-tight">{stats.proveedoresPendientes}</p>
+                                    <Link href="/admin/proveedores?estado=pendiente" className="mt-4 text-amber-600 font-medium text-sm hover:underline flex items-center gap-1">
                                         Revisar solicitudes <ChevronRight size={14} />
                                     </Link>
                                 </div>
@@ -122,10 +122,10 @@ function AdminNotifications() {
                                         <div className="bg-emerald-100 p-2 rounded-lg text-emerald-700">
                                             <Bell size={20} />
                                         </div>
-                                        <p className="font-bold text-slate-600 uppercase text-xs tracking-wider">Contactos esta semana</p>
+                                        <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Contactos esta semana</p>
                                     </div>
-                                    <p className="text-4xl font-extrabold text-slate-900">{stats.contactosEstaSemana}</p>
-                                    <Link href="/admin/servicios" className="mt-4 text-emerald-700 font-bold text-sm hover:underline flex items-center gap-1">
+                                    <p className="text-4xl font-bold text-slate-900 tracking-tight">{stats.contactosEstaSemana}</p>
+                                    <Link href="/admin/servicios" className="mt-4 text-emerald-700 font-medium text-sm hover:underline flex items-center gap-1">
                                         Ver servicios <ChevronRight size={14} />
                                     </Link>
                                 </div>
@@ -136,19 +136,19 @@ function AdminNotifications() {
                         <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 overflow-hidden">
                             <div className="p-6 border-b border-slate-300 flex items-center gap-2">
                                 <Bell className="text-slate-400" size={20} />
-                                <h3 className="font-bold text-lg text-slate-900">Últimos Registros</h3>
+                                <h3 className="font-semibold text-lg text-slate-900">Últimos Registros</h3>
                             </div>
                             <div className="divide-y divide-slate-100">
                                 {activities.map((user) => (
                                     <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm uppercase shrink-0
+                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm uppercase shrink-0
                                             ${user.tipo === 'proveedor' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-600'}
                                         `}>
                                             {user.nombre?.[0] || "?"}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-slate-900 truncate">
-                                                <span className="font-bold">{user.nombre} {user.apellido_p}</span> se registró como {user.tipo === 'proveedor' ? 'Proveedor' : 'Usuario'}.
+                                                <span className="font-semibold">{user.nombre} {user.apellido_p}</span> se registró como {user.tipo === 'proveedor' ? 'Proveedor' : 'Usuario'}.
                                             </p>
                                             <p className="text-xs text-slate-500">
                                                 {new Date(user.created_at).toLocaleString('es-CL')}
@@ -157,16 +157,16 @@ function AdminNotifications() {
 
                                         {user.tipo === 'proveedor' ? (
                                             user.estado === 'aprobado' ? (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700 uppercase tracking-widest">
                                                     Aprobado
                                                 </span>
                                             ) : (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 uppercase tracking-widest">
                                                     Pendiente
                                                 </span>
                                             )
                                         ) : (
-                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">
+                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 uppercase tracking-widest">
                                                 Usuario
                                             </span>
                                         )}

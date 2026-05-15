@@ -152,7 +152,7 @@ export default function ConversionMetrics() {
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-800">Conversión — últimos 30 días</h2>
+                    <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Conversión — últimos 30 días</h2>
                     <p className="text-sm text-slate-500 mt-0.5">Métricas del funnel de adquisición y activación.</p>
                 </div>
                 <button
@@ -199,7 +199,7 @@ export default function ConversionMetrics() {
                             {stats.topClicksChat.map((s, i) => (
                                 <div key={i} className="flex justify-between text-sm">
                                     <span className="text-slate-700 font-mono text-xs">{s.titulo}</span>
-                                    <span className="font-bold text-slate-900">{s.count}</span>
+                                    <span className="font-semibold text-slate-900">{s.count}</span>
                                 </div>
                             ))}
                         </div>
@@ -212,7 +212,7 @@ export default function ConversionMetrics() {
                 {/* Top categorías */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100">
-                        <h3 className="font-bold text-slate-800 text-sm">Top categorías por conversaciones</h3>
+                        <h3 className="font-semibold text-slate-900 text-sm">Top categorías por conversaciones</h3>
                     </div>
                     <table className="w-full text-sm">
                         <tbody>
@@ -223,7 +223,7 @@ export default function ConversionMetrics() {
                                 <tr key={i} className="border-b border-slate-50 last:border-0">
                                     <td className="px-5 py-3 text-slate-500 text-xs font-mono w-6">{i + 1}</td>
                                     <td className="px-2 py-3 text-slate-700 font-medium capitalize">{row.nombre}</td>
-                                    <td className="px-5 py-3 text-right font-bold text-slate-900">{row.count}</td>
+                                    <td className="px-5 py-3 text-right font-semibold text-slate-900">{row.count}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -233,7 +233,7 @@ export default function ConversionMetrics() {
                 {/* Top comunas */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100">
-                        <h3 className="font-bold text-slate-800 text-sm">Top comunas por conversaciones</h3>
+                        <h3 className="font-semibold text-slate-900 text-sm">Top comunas por conversaciones</h3>
                     </div>
                     <table className="w-full text-sm">
                         <tbody>
@@ -244,7 +244,7 @@ export default function ConversionMetrics() {
                                 <tr key={i} className="border-b border-slate-50 last:border-0">
                                     <td className="px-5 py-3 text-slate-500 text-xs font-mono w-6">{i + 1}</td>
                                     <td className="px-2 py-3 text-slate-700 font-medium">{row.comuna}</td>
-                                    <td className="px-5 py-3 text-right font-bold text-slate-900">{row.count}</td>
+                                    <td className="px-5 py-3 text-right font-semibold text-slate-900">{row.count}</td>
                                 </tr>
                             ))}
                         </tbody>

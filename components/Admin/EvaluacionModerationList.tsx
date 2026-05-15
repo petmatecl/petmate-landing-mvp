@@ -143,7 +143,7 @@ export default function EvaluacionModerationList() {
                 <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Check size={32} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-2">Sin revisiones pendientes</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">Sin revisiones pendientes</h3>
                 <p className="text-slate-500">Todas las evaluaciones han sido moderadas.</p>
             </div>
         );
@@ -151,7 +151,7 @@ export default function EvaluacionModerationList() {
 
     return (
         <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-slate-900 tracking-tight mb-4 flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-amber-500" /> Moderación de Evaluaciones ({evaluaciones.length})
             </h2>
 
@@ -166,11 +166,11 @@ export default function EvaluacionModerationList() {
                             <div className="flex-1">
                                 {/* Context */}
                                 <div className="flex items-center gap-2 text-sm text-slate-500 mb-4 bg-slate-50 w-fit px-3 py-1.5 rounded-lg border border-slate-100">
-                                    <span className="font-bold text-slate-700">{ev.usuario?.nombre || 'Usuario Anónimo'}</span>
+                                    <span className="font-semibold text-slate-700">{ev.usuario?.nombre || 'Usuario Anónimo'}</span>
                                     evaluó a
-                                    <span className="font-bold text-slate-700">{ev.proveedor?.nombre} {ev.proveedor?.apellido_p}</span>
+                                    <span className="font-semibold text-slate-700">{ev.proveedor?.nombre} {ev.proveedor?.apellido_p}</span>
                                     en el servicio
-                                    <span className="font-bold text-slate-700 underline decoration-slate-300 underline-offset-2">&quot;{ev.servicio?.titulo || 'Servicio Desconocido'}&quot;</span>
+                                    <span className="font-semibold text-slate-700 underline decoration-slate-300 underline-offset-2">&quot;{ev.servicio?.titulo || 'Servicio Desconocido'}&quot;</span>
                                 </div>
 
                                 {/* Rating */}
@@ -178,7 +178,7 @@ export default function EvaluacionModerationList() {
                                     {[...Array(5)].map((_, i) => (
                                         <Star key={i} size={18} className={i < ev.rating ? 'fill-current' : 'text-slate-200'} />
                                     ))}
-                                    <span className="ml-2 font-bold text-slate-900">{ev.rating}.0</span>
+                                    <span className="ml-2 font-semibold text-slate-900">{ev.rating}.0</span>
                                 </div>
 
                                 {/* Comment */}
@@ -199,14 +199,14 @@ export default function EvaluacionModerationList() {
                                 <button
                                     onClick={() => requestAction(ev, 'aprobado')}
                                     disabled={isSubmitting === ev.id}
-                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     {isSubmitting === ev.id ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />} <span className="hidden sm:inline">Aprobar</span>
                                 </button>
                                 <button
                                     onClick={() => requestAction(ev, 'rechazado')}
                                     disabled={isSubmitting === ev.id}
-                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     <X size={18} /> <span className="hidden sm:inline">Rechazar</span>
                                 </button>
@@ -217,7 +217,7 @@ export default function EvaluacionModerationList() {
                                             Auto-moderado
                                         </span>
                                     )}
-                                    <div className="flex items-center gap-2 w-full justify-center text-xs text-amber-600 font-bold bg-amber-50 px-3 py-2 rounded-lg">
+                                    <div className="flex items-center gap-2 w-full justify-center text-xs text-amber-600 font-medium uppercase tracking-widest bg-amber-50 px-3 py-2 rounded-lg">
                                         <AlertCircle size={14} /> Requiere acción
                                     </div>
                                 </div>

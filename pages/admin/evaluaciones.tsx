@@ -179,9 +179,9 @@ function GestionEvaluaciones() {
 
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
-            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/50 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-bold uppercase tracking-wider"><CheckCircle2 size={12} /> Aprobado</span>;
-            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[10px] font-bold uppercase tracking-wider"><Clock size={12} /> Pendiente</span>;
-            case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[10px] font-bold uppercase tracking-wider"><XCircle size={12} /> Rechazado</span>;
+            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/50 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
+            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
+            case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><XCircle size={12} /> Rechazado</span>;
             default: return <span className="bg-slate-100 text-slate-500 px-2 py-1 rounded text-[10px]">{estado}</span>;
         }
     };
@@ -197,7 +197,7 @@ function GestionEvaluaciones() {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                                 <MessageSquareWarning className="text-amber-400" />
                                 Moderación de Evaluaciones
                             </h1>
@@ -219,7 +219,7 @@ function GestionEvaluaciones() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-amber-600 mb-1">{stats.pendientes}</p>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Pendientes de Revisión</p>
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Pendientes de Revisión</p>
                         </div>
                     </div>
 
@@ -231,7 +231,7 @@ function GestionEvaluaciones() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-emerald-700 mb-1">{stats.aprobadasMes}</p>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Aprobadas este mes</p>
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Aprobadas este mes</p>
                         </div>
                     </div>
 
@@ -243,14 +243,14 @@ function GestionEvaluaciones() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-blue-600 mb-1">{stats.promedioGlobal}</p>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Rating Promedio Plataforma</p>
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Rating Promedio Plataforma</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Controles y Filtros */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 mb-4">
                         <Filter size={18} className="text-slate-400" /> Filtros
                     </h3>
                     <div className="flex flex-col lg:flex-row gap-4">
@@ -260,7 +260,7 @@ function GestionEvaluaciones() {
                                 <button
                                     key={estado}
                                     onClick={() => setFiltroEstado(estado)}
-                                    className={`px-4 py-2.5 rounded-xl text-sm font-bold capitalize whitespace-nowrap transition-colors border ${filtroEstado === estado
+                                    className={`px-4 py-2.5 rounded-xl text-sm font-medium capitalize whitespace-nowrap transition-colors border ${filtroEstado === estado
                                         ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
                                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                                         }`}
@@ -310,7 +310,7 @@ function GestionEvaluaciones() {
                     {!loading && evaluacionesVisibles.length === 0 && (
                         <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
                             <MessageSquareWarning size={48} className="text-slate-300 mx-auto mb-4" />
-                            <h3 className="text-lg font-bold text-slate-800">No hay evaluaciones que mostrar</h3>
+                            <h3 className="text-lg font-semibold text-slate-900">No hay evaluaciones que mostrar</h3>
                             <p className="text-slate-500">Prueba ajustando los filtros de búsqueda.</p>
                         </div>
                     )}
@@ -335,11 +335,11 @@ function GestionEvaluaciones() {
 
                                     <div className="flex items-center gap-6 text-sm">
                                         <div>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Proveedor Evaluado</p>
+                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">Proveedor Evaluado</p>
                                             <p className="font-semibold text-slate-800 flex items-center gap-1.5"><UserIcon size={14} className="text-slate-400" /> {evaluacion.proveedor_nombre} {evaluacion.proveedor_apellido}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Servicio</p>
+                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">Servicio</p>
                                             <p className="font-semibold text-indigo-600">{evaluacion.servicio_titulo}</p>
                                         </div>
                                     </div>
@@ -361,14 +361,14 @@ function GestionEvaluaciones() {
                                         <button
                                             onClick={() => handleAprobar(evaluacion.id)}
                                             disabled={actionLoading}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-emerald-50 hover:bg-emerald-800 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-emerald-50 hover:bg-emerald-800 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
                                         >
                                             <CheckCircle2 size={16} /> Aprobar
                                         </button>
                                         <button
                                             onClick={() => openRechazarModal(evaluacion.id)}
                                             disabled={actionLoading}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-red-50 hover:bg-red-600 text-red-700 hover:text-white border border-red-200 hover:border-red-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-red-50 hover:bg-red-600 text-red-700 hover:text-white border border-red-200 hover:border-red-600 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
                                         >
                                             <XCircle size={16} /> Rechazar
                                         </button>
@@ -384,7 +384,7 @@ function GestionEvaluaciones() {
             {rechazoModal.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl">
-                        <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                        <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
                             <XCircle className="text-red-500" /> Rechazar Evaluación
                         </h3>
                         <p className="text-slate-600 text-sm mb-6">
@@ -392,7 +392,7 @@ function GestionEvaluaciones() {
                         </p>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Motivo del rechazo</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo</label>
                             <textarea
                                 className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none bg-slate-50"
                                 rows={3}
@@ -417,14 +417,14 @@ function GestionEvaluaciones() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setRechazoModal({ isOpen: false, evalId: null })}
-                                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200"
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleRechazar}
                                 disabled={!motivoRechazo || actionLoading}
-                                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 disabled:opacity-50"
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
                             >
                                 {actionLoading ? 'Guardando...' : 'Rechazar Eval.'}
                             </button>

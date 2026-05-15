@@ -102,7 +102,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 relative shrink-0">
-                    <h3 className="text-lg font-bold text-slate-800 text-center w-full">Convertirme en Proveedor</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 tracking-tight text-center w-full">Convertirme en Proveedor</h3>
                     <button
                         onClick={onClose}
                         className="absolute right-4 text-slate-400 hover:text-slate-600 bg-white rounded-full p-1 border border-slate-200 hover:bg-slate-50 transition-colors"
@@ -160,7 +160,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                                 </div>
                             </div>
 
-                            <button type="submit" className="w-full h-12 mt-4 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition shadow-sm">
+                            <button type="submit" className="w-full h-12 mt-4 bg-emerald-700 text-white font-medium tracking-wide rounded-xl hover:bg-emerald-800 transition shadow-sm">
                                 Siguiente
                             </button>
                         </form>
@@ -186,10 +186,10 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                             </div>
 
                             <div className="flex gap-3 mt-4 pt-2">
-                                <button type="button" onClick={() => setStep(1)} disabled={loading} className="w-1/3 h-12 border border-slate-300 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition">
+                                <button type="button" onClick={() => setStep(1)} disabled={loading} className="w-1/3 h-12 border border-slate-300 text-slate-600 font-medium rounded-xl hover:bg-slate-50 transition">
                                     Atrás
                                 </button>
-                                <button type="submit" disabled={loading} className="w-2/3 h-12 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-2">
+                                <button type="submit" disabled={loading} className="w-2/3 h-12 bg-emerald-700 text-white font-medium tracking-wide rounded-xl hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-2">
                                     {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : null}
                                     {loading ? 'Procesando...' : 'Enviar Solicitud'}
                                 </button>
@@ -202,7 +202,7 @@ export default function ProviderUpgradeModal({ isOpen, onClose, onSuccess }: Pro
                             <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mb-4">
                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">¡Solicitud enviada!</h3>
+                            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">¡Solicitud enviada!</h3>
                             <p className="text-slate-600 text-sm">
                                 Revisaremos tu cuenta en 24-48 horas.
                             </p>

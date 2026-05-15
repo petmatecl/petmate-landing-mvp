@@ -212,10 +212,10 @@ function GestionProveedores() {
 
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
-            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider"><CheckCircle2 size={12} /> Aprobado</span>;
-            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wider"><Clock size={12} /> Pendiente</span>;
-            case 'suspendido': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold uppercase tracking-wider"><AlertTriangle size={12} /> Suspendido</span>;
-            case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wider"><XCircle size={12} /> Rechazado</span>;
+            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
+            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
+            case 'suspendido': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium uppercase tracking-widest"><AlertTriangle size={12} /> Suspendido</span>;
+            case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium uppercase tracking-widest"><XCircle size={12} /> Rechazado</span>;
             default: return <span className="bg-slate-100 text-slate-500 px-2 py-1 rounded text-xs">{estado}</span>;
         }
     };
@@ -231,7 +231,7 @@ function GestionProveedores() {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                                 <ShieldCheck className="text-emerald-400" />
                                 Gestión de Proveedores
                             </h1>
@@ -251,7 +251,7 @@ function GestionProveedores() {
                                 <button
                                     key={estado}
                                     onClick={() => setFiltroEstado(estado)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-bold capitalize whitespace-nowrap transition-colors ${filtroEstado === estado ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                    className={`px-4 py-2 rounded-xl text-sm font-medium capitalize whitespace-nowrap transition-colors ${filtroEstado === estado ? 'bg-slate-900 text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     {estado}
                                 </button>
@@ -287,7 +287,7 @@ function GestionProveedores() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-slate-600">
-                            <thead className="text-xs uppercase bg-slate-50 text-slate-500 font-bold tracking-wider">
+                            <thead className="text-xs uppercase bg-slate-50 text-slate-400 font-medium tracking-widest">
                                 <tr>
                                     <th className="px-6 py-4">Proveedor</th>
                                     <th className="px-6 py-4">Ubicación</th>
@@ -322,11 +322,11 @@ function GestionProveedores() {
                                                     {prov.foto_perfil ? <img src={prov.foto_perfil} alt="" className="w-full h-full object-cover" /> : <UserIcon size={20} />}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-slate-900 cursor-pointer hover:text-emerald-700" onClick={() => openModal('detalle', prov)}>
+                                                    <p className="font-semibold text-slate-900 cursor-pointer hover:text-emerald-700" onClick={() => openModal('detalle', prov)}>
                                                         {prov.nombre} {prov.apellido_p}
                                                     </p>
                                                     {prov.es_placeholder && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-violet-100 text-violet-700 rounded-full text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-violet-100 text-violet-700 rounded-full text-[10px] font-medium uppercase tracking-widest mt-0.5">
                                                             🪆 Placeholder
                                                         </span>
                                                     )}
@@ -352,7 +352,7 @@ function GestionProveedores() {
                                                 <button
                                                     onClick={() => togglePlaceholder(prov)}
                                                     title={prov.es_placeholder ? 'Desactivar placeholder (hacer real)' : 'Marcar como placeholder'}
-                                                    className={`px-3 py-1.5 font-bold rounded-lg text-xs transition-colors ${prov.es_placeholder
+                                                    className={`px-3 py-1.5 font-semibold rounded-lg text-xs transition-colors ${prov.es_placeholder
                                                             ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
                                                             : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                                                         }`}
@@ -362,24 +362,24 @@ function GestionProveedores() {
                                                 {/* Botones condicionales */}
                                                 {prov.estado === 'pendiente' && (
                                                     <>
-                                                        <button onClick={() => openModal('aprobar', prov)} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold rounded-lg text-xs transition-colors">Aprobar</button>
-                                                        <button onClick={() => openModal('rechazar', prov)} className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 font-bold rounded-lg text-xs transition-colors">Rechazar</button>
+                                                        <button onClick={() => openModal('aprobar', prov)} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold rounded-lg text-xs transition-colors">Aprobar</button>
+                                                        <button onClick={() => openModal('rechazar', prov)} className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 font-semibold rounded-lg text-xs transition-colors">Rechazar</button>
                                                     </>
                                                 )}
                                                 {prov.estado === 'aprobado' && (
                                                     <>
                                                         <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
-                                                        <button onClick={() => openModal('suspender', prov)} className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold rounded-lg text-xs transition-colors">Suspender</button>
+                                                        <button onClick={() => openModal('suspender', prov)} className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 font-semibold rounded-lg text-xs transition-colors">Suspender</button>
                                                     </>
                                                 )}
                                                 {prov.estado === 'suspendido' && (
                                                     <>
                                                         <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
-                                                        <button onClick={() => openModal('reactivar', prov)} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold rounded-lg text-xs transition-colors">Reactivar</button>
+                                                        <button onClick={() => openModal('reactivar', prov)} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold rounded-lg text-xs transition-colors">Reactivar</button>
                                                     </>
                                                 )}
                                                 {prov.estado === 'rechazado' && (
-                                                    <button onClick={() => openModal('detalle', prov)} className="px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold rounded-lg text-xs transition-colors">Revisar</button>
+                                                    <button onClick={() => openModal('detalle', prov)} className="px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold rounded-lg text-xs transition-colors">Revisar</button>
                                                 )}
                                             </div>
                                         </td>
@@ -401,13 +401,13 @@ function GestionProveedores() {
                             <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle2 size={32} />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">Aprobar Proveedor</h3>
+                            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Aprobar Proveedor</h3>
                             <p className="text-slate-600 text-sm mb-6">
                                 ¿Estás seguro de aprobar a <strong className="text-slate-900">{modalConfig.prov.nombre}</strong> como proveedor verificado en plataforma?
                             </p>
                             <div className="flex gap-3">
-                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200">Cancelar</button>
-                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-bold hover:bg-emerald-800 disabled:opacity-50">
+                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
+                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-medium tracking-wide hover:bg-emerald-800 disabled:opacity-50">
                                     {actionLoading ? 'Procesando...' : 'Sí, Aprobar'}
                                 </button>
                             </div>
@@ -417,7 +417,7 @@ function GestionProveedores() {
                     {/* Modal Rechazar */}
                     {modalConfig.type === 'rechazar' && (
                         <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl">
-                            <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
                                 <XCircle className="text-red-500" /> Rechazar Solicitud
                             </h3>
                             <p className="text-slate-600 text-sm mb-4">
@@ -425,7 +425,7 @@ function GestionProveedores() {
                             </p>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Motivo del rechazo (visible para el proveedor)</label>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo (visible para el proveedor)</label>
                                 <textarea
                                     className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none bg-slate-50"
                                     rows={3}
@@ -448,11 +448,11 @@ function GestionProveedores() {
                             </div>
 
                             <div className="flex justify-end gap-3">
-                                <button onClick={closeModal} className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200">Cancelar</button>
+                                <button onClick={closeModal} className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
                                 <button
                                     onClick={handleRechazar}
                                     disabled={!motivoRechazo || actionLoading}
-                                    className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 disabled:opacity-50"
+                                    className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
                                 >
                                     {actionLoading ? 'Rechazando...' : 'Rechazar Solicitud'}
                                 </button>
@@ -466,16 +466,16 @@ function GestionProveedores() {
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${modalConfig.type === 'suspender' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-700'}`}>
                                 {modalConfig.type === 'suspender' ? <AlertTriangle size={32} /> : <CheckCircle2 size={32} />}
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-2 capitalize">{modalConfig.type} Cuenta</h3>
+                            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 capitalize">{modalConfig.type} Cuenta</h3>
                             <p className="text-slate-600 text-sm mb-6">
                                 ¿Deseas {modalConfig.type} el perfil de <strong className="text-slate-900">{modalConfig.prov.nombre}</strong>?
                             </p>
                             <div className="flex gap-3">
-                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200">Cancelar</button>
+                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
                                 <button
                                     onClick={() => updateStatusSimple(modalConfig.prov.id, modalConfig.type === 'suspender' ? 'suspendido' : 'aprobado')}
                                     disabled={actionLoading}
-                                    className={`flex-1 px-4 py-2.5 rounded-xl font-bold text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-700 hover:bg-emerald-800'}`}
+                                    className={`flex-1 px-4 py-2.5 rounded-xl font-medium tracking-wide text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-700 hover:bg-emerald-800'}`}
                                 >
                                     Confirmar
                                 </button>
@@ -487,7 +487,7 @@ function GestionProveedores() {
                     {modalConfig.type === 'detalle' && (
                         <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl overflow-hidden">
                             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <h3 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                                     <UserIcon className="text-slate-400" /> Ficha del Proveedor
                                 </h3>
                                 <button onClick={closeModal} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors">
@@ -502,34 +502,34 @@ function GestionProveedores() {
                                     <div className="w-24 h-24 rounded-full bg-slate-100 mx-auto mb-4 overflow-hidden border-2 border-slate-200">
                                         {modalConfig.prov.foto_perfil ? <img src={modalConfig.prov.foto_perfil} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-300"><UserIcon size={40} /></div>}
                                     </div>
-                                    <h2 className="text-2xl font-bold text-center text-slate-900 mb-1">{modalConfig.prov.nombre} {modalConfig.prov.apellido_p}</h2>
+                                    <h2 className="text-2xl font-semibold text-center text-slate-900 tracking-tight mb-1">{modalConfig.prov.nombre} {modalConfig.prov.apellido_p}</h2>
                                     <div className="text-center mb-6">
                                         <EstadoBadge estado={modalConfig.prov.estado} />
                                     </div>
 
                                     <div className="space-y-4 text-sm">
                                         <div>
-                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-wider mb-1">RUT Oficial</p>
+                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">RUT Oficial</p>
                                             <p className="font-semibold text-slate-700">{modalConfig.prov.rut || 'No proporcionado'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-wider mb-1">Contacto Público</p>
+                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">Contacto Público</p>
                                             <p className="text-slate-700">{modalConfig.prov.email_publico || 'Sin email'}</p>
                                             <p className="text-slate-700">{modalConfig.prov.telefono || 'Sin tfno'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-wider mb-1">Ubicación</p>
+                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">Ubicación</p>
                                             <p className="font-semibold text-slate-700 flex items-center gap-1"><MapPin size={14} /> {modalConfig.prov.comuna || 'No informada'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-wider mb-1">Registro</p>
+                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">Registro</p>
                                             <p className="text-slate-700">{new Date(modalConfig.prov.created_at).toLocaleString()}</p>
                                         </div>
                                     </div>
 
                                     {modalConfig.prov.notas_admin && (
                                         <div className="mt-6 p-3 bg-red-50 border border-red-100 rounded-xl">
-                                            <p className="text-[10px] font-bold text-red-700 uppercase mb-1">Notas de Admin</p>
+                                            <p className="text-[10px] font-medium text-red-700 uppercase tracking-widest mb-1">Notas de Admin</p>
                                             <p className="text-sm text-red-900">{modalConfig.prov.notas_admin}</p>
                                         </div>
                                     )}
@@ -538,18 +538,18 @@ function GestionProveedores() {
                                 {/* Content tabs */}
                                 <div className="md:w-2/3 flex flex-col gap-6">
                                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                        <h4 className="font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2"><Briefcase size={18} className="text-indigo-500" /> Servicios Publicados ({provServicios.length})</h4>
+                                        <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2"><Briefcase size={18} className="text-indigo-500" /> Servicios Publicados ({provServicios.length})</h4>
                                         {detailsLoading ? <p className="text-slate-400 text-sm animate-pulse">Cargando servicios...</p> : (
                                             <div className="grid gap-3">
                                                 {provServicios.length === 0 ? <p className="text-sm text-slate-500">No hay servicios asociados a este proveedor.</p> :
                                                     provServicios.map(s => (
                                                         <div key={s.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
                                                             <div>
-                                                                <p className="font-bold text-sm text-slate-800">{s.titulo}</p>
+                                                                <p className="font-semibold text-sm text-slate-900">{s.titulo}</p>
                                                                 <p className="text-xs text-slate-500">{s.categoria?.nombre} • {s.activo ? 'Público' : 'Oculto'}</p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <span className="font-bold text-slate-700">${s.precio_desde}</span>
+                                                                <span className="font-semibold text-slate-700">${s.precio_desde}</span>
                                                             </div>
                                                         </div>
                                                     ))
@@ -559,7 +559,7 @@ function GestionProveedores() {
                                     </div>
 
                                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                        <h4 className="font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2"><Star size={18} className="text-amber-500" /> Evaluaciones Recibidas ({provEvaluaciones.length})</h4>
+                                        <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2"><Star size={18} className="text-amber-500" /> Evaluaciones Recibidas ({provEvaluaciones.length})</h4>
                                         {detailsLoading ? <p className="text-slate-400 text-sm animate-pulse">Cargando valoraciones...</p> : (
                                             <div className="grid gap-3">
                                                 {provEvaluaciones.length === 0 ? <p className="text-sm text-slate-500">Aún no tiene valoraciones.</p> :
@@ -569,7 +569,7 @@ function GestionProveedores() {
                                                                 <div className="flex text-amber-400">
                                                                     {[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} className={i <= e.rating ? "fill-current" : "text-slate-200"} />)}
                                                                 </div>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase">{e.estado}</span>
+                                                                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{e.estado}</span>
                                                             </div>
                                                             <p className="text-sm text-slate-600 italic">&quot;{e.comentario}&quot;</p>
                                                         </div>

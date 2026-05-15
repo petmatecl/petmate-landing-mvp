@@ -187,8 +187,8 @@ function GestionServicios() {
     });
 
     const EstadoBadge = ({ activo }: { activo: boolean }) => {
-        if (activo) return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-wider"><CheckCircle2 size={12} /> Activo</span>;
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold uppercase tracking-wider"><EyeOff size={12} /> Oculto</span>;
+        if (activo) return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Activo</span>;
+        return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-medium uppercase tracking-widest"><EyeOff size={12} /> Oculto</span>;
     };
 
     return (
@@ -202,7 +202,7 @@ function GestionServicios() {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                                 <Briefcase className="text-indigo-400" />
                                 Gestión de Servicios
                             </h1>
@@ -223,7 +223,7 @@ function GestionServicios() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-slate-800 mb-1">{statsData.activosCount}</p>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Servicios Activos (Públicos)</p>
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Servicios Activos (Públicos)</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
                             <p className="text-xs font-semibold text-slate-400">De un total de {servicios.length} borradores e inactivos.</p>
@@ -237,7 +237,7 @@ function GestionServicios() {
                         </div>
                         <div>
                             <p className="text-3xl font-bold text-amber-600 mb-2 truncate max-w-[200px] sm:max-w-[250px]">{statsData.mvpServicio || '-'}</p>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Servicio Más Visto</p>
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Servicio Más Visto</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
                             <p className="text-xs font-semibold text-slate-600 flex items-center gap-1"><Eye size={12} className="text-slate-400" /> Acumulando <strong className="text-slate-800">{statsData.mvpViews}</strong> visualizaciones perfil.</p>
@@ -246,7 +246,7 @@ function GestionServicios() {
 
                     {/* Tarjeta 3: Gráfico CSS Categorias */}
                     <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-lg text-white">
-                        <p className="text-xs font-bold text-slate-400 flex items-center gap-2 uppercase tracking-wider mb-4">
+                        <p className="text-xs font-medium text-slate-400 flex items-center gap-2 uppercase tracking-widest mb-4">
                             <BarChart3 size={14} className="text-indigo-400" /> Distribución Top 5
                         </p>
 
@@ -279,7 +279,7 @@ function GestionServicios() {
                                 <button
                                     key={estado}
                                     onClick={() => setFiltroEstado(estado)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-bold capitalize whitespace-nowrap transition-colors ${filtroEstado === estado ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                    className={`px-4 py-2 rounded-xl text-sm font-medium capitalize whitespace-nowrap transition-colors ${filtroEstado === estado ? 'bg-slate-900 text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     {estado}
                                 </button>
@@ -316,7 +316,7 @@ function GestionServicios() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-slate-600">
-                            <thead className="text-xs uppercase bg-slate-50 text-slate-500 font-bold tracking-wider">
+                            <thead className="text-xs uppercase bg-slate-50 text-slate-400 font-medium tracking-widest">
                                 <tr>
                                     <th className="px-6 py-4">Servicio</th>
                                     <th className="px-6 py-4">Proveedor</th>
@@ -349,20 +349,20 @@ function GestionServicios() {
                                 {!loading && serviciosVisibles.map(s => (
                                     <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                                         <td className="px-6 py-4 max-w-[250px]">
-                                            <p className="font-bold text-slate-900 truncate" title={s.titulo}>{s.titulo}</p>
+                                            <p className="font-semibold text-slate-900 truncate" title={s.titulo}>{s.titulo}</p>
                                             <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5"><Clock size={10} /> {new Date(s.created_at).toLocaleDateString()}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="font-semibold text-slate-700">{s.proveedor_nombre} {s.proveedor_apellido}</p>
                                             {s.proveedor_estado !== 'aprobado' && (
-                                                <span className="text-[9px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded ml-1 uppercase">Cta. {s.proveedor_estado}</span>
+                                                <span className="text-[9px] font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded ml-1 uppercase tracking-widest">Cta. {s.proveedor_estado}</span>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-[10px] font-bold whitespace-nowrap"><Tag size={10} /> {s.categoria_nombre}</span>
+                                            <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-[10px] font-medium whitespace-nowrap"><Tag size={10} /> {s.categoria_nombre}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="font-bold text-emerald-700">${s.precio_desde.toLocaleString('es-CL')}</p>
+                                            <p className="font-semibold text-emerald-700">${s.precio_desde.toLocaleString('es-CL')}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="text-slate-600 font-medium flex items-center gap-1.5"><Eye size={12} className="text-slate-400" /> {s.vistas}</p>
@@ -380,7 +380,7 @@ function GestionServicios() {
                                                     <button
                                                         disabled={actionLoading}
                                                         onClick={() => requestOcultar(s)}
-                                                        className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 font-bold rounded-lg text-[10px] uppercase transition-colors"
+                                                        className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 font-semibold rounded-lg text-[10px] uppercase tracking-widest transition-colors"
                                                     >
                                                         Ocultar
                                                     </button>
@@ -388,7 +388,7 @@ function GestionServicios() {
                                                     <button
                                                         disabled={actionLoading}
                                                         onClick={() => toggleEstadoServicio(s.id, true)}
-                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-800 hover:text-white border border-emerald-200 font-bold rounded-lg text-[10px] uppercase transition-colors"
+                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-800 hover:text-white border border-emerald-200 font-semibold rounded-lg text-[10px] uppercase tracking-widest transition-colors"
                                                     >
                                                         Activar
                                                     </button>
@@ -411,10 +411,10 @@ function GestionServicios() {
                         <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50 rounded-t-3xl">
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-0.5 rounded font-bold">{modalData.categoria_nombre}</span>
+                                    <span className="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-0.5 rounded font-medium">{modalData.categoria_nombre}</span>
                                     <EstadoBadge activo={modalData.activo} />
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-900 leading-tight">{modalData.titulo}</h3>
+                                <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">{modalData.titulo}</h3>
                                 <p className="text-sm text-slate-500 mt-1">Proveedor: <span className="font-semibold text-slate-800">{modalData.proveedor_nombre} {modalData.proveedor_apellido}</span></p>
                             </div>
                             <button onClick={() => setModalData(null)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 transition-colors shrink-0">
@@ -425,24 +425,24 @@ function GestionServicios() {
                         {/* Cuerpo Scrolls */}
                         <div className="p-6 overflow-y-auto w-full space-y-6">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Descripción Pública</p>
+                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">Descripción Pública</p>
                                 <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">{modalData.descripcion}</p>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tarifa Base</p>
-                                    <p className="text-2xl font-bold text-emerald-700">${modalData.precio_desde.toLocaleString('es-CL')}</p>
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-1">Tarifa Base</p>
+                                    <p className="text-2xl font-bold text-emerald-700 tracking-tight">${modalData.precio_desde.toLocaleString('es-CL')}</p>
                                 </div>
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Métricas</p>
-                                    <p className="text-2xl font-bold text-slate-800 flex items-center gap-2"><Eye size={20} className="text-indigo-400" /> {modalData.vistas} <span className="text-sm font-medium text-slate-400">vistas orgánicas</span></p>
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-1">Métricas</p>
+                                    <p className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2"><Eye size={20} className="text-indigo-400" /> {modalData.vistas} <span className="text-sm font-medium text-slate-400">vistas orgánicas</span></p>
                                 </div>
                             </div>
 
                             {modalData.tiempo_duracion && (
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Duración y Frecuencia</p>
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">Duración y Frecuencia</p>
                                     <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 inline-block">
                                         <p className="text-sm font-medium text-slate-700 italic">{modalData.tiempo_duracion}</p>
                                     </div>
@@ -451,7 +451,7 @@ function GestionServicios() {
 
                             {modalData.requisitos && (
                                 <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
-                                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-1.5"><AlertTriangle size={14} /> Condiciones / Requisitos</p>
+                                    <p className="text-[10px] font-medium text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-1.5"><AlertTriangle size={14} /> Condiciones / Requisitos</p>
                                     <p className="text-amber-900 text-sm whitespace-pre-wrap">{modalData.requisitos}</p>
                                 </div>
                             )}
@@ -461,7 +461,7 @@ function GestionServicios() {
                         <div className="p-4 bg-slate-50 border-t border-slate-100 rounded-b-3xl">
                             <div className="flex justify-between items-center px-2">
                                 <p className="text-xs text-slate-400">ID Interno: {modalData.id.split('-')[0]}...</p>
-                                <button onClick={() => setModalData(null)} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-sm transition-colors">
+                                <button onClick={() => setModalData(null)} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-xl text-sm transition-colors">
                                     Cerrar Ficha
                                 </button>
                             </div>

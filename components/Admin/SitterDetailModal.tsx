@@ -46,7 +46,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative flex flex-col z-50">
                 {/* Header */}
                 <div className="p-4 border-b border-slate-300 flex justify-between items-center bg-slate-50">
-                    <h3 className="font-bold text-lg text-slate-800">Detalle del Proveedor</h3>
+                    <h3 className="font-semibold text-lg text-slate-900">Detalle del Proveedor</h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -62,13 +62,13 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                             <AlertTriangle className="text-amber-500" size={24} />
                             <div>
-                                <h4 className="font-bold text-amber-800 text-sm uppercase">Perfil Incompleto</h4>
+                                <h4 className="font-semibold text-amber-800 text-sm uppercase tracking-widest">Perfil Incompleto</h4>
                                 <p className="text-xs text-amber-700 mt-1">
                                     Para ser verificado, el usuario debe completar los siguientes campos:
                                 </p>
                                 <div className="flex flex-wrap gap-1 mt-2">
                                     {sitter.missingFields.map(field => (
-                                        <span key={field} className="px-2 py-0.5 bg-white bg-opacity-50 border border-amber-200 rounded text-[10px] font-bold text-amber-800 uppercase">
+                                        <span key={field} className="px-2 py-0.5 bg-white bg-opacity-50 border border-amber-200 rounded text-[10px] font-medium text-amber-800 uppercase tracking-widest">
                                             {field}
                                         </span>
                                     ))}
@@ -97,7 +97,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                         </div>
                                     )}
                                 </div>
-                                <h2 className="text-xl font-bold text-slate-900">{sitter.nombre} {sitter.apellido_p || ""}</h2>
+                                <h2 className="text-xl font-semibold text-slate-900 tracking-tight">{sitter.nombre} {sitter.apellido_p || ""}</h2>
                                 <p className="text-sm text-slate-500">{sitter.email || "Sin email"}</p>
                                 <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                                     {sitter.aprobado && (!sitter.missingFields || sitter.missingFields.length === 0)
@@ -112,37 +112,37 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-300 space-y-3 text-sm">
                                 {sitter.rut && (
                                     <div>
-                                        <span className="block text-xs font-bold text-slate-400 uppercase">RUT</span>
+                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">RUT</span>
                                         <span className="text-slate-700 font-medium">{sitter.rut}</span>
                                     </div>
                                 )}
                                 {sitter.telefono && (
                                     <div>
-                                        <span className="block text-xs font-bold text-slate-400 uppercase">Teléfono</span>
+                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Teléfono</span>
                                         <span className="text-slate-700 font-medium">{sitter.telefono}</span>
                                     </div>
                                 )}
                                 {(sitter.comuna || sitter.region) && (
                                     <div>
-                                        <span className="block text-xs font-bold text-slate-400 uppercase">Ubicación</span>
+                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Ubicación</span>
                                         <span className="text-slate-700 font-medium">{sitter.comuna}{sitter.region ? `, ${sitter.region}` : ''}</span>
                                     </div>
                                 )}
                                 {sitter.anios_experiencia !== undefined && sitter.anios_experiencia > 0 && (
                                     <div>
-                                        <span className="block text-xs font-bold text-slate-400 uppercase">Experiencia</span>
+                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Experiencia</span>
                                         <span className="text-slate-700 font-medium">{sitter.anios_experiencia} años</span>
                                     </div>
                                 )}
                                 {sitter.certificaciones && (
                                     <div>
-                                        <span className="block text-xs font-bold text-slate-400 uppercase">Certificaciones</span>
+                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Certificaciones</span>
                                         <span className="text-slate-700 font-medium">{sitter.certificaciones}</span>
                                     </div>
                                 )}
                                 <div>
-                                    <span className="block text-xs font-bold text-slate-400 uppercase">Identidad</span>
-                                    <span className={`text-sm font-bold ${sitter.rut_verificado ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                    <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Identidad</span>
+                                    <span className={`text-sm font-semibold ${sitter.rut_verificado ? 'text-emerald-700' : 'text-slate-500'}`}>
                                         {sitter.rut_verificado ? '✓ Verificada' : 'Sin verificar'}
                                     </span>
                                 </div>
@@ -181,7 +181,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {sitter.certificado_antecedentes && (
                                 <button
                                     onClick={() => onViewDocument(sitter.certificado_antecedentes!)}
-                                    className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors"
+                                    className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
                                 >
                                     <FileText size={16} /> Ver Certificado
                                 </button>
@@ -192,7 +192,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     download
-                                    className="flex items-center justify-center gap-2 w-full py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors"
+                                    className="flex items-center justify-center gap-2 w-full py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-100 transition-colors"
                                 >
                                     <Video size={16} /> Descargar Video Presentación
                                 </a>
@@ -204,7 +204,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
                             {/* Bio */}
                             <div>
-                                <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Descripción / Bio</h4>
+                                <h4 className="font-medium text-slate-400 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">Descripción / Bio</h4>
                                 <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
                                     {sitter.bio || "Sin descripción."}
                                 </p>
@@ -213,7 +213,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Sitio web */}
                             {sitter.sitio_web && (
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">Sitio Web</h4>
+                                    <h4 className="font-medium text-slate-400 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">Sitio Web</h4>
                                     <a href={sitter.sitio_web.startsWith('http') ? sitter.sitio_web : `https://${sitter.sitio_web}`}
                                         target="_blank" rel="noopener noreferrer"
                                         className="text-emerald-700 hover:underline text-sm"
@@ -226,7 +226,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Gallery */}
                             {sitter.galeria && sitter.galeria.length > 0 && (
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm uppercase border-b border-slate-300 pb-2 mb-3">
+                                    <h4 className="font-medium text-slate-400 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">
                                         Galería ({sitter.galeria.length})
                                     </h4>
                                     <div className="grid grid-cols-4 gap-2">
@@ -246,7 +246,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                 <div className="p-4 border-t border-slate-300 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-bold text-sm hover:bg-slate-50"
+                        className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-medium text-sm hover:bg-slate-50"
                     >
                         Cerrar
                     </button>
@@ -255,7 +255,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             onApprove(sitter.id, sitter.aprobado);
                             onClose();
                         }}
-                        className={`px-6 py-2 rounded-lg text-white font-bold text-sm shadow-sm transition-all ${sitter.aprobado
+                        className={`px-6 py-2 rounded-lg text-white font-medium tracking-wide text-sm shadow-sm transition-all ${sitter.aprobado
                             ? "bg-red-500 hover:bg-red-600 ring-4 ring-red-500/20"
                             : "bg-emerald-700 hover:bg-emerald-800 ring-4 ring-emerald-600/20"
                             }`}

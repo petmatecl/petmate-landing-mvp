@@ -36,7 +36,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 mb-2">Algo salió mal</h1>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-2">Algo salió mal</h1>
             <p className="text-sm text-slate-500 mb-6">
               Ocurrió un error inesperado. Puedes intentar recargar la página.
             </p>
