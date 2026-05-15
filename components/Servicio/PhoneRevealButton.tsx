@@ -99,7 +99,7 @@ export default function PhoneRevealButton({
     return (
         <div className="w-full border-2 border-emerald-200 bg-emerald-50/40 rounded-xl py-3 px-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
-                <Phone size={18} className="text-emerald-700 shrink-0" aria-hidden="true" />
+                <Phone size={18} className="text-emerald-600 shrink-0" aria-hidden="true" />
                 <span className="font-semibold text-slate-900 text-sm tabular-nums truncate">{formatted}</span>
             </div>
             <button

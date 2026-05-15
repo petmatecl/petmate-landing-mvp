@@ -580,7 +580,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 </h1>
                                 <div className="flex flex-wrap items-center gap-4 text-slate-600 text-sm md:text-base font-medium">
                                     <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-lg">
-                                        <svg className="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                         {proveedor.comuna}
                                     </span>
                                     {totalReviews > 0 && (
@@ -857,7 +857,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                         {user && (
                             <div className="mt-8">
                                 {yaEvaluo ? (
-                                    <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-xl">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-xl">
                                         <Star size={16} className="fill-emerald-500 text-emerald-500" />
                                         Ya dejaste una evaluación para este servicio
                                     </div>
@@ -976,7 +976,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </div>
                                     <p className="text-sm text-slate-500 mb-3">{proveedor.comuna}</p>
                                     {proveedor.perfil_completo && (
-                                        <span className="flex items-center gap-1 px-2.5 py-1 mb-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">
+                                        <span className="flex items-center gap-1 px-2.5 py-1 mb-3 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-xs font-medium">
                                             <BadgeCheck size={12} /> Perfil completo
                                         </span>
                                     )}
@@ -992,7 +992,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 <div className="space-y-2">
                                     {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 ? (
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <svg className="w-4 h-4 text-emerald-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             <span className="font-medium">{proveedor.anios_experiencia} años de experiencia</span>
                                         </div>
                                     ) : (
@@ -1010,7 +1010,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
                                     {proveedor.certificaciones ? (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <ShieldCheck size={15} className="text-emerald-700 shrink-0 mt-0.5" />
+                                            <ShieldCheck size={15} className="text-emerald-500 shrink-0 mt-0.5" />
                                             <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
                                         </div>
                                     ) : (
@@ -1035,7 +1035,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
                                     {proveedor.tipo_entidad === 'empresa' && (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <Briefcase size={15} className="text-emerald-700 shrink-0 mt-0.5" />
+                                            <Briefcase size={15} className="text-slate-400 shrink-0 mt-0.5" />
                                             <div>
                                                 <span className="font-semibold text-slate-700 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
                                                 {proveedor.giro && <span className="text-xs text-slate-400">{proveedor.giro}</span>}
