@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <nav className="p-4 space-y-1 overflow-x-auto md:overflow-visible flex md:block scrollbar-hide">
                     <Link
                         href="/admin"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${isActive('/admin')
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin')
                             ? 'bg-emerald-50 text-emerald-700 font-semibold'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                             }`}
@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                     <Link
                         href="/admin/evaluaciones"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${isActive('/admin/evaluaciones')
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/evaluaciones')
                             ? 'bg-emerald-50 text-emerald-700 font-semibold'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                             }`}
@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                     <Link
                         href="/admin/notificaciones"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${isActive('/admin/notificaciones')
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/notificaciones')
                             ? 'bg-emerald-50 text-emerald-700 font-semibold'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                             }`}

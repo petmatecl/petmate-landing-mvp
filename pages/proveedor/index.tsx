@@ -615,7 +615,7 @@ export default function ProveedorDashboard() {
                                 <button
                                     key={item.id}
                                     onClick={() => handleTabChange(item.id as TabType)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-emerald-50 text-[#1A6B4A] font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-emerald-50 text-[#1A6B4A] font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
                                     {item.icon}
                                     {item.label}
