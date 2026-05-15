@@ -127,7 +127,7 @@ export default function FAQ() {
                                     onClick={() => toggleFAQ(index)}
                                     className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
                                 >
-                                    <span className={`text-lg font-bold ${openIndex === index ? "text-emerald-700" : "text-slate-800"}`}>
+                                    <span className={`text-lg font-semibold ${openIndex === index ? "text-emerald-700" : "text-slate-900"}`}>
                                         {faq.question}
                                     </span>
                                     {openIndex === index ? (
@@ -151,7 +151,7 @@ export default function FAQ() {
                     </div>
 
                     <div className="mt-12 text-center bg-white p-8 rounded-2xl border-2 border-slate-300 shadow-sm">
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">¿No encontraste la respuesta?</h3>
+                        <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">¿No encontraste la respuesta?</h3>
                         <p className="text-slate-600 mb-6">Estamos aquí para ayudarte. Contáctanos directamente.</p>
                         <a
                             href="mailto:contacto@pawnecta.com"

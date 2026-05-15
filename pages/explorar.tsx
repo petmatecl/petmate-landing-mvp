@@ -95,7 +95,7 @@ function ExplorarPrelaunch() {
 
     return (
         <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 px-6">
-            <h3 className="text-xl font-bold text-slate-900 mb-3">
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">
                 Estamos activando proveedores en tu zona
             </h3>
             <p className="text-slate-500 max-w-md mx-auto text-sm mb-8">
@@ -104,7 +104,7 @@ function ExplorarPrelaunch() {
 
             {done ? (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-8 py-8 max-w-md mx-auto">
-                    <p className="text-emerald-800 font-bold">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
+                    <p className="text-emerald-800 font-semibold">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
@@ -473,12 +473,12 @@ export default function ExplorarPage() {
             <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
                 <button
                     onClick={() => setMobileFiltersOpen(true)}
-                    className="flex items-center gap-2 bg-slate-900 text-white font-bold px-6 py-3 rounded-full shadow-lg text-sm"
+                    className="flex items-center gap-2 bg-slate-900 text-white font-medium tracking-wide px-6 py-3 rounded-full shadow-lg text-sm"
                 >
                     <Filter size={15} />
                     Filtros
                     {hasActiveFilters && (
-                        <span className="bg-emerald-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        <span className="bg-emerald-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                             {activeFiltersCount}
                         </span>
                     )}
@@ -494,7 +494,7 @@ export default function ExplorarPage() {
                     />
                     <div role="dialog" aria-modal="true" aria-labelledby="mobile-filters-title" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                            <h2 id="mobile-filters-title" className="text-base font-bold text-slate-900">Filtros</h2>
+                            <h2 id="mobile-filters-title" className="text-base font-semibold text-slate-900">Filtros</h2>
                             <button
                                 onClick={() => setMobileFiltersOpen(false)}
                                 className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
@@ -514,7 +514,7 @@ export default function ExplorarPage() {
                         <div className="p-5 border-t border-slate-100">
                             <button
                                 onClick={() => setMobileFiltersOpen(false)}
-                                className="w-full bg-emerald-700 text-white font-bold py-3 rounded-xl hover:bg-emerald-800 transition-colors"
+                                className="w-full bg-emerald-700 text-white font-medium tracking-wide py-3 rounded-xl hover:bg-emerald-800 transition-colors"
                             >
                                 Ver {totalCount} resultado{totalCount !== 1 ? 's' : ''}
                             </button>
@@ -544,7 +544,7 @@ export default function ExplorarPage() {
 
                         {/* Encabezado */}
                         <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-slate-900 mb-1.5">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">
                                 {filters.q ? `Resultados para "${filters.q}"` : (
                                     filters.categorias.length === 1
                                         ? `${categories.find(c => c.slug === filters.categorias[0])?.nombre || 'Servicios'} en tu zona`
@@ -652,7 +652,7 @@ export default function ExplorarPage() {
                                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
                                             <Search size={28} className="text-slate-300" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-slate-900 mb-2">
+                                        <h3 className="text-xl font-semibold text-slate-900 mb-2">
                                             {filters.comuna ? `Sin resultados en ${filters.comuna} ` : 'Sin resultados con estos filtros'}
                                         </h3>
                                         {comunasSugeridas.length > 0 ? (
@@ -828,7 +828,7 @@ export default function ExplorarPage() {
             {!user && (
                 <section className="py-16 px-4 bg-emerald-50 border-t border-emerald-100">
                     <div className="max-w-4xl mx-auto text-center">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-4">
+                        <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-4">
                             ¿Ofreces servicios para mascotas?
                         </h2>
                         <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">

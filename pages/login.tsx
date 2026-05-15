@@ -129,7 +129,7 @@ export default function LoginPage() {
           )}
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Ingresa a tu cuenta</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">Ingresa a tu cuenta</h1>
             <p className="text-sm text-slate-500 mb-7">
               Accede a tu red de proveedores verificados
             </p>

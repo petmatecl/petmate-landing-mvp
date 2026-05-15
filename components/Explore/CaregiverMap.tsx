@@ -186,7 +186,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                         className: 'bg-transparent border-none',
                         html: `
                             <div class="relative group cursor-pointer transform transition-transform hover:scale-110 hover:z-50">
-                                <div class="bg-white text-slate-900 font-bold text-xs px-2.5 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.18)] border border-slate-200 flex items-center justify-center whitespace-nowrap hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors">
+                                <div class="bg-white text-slate-900 font-semibold text-xs px-2.5 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.18)] border border-slate-200 flex items-center justify-center whitespace-nowrap hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors">
                                     ${formattedPrice}
                                 </div>
                                 <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-b border-r border-slate-200 transition-colors"></div>
@@ -229,12 +229,12 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                                 style={{ width: 'calc(100% + 32px)', marginLeft: '-16px', marginTop: '-16px' }}
                                             />
                                         )}
-                                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-0.5">{s.categoria_nombre}</p>
-                                        <h3 className="font-bold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">{s.titulo}</h3>
+                                        <p className="text-[10px] font-medium text-emerald-700 uppercase tracking-widest mb-0.5">{s.categoria_nombre}</p>
+                                        <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">{s.titulo}</h3>
                                         <p className="text-xs text-slate-500 mb-2 truncate">{s.proveedor_nombre} · {s.proveedor_comuna}</p>
 
                                         <div className="flex items-center gap-1.5 mb-3">
-                                            <div className="flex items-center text-xs font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
+                                            <div className="flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
                                                 <span className="text-emerald-500 mr-1">★</span>
                                                 {Number(s.rating_promedio).toFixed(1)}
                                             </div>
@@ -242,13 +242,13 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                         </div>
 
                                         <div className="flex items-baseline gap-1 mb-3">
-                                            <span className="font-bold text-lg text-slate-900">${price.toLocaleString('es-CL')}</span>
+                                            <span className="font-semibold text-lg text-slate-900">${price.toLocaleString('es-CL')}</span>
                                             <span className="text-xs text-slate-500">/ {s.unidad_precio}</span>
                                         </div>
 
                                         <Link
                                             href={`/proveedor/${s.proveedor_id}`}
-                                            className="block w-full py-2 bg-emerald-700 text-white text-center rounded-xl text-sm font-bold hover:bg-emerald-800 transition-colors shadow-sm"
+                                            className="block w-full py-2 bg-emerald-700 text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-emerald-800 transition-colors shadow-sm"
                                         >
                                             Ver perfil completo
                                         </Link>

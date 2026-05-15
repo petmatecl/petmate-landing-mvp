@@ -111,7 +111,7 @@ export default function ResetPasswordPage() {
                                 <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Lock size={24} className="text-red-400" />
                                 </div>
-                                <h1 className="text-xl font-bold text-slate-900 mb-2">Enlace expirado</h1>
+                                <h1 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Enlace expirado</h1>
                                 <p className="text-sm text-slate-500 mb-6">{linkError}</p>
                                 <Link
                                     href="/forgot-password"
@@ -124,7 +124,7 @@ export default function ResetPasswordPage() {
                             /* Formulario normal */
                             <>
                                 <div className="mb-6">
-                                    <h1 className="text-2xl font-bold text-slate-900 mb-2">Nueva contraseña</h1>
+                                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Nueva contraseña</h1>
                                     <p className="text-sm text-slate-500">Ingresa tu nueva contraseña para acceder a tu cuenta.</p>
                                 </div>
 

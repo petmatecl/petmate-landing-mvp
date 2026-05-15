@@ -137,7 +137,7 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
 
                     {/* Header */}
                     <div className="mb-10">
-                        <h1 className="text-3xl font-bold text-slate-900">
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                             {categoria.nombre} en {comuna}
                         </h1>
                         {services.length > 0 && (

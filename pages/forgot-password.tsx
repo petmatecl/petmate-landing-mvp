@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
               Volver
             </Link>
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-slate-900 mb-2">Recuperar contraseña</h1>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Recuperar contraseña</h1>
               <p className="text-sm text-slate-500">
                 Ingresa tu correo y te enviaremos un enlace para restablecerla.
               </p>

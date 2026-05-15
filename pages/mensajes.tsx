@@ -59,7 +59,7 @@ export default function MensajesPage() {
             <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
                 <div className="mb-6 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
                             <MessageSquare className="text-emerald-700" size={32} />
                             Mensajes
                         </h1>
@@ -70,7 +70,7 @@ export default function MensajesPage() {
                     <div>
                         <Link
                             href={returnTo || '/'}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-bold hover:text-emerald-700 hover:border-emerald-300 transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-medium hover:text-emerald-700 hover:border-emerald-300 transition-colors shadow-sm"
                         >
                             <ArrowLeft size={18} />
                             Volver al Panel

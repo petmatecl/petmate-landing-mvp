@@ -149,7 +149,7 @@ export default function FavoritosPage() {
             </Head>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">Mis favoritos</h1>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Mis favoritos</h1>
                 <p className="text-slate-500 mb-8">Tus servicios y proveedores guardados.</p>
 
                 {/* Tabs */}

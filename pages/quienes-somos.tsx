@@ -48,7 +48,7 @@ export default function QuienesSomos() {
                             </div>
 
                             <div className="w-full lg:w-2/3">
-                                <h2 className="text-3xl font-bold text-emerald-700 mb-6">Nuestra misión</h2>
+                                <h2 className="text-3xl font-semibold text-emerald-700 tracking-tight mb-6">Nuestra misión</h2>
                                 <p className="text-lg">
                                     Conectar a los dueños de mascotas con los mejores profesionales de su comuna — de forma simple, transparente y segura. Creemos que cada mascota merece atención de calidad, y cada dueño merece la tranquilidad de saber con quién la deja.
                                 </p>
@@ -58,19 +58,19 @@ export default function QuienesSomos() {
                         {/* BLOQUE 2: Texto Izquierda - Imagen Derecha */}
                         <div className="flex flex-col-reverse lg:flex-row gap-8 lg:gap-12 items-center">
                             <div className="w-full lg:w-2/3">
-                                <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-6">¿Por qué Pawnecta?</h2>
+                                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mt-10 mb-6">¿Por qué Pawnecta?</h2>
 
                                 <div className="space-y-6">
                                     <div>
-                                        <h3 className="text-lg font-bold text-emerald-700">Proveedores verificados</h3>
+                                        <h3 className="text-lg font-semibold text-emerald-700">Proveedores verificados</h3>
                                         <p>Cada persona que ofrece servicios en Pawnecta pasa por verificación de identidad con RUT y documento oficial. Sabes exactamente con quién tratas.</p>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-emerald-700">Evaluaciones reales</h3>
+                                        <h3 className="text-lg font-semibold text-emerald-700">Evaluaciones reales</h3>
                                         <p>Solo los usuarios que contactaron al proveedor pueden dejar una evaluación. Sin bots, sin reseñas compradas. Solo experiencias reales.</p>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-emerald-700">Todos los servicios en un lugar</h3>
+                                        <h3 className="text-lg font-semibold text-emerald-700">Todos los servicios en un lugar</h3>
                                         <p>Hospedaje, paseos, peluquería, veterinario a domicilio, adiestramiento y más. Ya no necesitas buscar en cinco sitios distintos.</p>
                                     </div>
                                 </div>
@@ -92,14 +92,14 @@ export default function QuienesSomos() {
                     </div>
 
                     <div className="mx-auto max-w-2xl text-center mt-16 pt-10 border-t border-slate-300">
-                        <h3 className="text-2xl font-bold text-slate-900">Hecho en Chile, para Chile</h3>
+                        <h3 className="text-2xl font-semibold text-slate-900 tracking-tight">Hecho en Chile, para Chile</h3>
                         <p className="mt-4 text-base text-slate-600">
                             Somos un equipo pequeño con mascotas propias. Entendemos lo que significa confiarle tu peludo a alguien más — porque nosotros también lo hacemos.
                         </p>
                         <div className="mt-8 flex items-center justify-center gap-x-6">
                             <Link
                                 href="/register"
-                                className="rounded-xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                className="rounded-xl bg-emerald-700 px-6 py-3 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                             >
                                 Únete a Pawnecta
                             </Link>

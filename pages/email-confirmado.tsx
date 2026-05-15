@@ -245,7 +245,7 @@ export default function EmailConfirmadoPage() {
                         <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-amber-100 text-amber-600 text-4xl shadow-sm">
                             ⚠️
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 m-0 mb-2">
+                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight m-0 mb-2">
                             Ya tienes una cuenta
                         </h1>
                         <p className="text-lg text-slate-600 mb-6">
@@ -256,7 +256,7 @@ export default function EmailConfirmadoPage() {
                         <div className="space-y-3">
                             <Link
                                 href="/login"
-                                className="inline-flex items-center justify-center h-14 rounded-xl font-bold bg-slate-900 text-white w-full text-lg shadow-lg hover:bg-slate-800 hover:scale-[1.02] transition-all"
+                                className="inline-flex items-center justify-center h-14 rounded-xl font-medium tracking-wide bg-slate-900 text-white w-full text-lg shadow-lg hover:bg-slate-800 hover:scale-[1.02] transition-all"
                             >
                                 Ir a Iniciar Sesión
                             </Link>
@@ -267,7 +267,7 @@ export default function EmailConfirmadoPage() {
 
                     <Card padding="l" className="w-full max-w-[500px] text-center animate-in zoom-in-95 duration-500">
                         <CheckCircle size={64} className="text-emerald-700 mx-auto mb-6 drop-shadow-sm" />
-                        <h1 className="text-3xl font-bold text-slate-900 mb-3">¡Correo Confirmado!</h1>
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">¡Correo Confirmado!</h1>
                         <p className="text-lg text-slate-600 mb-2">Gracias por verificar tu cuenta electrónica.</p>
                         <p className="text-emerald-700 font-semibold mb-6 animate-pulse">
                             {statusText}
@@ -278,7 +278,7 @@ export default function EmailConfirmadoPage() {
 
                     <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500">
                         <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mb-6"></div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Validando Email...</h2>
+                        <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">Validando Email...</h2>
                         <p className="text-slate-500 mb-1 max-w-sm text-center">{statusText}</p>
 
                         {/* Botones de Respaldo por fallos de enrutado LocalStorage */}
@@ -289,13 +289,13 @@ export default function EmailConfirmadoPage() {
                                 <div className="flex flex-col gap-3">
                                     <button
                                         onClick={() => router.replace('/explorar')}
-                                        className="text-sm font-bold text-slate-700 bg-slate-100 px-4 py-3 rounded-xl hover:bg-slate-200 transition-colors"
+                                        className="text-sm font-medium text-slate-700 bg-slate-100 px-4 py-3 rounded-xl hover:bg-slate-200 transition-colors"
                                     >
                                         Explorar servicios (Cliente)
                                     </button>
                                     <button
                                         onClick={() => router.replace('/proveedor')}
-                                        className="text-sm font-bold text-emerald-700 bg-emerald-100 px-4 py-3 rounded-xl hover:bg-emerald-200 transition-colors"
+                                        className="text-sm font-medium text-emerald-700 bg-emerald-100 px-4 py-3 rounded-xl hover:bg-emerald-200 transition-colors"
                                     >
                                         Ofrecer servicios (Proveedor)
                                     </button>

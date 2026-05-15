@@ -52,7 +52,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
 
                         {/* Modalidad */}
                         <button
-                            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
+                            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors
                                 ${filters.serviceType === "hospedaje"
                                     ? "bg-emerald-700 border-emerald-600 text-white"
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
@@ -62,7 +62,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                         </button>
 
                         <button
-                            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-colors
+                            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors
                                 ${filters.serviceType === "a_domicilio"
                                     ? "bg-emerald-700 border-emerald-600 text-white"
                                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
@@ -76,7 +76,7 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
                                 <div className="bg-slate-200 w-px h-8 mx-1 hidden sm:block" />
                                 <div className="relative">
                                     <select
-                                        className={`appearance-none rounded-full border pl-10 pr-4 py-2 text-sm font-bold transition-colors outline-none cursor-pointer
+                                        className={`appearance-none rounded-full border pl-10 pr-4 py-2 text-sm font-medium transition-colors outline-none cursor-pointer
                                         ${filters.dogSize ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"}`}
                                         value={filters.dogSize || ""}
                                         onChange={(e) => onFilterChange("dogSize", e.target.value || null)}

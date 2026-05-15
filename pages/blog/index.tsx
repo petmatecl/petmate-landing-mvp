@@ -18,10 +18,10 @@ export default function BlogIndex() {
                 {/* Hero Section */}
                 <div className="bg-slate-50 py-16 mb-16 border-b border-slate-300">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm mb-4">
+                        <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-medium uppercase tracking-widest text-xs mb-4">
                             Blog Pawnecta
                         </span>
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                        <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
                             Aprende a cuidar mejor <br />
                             <span className="text-emerald-700">a tu mejor amigo</span>
                         </h1>
@@ -48,7 +48,7 @@ export default function BlogIndex() {
                                         />
                                         <div className="absolute top-4 left-4 flex gap-2">
                                             {post.tags.map(tag => (
-                                                <span key={tag} className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-slate-700 shadow-sm">
+                                                <span key={tag} className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-slate-700 shadow-sm">
                                                     {tag}
                                                 </span>
                                             ))}
@@ -68,14 +68,14 @@ export default function BlogIndex() {
                                             </div>
                                         </div>
 
-                                        <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                                        <h2 className="text-xl font-semibold text-slate-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">
                                             {post.title}
                                         </h2>
                                         <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3">
                                             {post.excerpt}
                                         </p>
 
-                                        <div className="mt-auto flex items-center text-emerald-700 font-bold text-sm">
+                                        <div className="mt-auto flex items-center text-emerald-700 font-medium text-sm">
                                             Leer artículo <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>

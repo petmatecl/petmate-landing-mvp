@@ -36,7 +36,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
     <div className="w-full max-w-md mx-auto">
       {showTitle && (
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">¡Hola, {userName}!</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">¡Hola, {userName}!</h1>
           <p className="text-slate-500">¿Con qué perfil deseas ingresar hoy?</p>
         </div>
       )}
@@ -51,7 +51,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
               <UserIcon />
             </div>
             <div>
-              <span className="block font-bold text-slate-900 text-lg">Ingresar como Usuario</span>
+              <span className="block font-semibold text-slate-900 text-lg">Ingresar como Usuario</span>
               <span className="block text-slate-500 text-sm">Buscar servicios para mis mascotas</span>
             </div>
           </button>
@@ -66,7 +66,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
               <PawIcon />
             </div>
             <div>
-              <span className="block font-bold text-slate-900 text-lg">Ingresar como Proveedor</span>
+              <span className="block font-semibold text-slate-900 text-lg">Ingresar como Proveedor</span>
               <span className="block text-slate-500 text-sm">Gestionar mis servicios y reservas</span>
             </div>
           </button>
@@ -81,7 +81,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ userName, roles = ['
               <ShieldIcon />
             </div>
             <div>
-              <span className="block font-bold text-slate-900 text-lg">Ingresar como Admin</span>
+              <span className="block font-semibold text-slate-900 text-lg">Ingresar como Admin</span>
               <span className="block text-slate-500 text-sm">Panel de Administración</span>
             </div>
           </button>

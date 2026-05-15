@@ -14,7 +14,7 @@ export default function SecurityLogout() {
                     <ShieldAlert className="w-10 h-10 text-emerald-700" />
                 </div>
 
-                <h1 className="text-2xl font-bold text-slate-900 mb-2">
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                     Sesión cerrada por seguridad
                 </h1>
 
@@ -24,7 +24,7 @@ export default function SecurityLogout() {
 
                 <Link
                     href="/login"
-                    className="block w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-6 rounded-xl transition-all transform active:scale-95 shadow-lg shadow-slate-900/20"
+                    className="block w-full bg-slate-900 hover:bg-slate-800 text-white font-medium tracking-wide py-3.5 px-6 rounded-xl transition-all transform active:scale-95 shadow-lg shadow-slate-900/20"
                 >
                     Volver a ingresar
                 </Link>

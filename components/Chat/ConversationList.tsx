@@ -184,7 +184,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline mb-0.5">
-                                <h4 className={`text-sm font-bold truncate ${isActive ? 'text-emerald-900' : 'text-slate-900'}`}>
+                                <h4 className={`text-sm font-semibold truncate ${isActive ? 'text-emerald-900' : 'text-slate-900'}`}>
                                     {other?.nombre} {other?.apellido_p}
                                 </h4>
                                 <span className="text-[10px] text-slate-400 shrink-0">

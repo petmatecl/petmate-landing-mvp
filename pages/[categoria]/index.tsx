@@ -65,7 +65,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 <div className="mb-12 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-2 mb-4">
                         <MapPinIcon className="w-5 h-5 text-emerald-700" />
-                        <h2 className="text-lg font-bold text-slate-900">Busca por comuna en Santiago</h2>
+                        <h2 className="text-lg font-semibold text-slate-900">Busca por comuna en Santiago</h2>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-4">
                         {COMUNAS_SEO.map((comuna) => (
@@ -86,7 +86,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mx-auto mb-6">
                             <Search size={28} className="text-slate-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900">
+                        <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
                             Sin resultados por ahora
                         </h3>
                         <p className="text-slate-500 mt-2 max-w-md mx-auto">
@@ -101,7 +101,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 ) : (
                     <>
                         <div className="flex justify-between items-end mb-6">
-                            <h2 className="text-2xl font-bold text-slate-900">
+                            <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">
                                 Todos los profesionales
                             </h2>
                             <p className="text-slate-500 font-medium">

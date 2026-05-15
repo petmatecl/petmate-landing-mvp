@@ -126,7 +126,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
         <div>
             {/* ── 1. Header ── */}
             <div className="flex items-center justify-between mb-5">
-                <span className="text-base font-bold text-slate-900" aria-hidden="true">Filtros</span>
+                <span className="text-base font-semibold text-slate-900" aria-hidden="true">Filtros</span>
                 {hasActiveFilters && (
                     <button
                         onClick={onClear}
@@ -139,7 +139,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 2. Búsqueda ── */}
             <div className="mb-5">
-                <label htmlFor="sidebar-search" className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                <label htmlFor="sidebar-search" className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
                     Buscar
                 </label>
                 <div className="relative">
@@ -161,7 +161,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 3. Categorías ── */}
             <div className="mb-5 border-t border-slate-100 pt-5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
                     Categoría
                 </label>
 
@@ -216,7 +216,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 4. Comuna ── */}
             <div className="mb-5 border-t border-slate-100 pt-5">
-                <label htmlFor="sidebar-comuna" className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                <label htmlFor="sidebar-comuna" className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
                     Comuna
                 </label>
                 <div className="relative" ref={comunaRef}>
@@ -309,7 +309,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 5. Tipo de mascota ── */}
             <div className="mb-5 border-t border-slate-100 pt-5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
                     Tipo de mascota
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -359,7 +359,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 6. Precio ── */}
             <div className="border-t border-slate-100 pt-5">
-                <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
                     Precio (CLP)
                 </span>
                 <div className="flex items-center gap-2">

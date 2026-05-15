@@ -61,7 +61,7 @@ export default function ProveedorCard({ proveedor }: Props) {
                 {proveedor.es_ejemplo && (
                     <span
                         title="Proveedor de ejemplo. Regístrate para publicar el tuyo."
-                        className="absolute top-3 left-3 z-10 flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-[11px] font-bold uppercase tracking-wide"
+                        className="absolute top-3 left-3 z-10 flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-[11px] font-medium uppercase tracking-widest"
                     >
                         <Sparkles size={10} strokeWidth={1.5} aria-hidden="true" /> EJEMPLO
                     </span>
@@ -70,7 +70,7 @@ export default function ProveedorCard({ proveedor }: Props) {
 
             {/* Contenido */}
             <div className="p-5 flex flex-col flex-grow">
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">
+                <h3 className="font-semibold text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">
                     {proveedor.nombre_publico}
                 </h3>
                 <p className="text-sm text-slate-500 mt-1 truncate">{proveedor.comuna}</p>

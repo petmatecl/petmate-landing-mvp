@@ -104,13 +104,13 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     <header className="mb-10 text-center md:text-left border-b border-slate-300 pb-10">
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
                             {post.tags.map(tag => (
-                                <span key={tag} className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 uppercase tracking-wide">
+                                <span key={tag} className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 uppercase tracking-widest">
                                     {tag}
                                 </span>
                             ))}
                         </div>
 
-                        <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
+                        <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight tracking-tight">
                             {post.title}
                         </h1>
 
@@ -146,10 +146,10 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     {/* Content */}
                     <div
                         className="prose prose-slate prose-lg max-w-none 
-                        prose-headings:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight
+                        prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:tracking-tight
                         prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg
                         prose-a:text-emerald-700 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-                        prose-strong:text-slate-800 prose-strong:font-bold
+                        prose-strong:text-slate-800 prose-strong:font-semibold
                         prose-li:text-slate-600 prose-li:marker:text-emerald-500
                         prose-blockquote:border-l-4 prose-blockquote:border-emerald-200 prose-blockquote:bg-emerald-50/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
                         prose-img:rounded-2xl prose-img:shadow-sm"
@@ -197,7 +197,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                 {/* Related Articles Section */}
                 {relatedPosts.length > 0 && (
                     <section className="border-t border-slate-300 pt-16 mt-16">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-8">Te podría interesar</h2>
+                        <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-8">Te podría interesar</h2>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {relatedPosts.map((relatedPost) => (
                                 <Link href={`/blog/${relatedPost.slug}`} key={relatedPost.id} className="group">
@@ -214,13 +214,13 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
 
                                         {/* Content */}
                                         <div className="p-5 flex flex-col flex-grow">
-                                            <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                                            <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-2">
                                                 {relatedPost.title}
                                             </h3>
                                             <p className="text-slate-500 text-sm line-clamp-2 mb-4">
                                                 {relatedPost.excerpt}
                                             </p>
-                                            <div className="mt-auto flex items-center text-emerald-700 font-bold text-xs uppercase tracking-wide">
+                                            <div className="mt-auto flex items-center text-emerald-700 font-medium text-xs uppercase tracking-widest">
                                                 Leer más <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
                                             </div>
                                         </div>

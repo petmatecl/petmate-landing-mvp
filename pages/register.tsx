@@ -357,7 +357,7 @@ export default function RegisterWizard() {
 
           {/* Progress header */}
           <div className="bg-slate-50 border-b border-slate-100 p-6 sm:px-10 flex flex-col items-center">
-            <h1 className="text-2xl font-bold text-slate-800">Crea tu cuenta en Pawnecta</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Crea tu cuenta en Pawnecta</h1>
             {step < 4 && (
               <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
                 <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step >= 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100'}`}>1</span>
@@ -397,7 +397,7 @@ export default function RegisterWizard() {
                     <div className={`p-4 rounded-full mb-4 ${rol === 'usuario' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                       <Search size={32} />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-800 mb-2">Busco servicios</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Busco servicios</h3>
                     <p className="text-sm text-slate-600">Encuentra proveedores verificados en tu comuna</p>
                   </button>
 
@@ -409,7 +409,7 @@ export default function RegisterWizard() {
                     <div className={`p-4 rounded-full mb-4 ${rol === 'proveedor' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                       <Briefcase size={32} />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-800 mb-2">Ofrezco servicios</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Ofrezco servicios</h3>
                     <p className="text-sm text-slate-600">Publica tus servicios y recibe consultas directo</p>
                   </button>
                 </div>
@@ -443,7 +443,7 @@ export default function RegisterWizard() {
                           : "border-slate-200 hover:border-slate-300"
                           }`}
                       >
-                        <p className="font-bold text-slate-900 text-sm">Persona Natural</p>
+                        <p className="font-semibold text-slate-900 text-sm">Persona Natural</p>
                         <p className="text-xs text-slate-500 mt-0.5">Actúas como individuo, con tu RUT personal</p>
                       </button>
                       <button type="button"
@@ -453,7 +453,7 @@ export default function RegisterWizard() {
                           : "border-slate-200 hover:border-slate-300"
                           }`}
                       >
-                        <p className="font-bold text-slate-900 text-sm">Empresa o Emprendimiento</p>
+                        <p className="font-semibold text-slate-900 text-sm">Empresa o Emprendimiento</p>
                         <p className="text-xs text-slate-500 mt-0.5">SpA, EIRL, sociedad o marca registrada</p>
                       </button>
                     </div>
@@ -645,7 +645,7 @@ export default function RegisterWizard() {
                   const CatIcon = CATEGORIA_ICONS[categoria] ?? Briefcase;
                   return (
                     <div className="bg-slate-50 rounded-xl border border-slate-200 p-5 space-y-4">
-                      <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                         <CatIcon size={16} className="text-emerald-700" />
                         Información específica de tu servicio
                       </h3>
@@ -772,7 +772,7 @@ export default function RegisterWizard() {
                 <div className="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 size={40} />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-4">¡Registro Exitoso!</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">¡Registro Exitoso!</h2>
 
                 <p className="text-slate-600 mb-4 max-w-md mx-auto">
                   <strong>Revisa tu correo electrónico</strong> ({email}) y haz clic en el enlace de confirmación para activar tu cuenta.

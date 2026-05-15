@@ -294,11 +294,11 @@ export default function MessageThread({ conversationId, userId }: Props) {
                         )}
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-800 text-sm">
+                        <h3 className="font-semibold text-slate-900 text-sm">
                             {otherUser.nombre} {otherUser.apellido_p}
                         </h3>
                         {isOnline ? (
-                            <span className="text-[10px] font-bold text-emerald-700 animate-pulse">
+                            <span className="text-[10px] font-medium text-emerald-700 animate-pulse">
                                 ● En línea
                             </span>
                         ) : (
@@ -320,7 +320,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     return (
                         <div key={msg.id}>
                             {showDate && (
-                                <div className="text-center text-[10px] text-slate-400 my-4 uppercase tracking-wider font-bold">
+                                <div className="text-center text-[10px] text-slate-400 my-4 uppercase tracking-widest font-medium">
                                     {format(new Date(msg.created_at), 'EEEE d MMMM', { locale: es })}
                                 </div>
                             )}

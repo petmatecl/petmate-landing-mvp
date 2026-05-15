@@ -30,7 +30,7 @@ export default function EjemploPage({ service, reviews, otrosServicios }: Ejempl
                     </p>
                     <Link
                         href="/register?rol=proveedor"
-                        className="shrink-0 inline-flex items-center bg-white text-emerald-700 font-bold text-sm px-5 py-2 rounded-xl hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                        className="shrink-0 inline-flex items-center bg-white text-emerald-700 font-medium tracking-wide text-sm px-5 py-2 rounded-xl hover:bg-emerald-50 transition-colors whitespace-nowrap"
                     >
                         Publica el tuyo gratis →
                     </Link>
