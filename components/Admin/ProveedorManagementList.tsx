@@ -221,7 +221,7 @@ export default function ProveedorManagementList() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-widest
-                                                ${prov.estado === 'aprobado' ? 'bg-emerald-100 text-emerald-700' :
+                                                ${prov.estado === 'aprobado' ? 'bg-emerald-100 text-emerald-600' :
                                                     prov.estado === 'suspendido' ? 'bg-red-100 text-red-700' :
                                                         prov.estado === 'rechazado' ? 'bg-slate-200 text-slate-600' :
                                                             'bg-amber-100 text-amber-700'

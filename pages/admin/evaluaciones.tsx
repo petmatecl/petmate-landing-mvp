@@ -179,7 +179,7 @@ function GestionEvaluaciones() {
 
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
-            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/50 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
+            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/50 text-emerald-600 border border-emerald-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
             case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
             case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><XCircle size={12} /> Rechazado</span>;
             default: return <span className="bg-slate-100 text-slate-500 px-2 py-1 rounded text-[10px]">{estado}</span>;

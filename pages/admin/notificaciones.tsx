@@ -119,7 +119,7 @@ function AdminNotifications() {
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <div className="bg-emerald-100 p-2 rounded-lg text-emerald-700">
+                                        <div className="bg-emerald-100 p-2 rounded-lg text-emerald-600">
                                             <Bell size={20} />
                                         </div>
                                         <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Contactos esta semana</p>
@@ -142,7 +142,7 @@ function AdminNotifications() {
                                 {activities.map((user) => (
                                     <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm uppercase shrink-0
-                                            ${user.tipo === 'proveedor' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-600'}
+                                            ${user.tipo === 'proveedor' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
                                         `}>
                                             {user.nombre?.[0] || "?"}
                                         </div>
@@ -157,7 +157,7 @@ function AdminNotifications() {
 
                                         {user.tipo === 'proveedor' ? (
                                             user.estado === 'aprobado' ? (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700 uppercase tracking-widest">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-600 uppercase tracking-widest">
                                                     Aprobado
                                                 </span>
                                             ) : (

@@ -187,7 +187,7 @@ function GestionServicios() {
     });
 
     const EstadoBadge = ({ activo }: { activo: boolean }) => {
-        if (activo) return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Activo</span>;
+        if (activo) return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Activo</span>;
         return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-medium uppercase tracking-widest"><EyeOff size={12} /> Oculto</span>;
     };
 
@@ -362,7 +362,7 @@ function GestionServicios() {
                                             <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-[10px] font-medium whitespace-nowrap"><Tag size={10} /> {s.categoria_nombre}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="font-semibold text-emerald-700">${s.precio_desde.toLocaleString('es-CL')}</p>
+                                            <p className="font-semibold text-emerald-600">${s.precio_desde.toLocaleString('es-CL')}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="text-slate-600 font-medium flex items-center gap-1.5"><Eye size={12} className="text-slate-400" /> {s.vistas}</p>

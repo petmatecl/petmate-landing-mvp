@@ -142,7 +142,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 )}
                                 <div>
                                     <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Identidad</span>
-                                    <span className={`text-sm font-semibold ${sitter.rut_verificado ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                    <span className={`text-sm font-semibold ${sitter.rut_verificado ? 'text-emerald-600' : 'text-slate-500'}`}>
                                         {sitter.rut_verificado ? '✓ Verificada' : 'Sin verificar'}
                                     </span>
                                 </div>
