@@ -79,7 +79,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
     if (loading) return <div className="h-20 bg-slate-50 rounded-xl animate-pulse" />;
 
     const statusBadge = (estado: string) => {
-        if (estado === 'aprobado') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> Verificada</span>;
+        if (estado === 'aprobado') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> Verificada</span>;
         if (estado === 'pendiente') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full"><Clock size={10} /> En revisión</span>;
         return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded-full"><XCircle size={10} /> Rechazada</span>;
     };

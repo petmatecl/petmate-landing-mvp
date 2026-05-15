@@ -672,7 +672,7 @@ export default function ProveedorDashboard() {
                                     return (
                                         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center shrink-0">
+                                                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
                                                     <CheckCircle size={24} />
                                                 </div>
                                                 <div>
@@ -693,7 +693,7 @@ export default function ProveedorDashboard() {
                                     <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6">
                                         <div className="flex items-center justify-between mb-3">
                                             <h3 className="font-semibold text-slate-900 text-sm">Completitud del perfil</h3>
-                                            <span className="text-sm font-semibold text-emerald-700">{score}%</span>
+                                            <span className="text-sm font-semibold text-emerald-600">{score}%</span>
                                         </div>
                                         <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                                             <div className="h-full bg-emerald-700 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
@@ -872,7 +872,7 @@ export default function ProveedorDashboard() {
                                     <div id="verificacion-section" className="border border-slate-200 rounded-2xl overflow-hidden">
                                         <div className="flex items-center gap-3 p-5 border-b border-slate-100 bg-slate-50/50">
                                             {verificacionEstado === 'aprobado'
-                                                ? <ShieldCheck size={22} className="text-emerald-700" />
+                                                ? <ShieldCheck size={22} className="text-emerald-500" />
                                                 : verificacionEstado === 'rechazado'
                                                     ? <ShieldX size={22} className="text-red-500" />
                                                     : <Shield size={22} className="text-slate-400" />
@@ -882,7 +882,7 @@ export default function ProveedorDashboard() {
                                                 <p className="text-xs text-slate-500 mt-0.5">Confirma tu identidad con tu RUT y una foto de tu carnet</p>
                                             </div>
                                             {verificacionEstado === 'aprobado' && (
-                                                <span className="bg-emerald-100 text-emerald-700 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full">Verificado</span>
+                                                <span className="bg-emerald-100 text-emerald-600 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full">Verificado</span>
                                             )}
                                             {verificacionEstado === 'pendiente' && (
                                                 <span className="bg-amber-100 text-amber-700 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1.5">
@@ -898,11 +898,11 @@ export default function ProveedorDashboard() {
                                         <div className="p-5">
                                             {/* ESTADO: aprobado */}
                                             {verificacionEstado === 'aprobado' && (
-                                                <div className="flex items-center gap-3 text-emerald-700">
+                                                <div className="flex items-center gap-3 text-emerald-600">
                                                     <CheckCircle size={20} className="shrink-0" />
                                                     <div>
                                                         <p className="font-semibold text-sm">Identidad verificada</p>
-                                                        <p className="text-xs text-emerald-700 mt-0.5">Tu RUT <span className="font-mono font-semibold">{rutInput}</span> fue validado por el equipo de Pawnecta.</p>
+                                                        <p className="text-xs text-emerald-600 mt-0.5">Tu RUT <span className="font-mono font-semibold">{rutInput}</span> fue validado por el equipo de Pawnecta.</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -971,7 +971,7 @@ export default function ProveedorDashboard() {
                                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                                                     <img src={carnetPreview} alt="Vista previa carnet" className="h-16 w-24 object-cover rounded-lg border border-emerald-200" />
                                                                     <div>
-                                                                        <p className="text-sm font-semibold text-emerald-700">Foto lista</p>
+                                                                        <p className="text-sm font-semibold text-emerald-600">Foto lista</p>
                                                                         <p className="text-xs text-slate-500">{carnetFile?.name}</p>
                                                                     </div>
                                                                 </div>
@@ -998,7 +998,7 @@ export default function ProveedorDashboard() {
                                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                                                     <img src={carnetDorsoPreview} alt="Vista previa dorso" className="h-16 w-24 object-cover rounded-lg border border-emerald-200" />
                                                                     <div>
-                                                                        <p className="text-sm font-semibold text-emerald-700">Foto lista</p>
+                                                                        <p className="text-sm font-semibold text-emerald-600">Foto lista</p>
                                                                         <p className="text-xs text-slate-500">{carnetDorsoFile?.name}</p>
                                                                     </div>
                                                                 </div>
@@ -1318,11 +1318,11 @@ export default function ProveedorDashboard() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* STAT 1: Vistas */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.vistas}</h3>
                                     <p className="text-slate-500 text-sm mb-1">Vistas de Perfil (7 días)</p>
                                     {stats.vistasTrend && (
-                                        <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-emerald-700' : 'text-red-500'}`}>
+                                        <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                             {stats.vistasTrend}
                                         </p>
                                     )}
@@ -1330,7 +1330,7 @@ export default function ProveedorDashboard() {
 
                                 {/* STAT 2: Conversaciones */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center mb-3"><MessageSquare size={20} /></div>
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><MessageSquare size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.consultas}</h3>
                                     <p className="text-slate-500 text-sm">Nuevos mensajes (30 días)</p>
                                 </div>
@@ -1368,7 +1368,7 @@ export default function ProveedorDashboard() {
 
                                 {/* STAT 5: Rating */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center mb-3"><Star size={20} /></div>
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Star size={20} /></div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <h3 className="text-slate-900 text-3xl font-bold">{stats.ratingAvg}</h3>
                                         <div className="flex text-amber-400">
@@ -1380,7 +1380,7 @@ export default function ProveedorDashboard() {
 
                                 {/* STAT 6: Servicios Activos */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5 relative overflow-hidden">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center mb-3"><Briefcase size={20} /></div>
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Briefcase size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.activos} <span className="text-lg text-slate-400">/ {stats.totalActivos}</span></h3>
                                     <p className="text-slate-500 text-sm mb-3">Servicios activos</p>
 

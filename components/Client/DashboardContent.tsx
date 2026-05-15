@@ -330,7 +330,7 @@ export default function DashboardContent() {
                                                 </div>
                                             )}
                                             {evaluadosSet.has(item.servicio_id) && (
-                                                <span className="absolute top-2 right-2 bg-emerald-100 text-emerald-700 text-[10px] font-medium uppercase tracking-widest px-2 py-0.5 rounded-full z-10">
+                                                <span className="absolute top-2 right-2 bg-emerald-100 text-emerald-600 text-[10px] font-medium uppercase tracking-widest px-2 py-0.5 rounded-full z-10">
                                                     ✓ Evaluado
                                                 </span>
                                             )}

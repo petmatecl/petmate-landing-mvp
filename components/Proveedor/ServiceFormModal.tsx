@@ -380,7 +380,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 {comunasCobertura.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                         {comunasCobertura.slice(0, 3).map(c => (
-                            <span key={c} className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-100">
+                            <span key={c} className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full border border-emerald-100">
                                 {c}
                             </span>
                         ))}
@@ -635,7 +635,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {/* ── COMUNAS DE COBERTURA ── */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                                    <MapPin size={14} className="text-emerald-700" />
+                                    <MapPin size={14} className="text-slate-400" />
                                     Comunas donde prestas el servicio <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-xs text-slate-400 mb-2">
@@ -877,7 +877,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 </div>
 
                                 <p className="text-xs text-slate-400 leading-relaxed">
-                                    <span className="font-semibold text-emerald-700">La primera foto es la portada</span>
+                                    <span className="font-semibold text-emerald-600">La primera foto es la portada</span>
                                     {" "}y es la que aparece en el listado. Usa las flechas para reordenar. Puedes subir hasta 8 fotos (JPG, PNG, WebP, max 5MB cada una).
                                 </p>
                             </div>

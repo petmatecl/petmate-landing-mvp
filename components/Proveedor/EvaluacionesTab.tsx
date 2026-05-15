@@ -77,7 +77,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                         {/* Respuesta existente */}
                                         {ev.respuesta_proveedor && (
                                             <div className="bg-slate-50 border-l-2 border-emerald-600 pl-4 mt-4 py-2">
-                                                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-widest mb-1">Tu respuesta</p>
+                                                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Tu respuesta</p>
                                                 <p className="text-sm text-slate-600">{ev.respuesta_proveedor}</p>
                                             </div>
                                         )}
