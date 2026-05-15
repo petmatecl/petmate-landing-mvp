@@ -107,14 +107,15 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                             type="text"
                             value={pregunta}
                             onChange={e => setPregunta(e.target.value)}
-                            placeholder={user ? 'Escribe tu pregunta...' : 'Inicia sesión para preguntar'}
-                            disabled={!user}
+                            placeholder={isExample ? 'Escribe tu pregunta...' : (user ? 'Escribe tu pregunta...' : 'Inicia sesión para preguntar')}
+                            disabled={!isExample && !user}
                             maxLength={300}
                             className="flex-1 h-10 px-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none disabled:opacity-50"
                         />
                         <button
                             type="submit"
-                            disabled={submitting || !user || !pregunta.trim()}
+                            disabled={submitting || (!isExample && !user) || (!isExample && !pregunta.trim())}
+                            onClick={isExample ? (e) => { e.preventDefault(); onExampleAction?.(); } : undefined}
                             className="px-4 h-10 bg-emerald-700 text-white text-sm font-semibold rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
                         >
                             {submitting && <Loader2 size={14} className="animate-spin" />}
