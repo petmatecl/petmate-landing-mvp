@@ -283,7 +283,7 @@ export default function ProveedorApprovalList() {
                                         <div className="space-y-3">
                                             <div className="text-sm">
                                                 <span className="text-slate-400 text-xs font-medium uppercase tracking-widest block mb-1">RUT</span>
-                                                <span className="font-mono font-medium text-slate-800 bg-slate-100 px-2 py-1 rounded">{prov.rut || '—'}</span>
+                                                <span className="font-mono font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded">{prov.rut || '—'}</span>
                                             </div>
                                             {(prov.foto_carnet || prov.foto_rut) && (
                                                 <button onClick={() => setSelectedImage(prov.foto_carnet || prov.foto_rut)}
@@ -323,7 +323,7 @@ export default function ProveedorApprovalList() {
                             <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <ShieldCheck size={32} />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-800 mb-2">Sin verificaciones pendientes</h3>
+                            <h3 className="text-lg font-bold text-slate-700 mb-2">Sin verificaciones pendientes</h3>
                             <p className="text-slate-500">Todos los carnets han sido revisados.</p>
                         </div>
                     ) : (

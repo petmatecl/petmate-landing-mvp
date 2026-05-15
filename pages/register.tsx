@@ -385,7 +385,7 @@ export default function RegisterWizard() {
             {step === 1 && (
               <div className="animate-fade-in space-y-4">
                 <div className="text-center mb-8">
-                  <h2 className="text-lg font-semibold text-slate-800">¿Cómo quieres usar Pawnecta?</h2>
+                  <h2 className="text-lg font-semibold text-slate-700">¿Cómo quieres usar Pawnecta?</h2>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -428,7 +428,7 @@ export default function RegisterWizard() {
             {/* Step 2: Personal Info (Both Roles) */}
             {step === 2 && (
               <div className="animate-fade-in space-y-5">
-                <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Tus datos personales</h2>
+                <h2 className="text-lg font-semibold text-slate-700 border-b border-slate-100 pb-2">Tus datos personales</h2>
 
                 {rol === 'proveedor' && (
                   <div className="mb-6">
@@ -605,7 +605,7 @@ export default function RegisterWizard() {
             {/* Step 3: Provider Info (Only if Provider) */}
             {step === 3 && rol === 'proveedor' && (
               <div className="animate-fade-in space-y-5">
-                <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Cuéntanos sobre tu servicio</h2>
+                <h2 className="text-lg font-semibold text-slate-700 border-b border-slate-100 pb-2">Cuéntanos sobre tu servicio</h2>
 
                 {/* Combobox de comunas */}
                 <div ref={comunaRef}>
@@ -628,7 +628,7 @@ export default function RegisterWizard() {
                           <li key={c}>
                             <button
                               type="button"
-                              className="w-full text-left px-4 py-2.5 text-sm text-slate-800 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                              className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                               onMouseDown={() => { setComunaQuery(c); setShowComunaList(false); }}
                             >
                               {c}

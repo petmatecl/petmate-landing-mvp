@@ -76,7 +76,7 @@ export default function QuickSearch() {
                             autoFocus
                             className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 block pl-9 p-2.5 transition-colors placeholder-slate-400 outline-none"
                         />
-                        <button type="button" onClick={() => setIsOpenMobile(false)} className="ml-3 text-slate-500 font-medium text-sm hover:text-slate-800">
+                        <button type="button" onClick={() => setIsOpenMobile(false)} className="ml-3 text-slate-500 font-medium text-sm hover:text-slate-700">
                             Cancelar
                         </button>
                     </form>

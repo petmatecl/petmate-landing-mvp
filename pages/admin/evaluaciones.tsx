@@ -336,7 +336,7 @@ function GestionEvaluaciones() {
                                     <div className="flex items-center gap-6 text-sm">
                                         <div>
                                             <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">Proveedor Evaluado</p>
-                                            <p className="font-semibold text-slate-800 flex items-center gap-1.5"><UserIcon size={14} className="text-slate-400" /> {evaluacion.proveedor_nombre} {evaluacion.proveedor_apellido}</p>
+                                            <p className="font-semibold text-slate-700 flex items-center gap-1.5"><UserIcon size={14} className="text-slate-400" /> {evaluacion.proveedor_nombre} {evaluacion.proveedor_apellido}</p>
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">Servicio</p>

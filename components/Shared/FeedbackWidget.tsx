@@ -189,14 +189,14 @@ export default function FeedbackWidget() {
                     {sent ? (
                         <div className="p-6 text-center">
                             <Check size={32} className="text-emerald-500 mx-auto mb-2" />
-                            <p className="text-sm font-semibold text-slate-800">Gracias, te leeremos.</p>
+                            <p className="text-sm font-semibold text-slate-700">Gracias, te leeremos.</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="p-4 space-y-3">
                             {/* Identificación: read-only si logueado, dropdown si anon */}
                             {isAuthenticated ? (
                                 <div className="text-xs text-slate-500">
-                                    Vas a enviar como: <span className="font-semibold text-slate-800">{ROL_LABELS[rolDetectado]}</span>
+                                    Vas a enviar como: <span className="font-semibold text-slate-700">{ROL_LABELS[rolDetectado]}</span>
                                 </div>
                             ) : (
                                 <div>

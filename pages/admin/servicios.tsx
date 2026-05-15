@@ -222,7 +222,7 @@ function GestionServicios() {
                             <ShieldCheck size={24} />
                         </div>
                         <div>
-                            <p className="text-4xl font-bold text-slate-800 mb-1">{statsData.activosCount}</p>
+                            <p className="text-4xl font-bold text-slate-700 mb-1">{statsData.activosCount}</p>
                             <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Servicios Activos (Públicos)</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
@@ -240,7 +240,7 @@ function GestionServicios() {
                             <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Servicio Más Visto</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
-                            <p className="text-xs font-semibold text-slate-600 flex items-center gap-1"><Eye size={12} className="text-slate-400" /> Acumulando <strong className="text-slate-800">{statsData.mvpViews}</strong> visualizaciones perfil.</p>
+                            <p className="text-xs font-semibold text-slate-600 flex items-center gap-1"><Eye size={12} className="text-slate-400" /> Acumulando <strong className="text-slate-700">{statsData.mvpViews}</strong> visualizaciones perfil.</p>
                         </div>
                     </div>
 
@@ -415,7 +415,7 @@ function GestionServicios() {
                                     <EstadoBadge activo={modalData.activo} />
                                 </div>
                                 <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">{modalData.titulo}</h3>
-                                <p className="text-sm text-slate-500 mt-1">Proveedor: <span className="font-semibold text-slate-800">{modalData.proveedor_nombre} {modalData.proveedor_apellido}</span></p>
+                                <p className="text-sm text-slate-500 mt-1">Proveedor: <span className="font-semibold text-slate-700">{modalData.proveedor_nombre} {modalData.proveedor_apellido}</span></p>
                             </div>
                             <button onClick={() => setModalData(null)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 transition-colors shrink-0">
                                 <XCircle size={24} />

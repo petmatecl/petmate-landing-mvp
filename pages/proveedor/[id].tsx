@@ -365,7 +365,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Profesión</p>
-                                        <p className="text-sm font-semibold text-slate-800">{proveedor.ocupacion}</p>
+                                        <p className="text-sm font-semibold text-slate-700">{proveedor.ocupacion}</p>
                                     </div>
                                 </div>
                             )}
@@ -376,7 +376,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Edad</p>
-                                        <p className="text-sm font-semibold text-slate-800">{edad} años</p>
+                                        <p className="text-sm font-semibold text-slate-700">{edad} años</p>
                                     </div>
                                 </div>
                             )}
@@ -387,7 +387,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Género</p>
-                                        <p className="text-sm font-semibold text-slate-800">{generoLabel[proveedor.genero]}</p>
+                                        <p className="text-sm font-semibold text-slate-700">{generoLabel[proveedor.genero]}</p>
                                     </div>
                                 </div>
                             )}
@@ -398,7 +398,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Experiencia</p>
-                                        <p className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</p>
+                                        <p className="text-sm font-semibold text-slate-700">{proveedor.anios_experiencia} años</p>
                                     </div>
                                 </div>
                             )}
@@ -408,7 +408,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 </div>
                                 <div>
                                     <p className="text-[11px] text-slate-400 font-medium">En Pawnecta</p>
-                                    <p className="text-sm font-semibold text-slate-800">Desde {miembroDesde}</p>
+                                    <p className="text-sm font-semibold text-slate-700">Desde {miembroDesde}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -417,7 +417,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 </div>
                                 <div>
                                     <p className="text-[11px] text-slate-400 font-medium">Servicios activos</p>
-                                    <p className="text-sm font-semibold text-slate-800">{servicios.length}</p>
+                                    <p className="text-sm font-semibold text-slate-700">{servicios.length}</p>
                                 </div>
                             </div>
                         </div>
@@ -446,7 +446,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     <Clock size={17} className="text-emerald-700 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Experiencia</p>
-                                        <p className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</p>
+                                        <p className="text-sm font-semibold text-slate-700">{proveedor.anios_experiencia} años</p>
                                     </div>
                                 </div>
                             )}
@@ -456,7 +456,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     <ShieldCheck size={17} className="text-emerald-700 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Certificaciones</p>
-                                        <p className="text-sm font-semibold text-slate-800">{proveedor.certificaciones}</p>
+                                        <p className="text-sm font-semibold text-slate-700">{proveedor.certificaciones}</p>
                                     </div>
                                 </div>
                             )}
@@ -479,7 +479,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                         <ShieldCheck size={17} className="text-slate-400 shrink-0 mt-0.5" />
                                         <div>
                                             <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">{LABELS_CAMPOS[key] ?? key}</p>
-                                            <p className="text-sm font-semibold text-slate-800">{formatValor(key, value)}</p>
+                                            <p className="text-sm font-semibold text-slate-700">{formatValor(key, value)}</p>
                                         </div>
                                     </div>
                                 ))

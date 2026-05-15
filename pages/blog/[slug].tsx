@@ -149,7 +149,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:tracking-tight
                         prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg
                         prose-a:text-emerald-700 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-                        prose-strong:text-slate-800 prose-strong:font-semibold
+                        prose-strong:text-slate-700 prose-strong:font-semibold
                         prose-li:text-slate-600 prose-li:marker:text-emerald-500
                         prose-blockquote:border-l-4 prose-blockquote:border-emerald-200 prose-blockquote:bg-emerald-50/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
                         prose-img:rounded-2xl prose-img:shadow-sm"

@@ -137,7 +137,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                             <div className="flex items-start gap-2">
                                 <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
                                 <div className="flex-1">
-                                    <p className="text-sm text-slate-800">{q.pregunta}</p>
+                                    <p className="text-sm text-slate-700">{q.pregunta}</p>
                                     <p className="text-[11px] text-slate-400 mt-1">
                                         {formatDistanceToNow(new Date(q.created_at), { addSuffix: true, locale: es })}
                                     </p>

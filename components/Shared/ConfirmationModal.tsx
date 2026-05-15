@@ -75,7 +75,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-300 flex justify-end gap-3">
                                     <button
                                         onClick={onClose}
-                                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                                     >
                                         {cancelText}
                                     </button>

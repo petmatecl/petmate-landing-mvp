@@ -126,7 +126,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-lg font-semibold text-slate-800">Resumen general</h2>
+                    <h2 className="text-lg font-semibold text-slate-700">Resumen general</h2>
                     <p className="text-xs text-slate-400 mt-0.5">Datos en tiempo real de la plataforma.</p>
                 </div>
                 <button

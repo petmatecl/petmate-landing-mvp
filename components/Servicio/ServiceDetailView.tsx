@@ -499,7 +499,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 px-6 text-center">
                                         <Link
                                             href="/proveedor?tab=servicios"
-                                            className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md text-slate-800 text-sm font-semibold px-5 py-3 rounded-xl shadow-lg hover:bg-white transition-colors"
+                                            className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md text-slate-700 text-sm font-semibold px-5 py-3 rounded-xl shadow-lg hover:bg-white transition-colors"
                                         >
                                             Agrega fotos para destacar tu servicio →
                                         </Link>
@@ -687,7 +687,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                     )}
                                                     <div className="min-w-0">
                                                         <p className="text-xs text-slate-500 font-medium capitalize">{label}</p>
-                                                        {!isBoolean && <p className="text-sm text-slate-800 font-semibold mt-0.5 break-words">{String(val)}</p>}
+                                                        {!isBoolean && <p className="text-sm text-slate-700 font-semibold mt-0.5 break-words">{String(val)}</p>}
                                                     </div>
                                                 </div>
                                             );

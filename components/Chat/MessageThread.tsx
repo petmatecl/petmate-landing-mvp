@@ -328,7 +328,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                 <div
                                     className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-sm text-sm ${isMe
                                         ? 'bg-emerald-700 text-white rounded-tr-none'
-                                        : 'bg-white text-slate-800 rounded-tl-none border-2 border-slate-300'
+                                        : 'bg-white text-slate-700 rounded-tl-none border-2 border-slate-300'
                                         } ${isTemp ? 'opacity-70' : ''}`}
                                 >
                                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
