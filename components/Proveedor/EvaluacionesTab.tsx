@@ -42,11 +42,10 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
         <div className="animate-in fade-in duration-300">
             <h1 className="text-2xl font-bold text-slate-900 mb-8">Evaluaciones Recibidas</h1>
 
-            <div className="mb-10">
-                <ReviewSummary proveedorId={proveedorId} />
-            </div>
-
             {evaluaciones.length === 0 ? (
+                // Solo el empty state contextual al proveedor. ReviewSummary
+                // tiene su propio empty state con copy para tutor ("Sé el
+                // primero en evaluar este servicio") que NO aplica acá.
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
                     <EmptyState
                         icon={<Star size={36} />}
@@ -55,6 +54,10 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                     />
                 </div>
             ) : (
+                <>
+                <div className="mb-10">
+                    <ReviewSummary proveedorId={proveedorId} />
+                </div>
                 <div className="grid gap-4">
                     {evaluaciones.map(ev => {
                         const hasReplied = submitted.has(ev.id) || ev.respuesta_proveedor;
@@ -125,6 +128,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                         );
                     })}
                 </div>
+                </>
             )}
         </div>
     );
