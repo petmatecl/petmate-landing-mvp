@@ -104,7 +104,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     <header className="mb-10 text-center md:text-left border-b border-slate-300 pb-10">
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
                             {post.tags.map(tag => (
-                                <span key={tag} className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 uppercase tracking-widest">
+                                <span key={tag} className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600 uppercase tracking-widest">
                                     {tag}
                                 </span>
                             ))}

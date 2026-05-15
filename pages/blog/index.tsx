@@ -18,7 +18,7 @@ export default function BlogIndex() {
                 {/* Hero Section */}
                 <div className="bg-slate-50 py-16 mb-16 border-b border-slate-300">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-medium uppercase tracking-widest text-xs mb-4">
+                        <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-600 font-medium uppercase tracking-widest text-xs mb-4">
                             Blog Pawnecta
                         </span>
                         <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">

@@ -78,12 +78,12 @@ export default function ProveedorCard({ proveedor }: Props) {
                 {(proveedor.rut_verificado || proveedor.perfil_completo) && (
                     <div className="flex flex-wrap gap-1.5 mt-3">
                         {proveedor.rut_verificado && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-semibold">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-[11px] font-medium">
                                 <ShieldCheck size={10} strokeWidth={1.5} aria-hidden="true" /> Verificado
                             </span>
                         )}
                         {proveedor.perfil_completo && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-semibold">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-[11px] font-medium">
                                 <BadgeCheck size={10} strokeWidth={1.5} aria-hidden="true" /> Perfil completo
                             </span>
                         )}

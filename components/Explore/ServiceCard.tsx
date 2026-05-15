@@ -130,7 +130,7 @@ export default function ServiceCard({ service }: Props) {
                     ) && (
                             <span className="flex items-center gap-1 shrink-0 ml-auto">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                                <span className="text-xs text-emerald-700">Activo</span>
+                                <span className="text-xs text-emerald-600">Activo</span>
                             </span>
                         )}
                 </div>
@@ -154,7 +154,7 @@ export default function ServiceCard({ service }: Props) {
                             </span>
                         )}
                         {service.proveedor_verificado && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-semibold">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-[11px] font-medium">
                                 <ShieldCheck size={10} /> Verificado
                             </span>
                         )}

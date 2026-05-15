@@ -48,7 +48,7 @@ export default function QuienesSomos() {
                             </div>
 
                             <div className="w-full lg:w-2/3">
-                                <h2 className="text-3xl font-semibold text-emerald-700 tracking-tight mb-6">Nuestra misión</h2>
+                                <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-6">Nuestra misión</h2>
                                 <p className="text-lg">
                                     Conectar a los dueños de mascotas con los mejores profesionales de su comuna — de forma simple, transparente y segura. Creemos que cada mascota merece atención de calidad, y cada dueño merece la tranquilidad de saber con quién la deja.
                                 </p>
@@ -62,15 +62,15 @@ export default function QuienesSomos() {
 
                                 <div className="space-y-6">
                                     <div>
-                                        <h3 className="text-lg font-semibold text-emerald-700">Proveedores verificados</h3>
+                                        <h3 className="text-lg font-semibold text-slate-900">Proveedores verificados</h3>
                                         <p>Cada persona que ofrece servicios en Pawnecta pasa por verificación de identidad con RUT y documento oficial. Sabes exactamente con quién tratas.</p>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-emerald-700">Evaluaciones reales</h3>
+                                        <h3 className="text-lg font-semibold text-slate-900">Evaluaciones reales</h3>
                                         <p>Solo los usuarios que contactaron al proveedor pueden dejar una evaluación. Sin bots, sin reseñas compradas. Solo experiencias reales.</p>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-emerald-700">Todos los servicios en un lugar</h3>
+                                        <h3 className="text-lg font-semibold text-slate-900">Todos los servicios en un lugar</h3>
                                         <p>Hospedaje, paseos, peluquería, veterinario a domicilio, adiestramiento y más. Ya no necesitas buscar en cinco sitios distintos.</p>
                                     </div>
                                 </div>

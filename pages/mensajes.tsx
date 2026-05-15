@@ -41,7 +41,7 @@ export default function MensajesPage() {
         return (
             <>
                 <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                    <Loader2 className="w-8 h-8 text-emerald-700 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
                 </div>
             </>
         );
@@ -60,7 +60,7 @@ export default function MensajesPage() {
                 <div className="mb-6 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-                            <MessageSquare className="text-emerald-700" size={32} />
+                            <MessageSquare className="text-emerald-600" size={32} />
                             Mensajes
                         </h1>
                         <p className="text-slate-600 mt-2">

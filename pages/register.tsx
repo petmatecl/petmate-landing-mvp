@@ -646,7 +646,7 @@ export default function RegisterWizard() {
                   return (
                     <div className="bg-slate-50 rounded-xl border border-slate-200 p-5 space-y-4">
                       <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                        <CatIcon size={16} className="text-emerald-700" />
+                        <CatIcon size={16} className="text-emerald-600" />
                         Información específica de tu servicio
                       </h3>
                       {(() => {
@@ -769,7 +769,7 @@ export default function RegisterWizard() {
             {/* Step 4: Success Message */}
             {step === 4 && (
               <div className="animate-fade-in text-center py-6">
-                <div className="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 size={40} />
                 </div>
                 <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">¡Registro Exitoso!</h2>
