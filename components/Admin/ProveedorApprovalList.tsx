@@ -430,7 +430,7 @@ export default function ProveedorApprovalList() {
                 <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
                         <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6"><AlertTriangle size={24} /></div>
-                        <h2 className="text-xl font-black text-slate-900 mb-2">Rechazar Solicitud</h2>
+                        <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Rechazar Solicitud</h2>
                         <p className="text-sm text-slate-500 mb-6">Indica el motivo del rechazo. El usuario recibirá esta información por correo.</p>
                         <form onSubmit={handleRechazar}>
                             <div className="mb-6">
@@ -457,7 +457,7 @@ export default function ProveedorApprovalList() {
                 <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
                         <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6"><ShieldX size={24} /></div>
-                        <h2 className="text-xl font-black text-slate-900 mb-2">Rechazar Verificación</h2>
+                        <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Rechazar Verificación</h2>
                         <p className="text-sm text-slate-500 mb-6">El proveedor verá este mensaje en su dashboard y podrá reenviar su solicitud.</p>
                         <form onSubmit={handleRechazarVerif}>
                             <div className="mb-6">

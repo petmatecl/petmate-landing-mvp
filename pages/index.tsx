@@ -50,7 +50,7 @@ function PrelaunchDemandCapture() {
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-black text-slate-900 mb-4">Sé el primero en enterarte</h2>
+        <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-4">Sé el primero en enterarte</h2>
         <p className="text-slate-600 max-w-xl mx-auto mb-8">
           Estamos activando proveedores verificados en cada categoría y comuna. Deja tu correo y te avisamos cuando haya opciones disponibles cerca tuyo.
         </p>
@@ -379,8 +379,8 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
 
           {/* Texto + buscador */}
           <div className="flex-1 max-w-xl w-full">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900
-                           leading-tight mb-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900
+                           leading-tight tracking-tight mb-4">
               Servicios para tu mascota,{" "}
               <span className="text-emerald-700">cerca de ti</span>
             </h1>
@@ -426,7 +426,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       ═══════════════════════════════════════════ */}
       <section aria-labelledby="trust-heading" className="bg-white py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
         <div className="max-w-6xl mx-auto">
-          <h2 id="trust-heading" className="text-3xl md:text-4xl font-black text-slate-900 text-center mb-12 tracking-tight">
+          <h2 id="trust-heading" className="text-3xl md:text-4xl font-semibold text-slate-900 text-center mb-12 tracking-tight">
             Por qué confiar en Pawnecta
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -560,7 +560,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       <section aria-label="Cómo funciona para dueños de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
         <div className="mb-16">
           <p className="text-emerald-700 font-bold uppercase tracking-widest text-sm mb-3">Para dueños de mascotas</p>
-          <h2 className="text-3xl font-black text-slate-900">Encuentra al proveedor ideal en minutos</h2>
+          <h2 className="text-3xl font-semibold text-slate-900 tracking-tight">Encuentra al proveedor ideal en minutos</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <StepCard paso={1} titulo="Busca por servicio y comuna" descripcion="Filtra por el servicio que necesitas y encuentra proveedores cerca de ti" Icon={Search} variante="light" />
@@ -576,7 +576,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
         <section aria-label="Verificación de proveedores y testimonios" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-black text-slate-900 mb-10">Proveedores que puedes conocer</h2>
+              <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-10">Proveedores que puedes conocer</h2>
               <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-900 p-8 md:px-12 rounded-3xl mb-12 max-w-5xl mx-auto text-left md:text-center">
                 <div className="flex flex-col items-start md:items-center md:flex-1">
                   <IdCard className="w-8 h-8 text-emerald-400 mb-3" />
@@ -607,7 +607,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       ) : (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-2xl font-black text-slate-900 mb-4">Únete a nuestra red de proveedores</h2>
+            <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">Únete a nuestra red de proveedores</h2>
             <p className="text-slate-600 mb-8">Sé de los primeros proveedores en ofrecer tus servicios en tu comuna</p>
             <Link href="/register?rol=proveedor"
               className="inline-flex items-center justify-center h-12 rounded-2xl bg-emerald-700 hover:bg-emerald-800 px-8 text-base font-semibold text-white shadow-sm transition-colors">
@@ -624,7 +624,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <p className="text-emerald-400 font-bold uppercase tracking-widest text-sm mb-3">Para proveedores</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white">Ofrece tus servicios en Pawnecta</h2>
+            <h2 className="text-3xl md:text-4xl font-semibold text-white tracking-tight">Ofrece tus servicios en Pawnecta</h2>
             <p className="text-slate-300 mt-4 text-lg">Visibilidad en búsquedas en tu comuna</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
@@ -647,7 +647,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       ═══════════════════════════════════════════ */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto text-center relative">
-          <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">¿Buscas un servicio para tu mascota?</h2>
+          <h2 className="text-4xl font-semibold text-slate-900 mb-4 tracking-tight">¿Buscas un servicio para tu mascota?</h2>
           <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Explora proveedores verificados en tu comuna ahora.</p>
           <button
             onClick={() => router.push('/explorar')}
@@ -673,7 +673,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto border-t border-slate-200 pt-16">
                 {statsList.map((s, i) => (
                   <div key={i} className="flex flex-col items-center justify-center p-4">
-                    <div className="text-5xl font-black text-emerald-700 mb-3 tracking-tighter">{s.value}</div>
+                    <div className="text-5xl font-bold text-emerald-700 mb-3 tracking-tighter">{s.value}</div>
                     <div className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">
                       {s.value === 1 ? s.singular : s.plural}
                     </div>

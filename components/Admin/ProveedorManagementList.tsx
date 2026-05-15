@@ -215,7 +215,7 @@ export default function ProveedorManagementList() {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="inline-flex flex-col items-center justify-center">
-                                                <span className="font-black text-slate-700 text-lg leading-none">{prov.servicios?.length || 0}</span>
+                                                <span className="font-bold text-slate-700 text-lg leading-none">{prov.servicios?.length || 0}</span>
                                                 <span className="text-[10px] uppercase font-bold text-slate-400">Publicados</span>
                                             </div>
                                         </td>
@@ -286,7 +286,7 @@ export default function ProveedorManagementList() {
                         <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6">
                             <AlertTriangle size={24} />
                         </div>
-                        <h2 className="text-xl font-black text-slate-900 mb-2">Suspender Proveedor</h2>
+                        <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Suspender Proveedor</h2>
                         <p className="text-sm text-slate-500 mb-6">
                             Estás a punto de suspender la cuenta de <strong>{providerToSuspend.nombre} {providerToSuspend.apellido_p}</strong>.
                             Sus servicios dejarán de ser visibles públicamente y no podrá iniciar nuevas conversaciones.

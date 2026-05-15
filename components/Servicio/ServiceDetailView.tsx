@@ -478,7 +478,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 {/* Overlay título */}
                                 {!imgError && (
                                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-6 pt-16 pb-5">
-                                        <h1 className="text-2xl md:text-3xl font-black text-white leading-tight drop-shadow">
+                                        <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight tracking-tight drop-shadow">
                                             {service.titulo}
                                         </h1>
                                         <div className="flex items-center gap-1.5 mt-1.5 text-white/80 text-sm font-medium">
@@ -893,7 +893,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             <div>
                                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Desde</p>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-emerald-700">
+                                    <span className="text-4xl font-bold text-emerald-700">
                                         ${service.precio_desde?.toLocaleString("es-CL")}
                                     </span>
                                     <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>

@@ -148,7 +148,7 @@ export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Lado Izquierdo: Promedio General */}
                 <div className="w-full md:w-1/3 flex flex-col items-center justify-center text-center p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <span className="text-5xl md:text-6xl font-black text-slate-900 leading-none tracking-tight">
+                    <span className="text-5xl md:text-6xl font-bold text-slate-900 leading-none tracking-tight">
                         {stats.promedio.toFixed(1)}
                     </span>
                     <div className="mt-3 mb-2">

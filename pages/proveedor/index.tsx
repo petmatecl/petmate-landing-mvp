@@ -711,7 +711,7 @@ export default function ProveedorDashboard() {
                             })()}
 
                             <div className="flex justify-between items-center mb-8">
-                                <h1 className="text-2xl font-black text-slate-900">Mis Servicios</h1>
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mis Servicios</h1>
                                 <button
                                     onClick={handlePublishClick}
                                     className="bg-[#1A6B4A] hover:bg-emerald-800 text-white font-bold py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
@@ -812,7 +812,7 @@ export default function ProveedorDashboard() {
                     {/* MI PERFIL */}
                     {activeTab === 'perfil' && (
                         <div className="animate-in fade-in duration-300 max-w-3xl">
-                            <h1 className="text-2xl font-black text-slate-900 mb-8">Mi Perfil</h1>
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-8">Mi Perfil</h1>
 
                             <form onSubmit={saveProfile} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                                 {/* Avatar Section */}
@@ -1313,7 +1313,7 @@ export default function ProveedorDashboard() {
                     {/* ESTADÍSTICAS */}
                     {activeTab === 'estadisticas' && (
                         <div className="animate-in fade-in duration-300">
-                            <h1 className="text-2xl font-black text-slate-900 mb-8">Tus Resultados en Pawnecta</h1>
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-8">Tus Resultados en Pawnecta</h1>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* STAT 1: Vistas */}
