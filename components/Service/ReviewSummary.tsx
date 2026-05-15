@@ -105,7 +105,7 @@ export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                     </svg>
                 </div>
-                <h4 className="text-lg font-bold text-slate-800 mb-1">Sin evaluaciones todavía</h4>
+                <h4 className="text-lg font-semibold text-slate-900 mb-1">Sin evaluaciones todavía</h4>
                 <p className="text-sm text-slate-500">Sé el primero en evaluar este servicio.</p>
             </div>
         );
@@ -138,7 +138,7 @@ export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride
 
     return (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
-            <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>

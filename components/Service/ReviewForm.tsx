@@ -153,7 +153,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-                <h4 className="text-emerald-800 font-bold text-lg mb-2">¡Gracias por tu evaluación!</h4>
+                <h4 className="text-emerald-800 font-semibold text-lg mb-2">¡Gracias por tu evaluación!</h4>
                 <p className="text-emerald-700 text-sm max-w-md mx-auto">
                     Será revisada por nuestro equipo antes de publicarse en el perfil del prestador.
                 </p>
@@ -163,12 +163,12 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
 
     return (
         <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 sm:p-8">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">Deja tu evaluación</h3>
+            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-6">Deja tu evaluación</h3>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 {/* 1. Rating interactivo */}
                 <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                         ¿Cómo calificarías el servicio? <span className="text-red-500">*</span>
                     </label>
                     <div className="flex items-center gap-1">
@@ -201,7 +201,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 {/* 2. Textarea */}
                 <div>
                     <div className="flex justify-between items-end mb-2">
-                        <label htmlFor="comentario" className="block text-sm font-bold text-slate-700">
+                        <label htmlFor="comentario" className="block text-sm font-semibold text-slate-700">
                             Cuéntanos tu experiencia <span className="text-red-500">*</span>
                         </label>
                         <span className={`text-xs font-semibold ${comentario.length > 500 || (comentario.length > 0 && comentario.length < 20) ? 'text-red-500' : 'text-slate-400'}`}>
@@ -232,7 +232,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 <button
                     type="submit"
                     disabled={isSubmitting || rating === 0 || comentario.trim().length < 20 || comentario.length > 500}
-                    className="w-full sm:w-auto self-end bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:hover:bg-emerald-800 text-white font-bold py-3 px-8 rounded-xl flex items-center justify-center gap-2 transition-all mt-2"
+                    className="w-full sm:w-auto self-end bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-8 rounded-xl flex items-center justify-center gap-2 transition-all mt-2"
                 >
                     {isSubmitting ? (
                         <>

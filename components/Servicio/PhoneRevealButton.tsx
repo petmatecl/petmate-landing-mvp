@@ -55,7 +55,7 @@ export default function PhoneRevealButton({
                 href={`tel:${telefono}`}
                 onClick={handleClick}
                 aria-label={`Llamar a ${nombre}`}
-                className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+                className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
             >
                 <Phone size={18} aria-hidden="true" />
                 Llamar
@@ -77,7 +77,7 @@ export default function PhoneRevealButton({
                 type="button"
                 onClick={handleReveal}
                 aria-label={`Mostrar teléfono de ${nombre}`}
-                className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+                className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
             >
                 <Phone size={18} aria-hidden="true" />
                 Mostrar teléfono
@@ -100,7 +100,7 @@ export default function PhoneRevealButton({
         <div className="w-full border-2 border-emerald-200 bg-emerald-50/40 rounded-xl py-3 px-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
                 <Phone size={18} className="text-emerald-700 shrink-0" aria-hidden="true" />
-                <span className="font-bold text-slate-900 text-sm tabular-nums truncate">{formatted}</span>
+                <span className="font-semibold text-slate-900 text-sm tabular-nums truncate">{formatted}</span>
             </div>
             <button
                 type="button"

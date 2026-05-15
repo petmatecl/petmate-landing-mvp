@@ -186,14 +186,14 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Sparkles size={16} aria-hidden="true" className="shrink-0" />
                             <p className="text-sm truncate">
-                                <strong className="font-bold uppercase tracking-wide">Ejemplo:</strong>{' '}
+                                <strong className="font-semibold uppercase tracking-widest text-xs">Ejemplo:</strong>{' '}
                                 Este proveedor es ficticio. Para contactar a uno real, regístrate. Es gratis.
                             </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                             <Link
                                 href="/register?rol=usuario"
-                                className="inline-flex items-center bg-amber-900 text-amber-50 font-bold text-xs uppercase tracking-wide px-3 py-1.5 rounded-md hover:bg-amber-800 transition-colors whitespace-nowrap"
+                                className="inline-flex items-center bg-amber-900 text-amber-50 font-medium text-xs uppercase tracking-widest px-3 py-1.5 rounded-md hover:bg-amber-800 transition-colors whitespace-nowrap"
                             >
                                 Registrarme →
                             </Link>
@@ -240,7 +240,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-700 font-bold text-4xl">
+                                <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-700 font-semibold text-4xl">
                                     {proveedor.nombre.charAt(0)}
                                 </div>
                             )}
@@ -249,16 +249,16 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         {/* Info */}
                         <div className="flex-1 text-center sm:text-left">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-                                <h1 className="text-2xl font-bold text-slate-900">
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                                     {displayName}
                                 </h1>
                                 {(proveedor.rut_verificado || proveedor.verificacion_estado === 'aprobado') && (
-                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
+                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
                                         <ShieldCheck size={12} /> Identidad Verificada
                                     </span>
                                 )}
                                 {proveedor.perfil_completo && (
-                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
+                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
                                         <BadgeCheck size={12} /> Perfil completo
                                     </span>
                                 )}
@@ -353,7 +353,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* ══ QUIÉN SOY (persona natural) ═══════════════════════════ */}
                 {tieneInfoPersonal && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 className="text-base font-bold text-slate-900 mb-5 flex items-center gap-2">
+                        <h2 className="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
                             <User size={16} className="text-emerald-700" />
                             Quién soy
                         </h2>
@@ -427,7 +427,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* ══ BIO ═══════════════════════════════════════════════════ */}
                 {bioTexto && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 className="text-base font-bold text-slate-900 mb-3">{esPersonaNatural ? 'Sobre mí' : 'Sobre el proveedor'}</h2>
+                        <h2 className="text-base font-semibold text-slate-900 mb-3">{esPersonaNatural ? 'Sobre mí' : 'Sobre el proveedor'}</h2>
                         <BioExpandible bio={bioTexto} maxChars={400} />
                     </section>
                 )}
@@ -435,7 +435,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* ══ CREDENCIALES ══════════════════════════════════════════ */}
                 {(tieneTrustSignals || tieneDatosEspecificos) && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
                             <ShieldCheck size={17} className="text-emerald-700" />
                             Experiencia y credenciales
                         </h2>
@@ -445,7 +445,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
                                     <Clock size={17} className="text-emerald-700 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Experiencia</p>
+                                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Experiencia</p>
                                         <p className="text-sm font-semibold text-slate-800">{proveedor.anios_experiencia} años</p>
                                     </div>
                                 </div>
@@ -455,7 +455,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
                                     <ShieldCheck size={17} className="text-emerald-700 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Certificaciones</p>
+                                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Certificaciones</p>
                                         <p className="text-sm font-semibold text-slate-800">{proveedor.certificaciones}</p>
                                     </div>
                                 </div>
@@ -465,7 +465,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 <div className="flex items-start gap-3 p-3.5 bg-red-50 rounded-xl border border-red-100">
                                     <span className="w-[17px] h-[17px] rounded-full bg-red-500 text-white flex items-center justify-center shrink-0 text-[10px] font-black mt-0.5">+</span>
                                     <div>
-                                        <p className="text-[11px] text-red-400 font-bold uppercase tracking-wide">Primeros Auxilios</p>
+                                        <p className="text-[11px] text-red-400 font-medium uppercase tracking-widest">Primeros Auxilios</p>
                                         <p className="text-sm font-semibold text-red-800">Certificado</p>
                                     </div>
                                 </div>
@@ -478,7 +478,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     <div key={key} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
                                         <ShieldCheck size={17} className="text-slate-400 shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">{LABELS_CAMPOS[key] ?? key}</p>
+                                            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">{LABELS_CAMPOS[key] ?? key}</p>
                                             <p className="text-sm font-semibold text-slate-800">{formatValor(key, value)}</p>
                                         </div>
                                     </div>
@@ -491,7 +491,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* ══ GALERÍA ═══════════════════════════════════════════════ */}
                 {tieneGaleria && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
                             <Camera size={17} className="text-emerald-700" />
                             Fotos del espacio
                         </h2>
@@ -508,7 +508,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                         <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                                         {i === 2 && proveedor.galeria.length > 3 && (
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                <span className="text-white font-bold text-lg">+{proveedor.galeria.length - 3} fotos</span>
+                                                <span className="text-white font-semibold text-lg">+{proveedor.galeria.length - 3} fotos</span>
                                             </div>
                                         )}
                                     </div>
@@ -520,7 +520,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
                 {/* ══ SERVICIOS ═════════════════════════════════════════════ */}
                 <section>
-                    <h2 className="text-xl font-bold text-slate-900 mb-4">Servicios ofrecidos</h2>
+                    <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-4">Servicios ofrecidos</h2>
                     {servicios.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             {servicios.map((srv) => (
@@ -536,7 +536,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
                 {/* ══ EVALUACIONES ══════════════════════════════════════════ */}
                 <section className="space-y-4">
-                    <h2 className="text-xl font-bold text-slate-900">Evaluaciones</h2>
+                    <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Evaluaciones</h2>
                     {globalTotalEvaluaciones === 0 ? (
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
                             <Star size={32} className="text-slate-200 mx-auto mb-3" />

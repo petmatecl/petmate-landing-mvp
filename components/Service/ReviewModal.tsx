@@ -92,7 +92,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                 {/* Header */}
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-800">Deja tu evaluación</h2>
+                        <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Deja tu evaluación</h2>
                         <p className="text-sm text-slate-500 truncate max-w-[300px]">{serviceTitle}</p>
                     </div>
                     {!success && (
@@ -112,7 +112,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                             <div className="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </div>
-                            <h3 className="text-2xl font-bold text-slate-800 mb-2">¡Gracias por tu reseña!</h3>
+                            <h3 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">¡Gracias por tu reseña!</h3>
                             <p className="text-slate-600 max-w-sm mx-auto">
                                 Tu evaluación ha sido enviada y será revisada por nuestro equipo antes de ser publicada.
                             </p>
@@ -189,14 +189,14 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors"
+                                    className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 font-normal hover:bg-slate-50 transition-colors"
                                     disabled={isSubmitting}
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl transition-colors flex justify-center items-center shadow-md shadow-emerald-200"
+                                    className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-6 rounded-xl transition-colors flex justify-center items-center shadow-md shadow-emerald-200"
                                     disabled={isSubmitting || comentario.length > 500}
                                 >
                                     {isSubmitting ? (

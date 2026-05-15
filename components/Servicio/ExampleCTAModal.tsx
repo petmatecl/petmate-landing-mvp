@@ -76,7 +76,7 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                             <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-700">
                                 <Sparkles size={20} aria-hidden="true" />
                             </div>
-                            <h2 id="example-cta-title" className="text-base font-bold text-slate-900 mt-2">
+                            <h2 id="example-cta-title" className="text-base font-semibold text-slate-900 mt-2">
                                 Esta es una vista de ejemplo
                             </h2>
                         </div>

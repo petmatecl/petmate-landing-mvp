@@ -93,7 +93,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
 
     return (
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+            <h3 className="text-xl font-semibold text-slate-900 mb-2 flex items-center gap-2">
                 <MessageCircle size={22} className="text-emerald-500" />
                 Preguntas al proveedor
             </h3>
@@ -135,7 +135,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                     {visible.map(q => (
                         <div key={q.id} className="border-t border-slate-100 pt-4">
                             <div className="flex items-start gap-2">
-                                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
+                                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
                                 <div className="flex-1">
                                     <p className="text-sm text-slate-800">{q.pregunta}</p>
                                     <p className="text-[11px] text-slate-400 mt-1">
@@ -146,7 +146,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
 
                             {q.respuesta ? (
                                 <div className="flex items-start gap-2 mt-3 ml-4">
-                                    <span className="text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded shrink-0 mt-0.5">R</span>
+                                    <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded shrink-0 mt-0.5">R</span>
                                     <div>
                                         <p className="text-sm text-slate-600">{q.respuesta}</p>
                                         <p className="text-[11px] text-slate-400 mt-1">
@@ -165,7 +165,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                                                 className="flex-1 h-9 px-3 border border-slate-200 rounded-lg bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                                             />
                                             <button onClick={() => handleReply(q.id)} disabled={replying || !replyText.trim()}
-                                                className="text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
+                                                className="text-xs font-medium bg-slate-900 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
                                                 {replying ? <Loader2 size={12} className="animate-spin" /> : 'Responder'}
                                             </button>
                                             <button onClick={() => { setReplyId(null); setReplyText(''); }}
