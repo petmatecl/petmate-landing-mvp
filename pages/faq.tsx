@@ -66,7 +66,7 @@ export default function FAQ() {
         <>
             <Head>
                 <title>Preguntas Frecuentes | Pawnecta</title>
-                <meta name="description" content="Resuelve tus dudas sobre Pawnecta. Aprende cómo funciona el servicio de cuidado de mascotas más confiable de Chile." />
+                <meta name="description" content="Resuelve tus dudas sobre Pawnecta. Aprende cómo conectamos tutores con cuidadores de confianza en Chile." />
             </Head>
 
             <div className="flex-grow py-12 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">

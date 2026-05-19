@@ -381,8 +381,8 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
           <div className="flex-1 max-w-xl w-full">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900
                            leading-tight tracking-tight mb-4">
-              Servicios para tu mascota,{" "}
-              <span className="text-emerald-700">cerca de ti</span>
+              Conectando tutores con cuidadores de{" "}
+              <span className="text-emerald-700">confianza</span> en Chile
             </h1>
             <p className="text-lg text-slate-500 mb-8">
               Encuentra a alguien de confianza para tu mascota, en tu barrio.

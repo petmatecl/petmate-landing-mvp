@@ -28,7 +28,7 @@ export function Footer() {
             </Link>
           </div>
           <p className="text-sm text-slate-500 leading-relaxed">
-            El directorio de servicios para mascotas más confiable de Chile.
+            Conectamos tutores con cuidadores de confianza en Chile.
           </p>
           <p className="text-xs text-slate-400 leading-relaxed">
             Interactive SpA<br />

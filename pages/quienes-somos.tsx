@@ -21,7 +21,7 @@ export default function QuienesSomos() {
                             Somos Pawnecta
                         </h1>
                         <p className="mt-6 text-lg leading-8 text-slate-600 font-medium">
-                            El marketplace de servicios para mascotas más confiable de Chile
+                            Conectamos tutores con cuidadores de confianza en Chile
                         </p>
                         <p className="mt-4 text-base leading-7 text-slate-600">
                             Pawnecta nació de una pregunta simple: ¿por qué es tan difícil encontrar a alguien de confianza para cuidar a tu mascota? Usuarios dispersos, contactos sin verificar, precios opacos. Decidimos cambiar eso.
