@@ -17,6 +17,7 @@ import ReviewList from '../Service/ReviewList';
 import PreguntasSection from '../Service/PreguntasSection';
 import ServiceCard, { ServiceResult } from '../Explore/ServiceCard';
 import Breadcrumb from '../Shared/Breadcrumb';
+import { instagramUsernameFromUrl } from '../../lib/validators';
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
@@ -1072,14 +1073,21 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                             {proveedor.sitio_web.replace(/^https?:\/\//, '')}
                                                         </a>
                                                     )}
-                                                    {proveedor.instagram && (
-                                                        <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
-                                                            target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
-                                                            className="flex items-center gap-2 text-xs text-slate-500 hover:text-pink-500 transition-colors font-medium">
-                                                            <Instagram size={14} className="shrink-0" />
-                                                            @{proveedor.instagram.replace('@', '')}
-                                                        </a>
-                                                    )}
+                                                    {proveedor.instagram && (() => {
+                                                        const igUser = instagramUsernameFromUrl(proveedor.instagram);
+                                                        if (!igUser) return null;
+                                                        const igHref = proveedor.instagram.startsWith('http')
+                                                            ? proveedor.instagram
+                                                            : `https://instagram.com/${igUser}`;
+                                                        return (
+                                                            <a href={igHref}
+                                                                target="_blank" rel="noopener noreferrer" onClick={handleProtectedLinkClick}
+                                                                className="flex items-center gap-2 text-xs text-slate-500 hover:text-pink-500 transition-colors font-medium">
+                                                                <Instagram size={14} className="shrink-0" />
+                                                                @{igUser}
+                                                            </a>
+                                                        );
+                                                    })()}
                                                 </>
                                             ) : (
                                                 <EmptyFieldState

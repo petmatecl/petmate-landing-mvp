@@ -17,6 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
+import { normalizeUrl, normalizeChileanPhone, normalizeInstagram } from '../../lib/validators';
 import { COMUNAS_CHILE } from '../../lib/comunas';
 import Link from 'next/link';
 import {
@@ -324,14 +325,36 @@ export default function ProveedorDashboard() {
             toast.error('El RUT de la empresa no es válido. Verifica el dígito verificador.');
             return;
         }
+        // Validaciones de formato URL / telefono / instagram. Permite vacios
+        // (campos opcionales). Si tiene valor pero formato invalido, error inline.
+        const sitioWebNormalizado = sitioWeb ? normalizeUrl(sitioWeb) : null;
+        if (sitioWeb && !sitioWebNormalizado) {
+            toast.error('El sitio web no es una URL válida. Ej: midominio.cl');
+            return;
+        }
+        const whatsappNormalizado = whatsapp ? normalizeChileanPhone(whatsapp) : null;
+        if (whatsapp && !whatsappNormalizado) {
+            toast.error('El WhatsApp no es un número chileno válido. Ej: +56912345678');
+            return;
+        }
+        const telefonoNormalizado = telefono ? normalizeChileanPhone(telefono) : null;
+        if (telefono && !telefonoNormalizado) {
+            toast.error('El teléfono no es un número chileno válido. Ej: +56912345678');
+            return;
+        }
+        const instagramNormalizado = instagram ? normalizeInstagram(instagram) : null;
+        if (instagram && !instagramNormalizado) {
+            toast.error('El usuario de Instagram no es válido. Ej: @mi_cuenta');
+            return;
+        }
         setSavingProfile(true);
         try {
             const payload: Record<string, any> = {
                 nombre_publico: nombrePublico.trim() || null,
                 bio: bio || null,
                 comuna: comuna || null,
-                whatsapp: whatsapp || null,
-                telefono: telefono || null,
+                whatsapp: whatsappNormalizado,
+                telefono: telefonoNormalizado,
                 email_publico: emailPublico || null,
                 mostrar_whatsapp: mostrarWhatsapp,
                 mostrar_telefono: mostrarTelefono,
@@ -345,8 +368,8 @@ export default function ProveedorDashboard() {
                 ocupacion: tipoEntidad === 'persona_natural' ? (ocupacion || null) : null,
                 anios_experiencia: aniosExperiencia && !isNaN(Number(aniosExperiencia)) ? parseInt(aniosExperiencia) : null,
                 certificaciones: certificaciones || null,
-                sitio_web: sitioWeb || null,
-                instagram: instagram || null,
+                sitio_web: sitioWebNormalizado,
+                instagram: instagramNormalizado,
                 primera_ayuda: primeraAyuda,
                 galeria,
             };
@@ -1228,7 +1251,7 @@ export default function ProveedorDashboard() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label htmlFor="sitio-web" className="block text-sm font-semibold text-slate-700 mb-1.5">Sitio Web</label>
-                                            <input id="sitio-web" name="sitio-web" autoComplete="url" type="text" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Ej: www.pawnecta.com o https://linktr.ee/tu-perfil" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            <input id="sitio-web" name="sitio-web" autoComplete="url" type="url" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Ej: midominio.cl o https://linktr.ee/tu-perfil" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                         <div>
                                             <label htmlFor="instagram" className="block text-sm font-semibold text-slate-700 mb-1.5">Instagram</label>

@@ -13,6 +13,7 @@ import LoginRequiredModal from '../../components/Shared/LoginRequiredModal';
 import VisitCounter from '../../components/Shared/VisitCounter';
 import FavoritoButton from '../../components/Shared/FavoritoButton';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
+import { instagramUsernameFromUrl } from '../../lib/validators';
 
 const LABELS_CAMPOS: Record<string, string> = {
     universidad: 'Universidad',
@@ -339,13 +340,22 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     <Globe size={15} /> Sitio web
                                 </a>
                             )}
-                            {proveedor.instagram && (
-                                <a href={`https://instagram.com/${proveedor.instagram.replace('@', '')}`}
-                                    onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-pink-500 transition-colors font-medium">
-                                    <Instagram size={15} /> @{proveedor.instagram.replace('@', '')}
-                                </a>
-                            )}
+                            {proveedor.instagram && (() => {
+                                // Backwards-compat: el campo puede traer URL canonica
+                                // (post Sprint 2) o @usuario / usuario (legacy).
+                                const igUser = instagramUsernameFromUrl(proveedor.instagram);
+                                if (!igUser) return null;
+                                const igHref = proveedor.instagram.startsWith('http')
+                                    ? proveedor.instagram
+                                    : `https://instagram.com/${igUser}`;
+                                return (
+                                    <a href={igHref}
+                                        onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-pink-500 transition-colors font-medium">
+                                        <Instagram size={15} /> @{igUser}
+                                    </a>
+                                );
+                            })()}
                         </div>
                     )}
                 </section>
