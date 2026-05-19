@@ -22,7 +22,8 @@ function AdminNotifications() {
         const { count: proveedoresPendientes } = await supabase
             .from("proveedores")
             .select("*", { count: "exact", head: true })
-            .eq("estado", "pendiente");
+            .eq("estado", "pendiente")
+            .eq("es_ejemplo", false);
 
         const hace7dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         const { count: contactosEstaSemana } = await supabase
@@ -40,6 +41,7 @@ function AdminNotifications() {
         const { data: recentProveedores } = await supabase
             .from('proveedores')
             .select('id, nombre, apellido_p, created_at, estado')
+            .eq('es_ejemplo', false)
             .order('created_at', { ascending: false })
             .limit(10);
 

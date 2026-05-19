@@ -38,10 +38,10 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
             const [
                 totalProv, provPend, provAprob, servAct, evalPend, userSearch
             ] = await Promise.all([
-                supabase.from('proveedores').select('id', { count: 'exact', head: true }),
-                supabase.from('proveedores').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
-                supabase.from('proveedores').select('id', { count: 'exact', head: true }).eq('estado', 'aprobado'),
-                supabase.from('servicios_publicados').select('id', { count: 'exact', head: true }).eq('activo', true),
+                supabase.from('proveedores').select('id', { count: 'exact', head: true }).eq('es_ejemplo', false),
+                supabase.from('proveedores').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente').eq('es_ejemplo', false),
+                supabase.from('proveedores').select('id', { count: 'exact', head: true }).eq('estado', 'aprobado').eq('es_ejemplo', false),
+                supabase.from('servicios_publicados').select('id, proveedores!inner(es_ejemplo)', { count: 'exact', head: true }).eq('activo', true).eq('proveedores.es_ejemplo', false),
                 supabase.from('evaluaciones').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
                 supabase.from('usuarios_buscadores').select('id', { count: 'exact', head: true })
             ]);
