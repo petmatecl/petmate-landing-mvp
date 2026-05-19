@@ -441,9 +441,9 @@ export default function ProveedorApprovalList() {
                             </div>
                             <div className="flex gap-3 justify-end">
                                 <button type="button" onClick={() => { setRejectingId(null); setMotivoRechazo(''); }}
-                                    className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
+                                    className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
                                 <button type="submit" disabled={isSubmitting || !motivoRechazo.trim()}
-                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
+                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
                                     {isSubmitting && <Loader2 size={16} className="animate-spin" />} Confirmar Rechazo
                                 </button>
                             </div>
@@ -468,9 +468,9 @@ export default function ProveedorApprovalList() {
                             </div>
                             <div className="flex gap-3 justify-end">
                                 <button type="button" onClick={() => { setRejectingVerifId(null); setNotaVerif(''); }}
-                                    className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
+                                    className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
                                 <button type="submit" disabled={isSubmitting || !notaVerif.trim()}
-                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
+                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
                                     {isSubmitting && <Loader2 size={16} className="animate-spin" />} Rechazar Verificación
                                 </button>
                             </div>

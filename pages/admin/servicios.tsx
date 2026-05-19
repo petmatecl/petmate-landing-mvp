@@ -461,7 +461,7 @@ function GestionServicios() {
                         <div className="p-4 bg-slate-50 border-t border-slate-100 rounded-b-3xl">
                             <div className="flex justify-between items-center px-2">
                                 <p className="text-xs text-slate-400">ID Interno: {modalData.id.split('-')[0]}...</p>
-                                <button onClick={() => setModalData(null)} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-xl text-sm transition-colors">
+                                <button onClick={() => setModalData(null)} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg text-sm transition-colors">
                                     Cerrar Ficha
                                 </button>
                             </div>

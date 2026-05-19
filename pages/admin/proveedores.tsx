@@ -406,8 +406,8 @@ function GestionProveedores() {
                                 ¿Estás seguro de aprobar a <strong className="text-slate-900">{modalConfig.prov.nombre}</strong> como proveedor verificado en plataforma?
                             </p>
                             <div className="flex gap-3">
-                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
-                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-medium tracking-wide hover:bg-emerald-800 disabled:opacity-50">
+                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
+                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-700 text-white font-medium tracking-wide hover:bg-emerald-800 disabled:opacity-50">
                                     {actionLoading ? 'Procesando...' : 'Sí, Aprobar'}
                                 </button>
                             </div>
@@ -448,11 +448,11 @@ function GestionProveedores() {
                             </div>
 
                             <div className="flex justify-end gap-3">
-                                <button onClick={closeModal} className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
+                                <button onClick={closeModal} className="px-5 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
                                 <button
                                     onClick={handleRechazar}
                                     disabled={!motivoRechazo || actionLoading}
-                                    className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
+                                    className="px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
                                 >
                                     {actionLoading ? 'Rechazando...' : 'Rechazar Solicitud'}
                                 </button>
@@ -471,11 +471,11 @@ function GestionProveedores() {
                                 ¿Deseas {modalConfig.type} el perfil de <strong className="text-slate-900">{modalConfig.prov.nombre}</strong>?
                             </p>
                             <div className="flex gap-3">
-                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
+                                <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
                                 <button
                                     onClick={() => updateStatusSimple(modalConfig.prov.id, modalConfig.type === 'suspender' ? 'suspendido' : 'aprobado')}
                                     disabled={actionLoading}
-                                    className={`flex-1 px-4 py-2.5 rounded-xl font-medium tracking-wide text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-700 hover:bg-emerald-800'}`}
+                                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium tracking-wide text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-700 hover:bg-emerald-800'}`}
                                 >
                                     Confirmar
                                 </button>

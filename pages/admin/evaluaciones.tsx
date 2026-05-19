@@ -361,14 +361,14 @@ function GestionEvaluaciones() {
                                         <button
                                             onClick={() => handleAprobar(evaluacion.id)}
                                             disabled={actionLoading}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-emerald-50 hover:bg-emerald-800 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-emerald-50 hover:bg-emerald-800 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
                                         >
                                             <CheckCircle2 size={16} /> Aprobar
                                         </button>
                                         <button
                                             onClick={() => openRechazarModal(evaluacion.id)}
                                             disabled={actionLoading}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-red-50 hover:bg-red-600 text-red-700 hover:text-white border border-red-200 hover:border-red-600 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-red-50 hover:bg-red-600 text-red-700 hover:text-white border border-red-200 hover:border-red-600 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
                                         >
                                             <XCircle size={16} /> Rechazar
                                         </button>
@@ -417,14 +417,14 @@ function GestionEvaluaciones() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setRechazoModal({ isOpen: false, evalId: null })}
-                                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200"
+                                className="flex-1 px-4 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleRechazar}
                                 disabled={!motivoRechazo || actionLoading}
-                                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
+                                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
                             >
                                 {actionLoading ? 'Guardando...' : 'Rechazar Eval.'}
                             </button>

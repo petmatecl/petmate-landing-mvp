@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                     <Link
                         href="/"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 font-medium transition-colors whitespace-nowrap mt-4"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 font-medium transition-colors whitespace-nowrap mt-4"
                     >
                         <ArrowLeft size={20} /> Volver al Sitio
                     </Link>

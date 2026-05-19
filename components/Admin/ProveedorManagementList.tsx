@@ -304,10 +304,10 @@ export default function ProveedorManagementList() {
                                 />
                             </div>
                             <div className="flex gap-3 justify-end">
-                                <button type="button" onClick={() => { setSuspendModalOpen(false); setProviderToSuspend(null); setSuspensionReason(''); }} className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors">
+                                <button type="button" onClick={() => { setSuspendModalOpen(false); setProviderToSuspend(null); setSuspensionReason(''); }} className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">
                                     Cancelar
                                 </button>
-                                <button type="submit" disabled={actionId === providerToSuspend.id || !suspensionReason.trim()} className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-red-600/20">
+                                <button type="submit" disabled={actionId === providerToSuspend.id || !suspensionReason.trim()} className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-red-600/20">
                                     {actionId === providerToSuspend.id ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />} Suspender
                                 </button>
                             </div>

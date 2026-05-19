@@ -28,14 +28,14 @@ export default function ConfirmDialog({
                     <button
                         onClick={onCancel}
                         disabled={loading}
-                        className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                        className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                     >
                         {cancelLabel}
                     </button>
                     <button
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors disabled:opacity-60 ${
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 ${
                             variant === 'danger'
                                 ? 'bg-red-600 hover:bg-red-700 text-white'
                                 : 'bg-slate-900 hover:bg-slate-800 text-white'
