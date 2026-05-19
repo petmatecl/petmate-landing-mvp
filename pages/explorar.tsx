@@ -227,6 +227,14 @@ export default function ExplorarPage() {
                 try {
                     const parsed = JSON.parse(saved);
                     if (parsed && Object.keys(parsed).length > 0) {
+                        // Toast informativo: avisa al user que estamos restaurando filtros
+                        // de su última búsqueda. Se muestra una sola vez por restauración
+                        // porque router.replace dispara este efecto de nuevo con
+                        // hasQueryParams=true y no se vuelve a entrar al bloque.
+                        toast.info('Retomando tu última búsqueda', {
+                            description: 'Tocá cualquier filtro para empezar de cero.',
+                            duration: 4000,
+                        });
                         // router.replace disparará este mismo efecto con los nuevos params
                         router.replace({ pathname: '/explorar', query: parsed }, undefined, { shallow: true });
                         return;
