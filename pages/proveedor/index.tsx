@@ -13,6 +13,7 @@ import MessageThread from '../../components/Chat/MessageThread';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
+import DatosEspecificosForm from '../../components/Proveedor/DatosEspecificosForm';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
@@ -26,7 +27,7 @@ import {
     Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink
 } from 'lucide-react';
 
-type TabType = 'servicios' | 'perfil' | 'evaluaciones' | 'mensajes' | 'estadisticas';
+type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas';
 
 /** Convert a relative storage path to a full public URL */
 function toServicePhotoUrl(path: string | null | undefined): string | null {
@@ -199,10 +200,10 @@ export default function ProveedorDashboard() {
     };
 
     const loadTabData = async (tab: TabType, provId: string, authId: string) => {
-        if (tab === 'servicios') {
+        if (tab === 'servicios' || tab === 'info_servicio') {
             const { data } = await supabase
                 .from('servicios_publicados')
-                .select(`*, categoria:categorias_servicio(nombre, icono)`)
+                .select(`*, categoria:categorias_servicio(nombre, icono, slug)`)
                 .eq('proveedor_id', provId)
                 .order('created_at', { ascending: false });
             setServicios(data || []);
@@ -231,7 +232,7 @@ export default function ProveedorDashboard() {
     useEffect(() => {
         if (!router.isReady) return;
         const queryTab = router.query.tab as TabType | undefined;
-        const validTabs: TabType[] = ['servicios', 'perfil', 'evaluaciones', 'mensajes', 'estadisticas'];
+        const validTabs: TabType[] = ['servicios', 'perfil', 'info_servicio', 'evaluaciones', 'mensajes', 'estadisticas'];
         if (queryTab && validTabs.includes(queryTab) && queryTab !== activeTab) {
             setActiveTab(queryTab);
         }
@@ -635,6 +636,7 @@ export default function ProveedorDashboard() {
                             {[
                                 { id: 'servicios', label: 'Mis Servicios', icon: <Briefcase size={20} /> },
                                 { id: 'perfil', label: 'Mi Perfil', icon: <UserIcon size={20} /> },
+                                { id: 'info_servicio', label: 'Info del Servicio', icon: <LayoutDashboard size={20} /> },
                                 { id: 'evaluaciones', label: 'Evaluaciones', icon: <Star size={20} /> },
                                 { id: 'mensajes', label: 'Mensajes', icon: <MessageSquare size={20} /> },
                                 { id: 'estadisticas', label: 'Estadísticas', icon: <BarChart size={20} /> },
@@ -657,6 +659,7 @@ export default function ProveedorDashboard() {
                     {[
                         { id: 'servicios', label: 'Servicios', icon: <Briefcase size={16} /> },
                         { id: 'perfil', label: 'Perfil', icon: <UserIcon size={16} /> },
+                        { id: 'info_servicio', label: 'Info Servicio', icon: <LayoutDashboard size={16} /> },
                         { id: 'evaluaciones', label: 'Evaluaciones', icon: <Star size={16} /> },
                         { id: 'mensajes', label: 'Mensajes', icon: <MessageSquare size={16} /> },
                         { id: 'estadisticas', label: 'Métricas', icon: <BarChart size={16} /> },
@@ -1300,6 +1303,80 @@ export default function ProveedorDashboard() {
                             </form>
                         </div>
                     )}
+
+                    {/* INFO DEL SERVICIO (datos_especificos editables) */}
+                    {activeTab === 'info_servicio' && (() => {
+                        // Inferir categoria desde el primer servicio del proveedor.
+                        // Asumido: el proveedor tipicamente tiene una sola categoria
+                        // en pre-launch. Si tiene varias, se toma la del primero.
+                        const primerServicio = servicios?.[0];
+                        const categoriaSlug: string | null = primerServicio?.categoria?.slug || null;
+
+                        if (!categoriaSlug) {
+                            return (
+                                <div className="animate-in fade-in duration-300 max-w-3xl">
+                                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-8">Información del Servicio</h1>
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+                                        <div className="w-16 h-16 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Briefcase size={28} />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Publica tu primer servicio</h3>
+                                        <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
+                                            Para configurar la información específica de tu rubro, primero publica un servicio. La categoría que elijas determina los campos.
+                                        </p>
+                                        <button
+                                            onClick={() => handleTabChange('servicios')}
+                                            className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 px-6 rounded-lg transition-colors shadow-sm"
+                                        >
+                                            Ir a Mis Servicios
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        const categoriaNombre = primerServicio?.categoria?.nombre || categoriaSlug;
+                        const datosActuales = (proveedor.datos_especificos as Record<string, any>) || {};
+
+                        const updateDatosEspecificos = async (values: Record<string, any>) => {
+                            const { error } = await supabase
+                                .from('proveedores')
+                                .update({ datos_especificos: values })
+                                .eq('id', proveedor.id);
+                            if (error) {
+                                toast.error(`Error al guardar: ${error.message}`);
+                                throw error;
+                            }
+                            // Refresh proveedor state para que el form muestre los valores guardados
+                            setProveedor((prev: any) => ({ ...prev, datos_especificos: values }));
+                            toast.success('Información del servicio actualizada');
+                        };
+
+                        return (
+                            <div className="animate-in fade-in duration-300 max-w-3xl">
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Información del Servicio</h1>
+                                <p className="text-sm text-slate-500 mb-8">
+                                    Detalles específicos de tu rubro. Los clientes los ven en la ficha de tu servicio.
+                                </p>
+
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                                    <div className="mb-6 pb-4 border-b border-slate-100">
+                                        <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Tu categoría</p>
+                                        <p className="text-base font-semibold text-slate-900">{categoriaNombre}</p>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            Si necesitas cambiar tu categoría principal, contacta a soporte.
+                                        </p>
+                                    </div>
+
+                                    <DatosEspecificosForm
+                                        categoria={categoriaSlug}
+                                        initialValues={datosActuales}
+                                        onSave={updateDatosEspecificos}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     {/* EVALUACIONES */}
                     {activeTab === 'evaluaciones' && (
