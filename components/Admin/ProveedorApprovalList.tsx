@@ -259,7 +259,7 @@ export default function ProveedorApprovalList() {
                                         </div>
                                         <div>
                                             <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                                className="text-lg font-semibold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                                                className="text-base font-semibold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
                                                 {prov.nombre} {prov.apellido_p}
                                                 <ExternalLink size={14} className="text-slate-300" />
                                             </a>
@@ -295,11 +295,11 @@ export default function ProveedorApprovalList() {
                                     </div>
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobar(prov)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <Check size={18} /> <span className="hidden sm:inline">Aprobar</span>
                                         </button>
                                         <button onClick={() => setRejectingId(prov.id)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <X size={18} /> <span className="hidden sm:inline">Rechazar</span>
                                         </button>
                                     </div>
@@ -391,11 +391,11 @@ export default function ProveedorApprovalList() {
                                     {/* Actions */}
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobarVerif(prov)} disabled={isSubmitting || !prov.foto_carnet}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <ShieldCheck size={16} /> <span className="hidden sm:inline">Verificar</span>
                                         </button>
                                         <button onClick={() => setRejectingVerifId(prov.id)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <ShieldX size={16} /> <span className="hidden sm:inline">Rechazar</span>
                                         </button>
                                     </div>

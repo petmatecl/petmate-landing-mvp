@@ -199,14 +199,14 @@ export default function EvaluacionModerationList() {
                                 <button
                                     onClick={() => requestAction(ev, 'aprobado')}
                                     disabled={isSubmitting === ev.id}
-                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     {isSubmitting === ev.id ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />} <span className="hidden sm:inline">Aprobar</span>
                                 </button>
                                 <button
                                     onClick={() => requestAction(ev, 'rechazado')}
                                     disabled={isSubmitting === ev.id}
-                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     <X size={18} /> <span className="hidden sm:inline">Rechazar</span>
                                 </button>
