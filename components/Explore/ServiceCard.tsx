@@ -122,7 +122,7 @@ export default function ServiceCard({ service }: Props) {
                             <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         )}
                     </div>
-                    <p title={`${service.proveedor_nombre} • ${service.proveedor_comuna}`} className="text-sm text-slate-500 font-medium truncate">
+                    <p title={`${service.proveedor_nombre} • ${service.proveedor_comuna}`} className="text-sm text-slate-500 truncate">
                         {service.proveedor_nombre} <span className="text-slate-300 mx-1">•</span> {service.proveedor_comuna}
                     </p>
                     {service.proveedor_updated_at && (

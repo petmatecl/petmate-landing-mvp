@@ -687,7 +687,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                     )}
                                                     <div className="min-w-0">
                                                         <p className="text-xs text-slate-500 font-medium capitalize">{label}</p>
-                                                        {!isBoolean && <p className="text-sm text-slate-700 font-semibold mt-0.5 break-words">{String(val)}</p>}
+                                                        {!isBoolean && <p className="text-sm text-slate-700 mt-0.5 break-words">{String(val)}</p>}
                                                     </div>
                                                 </div>
                                             );
@@ -982,7 +982,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     )}
                                     <Link
                                         href={`/proveedor/${proveedor.id}`}
-                                        className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-5 py-2 rounded-full transition-colors"
+                                        className="text-sm font-medium tracking-wide text-emerald-700 hover:text-emerald-900 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-5 py-2 rounded-full transition-colors"
                                     >
                                         Ver perfil completo
                                     </Link>
@@ -993,7 +993,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 ? (
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
                                             <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            <span className="font-medium">{proveedor.anios_experiencia} años de experiencia</span>
+                                            <span>{proveedor.anios_experiencia} años de experiencia</span>
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-2 text-sm">
@@ -1011,7 +1011,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     {proveedor.certificaciones ? (
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
                                             <ShieldCheck size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                                            <span className="font-medium leading-tight">{proveedor.certificaciones}</span>
+                                            <span className="leading-tight">{proveedor.certificaciones}</span>
                                         </div>
                                     ) : (
                                         <div className="flex items-start gap-2 text-sm">
@@ -1029,7 +1029,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     {proveedor.primera_ayuda && (
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
                                             <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-[9px] font-black">+</span>
-                                            <span className="font-medium">Primeros Auxilios</span>
+                                            <span>Primeros Auxilios</span>
                                         </div>
                                     )}
 
@@ -1037,7 +1037,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                         <div className="flex items-start gap-2 text-sm text-slate-600">
                                             <Briefcase size={15} className="text-slate-400 shrink-0 mt-0.5" />
                                             <div>
-                                                <span className="font-semibold text-slate-700 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
+                                                <span className="font-medium text-slate-700 block">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
                                                 {proveedor.giro && <span className="text-xs text-slate-400">{proveedor.giro}</span>}
                                             </div>
                                         </div>
