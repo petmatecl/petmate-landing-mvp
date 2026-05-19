@@ -659,26 +659,22 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
           {/* Social proof: oculto bajo 5.000 visitas/mes */}
           <HomeVisitorCounter totalVisitasMes={totalVisitasMes} />
 
-          {/* Stats dinámicos: usan el count real de BD, sin '+', con singular/plural */}
+          {/* Stats dinámicos: framing narrativo "Pawnecta en cifras" + datos reales
+              de BD + disclaimer "en crecimiento". Honestidad sin superlativos. */}
           {(() => {
-            const statsList = [
-              { value: stats.servicios, singular: 'servicio verificado', plural: 'servicios verificados' },
-              { value: stats.comunas, singular: 'comuna', plural: 'comunas' },
-              { value: stats.categorias, singular: 'categoría', plural: 'categorías' },
-            ].filter(s => s.value > 0);
+            const parts = [
+              stats.servicios > 0 ? `${stats.servicios} ${stats.servicios === 1 ? 'servicio disponible' : 'servicios disponibles'}` : null,
+              stats.comunas > 0 ? `${stats.comunas} ${stats.comunas === 1 ? 'comuna activa' : 'comunas activas'}` : null,
+              stats.categorias > 0 ? `${stats.categorias} ${stats.categorias === 1 ? 'categoría de servicio' : 'categorías de servicio'}` : null,
+            ].filter(Boolean);
 
-            if (statsList.length === 0) return null;
+            if (parts.length === 0) return null;
 
             return (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto border-t border-slate-200 pt-16">
-                {statsList.map((s, i) => (
-                  <div key={i} className="flex flex-col items-center justify-center p-4">
-                    <div className="text-5xl font-bold text-emerald-700 mb-3 tracking-tighter">{s.value}</div>
-                    <div className="text-xs font-medium text-slate-400 uppercase tracking-widest text-center">
-                      {s.value === 1 ? s.singular : s.plural}
-                    </div>
-                  </div>
-                ))}
+              <div className="max-w-2xl mx-auto border-t border-slate-200 pt-16 text-center">
+                <p className="text-sm font-medium text-slate-700 mb-2">Pawnecta en cifras</p>
+                <p className="text-sm text-slate-500">{parts.join(' · ')}</p>
+                <p className="text-xs text-slate-400 mt-2">Estamos en crecimiento — regístrate como tutor o publica tu servicio.</p>
               </div>
             );
           })()}
