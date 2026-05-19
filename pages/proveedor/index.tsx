@@ -100,7 +100,6 @@ export default function ProveedorDashboard() {
     const [sitioWeb, setSitioWeb] = useState('');
     const [instagram, setInstagram] = useState('');
     const [primeraAyuda, setPrimeraAyuda] = useState(false);
-    const [miembroAsociacion, setMiembroAsociacion] = useState(false);
 
     // P12 - Verificación de identidad
     const [verificacionEstado, setVerificacionEstado] = useState<'sin_enviar' | 'pendiente' | 'aprobado' | 'rechazado'>('sin_enviar');
@@ -182,7 +181,6 @@ export default function ProveedorDashboard() {
             setSitioWeb(data.sitio_web || '');
             setInstagram(data.instagram || '');
             setPrimeraAyuda(data.primera_ayuda ?? false);
-            setMiembroAsociacion(data.miembro_asociacion ?? false);
 
             // P12
             setVerificacionEstado(data.verificacion_estado || 'sin_enviar');
@@ -320,6 +318,12 @@ export default function ProveedorDashboard() {
             toast.error('Tu sesión expiró. Recarga la página e intenta nuevamente.');
             return;
         }
+        // Validar rut_empresa si tipo_entidad es empresa (asimetria detectada
+        // en auditoria Sprint 1: registro validaba con validateRut, edicion no).
+        if (tipoEntidad === 'empresa' && rutEmpresa && !validateRut(rutEmpresa)) {
+            toast.error('El RUT de la empresa no es válido. Verifica el dígito verificador.');
+            return;
+        }
         setSavingProfile(true);
         try {
             const payload: Record<string, any> = {
@@ -334,7 +338,7 @@ export default function ProveedorDashboard() {
                 mostrar_email: mostrarEmail,
                 tipo_entidad: tipoEntidad,
                 razon_social: tipoEntidad === 'empresa' ? (razonSocial || null) : null,
-                rut_empresa: tipoEntidad === 'empresa' ? (rutEmpresa || null) : null,
+                rut_empresa: tipoEntidad === 'empresa' ? (rutEmpresa ? formatRut(rutEmpresa) : null) : null,
                 nombre_fantasia: tipoEntidad === 'empresa' ? (nombreFantasia || null) : null,
                 giro: tipoEntidad === 'empresa' ? (giro || null) : null,
                 genero: tipoEntidad === 'persona_natural' ? (genero || null) : null,

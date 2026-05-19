@@ -316,6 +316,7 @@ export default function RegisterWizard() {
             nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia.trim() : undefined,
             giro: tipoEntidad === 'empresa' ? giro.trim() : undefined,
             datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : undefined,
+            descripcion: descripcion.trim() || undefined,
           } : {}),
         }),
       });

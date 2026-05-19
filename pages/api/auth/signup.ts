@@ -19,6 +19,7 @@ const signupSchema = z.object({
   nombre_fantasia: z.string().max(200).optional(),
   giro: z.string().max(200).optional(),
   datos_especificos: z.record(z.unknown()).optional(),
+  descripcion: z.string().max(500).optional(),
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -35,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { email, password, rol, nombre, apellido_p, apellido_m, rut,
-    comuna, tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, datos_especificos } = parsed.data;
+    comuna, tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, datos_especificos, descripcion } = parsed.data;
 
   // Use service role key server-side for admin operations
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -106,6 +107,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           p_datos_especificos: datos_especificos && Object.keys(datos_especificos).length > 0 ? datos_especificos : null,
         });
         if (insertError) throw new Error('Error guardando datos de proveedor: ' + insertError.message);
+
+        // Persistir descripcion como bio inicial. Se hace via UPDATE
+        // post-RPC porque el RPC registrar_proveedor (definido server-side
+        // en Supabase, no en migrations/) no acepta p_bio. Workaround
+        // pragmatico para no tocar el RPC remoto.
+        if (descripcion && descripcion.trim()) {
+          const { error: bioErr } = await supabaseAdmin
+            .from('proveedores')
+            .update({ bio: descripcion.trim() })
+            .eq('auth_user_id', userId);
+          if (bioErr) {
+            // No bloqueante: el proveedor puede editar bio despues desde
+            // su dashboard. Solo logueamos para visibilidad.
+            console.warn('Failed to set initial bio (non-blocking):', bioErr.message);
+          }
+        }
       }
     } catch (profileErr: any) {
       // Rollback: delete the orphaned auth user so the email can be re-registered
