@@ -9,6 +9,18 @@ import { supabase } from "../lib/supabaseClient";
 const inputClass =
   "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors";
 
+// Mapea el redirect path al copy contextual del banner. Mostrar "continuar
+// con tu accion" generico cuando no matchea ningun prefijo conocido.
+function getRedirectMessage(redirect: string): string {
+  if (redirect.startsWith('/proveedor')) return 'Ingresa para continuar a tu panel.';
+  if (redirect.startsWith('/favoritos')) return 'Ingresa para ver tus favoritos.';
+  if (redirect.startsWith('/explorar')) return 'Ingresa para retomar tu busqueda.';
+  if (redirect.startsWith('/mensajes')) return 'Ingresa para ver tus mensajes.';
+  if (redirect.startsWith('/admin')) return 'Ingresa para acceder al panel admin.';
+  if (redirect.startsWith('/servicio/')) return 'Ingresa para continuar con este servicio.';
+  return 'Ingresa para continuar donde estabas.';
+}
+
 export default function LoginPage() {
   const router = useRouter();
   // Validate redirect is a safe relative path (prevent open redirect)
@@ -117,7 +129,7 @@ export default function LoginPage() {
           {/* Context banner when coming from protected action */}
           {redirect && (
             <div className="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
-              Ingresa a tu cuenta para continuar con tu acción.
+              {getRedirectMessage(redirect)}
             </div>
           )}
 
