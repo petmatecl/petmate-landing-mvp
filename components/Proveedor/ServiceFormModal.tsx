@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
@@ -303,6 +303,25 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             if (tamanoGrande) sizes.push('grande');
         }
 
+        // Persistir detalles desde la vista canonica (mergedDetalles): garantiza
+        // que TODOS los campos boolean de la categoria queden en BD, incluso
+        // los que el proveedor no toco (van como false). Antes solo se mandaban
+        // los keys que estaban en `detalles` state, y los booleans nunca tocados
+        // quedaban ausentes en jsonb — el reporte indicaba administra_medicamentos
+        // missing en SQL. Para campos vacios de texto/numero los guardamos como
+        // null (mas limpio en jsonb que '').
+        const detallesParaGuardar: Record<string, any> = {};
+        for (const campo of camposCategoria) {
+            const v = mergedDetalles[campo.key];
+            if (campo.type === 'boolean') {
+                detallesParaGuardar[campo.key] = v === true;
+            } else if (v === '' || v === undefined || v === null) {
+                detallesParaGuardar[campo.key] = null;
+            } else {
+                detallesParaGuardar[campo.key] = v;
+            }
+        }
+
         const payload = {
             proveedor_id: proveedorId,
             categoria_id: categoriaId,
@@ -317,7 +336,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             tamanos_aceptados: perros ? sizes : [],
             disponibilidad,
             fotos,
-            detalles,
+            detalles: detallesParaGuardar,
             comunas_cobertura: comunasCobertura,
         };
 
@@ -349,6 +368,28 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const selectedCatSlug = selectedCat?.slug || '';
     const camposCategoria = CAMPOS_POR_CATEGORIA[selectedCatSlug] || [];
     const coverPreview = fotos[0] || null;
+
+    // mergedDetalles: vista canonica de detalles que combina defaults por tipo
+    // de campo + lo cargado del state. El loaded SIEMPRE gana sobre el default
+    // (Object.assign al final). Resuelve el bug de hidratacion de booleans
+    // (reportado en Sprint 17): si por una race condition detalles llega vacio
+    // o parcialmente al primer render con camposCategoria poblado, el merge
+    // garantiza que el checkbox reflejara true cuando el state se hidrate.
+    // Tambien garantiza que TODOS los campos boolean (incluso los no tocados)
+    // queden en el payload al guardar, no solo los que el usuario toco.
+    const mergedDetalles = useMemo(() => {
+        const merged: Record<string, any> = {};
+        for (const campo of camposCategoria) {
+            // Default por tipo: booleans = false (no marcado), resto = '' (vacio).
+            // Number guarda como '' tambien — el input lo parsea a Number al cambiar.
+            merged[campo.key] = campo.type === 'boolean' ? false : '';
+        }
+        // Loaded values win. Object.assign en lugar de spread para que claves
+        // con valor `false` (boolean valido) tambien se copien — spread tambien
+        // las copia, pero Object.assign hace mas explicito el intento.
+        Object.assign(merged, detalles || {});
+        return merged;
+    }, [camposCategoria, detalles]);
 
     const comunasFiltradas = COMUNAS_CHILE.filter(c =>
         comunaSearch ? c.toLowerCase().includes(comunaSearch.toLowerCase()) : true
@@ -719,7 +760,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         <div className="relative shrink-0">
                                                             <input
                                                                 type="checkbox"
-                                                                checked={!!detalles[campo.key]}
+                                                                checked={mergedDetalles[campo.key] === true}
                                                                 onChange={e => setDetalle(campo.key, e.target.checked)}
                                                                 className="sr-only peer"
                                                             />
@@ -734,7 +775,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         <select
                                                             id={`campo-${campo.key}`}
                                                             name={`campo-${campo.key}`}
-                                                            value={detalles[campo.key] || ''}
+                                                            value={mergedDetalles[campo.key] ?? ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
                                                         >
@@ -751,7 +792,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             id={`campo-${campo.key}`}
                                                             name={`campo-${campo.key}`}
                                                             autoComplete="off"
-                                                            value={detalles[campo.key] || ''}
+                                                            value={mergedDetalles[campo.key] ?? ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             placeholder={campo.placeholder}
                                                             rows={2}
@@ -767,7 +808,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 name={`campo-${campo.key}`}
                                                                 autoComplete="off"
                                                                 type="number"
-                                                                value={detalles[campo.key] || ''}
+                                                                value={mergedDetalles[campo.key] ?? ''}
                                                                 onChange={e => setDetalle(campo.key, e.target.value ? Number(e.target.value) : '')}
                                                                 placeholder={campo.placeholder}
                                                                 min={0}
@@ -784,7 +825,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             name={`campo-${campo.key}`}
                                                             autoComplete="off"
                                                             type="text"
-                                                            value={detalles[campo.key] || ''}
+                                                            value={mergedDetalles[campo.key] ?? ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             placeholder={campo.placeholder}
                                                             className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
