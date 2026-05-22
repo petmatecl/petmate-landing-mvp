@@ -10,9 +10,15 @@ const inputClass =
   "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors";
 
 // Mapea el redirect path al copy contextual del banner. Mostrar "continuar
-// con tu accion" generico cuando no matchea ningun prefijo conocido.
+// donde estabas" generico cuando no matchea ningun prefijo conocido.
+//
+// Caso especial /proveedor: hay que diferenciar el panel propio (redirect
+// exacto "/proveedor") de la ficha publica de OTRO proveedor (redirect
+// "/proveedor/{id}") — antes ambos caian en startsWith('/proveedor') y
+// mostraban "tu panel", lo cual era incorrecto en la ficha publica.
 function getRedirectMessage(redirect: string): string {
-  if (redirect.startsWith('/proveedor')) return 'Ingresa para continuar a tu panel.';
+  if (redirect === '/proveedor' || redirect === '/proveedor/') return 'Ingresa para continuar a tu panel.';
+  if (redirect.startsWith('/proveedor/')) return 'Ingresa para continuar.';
   if (redirect.startsWith('/favoritos')) return 'Ingresa para ver tus favoritos.';
   if (redirect.startsWith('/explorar')) return 'Ingresa para retomar tu busqueda.';
   if (redirect.startsWith('/mensajes')) return 'Ingresa para ver tus mensajes.';
