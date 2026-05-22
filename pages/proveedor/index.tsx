@@ -1409,7 +1409,7 @@ export default function ProveedorDashboard() {
                                     {/* Idiomas — multi-select por chips toggle. Reusa el pattern visual
                                         de comunas_cobertura pero sin search (solo 6 opciones fijas). */}
                                     <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Idiomas que hablo</h3>
-                                    <p className="text-sm text-slate-500 mb-3">Marca los idiomas en los que te sientes cómoda atendiendo a clientes.</p>
+                                    <p className="text-sm text-slate-500 mb-3">Marca los idiomas en los que puedes atender.</p>
                                     <div className="flex flex-wrap gap-2">
                                         {IDIOMAS_DISPONIBLES.map((idioma) => {
                                             const activo = idiomas.includes(idioma);
