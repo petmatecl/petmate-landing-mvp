@@ -8,7 +8,7 @@ import {
     XCircle, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Tag
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import ConfirmDialog from '../../components/Admin/ConfirmDialog';
+import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 
 type FiltroEstadoType = 'todos' | 'activos' | 'inactivos';
 

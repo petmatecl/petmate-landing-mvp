@@ -5,7 +5,7 @@ import { es } from 'date-fns/locale';
 import { Check, X, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { getParticipantProfile } from '../../lib/profileUtils';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../Shared/ConfirmDialog';
 
 export default function EvaluacionModerationList() {
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);

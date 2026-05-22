@@ -59,7 +59,7 @@ components/
   Proveedor/ServiceFormModal.tsx — Crear/editar servicio
   Service/ReviewList.tsx — Lista de evaluaciones
   Service/ReviewForm.tsx — Formulario de evaluación
-  Admin/ConfirmDialog.tsx — Modal de confirmación estilizado
+  Shared/ConfirmDialog.tsx — Modal de confirmación estilizado (compartido admin + proveedor)
   Home/SearchBar.tsx — Buscador del hero (dropdown custom, no select nativo)
 contexts/
   UserContext.tsx — Auth state global (5s timeout, anti-race condition)

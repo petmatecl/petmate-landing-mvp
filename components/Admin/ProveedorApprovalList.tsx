@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Check, X, FileImage, ExternalLink, Mail, Phone, MapPin, Loader2, AlertTriangle, ShieldCheck, ShieldX, Shield, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../Shared/ConfirmDialog';
 
 type AdminTab = 'incorporacion' | 'verificacion';
 

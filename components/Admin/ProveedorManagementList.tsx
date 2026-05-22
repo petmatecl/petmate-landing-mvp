@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../Shared/ConfirmDialog';
 
 export default function ProveedorManagementList() {
     const [proveedores, setProveedores] = useState<any[]>([]);
