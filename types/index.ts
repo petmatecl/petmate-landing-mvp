@@ -1,6 +1,8 @@
 // Tipos compartidos del proyecto Pawnecta
 // Para mayor especificidad, ServiceResult completo sigue viviendo en components/Explore/ServiceCard.tsx
 
+export type PoliticaCancelacion = 'flexible' | 'moderada' | 'estricta';
+
 export interface ProveedorProfile {
     id: string;
     auth_user_id: string;
@@ -13,6 +15,13 @@ export interface ProveedorProfile {
     estado: 'pendiente' | 'aprobado' | 'rechazado' | 'suspendido';
     roles?: string[];
     created_at: string;
+    // Eje B — Sprint perfil completo del proveedor.
+    facebook?: string | null;
+    tiktok?: string | null;
+    youtube?: string | null;
+    idiomas?: string[];
+    politica_cancelacion?: PoliticaCancelacion | null;
+    politica_cancelacion_nota?: string | null;
 }
 
 export interface ConversationItem {
