@@ -42,6 +42,7 @@ interface UserContextType {
     switchRole: (role: Role) => void;
     refreshProfile: () => Promise<void>;
     logout: () => Promise<void>;
+    softReset: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -285,8 +286,11 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         await hydrateFromSession(data?.session ?? null);
     };
 
-    const logout = async () => {
-        // 1. Limpiar estado local PRIMERO
+    // softReset: limpia estado + localStorage + signOut SIN forzar redirect.
+    // Lo usa el caller cuando ya tiene un destino propio (ej. safety redirect
+    // en /proveedor que va a /login con redirect=...). Logout completo seguia
+    // con window.location.href = '/' y comia el destino del caller.
+    const softReset = async () => {
         setUser(null);
         setProfile(null);
         setActiveRole(null);
@@ -295,16 +299,17 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         setProviderStatus('none');
         setCapabilities(GUEST_CAPABILITIES);
 
-        // 2. Limpiar localStorage
         window.localStorage.removeItem('activeRole');
         window.localStorage.removeItem('pm_auth_role_pending');
         window.localStorage.removeItem('pawnecta_active_mode');
         window.localStorage.removeItem('pawnecta_pending_role');
 
-        // 3. Sign out de Supabase
         await supabase.auth.signOut();
+    };
 
-        // 4. Redirect con window.location para forzar recarga completa
+    const logout = async () => {
+        await softReset();
+        // Redirect con window.location para forzar recarga completa
         window.location.href = '/';
     };
 
@@ -325,7 +330,8 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             activateProviderMode,
             switchRole,
             refreshProfile,
-            logout
+            logout,
+            softReset
         }}>
             {children}
         </UserContext.Provider>

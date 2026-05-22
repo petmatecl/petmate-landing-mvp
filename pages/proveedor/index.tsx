@@ -46,7 +46,7 @@ function toServicePhotoUrl(path: string | null | undefined): string | null {
 
 export default function ProveedorDashboard() {
     const router = useRouter();
-    const { user, isLoading: userLoading } = useUser();
+    const { user, isLoading: userLoading, softReset } = useUser();
     const [proveedor, setProveedor] = useState<any>(null);
     const [statusLoading, setStatusLoading] = useState(true);
 
@@ -581,16 +581,21 @@ export default function ProveedorDashboard() {
     };
 
 
-    // Safety: redirect to login if loading takes too long (10s)
+    // Safety: si la carga se cuelga > 10s, hacemos softReset() (limpia sesion
+    // local + signOut sin redirect) antes de mandar a /login con redirect=...
+    // Antes saltabamos directo a /login con la sesion stale cacheada, lo que
+    // causaba que el login posterior con signInWithPassword timeoutee porque
+    // ya habia una sesion "fantasma" en memoria.
     useEffect(() => {
         if (!userLoading && !statusLoading) return;
-        const timer = setTimeout(() => {
+        const timer = setTimeout(async () => {
             if (userLoading || statusLoading) {
+                await softReset();
                 router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
             }
         }, 10000);
         return () => clearTimeout(timer);
-    }, [userLoading, statusLoading, router]);
+    }, [userLoading, statusLoading, router, softReset]);
 
     if (userLoading || statusLoading || !proveedor) {
         return (
