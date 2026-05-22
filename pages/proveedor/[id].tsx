@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye, Facebook, Youtube, Languages, Calendar } from 'lucide-react';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
@@ -324,7 +324,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     </div>
 
                     {/* Contacto y redes — franja inferior */}
-                    {(proveedor.email_publico || proveedor.sitio_web || proveedor.instagram) && (
+                    {(proveedor.email_publico || proveedor.sitio_web || proveedor.instagram || proveedor.facebook || proveedor.tiktok || proveedor.youtube) && (
                         <div className="border-t border-slate-100 px-6 md:px-8 py-3 flex flex-wrap gap-x-5 gap-y-2">
                             {proveedor.email_publico && proveedor.mostrar_email && (
                                 <a href={`mailto:${proveedor.email_publico}`}
@@ -356,6 +356,29 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </a>
                                 );
                             })()}
+                            {proveedor.facebook && (
+                                <a href={proveedor.facebook}
+                                    onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-blue-600 transition-colors font-medium">
+                                    <Facebook size={15} /> Facebook
+                                </a>
+                            )}
+                            {proveedor.tiktok && (
+                                // Lucide ^0.553 no tiene icono de marca TikTok — link de
+                                // texto etiquetado en su lugar (sin emojis, sin deps).
+                                <a href={proveedor.tiktok}
+                                    onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
+                                    className="text-sm text-slate-500 hover:text-slate-900 transition-colors font-medium">
+                                    TikTok
+                                </a>
+                            )}
+                            {proveedor.youtube && (
+                                <a href={proveedor.youtube}
+                                    onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-600 transition-colors font-medium">
+                                    <Youtube size={15} /> YouTube
+                                </a>
+                            )}
                         </div>
                     )}
                 </section>
@@ -498,6 +521,65 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     </section>
                 )}
 
+                {/* ══ IDIOMAS ═══════════════════════════════════════════════ */}
+                {Array.isArray(proveedor.idiomas) && proveedor.idiomas.length > 0 && (
+                    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                            <Languages size={17} className="text-slate-400" />
+                            Idiomas
+                        </h2>
+                        <div className="flex flex-wrap gap-2">
+                            {proveedor.idiomas.map((idioma: string) => (
+                                <span
+                                    key={idioma}
+                                    className="bg-emerald-50 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full border border-emerald-100"
+                                >
+                                    {idioma}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* ══ POLÍTICA DE CANCELACIÓN ═══════════════════════════════ */}
+                {proveedor.politica_cancelacion && (() => {
+                    const POLITICA_LABELS: Record<string, { titulo: string; descripcion: string }> = {
+                        flexible: {
+                            titulo: 'Flexible',
+                            descripcion: 'Acepta cancelaciones avisando con al menos 24 horas de anticipación.',
+                        },
+                        moderada: {
+                            titulo: 'Moderada',
+                            descripcion: 'Solicita aviso entre 48 horas y 7 días antes del servicio.',
+                        },
+                        estricta: {
+                            titulo: 'Estricta',
+                            descripcion: 'Solicita aviso con más de 7 días de anticipación.',
+                        },
+                    };
+                    const info = POLITICA_LABELS[proveedor.politica_cancelacion];
+                    if (!info) return null;
+                    return (
+                        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                            <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                <Calendar size={17} className="text-slate-400" />
+                                Política de cancelación
+                            </h2>
+                            <div className="flex items-start gap-3">
+                                <span className="inline-flex items-center bg-slate-50 text-slate-700 text-xs font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full border border-slate-200 mt-0.5">
+                                    {info.titulo}
+                                </span>
+                                <p className="text-sm text-slate-600 leading-relaxed flex-1">{info.descripcion}</p>
+                            </div>
+                            {proveedor.politica_cancelacion_nota && (
+                                <p className="text-sm text-slate-500 leading-relaxed mt-3 whitespace-pre-wrap border-t border-slate-100 pt-3">
+                                    {proveedor.politica_cancelacion_nota}
+                                </p>
+                            )}
+                        </section>
+                    );
+                })()}
+
                 {/* ══ GALERÍA ═══════════════════════════════════════════════ */}
                 {tieneGaleria && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
@@ -582,7 +664,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 tipo_entidad, razon_social, nombre_fantasia, giro,
                 genero, ocupacion, fecha_nacimiento, anios_experiencia,
                 certificaciones, primera_ayuda, rut_verificado, verificacion_estado,
-                sitio_web, instagram, email_publico, mostrar_email,
+                sitio_web, instagram, facebook, tiktok, youtube,
+                idiomas, politica_cancelacion, politica_cancelacion_nota,
+                email_publico, mostrar_email,
                 mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
                 galeria, estado, created_at, datos_especificos, perfil_completo, es_ejemplo,
                 visitas_total, visitas_mes, favoritos_total
