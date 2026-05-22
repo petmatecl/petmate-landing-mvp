@@ -14,6 +14,7 @@ import ReviewSummary from '../../components/Service/ReviewSummary';
 import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
 import DatosEspecificosForm from '../../components/Proveedor/DatosEspecificosForm';
+import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
@@ -482,6 +483,58 @@ export default function ProveedorDashboard() {
     };
 
     // Services Handlers
+    // ConfirmDialog para acciones destructivas (eliminar) o pausa (toggle off).
+    // Eliminar = hard delete real (DELETE FROM). Limpiamos favoritos polimorficos
+    // antes para evitar orphans (no hay FK directo). Otras tablas con servicio_id
+    // (evaluaciones, etc.) viven server-side: si tienen FK sin CASCADE, el DELETE
+    // falla y reportamos error claro en toast.
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean;
+        title: string;
+        message: string;
+        confirmLabel: string;
+        variant: 'default' | 'danger';
+        onConfirm: () => void;
+    }>({ open: false, title: '', message: '', confirmLabel: '', variant: 'default', onConfirm: () => {} });
+    const [actionLoading, setActionLoading] = useState(false);
+
+    const closeConfirm = () => setConfirmDialog(d => ({ ...d, open: false }));
+
+    const performDelete = async (id: string) => {
+        setActionLoading(true);
+        try {
+            // 1. Cleanup favoritos polimorficos (no hay FK directo, dejarian orphans).
+            await supabase
+                .from('favoritos')
+                .delete()
+                .eq('entidad_tipo', 'servicio')
+                .eq('entidad_id', id);
+
+            // 2. Hard delete del servicio.
+            const { error } = await supabase
+                .from('servicios_publicados')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                // FK violation u otro: surface mensaje legible.
+                const msg = error.message?.toLowerCase().includes('foreign key') || error.code === '23503'
+                    ? 'No se puede eliminar: este servicio tiene evaluaciones u otra informacion asociada. Desactivalo en su lugar.'
+                    : `Error al eliminar: ${error.message}`;
+                toast.error(msg);
+                return;
+            }
+
+            setServicios(prev => prev.filter(s => s.id !== id));
+            toast.success('Servicio eliminado');
+            closeConfirm();
+        } catch (err: any) {
+            toast.error(err?.message || 'Error al eliminar el servicio.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const toggleServiceStatus = async (id: string, currentStatus: boolean) => {
         const { error } = await supabase.from('servicios_publicados').update({ activo: !currentStatus }).eq('id', id);
         if (!error) {
@@ -490,13 +543,15 @@ export default function ProveedorDashboard() {
         }
     };
 
-    const deleteService = async (id: string) => {
-        if (!confirm('¿Seguro que deseas eliminar este servicio temporalmente?')) return;
-        const { error } = await supabase.from('servicios_publicados').update({ activo: false }).eq('id', id); // Soft delete / deactivate
-        if (!error) {
-            setServicios(prev => prev.map(s => s.id === id ? { ...s, activo: false } : s));
-            toast.success('Servicio desactivado correctamente');
-        }
+    const deleteService = (id: string) => {
+        setConfirmDialog({
+            open: true,
+            title: '¿Eliminar este servicio?',
+            message: 'Esta accion no se puede deshacer. El servicio se eliminara de forma permanente. Si solo quieres pausarlo, usa el switch Activo.',
+            confirmLabel: 'Eliminar',
+            variant: 'danger',
+            onConfirm: () => performDelete(id),
+        });
     };
 
 
@@ -1509,6 +1564,16 @@ export default function ProveedorDashboard() {
                 verificacionEstado={verificacionEstado}
                 verificacionNota={verificacionNota}
                 onGoToVerification={handleGoToVerification}
+            />
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+                loading={actionLoading}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={closeConfirm}
             />
             <Toaster position="top-center" richColors />
         </>
