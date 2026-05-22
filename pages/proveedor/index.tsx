@@ -535,12 +535,38 @@ export default function ProveedorDashboard() {
         }
     };
 
-    const toggleServiceStatus = async (id: string, currentStatus: boolean) => {
-        const { error } = await supabase.from('servicios_publicados').update({ activo: !currentStatus }).eq('id', id);
-        if (!error) {
-            setServicios(prev => prev.map(s => s.id === id ? { ...s, activo: !currentStatus } : s));
-            toast.success(currentStatus ? 'Servicio desactivado' : 'Servicio activado');
+    const applyToggleStatus = async (id: string, currentStatus: boolean) => {
+        setActionLoading(true);
+        try {
+            const { error } = await supabase.from('servicios_publicados').update({ activo: !currentStatus }).eq('id', id);
+            if (!error) {
+                setServicios(prev => prev.map(s => s.id === id ? { ...s, activo: !currentStatus } : s));
+                toast.success(currentStatus ? 'Servicio pausado' : 'Servicio activado');
+                closeConfirm();
+            } else {
+                toast.error(`Error: ${error.message}`);
+            }
+        } finally {
+            setActionLoading(false);
         }
+    };
+
+    const toggleServiceStatus = (id: string, currentStatus: boolean) => {
+        // Activar de inactivo a activo: directo, sin confirmacion (es accion
+        // positiva y reversible con el mismo switch). Solo confirmamos al
+        // PAUSAR un servicio activo, porque deja de aparecer en /explorar.
+        if (!currentStatus) {
+            void applyToggleStatus(id, currentStatus);
+            return;
+        }
+        setConfirmDialog({
+            open: true,
+            title: '¿Pausar este servicio?',
+            message: 'Dejara de aparecer en /explorar hasta que lo reactives. Puedes volver a activarlo en cualquier momento desde este mismo switch.',
+            confirmLabel: 'Pausar servicio',
+            variant: 'default',
+            onConfirm: () => applyToggleStatus(id, currentStatus),
+        });
     };
 
     const deleteService = (id: string) => {
