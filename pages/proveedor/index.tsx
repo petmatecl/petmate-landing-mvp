@@ -19,13 +19,15 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
-import { normalizeUrl, normalizeChileanPhone, normalizeInstagram } from '../../lib/validators';
+import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
 import { COMUNAS_CHILE } from '../../lib/comunas';
+import { IDIOMAS_DISPONIBLES } from '../../lib/idiomas';
+import type { PoliticaCancelacion } from '../../types';
 import Link from 'next/link';
 import {
     Clock, AlertTriangle, Briefcase, User as UserIcon, Shield, ShieldCheck, ShieldX,
     Star, MessageSquare, BarChart, Edit, Trash2, LayoutDashboard, Eye, Camera,
-    Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink
+    Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink, X
 } from 'lucide-react';
 
 type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas';
@@ -103,6 +105,14 @@ export default function ProveedorDashboard() {
     const [sitioWeb, setSitioWeb] = useState('');
     const [instagram, setInstagram] = useState('');
     const [primeraAyuda, setPrimeraAyuda] = useState(false);
+
+    // Eje B — perfil completo (columnas ya existen en BD).
+    const [facebook, setFacebook] = useState('');
+    const [tiktok, setTiktok] = useState('');
+    const [youtube, setYoutube] = useState('');
+    const [idiomas, setIdiomas] = useState<string[]>([]);
+    const [politicaCancelacion, setPoliticaCancelacion] = useState<PoliticaCancelacion | ''>('');
+    const [politicaCancelacionNota, setPoliticaCancelacionNota] = useState('');
 
     // P12 - Verificación de identidad
     const [verificacionEstado, setVerificacionEstado] = useState<'sin_enviar' | 'pendiente' | 'aprobado' | 'rechazado'>('sin_enviar');
@@ -184,6 +194,13 @@ export default function ProveedorDashboard() {
             setSitioWeb(data.sitio_web || '');
             setInstagram(data.instagram || '');
             setPrimeraAyuda(data.primera_ayuda ?? false);
+
+            setFacebook(data.facebook || '');
+            setTiktok(data.tiktok || '');
+            setYoutube(data.youtube || '');
+            setIdiomas(Array.isArray(data.idiomas) ? data.idiomas : []);
+            setPoliticaCancelacion(data.politica_cancelacion || '');
+            setPoliticaCancelacionNota(data.politica_cancelacion_nota || '');
 
             // P12
             setVerificacionEstado(data.verificacion_estado || 'sin_enviar');
@@ -349,6 +366,27 @@ export default function ProveedorDashboard() {
             toast.error('El usuario de Instagram no es válido. Ej: @mi_cuenta');
             return;
         }
+        const facebookNormalizado = facebook ? normalizeFacebook(facebook) : null;
+        if (facebook && !facebookNormalizado) {
+            toast.error('El Facebook no es válido. Ej: tu.pagina o facebook.com/tu.pagina');
+            return;
+        }
+        const tiktokNormalizado = tiktok ? normalizeTiktok(tiktok) : null;
+        if (tiktok && !tiktokNormalizado) {
+            toast.error('El TikTok no es válido. Ej: @tucuenta');
+            return;
+        }
+        const youtubeNormalizado = youtube ? normalizeYoutube(youtube) : null;
+        if (youtube && !youtubeNormalizado) {
+            toast.error('El YouTube no es válido. Ej: @tucanal o youtube.com/@tucanal');
+            return;
+        }
+        // Politica de cancelacion: si hay nota, debe haber nivel. Al reves no:
+        // se puede declarar nivel sin nota.
+        if (politicaCancelacionNota.trim() && !politicaCancelacion) {
+            toast.error('Selecciona un tipo de política de cancelación antes de agregar una nota.');
+            return;
+        }
         setSavingProfile(true);
         try {
             const payload: Record<string, any> = {
@@ -372,6 +410,14 @@ export default function ProveedorDashboard() {
                 certificaciones: certificaciones || null,
                 sitio_web: sitioWebNormalizado,
                 instagram: instagramNormalizado,
+                facebook: facebookNormalizado,
+                tiktok: tiktokNormalizado,
+                youtube: youtubeNormalizado,
+                idiomas: idiomas.length > 0 ? idiomas : null,
+                politica_cancelacion: politicaCancelacion || null,
+                politica_cancelacion_nota: politicaCancelacion && politicaCancelacionNota.trim()
+                    ? politicaCancelacionNota.trim()
+                    : null,
                 primera_ayuda: primeraAyuda,
                 galeria,
             };
@@ -1346,7 +1392,83 @@ export default function ProveedorDashboard() {
                                             <label htmlFor="instagram" className="block text-sm font-semibold text-slate-700 mb-1.5">Instagram</label>
                                             <input id="instagram" name="instagram" autoComplete="off" type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="Ej: @tucuenta" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
+                                        <div>
+                                            <label htmlFor="facebook" className="block text-sm font-semibold text-slate-700 mb-1.5">Facebook</label>
+                                            <input id="facebook" name="facebook" autoComplete="off" type="text" value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="Ej: tu.pagina o facebook.com/tu.pagina" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="tiktok" className="block text-sm font-semibold text-slate-700 mb-1.5">TikTok</label>
+                                            <input id="tiktok" name="tiktok" autoComplete="off" type="text" value={tiktok} onChange={e => setTiktok(e.target.value)} placeholder="Ej: @tucuenta" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="youtube" className="block text-sm font-semibold text-slate-700 mb-1.5">YouTube</label>
+                                            <input id="youtube" name="youtube" autoComplete="off" type="text" value={youtube} onChange={e => setYoutube(e.target.value)} placeholder="Ej: @tucanal o youtube.com/@tucanal" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                        </div>
                                     </div>
+
+                                    {/* Idiomas — multi-select por chips toggle. Reusa el pattern visual
+                                        de comunas_cobertura pero sin search (solo 6 opciones fijas). */}
+                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Idiomas que hablo</h3>
+                                    <p className="text-sm text-slate-500 mb-3">Marca los idiomas en los que te sientes cómoda atendiendo a clientes.</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {IDIOMAS_DISPONIBLES.map((idioma) => {
+                                            const activo = idiomas.includes(idioma);
+                                            return (
+                                                <button
+                                                    key={idioma}
+                                                    type="button"
+                                                    onClick={() => setIdiomas(prev => activo ? prev.filter(i => i !== idioma) : [...prev, idioma])}
+                                                    className={
+                                                        activo
+                                                            ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                                            : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
+                                                    }
+                                                >
+                                                    {idioma}
+                                                    {activo && <X size={12} />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Politica de cancelacion — select 3 niveles + nota opcional.
+                                        Pawnecta no procesa pagos, asi que esto es expectativa de aviso,
+                                        no clausula contractual con reembolso. */}
+                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Política de cancelación</h3>
+                                    <p className="text-sm text-slate-500 mb-3">Define con cuánta anticipación necesitas que te avisen si el cliente cancela.</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="politica-cancelacion" className="block text-sm font-semibold text-slate-700 mb-1.5">Nivel</label>
+                                            <select
+                                                id="politica-cancelacion"
+                                                name="politica-cancelacion"
+                                                value={politicaCancelacion}
+                                                onChange={e => setPoliticaCancelacion(e.target.value as PoliticaCancelacion | '')}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm"
+                                            >
+                                                <option value="">Sin definir</option>
+                                                <option value="flexible">Flexible — aviso con 24h</option>
+                                                <option value="moderada">Moderada — aviso con 48h a 7 días</option>
+                                                <option value="estricta">Estricta — aviso con más de 7 días</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {politicaCancelacion && (
+                                        <div className="mt-4">
+                                            <label htmlFor="politica-cancelacion-nota" className="block text-sm font-semibold text-slate-700 mb-1.5">Nota adicional (opcional)</label>
+                                            <textarea
+                                                id="politica-cancelacion-nota"
+                                                name="politica-cancelacion-nota"
+                                                value={politicaCancelacionNota}
+                                                onChange={e => setPoliticaCancelacionNota(e.target.value)}
+                                                maxLength={300}
+                                                rows={3}
+                                                placeholder="Ej: Para servicios de hospedaje pido aviso con al menos 72h. Para paseos basta con 12h."
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm resize-none"
+                                            />
+                                            <p className="text-xs text-slate-400 mt-1">{politicaCancelacionNota.length}/300</p>
+                                        </div>
+                                    )}
 
                                     <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Información de Contacto Externo</h3>
 
