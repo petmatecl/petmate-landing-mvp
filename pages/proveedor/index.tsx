@@ -15,6 +15,17 @@ import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
 import DatosEspecificosForm from '../../components/Proveedor/DatosEspecificosForm';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
+import dynamic from 'next/dynamic';
+// LocationPicker carga Leaflet, que rompe en SSR — next/dynamic({ ssr: false })
+// sigue el mismo patron de CaregiverMap en /explorar.
+const LocationPicker = dynamic(() => import('../../components/Shared/LocationPicker'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[280px] w-full rounded-xl bg-slate-100 flex items-center justify-center">
+            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+        </div>
+    ),
+});
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
@@ -77,6 +88,11 @@ export default function ProveedorDashboard() {
     const [uploadingGaleria, setUploadingGaleria] = useState(false);
     const [comuna, setComuna] = useState('');
     const [comunaOpen, setComunaOpen] = useState(false);
+    // Pin de ubicacion (Sprint 3B). null/null = sin pin → ficha publica cae al
+    // centroide de la comuna. Al guardar se redondea a 3 decimales (~111m) en
+    // saveProfile para no exponer precision de calle.
+    const [lat, setLat] = useState<number | null>(null);
+    const [lng, setLng] = useState<number | null>(null);
     const [whatsapp, setWhatsapp] = useState('');
     const [telefono, setTelefono] = useState('');
     const [emailPublico, setEmailPublico] = useState('');
@@ -203,6 +219,9 @@ export default function ProveedorDashboard() {
         setIdiomas(Array.isArray(data.idiomas) ? data.idiomas : []);
         setPoliticaCancelacion(data.politica_cancelacion || '');
         setPoliticaCancelacionNota(data.politica_cancelacion_nota || '');
+
+        setLat(typeof data.lat === 'number' ? data.lat : null);
+        setLng(typeof data.lng === 'number' ? data.lng : null);
 
         setVerificacionEstado(data.verificacion_estado || 'sin_enviar');
         setVerificacionNota(data.verificacion_nota || null);
@@ -436,6 +455,13 @@ export default function ProveedorDashboard() {
                 politica_cancelacion_nota: politicaCancelacion && politicaCancelacionNota.trim()
                     ? politicaCancelacionNota.trim()
                     : null,
+                // Redondeo a 3 decimales (~111m por grado de lat / ~93m E-W a
+                // 33° lat S) — privacidad: no exponemos precision de calle.
+                // La ficha publica de todas formas renderiza como Circle de
+                // ~500m, asi que la precision adicional no aportaba al user
+                // pero si dejaba un rastro fino en BD.
+                lat: lat != null ? Math.round(lat * 1000) / 1000 : null,
+                lng: lng != null ? Math.round(lng * 1000) / 1000 : null,
                 primera_ayuda: primeraAyuda,
                 galeria,
             };
@@ -1334,6 +1360,23 @@ export default function ProveedorDashboard() {
                                                 ))}
                                             </ul>
                                         )}
+                                    </div>
+
+                                    {/* Ubicacion en el mapa — Sprint 3B. Pin opcional; si queda
+                                        null, la ficha publica usa el centroide de la comuna como
+                                        fallback. */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ubicación en el mapa</label>
+                                        <p className="text-xs text-slate-500 mb-2">Opcional. Posiciona el pin donde atiendes para que aparezcas en el mapa de búsqueda con mayor precisión que solo la comuna.</p>
+                                        <LocationPicker
+                                            lat={lat}
+                                            lng={lng}
+                                            comuna={comuna}
+                                            onChange={(newLat, newLng) => {
+                                                setLat(newLat);
+                                                setLng(newLng);
+                                            }}
+                                        />
                                     </div>
 
                                     <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Credenciales y Confianza</h3>
