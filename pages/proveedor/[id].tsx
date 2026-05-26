@@ -27,45 +27,20 @@ import VisitCounter from '../../components/Shared/VisitCounter';
 import FavoritoButton from '../../components/Shared/FavoritoButton';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
 import { instagramUsernameFromUrl } from '../../lib/validators';
+import { CAMPOS_POR_CATEGORIA, formatValorCampo, type CampoDinamico } from '../../lib/camposPorCategoria';
 
-const LABELS_CAMPOS: Record<string, string> = {
-    universidad: 'Universidad',
-    anio_titulacion: 'Año de titulación',
-    numero_registro: 'N° Registro profesional',
-    especialidad: 'Especialidad',
-    tipo_vehiculo: 'Tipo de vehículo',
-    tiene_empresa: 'Opera con empresa',
-    nombre_empresa: 'Empresa',
-    capacidad_mascotas: 'Capacidad máxima',
-    anios_experiencia: 'Años de experiencia',
-    certificaciones: 'Certificaciones',
-    tiene_local: 'Local propio',
-    metodo: 'Método de adiestramiento',
-    certificacion: 'Certificación',
-    capacidad_maxima: 'Capacidad máxima (mascotas)',
-    tiene_patio: 'Tiene patio o jardín',
-    otras_mascotas_hogar: 'Otras mascotas en el hogar',
-    horario: 'Horario de atención',
-    max_perros_simultaneos: 'Máx. perros simultáneos',
-    duracion_estandar: 'Duración estándar del paseo',
-    servicios_incluidos: 'Servicios incluidos',
-};
-
-const formatValor = (key: string, value: any): string => {
-    if (typeof value === 'boolean') return value ? 'Sí' : 'No';
-    if (key === 'anio_titulacion') return String(value);
-    if (key === 'duracion_estandar') return `${value} minutos`;
-    if (key === 'capacidad_maxima' || key === 'capacidad_mascotas' || key === 'max_perros_simultaneos')
-        return `${value} mascotas`;
-    if (key === 'metodo') {
-        const map: Record<string, string> = { positivo: 'Refuerzo positivo', mixto: 'Mixto', tradicional: 'Tradicional' };
-        return map[value] ?? value;
+// Sprint 4 Fase 1: LABELS_CAMPOS y formatValor locales fueron reemplazados
+// por la fuente unica en lib/camposPorCategoria.ts. Esta seccion sigue
+// iterando el blob plano `datos_especificos` del proveedor (cross-categoria)
+// hasta que el Commit 3 elimine la seccion completa. Mientras tanto buscamos
+// el campo por key en todas las categorias para obtener label/tipo. Es un
+// stopgap por diseno — la solucion real es renderizar `detalles` per-servicio.
+const findCampoLegacy = (key: string): CampoDinamico | undefined => {
+    for (const slug of Object.keys(CAMPOS_POR_CATEGORIA)) {
+        const found = CAMPOS_POR_CATEGORIA[slug].find(c => c.key === key);
+        if (found) return found;
     }
-    if (key === 'tipo_vehiculo') {
-        const map: Record<string, string> = { auto: 'Auto', van: 'Van', furgon: 'Furgón' };
-        return map[value] ?? value;
-    }
-    return String(value);
+    return undefined;
 };
 
 interface ProveedorProps {
@@ -520,15 +495,20 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
                             {tieneDatosEspecificos && Object.entries(proveedor.datos_especificos)
                                 .filter(([, v]) => v !== null && v !== '' && v !== false)
-                                .map(([key, value]) => (
-                                    <div key={key} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                                        <ShieldCheck size={17} className="text-slate-400 shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">{LABELS_CAMPOS[key] ?? key}</p>
-                                            <p className="text-sm font-semibold text-slate-700">{formatValor(key, value)}</p>
+                                .map(([key, value]) => {
+                                    const campo = findCampoLegacy(key);
+                                    if (campo?.tipo === 'info') return null;
+                                    const label = campo?.label ?? key.replace(/_/g, ' ');
+                                    return (
+                                        <div key={key} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                            <ShieldCheck size={17} className="text-slate-400 shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">{label}</p>
+                                                <p className="text-sm font-semibold text-slate-700">{formatValorCampo(campo, value)}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             }
                         </div>
                     </section>
