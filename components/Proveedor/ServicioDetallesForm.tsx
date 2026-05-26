@@ -1,11 +1,17 @@
-// components/Proveedor/DatosEspecificosForm.tsx
+// components/Proveedor/ServicioDetallesForm.tsx
 // ----------------------------------------------------------------------------
-// Form dinamico de campos categoria-especificos del proveedor. Se renderiza
-// segun CAMPOS_POR_CATEGORIA[categoria] (lib/camposPorCategoria.ts).
+// Form dinamico de campos categoria-especificos para UN servicio del
+// proveedor. Renderiza segun CAMPOS_POR_CATEGORIA[categoria] (lib/
+// camposPorCategoria.ts).
+//
+// Sprint 4 Fase 1 / Commit 2: renombrado desde DatosEspecificosForm para
+// reflejar el nuevo modelo — los campos son PER-SERVICIO, no per-proveedor.
+// El caller decide a que servicio se aplican (escribe a
+// servicios_publicados.detalles del servicio elegido).
 //
 // Usos:
-//   - Step 3 del wizard de registro (futuro: cuando se integre).
-//   - Tab "Informacion del servicio" del dashboard /proveedor.
+//   - Tab "Info del Servicio" del dashboard /proveedor (uno por servicio).
+//   - Step 3 del wizard de registro (cuando se integre).
 //
 // Save acepta valores parciales (no requiere todos los campos completos
 // para guardar). Solo bloquea si hay campos requeridos vacios.
@@ -31,7 +37,7 @@ interface Props {
 
 const inputClass = "w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none";
 
-export default function DatosEspecificosForm({
+export default function ServicioDetallesForm({
     categoria,
     initialValues,
     onSave,

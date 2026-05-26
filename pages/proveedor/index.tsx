@@ -13,7 +13,7 @@ import MessageThread from '../../components/Chat/MessageThread';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
-import DatosEspecificosForm from '../../components/Proveedor/DatosEspecificosForm';
+import ServicioDetallesForm from '../../components/Proveedor/ServicioDetallesForm';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 import dynamic from 'next/dynamic';
 // LocationPicker carga Leaflet, que rompe en SSR — next/dynamic({ ssr: false })
@@ -68,6 +68,10 @@ export default function ProveedorDashboard() {
     // Modals
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
     const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+    // ID del servicio cuya seccion de detalles esta expandida en el tab
+    // "Info del Servicio" (per-servicio, Sprint 4 Fase 1). null = todas las
+    // cards colapsadas. Solo una expandida a la vez.
+    const [expandedInfoServicioId, setExpandedInfoServicioId] = useState<string | null>(null);
 
     // Tab Data
     const [servicios, setServicios] = useState<any[]>([]);
@@ -1577,15 +1581,14 @@ export default function ProveedorDashboard() {
                         </div>
                     )}
 
-                    {/* INFO DEL SERVICIO (datos_especificos editables) */}
+                    {/* INFO DEL SERVICIO — Sprint 4 Fase 1: per-servicio.
+                        Antes este tab editaba proveedores.datos_especificos asumiendo
+                        UNA categoria inferida del servicio mas reciente. Ahora lista
+                        TODOS los servicios del proveedor y permite editar los detalles
+                        de cada uno (servicios_publicados.detalles) — soporta proveedores
+                        multi-categoria sin mezclar campos entre rubros. */}
                     {activeTab === 'info_servicio' && (() => {
-                        // Inferir categoria desde el primer servicio del proveedor.
-                        // Asumido: el proveedor tipicamente tiene una sola categoria
-                        // en pre-launch. Si tiene varias, se toma la del primero.
-                        const primerServicio = servicios?.[0];
-                        const categoriaSlug: string | null = primerServicio?.categoria?.slug || null;
-
-                        if (!categoriaSlug) {
+                        if (!servicios || servicios.length === 0) {
                             return (
                                 <div className="animate-in fade-in duration-300 max-w-3xl">
                                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-8">Información del Servicio</h1>
@@ -1595,7 +1598,7 @@ export default function ProveedorDashboard() {
                                         </div>
                                         <h3 className="text-lg font-semibold text-slate-900 mb-2">Publica tu primer servicio</h3>
                                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                                            Para configurar la información específica de tu rubro, primero publica un servicio. La categoría que elijas determina los campos.
+                                            Para configurar la información específica de un rubro, primero publica un servicio. La categoría que elijas determina los campos.
                                         </p>
                                         <button
                                             onClick={() => handleTabChange('servicios')}
@@ -1608,44 +1611,71 @@ export default function ProveedorDashboard() {
                             );
                         }
 
-                        const categoriaNombre = primerServicio?.categoria?.nombre || categoriaSlug;
-                        const datosActuales = (proveedor.datos_especificos as Record<string, any>) || {};
-
-                        const updateDatosEspecificos = async (values: Record<string, any>) => {
+                        const updateDetallesServicio = async (servicioId: string, values: Record<string, any>) => {
                             const { error } = await supabase
-                                .from('proveedores')
-                                .update({ datos_especificos: values })
-                                .eq('id', proveedor.id);
+                                .from('servicios_publicados')
+                                .update({ detalles: values })
+                                .eq('id', servicioId);
                             if (error) {
                                 toast.error(`Error al guardar: ${error.message}`);
                                 throw error;
                             }
-                            // Refresh proveedor state para que el form muestre los valores guardados
-                            setProveedor((prev: any) => ({ ...prev, datos_especificos: values }));
+                            setServicios(prev => prev.map(s => s.id === servicioId ? { ...s, detalles: values } : s));
                             toast.success('Información del servicio actualizada');
                         };
 
                         return (
                             <div className="animate-in fade-in duration-300 max-w-3xl">
                                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Información del Servicio</h1>
-                                <p className="text-sm text-slate-500 mb-8">
-                                    Detalles específicos de tu rubro. Los clientes los ven en la ficha de tu servicio.
+                                <p className="text-sm text-slate-500 mb-6">
+                                    Detalles específicos por servicio. Los clientes los ven en la ficha de cada servicio. Cada servicio tiene los campos de su categoría.
                                 </p>
 
-                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-                                    <div className="mb-6 pb-4 border-b border-slate-100">
-                                        <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Tu categoría</p>
-                                        <p className="text-base font-semibold text-slate-900">{categoriaNombre}</p>
-                                        <p className="text-xs text-slate-500 mt-1">
-                                            Si necesitas cambiar tu categoría principal, contacta a soporte.
-                                        </p>
-                                    </div>
-
-                                    <DatosEspecificosForm
-                                        categoria={categoriaSlug}
-                                        initialValues={datosActuales}
-                                        onSave={updateDatosEspecificos}
-                                    />
+                                <div className="space-y-3">
+                                    {servicios.map(servicio => {
+                                        const isExpanded = expandedInfoServicioId === servicio.id;
+                                        const categoriaSlug = servicio.categoria?.slug || '';
+                                        const categoriaNombre = servicio.categoria?.nombre || categoriaSlug;
+                                        const detalles = (servicio.detalles as Record<string, any>) || {};
+                                        return (
+                                            <div key={servicio.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setExpandedInfoServicioId(isExpanded ? null : servicio.id)}
+                                                    className="w-full px-5 sm:px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors text-left"
+                                                >
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-0.5">
+                                                            <span className="inline-flex items-center bg-slate-100 text-slate-700 text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full">
+                                                                {categoriaNombre}
+                                                            </span>
+                                                            {!servicio.activo && (
+                                                                <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border border-amber-100">
+                                                                    Pausado
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-sm font-semibold text-slate-900 truncate">{servicio.titulo}</p>
+                                                    </div>
+                                                    <Edit size={16} className={`shrink-0 transition-transform ${isExpanded ? 'rotate-90 text-emerald-700' : 'text-slate-400'}`} />
+                                                </button>
+                                                {isExpanded && (
+                                                    <div className="px-5 sm:px-6 pb-6 pt-2 border-t border-slate-100">
+                                                        {categoriaSlug ? (
+                                                            <ServicioDetallesForm
+                                                                key={servicio.id}
+                                                                categoria={categoriaSlug}
+                                                                initialValues={detalles}
+                                                                onSave={(values) => updateDetallesServicio(servicio.id, values)}
+                                                            />
+                                                        ) : (
+                                                            <p className="text-sm text-slate-500 py-4">Este servicio no tiene categoría asignada. Edítalo desde la pestaña Mis Servicios para asignar una.</p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         );
