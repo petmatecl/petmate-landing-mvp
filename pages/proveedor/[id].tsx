@@ -5,6 +5,19 @@ import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye, Facebook, Youtube, Languages, Calendar } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { getComunaCoords } from '../../lib/comunas';
+
+// LocationMap usa Leaflet — debe cargar dinamico sin SSR para no romper
+// getServerSideProps. Loader minimo en gris siguiendo el resto de la ficha.
+const LocationMap = dynamic(() => import('../../components/Shared/LocationMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[300px] w-full rounded-xl bg-slate-100 flex items-center justify-center">
+            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+        </div>
+    ),
+});
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import ReviewList from '../../components/Service/ReviewList';
@@ -580,6 +593,37 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     );
                 })()}
 
+                {/* ══ UBICACIÓN ═════════════════════════════════════════════ */}
+                {/* Mapa aproximado. Usa lat/lng guardados por el proveedor si
+                    existen; si no, cae al centroide de su comuna (mismo hash
+                    que CaregiverMap). Siempre como Circle de ~500m — la
+                    columna lat/lng se persiste con 3 decimales de precision
+                    (~93-111m), asi que el Circle absorbe el ruido. */}
+                {(proveedor.lat != null && proveedor.lng != null) || proveedor.comuna ? (
+                    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                            <MapPin size={17} className="text-slate-400" />
+                            Ubicación
+                        </h2>
+                        {(() => {
+                            const hasPin = proveedor.lat != null && proveedor.lng != null;
+                            const [mapLat, mapLng] = hasPin
+                                ? [proveedor.lat as number, proveedor.lng as number]
+                                : getComunaCoords(proveedor.comuna);
+                            return (
+                                <>
+                                    <LocationMap lat={mapLat} lng={mapLng} approximate radius={500} height="300px" />
+                                    <p className="text-xs text-slate-500 mt-3">
+                                        {hasPin
+                                            ? `Área aproximada en ${proveedor.comuna || 'la comuna del proveedor'}. La dirección exacta no se comparte públicamente.`
+                                            : `Ubicación referencial en ${proveedor.comuna}. El proveedor aún no ha posicionado un pin específico.`}
+                                    </p>
+                                </>
+                            );
+                        })()}
+                    </section>
+                ) : null}
+
                 {/* ══ GALERÍA ═══════════════════════════════════════════════ */}
                 {tieneGaleria && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
@@ -666,6 +710,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 certificaciones, primera_ayuda, rut_verificado, verificacion_estado,
                 sitio_web, instagram, facebook, tiktok, youtube,
                 idiomas, politica_cancelacion, politica_cancelacion_nota,
+                lat, lng,
                 email_publico, mostrar_email,
                 mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
                 galeria, estado, created_at, datos_especificos, perfil_completo, es_ejemplo,
