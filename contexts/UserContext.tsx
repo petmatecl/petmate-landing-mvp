@@ -125,22 +125,27 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // Session is valid — set user immediately
         setUser(session.user);
 
-        // 2. Profile queries — failure here should NOT log the user out
+        // 2. Profile queries — failure here should NOT log the user out.
+        // Las dos queries son independientes (ambas filtran por session.user.id
+        // y no consumen output mutuo) → Promise.all colapsa los dos round-trips
+        // a la latencia del mas lento, no la suma. Antes eran secuenciales con
+        // el await en serie y costaban 2x el RTT a Supabase en el path critico
+        // de login.
         try {
-
-            // 2. Consultar `proveedores` 
-            const { data: proveedorData } = await supabase
-                .from('proveedores')
-                .select('id, nombre, apellido_p, roles, foto_perfil, estado')
-                .eq('auth_user_id', session.user.id)
-                .maybeSingle();
-
-            // 3. Consultar `usuarios_buscadores`
-            const { data: seekerData } = await supabase
-                .from('usuarios_buscadores')
-                .select('id, nombre')
-                .eq('auth_user_id', session.user.id)
-                .maybeSingle();
+            const [proveedorRes, seekerRes] = await Promise.all([
+                supabase
+                    .from('proveedores')
+                    .select('id, nombre, apellido_p, roles, foto_perfil, estado')
+                    .eq('auth_user_id', session.user.id)
+                    .maybeSingle(),
+                supabase
+                    .from('usuarios_buscadores')
+                    .select('id, nombre')
+                    .eq('auth_user_id', session.user.id)
+                    .maybeSingle(),
+            ]);
+            const proveedorData = proveedorRes.data;
+            const seekerData = seekerRes.data;
 
             const hasApprovedProvider = proveedorData?.estado === 'aprobado';
             const statusOfProvider = proveedorData ? proveedorData.estado : 'none';
