@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 type AddressResult = {
     display_name: string;
@@ -37,11 +38,25 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
 
     // Click outside ref
     const containerRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Posicion absoluta del dropdown en document.body (se renderiza por
+    // portal — ver comentario en el render). Recalculada al abrir y en
+    // scroll/resize mientras esta abierto.
+    const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
+    // Guard SSR: createPortal requiere document, no disponible en server.
+    const [portalReady, setPortalReady] = useState(false);
+    useEffect(() => { setPortalReady(true); }, []);
 
     useEffect(() => {
-        // Close dropdown when clicking outside
+        // Close dropdown when clicking outside. Tras mover el dropdown a un
+        // portal, "fuera" significa fuera del input wrapper Y fuera del
+        // listbox que ahora vive en document.body.
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            const insideInput = containerRef.current?.contains(target) ?? false;
+            const insideDropdown = dropdownRef.current?.contains(target) ?? false;
+            if (!insideInput && !insideDropdown) {
                 setIsOpen(false);
                 setActiveIndex(-1);
             }
@@ -50,6 +65,33 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Mide la posicion del input para anclar el portal. Re-mide en
+    // scroll/resize para que el dropdown siga al input si la page se mueve
+    // (el portal vive en document.body, no se mueve solo).
+    useEffect(() => {
+        if (!isOpen || results.length === 0) {
+            setDropdownRect(null);
+            return;
+        }
+        const measure = () => {
+            const el = containerRef.current;
+            if (!el) return;
+            const r = el.getBoundingClientRect();
+            setDropdownRect({
+                top: r.bottom + window.scrollY + 4, // 4px = mt-1
+                left: r.left + window.scrollX,
+                width: r.width,
+            });
+        };
+        measure();
+        window.addEventListener('scroll', measure, true); // capture: catch nested scrolls
+        window.addEventListener('resize', measure);
+        return () => {
+            window.removeEventListener('scroll', measure, true);
+            window.removeEventListener('resize', measure);
+        };
+    }, [isOpen, results.length]);
 
     useEffect(() => {
         if (activeIndex >= 0) {
@@ -188,8 +230,30 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                 </span>
             </div>
 
-            {isOpen && results.length > 0 && (
-                <div id="address-autocomplete-listbox" role="listbox" aria-label="Sugerencias de dirección" className="absolute top-full left-0 right-0 z-50 mt-1 bg-white rounded-xl shadow-xl border-2 border-slate-300 max-h-60 overflow-y-auto">
+            {/* Dropdown renderizado por portal en document.body para escapar
+                de stacking contexts conflictivos. En contexto LocationPicker
+                conviven con un .leaflet-container que tiene panes internos en
+                z-index 400-700 y controls cerca de 800; sin portal, esos
+                panes leakean al stacking context padre y tapan el listbox
+                (con z-50 = 50 no era suficiente). Con portal, el listbox es
+                hijo directo de body — sus z-index ya no compiten con nada
+                del mapa. portalReady evita errores SSR (createPortal pide
+                document). */}
+            {portalReady && isOpen && results.length > 0 && dropdownRect && createPortal(
+                <div
+                    ref={dropdownRef}
+                    id="address-autocomplete-listbox"
+                    role="listbox"
+                    aria-label="Sugerencias de dirección"
+                    style={{
+                        position: 'absolute',
+                        top: dropdownRect.top,
+                        left: dropdownRect.left,
+                        width: dropdownRect.width,
+                        zIndex: 1100, // belt-and-suspenders sobre el portal
+                    }}
+                    className="bg-white rounded-xl shadow-xl border-2 border-slate-300 max-h-60 overflow-y-auto"
+                >
                     {results.map((result, idx) => (
                         <button
                             key={idx}
@@ -214,7 +278,8 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                     <div className="bg-slate-50 px-2 py-1 text-[10px] text-slate-400 text-right">
                         Powered by OpenStreetMap
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
