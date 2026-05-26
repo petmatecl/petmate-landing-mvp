@@ -152,16 +152,28 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
                 <button
                     type="button"
                     onClick={() => {
-                        // Cierra el drag handler ANTES de disparar el state
-                        // change que unmountea el marker — ver comentario sobre
-                        // markerRef arriba. try/catch porque dragging puede no
-                        // existir si el marker no termino de montar.
+                        // Cierra el drag handler para el caso multi-pointer
+                        // (alcanzable via automatizacion). Mantiene el fix
+                        // anterior (4e35805).
                         try {
                             markerRef.current?.dragging?.disable();
                         } catch {
                             // no-op: defensivo
                         }
-                        onChange(null, null);
+                        // Defer del unmount al siguiente macrotask para que
+                        // los listeners document-level que Leaflet tiene
+                        // pendientes (mouseup que dispara _onUp → finishDrag)
+                        // corran ANTES de que React desmontee el <Marker>.
+                        // Sin esto, _onUp accede a `_icon.baseVal` de un SVG
+                        // ya removido y logueea TypeError en consola — la UI
+                        // recupera (el state se actualiza igual), pero el
+                        // error queda en console. El smoke 3B confirmo que
+                        // pasa incluso tras un drag limpio (no es estado
+                        // sucio, es ordering del event loop). setTimeout(0)
+                        // saca el state change a la siguiente macrotarea;
+                        // cualquier listener document-level encolado dentro
+                        // del click cycle ya corrio.
+                        setTimeout(() => onChange(null, null), 0);
                     }}
                     className="text-xs font-medium text-slate-500 hover:text-red-600 transition-colors underline-offset-2 hover:underline"
                 >
