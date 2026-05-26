@@ -48,7 +48,7 @@ function toServicePhotoUrl(path: string | null | undefined): string | null {
 
 export default function ProveedorDashboard() {
     const router = useRouter();
-    const { user, isLoading: userLoading, softReset } = useUser();
+    const { user, isLoading: userLoading, softReset, proveedorRow, refreshProveedorRow } = useUser();
     const [proveedor, setProveedor] = useState<any>(null);
     const [statusLoading, setStatusLoading] = useState(true);
 
@@ -145,17 +145,79 @@ export default function ProveedorDashboard() {
 
     useEffect(() => {
         if (userLoading) return;
-        if (user) {
-            checkProviderStatus();
-        } else {
-            // No user after loading = session expired, redirect to login
+        if (!user) {
+            // No user after loading = session expired, redirect to login.
             // Keep statusLoading=true so spinner persists during redirect
             // (avoids JSX render with proveedor=null between redirect call and unmount)
             router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
+            return;
+        }
+        // Path comun: UserContext ya hidrato proveedorRow en el mismo
+        // round-trip que el resto del perfil. Lo hidratamos local sin un
+        // segundo fetch a `proveedores`. Si proveedorRow es null (caso raro:
+        // tutor sin perfil proveedor que llega aqui por URL directa), caemos
+        // al fetch legacy para preservar el manejo de error original.
+        if (proveedorRow) {
+            hydrateLocalFromRow(proveedorRow);
+        } else {
+            checkProviderStatus();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, userLoading]);
+    }, [user, userLoading, proveedorRow]);
 
+    // Hidrata todo el form state local desde el row de `proveedores`. Se usa
+    // desde el effect de mount (via proveedorRow del context) y desde
+    // checkProviderStatus (fallback con fetch). Centralizado para que ambos
+    // paths compartan la misma logica de mapeo.
+    const hydrateLocalFromRow = (data: any) => {
+        setProveedor(data);
+        setBio(data.bio || '');
+        setComuna(data.comuna || '');
+        setWhatsapp(data.whatsapp || '');
+        setTelefono(data.telefono || '');
+        setEmailPublico(data.email_publico || '');
+        setMostrarWhatsapp(data.mostrar_whatsapp ?? true);
+        setMostrarTelefono(data.mostrar_telefono ?? false);
+        setMostrarEmail(data.mostrar_email ?? false);
+        setFotoPerfil(getProxyImageUrl(data.foto_perfil) || data.foto_perfil || '');
+        setGaleria((data.galeria || []).map((url: string) => getProxyImageUrl(url) || url));
+
+        setTipoEntidad(data.tipo_entidad || 'persona_natural');
+        setRazonSocial(data.razon_social || '');
+        setRutEmpresa(data.rut_empresa || '');
+        setNombreFantasia(data.nombre_fantasia || '');
+        setGiro(data.giro || '');
+
+        setGenero(data.genero || '');
+        setOcupacion(data.ocupacion || '');
+        setNombrePublico(data.nombre_publico || '');
+        setAniosExperiencia(data.anios_experiencia?.toString() || '');
+        setCertificaciones(data.certificaciones || '');
+        setSitioWeb(data.sitio_web || '');
+        setInstagram(data.instagram || '');
+        setPrimeraAyuda(data.primera_ayuda ?? false);
+
+        setFacebook(data.facebook || '');
+        setTiktok(data.tiktok || '');
+        setYoutube(data.youtube || '');
+        setIdiomas(Array.isArray(data.idiomas) ? data.idiomas : []);
+        setPoliticaCancelacion(data.politica_cancelacion || '');
+        setPoliticaCancelacionNota(data.politica_cancelacion_nota || '');
+
+        setVerificacionEstado(data.verificacion_estado || 'sin_enviar');
+        setVerificacionNota(data.verificacion_nota || null);
+        setRutInput(data.rut ? formatRut(data.rut) : '');
+
+        if (data.estado === 'aprobado') {
+            loadTabData('servicios', data.id, data.auth_user_id);
+        }
+        setStatusLoading(false);
+    };
+
+    // Fallback path: si proveedorRow no esta en el context (caso raro o
+    // sesion sin perfil proveedor), fetch directo + reuso de hydrateLocalFromRow.
+    // hydrateLocalFromRow ya hace setStatusLoading(false), asi que aqui solo
+    // garantizamos el finally para el caso de error.
     const checkProviderStatus = async () => {
         setStatusLoading(true);
         try {
@@ -166,53 +228,9 @@ export default function ProveedorDashboard() {
                 .single();
 
             if (error) throw error;
-            setProveedor(data);
-
-            // Init profile state
-            setBio(data.bio || '');
-            setComuna(data.comuna || '');
-            setWhatsapp(data.whatsapp || '');
-            setTelefono(data.telefono || '');
-            setEmailPublico(data.email_publico || '');
-            setMostrarWhatsapp(data.mostrar_whatsapp ?? true);
-            setMostrarTelefono(data.mostrar_telefono ?? false);
-            setMostrarEmail(data.mostrar_email ?? false);
-            setFotoPerfil(getProxyImageUrl(data.foto_perfil) || data.foto_perfil || '');
-            setGaleria((data.galeria || []).map((url: string) => getProxyImageUrl(url) || url));
-
-            setTipoEntidad(data.tipo_entidad || 'persona_natural');
-            setRazonSocial(data.razon_social || '');
-            setRutEmpresa(data.rut_empresa || '');
-            setNombreFantasia(data.nombre_fantasia || '');
-            setGiro(data.giro || '');
-
-            setGenero(data.genero || '');
-            setOcupacion(data.ocupacion || '');
-            setNombrePublico(data.nombre_publico || '');
-            setAniosExperiencia(data.anios_experiencia?.toString() || '');
-            setCertificaciones(data.certificaciones || '');
-            setSitioWeb(data.sitio_web || '');
-            setInstagram(data.instagram || '');
-            setPrimeraAyuda(data.primera_ayuda ?? false);
-
-            setFacebook(data.facebook || '');
-            setTiktok(data.tiktok || '');
-            setYoutube(data.youtube || '');
-            setIdiomas(Array.isArray(data.idiomas) ? data.idiomas : []);
-            setPoliticaCancelacion(data.politica_cancelacion || '');
-            setPoliticaCancelacionNota(data.politica_cancelacion_nota || '');
-
-            // P12
-            setVerificacionEstado(data.verificacion_estado || 'sin_enviar');
-            setVerificacionNota(data.verificacion_nota || null);
-            setRutInput(data.rut ? formatRut(data.rut) : '');
-
-            if (data.estado === 'aprobado') {
-                loadTabData('servicios', data.id, data.auth_user_id);
-            }
+            hydrateLocalFromRow(data);
         } catch (e) {
             console.error(e);
-        } finally {
             setStatusLoading(false);
         }
     };
@@ -432,6 +450,10 @@ export default function ProveedorDashboard() {
                 toast.error(`Error al guardar: ${error.message}`);
             } else {
                 toast.success('Perfil actualizado correctamente');
+                // Refresca el cache de proveedorRow en UserContext para que si
+                // el user navega fuera y vuelve, el dashboard hidrate con los
+                // valores recien guardados (no con los del login original).
+                await refreshProveedorRow();
             }
         } catch (err: any) {
             console.error('Save profile exception:', err);

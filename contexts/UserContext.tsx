@@ -28,6 +28,15 @@ export type OnboardingStep = 'EMAIL_VERIFIED' | 'ROLE_SELECTED' | 'PROFILE_BASIC
 interface UserContextType {
     user: any | null; // Supabase user
     profile: UserProfile | null;
+    /**
+     * Row completo de `proveedores` para el usuario actual (o null si el user
+     * es solo tutor / no tiene perfil proveedor). Hidratado UNA sola vez al
+     * inicializar la sesion para que `/proveedor` no tenga que refetcharlo.
+     * Si el dashboard muta el row (saveProfile) debe llamar refreshProveedorRow
+     * para mantener este cache fresco si se navega y vuelve.
+     */
+    proveedorRow: any | null;
+    refreshProveedorRow: () => Promise<void>;
     roles: string[];
     activeRole: Role | null; // Keep for backwards compatibility if needed, but we migrate to modes
     activeMode: 'buscador' | 'proveedor' | null;
@@ -60,6 +69,7 @@ const GUEST_CAPABILITIES: UserCapabilities = {
 export function UserContextProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [proveedorRow, setProveedorRow] = useState<any | null>(null);
     const [activeRole, setActiveRole] = useState<Role | null>(null);
     const [activeMode, setActiveMode] = useState<'buscador' | 'proveedor' | null>(null);
     const [canSwitchMode, setCanSwitchMode] = useState(false);
@@ -112,6 +122,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         if (!session?.user) {
             setUser(null);
             setProfile(null);
+            setProveedorRow(null);
             setActiveRole(null);
             setActiveMode('buscador');
             setCanSwitchMode(false);
@@ -132,10 +143,14 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // el await en serie y costaban 2x el RTT a Supabase en el path critico
         // de login.
         try {
+            // Trae el row completo de proveedores para dedupar el fetch que
+            // antes corria /proveedor/index.tsx checkProviderStatus. La carga
+            // extra (cols completas vs 6) es despreciable; el round-trip que
+            // ahorramos en Fase C del path critico NO lo es.
             const [proveedorRes, seekerRes] = await Promise.all([
                 supabase
                     .from('proveedores')
-                    .select('id, nombre, apellido_p, roles, foto_perfil, estado')
+                    .select('*')
                     .eq('auth_user_id', session.user.id)
                     .maybeSingle(),
                 supabase
@@ -146,6 +161,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             ]);
             const proveedorData = proveedorRes.data;
             const seekerData = seekerRes.data;
+            setProveedorRow(proveedorData ?? null);
 
             const hasApprovedProvider = proveedorData?.estado === 'aprobado';
             const statusOfProvider = proveedorData ? proveedorData.estado : 'none';
@@ -217,6 +233,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // Profile query failed — KEEP the user logged in, just with minimal state
             console.error("UserContext: profile query failed (user stays logged in):", err);
             setProfile(null);
+            setProveedorRow(null);
             setActiveMode('buscador');
             setCanSwitchMode(false);
             setProviderStatus('none');
@@ -291,6 +308,20 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         await hydrateFromSession(data?.session ?? null);
     };
 
+    // refreshProveedorRow: re-fetch puntual del row de proveedores para
+    // refrescar el cache del context tras una mutacion (ej. saveProfile en
+    // el dashboard). No re-corre la hidratacion completa para no resetear
+    // otros estados sin necesidad. Si el user no esta logueado, no-op.
+    const refreshProveedorRow = async () => {
+        if (!user?.id) return;
+        const { data } = await supabase
+            .from('proveedores')
+            .select('*')
+            .eq('auth_user_id', user.id)
+            .maybeSingle();
+        setProveedorRow(data ?? null);
+    };
+
     // softReset: limpia estado + localStorage + signOut SIN forzar redirect.
     // Lo usa el caller cuando ya tiene un destino propio (ej. safety redirect
     // en /proveedor que va a /login con redirect=...). Logout completo seguia
@@ -298,6 +329,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const softReset = async () => {
         setUser(null);
         setProfile(null);
+        setProveedorRow(null);
         setActiveRole(null);
         setActiveMode('buscador');
         setCanSwitchMode(false);
@@ -322,6 +354,8 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         <UserContext.Provider value={{
             user,
             profile,
+            proveedorRow,
+            refreshProveedorRow,
             roles,
             activeRole,
             activeMode,
