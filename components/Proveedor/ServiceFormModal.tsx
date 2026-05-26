@@ -362,12 +362,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setLoading(false);
     };
 
-    if (!isOpen) return null;
-
+    // Derivaciones que alimentan hooks o handleSubmit (closure). Suben arriba
+    // del early return para respetar Rules of Hooks: useMemo abajo dispararia
+    // "Rendered fewer hooks than expected" cuando isOpen pasa de true a false.
     const selectedCat = categorias.find(c => c.id === categoriaId);
     const selectedCatSlug = selectedCat?.slug || '';
     const camposCategoria = CAMPOS_POR_CATEGORIA[selectedCatSlug] || [];
-    const coverPreview = fotos[0] || null;
 
     // mergedDetalles: vista canonica de detalles que combina defaults por tipo
     // de campo + lo cargado del state. El loaded SIEMPRE gana sobre el default
@@ -377,6 +377,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     // garantiza que el checkbox reflejara true cuando el state se hidrate.
     // Tambien garantiza que TODOS los campos boolean (incluso los no tocados)
     // queden en el payload al guardar, no solo los que el usuario toco.
+    //
+    // Debe estar ANTES del early return `if (!isOpen)` para cumplir Rules of
+    // Hooks (mismo orden de hooks en todos los renders, abierto o cerrado).
     const mergedDetalles = useMemo(() => {
         const merged: Record<string, any> = {};
         for (const campo of camposCategoria) {
@@ -390,6 +393,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         Object.assign(merged, detalles || {});
         return merged;
     }, [camposCategoria, detalles]);
+
+    if (!isOpen) return null;
+
+    const coverPreview = fotos[0] || null;
 
     const comunasFiltradas = COMUNAS_CHILE.filter(c =>
         comunaSearch ? c.toLowerCase().includes(comunaSearch.toLowerCase()) : true
