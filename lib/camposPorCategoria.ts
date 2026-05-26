@@ -1,18 +1,59 @@
 // lib/camposPorCategoria.ts
 // ----------------------------------------------------------------------------
-// Definicion centralizada de los campos categoria-especificos del perfil de
-// proveedor. Antes vivia hardcoded en pages/register.tsx. Movido aca en
-// Sprint 2 commit c para reusar en:
-//   - pages/register.tsx (Step 3 del wizard)
-//   - components/Proveedor/DatosEspecificosForm.tsx (tab Info del servicio
-//     en el dashboard del proveedor)
+// FUENTE UNICA de los campos categoria-especificos a nivel servicio. Sprint 4
+// Fase 1: unifica la antigua definicion inline de ServiceFormModal con la de
+// este archivo. Antes existian dos definiciones paralelas con keys distintas
+// (`campo.tipo` aqui vs `campo.type` alla, `opciones` vs `options`, set de
+// campos disjunto). Se conserva el shape de este archivo (`tipo`,
+// `opciones: {value,label}[]`, soporte `condicionalDe`) y se mergea el
+// contenido de ambas.
 //
-// El objeto se serializa al JSONB proveedores.datos_especificos por el RPC
-// registrar_proveedor (en signup) y por UPDATE directo (en edicion).
+// Consumers:
+//   - components/Proveedor/ServiceFormModal.tsx     (edicion completa de un servicio)
+//   - components/Proveedor/ServicioDetallesForm.tsx (edicion rapida de detalles per-servicio — antes DatosEspecificosForm)
+//   - pages/register.tsx                            (Step 3 del wizard)
+//   - components/Servicio/ServiceDetailView.tsx     (ficha publica del servicio)
+//   - pages/proveedor/[id].tsx                      (ficha publica del proveedor)
 //
-// Para agregar campos a una categoria existente: agregar entry al array.
-// Para agregar una categoria nueva: agregar key al objeto + actualizar
-// CATEGORIES en register.tsx + BD.
+// Reconciliacion de keys (las que diferian entre las dos definiciones legacy):
+//
+//   Categoria       lib legacy → SFM legacy → CANONICA (Fase 1)
+//   hospedaje       tipo_vivienda         tipo_espacio        → tipo_espacio  (3 vals: casa/departamento/campo)
+//                   capacidad_maxima      capacidad           → capacidad
+//                   otras_mascotas_hogar  mascotas_propias    → mascotas_propias
+//                   tiene_ninos           ninos_en_hogar      → ninos_en_hogar
+//   domicilio       servicios_incluidos   que_incluye         → que_incluye (textarea)
+//                   incluye_medicamentos  administra_medicamentos → administra_medicamentos
+//                   incluye_foto_reporte  envia_foto_reporte  → envia_foto_reporte
+//   paseos          max_perros_simultaneos max_perros         → max_perros
+//                   acepta_razas_grandes  razas_fuerza        → razas_fuerza
+//                   usa_gps               lleva_gps           → usa_gps
+//                   envia_reporte_fotos   envia_fotos         → envia_fotos
+//   guarderia       capacidad_maxima      capacidad           → capacidad
+//                   tiene_camara          camara_vigilancia   → camara_vigilancia
+//                   envia_fotos           fotos_durante       → fotos_durante
+//   peluqueria      atiende_en            modalidad           → modalidad (vals lowercase canonicos)
+//                   tiene_mesa_hidraulica mesa_hidraulica     → mesa_hidraulica
+//                   razas_especiales(text) razas_especiales(bool) → razas_especiales TEXT (mas informativo;
+//                                                                    candidato a multiselect en Fase 2)
+//   veterinario     hace_urgencias        atiende_urgencias   → atiende_urgencias
+//                   especialidad(singular) especialidades(plural) → especialidades
+//   traslado        tipo_vehiculo(select 3) tipo_vehiculo(text) → tipo_vehiculo select 4 (+ "otro")
+//                   acepta_mascotas_grandes mascotas_grandes  → acepta_mascotas_grandes
+//   adiestramiento  modalidad(individual/grupal) modalidad(domicilio/online) → DOS EJES:
+//                     formato (individual/grupal/ambas) + modalidad (domicilio/online/academia)
+//                   certificacion         certificaciones     → certificaciones
+//                   metodo (3 vals)       metodo (4 vals)     → metodo union (5 vals)
+//                   va_domicilio          —                   → ELIMINADO (modalidad=domicilio lo cubre)
+//   fotografia      edicion_profesional   incluye_edicion     → edicion_profesional
+//
+// Valores de `select`: siempre lowercase canonico en BD, label de display en
+// `opciones[].label`. No mezclar UI labels en BD.
+//
+// NO se elimina ningun campo de los sets legacy — todo se mergea para que el
+// dato existente en `servicios_publicados.detalles` siga renderizando con su
+// nuevo label canonico (la migracion de keys legacy → canonicas para data
+// existente es un paso separado, decision pendiente).
 // ----------------------------------------------------------------------------
 
 export type TipoCampoDinamico = 'text' | 'number' | 'boolean' | 'select' | 'textarea' | 'info';
@@ -24,91 +65,151 @@ export interface CampoDinamico {
     placeholder?: string;
     requerido?: boolean;
     opciones?: { value: string; label: string }[];
-    /** Si esta seteado, el campo solo se renderiza cuando datosDinamicos[condicionalDe] === condicionalValor. */
+    /** Sufijo de display para tipo `number` (ej. "mascotas", "km", "minutos"). Hoy las unidades viven dentro del `label` entre parentesis; este campo queda como hook para moverlas a data en Fase 2. */
+    unit?: string;
+    /** Si esta seteado, el campo solo se renderiza cuando datos[condicionalDe] === condicionalValor. */
     condicionalDe?: string;
     condicionalValor?: string | boolean | number;
 }
 
 export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     hospedaje: [
-        { key: "tipo_vivienda", label: "Tipo de vivienda donde cuidas", tipo: "select", opciones: [{ value: "casa", label: "Casa" }, { value: "departamento", label: "Departamento" }], requerido: true },
-        { key: "metros_espacio", label: "Metros cuadrados del espacio disponible para la mascota", tipo: "number", placeholder: "Ej: 30" },
-        { key: "capacidad_maxima", label: "Capacidad máxima (mascotas simultáneas)", tipo: "number", placeholder: "Ej: 2", requerido: true },
-        { key: "tiene_patio", label: "Tengo patio o jardín con acceso directo", tipo: "boolean" },
-        { key: "piso_departamento", label: "Piso del departamento", tipo: "number", placeholder: "Ej: 5", condicionalDe: "tipo_vivienda", condicionalValor: "departamento" },
-        { key: "tiene_mallas_seguridad", label: "Tengo mallas de seguridad en ventanas y balcones", tipo: "boolean", condicionalDe: "tipo_vivienda", condicionalValor: "departamento" },
-        { key: "otras_mascotas_hogar", label: "Tengo mascotas propias en el hogar", tipo: "boolean" },
-        { key: "tipo_mascotas_propias", label: "¿Qué mascotas tienes? (describe)", tipo: "text", placeholder: "Ej: 1 gato castrado tranquilo", condicionalDe: "otras_mascotas_hogar", condicionalValor: true },
-        { key: "tiene_ninos", label: "Hay niños menores de 12 años en el hogar", tipo: "boolean" },
-        { key: "acepta_separacion", label: "Puedo mantener mascotas separadas si es necesario", tipo: "boolean" },
+        { key: 'tipo_espacio', label: 'Tipo de espacio donde cuidas', tipo: 'select', opciones: [
+            { value: 'casa', label: 'Casa' },
+            { value: 'departamento', label: 'Departamento' },
+            { value: 'campo', label: 'Campo / parcela' },
+        ], requerido: true },
+        { key: 'metros_espacio', label: 'Metros cuadrados disponibles para la mascota', tipo: 'number', placeholder: 'Ej: 30' },
+        { key: 'capacidad', label: 'Capacidad máxima (mascotas simultáneas)', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
+        { key: 'tiene_patio', label: 'Tengo patio o jardín con acceso directo', tipo: 'boolean' },
+        { key: 'piso_departamento', label: 'Piso del departamento', tipo: 'number', placeholder: 'Ej: 5', condicionalDe: 'tipo_espacio', condicionalValor: 'departamento' },
+        { key: 'tiene_mallas_seguridad', label: 'Tengo mallas de seguridad en ventanas y balcones', tipo: 'boolean', condicionalDe: 'tipo_espacio', condicionalValor: 'departamento' },
+        { key: 'camara_vigilancia', label: 'Tengo cámara de vigilancia para que el dueño vea a su mascota', tipo: 'boolean' },
+        { key: 'incluye_alimentacion', label: 'Incluyo alimentación en el servicio', tipo: 'boolean' },
+        { key: 'incluye_paseos', label: 'Incluyo paseos diarios', tipo: 'boolean' },
+        { key: 'fotos_durante_estadia', label: 'Envío fotos durante la estadía', tipo: 'boolean' },
+        { key: 'mascotas_propias', label: 'Tengo mascotas propias en el hogar', tipo: 'boolean' },
+        { key: 'tipo_mascotas_propias', label: '¿Qué mascotas tienes? (describe)', tipo: 'text', placeholder: 'Ej: 1 gato castrado tranquilo', condicionalDe: 'mascotas_propias', condicionalValor: true },
+        { key: 'ninos_en_hogar', label: 'Hay niños menores de 12 años en el hogar', tipo: 'boolean' },
+        { key: 'acepta_separacion', label: 'Puedo mantener mascotas separadas si es necesario', tipo: 'boolean' },
     ],
     domicilio: [
         { key: 'info_domicilio', label: 'Tú vas a la casa del cliente. No necesitas espacio propio para mascotas.', tipo: 'info' },
         { key: 'visitas_por_dia', label: 'Visitas por día que puedes hacer', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
         { key: 'duracion_visita', label: 'Duración de cada visita (minutos)', tipo: 'number', placeholder: 'Ej: 45', requerido: true },
-        { key: 'servicios_incluidos', label: '¿Qué incluye cada visita?', tipo: 'text', placeholder: 'Ej: Alimentación, paseo corto, limpieza' },
+        { key: 'que_incluye', label: '¿Qué incluye cada visita?', tipo: 'textarea', placeholder: 'Ej: Alimentación, paseo corto, limpieza, juego' },
         { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura (km desde tu comuna)', tipo: 'number', placeholder: 'Ej: 5' },
-        { key: 'incluye_medicamentos', label: 'Puedo administrar medicamentos según instrucciones', tipo: 'boolean' },
-        { key: 'incluye_foto_reporte', label: 'Envío foto y reporte de cada visita', tipo: 'boolean' },
+        { key: 'administra_medicamentos', label: 'Puedo administrar medicamentos según instrucciones', tipo: 'boolean' },
+        { key: 'envia_foto_reporte', label: 'Envío foto y reporte de cada visita', tipo: 'boolean' },
     ],
     paseos: [
-        { key: "max_perros_simultaneos", label: "Máximo de perros simultáneos", tipo: "number", placeholder: "Ej: 3", requerido: true },
-        { key: "duracion_minutos", label: "Duración estándar del paseo (min)", tipo: "number", placeholder: "Ej: 45" },
-        { key: "radio_cobertura_km", label: "Radio de cobertura en km desde tu comuna", tipo: "number", placeholder: "Ej: 3" },
-        { key: "comunas_adicionales", label: "Otras comunas donde paseas (opcional)", tipo: "text", placeholder: "Ej: Ñuñoa, Macul" },
-        { key: "acepta_razas_grandes", label: "Acepto razas grandes o de fuerza (rottweiler, pitbull, etc.)", tipo: "boolean" },
-        { key: "usa_gps", label: "Uso GPS o app de seguimiento durante el paseo", tipo: "boolean" },
-        { key: "envia_reporte_fotos", label: "Envío foto y reporte al dueño tras cada paseo", tipo: "boolean" },
+        { key: 'max_perros', label: 'Máximo de perros simultáneos', tipo: 'number', placeholder: 'Ej: 3', requerido: true },
+        { key: 'duracion_minutos', label: 'Duración estándar del paseo (minutos)', tipo: 'number', placeholder: 'Ej: 45' },
+        { key: 'radio_cobertura_km', label: 'Radio de cobertura desde tu comuna (km)', tipo: 'number', placeholder: 'Ej: 3' },
+        { key: 'zona_paseo', label: 'Zona o parque donde paseas habitualmente', tipo: 'text', placeholder: "Ej: Parque O'Higgins, Parque Forestal" },
+        { key: 'comunas_adicionales', label: 'Otras comunas donde paseas (opcional)', tipo: 'text', placeholder: 'Ej: Ñuñoa, Macul' },
+        { key: 'razas_fuerza', label: 'Acepto razas grandes o de fuerza (rottweiler, pitbull, etc.)', tipo: 'boolean' },
+        { key: 'usa_gps', label: 'Uso GPS o app de seguimiento durante el paseo', tipo: 'boolean' },
+        { key: 'envia_fotos', label: 'Envío foto y reporte al dueño tras cada paseo', tipo: 'boolean' },
     ],
     veterinario: [
-        { key: "universidad", label: "Universidad donde estudié", tipo: "text", placeholder: "Ej: Universidad de Chile", requerido: true },
-        { key: "anio_titulacion", label: "Año de titulación", tipo: "number", placeholder: "Ej: 2018" },
-        { key: "numero_registro", label: "N.° de registro profesional", tipo: "text", placeholder: "Ej: 12345" },
-        { key: "especialidad", label: "Especialidad (opcional)", tipo: "text", placeholder: "Ej: Dermatología, Cirugía..." },
-        { key: "radio_cobertura_km", label: "Radio máximo de cobertura a domicilio (km)", tipo: "number", placeholder: "Ej: 10" },
-        { key: "comunas_cobertura", label: "Comunas donde atiendes a domicilio", tipo: "text", placeholder: "Ej: Providencia, Las Condes, Vitacura" },
-        { key: "hace_urgencias", label: "Atención de urgencias / horario extendido", tipo: "boolean" },
+        { key: 'universidad', label: 'Universidad donde estudié', tipo: 'text', placeholder: 'Ej: Universidad de Chile', requerido: true },
+        { key: 'anio_titulacion', label: 'Año de titulación', tipo: 'number', placeholder: 'Ej: 2018' },
+        { key: 'numero_registro', label: 'N.° de registro profesional', tipo: 'text', placeholder: 'Ej: 12345' },
+        { key: 'especialidades', label: 'Especialidades', tipo: 'text', placeholder: 'Ej: Dermatología, Cirugía...' },
+        { key: 'servicios_ofrecidos', label: 'Servicios ofrecidos', tipo: 'textarea', placeholder: 'Ej: Consulta general, vacunas, desparasitación' },
+        { key: 'examenes_disponibles', label: 'Exámenes disponibles', tipo: 'text', placeholder: 'Ej: Hemograma, ecografía, radiografía' },
+        { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura a domicilio (km)', tipo: 'number', placeholder: 'Ej: 10' },
+        { key: 'comunas_cobertura', label: 'Comunas donde atiendes a domicilio', tipo: 'text', placeholder: 'Ej: Providencia, Las Condes, Vitacura' },
+        { key: 'atiende_urgencias', label: 'Atención de urgencias / horario extendido', tipo: 'boolean' },
+        { key: 'emite_boleta', label: 'Emito boleta o factura', tipo: 'boolean' },
     ],
     traslado: [
-        { key: "tipo_vehiculo", label: "Tipo de vehículo", tipo: "select", opciones: [{ value: "auto", label: "Auto" }, { value: "van", label: "Van" }, { value: "furgon", label: "Furgón" }], requerido: true },
-        { key: "radio_cobertura_km", label: "Radio máximo de cobertura (km)", tipo: "number", placeholder: "Ej: 20" },
-        { key: "comunas_cobertura", label: "Comunas de origen y destino que cubres", tipo: "text", placeholder: "Ej: Todo Santiago, Región Metropolitana" },
-        { key: "tiene_jaula", label: "Tengo jaula o transportín para el traslado", tipo: "boolean" },
-        { key: "acepta_mascotas_grandes", label: "Acepto mascotas grandes (más de 30 kg)", tipo: "boolean" },
-        { key: "capacidad_mascotas", label: "Capacidad máxima de mascotas por viaje", tipo: "number", placeholder: "Ej: 2" },
-        { key: "tiene_empresa", label: "Opero con empresa o emito boleta", tipo: "boolean" },
+        { key: 'tipo_vehiculo', label: 'Tipo de vehículo', tipo: 'select', opciones: [
+            { value: 'auto', label: 'Auto' },
+            { value: 'van', label: 'Van' },
+            { value: 'furgon', label: 'Furgón' },
+            { value: 'otro', label: 'Otro' },
+        ], requerido: true },
+        { key: 'capacidad_mascotas', label: 'Capacidad máxima de mascotas por viaje', tipo: 'number', placeholder: 'Ej: 2' },
+        { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura (km)', tipo: 'number', placeholder: 'Ej: 20' },
+        { key: 'comunas_cobertura', label: 'Comunas de origen y destino que cubres', tipo: 'text', placeholder: 'Ej: Todo Santiago, Región Metropolitana' },
+        { key: 'tiene_jaula', label: 'Tengo jaula o transportín para el traslado', tipo: 'boolean' },
+        { key: 'acepta_mascotas_grandes', label: 'Acepto mascotas grandes (más de 30 kg)', tipo: 'boolean' },
+        { key: 'equipamiento', label: 'Equipamiento de seguridad', tipo: 'text', placeholder: 'Ej: Jaulas certificadas, arnés, red divisoria' },
+        { key: 'tiene_empresa', label: 'Opero con empresa o emito boleta', tipo: 'boolean' },
     ],
     peluqueria: [
-        { key: "anios_experiencia", label: "Años de experiencia", tipo: "number", placeholder: "Ej: 5", requerido: true },
-        { key: "atiende_en", label: "¿Dónde atiendes?", tipo: "select", opciones: [{ value: "local_propio", label: "En mi local propio" }, { value: "domicilio", label: "Voy al domicilio del cliente" }, { value: "ambos", label: "Ambas opciones" }], requerido: true },
-        { key: "tiene_mesa_hidraulica", label: "Cuento con mesa hidráulica profesional", tipo: "boolean" },
-        { key: "certificaciones", label: "Cursos o certificaciones", tipo: "text", placeholder: "Ej: Curso Groomex 2022, Especialidad Nordic" },
-        { key: "razas_especiales", label: "Razas especiales que manejas (opcional)", tipo: "text", placeholder: "Ej: Poodle, Cocker, Schnauzer" },
-        { key: "radio_cobertura_km", label: "Radio de cobertura si vas a domicilio (km)", tipo: "number", placeholder: "Ej: 5", condicionalDe: "atiende_en", condicionalValor: "domicilio" },
+        { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
+        { key: 'modalidad', label: 'Modalidad de atención', tipo: 'select', opciones: [
+            { value: 'local_propio', label: 'En mi local propio' },
+            { value: 'domicilio', label: 'Voy al domicilio del cliente' },
+            { value: 'ambos', label: 'Ambas opciones' },
+        ], requerido: true },
+        { key: 'duracion_estimada', label: 'Duración estimada por sesión', tipo: 'text', placeholder: 'Ej: 1-2 horas según tamaño' },
+        { key: 'que_incluye', label: '¿Qué incluye el servicio?', tipo: 'textarea', placeholder: 'Ej: Baño, corte, secado, corte de uñas' },
+        { key: 'mesa_hidraulica', label: 'Cuento con mesa hidráulica profesional', tipo: 'boolean' },
+        { key: 'certificaciones', label: 'Cursos o certificaciones', tipo: 'text', placeholder: 'Ej: Curso Groomex 2022, Especialidad Nordic' },
+        // razas_especiales: texto libre por decision de Sprint 4 (mas informativo
+        // que un boolean). Candidato a migrar a multiselect en Fase 2; el texto
+        // libre actual sera la fuente de migracion.
+        { key: 'razas_especiales', label: 'Razas especiales que manejas (opcional)', tipo: 'text', placeholder: 'Ej: Poodle, Cocker, Schnauzer' },
+        { key: 'radio_cobertura_km', label: 'Radio de cobertura si vas a domicilio (km)', tipo: 'number', placeholder: 'Ej: 5', condicionalDe: 'modalidad', condicionalValor: 'domicilio' },
     ],
     adiestramiento: [
-        { key: "metodo", label: "Método de adiestramiento", tipo: "select", opciones: [{ value: "positivo", label: "Refuerzo positivo" }, { value: "mixto", label: "Mixto" }, { value: "tradicional", label: "Tradicional" }], requerido: true },
-        { key: "anios_experiencia", label: "Años de experiencia", tipo: "number", placeholder: "Ej: 3" },
-        { key: "modalidad", label: "Modalidad de trabajo", tipo: "select", opciones: [{ value: "individual", label: "Sesiones individuales" }, { value: "grupal", label: "Clases grupales" }, { value: "ambas", label: "Ambas modalidades" }], requerido: true },
-        { key: "va_domicilio", label: "Puedo ir al domicilio del cliente", tipo: "boolean" },
-        { key: "duracion_sesion", label: "Duración de la sesión (minutos)", tipo: "number", placeholder: "Ej: 60" },
-        { key: "certificacion", label: "Certificación profesional", tipo: "text", placeholder: "Ej: CPDT-KA, IAA" },
-        { key: "radio_cobertura_km", label: "Radio de cobertura si vas a domicilio (km)", tipo: "number", condicionalDe: "va_domicilio", condicionalValor: true },
+        { key: 'metodo', label: 'Método de adiestramiento', tipo: 'select', opciones: [
+            { value: 'positivo', label: 'Refuerzo positivo' },
+            { value: 'mixto', label: 'Mixto' },
+            { value: 'clicker', label: 'Clicker training' },
+            { value: 'tradicional', label: 'Tradicional' },
+            { value: 'otro', label: 'Otro' },
+        ], requerido: true },
+        { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 3' },
+        // formato y modalidad son ejes ortogonales — formato describe tamaño
+        // del grupo, modalidad describe lugar. Sprint 4 dejo ambos.
+        { key: 'formato', label: 'Formato de trabajo', tipo: 'select', opciones: [
+            { value: 'individual', label: 'Sesiones individuales' },
+            { value: 'grupal', label: 'Clases grupales' },
+            { value: 'ambas', label: 'Ambas modalidades' },
+        ], requerido: true },
+        { key: 'modalidad', label: 'Modalidad de atención', tipo: 'select', opciones: [
+            { value: 'domicilio', label: 'A domicilio' },
+            { value: 'online', label: 'Online' },
+            { value: 'academia', label: 'Academia o local propio' },
+        ], requerido: true },
+        { key: 'duracion_sesion', label: 'Duración de la sesión (minutos)', tipo: 'number', placeholder: 'Ej: 60' },
+        { key: 'problemas_que_resuelve', label: 'Problemas que trabajas', tipo: 'textarea', placeholder: 'Ej: Ansiedad por separación, agresividad, ladrido excesivo' },
+        { key: 'certificaciones', label: 'Certificación profesional', tipo: 'text', placeholder: 'Ej: CPDT-KA, IAA' },
+        { key: 'radio_cobertura_km', label: 'Radio de cobertura si vas a domicilio (km)', tipo: 'number', condicionalDe: 'modalidad', condicionalValor: 'domicilio' },
     ],
     guarderia: [
-        { key: "capacidad_maxima", label: "Capacidad máxima de mascotas simultáneas", tipo: "number", placeholder: "Ej: 5", requerido: true },
-        { key: "horario", label: "Horario de atención", tipo: "text", placeholder: "Ej: Lunes a viernes 8:00-18:00", requerido: true },
-        { key: "tipo_guarderia", label: "Tipo de guardería", tipo: "select", opciones: [{ value: "diurna", label: "Solo diurna (horas)" }, { value: "nocturna", label: "Incluye quedarse de noche" }, { value: "ambas", label: "Ambas opciones" }], requerido: true },
-        { key: "tiene_patio", label: "Tengo patio o jardín con acceso directo", tipo: "boolean" },
-        { key: "tiene_camara", label: "Tengo cámara para que el dueño vea a su mascota", tipo: "boolean" },
-        { key: "envia_fotos", label: "Envío fotos durante el día al dueño", tipo: "boolean" },
+        { key: 'capacidad', label: 'Capacidad máxima de mascotas simultáneas', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
+        { key: 'horario', label: 'Horario de atención', tipo: 'text', placeholder: 'Ej: Lunes a viernes 8:00-18:00', requerido: true },
+        { key: 'tipo_guarderia', label: 'Tipo de guardería', tipo: 'select', opciones: [
+            { value: 'diurna', label: 'Solo diurna (horas)' },
+            { value: 'nocturna', label: 'Incluye quedarse de noche' },
+            { value: 'ambas', label: 'Ambas opciones' },
+        ], requerido: true },
+        { key: 'actividades', label: 'Actividades incluidas', tipo: 'text', placeholder: 'Ej: Socialización, juegos, siesta' },
+        { key: 'tiene_patio', label: 'Tengo patio o área al aire libre', tipo: 'boolean' },
+        { key: 'camara_vigilancia', label: 'Tengo cámara para que el dueño vea a su mascota', tipo: 'boolean' },
+        { key: 'fotos_durante', label: 'Envío fotos durante el día al dueño', tipo: 'boolean' },
     ],
     fotografia: [
-        { key: "tipo_sesion", label: "Tipo de sesión", tipo: "select", opciones: [{ value: "exterior", label: "Exterior" }, { value: "estudio", label: "Estudio" }, { value: "domicilio", label: "A domicilio" }, { value: "todas", label: "Todas las anteriores" }], requerido: true },
-        { key: "anios_experiencia", label: "Años de experiencia en fotografía", tipo: "number", placeholder: "Ej: 3" },
-        { key: "equipo", label: "Equipo fotográfico que utilizas", tipo: "text", placeholder: "Ej: Canon R6, lentes 50mm y 85mm" },
-        { key: "portfolio_url", label: "Link a tu portfolio (opcional)", tipo: "text", placeholder: "Ej: www.miportfolio.com" },
-        { key: "edicion_profesional", label: "Incluyo edición profesional de las fotos", tipo: "boolean" },
+        { key: 'tipo_sesion', label: 'Tipo de sesión', tipo: 'select', opciones: [
+            { value: 'exterior', label: 'Exterior' },
+            { value: 'estudio', label: 'Estudio' },
+            { value: 'domicilio', label: 'A domicilio' },
+            { value: 'todas', label: 'Todas las anteriores' },
+        ], requerido: true },
+        { key: 'anios_experiencia', label: 'Años de experiencia en fotografía', tipo: 'number', placeholder: 'Ej: 3' },
+        { key: 'duracion_sesion', label: 'Duración estimada de la sesión', tipo: 'text', placeholder: 'Ej: 1 a 2 horas' },
+        { key: 'fotos_entregadas', label: 'Cantidad de fotos entregadas', tipo: 'text', placeholder: 'Ej: 20 fotos editadas' },
+        { key: 'equipo', label: 'Equipo fotográfico que utilizas', tipo: 'text', placeholder: 'Ej: Canon R6, lentes 50mm y 85mm, flash' },
+        { key: 'portfolio_url', label: 'Link a tu portfolio (opcional)', tipo: 'text', placeholder: 'Ej: www.miportfolio.com' },
+        { key: 'edicion_profesional', label: 'Incluyo edición profesional de las fotos', tipo: 'boolean' },
+        { key: 'entrega_digitales', label: 'Entrega en formato digital (alta resolución)', tipo: 'boolean' },
+        { key: 'acepta_multiples_mascotas', label: 'Acepto sesiones con más de una mascota', tipo: 'boolean' },
     ],
 };
 
@@ -124,4 +225,38 @@ export function camposVisibles(categoria: string, datos: Record<string, any>): C
         const valorActual = datos[campo.condicionalDe];
         return valorActual === campo.condicionalValor;
     });
+}
+
+/**
+ * Resuelve un campo por (categoria, key) para que los consumers (renders de
+ * ficha publica, listing admin, etc.) puedan obtener el label y tipo canonico
+ * sin duplicar el mapping. Retorna undefined si la categoria o la key no
+ * existen — el caller puede caer a `key.replace(/_/g, ' ')` o similar.
+ */
+export function getCampoMeta(categoria: string, key: string): CampoDinamico | undefined {
+    return CAMPOS_POR_CATEGORIA[categoria]?.find(c => c.key === key);
+}
+
+/**
+ * Formatea un valor de `detalles[key]` para mostrar en la UI segun el tipo
+ * del campo. Centraliza la logica que antes vivia duplicada en
+ * pages/proveedor/[id].tsx (formatValor) y components/Servicio/ServiceDetailView.tsx.
+ *
+ * - boolean → "Sí" / "No"  (caller usualmente filtra `false` antes)
+ * - select  → busca el `label` correspondiente en `opciones`
+ * - resto   → String(value)
+ *
+ * Si `campo` es undefined (porque la categoria es desconocida o la key cayo
+ * fuera del set canonico) cae a String(value), garantizando que un dato
+ * legacy nunca rompa el render.
+ */
+export function formatValorCampo(campo: CampoDinamico | undefined, value: any): string {
+    if (value === null || value === undefined || value === '') return '';
+    if (!campo) return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : String(value);
+    if (campo.tipo === 'boolean') return value ? 'Sí' : 'No';
+    if (campo.tipo === 'select') {
+        const opt = campo.opciones?.find(o => String(o.value) === String(value));
+        return opt?.label ?? String(value);
+    }
+    return String(value);
 }

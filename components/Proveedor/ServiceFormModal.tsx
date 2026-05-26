@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
 import { COMUNAS_CHILE } from '../../lib/comunas';
+import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 
 interface ServiceFormModalProps {
     isOpen: boolean;
@@ -12,91 +13,11 @@ interface ServiceFormModalProps {
     onSuccess: () => void;
 }
 
-// ─── Category-specific field definitions ──────────────────────────────────────
-
-type FieldType = 'boolean' | 'text' | 'number' | 'select' | 'textarea';
-
-interface CategoryField {
-    key: string;
-    label: string;
-    type: FieldType;
-    options?: string[];        // for select
-    placeholder?: string;
-    hint?: string;
-    unit?: string;             // shown after number inputs
-}
-
-const CAMPOS_POR_CATEGORIA: Record<string, CategoryField[]> = {
-    hospedaje: [
-        { key: 'capacidad', label: 'Capacidad máxima de mascotas', type: 'number', placeholder: '2', unit: 'mascotas' },
-        { key: 'tipo_espacio', label: 'Tipo de espacio', type: 'select', options: ['Casa', 'Departamento', 'Campo / parcela'] },
-        { key: 'tiene_patio', label: 'Tiene patio o jardín', type: 'boolean' },
-        { key: 'camara_vigilancia', label: 'Cámara de vigilancia', type: 'boolean' },
-        { key: 'incluye_alimentacion', label: 'Incluye alimentación', type: 'boolean' },
-        { key: 'incluye_paseos', label: 'Incluye paseos diarios', type: 'boolean' },
-        { key: 'mascotas_propias', label: 'Hay mascotas propias en el hogar', type: 'boolean' },
-        { key: 'ninos_en_hogar', label: 'Hay niños en el hogar', type: 'boolean' },
-        { key: 'fotos_durante_estadia', label: 'Envía fotos durante la estadía', type: 'boolean' },
-    ],
-    guarderia: [
-        { key: 'horario', label: 'Horario de atención', type: 'text', placeholder: 'Lun–Vie 8:00–18:00' },
-        { key: 'capacidad', label: 'Capacidad máxima', type: 'number', placeholder: '5', unit: 'mascotas' },
-        { key: 'tiene_patio', label: 'Tiene patio o área al aire libre', type: 'boolean' },
-        { key: 'actividades', label: 'Actividades incluidas', type: 'text', placeholder: 'Socialización, juegos, siesta...' },
-        { key: 'camara_vigilancia', label: 'Cámara de vigilancia', type: 'boolean' },
-        { key: 'fotos_durante', label: 'Envía fotos / reporte del día', type: 'boolean' },
-    ],
-    paseos: [
-        { key: 'duracion_minutos', label: 'Duración del paseo', type: 'select', options: ['30 minutos', '45 minutos', '60 minutos', '90 minutos'] },
-        { key: 'max_perros', label: 'Máx. perros por paseo', type: 'number', placeholder: '4', unit: 'perros' },
-        { key: 'zona_paseo', label: 'Zona / parque donde se pasea', type: 'text', placeholder: 'Parque O\'Higgins, Parque Forestal...' },
-        { key: 'lleva_gps', label: 'Usa GPS durante el paseo', type: 'boolean' },
-        { key: 'envia_fotos', label: 'Envía fotos del paseo', type: 'boolean' },
-        { key: 'razas_fuerza', label: 'Acepta razas de fuerza / gran porte', type: 'boolean' },
-    ],
-    peluqueria: [
-        { key: 'modalidad', label: 'Modalidad', type: 'select', options: ['En local', 'A domicilio', 'Ambas'] },
-        { key: 'duracion_estimada', label: 'Duración estimada', type: 'text', placeholder: '1–2 horas según tamaño' },
-        { key: 'que_incluye', label: 'Qué incluye el servicio', type: 'textarea', placeholder: 'Baño, corte, secado, corte de uñas...' },
-        { key: 'razas_especiales', label: 'Trabaja razas de doble pelaje / razas especiales', type: 'boolean' },
-        { key: 'mesa_hidraulica', label: 'Cuenta con mesa hidráulica', type: 'boolean' },
-    ],
-    veterinario: [
-        { key: 'servicios_ofrecidos', label: 'Servicios ofrecidos', type: 'textarea', placeholder: 'Consulta general, vacunas, desparasitación...' },
-        { key: 'atiende_urgencias', label: 'Atiende urgencias', type: 'boolean' },
-        { key: 'emite_boleta', label: 'Emite boleta / factura', type: 'boolean' },
-        { key: 'especialidades', label: 'Especialidades (si aplica)', type: 'text', placeholder: 'Dermatología, cardiología...' },
-        { key: 'examenes_disponibles', label: 'Exámenes disponibles', type: 'text', placeholder: 'Hemograma, ecografía, radiografía...' },
-    ],
-    adiestramiento: [
-        { key: 'metodo', label: 'Método de entrenamiento', type: 'select', options: ['Refuerzo positivo', 'Mixto', 'Clicker training', 'Otro'] },
-        { key: 'modalidad', label: 'Modalidad', type: 'select', options: ['A domicilio', 'Online', 'Academia / local'] },
-        { key: 'duracion_sesion', label: 'Duración de sesión', type: 'number', placeholder: '60', unit: 'minutos' },
-        { key: 'problemas_que_resuelve', label: 'Problemas que trabaja', type: 'textarea', placeholder: 'Ansiedad por separación, agresividad, ladrido...' },
-        { key: 'certificaciones', label: 'Certificaciones o estudios', type: 'text', placeholder: 'Certificado IAC, Universidad...' },
-    ],
-    traslado: [
-        { key: 'tipo_vehiculo', label: 'Tipo de vehículo', type: 'text', placeholder: 'Van, SUV, furgón...' },
-        { key: 'equipamiento', label: 'Equipamiento de seguridad', type: 'text', placeholder: 'Jaulas certificadas, arnés, red divisoria...' },
-        { key: 'mascotas_grandes', label: 'Acepta mascotas de gran tamaño', type: 'boolean' },
-    ],
-    domicilio: [
-        { key: 'visitas_por_dia', label: 'Visitas por día', type: 'number', placeholder: '2', unit: 'visitas' },
-        { key: 'duracion_visita', label: 'Duración de cada visita', type: 'number', placeholder: '30', unit: 'minutos' },
-        { key: 'que_incluye', label: 'Qué incluye la visita', type: 'textarea', placeholder: 'Alimentación, juego, paseo corto, limpieza...' },
-        { key: 'envia_foto_reporte', label: 'Envía foto y reporte de cada visita', type: 'boolean' },
-        { key: 'administra_medicamentos', label: 'Administra medicamentos', type: 'boolean' },
-    ],
-    fotografia: [
-        { key: 'tipo_sesion', label: 'Tipo de sesión', type: 'select', options: ['Exterior', 'Estudio', 'A domicilio', 'Todas las anteriores'] },
-        { key: 'duracion_sesion', label: 'Duración estimada de la sesión', type: 'text', placeholder: '1 a 2 horas' },
-        { key: 'fotos_entregadas', label: 'Cantidad de fotos entregadas', type: 'text', placeholder: 'Ej: 20 fotos editadas' },
-        { key: 'incluye_edicion', label: 'Incluye edición profesional', type: 'boolean' },
-        { key: 'entrega_digitales', label: 'Entrega en formato digital (alta resolución)', type: 'boolean' },
-        { key: 'acepta_multiples_mascotas', label: 'Acepta sesiones con más de una mascota', type: 'boolean' },
-        { key: 'equipo', label: 'Equipo que utilizas', type: 'text', placeholder: 'Ej: Canon R6, lentes 50mm y 85mm, flash...' },
-    ],
-};
+// Set de campos por categoria viene de lib/camposPorCategoria.ts.
+// Sprint 4 Fase 1: la definicion inline de este archivo (con shape `type` /
+// `options: string[]` / `unit?`) fue eliminada para evitar duplicacion y
+// drift de keys (ej. incluye_medicamentos vs administra_medicamentos). Ver
+// comentario al tope de lib/camposPorCategoria.ts para el mapeo legacy.
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -312,8 +233,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         // null (mas limpio en jsonb que '').
         const detallesParaGuardar: Record<string, any> = {};
         for (const campo of camposCategoria) {
+            // Campos `info` son nota explicativa, no entrada — no van al payload.
+            if (campo.tipo === 'info') continue;
             const v = mergedDetalles[campo.key];
-            if (campo.type === 'boolean') {
+            if (campo.tipo === 'boolean') {
                 detallesParaGuardar[campo.key] = v === true;
             } else if (v === '' || v === undefined || v === null) {
                 detallesParaGuardar[campo.key] = null;
@@ -385,7 +308,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         for (const campo of camposCategoria) {
             // Default por tipo: booleans = false (no marcado), resto = '' (vacio).
             // Number guarda como '' tambien — el input lo parsea a Number al cambiar.
-            merged[campo.key] = campo.type === 'boolean' ? false : '';
+            if (campo.tipo === 'info') continue;
+            merged[campo.key] = campo.tipo === 'boolean' ? false : '';
         }
         // Loaded values win. Object.assign en lugar de spread para que claves
         // con valor `false` (boolean valido) tambien se copien — spread tambien
@@ -762,7 +686,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     <div className="space-y-4">
                                         {camposCategoria.map(campo => (
                                             <div key={campo.key}>
-                                                {campo.type === 'boolean' ? (
+                                                {campo.tipo === 'info' ? (
+                                                    <p className="text-sm text-slate-600 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100 italic">
+                                                        {campo.label}
+                                                    </p>
+                                                ) : campo.tipo === 'boolean' ? (
                                                     <label className="flex items-center gap-3 cursor-pointer">
                                                         <div className="relative shrink-0">
                                                             <input
@@ -776,7 +704,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         </div>
                                                         <span className="text-sm text-slate-700">{campo.label}</span>
                                                     </label>
-                                                ) : campo.type === 'select' ? (
+                                                ) : campo.tipo === 'select' ? (
                                                     <div>
                                                         <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <select
@@ -787,12 +715,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
                                                         >
                                                             <option value="">Seleccionar...</option>
-                                                            {campo.options?.map(opt => (
-                                                                <option key={opt} value={opt}>{opt}</option>
+                                                            {campo.opciones?.map(opt => (
+                                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
                                                             ))}
                                                         </select>
                                                     </div>
-                                                ) : campo.type === 'textarea' ? (
+                                                ) : campo.tipo === 'textarea' ? (
                                                     <div>
                                                         <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <textarea
@@ -806,7 +734,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                                                         />
                                                     </div>
-                                                ) : campo.type === 'number' ? (
+                                                ) : campo.tipo === 'number' ? (
                                                     <div>
                                                         <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <div className="flex items-center gap-2">
@@ -821,7 +749,6 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 min={0}
                                                                 className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                                             />
-                                                            {campo.unit && <span className="text-sm text-slate-500">{campo.unit}</span>}
                                                         </div>
                                                     </div>
                                                 ) : (

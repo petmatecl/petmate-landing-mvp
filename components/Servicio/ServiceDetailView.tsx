@@ -18,6 +18,7 @@ import PreguntasSection from '../Service/PreguntasSection';
 import ServiceCard, { ServiceResult } from '../Explore/ServiceCard';
 import Breadcrumb from '../Shared/Breadcrumb';
 import { instagramUsernameFromUrl } from '../../lib/validators';
+import { getCampoMeta, formatValorCampo } from '../../lib/camposPorCategoria';
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
@@ -28,54 +29,11 @@ import {
 import { toast } from 'sonner';
 import { getProxyImageUrl } from '../../lib/utils';
 
-// Label map for category-specific detail fields
-const DETALLE_LABELS: Record<string, Record<string, string>> = {
-    hospedaje: {
-        capacidad: 'Capacidad máxima', tipo_espacio: 'Tipo de espacio', tiene_patio: 'Patio o jardín',
-        camara_vigilancia: 'Cámara de vigilancia', incluye_alimentacion: 'Incluye alimentación',
-        incluye_paseos: 'Incluye paseos', mascotas_propias: 'Mascotas propias en el hogar',
-        ninos_en_hogar: 'Niños en el hogar', fotos_durante_estadia: 'Envía fotos durante la estadía',
-    },
-    guarderia: {
-        horario: 'Horario', capacidad: 'Capacidad máxima', tiene_patio: 'Patio o área exterior',
-        actividades: 'Actividades incluidas', camara_vigilancia: 'Cámara de vigilancia',
-        fotos_durante: 'Envía fotos / reporte del día',
-    },
-    paseos: {
-        duracion_minutos: 'Duración del paseo', max_perros: 'Máx. perros por paseo',
-        zona_paseo: 'Zona de paseo', lleva_gps: 'Usa GPS', envia_fotos: 'Envía fotos',
-        razas_fuerza: 'Acepta razas de fuerza',
-    },
-    peluqueria: {
-        modalidad: 'Modalidad', duracion_estimada: 'Duración estimada', que_incluye: 'Qué incluye',
-        razas_especiales: 'Razas especiales / doble pelaje', mesa_hidraulica: 'Mesa hidráulica',
-    },
-    veterinario: {
-        servicios_ofrecidos: 'Servicios ofrecidos', atiende_urgencias: 'Atiende urgencias',
-        emite_boleta: 'Emite boleta', especialidades: 'Especialidades',
-        examenes_disponibles: 'Exámenes disponibles',
-    },
-    adiestramiento: {
-        metodo: 'Método', modalidad: 'Modalidad', duracion_sesion: 'Duración por sesión (min)',
-        problemas_que_resuelve: 'Problemas que trabaja', certificaciones: 'Certificaciones',
-    },
-    traslado: {
-        tipo_vehiculo: 'Tipo de vehículo', equipamiento: 'Equipamiento de seguridad',
-        mascotas_grandes: 'Acepta mascotas grandes',
-    },
-    domicilio: {
-        visitas_por_dia: 'Visitas por día', duracion_visita: 'Duración por visita (min)',
-        que_incluye: 'Qué incluye la visita', envia_foto_reporte: 'Envía foto y reporte',
-        administra_medicamentos: 'Administra medicamentos',
-    },
-    fotografia: {
-        tipo_sesion: 'Tipo de sesión', duracion_sesion: 'Duración de la sesión',
-        fotos_entregadas: 'Fotos entregadas', incluye_edicion: 'Incluye edición profesional',
-        entrega_digitales: 'Entrega digital en alta resolución',
-        acepta_multiples_mascotas: 'Sesiones con más de una mascota',
-        equipo: 'Equipo fotográfico',
-    },
-};
+// Sprint 4 Fase 1: el mapa local DETALLE_LABELS desaparecio. La fuente unica
+// de labels/tipos por (categoria, key) vive en lib/camposPorCategoria.ts; el
+// render usa getCampoMeta + formatValorCampo. Si el campo no existe en la
+// definicion canonica (key legacy o de otra categoria), getCampoMeta devuelve
+// undefined y caemos a `key.replace(/_/g, ' ')` para el label.
 
 export interface ServiceDetailViewProps {
     service: any;
@@ -665,8 +623,10 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                         {/* Detalles específicos de categoría */}
                         {service.detalles && Object.keys(service.detalles).length > 0 && (() => {
                             const slug = categoria?.slug ?? '';
-                            const labels = DETALLE_LABELS[slug] ?? {};
-                            const entries = Object.entries(service.detalles).filter(([, v]) => v !== '' && v !== null && v !== undefined && v !== 0);
+                            // Filtro: descartamos null/undefined/'' pero conservamos `0` y `false`
+                            // (un radio_cobertura_km de 0 km es info legitima; el render mas
+                            // abajo se encarga de no mostrar booleans falsos como check).
+                            const entries = Object.entries(service.detalles).filter(([, v]) => v !== '' && v !== null && v !== undefined);
                             if (entries.length === 0) return null;
                             return (
                                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
@@ -676,9 +636,14 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {entries.map(([key, val]) => {
-                                            const label = labels[key] || key.replace(/_/g, ' ');
-                                            const isBoolean = typeof val === 'boolean';
+                                            const campo = getCampoMeta(slug, key);
+                                            // Skip `info` type: es texto fijo del rubro, no un dato a mostrar.
+                                            if (campo?.tipo === 'info') return null;
+                                            const label = campo?.label ?? key.replace(/_/g, ' ');
+                                            const isBoolean = typeof val === 'boolean' || campo?.tipo === 'boolean';
+                                            // Booleans falsos no aportan informacion al tutor.
                                             if (isBoolean && !val) return null;
+                                            const displayValue = isBoolean ? null : formatValorCampo(campo, val);
                                             return (
                                                 <div key={key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
                                                     {isBoolean ? (
@@ -687,8 +652,8 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                         <svg className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
                                                     )}
                                                     <div className="min-w-0">
-                                                        <p className="text-xs text-slate-500 font-medium capitalize">{label}</p>
-                                                        {!isBoolean && <p className="text-sm text-slate-700 mt-0.5 break-words">{String(val)}</p>}
+                                                        <p className="text-xs text-slate-500 font-medium">{label}</p>
+                                                        {displayValue && <p className="text-sm text-slate-700 mt-0.5 break-words">{displayValue}</p>}
                                                     </div>
                                                 </div>
                                             );
