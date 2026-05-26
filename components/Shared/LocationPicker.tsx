@@ -19,7 +19,7 @@
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AddressAutocomplete from '../AddressAutocomplete';
 import { getComunaCoords } from '../../lib/comunas';
 
@@ -66,6 +66,16 @@ function ClickToPlace({ onPick }: { onPick: (lat: number, lng: number) => void }
 
 export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
     const hasMarker = lat != null && lng != null;
+
+    // Ref al Marker para limpieza defensiva del handler de dragging antes de
+    // unmount. Si el usuario logra hacer click en "Quitar ubicacion" mientras
+    // el marker esta en estado de drag (alcanzable via automatizacion o
+    // multi-pointer en touch; raro pero posible), Leaflet llama finishDrag
+    // dentro de removeLayer y crashea con "Cannot read properties of
+    // undefined (reading 'baseVal')" porque el estado SVG del drag preview
+    // ya esta inconsistente. Desactivar dragging antes del state change
+    // que dispara el unmount cierra el drag limpiamente.
+    const markerRef = useRef<L.Marker | null>(null);
 
     // Centro inicial: pin actual > centroide de comuna > Santiago.
     const initialCenter: [number, number] = hasMarker
@@ -119,6 +129,7 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
                     />
                     {hasMarker && (
                         <Marker
+                            ref={markerRef}
                             position={[lat as number, lng as number]}
                             draggable
                             eventHandlers={{
@@ -140,7 +151,18 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
             {hasMarker && (
                 <button
                     type="button"
-                    onClick={() => onChange(null, null)}
+                    onClick={() => {
+                        // Cierra el drag handler ANTES de disparar el state
+                        // change que unmountea el marker — ver comentario sobre
+                        // markerRef arriba. try/catch porque dragging puede no
+                        // existir si el marker no termino de montar.
+                        try {
+                            markerRef.current?.dragging?.disable();
+                        } catch {
+                            // no-op: defensivo
+                        }
+                        onChange(null, null);
+                    }}
                     className="text-xs font-medium text-slate-500 hover:text-red-600 transition-colors underline-offset-2 hover:underline"
                 >
                     Quitar ubicación
