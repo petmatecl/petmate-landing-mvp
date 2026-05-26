@@ -66,7 +66,23 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
 
         setLoading(true);
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm + " Chile")}&format=json&addressdetails=1&limit=5&countrycodes=cl`);
+            // User-Agent y Accept-Language siguen la politica de uso de
+            // Nominatim (https://operations.osmfoundation.org/policies/nominatim/),
+            // que pide identificar la app y un idioma de respuesta. Caveat: los
+            // browsers stripean el header User-Agent en fetch del lado cliente,
+            // asi que en la practica este header solo vale si en el futuro
+            // movemos el geocoding a una ruta server-side (next/api). Por ahora,
+            // el Referer (que el browser envia automaticamente a pawnecta.com)
+            // cumple la parte de identificacion.
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm + " Chile")}&format=json&addressdetails=1&limit=5&countrycodes=cl`,
+                {
+                    headers: {
+                        'Accept-Language': 'es-CL,es;q=0.9',
+                        'User-Agent': 'Pawnecta/1.0 (https://www.pawnecta.com)',
+                    },
+                }
+            );
             const data = await response.json();
             setResults(data);
             setIsOpen(true);
