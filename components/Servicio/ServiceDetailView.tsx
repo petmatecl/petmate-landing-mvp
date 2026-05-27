@@ -18,7 +18,7 @@ import PreguntasSection from '../Service/PreguntasSection';
 import ServiceCard, { ServiceResult } from '../Explore/ServiceCard';
 import Breadcrumb from '../Shared/Breadcrumb';
 import { instagramUsernameFromUrl } from '../../lib/validators';
-import { getCampoMeta, formatValorCampo } from '../../lib/camposPorCategoria';
+import { CAMPOS_POR_CATEGORIA, getCampoMeta, formatValorCampo } from '../../lib/camposPorCategoria';
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
@@ -658,18 +658,27 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             </div>
                         )}
 
-                        {/* Detalles específicos de categoría — campos que no son `inclusiones` ni `notas`. */}
-                        {service.detalles && Object.keys(service.detalles).length > 0 && (() => {
+                        {/* Detalles especificos de categoria — itera SOLO los campos
+                            definidos en CAMPOS_POR_CATEGORIA[categoria] (no las keys
+                            crudas del jsonb). Asi las keys legacy huerfanas
+                            (envia_foto_reporte, administra_medicamentos, etc.
+                            absorbidas a `inclusiones` en Fase 2) no rinden mas como
+                            texto snake_case suelto. `inclusiones` y `notas` van en
+                            secciones dedicadas arriba; los demas campos del set
+                            canonico van aqui. */}
+                        {(() => {
                             const slug = categoria?.slug ?? '';
-                            // Filtro: descartamos null/undefined/'' pero conservamos `0` y `false`
-                            // (un radio_cobertura_km de 0 km es info legitima; el render mas
-                            // abajo se encarga de no mostrar booleans falsos como check).
-                            // `inclusiones` y `notas` ya se renderizaron arriba en sus propias
-                            // secciones — saltarlos aqui para no duplicar.
-                            const entries = Object.entries(service.detalles).filter(([key, v]) =>
-                                key !== 'inclusiones' && key !== 'notas' && v !== '' && v !== null && v !== undefined
-                            );
-                            if (entries.length === 0) return null;
+                            const campos = CAMPOS_POR_CATEGORIA[slug] || [];
+                            const visibles = campos.filter(campo => {
+                                if (campo.tipo === 'info') return false;
+                                if (campo.tipo === 'multiselect') return false; // chips arriba
+                                if (campo.key === 'notas') return false; // seccion arriba
+                                const v = service.detalles?.[campo.key];
+                                if (v === null || v === undefined || v === '') return false;
+                                if (campo.tipo === 'boolean' && !v) return false; // booleans false no aportan
+                                return true;
+                            });
+                            if (visibles.length === 0) return null;
                             return (
                                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
@@ -677,28 +686,19 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                         Información del servicio
                                     </h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {entries.map(([key, val]) => {
-                                            const campo = getCampoMeta(slug, key);
-                                            // Skip `info` type: es texto fijo del rubro, no un dato a mostrar.
-                                            if (campo?.tipo === 'info') return null;
-                                            // Skip arrays (legacy multiselect data que no sea inclusiones):
-                                            // ya filtrados arriba para inclusiones, otros arrays son raros y
-                                            // mejor no inventar render.
-                                            if (Array.isArray(val)) return null;
-                                            const label = campo?.label ?? key.replace(/_/g, ' ');
-                                            const isBoolean = typeof val === 'boolean' || campo?.tipo === 'boolean';
-                                            // Booleans falsos no aportan informacion al tutor.
-                                            if (isBoolean && !val) return null;
+                                        {visibles.map(campo => {
+                                            const val = service.detalles?.[campo.key];
+                                            const isBoolean = campo.tipo === 'boolean';
                                             const displayValue = isBoolean ? null : formatValorCampo(campo, val);
                                             return (
-                                                <div key={key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
+                                                <div key={campo.key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
                                                     {isBoolean ? (
                                                         <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
                                                     ) : (
                                                         <svg className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
                                                     )}
                                                     <div className="min-w-0">
-                                                        <p className="text-xs text-slate-500 font-medium">{label}</p>
+                                                        <p className="text-xs text-slate-500 font-medium">{campo.label}</p>
                                                         {displayValue && <p className="text-sm text-slate-700 mt-0.5 break-words">{displayValue}</p>}
                                                     </div>
                                                 </div>
