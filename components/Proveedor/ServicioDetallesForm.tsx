@@ -176,19 +176,28 @@ export default function ServicioDetallesForm({
                                         })}
                                     </div>
                                 );
-                            })() : campo.tipo === 'textarea' ? (
-                                <textarea
-                                    id={`campo-${campo.key}`}
-                                    name={`campo-${campo.key}`}
-                                    autoComplete="off"
-                                    value={values[campo.key] ?? ''}
-                                    onChange={(e) => setValor(campo.key, e.target.value)}
-                                    rows={3}
-                                    maxLength={300}
-                                    placeholder={campo.placeholder}
-                                    className={`${inputClass} resize-none`}
-                                />
-                            ) : (
+                            })() : campo.tipo === 'textarea' ? (() => {
+                                // Tope 300 chars con contador visible. Aplica a
+                                // todos los campos `textarea` (post Fase 2 solo
+                                // queda `notas`); consistente para futuros.
+                                const valor: string = typeof values[campo.key] === 'string' ? values[campo.key] : '';
+                                return (
+                                    <>
+                                        <textarea
+                                            id={`campo-${campo.key}`}
+                                            name={`campo-${campo.key}`}
+                                            autoComplete="off"
+                                            value={valor}
+                                            onChange={(e) => setValor(campo.key, e.target.value)}
+                                            rows={3}
+                                            maxLength={300}
+                                            placeholder={campo.placeholder}
+                                            className={`${inputClass} resize-none`}
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1 text-right">{valor.length} / 300</p>
+                                    </>
+                                );
+                            })() : (
                                 <input
                                     id={`campo-${campo.key}`}
                                     name={`campo-${campo.key}`}

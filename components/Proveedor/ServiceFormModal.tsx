@@ -770,21 +770,29 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             </div>
                                                         </div>
                                                     );
-                                                })() : campo.tipo === 'textarea' ? (
-                                                    <div>
-                                                        <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
-                                                        <textarea
-                                                            id={`campo-${campo.key}`}
-                                                            name={`campo-${campo.key}`}
-                                                            autoComplete="off"
-                                                            value={mergedDetalles[campo.key] ?? ''}
-                                                            onChange={e => setDetalle(campo.key, e.target.value)}
-                                                            placeholder={campo.placeholder}
-                                                            rows={2}
-                                                            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
-                                                        />
-                                                    </div>
-                                                ) : campo.tipo === 'number' ? (
+                                                })() : campo.tipo === 'textarea' ? (() => {
+                                                    // Tope 300 chars con contador visible. Aplica a
+                                                    // todos los campos `textarea` (post Fase 2 solo
+                                                    // queda `notas`); consistente para futuros.
+                                                    const valor: string = typeof mergedDetalles[campo.key] === 'string' ? mergedDetalles[campo.key] : '';
+                                                    return (
+                                                        <div>
+                                                            <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                            <textarea
+                                                                id={`campo-${campo.key}`}
+                                                                name={`campo-${campo.key}`}
+                                                                autoComplete="off"
+                                                                value={valor}
+                                                                onChange={e => setDetalle(campo.key, e.target.value)}
+                                                                placeholder={campo.placeholder}
+                                                                rows={3}
+                                                                maxLength={300}
+                                                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                                            />
+                                                            <p className="text-xs text-slate-400 mt-1 text-right">{valor.length} / 300</p>
+                                                        </div>
+                                                    );
+                                                })() : campo.tipo === 'number' ? (
                                                     <div>
                                                         <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <div className="flex items-center gap-2">
