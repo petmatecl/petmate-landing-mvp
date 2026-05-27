@@ -144,6 +144,50 @@ export default function ServicioDetallesForm({
                                         </option>
                                     ))}
                                 </select>
+                            ) : campo.tipo === 'multiselect' ? (() => {
+                                // Patron de chips toggle reusado de idiomas y
+                                // comunas_cobertura. Cada opcion es un boton; click
+                                // togglea su presencia en el array. Vacio se persiste
+                                // como [] (el caller decide si convertir a null).
+                                const selected: string[] = Array.isArray(values[campo.key]) ? values[campo.key] : [];
+                                const toggle = (slug: string) => {
+                                    setValor(campo.key, selected.includes(slug)
+                                        ? selected.filter(s => s !== slug)
+                                        : [...selected, slug]);
+                                };
+                                return (
+                                    <div className="flex flex-wrap gap-2">
+                                        {campo.opciones?.map((op) => {
+                                            const active = selected.includes(op.value);
+                                            return (
+                                                <button
+                                                    key={op.value}
+                                                    type="button"
+                                                    onClick={() => toggle(op.value)}
+                                                    className={
+                                                        active
+                                                            ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                                            : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
+                                                    }
+                                                >
+                                                    {op.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })() : campo.tipo === 'textarea' ? (
+                                <textarea
+                                    id={`campo-${campo.key}`}
+                                    name={`campo-${campo.key}`}
+                                    autoComplete="off"
+                                    value={values[campo.key] ?? ''}
+                                    onChange={(e) => setValor(campo.key, e.target.value)}
+                                    rows={3}
+                                    maxLength={300}
+                                    placeholder={campo.placeholder}
+                                    className={`${inputClass} resize-none`}
+                                />
                             ) : (
                                 <input
                                     id={`campo-${campo.key}`}

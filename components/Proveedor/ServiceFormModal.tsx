@@ -246,6 +246,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             const v = mergedDetalles[campo.key];
             if (campo.tipo === 'boolean') {
                 detallesParaGuardar[campo.key] = v === true;
+            } else if (campo.tipo === 'multiselect') {
+                // Array vacio se persiste como [] (no null) para que el render
+                // de ficha publica pueda distinguir "no llenado todavia" (clave
+                // ausente) de "explicitamente vacio" (array vacio).
+                detallesParaGuardar[campo.key] = Array.isArray(v) ? v : [];
             } else if (v === '' || v === undefined || v === null) {
                 detallesParaGuardar[campo.key] = null;
             } else {
@@ -317,7 +322,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             // Default por tipo: booleans = false (no marcado), resto = '' (vacio).
             // Number guarda como '' tambien — el input lo parsea a Number al cambiar.
             if (campo.tipo === 'info') continue;
-            merged[campo.key] = campo.tipo === 'boolean' ? false : '';
+            merged[campo.key] = campo.tipo === 'boolean'
+                ? false
+                : campo.tipo === 'multiselect'
+                    ? []
+                    : '';
         }
         // Loaded values win. Object.assign en lugar de spread para que claves
         // con valor `false` (boolean valido) tambien se copien — spread tambien
@@ -728,7 +737,40 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             ))}
                                                         </select>
                                                     </div>
-                                                ) : campo.tipo === 'textarea' ? (
+                                                ) : campo.tipo === 'multiselect' ? (() => {
+                                                    // Chips toggle: mismo patron que idiomas / comunas_cobertura.
+                                                    // El valor se persiste como text[] en jsonb.
+                                                    const selected: string[] = Array.isArray(mergedDetalles[campo.key]) ? mergedDetalles[campo.key] : [];
+                                                    const toggle = (slug: string) => {
+                                                        setDetalle(campo.key, selected.includes(slug)
+                                                            ? selected.filter(s => s !== slug)
+                                                            : [...selected, slug]);
+                                                    };
+                                                    return (
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {campo.opciones?.map(opt => {
+                                                                    const active = selected.includes(opt.value);
+                                                                    return (
+                                                                        <button
+                                                                            key={opt.value}
+                                                                            type="button"
+                                                                            onClick={() => toggle(opt.value)}
+                                                                            className={
+                                                                                active
+                                                                                    ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                                                                    : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
+                                                                            }
+                                                                        >
+                                                                            {opt.label}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })() : campo.tipo === 'textarea' ? (
                                                     <div>
                                                         <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1.5">{campo.label}</label>
                                                         <textarea

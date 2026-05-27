@@ -69,7 +69,7 @@
 // llenaste en tu registro" con boton "Usar"/"Empezar en blanco".
 // ----------------------------------------------------------------------------
 
-export type TipoCampoDinamico = 'text' | 'number' | 'boolean' | 'select' | 'textarea' | 'info';
+export type TipoCampoDinamico = 'text' | 'number' | 'boolean' | 'select' | 'multiselect' | 'textarea' | 'info';
 
 export interface CampoDinamico {
     key: string;
@@ -265,8 +265,17 @@ export function getCampoMeta(categoria: string, key: string): CampoDinamico | un
  */
 export function formatValorCampo(campo: CampoDinamico | undefined, value: any): string {
     if (value === null || value === undefined || value === '') return '';
+    if (Array.isArray(value) && value.length === 0) return '';
     if (!campo) return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : String(value);
     if (campo.tipo === 'boolean') return value ? 'Sí' : 'No';
+    if (campo.tipo === 'multiselect' && Array.isArray(value)) {
+        // Resuelve cada slug a su label canonico (igual que select). Slugs
+        // desconocidos en BD (data legacy o categorias divergentes) pasan tal
+        // cual como fallback.
+        return value
+            .map((slug: string) => campo.opciones?.find(o => String(o.value) === String(slug))?.label ?? String(slug))
+            .join(', ');
+    }
     if (campo.tipo === 'select') {
         const opt = campo.opciones?.find(o => String(o.value) === String(value));
         return opt?.label ?? String(value);
