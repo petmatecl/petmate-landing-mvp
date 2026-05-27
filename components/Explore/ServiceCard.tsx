@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ShieldCheck, Star, Sparkles } from 'lucide-react';
 import VisitCounter from '../Shared/VisitCounter';
 import FavoritoButton from '../Shared/FavoritoButton';
+import { getCampoMeta } from '../../lib/camposPorCategoria';
 
 export interface ServiceResult {
     servicio_id: string;
@@ -35,6 +36,14 @@ export interface ServiceResult {
     visitas_total?: number;
     visitas_mes?: number;
     favoritos_total?: number;
+    /**
+     * Detalles jsonb del servicio. Sprint 4 Fase 2: lo usamos para renderizar
+     * un preview de chips de `inclusiones` debajo de la card. Opcional porque
+     * los services que vienen de `buscar_servicios` (mapper RPC) no lo
+     * incluyen — solo los fetches directos (ej. ficha del proveedor) lo
+     * pasan. Si esta ausente, la seccion de chips no se renderiza.
+     */
+    detalles?: Record<string, any>;
 }
 
 interface Props {
@@ -165,6 +174,34 @@ export default function ServiceCard({ service }: Props) {
                         )}
                     </div>
                 ) : <div className="mb-3" />}
+
+                {/* Preview de inclusiones (Sprint 4 Fase 2 Commit C). Max 3
+                    chips + "+N más" para mantener la card compacta. Solo se
+                    renderiza si el caller pasa `detalles.inclusiones` — los
+                    fetches del RPC `buscar_servicios` no incluyen `detalles`
+                    asi que en /explorar no aparece (acceptable; el detalle
+                    completo se ve al entrar al servicio). */}
+                {Array.isArray(service.detalles?.inclusiones) && service.detalles.inclusiones.length > 0 && (() => {
+                    const slugs: string[] = service.detalles.inclusiones;
+                    const campo = getCampoMeta(service.categoria_slug, 'inclusiones');
+                    const labels = slugs.map(slug => campo?.opciones?.find(o => String(o.value) === String(slug))?.label ?? slug);
+                    const visibles = labels.slice(0, 3);
+                    const extra = labels.length - visibles.length;
+                    return (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                            {visibles.map((label, i) => (
+                                <span key={i} className="bg-emerald-50 text-emerald-800 text-[11px] font-medium px-2 py-0.5 rounded-full border border-emerald-100">
+                                    {label}
+                                </span>
+                            ))}
+                            {extra > 0 && (
+                                <span className="text-[11px] text-slate-500 font-medium px-2 py-0.5">
+                                    +{extra} más
+                                </span>
+                            )}
+                        </div>
+                    );
+                })()}
 
                 <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex flex-col">

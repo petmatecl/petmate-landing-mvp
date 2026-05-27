@@ -681,7 +681,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .from('servicios_publicados')
             .select(`
                 id, titulo, descripcion, precio_desde, precio_hasta, unidad_precio, fotos, destacado,
-                visitas_total, visitas_mes, favoritos_total,
+                visitas_total, visitas_mes, favoritos_total, detalles,
                 categorias_servicio!inner (nombre, slug, icono)
             `)
             .eq('proveedor_id', id)
@@ -731,6 +731,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     visitas_total: rs.visitas_total ?? 0,
                     visitas_mes: rs.visitas_mes ?? 0,
                     favoritos_total: rs.favoritos_total ?? 0,
+                    detalles: rs.detalles ?? null,
                 };
             });
         }

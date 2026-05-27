@@ -620,13 +620,55 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             )}
                         </div>
 
-                        {/* Detalles específicos de categoría */}
+                        {/* Inclusiones — chips dedicados (Sprint 4 Fase 2 Commit C).
+                            Renderizamos el multiselect `inclusiones` aparte del grid
+                            de campos para darle protagonismo visual y reusar el
+                            estilo de chips emerald que ya tienen idiomas / comunas
+                            en la ficha proveedor. */}
+                        {Array.isArray(service.detalles?.inclusiones) && service.detalles.inclusiones.length > 0 && (() => {
+                            const slug = categoria?.slug ?? '';
+                            const campo = getCampoMeta(slug, 'inclusiones');
+                            const chips: string[] = service.detalles.inclusiones.map((slugInc: string) => (
+                                campo?.opciones?.find(o => String(o.value) === String(slugInc))?.label ?? String(slugInc)
+                            ));
+                            return (
+                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                    <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><polyline points="20 6 9 17 4 12" /></svg>
+                                        Incluye
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {chips.map((label, i) => (
+                                            <span key={i} className="bg-emerald-50 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full border border-emerald-100">
+                                                {label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Notas adicionales — textarea libre por servicio (Sprint 4 Fase 2). */}
+                        {service.detalles && typeof service.detalles.notas === 'string' && service.detalles.notas.trim() && (
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-xl font-semibold text-slate-900 mb-3">Notas del proveedor</h3>
+                                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                                    {service.detalles.notas}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Detalles específicos de categoría — campos que no son `inclusiones` ni `notas`. */}
                         {service.detalles && Object.keys(service.detalles).length > 0 && (() => {
                             const slug = categoria?.slug ?? '';
                             // Filtro: descartamos null/undefined/'' pero conservamos `0` y `false`
                             // (un radio_cobertura_km de 0 km es info legitima; el render mas
                             // abajo se encarga de no mostrar booleans falsos como check).
-                            const entries = Object.entries(service.detalles).filter(([, v]) => v !== '' && v !== null && v !== undefined);
+                            // `inclusiones` y `notas` ya se renderizaron arriba en sus propias
+                            // secciones — saltarlos aqui para no duplicar.
+                            const entries = Object.entries(service.detalles).filter(([key, v]) =>
+                                key !== 'inclusiones' && key !== 'notas' && v !== '' && v !== null && v !== undefined
+                            );
                             if (entries.length === 0) return null;
                             return (
                                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
@@ -639,6 +681,10 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                             const campo = getCampoMeta(slug, key);
                                             // Skip `info` type: es texto fijo del rubro, no un dato a mostrar.
                                             if (campo?.tipo === 'info') return null;
+                                            // Skip arrays (legacy multiselect data que no sea inclusiones):
+                                            // ya filtrados arriba para inclusiones, otros arrays son raros y
+                                            // mejor no inventar render.
+                                            if (Array.isArray(val)) return null;
                                             const label = campo?.label ?? key.replace(/_/g, ' ');
                                             const isBoolean = typeof val === 'boolean' || campo?.tipo === 'boolean';
                                             // Booleans falsos no aportan informacion al tutor.
