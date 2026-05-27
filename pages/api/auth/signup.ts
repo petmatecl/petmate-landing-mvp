@@ -18,7 +18,9 @@ const signupSchema = z.object({
   rut_empresa: z.string().max(12).optional(),
   nombre_fantasia: z.string().max(200).optional(),
   giro: z.string().max(200).optional(),
-  datos_especificos: z.record(z.unknown()).optional(),
+  // Sprint 4 Fase 1 / Commit 3: datos_especificos deprecado. El cliente ya no
+  // lo manda desde register.tsx; el schema deja de aceptarlo (cualquier client
+  // viejo que lo envie sera ignorado silenciosamente por Zod en modo strict).
   descripcion: z.string().max(500).optional(),
 });
 
@@ -36,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { email, password, rol, nombre, apellido_p, apellido_m, rut,
-    comuna, tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, datos_especificos, descripcion } = parsed.data;
+    comuna, tipo_entidad, razon_social, rut_empresa, nombre_fantasia, giro, descripcion } = parsed.data;
 
   // Use service role key server-side for admin operations
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -104,7 +106,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           p_rut_empresa: tipo_entidad === 'empresa' ? rut_empresa || null : null,
           p_nombre_fantasia: tipo_entidad === 'empresa' ? nombre_fantasia?.trim() || null : null,
           p_giro: tipo_entidad === 'empresa' ? giro?.trim() || null : null,
-          p_datos_especificos: datos_especificos && Object.keys(datos_especificos).length > 0 ? datos_especificos : null,
+          // datos_especificos deprecado en Sprint 4 Fase 1 — siempre null para
+          // proveedores nuevos. La data legacy en BD se preserva intacta.
+          p_datos_especificos: null,
         });
         if (insertError) throw new Error('Error guardando datos de proveedor: ' + insertError.message);
 

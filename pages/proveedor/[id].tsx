@@ -27,21 +27,9 @@ import VisitCounter from '../../components/Shared/VisitCounter';
 import FavoritoButton from '../../components/Shared/FavoritoButton';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
 import { instagramUsernameFromUrl } from '../../lib/validators';
-import { CAMPOS_POR_CATEGORIA, formatValorCampo, type CampoDinamico } from '../../lib/camposPorCategoria';
-
-// Sprint 4 Fase 1: LABELS_CAMPOS y formatValor locales fueron reemplazados
-// por la fuente unica en lib/camposPorCategoria.ts. Esta seccion sigue
-// iterando el blob plano `datos_especificos` del proveedor (cross-categoria)
-// hasta que el Commit 3 elimine la seccion completa. Mientras tanto buscamos
-// el campo por key en todas las categorias para obtener label/tipo. Es un
-// stopgap por diseno — la solucion real es renderizar `detalles` per-servicio.
-const findCampoLegacy = (key: string): CampoDinamico | undefined => {
-    for (const slug of Object.keys(CAMPOS_POR_CATEGORIA)) {
-        const found = CAMPOS_POR_CATEGORIA[slug].find(c => c.key === key);
-        if (found) return found;
-    }
-    return undefined;
-};
+// Sprint 4 Fase 1 / Commit 3: la ficha publica del proveedor ya no renderiza
+// proveedor.datos_especificos. Imports legacy (CAMPOS_POR_CATEGORIA,
+// formatValorCampo, CampoDinamico, findCampoLegacy) eliminados.
 
 interface ProveedorProps {
     proveedor: any;
@@ -116,7 +104,6 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     const esPersonaNatural = !proveedor.tipo_entidad || proveedor.tipo_entidad === 'persona_natural';
     const tieneInfoPersonal = esPersonaNatural && (edad || proveedor.genero || proveedor.ocupacion || proveedor.anios_experiencia);
     const tieneTrustSignals = proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda;
-    const tieneDatosEspecificos = proveedor.datos_especificos && Object.entries(proveedor.datos_especificos).filter(([, v]) => v !== null && v !== '' && v !== false).length > 0;
     const tieneGaleria = proveedor.galeria && proveedor.galeria.length > 0;
     const displayName = proveedor.nombre_publico || `${proveedor.nombre} ${proveedor.apellido_p}`;
     const title = `${displayName} — ${proveedor.comuna} | Pawnecta`;
@@ -454,7 +441,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 )}
 
                 {/* ══ CREDENCIALES ══════════════════════════════════════════ */}
-                {(tieneTrustSignals || tieneDatosEspecificos) && (
+                {tieneTrustSignals && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
                             <ShieldCheck size={17} className="text-emerald-500" />
@@ -492,24 +479,11 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 </div>
                             )}
 
-
-                            {tieneDatosEspecificos && Object.entries(proveedor.datos_especificos)
-                                .filter(([, v]) => v !== null && v !== '' && v !== false)
-                                .map(([key, value]) => {
-                                    const campo = findCampoLegacy(key);
-                                    if (campo?.tipo === 'info') return null;
-                                    const label = campo?.label ?? key.replace(/_/g, ' ');
-                                    return (
-                                        <div key={key} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <ShieldCheck size={17} className="text-slate-400 shrink-0 mt-0.5" />
-                                            <div>
-                                                <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">{label}</p>
-                                                <p className="text-sm font-semibold text-slate-700">{formatValorCampo(campo, value)}</p>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            }
+                            {/* Sprint 4 Fase 1 / Commit 3: la iteracion plana del blob
+                                proveedor.datos_especificos se elimino. Los detalles
+                                categoria-especificos viven per-servicio (renderizados
+                                bajo cada card de servicio mas abajo + en la ficha
+                                publica del servicio individual). */}
                         </div>
                     </section>
                 )}
@@ -693,7 +667,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 lat, lng,
                 email_publico, mostrar_email,
                 mostrar_whatsapp, mostrar_telefono, telefono, whatsapp,
-                galeria, estado, created_at, datos_especificos, perfil_completo, es_ejemplo,
+                galeria, estado, created_at, perfil_completo, es_ejemplo,
                 visitas_total, visitas_mes, favoritos_total
             `)
             .eq('id', id)

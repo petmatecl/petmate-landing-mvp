@@ -54,6 +54,19 @@
 // dato existente en `servicios_publicados.detalles` siga renderizando con su
 // nuevo label canonico (la migracion de keys legacy → canonicas para data
 // existente es un paso separado, decision pendiente).
+//
+// BACKLOG Sprint 4 Fase 2+ (pendiente, no implementar aqui):
+// Cuando un proveedor con `proveedores.datos_especificos` legacy (poblado
+// pre-deprecacion del Sprint 4 Fase 1 Commit 3) crea su PRIMER servicio
+// desde ServiceFormModal, ofrecer prefill del `detalles` del servicio
+// nuevo a partir de ese blob. El blob legacy permanece en BD intacto
+// (no se hizo migracion ni drop), asi que esta disponible para read en
+// el momento del prefill. Mapeo de keys: usar el mismo set canonico que
+// vive arriba (CAMPOS_POR_CATEGORIA[categoria]). Si la categoria del
+// servicio nuevo difiere de la inferida del registro, solo se prefillen
+// las keys que coinciden con el set de la nueva categoria; el resto se
+// descarta. UX: mostrar un banner del estilo "Recuperamos campos que
+// llenaste en tu registro" con boton "Usar"/"Empezar en blanco".
 // ----------------------------------------------------------------------------
 
 export type TipoCampoDinamico = 'text' | 'number' | 'boolean' | 'select' | 'textarea' | 'info';

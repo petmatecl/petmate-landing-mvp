@@ -79,6 +79,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
+    // BACKLOG (Sprint 4 Fase 1 / Commit 3): cuando este modal abre para CREAR
+    // un servicio (existingServiceId == null) y el proveedor tiene
+    // `proveedores.datos_especificos` no nulo (data legacy pre-deprecacion),
+    // ofrecer prefill: filtrar las keys cuyo `findCampoLegacy` matche la
+    // `categoria_id` seleccionada y proponerlas como valores iniciales de
+    // `detalles`. La data legacy queda intacta en BD (Commit 3 no la borro).
+    // El UX puede ser un banner "Tenemos datos guardados de tu registro,
+    // ¿quieres usarlos?" con un boton para aplicarlos.
     const resetForm = () => {
         setCategoriaId('');
         setTitulo('');

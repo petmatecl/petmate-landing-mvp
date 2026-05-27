@@ -10,7 +10,6 @@ import {
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
 import { COMUNAS_CHILE } from "../lib/comunas";
-import { CAMPOS_POR_CATEGORIA } from "../lib/camposPorCategoria";
 
 const CATEGORIA_ICONS: Record<string, React.ElementType> = {
   veterinario: Stethoscope,
@@ -72,10 +71,10 @@ export default function RegisterWizard() {
   const [descripcion, setDescripcion] = useState('');
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
 
-  // Step 3: Datos dinámicos por categoría
-  const [datosDinamicos, setDatosDinamicos] = useState<Record<string, any>>({});
-  const setDatoDinamico = (key: string, value: any) =>
-    setDatosDinamicos(prev => ({ ...prev, [key]: value }));
+  // Sprint 4 Fase 1 / Commit 3: los datos dinamicos por categoria se
+  // capturan al crear el primer servicio (campos en servicios_publicados.detalles),
+  // no en el wizard de registro. Antes esto poblaba proveedores.datos_especificos
+  // — ahora deprecado.
   const comunaRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
 
@@ -179,14 +178,8 @@ export default function RegisterWizard() {
         setError('Por favor completa los campos obligatorios (Comuna).');
         return;
       }
-      // Validate required dynamic fields
-      const campos = CAMPOS_POR_CATEGORIA[categoria] || [];
-      for (const campo of campos) {
-        if (campo.requerido && !datosDinamicos[campo.key]) {
-          setError(`El campo «${campo.label}» es obligatorio.`);
-          return;
-        }
-      }
+      // Datos dinamicos por categoria ya no se validan en registro — se
+      // llenaran cuando el proveedor cree su primer servicio (Sprint 4 Fase 1).
       if (!aceptaPolitica) {
         setError('Debes aceptar las políticas de publicación para continuar.');
         return;
@@ -220,7 +213,9 @@ export default function RegisterWizard() {
             rut_empresa: tipoEntidad === 'empresa' ? formatRut(rutEmpresa) : undefined,
             nombre_fantasia: tipoEntidad === 'empresa' ? nombreFantasia.trim() : undefined,
             giro: tipoEntidad === 'empresa' ? giro.trim() : undefined,
-            datos_especificos: Object.keys(datosDinamicos).length > 0 ? datosDinamicos : undefined,
+            // datos_especificos ya no se envia desde registro (Sprint 4 Fase 1
+            // Commit 3: deprecado). Los detalles del rubro se llenan al crear
+            // el primer servicio.
             descripcion: descripcion.trim() || undefined,
           } : {}),
         }),
@@ -476,7 +471,7 @@ export default function RegisterWizard() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">Categoría principal de servicio *</label>
                     <select
                       value={categoria}
-                      onChange={e => { setCategoria(e.target.value); setDatosDinamicos({}); }}
+                      onChange={e => setCategoria(e.target.value)}
                       required
                       className={`${inputClass} cursor-pointer`}
                     >
@@ -546,83 +541,11 @@ export default function RegisterWizard() {
                   </div>
                 </div>
 
-                {/* Campos dinámicos por categoría */}
-                {categoria && CAMPOS_POR_CATEGORIA[categoria] && (() => {
-                  const CatIcon = CATEGORIA_ICONS[categoria] ?? Briefcase;
-                  return (
-                    <div className="bg-slate-50 rounded-xl border border-slate-200 p-5 space-y-4">
-                      <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                        <CatIcon size={16} className="text-emerald-600" />
-                        Información específica de tu servicio
-                      </h3>
-                      {(() => {
-                        const camposVisibles = CAMPOS_POR_CATEGORIA[categoria].filter(function (campo) {
-                          if (!campo.condicionalDe) return true;
-                          var valorActual = datosDinamicos[campo.condicionalDe];
-                          return valorActual === campo.condicionalValor;
-                        });
-
-                        return camposVisibles.map(campo => (
-                          <div key={campo.key}>
-                            {campo.tipo === 'info' ? (
-                              <p className="text-sm text-slate-600 mb-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100 italic">
-                                {campo.label}
-                              </p>
-                            ) : (
-                              <>
-                                <label htmlFor={`campo-${campo.key}`} className="block text-sm font-medium text-slate-700 mb-1">
-                                  {campo.label}{campo.requerido && <span className="text-red-500 ml-1">*</span>}
-                                </label>
-                                {campo.tipo === 'boolean' ? (
-                                  <label className="flex items-center gap-3 cursor-pointer">
-                                    <input
-                                      id={`campo-${campo.key}`}
-                                      name={`campo-${campo.key}`}
-                                      type="checkbox"
-                                      checked={!!datosDinamicos[campo.key]}
-                                      onChange={e => setDatoDinamico(campo.key, e.target.checked)}
-                                      className="w-5 h-5 rounded border-slate-300 accent-emerald-600"
-                                    />
-                                    <span className="text-sm text-slate-600">Sí</span>
-                                  </label>
-                                ) : campo.tipo === 'select' ? (
-                                  <select
-                                    id={`campo-${campo.key}`}
-                                    name={`campo-${campo.key}`}
-                                    value={datosDinamicos[campo.key] || ''}
-                                    onChange={e => setDatoDinamico(campo.key, e.target.value)}
-                                    className={`${inputClass} cursor-pointer`}
-                                  >
-                                    <option value="" disabled>Selecciona...</option>
-                                    {campo.opciones?.map(op => (
-                                      <option key={op.value} value={op.value}>{op.label}</option>
-                                    ))}
-                                  </select>
-                                ) : (
-                                  <input
-                                    id={`campo-${campo.key}`}
-                                    name={`campo-${campo.key}`}
-                                    autoComplete="off"
-                                    type={campo.tipo === 'number' ? 'number' : 'text'}
-                                    value={datosDinamicos[campo.key] || ''}
-                                    onChange={e => {
-                                      const val = e.target.value;
-                                      if (campo.tipo === 'number' && Number(val) < 0) return;
-                                      setDatoDinamico(campo.key, val);
-                                    }}
-                                    min={campo.tipo === 'number' ? 0 : undefined}
-                                    placeholder={campo.placeholder}
-                                    className={inputClass}
-                                  />
-                                )}
-                              </>
-                            )}
-                          </div>
-                        ))
-                      })()}
-                    </div>
-                  );
-                })()}
+                {/* Sprint 4 Fase 1: la captura de campos categoria-especificos se
+                    movio al flujo de creacion de servicio (ServiceFormModal).
+                    El proveedor define su rubro aqui en el wizard, pero los
+                    detalles concretos (capacidad, certificaciones, etc.) viven
+                    en servicios_publicados.detalles. */}
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Cuéntanos sobre tu experiencia (opcional)</label>
