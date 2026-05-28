@@ -20,7 +20,17 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (userId) fetchConversations();
+        if (userId) {
+            fetchConversations();
+        } else {
+            // Sin userId no hay nada que cargar. Salimos del skeleton
+            // inmediatamente y mostramos empty state. Antes el initial
+            // state `loading=true` se quedaba pegado (skeleton infinito)
+            // si el caller pasaba un userId null/undefined transitorio o
+            // permanente.
+            setLoading(false);
+            setConversations([]);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
@@ -72,8 +82,13 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
 
             if (error) throw error;
 
+            // `data` puede ser null si el query es denegado silenciosamente
+            // por RLS o si la tabla esta vacia. Normalizamos a [] para que
+            // .map no tire TypeError y el flow resuelva a empty state.
+            const rows: any[] = conversationsData ?? [];
+
             // 2. Gather all unique user IDs involved (excluding self)
-            const otherUserIds = Array.from(new Set(conversationsData.map((c: any) => {
+            const otherUserIds = Array.from(new Set(rows.map((c: any) => {
                 return c.client_id === userId ? c.sitter_id : c.client_id;
             })));
 
@@ -87,7 +102,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
             );
 
             // 5. Merge data
-            const formatted = conversationsData.map((c: any) => {
+            const formatted = rows.map((c: any) => {
                 const isClient = c.client_id === userId;
                 const otherId = isClient ? c.sitter_id : c.client_id;
                 const otherProfile = profilesMap.get(otherId) || {};
