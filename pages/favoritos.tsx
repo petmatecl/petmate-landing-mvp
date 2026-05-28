@@ -182,9 +182,20 @@ export default function FavoritosPage() {
 
                 {/* Contenido */}
                 {loading ? (
+                    /* Skeleton estructural — antes era un rectangulo blanco con
+                       `animate-pulse` y nada adentro, lo que parecia mas un fallo
+                       de render que una carga. Ahora replica la forma de una
+                       card real: imagen + titulo + subtitulo + precio. */
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                         {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="bg-white rounded-2xl border border-slate-200 aspect-[4/5] animate-pulse" />
+                            <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+                                <div className="aspect-[4/3] bg-slate-100 animate-pulse" />
+                                <div className="p-4 space-y-2.5">
+                                    <div className="h-4 bg-slate-100 rounded animate-pulse w-3/4" />
+                                    <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
+                                    <div className="h-4 bg-slate-100 rounded animate-pulse w-1/3 mt-3" />
+                                </div>
+                            </div>
                         ))}
                     </div>
                 ) : isEmpty ? (
