@@ -43,15 +43,17 @@ export interface ServiceDetailViewProps {
 }
 
 const SLUG_ICONS: Record<string, LucideIcon> = {
-    hospedaje: Home,
+    cuidado: Home,
     guarderia: Sun,
     paseos: PawPrint,
     peluqueria: Scissors,
     traslado: Truck,
     veterinario: Stethoscope,
     adiestramiento: Dumbbell,
-    domicilio: MapPin,
     fotografia: Camera,
+    // Aliases backwards-compat para servicios legacy con slug viejo.
+    hospedaje: Home,
+    domicilio: MapPin,
 };
 
 export default function ServiceDetailView({ service, reviews, otrosServicios, isExample = false }: ServiceDetailViewProps) {

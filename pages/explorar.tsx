@@ -36,9 +36,8 @@ interface Category {
 // Iconos se renderizan vía SLUG_ICONS map en SidebarFiltros (Lucide), no por este campo.
 const STATIC_CATEGORIES: Category[] = [
     { id: 'adiestramiento', slug: 'adiestramiento', nombre: 'Adiestramiento', icono: '' },
-    { id: 'domicilio', slug: 'domicilio', nombre: 'Cuidado a Domicilio', icono: '' },
+    { id: 'cuidado', slug: 'cuidado', nombre: 'Cuidado y Hospedaje', icono: '' },
     { id: 'guarderia', slug: 'guarderia', nombre: 'Guardería Diurna', icono: '' },
-    { id: 'hospedaje', slug: 'hospedaje', nombre: 'Hospedaje', icono: '' },
     { id: 'paseos', slug: 'paseos', nombre: 'Paseo de Perros', icono: '' },
     { id: 'peluqueria', slug: 'peluqueria', nombre: 'Peluquería', icono: '' },
     { id: 'traslado', slug: 'traslado', nombre: 'Traslado', icono: '' },
@@ -84,9 +83,8 @@ function ExplorarPrelaunch() {
     };
 
     const CATS = [
-        { slug: 'hospedaje', label: 'Hospedaje' },
+        { slug: 'cuidado', label: 'Cuidado y Hospedaje' },
         { slug: 'guarderia', label: 'Guardería diurna' },
-        { slug: 'domicilio', label: 'Visita a domicilio' },
         { slug: 'paseos', label: 'Paseo de perros' },
         { slug: 'peluqueria', label: 'Peluquería' },
         { slug: 'adiestramiento', label: 'Adiestramiento' },
@@ -839,7 +837,7 @@ export default function ExplorarPage() {
                                             // Si hay filtro de categoría, todos los placeholders comparten ese slug.
                                             // Si NO hay filtro, rotamos por las 9 categorías para que cada placeholder
                                             // muestre un subtítulo distinto (vía getPlaceholderSubtitle).
-                                            const ROTATION_SLUGS = ['hospedaje', 'guarderia', 'paseos', 'domicilio', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado', 'fotografia'];
+                                            const ROTATION_SLUGS = ['cuidado', 'guarderia', 'paseos', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado', 'fotografia'];
                                             const filterSlug = filters.categorias[0];
                                             return Array.from({ length: 12 - services.length }).map((_, i) => (
                                                 <ServicePlaceholderCard

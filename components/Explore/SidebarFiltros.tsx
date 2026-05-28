@@ -47,13 +47,16 @@ interface Props {
 // ─── Icon mapping (matches CategoryChips.tsx) ─────────────────────────────────
 
 const SLUG_ICONS: Record<string, LucideIcon> = {
-    hospedaje: Home,
+    cuidado: Home,
     guarderia: Sun,
     paseos: PawPrint,
     peluqueria: Scissors,
     traslado: Truck,
     veterinario: Stethoscope,
     adiestramiento: Dumbbell,
+    // Aliases backwards-compat: servicios legacy con slug viejo siguen
+    // resolviendo a un icono mientras se ejecuta el SQL de re-clasificacion.
+    hospedaje: Home,
     domicilio: MapPin,
 };
 

@@ -26,10 +26,9 @@ const CATEGORIA_ICONS: Record<string, React.ElementType> = {
 type Role = "usuario" | "proveedor";
 
 const CATEGORIES = [
-  { value: 'hospedaje', label: 'Hospedaje' },
+  { value: 'cuidado', label: 'Cuidado y Hospedaje' },
   { value: 'guarderia', label: 'Guardería Diurna' },
   { value: 'paseos', label: 'Paseo de Perros' },
-  { value: 'domicilio', label: 'Cuidado en Casa del Cliente' },
   { value: 'peluqueria', label: 'Peluquería' },
   { value: 'adiestramiento', label: 'Adiestramiento' },
   { value: 'veterinario', label: 'Veterinario a Domicilio' },

@@ -94,10 +94,14 @@ function PrelaunchDemandCapture() {
 }
 
 const FALLBACK_HOME: Record<string, string> = {
+  cuidado: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&auto=format&fit=crop&q=70",
+  // Aliases backwards-compat: servicios legacy con categoria_slug viejo
+  // siguen renderizando imagen mientras el SQL de re-clasificacion no
+  // se haya aplicado todavia en BD.
   hospedaje: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&auto=format&fit=crop&q=70",
+  domicilio: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&auto=format&fit=crop&q=70",
   guarderia: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&auto=format&fit=crop&q=70",
   paseos: "https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=400&auto=format&fit=crop&q=70",
-  domicilio: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&auto=format&fit=crop&q=70",
   peluqueria: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=400&auto=format&fit=crop&q=70",
   adiestramiento: "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=400&auto=format&fit=crop&q=70",
   veterinario: "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&auto=format&fit=crop&q=70",
@@ -314,10 +318,9 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
   const router = useRouter();
 
   const categoriasEstaticas = [
-    { slug: 'hospedaje', nombre: 'Hospedaje', descripcion: 'Tu mascota en un hogar de confianza', Icon: Home },
+    { slug: 'cuidado', nombre: 'Cuidado y Hospedaje', descripcion: 'En tu casa, en la del cuidador o en un recinto', Icon: Home },
     { slug: 'guarderia', nombre: 'Guardería diurna', descripcion: 'Cuidado profesional durante el día', Icon: Sun },
     { slug: 'paseos', nombre: 'Paseo', descripcion: 'Paseos individuales o grupales cerca', Icon: Footprints },
-    { slug: 'domicilio', nombre: 'Visita a domicilio', descripcion: 'El proveedor va a tu casa', Icon: MapPin },
     { slug: 'peluqueria', nombre: 'Peluquería', descripcion: 'Baño, corte y estética especializada', Icon: Scissors },
     { slug: 'adiestramiento', nombre: 'Adiestramiento', descripcion: 'Entrenamiento y corrección conductual', Icon: Award },
     { slug: 'veterinario', nombre: 'Veterinaria', descripcion: 'Consultas y atención médica cercana', Icon: Stethoscope },
@@ -478,10 +481,10 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
           titulo: string; IconA: any; IconB: any;
           slugA: string; slugB: string; labelA: string; labelB: string;
         }> = [
-            { titulo: 'Hospedaje y Guardería', IconA: Home, IconB: Sun, slugA: 'hospedaje', slugB: 'guarderia', labelA: 'Hospedaje', labelB: 'Guardería' },
+            { titulo: 'Cuidado y Guardería', IconA: Home, IconB: Sun, slugA: 'cuidado', slugB: 'guarderia', labelA: 'Cuidado y Hospedaje', labelB: 'Guardería' },
             { titulo: 'Paseos y Adiestramiento', IconA: Footprints, IconB: Award, slugA: 'paseos', slugB: 'adiestramiento', labelA: 'Paseos', labelB: 'Adiestramiento' },
             { titulo: 'Veterinario y Peluquería', IconA: Stethoscope, IconB: Scissors, slugA: 'veterinario', slugB: 'peluqueria', labelA: 'Veterinario', labelB: 'Peluquería' },
-            { titulo: 'Domicilio y Traslado', IconA: MapPin, IconB: Car, slugA: 'domicilio', slugB: 'traslado', labelA: 'Domicilio', labelB: 'Traslado' },
+            { titulo: 'Traslado y Fotografía', IconA: Car, IconB: Camera, slugA: 'traslado', slugB: 'fotografia', labelA: 'Traslado', labelB: 'Fotografía' },
           ];
 
         return (

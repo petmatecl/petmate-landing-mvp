@@ -5,10 +5,9 @@ import { Search, MapPin, LayoutGrid, ChevronDown } from 'lucide-react';
 import { COMUNAS_CHILE } from '../../lib/comunas';
 
 const CATEGORIAS = [
-    { slug: 'hospedaje', label: 'Hospedaje' },
+    { slug: 'cuidado', label: 'Cuidado y Hospedaje' },
     { slug: 'guarderia', label: 'Guardería diurna' },
     { slug: 'paseos', label: 'Paseo de perros' },
-    { slug: 'domicilio', label: 'Visita a domicilio' },
     { slug: 'peluqueria', label: 'Peluquería' },
     { slug: 'adiestramiento', label: 'Adiestramiento' },
     { slug: 'veterinario', label: 'Veterinaria' },

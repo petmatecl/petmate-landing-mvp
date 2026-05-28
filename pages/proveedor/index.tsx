@@ -48,15 +48,17 @@ import {
 // que leakeaba el nombre del icono guardado en BD ("camera", "scissors")
 // como texto literal en la badge de la card.
 const SLUG_ICONS: Record<string, LucideIcon> = {
-    hospedaje: Home,
+    cuidado: Home,
     guarderia: Sun,
     paseos: PawPrint,
     peluqueria: Scissors,
     traslado: Truck,
     veterinario: Stethoscope,
     adiestramiento: Dumbbell,
-    domicilio: MapPin,
     fotografia: Camera,
+    // Aliases backwards-compat para servicios legacy con slug viejo.
+    hospedaje: Home,
+    domicilio: MapPin,
 };
 
 type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas';

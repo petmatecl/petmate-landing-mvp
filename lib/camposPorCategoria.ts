@@ -105,51 +105,73 @@ export interface CampoDinamico {
 // Decision de migracion: opcion (a) deprecar; el unico mapping SQL aprobado es
 // que_incluye → notas (entregado aparte para correr una vez).
 export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
-    hospedaje: [
+    // Sprint Categorias: merge `hospedaje` + `domicilio` → `cuidado`.
+    // Es el mismo tipo de proveedor (sitter) haciendo lo mismo en distinto
+    // lugar — modalidad lo diferencia. La fila de BD `hospedaje` (id
+    // ce7090fb-...) se rebautiza a slug `cuidado` in-place; los servicios
+    // de `domicilio` se re-apuntan via SQL standalone.
+    //
+    // Campos estructurales (tipo_espacio, capacidad, visitas_por_dia, etc.)
+    // son condicionados por modalidad para que cada proveedor vea un form
+    // focalizado. Inclusiones es la union dedupe de las dos listas
+    // legacy — sin condicionar por modalidad (decision MVP: el proveedor
+    // marca lo que aplica).
+    cuidado: [
+        { key: 'modalidad', label: '¿Dónde ofreces el cuidado?', tipo: 'select', requerido: true, opciones: [
+            { value: 'casa_tutor',    label: 'En la casa del tutor' },
+            { value: 'casa_cuidador', label: 'En la casa del cuidador' },
+            { value: 'recinto',       label: 'En recinto o local' },
+        ] },
+
+        // ── modalidad: casa_cuidador (tu propio espacio) ─────────────
         { key: 'tipo_espacio', label: 'Tipo de espacio donde cuidas', tipo: 'select', opciones: [
             { value: 'casa', label: 'Casa' },
             { value: 'departamento', label: 'Departamento' },
             { value: 'campo', label: 'Campo / parcela' },
-        ], requerido: true },
-        { key: 'metros_espacio', label: 'Metros cuadrados disponibles para la mascota', tipo: 'number', placeholder: 'Ej: 30' },
-        { key: 'capacidad', label: 'Capacidad máxima (mascotas simultáneas)', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
-        { key: 'tiene_patio', label: 'Tengo patio o jardín con acceso directo', tipo: 'boolean' },
+        ], requerido: true, condicionalDe: 'modalidad', condicionalValor: 'casa_cuidador' },
+        { key: 'metros_espacio', label: 'Metros cuadrados disponibles para la mascota', tipo: 'number', placeholder: 'Ej: 30', condicionalDe: 'modalidad', condicionalValor: 'casa_cuidador' },
+        { key: 'tiene_patio', label: 'Tengo patio o jardín con acceso directo', tipo: 'boolean', condicionalDe: 'modalidad', condicionalValor: 'casa_cuidador' },
         { key: 'piso_departamento', label: 'Piso del departamento', tipo: 'number', placeholder: 'Ej: 5', condicionalDe: 'tipo_espacio', condicionalValor: 'departamento' },
         { key: 'tiene_mallas_seguridad', label: 'Tengo mallas de seguridad en ventanas y balcones', tipo: 'boolean', condicionalDe: 'tipo_espacio', condicionalValor: 'departamento' },
-        { key: 'camara_vigilancia', label: 'Tengo cámara de vigilancia para que el dueño vea a su mascota', tipo: 'boolean' },
-        { key: 'mascotas_propias', label: 'Tengo mascotas propias en el hogar', tipo: 'boolean' },
+        { key: 'mascotas_propias', label: 'Tengo mascotas propias en el hogar', tipo: 'boolean', condicionalDe: 'modalidad', condicionalValor: 'casa_cuidador' },
         { key: 'tipo_mascotas_propias', label: '¿Qué mascotas tienes? (describe)', tipo: 'text', placeholder: 'Ej: 1 gato castrado tranquilo', condicionalDe: 'mascotas_propias', condicionalValor: true },
-        { key: 'ninos_en_hogar', label: 'Hay niños menores de 12 años en el hogar', tipo: 'boolean' },
-        { key: 'acepta_separacion', label: 'Puedo mantener mascotas separadas si es necesario', tipo: 'boolean' },
+        { key: 'ninos_en_hogar', label: 'Hay niños menores de 12 años en el hogar', tipo: 'boolean', condicionalDe: 'modalidad', condicionalValor: 'casa_cuidador' },
+        { key: 'acepta_separacion', label: 'Puedo mantener mascotas separadas si es necesario', tipo: 'boolean', condicionalDe: 'modalidad', condicionalValor: 'casa_cuidador' },
+
+        // ── modalidad: casa_tutor (vas a la casa del cliente) ────────
+        { key: 'info_domicilio', label: 'Vas a la casa del tutor. No necesitas espacio propio para mascotas.', tipo: 'info', condicionalDe: 'modalidad', condicionalValor: 'casa_tutor' },
+        { key: 'visitas_por_dia', label: 'Visitas por día que puedes hacer', tipo: 'number', placeholder: 'Ej: 2', requerido: true, condicionalDe: 'modalidad', condicionalValor: 'casa_tutor' },
+        { key: 'duracion_visita', label: 'Duración de cada visita (minutos)', tipo: 'number', placeholder: 'Ej: 45', requerido: true, condicionalDe: 'modalidad', condicionalValor: 'casa_tutor' },
+        { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura (km desde tu comuna)', tipo: 'number', placeholder: 'Ej: 5', condicionalDe: 'modalidad', condicionalValor: 'casa_tutor' },
+
+        // ── comunes (casa_cuidador / recinto principalmente) ─────────
+        // capacidad/camara aplican a las 3 modalidades en distinto grado.
+        // Sin condicionalDe — el proveedor en `casa_tutor` puede dejarlas
+        // vacías (no son requeridas en su flow).
+        { key: 'capacidad', label: 'Capacidad máxima (mascotas simultáneas)', tipo: 'number', placeholder: 'Ej: 2' },
+        { key: 'camara_vigilancia', label: 'Tengo cámara de vigilancia para que el dueño vea a su mascota', tipo: 'boolean' },
+
+        // ── inclusiones unificadas (14 opciones, union dedupe) ───────
+        // Set MVP: se ofrecen todas; el proveedor marca las que aplican
+        // a su modalidad. Condicionar por modalidad queda como
+        // refinamiento futuro (riego_plantas solo casa_tutor, etc.).
         { key: 'inclusiones', label: '¿Qué incluye tu servicio?', tipo: 'multiselect', opciones: [
-            { value: 'alimentacion', label: 'Alimentación' },
-            { value: 'paseos_diarios', label: 'Paseos diarios' },
-            { value: 'fotos_diarias', label: 'Fotos diarias al dueño' },
-            { value: 'juego', label: 'Juego / estimulación' },
-            { value: 'espacio_separado', label: 'Espacio separado para la mascota' },
-            { value: 'medicamentos', label: 'Administración de medicamentos' },
-            { value: 'videollamada', label: 'Videollamada con el dueño' },
+            { value: 'alimentacion',                 label: 'Alimentación' },
+            { value: 'agua_fresca',                  label: 'Cambio de agua fresca' },
+            { value: 'paseo_corto',                  label: 'Paseo corto' },
+            { value: 'paseos_diarios',               label: 'Paseos diarios' },
+            { value: 'limpieza_arenero',             label: 'Limpieza de arenero' },
+            { value: 'juego',                        label: 'Juego / estimulación' },
+            { value: 'fotos_diarias',                label: 'Fotos diarias al dueño' },
+            { value: 'foto_reporte',                 label: 'Foto y reporte por visita' },
+            { value: 'medicamentos',                 label: 'Administración de medicamentos' },
+            { value: 'videollamada',                 label: 'Videollamada con el dueño' },
             { value: 'socializacion_otras_mascotas', label: 'Socialización con otras mascotas' },
+            { value: 'riego_plantas',                label: 'Riego de plantas' },
+            { value: 'recoger_correspondencia',      label: 'Recoger correspondencia' },
+            { value: 'espacio_separado',             label: 'Espacio separado para la mascota' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Particularidades del espacio, rutina diaria, marca de alimento que uso...' },
-    ],
-    domicilio: [
-        { key: 'info_domicilio', label: 'Tú vas a la casa del cliente. No necesitas espacio propio para mascotas.', tipo: 'info' },
-        { key: 'visitas_por_dia', label: 'Visitas por día que puedes hacer', tipo: 'number', placeholder: 'Ej: 2', requerido: true },
-        { key: 'duracion_visita', label: 'Duración de cada visita (minutos)', tipo: 'number', placeholder: 'Ej: 45', requerido: true },
-        { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura (km desde tu comuna)', tipo: 'number', placeholder: 'Ej: 5' },
-        { key: 'inclusiones', label: '¿Qué incluye cada visita?', tipo: 'multiselect', opciones: [
-            { value: 'alimentacion', label: 'Alimentación' },
-            { value: 'agua_fresca', label: 'Cambio de agua fresca' },
-            { value: 'limpieza_arenero', label: 'Limpieza de arenero' },
-            { value: 'paseo_corto', label: 'Paseo corto' },
-            { value: 'juego', label: 'Juego / estimulación' },
-            { value: 'foto_reporte', label: 'Foto y reporte de la visita' },
-            { value: 'medicamentos', label: 'Administración de medicamentos' },
-            { value: 'riego_plantas', label: 'Riego de plantas' },
-            { value: 'recoger_correspondencia', label: 'Recoger correspondencia' },
-        ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Detalles de la rutina, instrucciones especiales, alergias...' },
+        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Particularidades del espacio, rutina diaria, condiciones especiales...' },
     ],
     paseos: [
         { key: 'max_perros', label: 'Máximo de perros simultáneos', tipo: 'number', placeholder: 'Ej: 3', requerido: true },
