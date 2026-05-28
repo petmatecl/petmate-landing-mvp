@@ -248,9 +248,25 @@ export default function ExplorarPage() {
         }
 
         // Derivar filtros directamente desde router.query (fuente de verdad)
-        const currentCategorias: string[] = categoria
+        let currentCategorias: string[] = categoria
             ? (typeof categoria === 'string' ? categoria.split(',').filter(Boolean) : (categoria as string[]))
             : [];
+
+        // Backwards-compat: URLs viejas con `categoria=hospedaje` o
+        // `categoria=domicilio` (legacy pre-merge) se mapean al slug
+        // unificado `cuidado`. Si ya esta `cuidado` en la lista, dedupe.
+        // Si el mapeo cambio la URL, replace para que la URL coincida con
+        // el estado canonico.
+        const hadLegacy = currentCategorias.some(s => s === 'hospedaje' || s === 'domicilio');
+        if (hadLegacy) {
+            currentCategorias = Array.from(new Set(
+                currentCategorias.map(s => (s === 'hospedaje' || s === 'domicilio') ? 'cuidado' : s)
+            ));
+            const newQuery: Record<string, any> = { ...router.query };
+            newQuery.categoria = currentCategorias.join(',');
+            router.replace({ pathname: '/explorar', query: newQuery }, undefined, { shallow: true });
+            return;
+        }
 
         // Inclusiones (Sprint 4 Fase 3). Solo aplican cuando hay 1 categoria
         // exacta. Sanitizamos contra las opciones canonicas de esa categoria

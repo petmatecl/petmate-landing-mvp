@@ -80,9 +80,17 @@ export interface CampoDinamico {
     opciones?: { value: string; label: string }[];
     /** Sufijo de display para tipo `number` (ej. "mascotas", "km", "minutos"). Hoy las unidades viven dentro del `label` entre parentesis; este campo queda como hook para moverlas a data en Fase 2. */
     unit?: string;
-    /** Si esta seteado, el campo solo se renderiza cuando datos[condicionalDe] === condicionalValor. */
+    /**
+     * Si esta seteado, el campo solo se renderiza cuando `datos[condicionalDe]`
+     * matchea `condicionalValor`. El match acepta:
+     *   - escalar (string | boolean | number): igualdad estricta.
+     *   - array de strings: el valor actual tiene que estar incluido.
+     * El soporte array sirve a campos que aplican a >1 valor de modalidad
+     * (ej. `capacidad` aplica a `casa_cuidador` Y `recinto`) sin duplicar
+     * la entrada en este record.
+     */
     condicionalDe?: string;
-    condicionalValor?: string | boolean | number;
+    condicionalValor?: string | boolean | number | string[];
 }
 
 // Sprint 4 Fase 2 / Commit B — inclusiones (multiselect) + notas (textarea)
@@ -120,7 +128,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         { key: 'modalidad', label: '¿Dónde ofreces el cuidado?', tipo: 'select', requerido: true, opciones: [
             { value: 'casa_tutor',    label: 'En la casa del tutor' },
             { value: 'casa_cuidador', label: 'En la casa del cuidador' },
-            { value: 'recinto',       label: 'En recinto o local' },
+            { value: 'recinto',       label: 'En recinto o local especializado' },
         ] },
 
         // ── modalidad: casa_cuidador (tu propio espacio) ─────────────
@@ -144,12 +152,13 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         { key: 'duracion_visita', label: 'Duración de cada visita (minutos)', tipo: 'number', placeholder: 'Ej: 45', requerido: true, condicionalDe: 'modalidad', condicionalValor: 'casa_tutor' },
         { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura (km desde tu comuna)', tipo: 'number', placeholder: 'Ej: 5', condicionalDe: 'modalidad', condicionalValor: 'casa_tutor' },
 
-        // ── comunes (casa_cuidador / recinto principalmente) ─────────
-        // capacidad/camara aplican a las 3 modalidades en distinto grado.
-        // Sin condicionalDe — el proveedor en `casa_tutor` puede dejarlas
-        // vacías (no son requeridas en su flow).
-        { key: 'capacidad', label: 'Capacidad máxima (mascotas simultáneas)', tipo: 'number', placeholder: 'Ej: 2' },
-        { key: 'camara_vigilancia', label: 'Tengo cámara de vigilancia para que el dueño vea a su mascota', tipo: 'boolean' },
+        // ── modalidad: casa_cuidador o recinto ───────────────────────
+        // Capacidad y camara aplican a las dos modalidades en que el
+        // cuidado se hace en un ESPACIO PROPIO del proveedor. En
+        // `casa_tutor` no tienen sentido (es el espacio del tutor).
+        // Aprovechamos el `condicionalValor` array para no duplicar.
+        { key: 'capacidad', label: 'Capacidad máxima (mascotas simultáneas)', tipo: 'number', placeholder: 'Ej: 2', condicionalDe: 'modalidad', condicionalValor: ['casa_cuidador', 'recinto'] },
+        { key: 'camara_vigilancia', label: 'Tengo cámara de vigilancia para que el dueño vea a su mascota', tipo: 'boolean', condicionalDe: 'modalidad', condicionalValor: ['casa_cuidador', 'recinto'] },
 
         // ── inclusiones unificadas (14 opciones, union dedupe) ───────
         // Set MVP: se ofrecen todas; el proveedor marca las que aplican
@@ -349,6 +358,13 @@ export function camposVisibles(categoria: string, datos: Record<string, any>): C
     return campos.filter((campo) => {
         if (!campo.condicionalDe) return true;
         const valorActual = datos[campo.condicionalDe];
+        // Sprint Categorias: `condicionalValor` puede ser array para
+        // campos que aplican a >1 valor del campo dependencia (ej.
+        // capacidad aplica a casa_cuidador y recinto). Si es array,
+        // includes; si no, igualdad estricta.
+        if (Array.isArray(campo.condicionalValor)) {
+            return campo.condicionalValor.includes(valorActual);
+        }
         return valorActual === campo.condicionalValor;
     });
 }

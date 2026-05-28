@@ -128,8 +128,9 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
+    // Legacy slugs (hospedaje, visita-domicilio) se redirigen a /cuidado via next.config.js
     const categorias = [
-        'hospedaje', 'guarderia-diurna', 'paseo', 'visita-domicilio',
+        'cuidado', 'guarderia-diurna', 'paseo',
         'peluqueria', 'adiestramiento', 'veterinaria', 'traslado'
     ];
     return {

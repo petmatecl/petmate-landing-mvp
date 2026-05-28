@@ -199,8 +199,9 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
 }
 
 export const getStaticPaths: import('next').GetStaticPaths = async () => {
+    // Legacy slugs (hospedaje, visita-domicilio) se redirigen a /cuidado/<comuna> via next.config.js
     const categorias = [
-        'hospedaje', 'guarderia-diurna', 'paseo', 'visita-domicilio',
+        'cuidado', 'guarderia-diurna', 'paseo',
         'peluqueria', 'adiestramiento', 'veterinaria', 'traslado'
     ];
     const paths = [];
