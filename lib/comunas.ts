@@ -88,3 +88,60 @@ export function getComunaCoords(comunaName: string | null | undefined): [number,
     const match = Object.keys(COMUNA_COORDS).find(k => k.toLowerCase() === normalized);
     return match ? COMUNA_COORDS[match] : CENTER_SANTIAGO;
 }
+
+// Sprint Categorias: sectorizacion canonica de la RM en 5 zonas urbanas.
+// El filtro de comuna en /explorar muestra primero un selector de zona
+// (estado client-side, no persiste en URL) y luego restringe el listado
+// de comunas a las de la zona elegida. La zona NO filtra por si misma —
+// el filtro real sigue siendo `comuna` (un solo valor).
+//
+// Comunas rurales de la RM (Alhue, Curacavi, Melipilla, Talagante, etc.)
+// y comunas fuera de RM (Valparaiso, Concepcion, etc.) NO estan en
+// ninguna zona. getZonaFromComuna devuelve null para ellas, lo que hace
+// que la sidebar abra en zona "Todas" con el combobox completo.
+export type ZonaRM = 'oriente' | 'centro' | 'norte' | 'poniente' | 'sur';
+
+export const ZONAS_RM: { slug: ZonaRM; label: string; comunas: string[] }[] = [
+    {
+        slug: 'oriente',
+        label: 'Oriente',
+        comunas: ['Las Condes', 'Vitacura', 'Lo Barnechea', 'Providencia', 'Ñuñoa', 'La Reina', 'Peñalolén', 'Macul'],
+    },
+    {
+        slug: 'centro',
+        label: 'Centro',
+        comunas: ['Santiago', 'Independencia', 'Recoleta', 'San Miguel', 'San Joaquín', 'Pedro Aguirre Cerda'],
+    },
+    {
+        slug: 'norte',
+        label: 'Norte',
+        comunas: ['Huechuraba', 'Conchalí', 'Renca', 'Quilicura'],
+    },
+    {
+        slug: 'poniente',
+        label: 'Poniente',
+        comunas: ['Maipú', 'Estación Central', 'Cerrillos', 'Pudahuel', 'Lo Prado', 'Cerro Navia', 'Quinta Normal'],
+    },
+    {
+        slug: 'sur',
+        label: 'Sur',
+        comunas: ['La Florida', 'Puente Alto', 'La Granja', 'La Pintana', 'San Ramón', 'El Bosque', 'La Cisterna', 'Lo Espejo', 'San Bernardo'],
+    },
+];
+
+/**
+ * Devuelve el slug de zona al que pertenece una comuna RM (case-insensitive),
+ * o null si la comuna no esta en ninguna de las 5 zonas urbanas. Util para
+ * que la sidebar pre-seleccione la zona al hidratar desde URL/localStorage
+ * y para que el boton de geolocate actualice zona automaticamente.
+ */
+export function getZonaFromComuna(comuna: string | null | undefined): ZonaRM | null {
+    if (!comuna) return null;
+    const normalized = comuna.trim().toLowerCase();
+    for (const zona of ZONAS_RM) {
+        if (zona.comunas.some(c => c.toLowerCase() === normalized)) {
+            return zona.slug;
+        }
+    }
+    return null;
+}

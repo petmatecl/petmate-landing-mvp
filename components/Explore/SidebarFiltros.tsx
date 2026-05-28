@@ -5,7 +5,7 @@ import {
     Dog, Cat, Bird,
     LucideIcon
 } from 'lucide-react';
-import { COMUNAS_CHILE } from '../../lib/comunas';
+import { COMUNAS_CHILE, ZONAS_RM, getZonaFromComuna, type ZonaRM } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -80,9 +80,22 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
     const [comunaInput, setComunaInput] = useState(filters.comuna);
     const comunaRef = useRef<HTMLDivElement>(null);
 
-    // Sync comunaInput if filter is cleared externally (e.g. "Limpiar todo")
+    // Sprint Categorias: zona client-side. Null = "Todas las comunas"
+    // (combobox completo). Cuando se selecciona zona, el listado de
+    // comunas se restringe a esa zona. Si el usuario llega con una
+    // comuna en URL, derivamos la zona automaticamente al hidratar.
+    const [zona, setZona] = useState<ZonaRM | null>(() => getZonaFromComuna(filters.comuna));
+
+    // Sync comunaInput + zona si el filtro cambia externamente (e.g.
+    // "Limpiar todo", o desde otro componente). Zona se re-deriva: si
+    // la comuna nueva pertenece a una zona, se ajusta; si no, queda
+    // como esta (no resetear preserva la eleccion del usuario en el
+    // selector mientras solo cambia el input de comuna).
     useEffect(() => {
         setComunaInput(filters.comuna);
+        const derived = getZonaFromComuna(filters.comuna);
+        if (derived !== null) setZona(derived);
+        else if (!filters.comuna) setZona(null);
     }, [filters.comuna]);
 
     // Close dropdown on outside click
@@ -96,9 +109,33 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
-    const comunasFiltradas = COMUNAS_CHILE.filter(c =>
+    // Listado base de comunas segun la zona seleccionada. Sin zona ->
+    // COMUNAS_CHILE completo (incluye otras regiones). Con zona -> solo
+    // sus comunas. Sobre eso se aplica el filtro por substring del
+    // input.
+    const comunasBase = zona
+        ? (ZONAS_RM.find(z => z.slug === zona)?.comunas ?? [])
+        : COMUNAS_CHILE;
+    const comunasFiltradas = comunasBase.filter(c =>
         comunaInput ? c.toLowerCase().includes(comunaInput.toLowerCase()) : true
     ).slice(0, 40);
+
+    // Cambio de zona: si la comuna actual no pertenece a la nueva zona,
+    // se limpia para evitar estado inconsistente. "Todas" (next=null)
+    // siempre preserva la comuna actual.
+    const changeZona = (next: ZonaRM | null) => {
+        setZona(next);
+        if (next === null) return;
+        const zonaDef = ZONAS_RM.find(z => z.slug === next);
+        const comunaActual = filters.comuna;
+        if (
+            comunaActual &&
+            zonaDef &&
+            !zonaDef.comunas.some(c => c.toLowerCase() === comunaActual.toLowerCase())
+        ) {
+            onFilterChange({ comuna: '' });
+        }
+    };
 
     const hasActiveFilters =
         filters.categoria !== null ||
@@ -332,8 +369,27 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                 )}
             </div>
 
-            {/* ── 4. Comuna ── */}
+            {/* ── 4. Zona + Comuna ──
+                Dos niveles: la zona restringe el listado de comunas; el
+                filtro real sigue siendo comuna (single value). Zona es
+                puramente UI, no persiste en URL — se deriva de la
+                comuna actual al hidratar via getZonaFromComuna. */}
             <div className="mb-5 border-t border-slate-100 pt-5">
+                <label htmlFor="sidebar-zona" className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
+                    Zona
+                </label>
+                <select
+                    id="sidebar-zona"
+                    value={zona ?? ''}
+                    onChange={e => changeZona((e.target.value || null) as ZonaRM | null)}
+                    className="w-full h-10 px-3 mb-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                >
+                    <option value="">Todas las comunas</option>
+                    {ZONAS_RM.map(z => (
+                        <option key={z.slug} value={z.slug}>{z.label}</option>
+                    ))}
+                </select>
+
                 <label htmlFor="sidebar-comuna" className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
                     Comuna
                 </label>
@@ -385,10 +441,12 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         onBlur={() => {
                             setTimeout(() => {
-                                // Auto-match on blur too
+                                // Auto-match on blur too. Si hay zona,
+                                // matcheamos solo dentro de esa zona; sin
+                                // zona, contra el set completo.
                                 const trimmed = comunaInput.trim();
                                 if (trimmed && trimmed !== filters.comuna) {
-                                    const match = COMUNAS_CHILE.find(c => c.toLowerCase().startsWith(trimmed.toLowerCase()));
+                                    const match = comunasBase.find(c => c.toLowerCase().startsWith(trimmed.toLowerCase()));
                                     if (match) {
                                         setComunaInput(match);
                                         onFilterChange({ comuna: match });
@@ -401,7 +459,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                 setComunaOpen(false);
                             }, 200);
                         }}
-                        placeholder="¿En qué comuna?"
+                        placeholder={zona ? `Comuna en zona ${ZONAS_RM.find(z => z.slug === zona)?.label.toLowerCase()}` : '¿En qué comuna?'}
                         autoComplete="off"
                         className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-slate-400 transition-colors"
                     />
