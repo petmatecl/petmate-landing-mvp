@@ -19,16 +19,23 @@ interface Category {
 
 interface FiltersState {
     q: string;
-    categorias: string[];
+    /**
+     * Slug canonico de la categoria seleccionada o null para "todas las
+     * categorias". Antes era `categorias: string[]` (multi-select); el
+     * rediseno del sprint Categorias colapso a single-select para
+     * simplificar fetch (una RPC vs N paralelas + dedup) y mantener los
+     * sub-filtros (modalidad, inclusiones) siempre coherentes.
+     */
+    categoria: string | null;
     comuna: string;
     mascota: 'perro' | 'gato' | 'otro' | 'any';
     tamano: 'pequeno' | 'mediano' | 'grande' | null;
     precioMin: string;
     precioMax: string;
     /**
-     * Slugs canonicos de inclusiones marcadas. Solo aplica cuando hay UNA
-     * sola categoria seleccionada (las opciones canonicas son
-     * category-specific). Vacio = sin filtro.
+     * Slugs canonicos de inclusiones marcadas. Solo aplica cuando hay una
+     * categoria seleccionada (las opciones son category-specific). Vacio
+     * = sin filtro.
      */
     inclusiones: string[];
 }
@@ -40,8 +47,6 @@ interface Props {
     onClear: () => void;
     /** When true, wraps content in white card (desktop sidebar). False = bare (mobile drawer). */
     card?: boolean;
-    /** Count of services per category slug from current results (calculated client-side) */
-    categoryCounts?: Record<string, number>;
 }
 
 // ─── Icon mapping (matches CategoryChips.tsx) ─────────────────────────────────
@@ -62,7 +67,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function SidebarFiltros({ filters, categories, onFilterChange, onClear, card = true, categoryCounts = {} }: Props) {
+export default function SidebarFiltros({ filters, categories, onFilterChange, onClear, card = true }: Props) {
     const [geoLoading, setGeoLoading] = useState(false);
     const [comunaOpen, setComunaOpen] = useState(false);
     const [comunaInput, setComunaInput] = useState(filters.comuna);
@@ -89,7 +94,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
     ).slice(0, 40);
 
     const hasActiveFilters =
-        filters.categorias.length > 0 ||
+        filters.categoria !== null ||
         filters.mascota !== 'any' ||
         !!filters.precioMin ||
         !!filters.precioMax ||
@@ -97,13 +102,12 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
         !!filters.comuna ||
         filters.inclusiones.length > 0;
 
-    // Sprint 4 Fase 3: las inclusiones son category-specific. Solo mostramos
-    // el bloque cuando hay UNA sola categoria seleccionada. Si no hay
-    // categoria o hay multiples, mostramos un copy aclarativo en su lugar
-    // para que la feature sea descubrible.
-    const singleCategoriaSlug = filters.categorias.length === 1 ? filters.categorias[0] : null;
-    const opcionesInclusiones = singleCategoriaSlug
-        ? CAMPOS_POR_CATEGORIA[singleCategoriaSlug]?.find(c => c.key === 'inclusiones')?.opciones ?? []
+    // Las inclusiones son category-specific. Como ahora la categoria es
+    // single-select, el bloque es trivial de gobernar: si hay categoria
+    // y define opciones de inclusion, las mostramos; si no, copy guia.
+    const categoriaSlug = filters.categoria;
+    const opcionesInclusiones = categoriaSlug
+        ? CAMPOS_POR_CATEGORIA[categoriaSlug]?.find(c => c.key === 'inclusiones')?.opciones ?? []
         : [];
 
     const toggleInclusion = (slug: string) => {
@@ -142,12 +146,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
         );
     };
 
-    const toggleCategoria = (slug: string) => {
-        if (filters.categorias.includes(slug)) {
-            onFilterChange({ categorias: filters.categorias.filter(s => s !== slug) });
-        } else {
-            onFilterChange({ categorias: [...filters.categorias, slug] });
-        }
+    const selectCategoria = (slug: string | null) => {
+        onFilterChange({ categoria: slug });
     };
 
     const inner = (
@@ -187,72 +187,73 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                 </div>
             </div>
 
-            {/* ── 3. Categorías ── */}
-            <div className="mb-5 border-t border-slate-100 pt-5">
+            {/* ── 3. Categoría (single-select) ── */}
+            <div className="mb-5 border-t border-slate-100 pt-5" role="radiogroup" aria-label="Categoría">
                 <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
                     Categoría
                 </label>
 
-                {/* "Todas" */}
+                {/* "Todas" — categoria=null */}
                 <button
                     type="button"
-                    onClick={() => onFilterChange({ categorias: [] })}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1 ${filters.categorias.length === 0
+                    role="radio"
+                    aria-checked={filters.categoria === null}
+                    onClick={() => selectCategoria(null)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1 ${filters.categoria === null
                         ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                         : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                         }`}
                 >
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${filters.categorias.length === 0 ? 'bg-emerald-700 border-emerald-600' : 'border-slate-300'
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${filters.categoria === null ? 'border-emerald-600' : 'border-slate-300'
                         }`}>
-                        {filters.categorias.length === 0 && <Check size={10} strokeWidth={3} className="text-white" />}
+                        {filters.categoria === null && <div className="w-2 h-2 rounded-full bg-emerald-700" />}
                     </div>
-                    <Grid2x2 size={14} className={filters.categorias.length === 0 ? 'text-emerald-700' : 'text-slate-400'} />
+                    <Grid2x2 size={14} className={filters.categoria === null ? 'text-emerald-700' : 'text-slate-400'} />
                     <span>Todas las categorías</span>
                 </button>
 
-                {/* Per-category rows */}
+                {/* Per-category rows — radio single-select. El contador de
+                    resultados por categoria desaparecio: con single-select,
+                    el conteo de la categoria seleccionada coincide con
+                    `totalCount` (mostrado en el header de resultados), y
+                    el de las otras seria 0 trivialmente. */}
                 <div className="space-y-0.5">
                     {categories.map(cat => {
-                        const checked = filters.categorias.includes(cat.slug);
+                        const checked = filters.categoria === cat.slug;
                         const CatIcon = SLUG_ICONS[cat.slug] ?? Grid2x2;
                         return (
                             <button
                                 key={cat.id}
                                 type="button"
-                                onClick={() => toggleCategoria(cat.slug)}
+                                role="radio"
+                                aria-checked={checked}
+                                onClick={() => selectCategoria(cat.slug)}
                                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${checked
                                     ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                                     : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                                     }`}
                             >
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-emerald-700 border-emerald-600' : 'border-slate-300'
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${checked ? 'border-emerald-600' : 'border-slate-300'
                                     }`}>
-                                    {checked && <Check size={10} strokeWidth={3} className="text-white" />}
+                                    {checked && <div className="w-2 h-2 rounded-full bg-emerald-700" />}
                                 </div>
                                 <CatIcon size={14} className={checked ? 'text-emerald-700' : 'text-slate-400'} />
                                 <span className="text-left flex-1 truncate">{cat.nombre}</span>
-                                {(categoryCounts[cat.slug] ?? 0) > 0 && (
-                                    <span className="text-xs text-slate-400 font-normal tabular-nums ml-auto">
-                                        {categoryCounts[cat.slug]}
-                                    </span>
-                                )}
                             </button>
                         );
                     })}
                 </div>
             </div>
 
-            {/* ── 3.5. Inclusiones (Sprint 4 Fase 3) ──
-                Solo cuando hay 1 categoria seleccionada. Las opciones son
-                category-specific (vienen de CAMPOS_POR_CATEGORIA[slug]).
-                Si no hay categoria o hay multiples, mostramos un copy
-                aclarativo para que la feature sea descubrible sin invadir
-                la sidebar. */}
+            {/* ── 3.5. Inclusiones ──
+                Solo cuando hay una categoria seleccionada. Las opciones
+                son category-specific (CAMPOS_POR_CATEGORIA[slug]). Sin
+                categoria, copy guia para descubrir la feature. */}
             <div className="mb-5 border-t border-slate-100 pt-5">
                 <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
                     Incluye
                 </label>
-                {singleCategoriaSlug && opcionesInclusiones.length > 0 ? (
+                {categoriaSlug && opcionesInclusiones.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
                         {opcionesInclusiones.map(opt => {
                             const active = filters.inclusiones.includes(opt.value);

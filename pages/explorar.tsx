@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from "next/router";
 import { Search, ChevronLeft, ChevronRight, Filter, X, MapPin, Dog, Cat, PawPrint, DollarSign, CalendarDays, List, Map } from "lucide-react";
 
@@ -157,7 +157,11 @@ export default function ExplorarPage() {
 
     const [filters, setFilters] = useState({
         q: "",
-        categorias: [] as string[],
+        // Sprint Categorias: single-select (antes era `categorias: string[]`).
+        // null = "todas las categorias". El path de fetch se simplifica a
+        // una sola llamada a buscar_servicios; sub-filtros (inclusiones,
+        // modalidad) son siempre coherentes con esta unica categoria.
+        categoria: null as string | null,
         comuna: "",
         fecha: "",
         mascota: "any" as "perro" | "gato" | "otro" | "any",
@@ -165,25 +169,16 @@ export default function ExplorarPage() {
         precioMin: "",
         precioMax: "",
         orden: "relevancia" as "relevancia" | "rating" | "precio_asc" | "precio_desc",
-        // Sprint 4 Fase 3: slugs de inclusiones canonicas marcadas por el
-        // usuario. AND semantics: el servicio debe contener TODOS los
-        // slugs. Solo aplica cuando hay 1 categoria; multi-categoria o sin
-        // categoria → siempre vacio (cleanup explicito).
+        // Slugs canonicos de inclusiones marcadas (AND semantics: el
+        // servicio debe contener TODOS los slugs). Solo aplica cuando hay
+        // categoria; sin categoria queda vacio (cleanup explicito en
+        // updateQueryParams al cambiar la categoria).
         inclusiones: [] as string[],
     });
 
     const [pagina, setPagina] = useState(1);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [vista, setVista] = useState<'lista' | 'mapa'>('lista');
-
-    // Per-category count from current results (client-side, no extra query)
-    const categoryCounts = useMemo(() =>
-        services.reduce((acc, s) => {
-            const slug = s.categoria_slug;
-            if (slug) acc[slug] = (acc[slug] ?? 0) + 1;
-            return acc;
-        }, {} as Record<string, number>)
-        , [services]);
 
     // Cleanup one-time de la key legacy sin sufijo (compartida entre users).
     // Reemplazada por `pawnecta_last_search:${user.id}` scopeada. Evita que
@@ -247,39 +242,46 @@ export default function ExplorarPage() {
             }
         }
 
-        // Derivar filtros directamente desde router.query (fuente de verdad)
-        let currentCategorias: string[] = categoria
+        // Derivar la categoria desde router.query (fuente de verdad). Es
+        // single-select; URLs legacy con CSV (`a,b,c`) o multi-valor
+        // (`?categoria=a&categoria=b`) se colapsan a la primera + replace
+        // shallow a la URL canonica. Tambien atrapamos slugs legacy
+        // hospedaje/domicilio aca para evitar dos passes de replace.
+        const rawCategoria: string[] = categoria
             ? (typeof categoria === 'string' ? categoria.split(',').filter(Boolean) : (categoria as string[]))
             : [];
-
-        // Backwards-compat: URLs viejas con `categoria=hospedaje` o
-        // `categoria=domicilio` (legacy pre-merge) se mapean al slug
-        // unificado `cuidado`. Si ya esta `cuidado` en la lista, dedupe.
-        // Si el mapeo cambio la URL, replace para que la URL coincida con
-        // el estado canonico.
-        const hadLegacy = currentCategorias.some(s => s === 'hospedaje' || s === 'domicilio');
-        if (hadLegacy) {
-            currentCategorias = Array.from(new Set(
-                currentCategorias.map(s => (s === 'hospedaje' || s === 'domicilio') ? 'cuidado' : s)
-            ));
+        const mappedCategorias = rawCategoria.map(s =>
+            (s === 'hospedaje' || s === 'domicilio') ? 'cuidado' : s
+        );
+        const needsCanonicalReplace =
+            // Mas de un valor (legacy multi-select): colapsamos al primero.
+            mappedCategorias.length > 1
+            // Algun slug legacy fue re-mapeado.
+            || rawCategoria.some(s => s === 'hospedaje' || s === 'domicilio')
+            // URL trajo `?categoria=` con string vacio o solo comas.
+            || (typeof categoria === 'string' && categoria !== (mappedCategorias[0] ?? ''));
+        if (needsCanonicalReplace) {
             const newQuery: Record<string, any> = { ...router.query };
-            newQuery.categoria = currentCategorias.join(',');
+            if (mappedCategorias.length === 0) {
+                delete newQuery.categoria;
+            } else {
+                newQuery.categoria = mappedCategorias[0];
+            }
             router.replace({ pathname: '/explorar', query: newQuery }, undefined, { shallow: true });
             return;
         }
+        const currentCategoria: string | null = mappedCategorias[0] ?? null;
 
-        // Inclusiones (Sprint 4 Fase 3). Solo aplican cuando hay 1 categoria
-        // exacta. Sanitizamos contra las opciones canonicas de esa categoria
-        // (CAMPOS_POR_CATEGORIA[slug].inclusiones.opciones) para descartar
-        // slugs manipulados via URL o legacy de otra categoria.
+        // Inclusiones. Solo aplican cuando hay categoria seleccionada.
+        // Sanitizamos contra las opciones canonicas de esa categoria para
+        // descartar slugs manipulados via URL o legacy de otra categoria.
         const rawInclusiones: string[] = inclusiones
             ? (typeof inclusiones === 'string' ? inclusiones.split(',').filter(Boolean) : (inclusiones as string[]))
             : [];
         let currentInclusiones: string[] = [];
-        if (currentCategorias.length === 1) {
-            const campoIncl = CAMPOS_POR_CATEGORIA[currentCategorias[0]]?.find(c => c.key === 'inclusiones');
+        if (currentCategoria) {
+            const campoIncl = CAMPOS_POR_CATEGORIA[currentCategoria]?.find(c => c.key === 'inclusiones');
             const opcionesValidas = new Set(campoIncl?.opciones?.map(o => o.value) ?? []);
-            // Dedupe + filtrar slugs invalidos.
             currentInclusiones = Array.from(new Set(rawInclusiones)).filter(s => opcionesValidas.has(s));
         }
 
@@ -297,7 +299,7 @@ export default function ExplorarPage() {
         // Sincronizar estado (para UI: chips, sidebar, header)
         setFilters({
             q: currentQ,
-            categorias: currentCategorias,
+            categoria: currentCategoria,
             comuna: currentComuna,
             fecha: currentFecha,
             mascota: currentMascota,
@@ -314,74 +316,34 @@ export default function ExplorarPage() {
         setComunasSugeridas([]);
 
         const baseParams = {
+            p_categoria_slug: currentCategoria,
             p_comuna: currentComuna || null,
             p_precio_max: currentPrecioMax ? parseInt(currentPrecioMax) : null,
             p_precio_min: currentPrecioMin ? parseInt(currentPrecioMin) : null,
             p_texto: currentQ || null,
             p_limit: PAGE_SIZE,
             p_offset: (currentPagina - 1) * PAGE_SIZE,
-            // Sprint 4 Fase 3: p_inclusiones. Vacio → no enviar (la RPC
-            // trata NULL como sin filtro). Multi-categoria path mas abajo
-            // tampoco lo envia porque por convencion no aplica.
             p_inclusiones: currentInclusiones.length > 0 ? currentInclusiones : null,
+            p_orden: currentOrden,
         };
 
         async function run() {
             try {
-                let allData: any[] = [];
-                let serverTotal = 0;
-
-                if (currentCategorias.length <= 1) {
-                    const { data, error } = await supabase.rpc('buscar_servicios', {
-                        ...baseParams,
-                        p_categoria_slug: currentCategorias[0] || null,
-                    });
-                    if (error) throw error;
-                    allData = data || [];
-                    serverTotal = allData.length > 0 ? Number(allData[0].total_count) : 0;
-                } else {
-                    const results = await Promise.all(
-                        currentCategorias.map(slug =>
-                            supabase.rpc('buscar_servicios', {
-                                ...baseParams,
-                                p_categoria_slug: slug,
-                                p_limit: 100,
-                                p_offset: 0,
-                            })
-                        )
-                    );
-                    const seen = new Set<string>();
-                    for (const { data } of results) {
-                        if (!data) continue;
-                        for (const item of data as any[]) {
-                            const uniqueKey = item.servicio_id ?? item.id;
-                            if (!seen.has(uniqueKey)) { seen.add(uniqueKey); allData.push(item); }
-                        }
-                    }
-                    serverTotal = allData.length;
-                }
-
-                // Sort client-side
-                const rankingScore = (item: any) =>
-                    (item.rating_promedio / 5) * 0.35 +
-                    (item.foto_perfil ? 0.10 : 0) +
-                    (item.total_evaluaciones > 0 ? 0.15 : 0) +
-                    (item.destacado ? 0.10 : 0) +
-                    0.10;
-
-                allData.sort((a: any, b: any) => {
-                    if (currentOrden === 'rating') {
-                        if (b.rating_promedio !== a.rating_promedio) return b.rating_promedio - a.rating_promedio;
-                        return b.total_evaluaciones - a.total_evaluaciones;
-                    }
-                    if (currentOrden === 'precio_asc') return a.precio_desde - b.precio_desde;
-                    if (currentOrden === 'precio_desc') return b.precio_desde - a.precio_desde;
-                    return rankingScore(b) - rankingScore(a);
-                });
+                // Single-select de categoria: una sola llamada a la RPC.
+                // La RPC ya hace el orden server-side via p_orden, asi que
+                // el client-side sort heredado del path multi-RPC se
+                // elimina junto con el branch.
+                const { data, error } = await supabase.rpc('buscar_servicios', baseParams);
+                if (error) throw error;
+                const rows: any[] = data || [];
+                const serverTotal = rows.length > 0 ? Number(rows[0].total_count) : 0;
 
                 setTotalCount(serverTotal);
 
-                const mapped = allData.map(mapRpcToServiceResult);
+                const mapped = rows.map(mapRpcToServiceResult);
+                // Mascota se filtra client-side (la RPC tambien lo hace,
+                // pero mantenemos el filter por defensa contra rows que
+                // tengan los flags acepta_perros/gatos nulos vs false).
                 const filteredByMascota = mapped.filter(s => {
                     if (currentMascota === 'perro') return s.acepta_perros !== false;
                     if (currentMascota === 'gato') return s.acepta_gatos !== false;
@@ -389,10 +351,12 @@ export default function ExplorarPage() {
                 });
                 setServices(filteredByMascota);
 
-                // Sugerir comunas alternativas si no hay resultados
-                if (allData.length === 0 && currentComuna && currentCategorias.length > 0) {
+                // Sugerir comunas alternativas si no hay resultados con la
+                // comuna actual. Reuso el slug ya seleccionado (la
+                // categoria es single-select, no hay ambiguedad).
+                if (rows.length === 0 && currentComuna && currentCategoria) {
                     const { data: altData } = await supabase.rpc('buscar_servicios', {
-                        p_categoria_slug: currentCategorias[0],
+                        p_categoria_slug: currentCategoria,
                         p_comuna: null, p_precio_max: null,
                         p_precio_min: null, p_texto: null, p_limit: 50, p_offset: 0,
                     });
@@ -422,7 +386,7 @@ export default function ExplorarPage() {
 
         const query: Record<string, string> = {};
         if (filters.q) query.q = filters.q;
-        if (filters.categorias.length > 0) query.categoria = filters.categorias.join(',');
+        if (filters.categoria) query.categoria = filters.categoria;
         if (filters.comuna) query.comuna = filters.comuna;
         if (filters.fecha) query.fecha = filters.fecha;
         if (filters.mascota && filters.mascota !== 'any') query.mascota = filters.mascota;
@@ -444,29 +408,20 @@ export default function ExplorarPage() {
     const updateQueryParams = (newParams: Partial<typeof filters>) => {
         const combined = { ...filters, ...newParams };
 
-        // Sprint 4 Fase 3: cleanup ampliado. Cualquier cambio al set
-        // `categorias` (a 0, a varias, o entre dos categorias unicas
-        // distintas) invalida las inclusiones marcadas — los slugs son
-        // category-specific. Detectamos via `newParams.categorias`
-        // explicito; con esto el cliente nunca queda en estado
-        // inconsistente (URL con inclusiones de una categoria que ya no
-        // esta seleccionada).
-        if (newParams.categorias !== undefined && newParams.categorias.length !== 1) {
-            combined.inclusiones = [];
-        }
+        // Cleanup: cualquier cambio de categoria invalida inclusiones —
+        // los slugs son category-specific y la URL no debe quedar en
+        // estado inconsistente. Cubre los tres casos relevantes:
+        // null → cat, cat → null, cat A → cat B.
         if (
-            newParams.categorias !== undefined &&
-            newParams.categorias.length === 1 &&
-            filters.categorias.length === 1 &&
-            newParams.categorias[0] !== filters.categorias[0]
+            newParams.categoria !== undefined &&
+            newParams.categoria !== filters.categoria
         ) {
-            // Cambio de una categoria a otra distinta → reset.
             combined.inclusiones = [];
         }
 
         const query: Record<string, string> = {};
         if (combined.q) query.q = combined.q;
-        if (combined.categorias && combined.categorias.length > 0) query.categoria = combined.categorias.join(',');
+        if (combined.categoria) query.categoria = combined.categoria;
         if (combined.comuna) query.comuna = combined.comuna;
         if (combined.fecha) query.fecha = combined.fecha;
         if (combined.mascota && combined.mascota !== 'any') query.mascota = combined.mascota;
@@ -505,7 +460,7 @@ export default function ExplorarPage() {
     const paginationItems = getPaginationItems(pagina, totalPaginas);
 
     const hasActiveFilters =
-        filters.categorias.length > 0 ||
+        filters.categoria !== null ||
         filters.mascota !== 'any' ||
         !!filters.precioMin ||
         !!filters.precioMax ||
@@ -514,7 +469,7 @@ export default function ExplorarPage() {
         filters.inclusiones.length > 0;
 
     const activeFiltersCount = [
-        filters.categorias.length > 0,
+        filters.categoria !== null,
         filters.mascota !== 'any',
         !!filters.precioMin || !!filters.precioMax,
         !!filters.q,
@@ -608,7 +563,6 @@ export default function ExplorarPage() {
                             onFilterChange={updateQueryParams}
                             onClear={handleClearFilters}
                             card={true}
-                            categoryCounts={categoryCounts}
                         />
                     </aside>
 
@@ -619,11 +573,9 @@ export default function ExplorarPage() {
                         <div className="mb-6">
                             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">
                                 {filters.q ? `Resultados para "${filters.q}"` : (
-                                    filters.categorias.length === 1
-                                        ? `${categories.find(c => c.slug === filters.categorias[0])?.nombre || 'Servicios'} en tu zona`
-                                        : filters.categorias.length > 1
-                                            ? `${filters.categorias.length} categorías en tu zona`
-                                            : 'Explorar en tu zona'
+                                    filters.categoria
+                                        ? `${categories.find(c => c.slug === filters.categoria)?.nombre || 'Servicios'} en tu zona`
+                                        : 'Explorar en tu zona'
                                 )}
                             </h1>
                             <p className="text-sm text-slate-500">
@@ -632,20 +584,20 @@ export default function ExplorarPage() {
                         </div>
 
                         {/* ── Chips de filtros activos ── */}
-                        {(filters.categorias.length > 0 || filters.mascota !== 'any' ||
+                        {(filters.categoria !== null || filters.mascota !== 'any' ||
                             filters.comuna || filters.precioMin || filters.precioMax || filters.fecha) && (
                                 <div className="flex flex-wrap gap-2 mb-4">
 
-                                    {filters.categorias.map(slug => (
-                                        <span key={slug} className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                            {categories.find(c => c.slug === slug)?.nombre ?? slug}
+                                    {filters.categoria && (
+                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                            {categories.find(c => c.slug === filters.categoria)?.nombre ?? filters.categoria}
                                             <button
-                                                onClick={() => updateQueryParams({ categorias: filters.categorias.filter(s => s !== slug) })}
+                                                onClick={() => updateQueryParams({ categoria: null })}
                                                 className="text-emerald-700 hover:text-emerald-900 leading-none ml-0.5"
                                                 aria-label="Quitar categoría"
                                             >×</button>
                                         </span>
-                                    ))}
+                                    )}
 
                                     {filters.comuna && (
                                         <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
@@ -714,7 +666,7 @@ export default function ExplorarPage() {
                         ) : !fetchError && services.length === 0 ? (
                             (() => {
                                 const hasActiveFilters =
-                                    filters.categorias.length > 0 ||
+                                    filters.categoria !== null ||
                                     !!filters.comuna ||
                                     filters.mascota !== 'any' ||
                                     !!filters.precioMin ||
@@ -854,7 +806,7 @@ export default function ExplorarPage() {
                                             // Si NO hay filtro, rotamos por las 9 categorías para que cada placeholder
                                             // muestre un subtítulo distinto (vía getPlaceholderSubtitle).
                                             const ROTATION_SLUGS = ['cuidado', 'guarderia', 'paseos', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado', 'fotografia'];
-                                            const filterSlug = filters.categorias[0];
+                                            const filterSlug = filters.categoria;
                                             return Array.from({ length: 12 - services.length }).map((_, i) => (
                                                 <ServicePlaceholderCard
                                                     key={`placeholder-${i}`}
