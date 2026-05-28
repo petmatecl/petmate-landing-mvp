@@ -315,12 +315,6 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     guarderia: [
         { key: 'capacidad', label: 'Capacidad máxima de mascotas simultáneas', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
         { key: 'horario', label: 'Horario de atención', tipo: 'text', placeholder: 'Ej: Lunes a viernes 8:00-18:00', requerido: true },
-        // Sprint voice-neutral: pasa a multiselect, sin 'ambas'. Labels
-        // descriptores cortos.
-        { key: 'tipo_guarderia', label: 'Tipo', tipo: 'multiselect', opciones: [
-            { value: 'diurna',   label: 'Diurna' },
-            { value: 'nocturna', label: 'Nocturna' },
-        ], requerido: true },
         { key: 'tiene_patio', label: 'Patio o área al aire libre', tipo: 'boolean' },
         { key: 'camara_vigilancia', label: 'Cámara de vigilancia accesible para el tutor', tipo: 'boolean' },
         { key: 'inclusiones', label: '¿Qué incluye la guardería?', tipo: 'multiselect', opciones: [
