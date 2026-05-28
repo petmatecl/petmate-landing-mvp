@@ -254,7 +254,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     role="radio"
                     aria-checked={filters.categoria === null}
                     onClick={() => selectCategoria(null)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1 ${filters.categoria === null
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-normal transition-colors mb-1 ${filters.categoria === null
                         ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                         : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                         }`}
@@ -289,7 +289,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     role="radio"
                                     aria-checked={checked}
                                     onClick={() => selectCategoria(cat.slug)}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${checked
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-normal transition-colors ${checked
                                         ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                                         : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                                         }`}
