@@ -704,7 +704,14 @@ export default function ExplorarPage() {
                                     !!filters.comuna ||
                                     filters.mascota !== 'any' ||
                                     !!filters.precioMin ||
-                                    !!filters.precioMax;
+                                    !!filters.precioMax ||
+                                    filters.inclusiones.length > 0;
+                                // Sprint 4 Fase 3: cuando hay inclusiones marcadas
+                                // y el resultado es vacio, el quick-fix de mayor
+                                // payoff es aflojar ese filtro (los demas suelen
+                                // ser "core" — categoria/comuna). Banner dedicado
+                                // con CTA explicito a quitarlas.
+                                const inclusionesActivas = filters.inclusiones.length > 0;
                                 return hasActiveFilters ? (
                                     /* RAMA A: filtros activos, sin match */
                                     <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
@@ -714,7 +721,21 @@ export default function ExplorarPage() {
                                         <h3 className="text-xl font-semibold text-slate-900 mb-2">
                                             {filters.comuna ? `Sin resultados en ${filters.comuna} ` : 'Sin resultados con estos filtros'}
                                         </h3>
-                                        {comunasSugeridas.length > 0 ? (
+                                        {inclusionesActivas ? (
+                                            <>
+                                                <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+                                                    Ningún servicio cumple todos los requisitos seleccionados. Probá quitando alguno.
+                                                </p>
+                                                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                                    <button
+                                                        onClick={() => updateQueryParams({ inclusiones: [] })}
+                                                        className="inline-flex px-4 py-2 bg-emerald-50 text-emerald-700 font-medium rounded-full text-sm border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                                                    >
+                                                        Quitar inclusiones
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : comunasSugeridas.length > 0 ? (
                                             <>
                                                 <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
                                                     Hay proveedores disponibles en comunas cercanas:
