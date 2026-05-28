@@ -4,6 +4,7 @@ import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
 import { COMUNAS_CHILE } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
+import { useUser } from '../../contexts/UserContext';
 
 interface ServiceFormModalProps {
     isOpen: boolean;
@@ -22,6 +23,15 @@ interface ServiceFormModalProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ServiceFormModal({ isOpen, onClose, proveedorId, existingServiceId, onSuccess }: ServiceFormModalProps) {
+    // Bug C10: gate de auth — esperamos a que la sesion de Supabase este
+    // lista antes de disparar fetches. Sin esto, en cold start del tab el
+    // cliente JS puede estar refresheando el token cuando salen las dos
+    // queries en paralelo (fetchCategorias + fetchService); el lock interno
+    // las encola y la promesa de `.single()` no entrega nunca el resultado
+    // al callsite — spinner indefinido. Cubre AMBOS fetches por la misma
+    // razon (contencion del lock, no "primera query cold").
+    const { user, isLoading: userLoading } = useUser();
+
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [categorias, setCategorias] = useState<any[]>([]);
@@ -57,16 +67,21 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const comunaRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (isOpen) {
-            fetchCategorias();
-            if (existingServiceId) {
-                fetchService(existingServiceId);
-            } else {
-                resetForm();
-            }
+        // Gate de auth: si la sesion todavia no esta resuelta, no salimos a
+        // pegarle a Supabase. Cuando `userLoading` baje a false y `user.id`
+        // exista, el effect se vuelve a disparar (estan en las deps) y
+        // recien ahi corren los fetches. resetForm es local y no necesita
+        // auth, pero igual lo dejamos detras del gate para que el flujo de
+        // creacion no muestre estado vacio mientras todavia no hay sesion.
+        if (!isOpen || userLoading || !user?.id) return;
+        fetchCategorias();
+        if (existingServiceId) {
+            fetchService(existingServiceId);
+        } else {
+            resetForm();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, existingServiceId]);
+    }, [isOpen, existingServiceId, userLoading, user?.id]);
 
     // Close comunas dropdown on outside click
     useEffect(() => {
@@ -127,29 +142,54 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
     const fetchService = async (id: string) => {
         setFetching(true);
-        const { data, error } = await supabase.from('servicios_publicados').select('*').eq('id', id).single();
-        if (!error && data) {
-            setCategoriaId(data.categoria_id);
-            setTitulo(data.titulo || '');
-            setDescripcion(data.descripcion || '');
-            setPrecioDesde(data.precio_desde || '');
-            setPrecioHasta(data.precio_hasta || '');
-            setUnidadPrecio(data.unidad_precio || 'por noche');
-            setPerros(data.acepta_perros || false);
-            setGatos(data.acepta_gatos || false);
-            setOtras(data.acepta_otras || false);
+        try {
+            // Bug C10: watchdog. Si la promesa de Supabase queda colgada
+            // (contencion de auth lock, retry interno, etc.), el spinner se
+            // quedaba prendido para siempre. Promise.race contra un timeout
+            // de 10s — generoso por el Nano lento, pero acotado: nunca mas
+            // spinner infinito. Si gana el timeout, mostramos toast,
+            // cerramos el modal y el usuario reintenta.
+            const TIMEOUT_MS = 10_000;
+            const query = supabase.from('servicios_publicados').select('*').eq('id', id).single();
+            const timeout = new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error('fetch-timeout')), TIMEOUT_MS);
+            });
+            const { data, error } = await Promise.race([query, timeout]) as Awaited<typeof query>;
+            if (!error && data) {
+                setCategoriaId(data.categoria_id);
+                setTitulo(data.titulo || '');
+                setDescripcion(data.descripcion || '');
+                setPrecioDesde(data.precio_desde || '');
+                setPrecioHasta(data.precio_hasta || '');
+                setUnidadPrecio(data.unidad_precio || 'por noche');
+                setPerros(data.acepta_perros || false);
+                setGatos(data.acepta_gatos || false);
+                setOtras(data.acepta_otras || false);
 
-            const sizes = data.tamanos_aceptados || [];
-            setTamanoPequeno(sizes.includes('pequeño'));
-            setTamanoMediano(sizes.includes('mediano'));
-            setTamanoGrande(sizes.includes('grande'));
+                const sizes = data.tamanos_aceptados || [];
+                setTamanoPequeno(sizes.includes('pequeño'));
+                setTamanoMediano(sizes.includes('mediano'));
+                setTamanoGrande(sizes.includes('grande'));
 
-            setDisponibilidad(data.disponibilidad || '');
-            setFotos(data.fotos || []);
-            setDetalles(data.detalles || {});
-            setComunasCobertura(data.comunas_cobertura || []);
+                setDisponibilidad(data.disponibilidad || '');
+                setFotos(data.fotos || []);
+                setDetalles(data.detalles || {});
+                setComunasCobertura(data.comunas_cobertura || []);
+            }
+        } catch (err: any) {
+            if (err?.message === 'fetch-timeout') {
+                toast.error('La carga tardó demasiado, probá de nuevo');
+                onClose();
+            } else {
+                // Otros errores inesperados — no silenciar.
+                console.error('[ServiceFormModal] fetchService falló:', err);
+                toast.error('No pudimos cargar el servicio');
+                onClose();
+            }
+        } finally {
+            // Garantiza que el spinner siempre baje, pase lo que pase.
+            setFetching(false);
         }
-        setFetching(false);
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
