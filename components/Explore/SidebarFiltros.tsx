@@ -353,8 +353,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     onClick={() => toggleInclusion(opt.value)}
                                     className={
                                         active
-                                            ? 'bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
-                                            : 'bg-slate-50 text-slate-600 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
+                                            ? 'bg-emerald-100 text-emerald-800 text-xs font-normal px-2.5 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                            : 'bg-slate-50 text-slate-600 text-xs font-normal px-2.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
                                     }
                                 >
                                     {opt.label}
@@ -499,7 +499,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                             key={opt.id}
                             type="button"
                             onClick={() => onFilterChange({ mascota: opt.id as any, tamano: null })}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${filters.mascota === opt.id
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-normal border transition-all ${filters.mascota === opt.id
                                 ? 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-sm'
                                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-200 hover:bg-white'
                                 }`}
@@ -520,7 +520,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     key={size}
                                     type="button"
                                     onClick={() => onFilterChange({ tamano: size })}
-                                    className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold border transition-all capitalize ${filters.tamano === size
+                                    className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-normal border transition-all capitalize ${filters.tamano === size
                                         ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                         : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-200'
                                         }`}
