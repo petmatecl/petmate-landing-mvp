@@ -125,7 +125,11 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     // legacy — sin condicionar por modalidad (decision MVP: el proveedor
     // marca lo que aplica).
     cuidado: [
-        { key: 'modalidad', label: '¿Dónde ofreces el cuidado?', tipo: 'select', requerido: true, opciones: [
+        // Sprint voice-neutral: modalidad pasa a multiselect. Un proveedor
+        // puede ofrecer >1 modalidad; el tutor en /explorar puede filtrar
+        // por una o varias y matchear por interseccion. Labels neutros
+        // (descriptores de ubicacion, no primera/segunda persona).
+        { key: 'modalidad', label: 'Modalidad', tipo: 'multiselect', requerido: true, opciones: [
             { value: 'casa_tutor',    label: 'En la casa del tutor' },
             { value: 'casa_cuidador', label: 'En la casa del cuidador' },
             { value: 'recinto',       label: 'En recinto o local especializado' },
@@ -242,10 +246,12 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     ],
     peluqueria: [
         { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
-        { key: 'modalidad', label: 'Modalidad de atención', tipo: 'select', opciones: [
-            { value: 'local_propio', label: 'En mi local propio' },
-            { value: 'domicilio', label: 'Voy al domicilio del cliente' },
-            { value: 'ambos', label: 'Ambas opciones' },
+        // Sprint voice-neutral: modalidad pasa a multiselect, sin valor
+        // 'ambos' (redundante por construccion). Slug renombrado:
+        // 'local_propio' -> 'local' (acompana al label).
+        { key: 'modalidad', label: 'Modalidad', tipo: 'multiselect', opciones: [
+            { value: 'local',     label: 'En local' },
+            { value: 'domicilio', label: 'A domicilio' },
         ], requerido: true },
         { key: 'duracion_estimada', label: 'Duración estimada por sesión', tipo: 'text', placeholder: 'Ej: 1-2 horas según tamaño' },
         { key: 'mesa_hidraulica', label: 'Cuento con mesa hidráulica profesional', tipo: 'boolean' },
@@ -279,15 +285,18 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         // del grupo, modalidad describe lugar. Sprint 4 dejo ambos como
         // select separados (decision explicita del usuario, no se absorben
         // en inclusiones).
-        { key: 'formato', label: 'Formato de trabajo', tipo: 'select', opciones: [
-            { value: 'individual', label: 'Sesiones individuales' },
-            { value: 'grupal', label: 'Clases grupales' },
-            { value: 'ambas', label: 'Ambas modalidades' },
+        // Sprint voice-neutral: formato pasa a multiselect, sin 'ambas'.
+        // Un proveedor puede ofrecer individual + grupal — marca las dos.
+        { key: 'formato', label: 'Formato', tipo: 'multiselect', opciones: [
+            { value: 'individual', label: 'Individual' },
+            { value: 'grupal',     label: 'Grupal' },
         ], requerido: true },
-        { key: 'modalidad', label: 'Modalidad de atención', tipo: 'select', opciones: [
+        // Sprint voice-neutral: modalidad pasa a multiselect. Label de
+        // 'academia' sin "propio" (lectura neutral).
+        { key: 'modalidad', label: 'Modalidad', tipo: 'multiselect', opciones: [
             { value: 'domicilio', label: 'A domicilio' },
-            { value: 'online', label: 'Online' },
-            { value: 'academia', label: 'Academia o local propio' },
+            { value: 'online',    label: 'Online' },
+            { value: 'academia',  label: 'En academia o local' },
         ], requerido: true },
         { key: 'duracion_sesion', label: 'Duración de la sesión (minutos)', tipo: 'number', placeholder: 'Ej: 60' },
         { key: 'certificaciones', label: 'Certificación profesional', tipo: 'text', placeholder: 'Ej: CPDT-KA, IAA' },
@@ -306,10 +315,11 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
     guarderia: [
         { key: 'capacidad', label: 'Capacidad máxima de mascotas simultáneas', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
         { key: 'horario', label: 'Horario de atención', tipo: 'text', placeholder: 'Ej: Lunes a viernes 8:00-18:00', requerido: true },
-        { key: 'tipo_guarderia', label: 'Tipo de guardería', tipo: 'select', opciones: [
-            { value: 'diurna', label: 'Solo diurna (horas)' },
-            { value: 'nocturna', label: 'Incluye quedarse de noche' },
-            { value: 'ambas', label: 'Ambas opciones' },
+        // Sprint voice-neutral: pasa a multiselect, sin 'ambas'. Labels
+        // descriptores cortos.
+        { key: 'tipo_guarderia', label: 'Tipo', tipo: 'multiselect', opciones: [
+            { value: 'diurna',   label: 'Diurna' },
+            { value: 'nocturna', label: 'Nocturna' },
         ], requerido: true },
         { key: 'tiene_patio', label: 'Tengo patio o área al aire libre', tipo: 'boolean' },
         { key: 'camara_vigilancia', label: 'Tengo cámara para que el dueño vea a su mascota', tipo: 'boolean' },
@@ -325,11 +335,13 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Rutina del día, actividades especiales, equipo del local...' },
     ],
     fotografia: [
-        { key: 'tipo_sesion', label: 'Tipo de sesión', tipo: 'select', opciones: [
-            { value: 'exterior', label: 'Exterior' },
-            { value: 'estudio', label: 'Estudio' },
+        // Sprint voice-neutral: pasa a multiselect, sin 'todas'. 'estudio'
+        // se renomeza visualmente a "En estudio" (paralelismo con
+        // "Exterior" y "A domicilio").
+        { key: 'tipo_sesion', label: 'Tipo de sesión', tipo: 'multiselect', opciones: [
+            { value: 'exterior',  label: 'Exterior' },
+            { value: 'estudio',   label: 'En estudio' },
             { value: 'domicilio', label: 'A domicilio' },
-            { value: 'todas', label: 'Todas las anteriores' },
         ], requerido: true },
         { key: 'anios_experiencia', label: 'Años de experiencia en fotografía', tipo: 'number', placeholder: 'Ej: 3' },
         { key: 'duracion_sesion', label: 'Duración estimada de la sesión', tipo: 'text', placeholder: 'Ej: 1 a 2 horas' },
@@ -358,14 +370,24 @@ export function camposVisibles(categoria: string, datos: Record<string, any>): C
     return campos.filter((campo) => {
         if (!campo.condicionalDe) return true;
         const valorActual = datos[campo.condicionalDe];
-        // Sprint Categorias: `condicionalValor` puede ser array para
-        // campos que aplican a >1 valor del campo dependencia (ej.
-        // capacidad aplica a casa_cuidador y recinto). Si es array,
-        // includes; si no, igualdad estricta.
-        if (Array.isArray(campo.condicionalValor)) {
-            return campo.condicionalValor.includes(valorActual);
+        // Tabla de verdad (4 combinaciones):
+        //   valorActual escalar + condicionalValor escalar → igualdad.
+        //   valorActual escalar + condicionalValor array   → includes (valor en lista permitida).
+        //   valorActual array   + condicionalValor escalar → array contiene el valor.
+        //   valorActual array   + condicionalValor array   → interseccion no vacia.
+        //
+        // El caso array<->array cubre el modelo multivalor: el campo
+        // dependencia es multiselect (ej. `modalidad: ['casa_tutor',
+        // 'casa_cuidador']`) y el campo dependiente aplica a >1 valor
+        // (ej. `capacidad` aplica a ['casa_cuidador', 'recinto']) — se
+        // muestra si el proveedor marca al menos uno de esos.
+        const valoresEsperados: any[] = Array.isArray(campo.condicionalValor)
+            ? campo.condicionalValor
+            : [campo.condicionalValor];
+        if (Array.isArray(valorActual)) {
+            return valorActual.some(v => valoresEsperados.includes(v));
         }
-        return valorActual === campo.condicionalValor;
+        return valoresEsperados.includes(valorActual);
     });
 }
 
