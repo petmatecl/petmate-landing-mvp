@@ -38,8 +38,26 @@ import Link from 'next/link';
 import {
     Clock, AlertTriangle, Briefcase, User as UserIcon, Shield, ShieldCheck, ShieldX,
     Star, MessageSquare, BarChart, Edit, Trash2, LayoutDashboard, Eye, Camera,
-    Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink, X
+    Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink, X,
+    Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin,
+    type LucideIcon
 } from 'lucide-react';
+
+// Map slug → componente Lucide. Misma estetica que SidebarFiltros y
+// ServiceDetailView. Reemplaza el render anterior `{servicio.categoria?.icono}`
+// que leakeaba el nombre del icono guardado en BD ("camera", "scissors")
+// como texto literal en la badge de la card.
+const SLUG_ICONS: Record<string, LucideIcon> = {
+    hospedaje: Home,
+    guarderia: Sun,
+    paseos: PawPrint,
+    peluqueria: Scissors,
+    traslado: Truck,
+    veterinario: Stethoscope,
+    adiestramiento: Dumbbell,
+    domicilio: MapPin,
+    fotografia: Camera,
+};
 
 type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas';
 
@@ -960,8 +978,11 @@ export default function ProveedorDashboard() {
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-slate-300"><ImageIcon size={32} /></div>
                                                 )}
-                                                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1">
-                                                    <span>{servicio.categoria?.icono}</span>
+                                                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1.5 text-slate-700">
+                                                    {(() => {
+                                                        const CatIcon = SLUG_ICONS[servicio.categoria?.slug] ?? Briefcase;
+                                                        return <CatIcon size={12} className="text-slate-500 shrink-0" />;
+                                                    })()}
                                                     <span className="truncate max-w-[80px]">{servicio.categoria?.nombre}</span>
                                                 </div>
                                             </div>
