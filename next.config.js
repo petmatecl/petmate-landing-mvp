@@ -81,6 +81,18 @@ const nextConfig = {
         destination: '/explorar',
         permanent: false,
       },
+      // Sprint Categorias: legacy SEO landing pages de `hospedaje` y
+      // `visita-domicilio` se unificaron en `cuidado`. 301 (permanent)
+      // para que Google traslade el ranking de las paginas legacy a la
+      // nueva canonica. Defensivo: tambien atrapamos `/domicilio` por
+      // si algun enlace externo usa el slug interno de DB en vez del
+      // SEO slug.
+      { source: '/hospedaje', destination: '/cuidado', permanent: true },
+      { source: '/hospedaje/:comuna', destination: '/cuidado/:comuna', permanent: true },
+      { source: '/visita-domicilio', destination: '/cuidado', permanent: true },
+      { source: '/visita-domicilio/:comuna', destination: '/cuidado/:comuna', permanent: true },
+      { source: '/domicilio', destination: '/cuidado', permanent: true },
+      { source: '/domicilio/:comuna', destination: '/cuidado/:comuna', permanent: true },
     ]
   },
 
