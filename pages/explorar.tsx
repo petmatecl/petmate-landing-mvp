@@ -174,6 +174,11 @@ export default function ExplorarPage() {
         // categoria; sin categoria queda vacio (cleanup explicito en
         // updateQueryParams al cambiar la categoria).
         inclusiones: [] as string[],
+        // Sprint Categorias: slugs de modalidades marcadas (OR semantics:
+        // el servicio matchea si su `detalles->>'modalidad'` esta en la
+        // lista). Solo aplica cuando la categoria es `cuidado`. Mismo
+        // cleanup en cambio de categoria que inclusiones.
+        modalidad: [] as string[],
     });
 
     const [pagina, setPagina] = useState(1);
@@ -214,8 +219,8 @@ export default function ExplorarPage() {
     useEffect(() => {
         if (!router.isReady) return;
 
-        const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam, fecha, inclusiones } = router.query;
-        const hasQueryParams = q || categoria || comuna || mascota || precioMin || precioMax || orden || inclusiones;
+        const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam, fecha, inclusiones, modalidad } = router.query;
+        const hasQueryParams = q || categoria || comuna || mascota || precioMin || precioMax || orden || inclusiones || modalidad;
 
         // Si no hay params en la URL, intentar restaurar última búsqueda.
         // Solo para usuarios autenticados (key scopeada por user.id). Guests
@@ -285,6 +290,19 @@ export default function ExplorarPage() {
             currentInclusiones = Array.from(new Set(rawInclusiones)).filter(s => opcionesValidas.has(s));
         }
 
+        // Modalidad: mismo patron de sanitizacion que inclusiones, pero
+        // las opciones validas vienen del campo `modalidad` (hoy solo
+        // existe en la categoria `cuidado`).
+        const rawModalidad: string[] = modalidad
+            ? (typeof modalidad === 'string' ? modalidad.split(',').filter(Boolean) : (modalidad as string[]))
+            : [];
+        let currentModalidad: string[] = [];
+        if (currentCategoria) {
+            const campoMod = CAMPOS_POR_CATEGORIA[currentCategoria]?.find(c => c.key === 'modalidad');
+            const opcionesValidas = new Set(campoMod?.opciones?.map(o => o.value) ?? []);
+            currentModalidad = Array.from(new Set(rawModalidad)).filter(s => opcionesValidas.has(s));
+        }
+
         const currentComuna = (comuna as string) || '';
         const currentQ = (q as string) || '';
         const currentFecha = (fecha as string) || '';
@@ -308,6 +326,7 @@ export default function ExplorarPage() {
             precioMax: currentPrecioMax,
             orden: currentOrden,
             inclusiones: currentInclusiones,
+            modalidad: currentModalidad,
         });
         setPagina(currentPagina);
 
@@ -324,6 +343,8 @@ export default function ExplorarPage() {
             p_limit: PAGE_SIZE,
             p_offset: (currentPagina - 1) * PAGE_SIZE,
             p_inclusiones: currentInclusiones.length > 0 ? currentInclusiones : null,
+            // Sprint Categorias: p_modalidad. NULL = sin filtro.
+            p_modalidad: currentModalidad.length > 0 ? currentModalidad : null,
             p_orden: currentOrden,
         };
 
@@ -395,6 +416,7 @@ export default function ExplorarPage() {
         if (filters.precioMax) query.precioMax = filters.precioMax;
         if (filters.orden && filters.orden !== 'relevancia') query.orden = filters.orden;
         if (filters.inclusiones.length > 0) query.inclusiones = filters.inclusiones.join(',');
+        if (filters.modalidad.length > 0) query.modalidad = filters.modalidad.join(',');
         if (p > 1) query.pagina = String(p);
 
         router.push({ pathname: '/explorar', query }, undefined, { shallow: true });
@@ -408,15 +430,16 @@ export default function ExplorarPage() {
     const updateQueryParams = (newParams: Partial<typeof filters>) => {
         const combined = { ...filters, ...newParams };
 
-        // Cleanup: cualquier cambio de categoria invalida inclusiones —
-        // los slugs son category-specific y la URL no debe quedar en
-        // estado inconsistente. Cubre los tres casos relevantes:
+        // Cleanup: cualquier cambio de categoria invalida inclusiones Y
+        // modalidad — los slugs son category-specific y la URL no debe
+        // quedar inconsistente. Cubre los tres casos relevantes:
         // null → cat, cat → null, cat A → cat B.
         if (
             newParams.categoria !== undefined &&
             newParams.categoria !== filters.categoria
         ) {
             combined.inclusiones = [];
+            combined.modalidad = [];
         }
 
         const query: Record<string, string> = {};
@@ -430,6 +453,7 @@ export default function ExplorarPage() {
         if (combined.precioMax) query.precioMax = combined.precioMax;
         if (combined.orden && combined.orden !== 'relevancia') query.orden = combined.orden;
         if (combined.inclusiones && combined.inclusiones.length > 0) query.inclusiones = combined.inclusiones.join(',');
+        if (combined.modalidad && combined.modalidad.length > 0) query.modalidad = combined.modalidad.join(',');
 
         // Persist last search scopeado por user.id para que sesiones
         // distintas en el mismo browser no hereden filtros. Guests no
@@ -466,7 +490,8 @@ export default function ExplorarPage() {
         !!filters.precioMax ||
         !!filters.q ||
         !!filters.comuna ||
-        filters.inclusiones.length > 0;
+        filters.inclusiones.length > 0 ||
+        filters.modalidad.length > 0;
 
     const activeFiltersCount = [
         filters.categoria !== null,
@@ -475,6 +500,7 @@ export default function ExplorarPage() {
         !!filters.q,
         !!filters.comuna,
         filters.inclusiones.length > 0,
+        filters.modalidad.length > 0,
     ].filter(Boolean).length;
 
     return (
@@ -585,7 +611,8 @@ export default function ExplorarPage() {
 
                         {/* ── Chips de filtros activos ── */}
                         {(filters.categoria !== null || filters.mascota !== 'any' ||
-                            filters.comuna || filters.precioMin || filters.precioMax || filters.fecha) && (
+                            filters.comuna || filters.precioMin || filters.precioMax || filters.fecha ||
+                            filters.modalidad.length > 0) && (
                                 <div className="flex flex-wrap gap-2 mb-4">
 
                                     {filters.categoria && (
@@ -598,6 +625,23 @@ export default function ExplorarPage() {
                                             >×</button>
                                         </span>
                                     )}
+
+                                    {filters.modalidad.map(modSlug => {
+                                        const campoMod = filters.categoria
+                                            ? CAMPOS_POR_CATEGORIA[filters.categoria]?.find(c => c.key === 'modalidad')
+                                            : null;
+                                        const label = campoMod?.opciones?.find(o => o.value === modSlug)?.label ?? modSlug;
+                                        return (
+                                            <span key={modSlug} className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                                {label}
+                                                <button
+                                                    onClick={() => updateQueryParams({ modalidad: filters.modalidad.filter(s => s !== modSlug) })}
+                                                    className="text-emerald-700 hover:text-emerald-900 leading-none ml-0.5"
+                                                    aria-label={`Quitar modalidad ${label}`}
+                                                >×</button>
+                                            </span>
+                                        );
+                                    })}
 
                                     {filters.comuna && (
                                         <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
@@ -671,7 +715,8 @@ export default function ExplorarPage() {
                                     filters.mascota !== 'any' ||
                                     !!filters.precioMin ||
                                     !!filters.precioMax ||
-                                    filters.inclusiones.length > 0;
+                                    filters.inclusiones.length > 0 ||
+                                    filters.modalidad.length > 0;
                                 // Sprint 4 Fase 3: cuando hay inclusiones marcadas
                                 // y el resultado es vacio, el quick-fix de mayor
                                 // payoff es aflojar ese filtro (los demas suelen

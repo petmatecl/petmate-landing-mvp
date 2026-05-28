@@ -38,6 +38,13 @@ interface FiltersState {
      * = sin filtro.
      */
     inclusiones: string[];
+    /**
+     * Slugs de modalidades marcadas (OR semantics: matchea servicios cuya
+     * `detalles->>'modalidad'` este en la lista). Solo aplica para la
+     * categoria `cuidado` — las otras categorias no usan el campo
+     * modalidad. Vacio = sin filtro.
+     */
+    modalidad: string[];
 }
 
 interface Props {
@@ -100,14 +107,17 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
         !!filters.precioMax ||
         !!filters.q ||
         !!filters.comuna ||
-        filters.inclusiones.length > 0;
+        filters.inclusiones.length > 0 ||
+        filters.modalidad.length > 0;
 
-    // Las inclusiones son category-specific. Como ahora la categoria es
-    // single-select, el bloque es trivial de gobernar: si hay categoria
-    // y define opciones de inclusion, las mostramos; si no, copy guia.
+    // Inclusiones y modalidad son category-specific. Como categoria es
+    // single-select, el guard es trivial.
     const categoriaSlug = filters.categoria;
     const opcionesInclusiones = categoriaSlug
         ? CAMPOS_POR_CATEGORIA[categoriaSlug]?.find(c => c.key === 'inclusiones')?.opciones ?? []
+        : [];
+    const opcionesModalidad = categoriaSlug
+        ? CAMPOS_POR_CATEGORIA[categoriaSlug]?.find(c => c.key === 'modalidad')?.opciones ?? []
         : [];
 
     const toggleInclusion = (slug: string) => {
@@ -148,6 +158,14 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
     const selectCategoria = (slug: string | null) => {
         onFilterChange({ categoria: slug });
+    };
+
+    const toggleModalidad = (value: string) => {
+        if (filters.modalidad.includes(value)) {
+            onFilterChange({ modalidad: filters.modalidad.filter(s => s !== value) });
+        } else {
+            onFilterChange({ modalidad: [...filters.modalidad, value] });
+        }
     };
 
     const inner = (
@@ -216,30 +234,64 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     resultados por categoria desaparecio: con single-select,
                     el conteo de la categoria seleccionada coincide con
                     `totalCount` (mostrado en el header de resultados), y
-                    el de las otras seria 0 trivialmente. */}
+                    el de las otras seria 0 trivialmente.
+
+                    Modalidad: cuando la categoria seleccionada define el
+                    campo modalidad (hoy solo `cuidado`), renderizamos sus
+                    opciones como sub-items anidados con indent justo
+                    debajo del row de la categoria. OR semantics; chips
+                    multi-select. */}
                 <div className="space-y-0.5">
                     {categories.map(cat => {
                         const checked = filters.categoria === cat.slug;
                         const CatIcon = SLUG_ICONS[cat.slug] ?? Grid2x2;
                         return (
-                            <button
-                                key={cat.id}
-                                type="button"
-                                role="radio"
-                                aria-checked={checked}
-                                onClick={() => selectCategoria(cat.slug)}
-                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${checked
-                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                    : 'text-slate-600 hover:bg-slate-50 border border-transparent'
-                                    }`}
-                            >
-                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${checked ? 'border-emerald-600' : 'border-slate-300'
-                                    }`}>
-                                    {checked && <div className="w-2 h-2 rounded-full bg-emerald-700" />}
-                                </div>
-                                <CatIcon size={14} className={checked ? 'text-emerald-700' : 'text-slate-400'} />
-                                <span className="text-left flex-1 truncate">{cat.nombre}</span>
-                            </button>
+                            <React.Fragment key={cat.id}>
+                                <button
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={checked}
+                                    onClick={() => selectCategoria(cat.slug)}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${checked
+                                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                        : 'text-slate-600 hover:bg-slate-50 border border-transparent'
+                                        }`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${checked ? 'border-emerald-600' : 'border-slate-300'
+                                        }`}>
+                                        {checked && <div className="w-2 h-2 rounded-full bg-emerald-700" />}
+                                    </div>
+                                    <CatIcon size={14} className={checked ? 'text-emerald-700' : 'text-slate-400'} />
+                                    <span className="text-left flex-1 truncate">{cat.nombre}</span>
+                                </button>
+
+                                {checked && opcionesModalidad.length > 0 && (
+                                    <div className="pl-7 pr-1 py-1.5 border-l-2 border-emerald-100 ml-3 mt-0.5 mb-1 space-y-1">
+                                        {opcionesModalidad.map(opt => {
+                                            const modChecked = filters.modalidad.includes(opt.value);
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    role="checkbox"
+                                                    aria-checked={modChecked}
+                                                    onClick={() => toggleModalidad(opt.value)}
+                                                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${modChecked
+                                                        ? 'bg-emerald-50 text-emerald-800'
+                                                        : 'text-slate-600 hover:bg-slate-50'
+                                                        }`}
+                                                >
+                                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${modChecked ? 'bg-emerald-700 border-emerald-600' : 'border-slate-300'
+                                                        }`}>
+                                                        {modChecked && <Check size={8} strokeWidth={3} className="text-white" />}
+                                                    </div>
+                                                    <span className="text-left flex-1">{opt.label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </React.Fragment>
                         );
                     })}
                 </div>
