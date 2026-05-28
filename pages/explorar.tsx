@@ -23,6 +23,7 @@ import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard
 import { mapRpcToServiceResult } from "../lib/serviceMapper";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
 import { COMUNAS_CHILE } from "../lib/comunas";
+import { CAMPOS_POR_CATEGORIA } from "../lib/camposPorCategoria";
 
 interface Category {
     id: string;
@@ -165,7 +166,12 @@ export default function ExplorarPage() {
         tamano: null as "pequeno" | "mediano" | "grande" | null,
         precioMin: "",
         precioMax: "",
-        orden: "relevancia" as "relevancia" | "rating" | "precio_asc" | "precio_desc"
+        orden: "relevancia" as "relevancia" | "rating" | "precio_asc" | "precio_desc",
+        // Sprint 4 Fase 3: slugs de inclusiones canonicas marcadas por el
+        // usuario. AND semantics: el servicio debe contener TODOS los
+        // slugs. Solo aplica cuando hay 1 categoria; multi-categoria o sin
+        // categoria → siempre vacio (cleanup explicito).
+        inclusiones: [] as string[],
     });
 
     const [pagina, setPagina] = useState(1);
@@ -215,8 +221,8 @@ export default function ExplorarPage() {
     useEffect(() => {
         if (!router.isReady) return;
 
-        const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam, fecha } = router.query;
-        const hasQueryParams = q || categoria || comuna || mascota || precioMin || precioMax || orden;
+        const { q, categoria, comuna, mascota, tamano, precioMin, precioMax, orden, pagina: paginaParam, fecha, inclusiones } = router.query;
+        const hasQueryParams = q || categoria || comuna || mascota || precioMin || precioMax || orden || inclusiones;
 
         // Si no hay params en la URL, intentar restaurar última búsqueda.
         // Solo para usuarios autenticados (key scopeada por user.id). Guests
@@ -247,6 +253,22 @@ export default function ExplorarPage() {
         const currentCategorias: string[] = categoria
             ? (typeof categoria === 'string' ? categoria.split(',').filter(Boolean) : (categoria as string[]))
             : [];
+
+        // Inclusiones (Sprint 4 Fase 3). Solo aplican cuando hay 1 categoria
+        // exacta. Sanitizamos contra las opciones canonicas de esa categoria
+        // (CAMPOS_POR_CATEGORIA[slug].inclusiones.opciones) para descartar
+        // slugs manipulados via URL o legacy de otra categoria.
+        const rawInclusiones: string[] = inclusiones
+            ? (typeof inclusiones === 'string' ? inclusiones.split(',').filter(Boolean) : (inclusiones as string[]))
+            : [];
+        let currentInclusiones: string[] = [];
+        if (currentCategorias.length === 1) {
+            const campoIncl = CAMPOS_POR_CATEGORIA[currentCategorias[0]]?.find(c => c.key === 'inclusiones');
+            const opcionesValidas = new Set(campoIncl?.opciones?.map(o => o.value) ?? []);
+            // Dedupe + filtrar slugs invalidos.
+            currentInclusiones = Array.from(new Set(rawInclusiones)).filter(s => opcionesValidas.has(s));
+        }
+
         const currentComuna = (comuna as string) || '';
         const currentQ = (q as string) || '';
         const currentFecha = (fecha as string) || '';
@@ -269,6 +291,7 @@ export default function ExplorarPage() {
             precioMin: currentPrecioMin,
             precioMax: currentPrecioMax,
             orden: currentOrden,
+            inclusiones: currentInclusiones,
         });
         setPagina(currentPagina);
 
@@ -283,6 +306,10 @@ export default function ExplorarPage() {
             p_texto: currentQ || null,
             p_limit: PAGE_SIZE,
             p_offset: (currentPagina - 1) * PAGE_SIZE,
+            // Sprint 4 Fase 3: p_inclusiones. Vacio → no enviar (la RPC
+            // trata NULL como sin filtro). Multi-categoria path mas abajo
+            // tampoco lo envia porque por convencion no aplica.
+            p_inclusiones: currentInclusiones.length > 0 ? currentInclusiones : null,
         };
 
         async function run() {
@@ -389,6 +416,7 @@ export default function ExplorarPage() {
         if (filters.precioMin) query.precioMin = filters.precioMin;
         if (filters.precioMax) query.precioMax = filters.precioMax;
         if (filters.orden && filters.orden !== 'relevancia') query.orden = filters.orden;
+        if (filters.inclusiones.length > 0) query.inclusiones = filters.inclusiones.join(',');
         if (p > 1) query.pagina = String(p);
 
         router.push({ pathname: '/explorar', query }, undefined, { shallow: true });
@@ -402,6 +430,26 @@ export default function ExplorarPage() {
     const updateQueryParams = (newParams: Partial<typeof filters>) => {
         const combined = { ...filters, ...newParams };
 
+        // Sprint 4 Fase 3: cleanup ampliado. Cualquier cambio al set
+        // `categorias` (a 0, a varias, o entre dos categorias unicas
+        // distintas) invalida las inclusiones marcadas — los slugs son
+        // category-specific. Detectamos via `newParams.categorias`
+        // explicito; con esto el cliente nunca queda en estado
+        // inconsistente (URL con inclusiones de una categoria que ya no
+        // esta seleccionada).
+        if (newParams.categorias !== undefined && newParams.categorias.length !== 1) {
+            combined.inclusiones = [];
+        }
+        if (
+            newParams.categorias !== undefined &&
+            newParams.categorias.length === 1 &&
+            filters.categorias.length === 1 &&
+            newParams.categorias[0] !== filters.categorias[0]
+        ) {
+            // Cambio de una categoria a otra distinta → reset.
+            combined.inclusiones = [];
+        }
+
         const query: Record<string, string> = {};
         if (combined.q) query.q = combined.q;
         if (combined.categorias && combined.categorias.length > 0) query.categoria = combined.categorias.join(',');
@@ -412,6 +460,7 @@ export default function ExplorarPage() {
         if (combined.precioMin) query.precioMin = combined.precioMin;
         if (combined.precioMax) query.precioMax = combined.precioMax;
         if (combined.orden && combined.orden !== 'relevancia') query.orden = combined.orden;
+        if (combined.inclusiones && combined.inclusiones.length > 0) query.inclusiones = combined.inclusiones.join(',');
 
         // Persist last search scopeado por user.id para que sesiones
         // distintas en el mismo browser no hereden filtros. Guests no
@@ -447,7 +496,8 @@ export default function ExplorarPage() {
         !!filters.precioMin ||
         !!filters.precioMax ||
         !!filters.q ||
-        !!filters.comuna;
+        !!filters.comuna ||
+        filters.inclusiones.length > 0;
 
     const activeFiltersCount = [
         filters.categorias.length > 0,
@@ -455,6 +505,7 @@ export default function ExplorarPage() {
         !!filters.precioMin || !!filters.precioMax,
         !!filters.q,
         !!filters.comuna,
+        filters.inclusiones.length > 0,
     ].filter(Boolean).length;
 
     return (

@@ -6,6 +6,7 @@ import {
     LucideIcon
 } from 'lucide-react';
 import { COMUNAS_CHILE } from '../../lib/comunas';
+import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,12 @@ interface FiltersState {
     tamano: 'pequeno' | 'mediano' | 'grande' | null;
     precioMin: string;
     precioMax: string;
+    /**
+     * Slugs canonicos de inclusiones marcadas. Solo aplica cuando hay UNA
+     * sola categoria seleccionada (las opciones canonicas son
+     * category-specific). Vacio = sin filtro.
+     */
+    inclusiones: string[];
 }
 
 interface Props {
@@ -84,7 +91,25 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
         !!filters.precioMin ||
         !!filters.precioMax ||
         !!filters.q ||
-        !!filters.comuna;
+        !!filters.comuna ||
+        filters.inclusiones.length > 0;
+
+    // Sprint 4 Fase 3: las inclusiones son category-specific. Solo mostramos
+    // el bloque cuando hay UNA sola categoria seleccionada. Si no hay
+    // categoria o hay multiples, mostramos un copy aclarativo en su lugar
+    // para que la feature sea descubrible.
+    const singleCategoriaSlug = filters.categorias.length === 1 ? filters.categorias[0] : null;
+    const opcionesInclusiones = singleCategoriaSlug
+        ? CAMPOS_POR_CATEGORIA[singleCategoriaSlug]?.find(c => c.key === 'inclusiones')?.opciones ?? []
+        : [];
+
+    const toggleInclusion = (slug: string) => {
+        if (filters.inclusiones.includes(slug)) {
+            onFilterChange({ inclusiones: filters.inclusiones.filter(s => s !== slug) });
+        } else {
+            onFilterChange({ inclusiones: [...filters.inclusiones, slug] });
+        }
+    };
 
     const handleGeolocate = () => {
         if (!navigator.geolocation) return;
@@ -212,6 +237,43 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         );
                     })}
                 </div>
+            </div>
+
+            {/* ── 3.5. Inclusiones (Sprint 4 Fase 3) ──
+                Solo cuando hay 1 categoria seleccionada. Las opciones son
+                category-specific (vienen de CAMPOS_POR_CATEGORIA[slug]).
+                Si no hay categoria o hay multiples, mostramos un copy
+                aclarativo para que la feature sea descubrible sin invadir
+                la sidebar. */}
+            <div className="mb-5 border-t border-slate-100 pt-5">
+                <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
+                    Incluye
+                </label>
+                {singleCategoriaSlug && opcionesInclusiones.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                        {opcionesInclusiones.map(opt => {
+                            const active = filters.inclusiones.includes(opt.value);
+                            return (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => toggleInclusion(opt.value)}
+                                    className={
+                                        active
+                                            ? 'bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                            : 'bg-slate-50 text-slate-600 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
+                                    }
+                                >
+                                    {opt.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                        Elegí una categoría para filtrar por qué incluye el servicio.
+                    </p>
+                )}
             </div>
 
             {/* ── 4. Comuna ── */}
