@@ -616,7 +616,7 @@ export default function ExplorarPage() {
                                 <div className="flex flex-wrap gap-2 mb-4">
 
                                     {filters.categoria && (
-                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-normal px-3 py-1.5 rounded-full">
                                             {categories.find(c => c.slug === filters.categoria)?.nombre ?? filters.categoria}
                                             <button
                                                 onClick={() => updateQueryParams({ categoria: null })}
@@ -632,7 +632,7 @@ export default function ExplorarPage() {
                                             : null;
                                         const label = campoMod?.opciones?.find(o => o.value === modSlug)?.label ?? modSlug;
                                         return (
-                                            <span key={modSlug} className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                            <span key={modSlug} className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-normal px-3 py-1.5 rounded-full">
                                                 {label}
                                                 <button
                                                     onClick={() => updateQueryParams({ modalidad: filters.modalidad.filter(s => s !== modSlug) })}
@@ -644,7 +644,7 @@ export default function ExplorarPage() {
                                     })}
 
                                     {filters.comuna && (
-                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-normal px-3 py-1.5 rounded-full">
                                             <MapPin size={11} className="text-slate-500 shrink-0" /> {filters.comuna}
                                             <button
                                                 onClick={() => updateQueryParams({ comuna: '' })}
@@ -654,7 +654,7 @@ export default function ExplorarPage() {
                                     )}
 
                                     {filters.mascota !== 'any' && (
-                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-normal px-3 py-1.5 rounded-full">
                                             {filters.mascota === 'perro' ? <Dog size={11} className="text-slate-500 shrink-0" /> : filters.mascota === 'gato' ? <Cat size={11} className="text-slate-500 shrink-0" /> : <PawPrint size={11} className="text-slate-500 shrink-0" />}
                                             {filters.mascota === 'perro' ? 'Perros' : filters.mascota === 'gato' ? 'Gatos' : 'Otro'}
                                             <button
@@ -665,7 +665,7 @@ export default function ExplorarPage() {
                                     )}
 
                                     {(filters.precioMin || filters.precioMax) && (
-                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-normal px-3 py-1.5 rounded-full">
                                             <DollarSign size={11} className="text-slate-500 shrink-0" /> ${filters.precioMin || '0'} – ${filters.precioMax || '∞'}
                                             <button
                                                 onClick={() => updateQueryParams({ precioMin: '', precioMax: '' })}
@@ -675,7 +675,7 @@ export default function ExplorarPage() {
                                     )}
 
                                     {filters.fecha && (
-                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-normal px-3 py-1.5 rounded-full">
                                             📅 {new Date(filters.fecha + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
                                             <button
                                                 onClick={() => updateQueryParams({ fecha: '' })}
