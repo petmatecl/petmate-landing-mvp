@@ -446,39 +446,36 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 )}
 
                 {/* ══ CREDENCIALES ══════════════════════════════════════════ */}
+                {/* Una sola jerarquia visual: header "Credenciales" + items
+                    directos (sin sub-headers internos tipo "CERTIFICACIONES"
+                    uppercase, que duplicaban el titulo). El texto de
+                    certificaciones queda como parrafo directo; primera_ayuda
+                    como badge compacto.
+                    Sprint 4 Fase 1 / Commit 3: la iteracion plana del blob
+                    proveedor.datos_especificos se elimino; los detalles
+                    categoria-especificos viven per-servicio (renderizados
+                    bajo cada card de servicio mas abajo + en la ficha
+                    publica del servicio individual). */}
                 {tieneTrustSignals && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
                             <ShieldCheck size={17} className="text-emerald-500" />
                             Credenciales
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
+                        <div className="space-y-3">
                             {proveedor.certificaciones && (
-                                <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                <div className="flex items-start gap-2.5 text-sm text-slate-700">
                                     <ShieldCheck size={17} className="text-emerald-500 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Certificaciones</p>
-                                        <p className="text-sm font-semibold text-slate-700">{proveedor.certificaciones}</p>
-                                    </div>
+                                    <p className="leading-relaxed">{proveedor.certificaciones}</p>
                                 </div>
                             )}
 
                             {proveedor.primera_ayuda && (
-                                <div className="flex items-start gap-3 p-3.5 bg-red-50 rounded-xl border border-red-100">
-                                    <span className="w-[17px] h-[17px] rounded-full bg-red-500 text-white flex items-center justify-center shrink-0 text-[10px] font-black mt-0.5">+</span>
-                                    <div>
-                                        <p className="text-[11px] text-red-400 font-medium uppercase tracking-widest">Primeros Auxilios</p>
-                                        <p className="text-sm font-semibold text-red-800">Certificado</p>
-                                    </div>
+                                <div className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-100">
+                                    <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center text-[9px] font-black">+</span>
+                                    Primeros Auxilios
                                 </div>
                             )}
-
-                            {/* Sprint 4 Fase 1 / Commit 3: la iteracion plana del blob
-                                proveedor.datos_especificos se elimino. Los detalles
-                                categoria-especificos viven per-servicio (renderizados
-                                bajo cada card de servicio mas abajo + en la ficha
-                                publica del servicio individual). */}
                         </div>
                     </section>
                 )}
