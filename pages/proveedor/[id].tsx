@@ -103,7 +103,11 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     const generoLabel: Record<string, string> = { mujer: 'Mujer', hombre: 'Hombre', no_binario: 'No binario' };
     const esPersonaNatural = !proveedor.tipo_entidad || proveedor.tipo_entidad === 'persona_natural';
     const tieneInfoPersonal = esPersonaNatural && (edad || proveedor.genero || proveedor.ocupacion || proveedor.anios_experiencia);
-    const tieneTrustSignals = proveedor.anios_experiencia || proveedor.certificaciones || proveedor.primera_ayuda;
+    // anios_experiencia ya se muestra en el header de stats (En Pawnecta /
+    // Servicios activos / Experiencia). Esta seccion solo aplica si hay
+    // certificaciones o primera ayuda — sin esto, un proveedor con solo
+    // anios_experiencia renderizaria la seccion vacia tras quitar el card.
+    const tieneTrustSignals = proveedor.certificaciones || proveedor.primera_ayuda;
     const tieneGaleria = proveedor.galeria && proveedor.galeria.length > 0;
     const displayName = proveedor.nombre_publico || `${proveedor.nombre} ${proveedor.apellido_p}`;
     const title = `${displayName} — ${proveedor.comuna} | Pawnecta`;
@@ -445,19 +449,9 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
                             <ShieldCheck size={17} className="text-emerald-500" />
-                            Experiencia y credenciales
+                            Credenciales
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-                            {proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0 && (
-                                <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                                    <Clock size={17} className="text-slate-400 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Experiencia</p>
-                                        <p className="text-sm font-semibold text-slate-700">{proveedor.anios_experiencia} años</p>
-                                    </div>
-                                </div>
-                            )}
 
                             {proveedor.certificaciones && (
                                 <div className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
