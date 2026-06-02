@@ -11,8 +11,6 @@ interface ProveedorStats {
     conversionRate: string;
     ratingAvg: string;
     evalCount: number;
-    activos: number;
-    totalActivos: number;
 }
 
 const DEFAULT_STATS: ProveedorStats = {
@@ -25,8 +23,6 @@ const DEFAULT_STATS: ProveedorStats = {
     conversionRate: '0%',
     ratingAvg: '0.0',
     evalCount: 0,
-    activos: 0,
-    totalActivos: 0,
 };
 
 export function useProveedorStats(provId: string, authId: string) {
@@ -126,16 +122,7 @@ export function useProveedorStats(provId: string, authId: string) {
                 : '0.0';
             const evalCount = revs?.length || 0;
 
-            // 4. Servicios activos
-            const { data: servs } = await supabase
-                .from('servicios_publicados')
-                .select('activo')
-                .eq('proveedor_id', provId);
-
-            const activos = servs?.filter((s: any) => s.activo).length || 0;
-            const totalActivos = servs?.length || 0;
-
-            setStats({ vistas, vistasTrend, vistasTrendValue, consultas, whatsappClicks, contactosTotal, conversionRate, ratingAvg, evalCount, activos, totalActivos });
+            setStats({ vistas, vistasTrend, vistasTrendValue, consultas, whatsappClicks, contactosTotal, conversionRate, ratingAvg, evalCount });
         } catch (e) {
             console.error('useProveedorStats error:', e);
         } finally {

@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "../contexts/UserContext"; // Context Unificado
 import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
+import UserInitialsAvatar from "./Shared/UserInitialsAvatar";
 import QuickSearch from "./Header/QuickSearch";
 import { Search, Briefcase } from "lucide-react";
 
@@ -31,17 +32,6 @@ export default function Header() {
 
   // Nombre a mostrar
   const userName = profile?.nombre || user?.user_metadata?.nombre || "Usuario";
-
-  // Iniciales
-  const getInitials = () => {
-    if (profile?.nombre && profile?.apellido_p) {
-      return (profile.nombre.charAt(0) + profile.apellido_p.charAt(0)).toUpperCase();
-    }
-    // Fallback si no hay apellido
-    return userName.charAt(0).toUpperCase();
-  };
-
-  const userInitials = getInitials();
 
   // Route logic based on ACTIVE MODE preference
   const isSitterActive = activeMode === 'proveedor';
@@ -128,9 +118,7 @@ export default function Header() {
             <>
               {/* Chip usuario demo */}
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-700 text-[10px] font-semibold text-white tracking-wider">
-                  {userInitials}
-                </span>
+                <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
                 <span className="text-sm font-normal text-emerald-900">{userName}</span>
               </div>
 
@@ -285,9 +273,7 @@ export default function Header() {
                   Explorar servicios
                 </Link>
                 <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3.5 py-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-700 text-xs font-semibold text-white tracking-wider">
-                    {userInitials}
-                  </span>
+                  <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
                   <div className="flex flex-col">
                     <span className="text-sm font-normal text-emerald-900">{userName}</span>
                     <span className="text-[11px] text-emerald-700">Conectado</span>

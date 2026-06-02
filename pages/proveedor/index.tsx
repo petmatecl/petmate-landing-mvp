@@ -15,6 +15,7 @@ import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
 import ServicioDetallesForm from '../../components/Proveedor/ServicioDetallesForm';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
+import UserInitialsAvatar from '../../components/Shared/UserInitialsAvatar';
 import dynamic from 'next/dynamic';
 // LocationPicker carga Leaflet, que rompe en SSR — next/dynamic({ ssr: false })
 // sigue el mismo patron de CaregiverMap en /explorar.
@@ -691,7 +692,7 @@ export default function ProveedorDashboard() {
         setConfirmDialog({
             open: true,
             title: '¿Eliminar este servicio?',
-            message: 'Esta accion no se puede deshacer. El servicio se eliminara de forma permanente. Si solo quieres pausarlo, usa el switch Activo.',
+            message: 'Esta acción no se puede deshacer. El servicio se eliminará de forma permanente. Si solo quieres pausarlo, usa el switch Activo.',
             confirmLabel: 'Eliminar',
             variant: 'danger',
             onConfirm: () => performDelete(id),
@@ -835,7 +836,23 @@ export default function ProveedorDashboard() {
                 {/* Desktop Sidebar */}
                 <aside className="hidden lg:flex w-[260px] flex-col bg-white border-r border-slate-200 shrink-0 sticky top-0 h-screen overflow-y-auto">
                     <div className="p-6">
-                        <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4 mt-2">Menú Principal</h2>
+                        {/* Bloque identidad: reemplaza el header "MENU PRINCIPAL".
+                            Avatar 40px + nombre completo + subtitulo "Proveedor". */}
+                        <div className="flex items-center gap-3 mt-2 mb-4">
+                            <UserInitialsAvatar
+                                nombre={proveedor.nombre}
+                                apellidoP={proveedor.apellido_p}
+                                size="lg"
+                                bgColor="bg-emerald-600"
+                            />
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-base font-semibold text-slate-900 truncate">
+                                    {proveedor.nombre} {proveedor.apellido_p}
+                                </span>
+                                <span className="text-[13px] font-normal text-slate-500">Proveedor</span>
+                            </div>
+                        </div>
+                        <div className="border-t border-slate-200 mb-4" />
                         <nav className="flex flex-col gap-2">
                             {[
                                 { id: 'servicios', label: 'Mis Servicios', icon: <Briefcase size={20} /> },
@@ -994,7 +1011,7 @@ export default function ProveedorDashboard() {
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-1">{servicio.titulo}</h3>
                                                 <div className="flex items-center gap-4 text-sm text-slate-500 font-medium mb-3">
                                                     <span className="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">${servicio.precio_desde?.toLocaleString('es-CL')} / {servicio.unidad_precio}</span>
-                                                    <span className="flex items-center gap-1"><Eye size={14} /> {servicio.vistas || 0} vistas</span>
+                                                    <span className="flex items-center gap-1 text-slate-400"><Eye size={14} /> {servicio.vistas || 0} vistas</span>
                                                 </div>
 
                                                 {/* Actions */}
@@ -1019,13 +1036,13 @@ export default function ProveedorDashboard() {
                                                     </Link>
                                                     <button
                                                         onClick={() => { setEditingServiceId(servicio.id); setIsServiceModalOpen(true); }}
-                                                        className="p-2 text-slate-400 hover:text-[#1A6B4A] hover:bg-emerald-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
+                                                        className="p-2 text-emerald-600 hover:text-[#1A6B4A] hover:bg-emerald-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
                                                     >
                                                         <Edit size={16} /> <span className="hidden sm:inline">Editar</span>
                                                     </button>
                                                     <button
                                                         onClick={() => deleteService(servicio.id)}
-                                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
+                                                        className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
                                                     >
                                                         <Trash2 size={16} /> <span className="hidden sm:inline">Eliminar</span>
                                                     </button>
@@ -1081,7 +1098,7 @@ export default function ProveedorDashboard() {
                                     {/* Datos legales (no editables) + nombre público */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="opacity-70">
-                                            <label className="block text-sm font-semibold text-slate-500 mb-1.5">Nombre legal</label>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre legal</label>
                                             <div className="bg-slate-100 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium flex items-center justify-between">
                                                 {proveedor.nombre} {proveedor.apellido_p} {proveedor.apellido_m}
                                                 <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -1266,7 +1283,7 @@ export default function ProveedorDashboard() {
                                     </div>
 
                                     {/* Tipo de Entidad */}
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Tipo de Cuenta</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Tipo de Cuenta</h3>
                                     <div className="grid grid-cols-2 gap-3 mb-6">
                                         <button type="button"
                                             onClick={() => setTipoEntidad("persona_natural")}
@@ -1309,7 +1326,7 @@ export default function ProveedorDashboard() {
                                         </div>
                                     )}
 
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Información General</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Información General</h3>
 
                                     {tipoEntidad === 'persona_natural' && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -1406,7 +1423,7 @@ export default function ProveedorDashboard() {
                                         />
                                     </div>
 
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Credenciales y Confianza</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Credenciales y Confianza</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label htmlFor="anios-experiencia" className="block text-sm font-semibold text-slate-700 mb-1.5">Años de experiencia (Gral.)</label>
@@ -1428,11 +1445,11 @@ export default function ProveedorDashboard() {
                                     </div>
 
                                     {/* Certificaciones verificables */}
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Certificaciones y diplomas</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Certificaciones y diplomas</h3>
                                     <p className="text-sm text-slate-500 mb-4">Sube tus certificaciones para que Pawnecta las verifique. Los usuarios verán un badge de certificación verificada en tu perfil.</p>
                                     <CertificacionesSection proveedorId={proveedor.id} />
 
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Fotos de tu espacio / galería</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Fotos de tu espacio / galería</h3>
                                     <p className="text-sm text-slate-500 mb-4">Muestra tu espacio, ambiente y forma de trabajar (Máx 8 fotos).</p>
 
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -1474,7 +1491,7 @@ export default function ProveedorDashboard() {
                                         )}
                                     </div>
 
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Presencia Web</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Presencia Web</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label htmlFor="sitio-web" className="block text-sm font-semibold text-slate-700 mb-1.5">Sitio Web</label>
@@ -1500,7 +1517,7 @@ export default function ProveedorDashboard() {
 
                                     {/* Idiomas — multi-select por chips toggle. Reusa el pattern visual
                                         de comunas_cobertura pero sin search (solo 6 opciones fijas). */}
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Idiomas que hablo</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Idiomas que hablo</h3>
                                     <p className="text-sm text-slate-500 mb-3">Marca los idiomas en los que puedes atender.</p>
                                     <div className="flex flex-wrap gap-2">
                                         {IDIOMAS_DISPONIBLES.map((idioma) => {
@@ -1526,7 +1543,7 @@ export default function ProveedorDashboard() {
                                     {/* Politica de cancelacion — select 3 niveles + nota opcional.
                                         Pawnecta no procesa pagos, asi que esto es expectativa de aviso,
                                         no clausula contractual con reembolso. */}
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Política de cancelación</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Política de cancelación</h3>
                                     <p className="text-sm text-slate-500 mb-3">Define con cuánta anticipación necesitas que te avisen si el cliente cancela.</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
@@ -1562,7 +1579,7 @@ export default function ProveedorDashboard() {
                                         </div>
                                     )}
 
-                                    <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2 mt-8 mb-4">Información de Contacto Externo</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Información de Contacto Externo</h3>
 
                                     <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-6 flex gap-3">
                                         <div className="text-blue-500 mt-0.5"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
@@ -1750,7 +1767,7 @@ export default function ProveedorDashboard() {
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
                                     <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.vistas}</h3>
-                                    <p className="text-slate-500 text-sm mb-1">Vistas de Perfil (7 días)</p>
+                                    <p className="text-slate-600 text-sm font-medium mb-1">Vistas de Perfil (7 días)</p>
                                     {stats.vistasTrend && (
                                         <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                             {stats.vistasTrend}
@@ -1762,7 +1779,7 @@ export default function ProveedorDashboard() {
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
                                     <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><MessageSquare size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.consultas}</h3>
-                                    <p className="text-slate-500 text-sm">Nuevos mensajes (30 días)</p>
+                                    <p className="text-slate-600 text-sm font-medium">Nuevos mensajes (30 días)</p>
                                 </div>
 
                                 {/* STAT 3: WhatsApp Clicks */}
@@ -1771,27 +1788,27 @@ export default function ProveedorDashboard() {
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
                                     </div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.whatsappClicks}</h3>
-                                    <p className="text-slate-500 text-sm">Clics en WhatsApp (30 días)</p>
+                                    <p className="text-slate-600 text-sm font-medium">Clics en WhatsApp (30 días)</p>
                                 </div>
 
                                 {/* STAT: Contactos totales */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-3">
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                     </div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.contactosTotal}</h3>
-                                    <p className="text-slate-500 text-sm">Contactos recibidos (30 días)</p>
+                                    <p className="text-slate-600 text-sm font-medium">Contactos recibidos (30 días)</p>
                                     <p className="text-xs text-slate-400 mt-1">Mensajes + WhatsApp + Llamadas</p>
                                 </div>
 
                                 {/* STAT 4: Tasa de Conversión */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-3">
+                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                                     </div>
                                     <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.conversionRate}</h3>
-                                    <p className="text-slate-500 text-sm">Tasa de conversión</p>
-                                    <p className="text-xs font-semibold text-slate-400 mt-1">
+                                    <p className="text-slate-600 text-sm font-medium">Tasa de conversión</p>
+                                    <p className="text-xs font-semibold text-slate-500 mt-1">
                                         (Contactos / Vistas)
                                     </p>
                                 </div>
@@ -1805,22 +1822,7 @@ export default function ProveedorDashboard() {
                                             <Star size={20} fill="currentColor" />
                                         </div>
                                     </div>
-                                    <p className="text-slate-500 text-sm">Rating promedio ({stats.evalCount} reseñas)</p>
-                                </div>
-
-                                {/* STAT 6: Servicios Activos */}
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5 relative overflow-hidden">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Briefcase size={20} /></div>
-                                    <h3 className="text-slate-900 text-3xl font-bold mb-1">{stats.activos} <span className="text-lg text-slate-400">/ {stats.totalActivos}</span></h3>
-                                    <p className="text-slate-500 text-sm mb-3">Servicios activos</p>
-
-                                    {/* Emerald Progress Bar */}
-                                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className="bg-emerald-700 h-full rounded-full transition-all duration-500"
-                                            style={{ width: `${stats.totalActivos > 0 ? (stats.activos / stats.totalActivos) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
+                                    <p className="text-slate-600 text-sm font-medium">Rating promedio ({stats.evalCount} reseñas)</p>
                                 </div>
                             </div>
 
