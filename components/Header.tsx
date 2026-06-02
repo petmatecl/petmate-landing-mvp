@@ -131,7 +131,7 @@ export default function Header() {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-700 text-[10px] font-semibold text-white tracking-wider">
                   {userInitials}
                 </span>
-                <span className="text-sm font-medium text-emerald-900">{userName}</span>
+                <span className="text-sm font-normal text-emerald-900">{userName}</span>
               </div>
 
               {/* Profile Switcher & Unread Badge */}
@@ -289,7 +289,7 @@ export default function Header() {
                     {userInitials}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-emerald-900">{userName}</span>
+                    <span className="text-sm font-normal text-emerald-900">{userName}</span>
                     <span className="text-[11px] text-emerald-700">Conectado</span>
                   </div>
                 </div>
