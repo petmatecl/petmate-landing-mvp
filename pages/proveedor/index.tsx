@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -64,6 +64,25 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
 
 type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas';
 
+// Sub-tabs dentro de Mi Perfil. Refactor a 5 pestanas — el form sigue
+// siendo uno solo con un unico saveProfile; las tabs solo dividen UI.
+type PerfilTabType = 'identidad' | 'informacion' | 'credenciales' | 'galeria' | 'operacion';
+
+const PERFIL_TABS: { id: PerfilTabType; label: string }[] = [
+    { id: 'identidad', label: 'Identidad' },
+    { id: 'informacion', label: 'Información' },
+    { id: 'credenciales', label: 'Credenciales' },
+    { id: 'galeria', label: 'Galería y presencia' },
+    { id: 'operacion', label: 'Operación' },
+];
+
+const PERFIL_TAB_IDS: PerfilTabType[] = ['identidad', 'informacion', 'credenciales', 'galeria', 'operacion'];
+
+// URL param para el sub-tab. Usamos `seccion` (no `tab`) para no chocar
+// con el `?tab=` ya existente del top-level (servicios/perfil/...).
+// Deep-link al sub-tab requiere `?tab=perfil&seccion=identidad`.
+const PERFIL_QUERY_PARAM = 'seccion';
+
 /** Convert a relative storage path to a full public URL */
 function toServicePhotoUrl(path: string | null | undefined): string | null {
     if (!path) return null;
@@ -85,6 +104,16 @@ export default function ProveedorDashboard() {
     const [statusLoading, setStatusLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState<TabType>('servicios');
+
+    // Sub-tab activo dentro de Mi Perfil. Default 'identidad' segun spec.
+    const [perfilTab, setPerfilTab] = useState<PerfilTabType>('identidad');
+    // Set de tabs con errores de validacion tras intentar guardar. Se
+    // recalcula cada saveProfile — vacio = sin errores, no bloquea
+    // navegacion entre tabs (spec).
+    const [perfilTabErrors, setPerfilTabErrors] = useState<Set<PerfilTabType>>(new Set());
+    // Dirty = hay cambios sin guardar. Disparada por effect que compara
+    // snapshot actual del payload contra baseline post-hidratacion.
+    const [perfilDirty, setPerfilDirty] = useState(false);
 
     // Modals
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
@@ -179,6 +208,16 @@ export default function ProveedorDashboard() {
     const handleGoToVerification = () => {
         setShowVerificationGate(false);
         setActiveTab('perfil');
+        // Refactor de tabs: verificacion vive dentro del sub-tab Identidad.
+        // Si no forzamos el sub-tab, el #verificacion-section no esta en el
+        // DOM cuando intentamos scrollIntoView (renderiza solo si perfilTab
+        // === 'identidad') y el scroll falla silente.
+        setPerfilTab('identidad');
+        router.replace(
+            { query: { ...router.query, tab: 'perfil', [PERFIL_QUERY_PARAM]: 'identidad' } },
+            undefined,
+            { shallow: true }
+        );
         setTimeout(() => {
             document.getElementById('verificacion-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
@@ -255,6 +294,13 @@ export default function ProveedorDashboard() {
         if (data.estado === 'aprobado') {
             loadTabData('servicios', data.id, data.auth_user_id);
         }
+        // Reset baseline de dirty tracking. Cualquier re-hidratacion (mount
+        // o post-save refresh) re-toma el snapshot post-hydrate como
+        // baseline. Sin esto, la normalizacion server-side de campos (ej.
+        // whatsapp '912345678' -> '+56912345678') marcaria dirty=true
+        // inmediatamente despues de guardar.
+        perfilBaselineRef.current = null;
+        setPerfilDirty(false);
         setStatusLoading(false);
     };
 
@@ -318,6 +364,64 @@ export default function ProveedorDashboard() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router.isReady, router.query.tab]);
+
+    // URL sync para sub-tab de Mi Perfil — `?seccion=identidad|informacion|...`
+    useEffect(() => {
+        if (!router.isReady) return;
+        const querySeccion = router.query[PERFIL_QUERY_PARAM] as PerfilTabType | undefined;
+        if (querySeccion && PERFIL_TAB_IDS.includes(querySeccion) && querySeccion !== perfilTab) {
+            setPerfilTab(querySeccion);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, router.query[PERFIL_QUERY_PARAM]]);
+
+    const handlePerfilTabChange = (t: PerfilTabType) => {
+        setPerfilTab(t);
+        router.replace(
+            { query: { ...router.query, [PERFIL_QUERY_PARAM]: t } },
+            undefined,
+            { shallow: true }
+        );
+    };
+
+    // ── Dirty tracking ────────────────────────────────────────────────────
+    // Baseline = snapshot del payload tras hidratacion. Cualquier desviacion
+    // del snapshot actual contra el baseline => dirty.
+    //
+    // Solo trackeamos campos que viajan en el payload de saveProfile
+    // (lineas ~454-492). Excluimos fotoPerfil (uploadAvatar persiste solo,
+    // no va en el payload) y los inputs de verificacion (carnet/rut tienen
+    // su propio flow handleEnviarVerificacion).
+    const perfilSnapshot = useMemo(() => JSON.stringify({
+        nombrePublico, bio, comuna, whatsapp, telefono, emailPublico,
+        mostrarWhatsapp, mostrarTelefono, mostrarEmail,
+        tipoEntidad, razonSocial, rutEmpresa, nombreFantasia, giro,
+        genero, ocupacion, aniosExperiencia, certificaciones,
+        sitioWeb, instagram, facebook, tiktok, youtube,
+        primeraAyuda, idiomas, politicaCancelacion, politicaCancelacionNota,
+        lat, lng, galeria,
+    }), [
+        nombrePublico, bio, comuna, whatsapp, telefono, emailPublico,
+        mostrarWhatsapp, mostrarTelefono, mostrarEmail,
+        tipoEntidad, razonSocial, rutEmpresa, nombreFantasia, giro,
+        genero, ocupacion, aniosExperiencia, certificaciones,
+        sitioWeb, instagram, facebook, tiktok, youtube,
+        primeraAyuda, idiomas, politicaCancelacion, politicaCancelacionNota,
+        lat, lng, galeria,
+    ]);
+
+    const perfilBaselineRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!proveedor) return;
+        if (perfilBaselineRef.current === null) {
+            // Primera evaluacion post-hidratacion: este snapshot ES el baseline.
+            perfilBaselineRef.current = perfilSnapshot;
+            setPerfilDirty(false);
+            return;
+        }
+        setPerfilDirty(perfilSnapshot !== perfilBaselineRef.current);
+    }, [proveedor, perfilSnapshot]);
 
     // Profile Handlers
     const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,55 +504,64 @@ export default function ProveedorDashboard() {
             toast.error('Tu sesión expiró. Recarga la página e intenta nuevamente.');
             return;
         }
-        // Validar rut_empresa si tipo_entidad es empresa (asimetria detectada
-        // en auditoria Sprint 1: registro validaba con validateRut, edicion no).
+
+        // Validaciones de formato. Acumulamos TODOS los errores (no
+        // early-return) para que el indicador rojo de tabs pueda mostrar
+        // simultaneamente todas las pestanas con campos invalidos. El
+        // primer error tambien se muestra como toast.
+        const tabErrors = new Set<PerfilTabType>();
+        const errorMessages: string[] = [];
+        const addError = (tab: PerfilTabType, msg: string) => {
+            tabErrors.add(tab);
+            errorMessages.push(msg);
+        };
+
+        // Identidad — rut_empresa solo si tipo empresa
         if (tipoEntidad === 'empresa' && rutEmpresa && !validateRut(rutEmpresa)) {
-            toast.error('El RUT de la empresa no es válido. Verifica el dígito verificador.');
-            return;
+            addError('identidad', 'El RUT de la empresa no es válido. Verifica el dígito verificador.');
         }
-        // Validaciones de formato URL / telefono / instagram. Permite vacios
-        // (campos opcionales). Si tiene valor pero formato invalido, error inline.
+
+        // Galeria y presencia — URLs/redes
         const sitioWebNormalizado = sitioWeb ? normalizeUrl(sitioWeb) : null;
         if (sitioWeb && !sitioWebNormalizado) {
-            toast.error('El sitio web no es una URL válida. Ej: midominio.cl');
-            return;
-        }
-        const whatsappNormalizado = whatsapp ? normalizeChileanPhone(whatsapp) : null;
-        if (whatsapp && !whatsappNormalizado) {
-            toast.error('El WhatsApp no es un número chileno válido. Ej: +56912345678');
-            return;
-        }
-        const telefonoNormalizado = telefono ? normalizeChileanPhone(telefono) : null;
-        if (telefono && !telefonoNormalizado) {
-            toast.error('El teléfono no es un número chileno válido. Ej: +56912345678');
-            return;
+            addError('galeria', 'El sitio web no es una URL válida. Ej: midominio.cl');
         }
         const instagramNormalizado = instagram ? normalizeInstagram(instagram) : null;
         if (instagram && !instagramNormalizado) {
-            toast.error('El usuario de Instagram no es válido. Ej: @mi_cuenta');
-            return;
+            addError('galeria', 'El usuario de Instagram no es válido. Ej: @mi_cuenta');
         }
         const facebookNormalizado = facebook ? normalizeFacebook(facebook) : null;
         if (facebook && !facebookNormalizado) {
-            toast.error('El Facebook no es válido. Ej: tu.pagina o facebook.com/tu.pagina');
-            return;
+            addError('galeria', 'El Facebook no es válido. Ej: tu.pagina o facebook.com/tu.pagina');
         }
         const tiktokNormalizado = tiktok ? normalizeTiktok(tiktok) : null;
         if (tiktok && !tiktokNormalizado) {
-            toast.error('El TikTok no es válido. Ej: @tucuenta');
-            return;
+            addError('galeria', 'El TikTok no es válido. Ej: @tucuenta');
         }
         const youtubeNormalizado = youtube ? normalizeYoutube(youtube) : null;
         if (youtube && !youtubeNormalizado) {
-            toast.error('El YouTube no es válido. Ej: @tucanal o youtube.com/@tucanal');
-            return;
+            addError('galeria', 'El YouTube no es válido. Ej: @tucanal o youtube.com/@tucanal');
         }
-        // Politica de cancelacion: si hay nota, debe haber nivel. Al reves no:
-        // se puede declarar nivel sin nota.
+
+        // Operacion — telefonos, politica
+        const whatsappNormalizado = whatsapp ? normalizeChileanPhone(whatsapp) : null;
+        if (whatsapp && !whatsappNormalizado) {
+            addError('operacion', 'El WhatsApp no es un número chileno válido. Ej: +56912345678');
+        }
+        const telefonoNormalizado = telefono ? normalizeChileanPhone(telefono) : null;
+        if (telefono && !telefonoNormalizado) {
+            addError('operacion', 'El teléfono no es un número chileno válido. Ej: +56912345678');
+        }
         if (politicaCancelacionNota.trim() && !politicaCancelacion) {
-            toast.error('Selecciona un tipo de política de cancelación antes de agregar una nota.');
+            addError('operacion', 'Selecciona un tipo de política de cancelación antes de agregar una nota.');
+        }
+
+        setPerfilTabErrors(tabErrors);
+        if (tabErrors.size > 0) {
+            toast.error(errorMessages[0]);
             return;
         }
+
         setSavingProfile(true);
         try {
             const payload: Record<string, any> = {
@@ -501,6 +614,12 @@ export default function ProveedorDashboard() {
                 toast.error(`Error al guardar: ${error.message}`);
             } else {
                 toast.success('Perfil actualizado correctamente');
+                // Reset baseline + dirty: el snapshot actual es ahora el
+                // "limpio". Sin esto, el sticky save bar se quedaria visible
+                // post-save porque el effect compararia contra el baseline viejo.
+                perfilBaselineRef.current = perfilSnapshot;
+                setPerfilDirty(false);
+                setPerfilTabErrors(new Set());
                 // Refresca el cache de proveedorRow en UserContext para que si
                 // el user navega fuera y vuelve, el dashboard hidrate con los
                 // valores recien guardados (no con los del login original).
@@ -1063,74 +1182,109 @@ export default function ProveedorDashboard() {
                         </div>
                     )}
 
-                    {/* MI PERFIL */}
+                    {/* MI PERFIL — refactor a 5 sub-tabs. Sigue siendo UN solo
+                        <form> con UN solo saveProfile; las tabs solo dividen UI.
+                        State del form se preserva al cambiar de tab porque todos
+                        los useState viven en este componente, no en hijos.
+                        Sticky save bar aparece SOLO si perfilDirty. */}
                     {activeTab === 'perfil' && (
-                        <div className="animate-in fade-in duration-300 max-w-3xl">
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-8">Mi Perfil</h1>
+                        <div className="animate-in fade-in duration-300 max-w-3xl pb-32">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-6">Mi Perfil</h1>
 
-                            <form onSubmit={saveProfile} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                                {/* Avatar Section */}
-                                <div className="p-8 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-6 bg-slate-50/50">
-                                    <div className="relative">
-                                        <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden border-4 border-white shadow-sm flex items-center justify-center text-slate-400">
-                                            {fotoPerfil ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={fotoPerfil} alt="Avatar" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <UserIcon size={40} />
+                            {/* Sub-tabs nav. Scroll horizontal en mobile si no
+                                entran (spec: no colapsar a dropdown). */}
+                            <div className="mb-6 border-b border-slate-200 overflow-x-auto hide-scrollbar">
+                                <nav className="flex gap-1 min-w-max">
+                                    {PERFIL_TABS.map(t => (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => handlePerfilTabChange(t.id)}
+                                            className={`relative px-4 py-3 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${perfilTab === t.id ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            {t.label}
+                                            {perfilTabErrors.has(t.id) && (
+                                                <span
+                                                    aria-label="Tiene errores de validación"
+                                                    className="ml-1.5 inline-block w-1.5 h-1.5 bg-red-500 rounded-full align-middle"
+                                                />
                                             )}
-                                        </div>
-                                        <label className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 cursor-pointer hover:text-[#1A6B4A] hover:border-[#1A6B4A] transition-colors">
-                                            {uploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
-                                            <input type="file" className="hidden" accept="image/*" onChange={uploadAvatar} disabled={uploadingAvatar} />
-                                        </label>
-                                    </div>
-                                    <div className="text-center sm:text-left">
-                                        <h3 className="font-semibold text-slate-900 text-lg flex items-center justify-center sm:justify-start gap-2">
-                                            {proveedor.nombre} {proveedor.apellido_p}
-                                            <span className="text-slate-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
-                                        </h3>
-                                        <p className="text-slate-500 text-sm mt-1">Proveedor desde {new Date(proveedor.created_at).getFullYear()}</p>
-                                    </div>
-                                </div>
+                                        </button>
+                                    ))}
+                                </nav>
+                            </div>
 
-                                <div className="p-6 sm:p-8 space-y-6">
-                                    {/* Datos legales (no editables) + nombre público */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="opacity-70">
-                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre legal</label>
-                                            <div className="bg-slate-100 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium flex items-center justify-between">
-                                                {proveedor.nombre} {proveedor.apellido_p} {proveedor.apellido_m}
-                                                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            <form id="perfil-form" onSubmit={saveProfile} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+                                {/* ════════════════════════════════════════
+                                    TAB: IDENTIDAD
+                                    Avatar + Nombre legal/publico + Verificacion
+                                    + Tipo de Cuenta (Persona Natural / Empresa)
+                                    ════════════════════════════════════════ */}
+                                {perfilTab === 'identidad' && (
+                                    <>
+                                        {/* Avatar Section */}
+                                        <div className="p-8 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-6 bg-slate-50/50">
+                                            <div className="relative">
+                                                <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden border-4 border-white shadow-sm flex items-center justify-center text-slate-400">
+                                                    {fotoPerfil ? (
+                                                        // eslint-disable-next-line @next/next/no-img-element
+                                                        <img src={fotoPerfil} alt="Avatar" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <UserIcon size={40} />
+                                                    )}
+                                                </div>
+                                                <label className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 cursor-pointer hover:text-[#1A6B4A] hover:border-[#1A6B4A] transition-colors">
+                                                    {uploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+                                                    <input type="file" className="hidden" accept="image/*" onChange={uploadAvatar} disabled={uploadingAvatar} />
+                                                </label>
                                             </div>
-                                            <p className="text-[11px] text-slate-400 mt-1">Datos de registro. No se muestran públicamente.</p>
+                                            <div className="text-center sm:text-left">
+                                                <h3 className="font-semibold text-slate-900 text-lg flex items-center justify-center sm:justify-start gap-2">
+                                                    {proveedor.nombre} {proveedor.apellido_p}
+                                                    <span className="text-slate-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
+                                                </h3>
+                                                <p className="text-slate-500 text-sm mt-1">Proveedor desde {new Date(proveedor.created_at).getFullYear()}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label htmlFor="nombre-publico" className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre público</label>
-                                            <input
-                                                id="nombre-publico"
-                                                name="nombre-publico"
-                                                autoComplete="off"
-                                                type="text"
-                                                value={nombrePublico}
-                                                onChange={e => setNombrePublico(e.target.value)}
-                                                placeholder={`${proveedor.nombre} ${proveedor.apellido_p}`}
-                                                maxLength={60}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                                            />
-                                            <p className="text-[11px] text-slate-400 mt-1">Así te verán los clientes en tu perfil y servicios.</p>
-                                        </div>
-                                    </div>
 
-                                    {/* === P12: VERIFICACIÓN DE IDENTIDAD === */}
-                                    <div id="verificacion-section" className="border border-slate-200 rounded-2xl overflow-hidden">
-                                        <div className="flex items-center gap-3 p-5 border-b border-slate-100 bg-slate-50/50">
-                                            {verificacionEstado === 'aprobado'
-                                                ? <ShieldCheck size={22} className="text-emerald-500" />
-                                                : verificacionEstado === 'rechazado'
-                                                    ? <ShieldX size={22} className="text-red-500" />
-                                                    : <Shield size={22} className="text-slate-400" />
-                                            }
+                                        <div className="p-6 sm:p-8 space-y-6">
+                                            {/* Datos legales (no editables) + nombre público */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="opacity-70">
+                                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre legal</label>
+                                                    <div className="bg-slate-100 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium flex items-center justify-between">
+                                                        {proveedor.nombre} {proveedor.apellido_p} {proveedor.apellido_m}
+                                                        <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-400 mt-1">Datos de registro. No se muestran públicamente.</p>
+                                                </div>
+                                                <div>
+                                                    <label htmlFor="nombre-publico" className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre público</label>
+                                                    <input
+                                                        id="nombre-publico"
+                                                        name="nombre-publico"
+                                                        autoComplete="off"
+                                                        type="text"
+                                                        value={nombrePublico}
+                                                        onChange={e => setNombrePublico(e.target.value)}
+                                                        placeholder={`${proveedor.nombre} ${proveedor.apellido_p}`}
+                                                        maxLength={60}
+                                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                                    />
+                                                    <p className="text-[11px] text-slate-400 mt-1">Así te verán los clientes en tu perfil y servicios.</p>
+                                                </div>
+                                            </div>
+
+                                            {/* === P12: VERIFICACIÓN DE IDENTIDAD === */}
+                                            <div id="verificacion-section" className="border border-slate-200 rounded-2xl overflow-hidden">
+                                                <div className="flex items-center gap-3 p-5 border-b border-slate-100 bg-slate-50/50">
+                                                    {verificacionEstado === 'aprobado'
+                                                        ? <ShieldCheck size={22} className="text-emerald-500" />
+                                                        : verificacionEstado === 'rechazado'
+                                                            ? <ShieldX size={22} className="text-red-500" />
+                                                            : <Shield size={22} className="text-slate-400" />
+                                                    }
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-slate-900 text-sm">Verificación de Identidad</h3>
                                                 <p className="text-xs text-slate-500 mt-0.5">Confirma tu identidad con tu RUT y una foto de tu carnet</p>
@@ -1309,11 +1463,11 @@ export default function ProveedorDashboard() {
                                         <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
                                             <div>
                                                 <label htmlFor="razon-social" className="block text-sm font-medium text-slate-700 mb-1">Razón social *</label>
-                                                <input id="razon-social" name="razon-social" autoComplete="organization" type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} required className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <input id="razon-social" name="razon-social" autoComplete="organization" type="text" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <div>
                                                 <label htmlFor="rut-empresa" className="block text-sm font-medium text-slate-700 mb-1">RUT de la empresa *</label>
-                                                <input id="rut-empresa" name="rut-empresa" autoComplete="off" type="text" value={rutEmpresa} onChange={e => setRutEmpresa(e.target.value)} required maxLength={12} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                                <input id="rut-empresa" name="rut-empresa" autoComplete="off" type="text" value={rutEmpresa} onChange={e => setRutEmpresa(e.target.value)} maxLength={12} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <div>
                                                 <label htmlFor="nombre-fantasia" className="block text-sm font-medium text-slate-700 mb-1">Nombre fantasía (marca)</label>
@@ -1325,8 +1479,17 @@ export default function ProveedorDashboard() {
                                             </div>
                                         </div>
                                     )}
+                                        </div>
+                                    </>
+                                )}
 
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Información General</h3>
+                                {/* ════════════════════════════════════════
+                                    TAB: INFORMACIÓN
+                                    Datos generales + bio + comuna + mapa + idiomas
+                                    ════════════════════════════════════════ */}
+                                {perfilTab === 'informacion' && (
+                                    <div className="p-6 sm:p-8 space-y-6">
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mb-4">Información General</h3>
 
                                     {tipoEntidad === 'persona_natural' && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -1386,7 +1549,6 @@ export default function ProveedorDashboard() {
                                             onFocus={() => setComunaOpen(true)}
                                             onBlur={() => setTimeout(() => setComunaOpen(false), 150)}
                                             placeholder="Escribe tu comuna..."
-                                            required
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                                         />
                                         {comunaOpen && comuna && (
@@ -1423,7 +1585,43 @@ export default function ProveedorDashboard() {
                                         />
                                     </div>
 
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Credenciales y Confianza</h3>
+                                    {/* Idiomas — multi-select por chips toggle. Movido aqui en
+                                        el refactor de tabs (antes vivia entre Presencia Web
+                                        y Politica de cancelacion). Reusa pattern visual de
+                                        comunas_cobertura. */}
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Idiomas que hablo</h3>
+                                    <p className="text-sm text-slate-500 mb-3">Marca los idiomas en los que puedes atender.</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {IDIOMAS_DISPONIBLES.map((idioma) => {
+                                            const activo = idiomas.includes(idioma);
+                                            return (
+                                                <button
+                                                    key={idioma}
+                                                    type="button"
+                                                    onClick={() => setIdiomas(prev => activo ? prev.filter(i => i !== idioma) : [...prev, idioma])}
+                                                    className={
+                                                        activo
+                                                            ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                                            : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
+                                                    }
+                                                >
+                                                    {idioma}
+                                                    {activo && <X size={12} />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    </div>
+                                )}
+
+                                {/* ════════════════════════════════════════
+                                    TAB: CREDENCIALES
+                                    Anios + Cert relevantes + Primera ayuda
+                                    + Certificaciones y diplomas (upload)
+                                    ════════════════════════════════════════ */}
+                                {perfilTab === 'credenciales' && (
+                                    <div className="p-6 sm:p-8 space-y-6">
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mb-4">Credenciales y Confianza</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label htmlFor="anios-experiencia" className="block text-sm font-semibold text-slate-700 mb-1.5">Años de experiencia (Gral.)</label>
@@ -1448,8 +1646,16 @@ export default function ProveedorDashboard() {
                                     <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Certificaciones y diplomas</h3>
                                     <p className="text-sm text-slate-500 mb-4">Sube tus certificaciones para que Pawnecta las verifique. Los usuarios verán un badge de certificación verificada en tu perfil.</p>
                                     <CertificacionesSection proveedorId={proveedor.id} />
+                                    </div>
+                                )}
 
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Fotos de tu espacio / galería</h3>
+                                {/* ════════════════════════════════════════
+                                    TAB: GALERÍA Y PRESENCIA
+                                    Fotos del espacio + Sitio Web + redes sociales
+                                    ════════════════════════════════════════ */}
+                                {perfilTab === 'galeria' && (
+                                    <div className="p-6 sm:p-8 space-y-6">
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mb-4">Fotos de tu espacio / galería</h3>
                                     <p className="text-sm text-slate-500 mb-4">Muestra tu espacio, ambiente y forma de trabajar (Máx 8 fotos).</p>
 
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -1495,7 +1701,8 @@ export default function ProveedorDashboard() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label htmlFor="sitio-web" className="block text-sm font-semibold text-slate-700 mb-1.5">Sitio Web</label>
-                                            <input id="sitio-web" name="sitio-web" autoComplete="url" type="url" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Ej: midominio.cl o https://linktr.ee/tu-perfil" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
+                                            {/* type="text" (no "url") segun convencion CLAUDE.md: acepta www. sin https://. */}
+                                            <input id="sitio-web" name="sitio-web" autoComplete="url" type="text" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="Ej: midominio.cl o https://linktr.ee/tu-perfil" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                         <div>
                                             <label htmlFor="instagram" className="block text-sm font-semibold text-slate-700 mb-1.5">Instagram</label>
@@ -1514,36 +1721,21 @@ export default function ProveedorDashboard() {
                                             <input id="youtube" name="youtube" autoComplete="off" type="text" value={youtube} onChange={e => setYoutube(e.target.value)} placeholder="Ej: @tucanal o youtube.com/@tucanal" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                         </div>
                                     </div>
-
-                                    {/* Idiomas — multi-select por chips toggle. Reusa el pattern visual
-                                        de comunas_cobertura pero sin search (solo 6 opciones fijas). */}
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Idiomas que hablo</h3>
-                                    <p className="text-sm text-slate-500 mb-3">Marca los idiomas en los que puedes atender.</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {IDIOMAS_DISPONIBLES.map((idioma) => {
-                                            const activo = idiomas.includes(idioma);
-                                            return (
-                                                <button
-                                                    key={idioma}
-                                                    type="button"
-                                                    onClick={() => setIdiomas(prev => activo ? prev.filter(i => i !== idioma) : [...prev, idioma])}
-                                                    className={
-                                                        activo
-                                                            ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
-                                                            : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
-                                                    }
-                                                >
-                                                    {idioma}
-                                                    {activo && <X size={12} />}
-                                                </button>
-                                            );
-                                        })}
                                     </div>
+                                )}
 
+                                {/* ════════════════════════════════════════
+                                    TAB: OPERACIÓN
+                                    Politica de cancelacion + Informacion de
+                                    Contacto Externo (WhatsApp / Telefono +
+                                    visibilidad publica).
+                                    ════════════════════════════════════════ */}
+                                {perfilTab === 'operacion' && (
+                                    <div className="p-6 sm:p-8 space-y-6">
                                     {/* Politica de cancelacion — select 3 niveles + nota opcional.
                                         Pawnecta no procesa pagos, asi que esto es expectativa de aviso,
                                         no clausula contractual con reembolso. */}
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Política de cancelación</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mb-4">Política de cancelación</h3>
                                     <p className="text-sm text-slate-500 mb-3">Define con cuánta anticipación necesitas que te avisen si el cliente cancela.</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
@@ -1610,14 +1802,30 @@ export default function ProveedorDashboard() {
                                             </label>
                                         </div>
                                     </div>
+                                    </div>
+                                )}
 
-                                    <div className="pt-4 border-t border-slate-100 flex justify-end">
-                                        <button type="submit" disabled={savingProfile} className="bg-[#1A6B4A] text-white font-medium tracking-wide py-3 px-8 rounded-xl hover:bg-emerald-800 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2">
-                                            {savingProfile && <Loader2 size={18} className="animate-spin" />} Guardar Cambios
+                            </form>
+
+                            {/* Sticky save bar — aparece SOLO si el form esta
+                                dirty. Submitea el form externo via attr `form`.
+                                lg:left-[260px] respeta el sidebar fijo. */}
+                            {perfilDirty && (
+                                <div className="fixed bottom-0 left-0 right-0 lg:left-[260px] bg-white border-t border-slate-200 shadow-lg z-30 animate-in slide-in-from-bottom duration-200">
+                                    <div className="max-w-3xl mx-auto p-4 flex items-center justify-between gap-4">
+                                        <p className="text-sm font-medium text-slate-700">Tienes cambios sin guardar</p>
+                                        <button
+                                            type="submit"
+                                            form="perfil-form"
+                                            disabled={savingProfile}
+                                            className="bg-[#1A6B4A] text-white font-medium tracking-wide py-3 px-6 sm:px-8 rounded-xl hover:bg-emerald-800 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                        >
+                                            {savingProfile && <Loader2 size={18} className="animate-spin" />}
+                                            Guardar Cambios
                                         </button>
                                     </div>
                                 </div>
-                            </form>
+                            )}
                         </div>
                     )}
 
