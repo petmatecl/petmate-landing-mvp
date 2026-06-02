@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     Check, Crosshair, Loader2, Search,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2,
+    Camera,
     Dog, Cat, Bird,
     LucideIcon
 } from 'lucide-react';
@@ -66,6 +67,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
     traslado: Truck,
     veterinario: Stethoscope,
     adiestramiento: Dumbbell,
+    fotografia: Camera,
     // Aliases backwards-compat: servicios legacy con slug viejo siguen
     // resolviendo a un icono mientras se ejecuta el SQL de re-clasificacion.
     hospedaje: Home,

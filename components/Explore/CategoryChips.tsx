@@ -1,18 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
     ChevronDown, Check, Grid2x2,
-    Home, Sun, MapPin, Scissors, Truck, Stethoscope, Dumbbell, PawPrint,
+    Home, Sun, MapPin, Scissors, Truck, Stethoscope, Dumbbell, PawPrint, Camera,
     LucideIcon
 } from 'lucide-react';
 
+// Mantener en sync con SidebarFiltros.tsx (mismo set de slugs canonicos
+// + aliases backwards-compat).
 const SLUG_ICONS: Record<string, LucideIcon> = {
-    hospedaje: Home,
+    cuidado: Home,
     guarderia: Sun,
     paseos: PawPrint,
     peluqueria: Scissors,
     traslado: Truck,
     veterinario: Stethoscope,
     adiestramiento: Dumbbell,
+    fotografia: Camera,
+    // Aliases backwards-compat (slugs legacy pre-merge cuidado+hospedaje).
+    hospedaje: Home,
     domicilio: MapPin,
 };
 
