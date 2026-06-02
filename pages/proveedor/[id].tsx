@@ -27,6 +27,7 @@ import VisitCounter from '../../components/Shared/VisitCounter';
 import FavoritoButton from '../../components/Shared/FavoritoButton';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
 import { instagramUsernameFromUrl } from '../../lib/validators';
+import { roundCoordsForPublic } from '../../lib/coordsPrivacy';
 // Sprint 4 Fase 1 / Commit 3: la ficha publica del proveedor ya no renderiza
 // proveedor.datos_especificos. Imports legacy (CAMPOS_POR_CATEGORIA,
 // formatValorCampo, CampoDinamico, findCampoLegacy) eliminados.
@@ -544,9 +545,12 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* ══ UBICACIÓN ═════════════════════════════════════════════ */}
                 {/* Mapa aproximado. Usa lat/lng guardados por el proveedor si
                     existen; si no, cae al centroide de su comuna (mismo hash
-                    que CaregiverMap). Siempre como Circle de ~500m — la
-                    columna lat/lng se persiste con 3 decimales de precision
-                    (~93-111m), asi que el Circle absorbe el ruido. */}
+                    que CaregiverMap). Circle de 1000m — la lat/lng llegan
+                    redondeadas a 2 decimales (~1km) via roundCoordsForPublic
+                    en getServerSideProps; el radio del Circle matchea la
+                    precision expuesta. La BD conserva 3 decimales para uso
+                    interno (calculos de distancia), pero el cliente publico
+                    nunca los ve. */}
                 {(proveedor.lat != null && proveedor.lng != null) || proveedor.comuna ? (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
@@ -560,7 +564,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 : getComunaCoords(proveedor.comuna);
                             return (
                                 <>
-                                    <LocationMap lat={mapLat} lng={mapLng} approximate radius={500} height="300px" />
+                                    <LocationMap lat={mapLat} lng={mapLng} approximate radius={1000} height="300px" />
                                     <p className="text-xs text-slate-500 mt-3">
                                         {hasPin
                                             ? `Área aproximada en ${proveedor.comuna || 'la comuna del proveedor'}. La dirección exacta no se comparte públicamente.`
@@ -670,6 +674,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         if (provError || !proveedor) {
             return { notFound: true };
         }
+
+        // Privacidad: reduce la precision de lat/lng expuestas al cliente
+        // de 3 decimales (~111m, lo guardado en BD) a 2 decimales (~1km).
+        // El Circle de Leaflet en la ficha publica usa radio 1000m, asi que
+        // la zona visible cubre el ruido. La BD NO se toca aqui — los 3
+        // decimales originales se preservan para calculos internos.
+        const { lat: latPublica, lng: lngPublica } = roundCoordsForPublic(
+            proveedor.lat as number | null,
+            proveedor.lng as number | null
+        );
+        proveedor.lat = latPublica;
+        proveedor.lng = lngPublica;
 
         const { data: rawServices } = await supabase
             .from('servicios_publicados')

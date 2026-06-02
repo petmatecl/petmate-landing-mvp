@@ -68,6 +68,13 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
     }, []);
 
     // Memoize marker positions (add small jitter only when using commune fallback, for visual separation)
+    //
+    // Privacidad: s.proveedor_lat / s.proveedor_lng llegan ya redondeadas a
+    // 2 decimales (~1km) via roundCoordsForPublic en lib/serviceMapper.ts.
+    // No hace falta redondear de nuevo aca. Hoy ademas el RPC
+    // buscar_servicios no devuelve estos campos, asi que hasRealCoords es
+    // casi siempre false y este componente cae al fallback de comuna —
+    // pero si el RPC vuelve a incluirlos, las coords ya vienen capadas.
     const markers = useMemo(() => {
         return services.map(s => {
             const hasRealCoords = s.proveedor_lat != null && s.proveedor_lng != null;

@@ -15,7 +15,7 @@ interface LocationMapProps {
     lat: number;
     lng: number;
     approximate?: boolean; // If true, show circle. If false, show marker.
-    radius?: number; // In meters, default 500 for approximate
+    radius?: number; // In meters, default 1000 — matchea PUBLIC_COORD_RADIUS_METERS
     height?: string;
 }
 
@@ -27,7 +27,10 @@ function ChangeView({ center, zoom }: { center: [number, number], zoom: number }
     return null;
 }
 
-export default function LocationMap({ lat, lng, approximate = true, radius = 800, height = "300px" }: LocationMapProps) {
+// Default radius 1000m: matchea la precision publica de 2 decimales que
+// aplica roundCoordsForPublic. Sin esto, el Circle podria ser mas chico
+// que el ruido de redondeo y dar falsa sensacion de exactitud.
+export default function LocationMap({ lat, lng, approximate = true, radius = 1000, height = "300px" }: LocationMapProps) {
     const center: [number, number] = [lat, lng];
     const zoom = approximate ? 14 : 15;
 

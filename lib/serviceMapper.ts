@@ -2,6 +2,7 @@
 // Central mapping between Supabase RPC / join-query shapes and ServiceCard's ServiceResult interface.
 
 import { ServiceResult } from '../components/Explore/ServiceCard';
+import { roundCoordsForPublic } from './coordsPrivacy';
 
 /** Slug → human-readable name (mirror of STATIC_CATEGORIES in explorar.tsx) */
 const CAT_NAMES: Record<string, string> = {
@@ -68,6 +69,18 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
     const slug = (CAT_NAMES[rawSlug] ? rawSlug : rawSlug.toLowerCase().replace(/\s+/g, '-')).replace(/ /g, '-');
     const catNombre = (PRICE_PATTERN.test(rawNombre) ? null : rawNombre) ?? CAT_NAMES[slug] ?? slug;
 
+    // Defensivo: el RPC `buscar_servicios` actualmente NO devuelve
+    // proveedor_lat / proveedor_lng — la ultima version del RETURNS TABLE
+    // los omite (ver migrations/20260529_modalidad_multivalor.sql). Por
+    // eso los inputs aca llegan undefined y se normalizan a null. Si
+    // alguien vuelve a incluirlos en el RPC, roundCoordsForPublic asegura
+    // que NO se filtren al cliente con precision completa. NO BORRAR — es
+    // codigo defensivo intencional, no muerto.
+    const coordsPublicas = roundCoordsForPublic(
+        item.proveedor_lat != null ? Number(item.proveedor_lat) : null,
+        item.proveedor_lng != null ? Number(item.proveedor_lng) : null
+    );
+
     return {
         servicio_id: item.servicio_id ?? item.id,
         titulo: item.titulo,
@@ -90,8 +103,8 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         acepta_gatos: item.acepta_gatos ?? true,
         acepta_otras: item.acepta_otras ?? false,
         proveedor_updated_at: item.proveedor_updated_at ?? undefined,
-        proveedor_lat: item.proveedor_lat != null ? Number(item.proveedor_lat) : null,
-        proveedor_lng: item.proveedor_lng != null ? Number(item.proveedor_lng) : null,
+        proveedor_lat: coordsPublicas.lat,
+        proveedor_lng: coordsPublicas.lng,
         proveedor_verificado: item.proveedor_verificado ?? false,
         proveedor_primera_ayuda: item.proveedor_primera_ayuda ?? false,
         proveedor_perfil_completo: item.proveedor_perfil_completo ?? false,
