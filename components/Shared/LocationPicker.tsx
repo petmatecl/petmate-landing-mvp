@@ -94,6 +94,37 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
         }
     }, [lat, lng]);
 
+    // Band-aid del bug conocido de Leaflet con SVG/className: durante el drag
+    // del marker, `_onMove` y `finishDrag` acceden a propiedades tipo
+    // `_icon.className.baseVal` que pueden estar undefined cuando el icono
+    // del marker no es un SVG nativo. Sale TypeError en consola dos veces
+    // por drag (una en move, otra al soltar) — no rompe la UI ni la
+    // persistencia, solo ensucia console. Un fix limpio implicaria
+    // re-arquitectar el marker (DivIcon en vez de SVG default, o
+    // re-implementar drag con react-leaflet primitives), demasiado costo
+    // para severidad baja.
+    //
+    // Mitigacion: envolvemos los dos handlers internos en try/catch. Es
+    // monkey-patching de API privada de Leaflet — fragil ante upgrades,
+    // pero acotado a estas dos funciones.
+    //
+    // Dep `[hasMarker]` en vez de `[]` porque el <Marker> se renderiza
+    // condicional. Cuando el proveedor agrega pin por primera vez,
+    // hasMarker pasa false->true, el marker se monta, ref se hidrata y
+    // recien ahi tiene sentido parchar. Para el caso comun (pin ya
+    // existente al abrir Mi Perfil) corre al mount inicial igual.
+    useEffect(() => {
+        const marker = markerRef.current;
+        if (!marker?.dragging) return;
+        const drag = marker.dragging as any;
+
+        const origMove = drag._onMove?.bind(drag);
+        if (origMove) drag._onMove = (e: Event) => { try { origMove(e); } catch { /* leaflet svg baseVal noise */ } };
+
+        const origFinish = drag.finishDrag?.bind(drag);
+        if (origFinish) drag.finishDrag = (t?: boolean) => { try { origFinish(t); } catch { /* leaflet svg baseVal noise */ } };
+    }, [hasMarker]);
+
     const zoom = hasMarker ? 15 : 13;
 
     return (
