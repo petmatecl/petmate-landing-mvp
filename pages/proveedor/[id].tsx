@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
-import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye, Facebook, Youtube, Languages, Calendar } from 'lucide-react';
+import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye, Facebook, Youtube, Languages, Calendar, CheckCircle, Circle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { getComunaCoords } from '../../lib/comunas';
 
@@ -32,12 +32,21 @@ import { roundCoordsForPublic } from '../../lib/coordsPrivacy';
 // proveedor.datos_especificos. Imports legacy (CAMPOS_POR_CATEGORIA,
 // formatValorCampo, CampoDinamico, findCampoLegacy) eliminados.
 
+interface CertificacionPublica {
+    id: string;
+    titulo: string;
+    institucion: string | null;
+    anio: number | null;
+    documento_url: string | null;
+}
+
 interface ProveedorProps {
     proveedor: any;
     servicios: ServiceResult[];
     globalRatingPromedio: number;
     globalTotalEvaluaciones: number;
     contactosCount: number;
+    certificacionesAprobadas: CertificacionPublica[];
 }
 
 function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number }) {
@@ -59,7 +68,7 @@ function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number
     );
 }
 
-export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount }: ProveedorProps) {
+export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount, certificacionesAprobadas }: ProveedorProps) {
     const router = useRouter();
     const { user } = useUser();
     const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -104,11 +113,6 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     const generoLabel: Record<string, string> = { mujer: 'Mujer', hombre: 'Hombre', no_binario: 'No binario' };
     const esPersonaNatural = !proveedor.tipo_entidad || proveedor.tipo_entidad === 'persona_natural';
     const tieneInfoPersonal = esPersonaNatural && (edad || proveedor.genero || proveedor.ocupacion || proveedor.anios_experiencia);
-    // anios_experiencia ya se muestra en el header de stats (En Pawnecta /
-    // Servicios activos / Experiencia). Esta seccion solo aplica si hay
-    // certificaciones o primera ayuda — sin esto, un proveedor con solo
-    // anios_experiencia renderizaria la seccion vacia tras quitar el card.
-    const tieneTrustSignals = proveedor.certificaciones || proveedor.primera_ayuda;
     const tieneGaleria = proveedor.galeria && proveedor.galeria.length > 0;
     const displayName = proveedor.nombre_publico || `${proveedor.nombre} ${proveedor.apellido_p}`;
     const title = `${displayName} — ${proveedor.comuna} | Pawnecta`;
@@ -446,39 +450,82 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 )}
 
                 {/* ══ CREDENCIALES ══════════════════════════════════════════ */}
-                {/* Una sola jerarquia visual: header "Credenciales" + items
-                    directos (sin sub-headers internos tipo "CERTIFICACIONES"
-                    uppercase, que duplicaban el titulo). El texto de
-                    certificaciones queda como parrafo directo; primera_ayuda
-                    como badge compacto.
-                    Sprint 4 Fase 1 / Commit 3: la iteracion plana del blob
-                    proveedor.datos_especificos se elimino; los detalles
-                    categoria-especificos viven per-servicio (renderizados
-                    bajo cada card de servicio mas abajo + en la ficha
-                    publica del servicio individual). */}
-                {tieneTrustSignals && (
-                    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                            <ShieldCheck size={17} className="text-emerald-500" />
-                            Credenciales
-                        </h2>
-                        <div className="space-y-3">
-                            {proveedor.certificaciones && (
-                                <div className="flex items-start gap-2.5 text-sm text-slate-700">
-                                    <ShieldCheck size={17} className="text-emerald-500 shrink-0 mt-0.5" />
-                                    <p className="leading-relaxed">{proveedor.certificaciones}</p>
-                                </div>
-                            )}
+                {/* Seccion siempre visible. Una sola jerarquia (header
+                    "Credenciales", items directos sin sub-headers).
+                    Items:
+                      1. Primeros auxilios — SIEMPRE renderizado, con dos
+                         estados explicitos. Es senal de SEGURIDAD: la
+                         ausencia es info util para el tutor que va a
+                         dejar su mascota varias horas. Verde si declarado,
+                         slate neutro si no (tono no punitivo).
+                      2. Certificaciones (texto) — condicional. Cualificacion
+                         POSITIVA: ausencia no es senal negativa.
+                      3. Diplomas (uploads aprobados) — condicional. Idem
+                         certificaciones. Solo `estado='aprobado'` (RLS lo
+                         enforza tambien via policy public_read_approved_cert).
+                    Sprint 4 Fase 1 / Commit 3: datos_especificos viven
+                    per-servicio, no aca. */}
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                    <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                        <ShieldCheck size={17} className="text-emerald-500" />
+                        Credenciales
+                    </h2>
+                    <div className="space-y-3">
 
-                            {proveedor.primera_ayuda && (
-                                <div className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-100">
-                                    <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center text-[9px] font-black">+</span>
-                                    Primeros Auxilios
-                                </div>
-                            )}
-                        </div>
-                    </section>
-                )}
+                        {/* Primeros auxilios: siempre visible, dos estados */}
+                        {proveedor.primera_ayuda ? (
+                            <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-100">
+                                <CheckCircle size={13} className="shrink-0" />
+                                Certificación en primeros auxilios para mascotas
+                            </div>
+                        ) : (
+                            <div className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-500 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200">
+                                <Circle size={13} className="shrink-0 text-slate-400" />
+                                No declara certificación en primeros auxilios
+                            </div>
+                        )}
+
+                        {/* Certificaciones (texto libre, opcional) */}
+                        {proveedor.certificaciones && (
+                            <div className="flex items-start gap-2.5 text-sm text-slate-700 pt-1">
+                                <ShieldCheck size={17} className="text-emerald-500 shrink-0 mt-0.5" />
+                                <p className="leading-relaxed">{proveedor.certificaciones}</p>
+                            </div>
+                        )}
+
+                        {/* Diplomas aprobados (tabla `certificaciones`, opcional).
+                            Solo estado='aprobado' — pendientes/rechazadas
+                            NUNCA llegan aqui (filtro explicito en SSR + RLS). */}
+                        {certificacionesAprobadas.length > 0 && (
+                            <ul className="space-y-2 pt-1">
+                                {certificacionesAprobadas.map(cert => (
+                                    <li key={cert.id} className="flex items-start justify-between gap-3 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-semibold text-slate-700 truncate">{cert.titulo}</p>
+                                            {(cert.institucion || cert.anio) && (
+                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                    {cert.institucion}
+                                                    {cert.institucion && cert.anio && ' · '}
+                                                    {cert.anio}
+                                                </p>
+                                            )}
+                                        </div>
+                                        {cert.documento_url && (
+                                            <a
+                                                href={cert.documento_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 shrink-0 self-center"
+                                            >
+                                                Ver
+                                            </a>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </section>
 
                 {/* ══ IDIOMAS ═══════════════════════════════════════════════ */}
                 {Array.isArray(proveedor.idiomas) && proveedor.idiomas.length > 0 && (
@@ -700,6 +747,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .eq('proveedor_id', id)
             .eq('estado', 'aprobado');
 
+        // Diplomas aprobados (tabla `certificaciones`). RLS ya filtra
+        // estado='aprobado' via policy public_read_approved_cert, pero
+        // filtro explicito por defensa en profundidad — si la RLS se
+        // deshabilita / modifica, este SSR sigue sin exponer pendientes.
+        const { data: certificacionesAprobadasRaw } = await supabase
+            .from('certificaciones')
+            .select('id, titulo, institucion, anio, documento_url')
+            .eq('proveedor_id', id)
+            .eq('estado', 'aprobado')
+            .order('created_at', { ascending: false });
+        const certificacionesAprobadas: CertificacionPublica[] = certificacionesAprobadasRaw || [];
+
         let globalRatingPromedio = 0;
         let globalTotalEvaluaciones = 0;
 
@@ -750,7 +809,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .eq('proveedor_id', id);
 
         return {
-            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0 }
+            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0, certificacionesAprobadas }
         };
 
     } catch (e) {
