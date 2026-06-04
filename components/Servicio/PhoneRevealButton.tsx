@@ -50,14 +50,16 @@ export default function PhoneRevealButton({
             onCallTracked();
         };
 
+        // Tertiary: text-link sin border ni fill — jerarquia visual
+        // explicita por debajo de Mensaje (primary) y WhatsApp (secondary).
         return (
             <a
                 href={`tel:${telefono}`}
                 onClick={handleClick}
                 aria-label={`Llamar a ${nombre}`}
-                className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+                className="w-full text-emerald-700 hover:text-emerald-900 hover:underline underline-offset-4 font-medium py-2 inline-flex items-center justify-center gap-1.5 transition-colors text-sm"
             >
-                <Phone size={18} aria-hidden="true" />
+                <Phone size={16} aria-hidden="true" />
                 Llamar
             </a>
         );
@@ -72,14 +74,15 @@ export default function PhoneRevealButton({
             setRevealed(true);
         };
 
+        // Tertiary: text-link (igual que mobile, ver comentario arriba).
         return (
             <button
                 type="button"
                 onClick={handleReveal}
                 aria-label={`Mostrar teléfono de ${nombre}`}
-                className="w-full border-2 border-slate-200 hover:border-emerald-400 text-slate-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+                className="w-full text-emerald-700 hover:text-emerald-900 hover:underline underline-offset-4 font-medium py-2 inline-flex items-center justify-center gap-1.5 transition-colors text-sm"
             >
-                <Phone size={18} aria-hidden="true" />
+                <Phone size={16} aria-hidden="true" />
                 Mostrar teléfono
             </button>
         );

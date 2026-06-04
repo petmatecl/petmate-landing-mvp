@@ -23,7 +23,7 @@ import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles, X,
-    Dog, Cat, FileText,
+    Dog, Cat, FileText, Pencil,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -308,7 +308,9 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
         // flex-col`); duplicarlo aca + pb-20 dejaba ~80-160px extra de gris
         // entre el contenido y el footer (el footer ya tiene mt-20 propio).
         // Mantengo bg-slate-50 porque es el background visual de la ficha.
-        <div className="bg-slate-50">
+        // pb-24 lg:pb-0 reserva espacio para el sticky CTA bar mobile
+        // (h ~64px + safe area) que se monta abajo; en desktop no hay bar.
+        <div className="bg-slate-50 pb-24 lg:pb-0">
             {isExample && exampleBannerVisible && (
                 <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
@@ -890,8 +892,9 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 </h3>
                                 <button
                                     onClick={handleLeaveReview}
-                                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium py-2 px-4 rounded-xl transition-colors text-sm"
+                                    className="inline-flex items-center gap-1.5 border border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold py-1.5 px-3.5 rounded-lg transition-colors text-sm"
                                 >
+                                    <Pencil size={14} aria-hidden="true" />
                                     Dejar mi evaluación
                                 </button>
                             </div>
@@ -966,8 +969,22 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 )}
                             </div>
 
-                            {/* CTAs — inmediatos */}
+                            {/* CTAs — Jerarquia explicita: Mensaje (primario,
+                                fill) > WhatsApp (secundario, outline) > Telefono
+                                (terciario, text-link via PhoneRevealButton).
+                                Antes ambos eran fill y competian por primary. */}
                             <div className="flex flex-col gap-3">
+                                {/* Gate de login — visible ARRIBA de los CTAs
+                                    cuando user no esta autenticado. Da contexto
+                                    antes del click (previo: redirect a login sin
+                                    explicacion). isExample no muestra el hint
+                                    porque tiene su propio ExampleCTAModal. */}
+                                {!user && !isExample && (
+                                    <p className="text-xs text-slate-600 leading-relaxed">
+                                        Inicia sesión para contactar al proveedor.
+                                    </p>
+                                )}
+
                                 <button
                                     onClick={handleChatClick}
                                     disabled={isChatLoading}
@@ -983,7 +1000,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 {proveedor.mostrar_whatsapp && proveedor.telefono && (
                                     <button onClick={handleWhatsApp}
                                         aria-label={`Contactar a ${proveedor.nombre_publico || proveedor.nombre} por WhatsApp`}
-                                        className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium tracking-wide py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+                                        className="w-full bg-white hover:bg-[#25D366]/5 border-2 border-[#25D366] text-[#25D366] font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                                     >
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
                                         WhatsApp
@@ -1182,6 +1199,34 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                         </section>
                     );
                 })()}
+            </div>
+
+            {/* Sticky CTA bar — solo mobile. Visible desde scroll inicial
+                hasta el fin. Reusa handleChatClick (incluye gate de login,
+                example modal y rate limit). El wrapper padre del ficha
+                tiene pb-24 lg:pb-0 para que el contenido no quede tapado.
+                z-40 sobre headers sticky (z-30) pero bajo modales (z-50). */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+                    <div className="shrink-0">
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Desde</p>
+                        <p className="text-lg font-bold text-emerald-700 leading-tight">
+                            ${service.precio_desde?.toLocaleString('es-CL')}
+                            <span className="text-xs font-medium text-slate-500 ml-0.5">/{service.unidad_precio}</span>
+                        </p>
+                    </div>
+                    <button
+                        onClick={handleChatClick}
+                        disabled={isChatLoading}
+                        aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
+                        className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm disabled:opacity-60"
+                    >
+                        {isChatLoading
+                            ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
+                        }
+                    </button>
+                </div>
             </div>
 
             <LoginRequiredModal
