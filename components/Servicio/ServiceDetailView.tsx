@@ -800,7 +800,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                                 if (!d?.activo) return null;
                                                 return (
                                                     <div key={dia} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                                                        <span className="text-sm font-semibold text-slate-700">{dia}</span>
+                                                        <span className="text-sm text-slate-700">{dia}</span>
                                                         <span className="text-sm text-slate-500">{d.desde} — {d.hasta}</span>
                                                     </div>
                                                 );

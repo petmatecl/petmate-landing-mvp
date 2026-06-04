@@ -382,7 +382,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Profesión</p>
-                                        <p className="text-sm font-semibold text-slate-700">{proveedor.ocupacion}</p>
+                                        <p className="text-sm text-slate-700">{proveedor.ocupacion}</p>
                                     </div>
                                 </div>
                             )}
@@ -393,7 +393,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Edad</p>
-                                        <p className="text-sm font-semibold text-slate-700">{edad} años</p>
+                                        <p className="text-sm text-slate-700">{edad} años</p>
                                     </div>
                                 </div>
                             )}
@@ -404,7 +404,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Género</p>
-                                        <p className="text-sm font-semibold text-slate-700">{generoLabel[proveedor.genero]}</p>
+                                        <p className="text-sm text-slate-700">{generoLabel[proveedor.genero]}</p>
                                     </div>
                                 </div>
                             )}
@@ -415,7 +415,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     </div>
                                     <div>
                                         <p className="text-[11px] text-slate-400 font-medium">Experiencia</p>
-                                        <p className="text-sm font-semibold text-slate-700">{proveedor.anios_experiencia} años</p>
+                                        <p className="text-sm text-slate-700">{proveedor.anios_experiencia} años</p>
                                     </div>
                                 </div>
                             )}
@@ -425,7 +425,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 </div>
                                 <div>
                                     <p className="text-[11px] text-slate-400 font-medium">En Pawnecta</p>
-                                    <p className="text-sm font-semibold text-slate-700">Desde {miembroDesde}</p>
+                                    <p className="text-sm text-slate-700">Desde {miembroDesde}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -434,7 +434,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 </div>
                                 <div>
                                     <p className="text-[11px] text-slate-400 font-medium">Servicios activos</p>
-                                    <p className="text-sm font-semibold text-slate-700">{servicios.length}</p>
+                                    <p className="text-sm text-slate-700">{servicios.length}</p>
                                 </div>
                             </div>
                         </div>
