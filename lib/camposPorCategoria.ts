@@ -184,7 +184,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'recoger_correspondencia',      label: 'Recoger correspondencia' },
             { value: 'espacio_separado',             label: 'Espacio separado para la mascota' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Particularidades del espacio, rutina diaria, condiciones especiales...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Particularidades del espacio, rutina diaria, condiciones especiales...' },
     ],
     paseos: [
         { key: 'max_perros', label: 'Máximo de perros simultáneos', tipo: 'number', placeholder: 'Ej: 3', requerido: true },
@@ -201,7 +201,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'gps_tracking', label: 'GPS / app de seguimiento' },
             { value: 'recogida_domicilio', label: 'Recogida en domicilio' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Detalles de la ruta, horarios preferidos, equipo que uso...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Detalles de la ruta, horarios preferidos, equipo que uso...' },
     ],
     veterinario: [
         { key: 'universidad', label: 'Universidad de titulación', tipo: 'text', placeholder: 'Ej: Universidad de Chile', requerido: true },
@@ -221,7 +221,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'certificados_salud', label: 'Certificados de salud' },
             { value: 'microchip', label: 'Implantación de microchip' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Equipos disponibles, marcas de medicamentos, condiciones especiales de atención...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Equipos disponibles, marcas de medicamentos, condiciones especiales de atención...' },
     ],
     traslado: [
         { key: 'tipo_vehiculo', label: 'Tipo de vehículo', tipo: 'select', opciones: [
@@ -242,7 +242,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'seguro_traslado', label: 'Seguro de traslado' },
             { value: 'transporte_nacional', label: 'Transporte interregional / nacional' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Equipamiento de seguridad, restricciones de horario, condiciones especiales...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Equipamiento de seguridad, restricciones de horario, condiciones especiales...' },
     ],
     peluqueria: [
         { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
@@ -270,7 +270,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'perfume', label: 'Perfume / finalización' },
             { value: 'desenredado', label: 'Desenredado / cepillado profundo' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Productos que uso, condiciones para razas difíciles, recomendaciones...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Productos que uso, condiciones para razas difíciles, recomendaciones...' },
     ],
     adiestramiento: [
         { key: 'metodo', label: 'Método de adiestramiento', tipo: 'select', opciones: [
@@ -310,7 +310,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'material_didactico', label: 'Material didáctico para el tutor' },
             { value: 'clases_socializacion', label: 'Clases de socialización' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Problemas conductuales que trabajas, edad recomendada, enfoque pedagógico...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Problemas conductuales que trabajas, edad recomendada, enfoque pedagógico...' },
     ],
     guarderia: [
         { key: 'capacidad', label: 'Capacidad máxima de mascotas simultáneas', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
@@ -326,7 +326,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'siesta_supervisada', label: 'Siesta supervisada' },
             { value: 'videollamada', label: 'Videollamada con el tutor' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Rutina del día, actividades especiales, equipo del local...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Rutina del día, actividades especiales, equipo del local...' },
     ],
     fotografia: [
         // Sprint voice-neutral: pasa a multiselect, sin 'todas'. 'estudio'
@@ -350,7 +350,7 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
             { value: 'sesion_outdoor', label: 'Sesión outdoor' },
             { value: 'retoque_avanzado', label: 'Retoque avanzado' },
         ] },
-        { key: 'notas', label: 'Notas adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Estilo fotográfico, locaciones disponibles, paquetes especiales...' },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Estilo fotográfico, locaciones disponibles, paquetes especiales...' },
     ],
 };
 

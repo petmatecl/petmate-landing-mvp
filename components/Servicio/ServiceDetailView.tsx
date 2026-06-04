@@ -23,7 +23,7 @@ import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles, X,
-    Dog, Cat,
+    Dog, Cat, FileText,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -55,6 +55,33 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
     hospedaje: Home,
     domicilio: MapPin,
 };
+
+// Helper local: texto con toggle expand/collapse. Patron char-based (no
+// DOM measurement) — predictible. Threshold por defecto 400 chars,
+// override-eable per-call. Mismo patron que BioExpandible de
+// pages/proveedor/[id].tsx; se duplica intencionalmente para no acoplar
+// los dos archivos por un wrapper trivial.
+function ExpandibleText({ text, maxChars = 400 }: { text: string; maxChars?: number }) {
+    const [expanded, setExpanded] = useState(false);
+    const needsToggle = text.length > maxChars;
+    const shown = expanded || !needsToggle ? text : text.slice(0, maxChars).trimEnd() + '…';
+    return (
+        <div>
+            <div className="prose prose-slate prose-emerald max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
+                {shown}
+            </div>
+            {needsToggle && (
+                <button
+                    type="button"
+                    onClick={() => setExpanded(v => !v)}
+                    className="mt-3 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors"
+                >
+                    {expanded ? 'Ver menos ↑' : 'Ver más ↓'}
+                </button>
+            )}
+        </div>
+    );
+}
 
 export default function ServiceDetailView({ service, reviews, otrosServicios, isExample = false }: ServiceDetailViewProps) {
     const router = useRouter();
@@ -277,7 +304,11 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        // min-h-screen ya lo aplica el wrapper de _app.tsx (`min-h-screen flex
+        // flex-col`); duplicarlo aca + pb-20 dejaba ~80-160px extra de gris
+        // entre el contenido y el footer (el footer ya tiene mt-20 propio).
+        // Mantengo bg-slate-50 porque es el background visual de la ficha.
+        <div className="bg-slate-50">
             {isExample && exampleBannerVisible && (
                 <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
@@ -548,32 +579,36 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             </div>
                         )}
 
-                        {/* Mascotas Aceptadas — lee booleans acepta_perros/gatos/otras de la BD */}
+                        {/* Mascotas Aceptadas — lee booleans acepta_perros/gatos/
+                            otras de la BD. Antes era un card completo con heading
+                            "Tipos de mascota" para contener solo 1-2 chips —
+                            overkill visual. Ahora es una linea inline compacta
+                            tipo "Atiende:  Perros · Gatos", sin card ni heading
+                            (la info es trivial, no requiere protagonismo). */}
                         {(service.acepta_perros || service.acepta_gatos || service.acepta_otras || service.tamanos_permitidos?.length > 0) && (
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                <h3 className="text-lg font-semibold text-slate-900 mb-4">Tipos de mascota</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {service.acepta_perros && (
-                                        <div className="bg-slate-50 text-slate-700 font-medium border border-slate-200 px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5">
-                                            <Dog size={14} strokeWidth={1.5} aria-hidden="true" /> Perros
-                                        </div>
-                                    )}
-                                    {service.acepta_gatos && (
-                                        <div className="bg-slate-50 text-slate-700 font-medium border border-slate-200 px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5">
-                                            <Cat size={14} strokeWidth={1.5} aria-hidden="true" /> Gatos
-                                        </div>
-                                    )}
-                                    {service.acepta_otras && (
-                                        <div className="bg-slate-50 text-slate-700 font-medium border border-slate-200 px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5">
-                                            <PawPrint size={14} strokeWidth={1.5} aria-hidden="true" /> Otras
-                                        </div>
-                                    )}
-                                    {service.tamanos_permitidos?.length > 0 && (
-                                        <div className="bg-indigo-50 text-indigo-700 font-medium border border-indigo-100 px-4 py-2 rounded-full text-sm">
-                                            Tallas: {service.tamanos_permitidos.join(', ')}
-                                        </div>
-                                    )}
-                                </div>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-slate-600 px-1">
+                                <span className="font-semibold text-slate-700">Atiende:</span>
+                                {service.acepta_perros && (
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Dog size={15} strokeWidth={1.5} className="text-slate-500" /> Perros
+                                    </span>
+                                )}
+                                {service.acepta_gatos && (
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Cat size={15} strokeWidth={1.5} className="text-slate-500" /> Gatos
+                                    </span>
+                                )}
+                                {service.acepta_otras && (
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <PawPrint size={15} strokeWidth={1.5} className="text-slate-500" /> Otras
+                                    </span>
+                                )}
+                                {service.tamanos_permitidos?.length > 0 && (
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <span className="text-slate-400">·</span>
+                                        <span>Tallas: <span className="text-slate-700">{service.tamanos_permitidos.join(', ')}</span></span>
+                                    </span>
+                                )}
                             </div>
                         )}
 
@@ -584,9 +619,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 Acerca del Servicio
                             </h3>
                             {service.descripcion ? (
-                                <div className="prose prose-slate prose-emerald max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
-                                    {service.descripcion}
-                                </div>
+                                <ExpandibleText text={service.descripcion} maxChars={400} />
                             ) : (
                                 <EmptyFieldState
                                     label="descripción"
@@ -603,9 +636,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 Sobre {proveedor.nombre_publico || proveedor.nombre}
                             </h3>
                             {proveedor.bio ? (
-                                <div className="prose prose-slate max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
-                                    {proveedor.bio}
-                                </div>
+                                <ExpandibleText text={proveedor.bio} maxChars={400} />
                             ) : (
                                 <EmptyFieldState
                                     label="información personal"
@@ -644,10 +675,17 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             );
                         })()}
 
-                        {/* Notas adicionales — textarea libre por servicio (Sprint 4 Fase 2). */}
+                        {/* Detalles adicionales — textarea libre por servicio
+                            (campo `notas` en jsonb; label visible renombrado para
+                            que no se confunda con "Incluye"). Heading alineado
+                            con el patron de las otras secciones: text-xl +
+                            FileText icon + flex items-center. */}
                         {service.detalles && typeof service.detalles.notas === 'string' && service.detalles.notas.trim() && (
                             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                <h3 className="text-xl font-semibold text-slate-900 mb-3">Notas del proveedor</h3>
+                                <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                    <FileText size={22} className="text-emerald-500" />
+                                    Detalles adicionales
+                                </h3>
                                 <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
                                     {service.detalles.notas}
                                 </p>
@@ -1121,19 +1159,29 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                     </div>
                 </div>
 
-                {/* Otros proveedores — ancho completo */}
-                {otrosServicios && otrosServicios.length > 0 && (
-                    <section className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                        <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-6">
-                            Otros proveedores de {categoria.nombre} en {proveedor.comuna}
-                        </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {otrosServicios.map(s => (
-                                <ServiceCard key={s.servicio_id} service={s} />
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {/* Otros proveedores — ancho completo. Grid columns adaptado al
+                    count para evitar celdas vacias visibles. 1 card → 1 col;
+                    2 cards → 2 cols (sin tercera vacia); 3+ cards → 3 cols
+                    (tope, antes era xl:4 pero sobre-densificaba en wide). */}
+                {otrosServicios && otrosServicios.length > 0 && (() => {
+                    const colsClass = otrosServicios.length === 1
+                        ? 'grid-cols-1'
+                        : otrosServicios.length === 2
+                            ? 'grid-cols-1 sm:grid-cols-2'
+                            : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+                    return (
+                        <section className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-6">
+                                Otros proveedores de {categoria.nombre} en {proveedor.comuna}
+                            </h2>
+                            <div className={`grid ${colsClass} gap-6`}>
+                                {otrosServicios.map(s => (
+                                    <ServiceCard key={s.servicio_id} service={s} />
+                                ))}
+                            </div>
+                        </section>
+                    );
+                })()}
             </div>
 
             <LoginRequiredModal

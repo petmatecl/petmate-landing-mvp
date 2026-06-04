@@ -183,6 +183,16 @@ export default function ServicioDetallesForm({
                                 const valor: string = typeof values[campo.key] === 'string' ? values[campo.key] : '';
                                 return (
                                     <>
+                                        {/* Helper text especifico para `notas` — clarifica
+                                            el proposito del campo (no es restatement de
+                                            "Incluye"). Si en el futuro se agregan otros
+                                            tipo: 'textarea' que no requieran este copy,
+                                            mover el bloque a un condicional por key. */}
+                                        {campo.key === 'notas' && (
+                                            <p className="text-xs text-slate-500 mb-2 leading-relaxed">
+                                                Usá este espacio para condiciones, requisitos o detalles que no estén en la lista de inclusiones. Evitá repetir lo que ya aparece en los chips.
+                                            </p>
+                                        )}
                                         <textarea
                                             id={`campo-${campo.key}`}
                                             name={`campo-${campo.key}`}
