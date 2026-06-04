@@ -5,6 +5,10 @@ interface ReviewSummaryProps {
     servicioId?: string;
     proveedorId?: string;
     reviewsOverride?: any[];
+    /** Si true, omite el card wrapper y el h3 "Resumen de Evaluaciones".
+     *  Usar cuando el componente padre ya provee header + card (ej. ficha
+     *  publica del servicio, donde el outer card es "Evaluaciones"). */
+    bare?: boolean;
 }
 
 interface Stats {
@@ -17,7 +21,7 @@ interface Stats {
     uno: number;
 }
 
-export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride }: ReviewSummaryProps) {
+export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride, bare = false }: ReviewSummaryProps) {
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(!reviewsOverride);
 
@@ -136,6 +140,48 @@ export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride
         { label: '1 estrella', count: stats.uno, stars: 1 },
     ];
 
+    const innerContent = (
+        <div className="flex flex-col md:flex-row gap-8">
+            {/* Lado Izquierdo: Promedio General */}
+            <div className="w-full md:w-1/3 flex flex-col items-center justify-center text-center p-6 bg-slate-50 border border-slate-100 rounded-2xl">
+                <span className="text-5xl md:text-6xl font-bold text-slate-900 leading-none tracking-tight">
+                    {stats.promedio.toFixed(1)}
+                </span>
+                <div className="mt-3 mb-2">
+                    {renderStars(stats.promedio)}
+                </div>
+                <span className="text-sm font-semibold text-slate-500">
+                    {stats.total} {stats.total === 1 ? 'evaluación' : 'evaluaciones'}
+                </span>
+            </div>
+
+            {/* Lado Derecho: Barras de Progreso */}
+            <div className="w-full md:w-2/3 flex flex-col justify-center gap-3">
+                {starLevels.map((level) => (
+                    <div key={level.stars} className="flex items-center gap-3 text-sm">
+                        <span className="w-20 font-medium text-slate-600 shrink-0 text-right">
+                            {level.label}
+                        </span>
+                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden flex items-center">
+                            <div
+                                className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
+                                style={{ width: `${calculatePercentage(level.count)}%` }}
+                            ></div>
+                        </div>
+                        <span className="w-8 font-medium text-slate-500 text-left shrink-0">
+                            {level.count}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    // Modo bare: el padre ya provee el header y el card wrapper. Solo
+    // devolvemos el contenido (promedio + barras). Evita card-in-card y
+    // doble titulo (ver ServiceDetailView seccion Evaluaciones).
+    if (bare) return innerContent;
+
     return (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
             <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
@@ -144,41 +190,7 @@ export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride
                 </svg>
                 Resumen de Evaluaciones
             </h3>
-
-            <div className="flex flex-col md:flex-row gap-8">
-                {/* Lado Izquierdo: Promedio General */}
-                <div className="w-full md:w-1/3 flex flex-col items-center justify-center text-center p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <span className="text-5xl md:text-6xl font-bold text-slate-900 leading-none tracking-tight">
-                        {stats.promedio.toFixed(1)}
-                    </span>
-                    <div className="mt-3 mb-2">
-                        {renderStars(stats.promedio)}
-                    </div>
-                    <span className="text-sm font-semibold text-slate-500">
-                        {stats.total} {stats.total === 1 ? 'evaluación' : 'evaluaciones'}
-                    </span>
-                </div>
-
-                {/* Lado Derecho: Barras de Progreso */}
-                <div className="w-full md:w-2/3 flex flex-col justify-center gap-3">
-                    {starLevels.map((level) => (
-                        <div key={level.stars} className="flex items-center gap-3 text-sm">
-                            <span className="w-20 font-medium text-slate-600 shrink-0 text-right">
-                                {level.label}
-                            </span>
-                            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden flex items-center">
-                                <div
-                                    className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
-                                    style={{ width: `${calculatePercentage(level.count)}%` }}
-                                ></div>
-                            </div>
-                            <span className="w-8 font-medium text-slate-500 text-left shrink-0">
-                                {level.count}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            {innerContent}
         </div>
     );
 }

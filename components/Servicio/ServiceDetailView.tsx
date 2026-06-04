@@ -449,12 +449,6 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </div>
                                 )}
 
-                                {/* Badge categoría */}
-                                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 bg-white/90 backdrop-blur-md text-slate-700 text-sm font-medium px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
-                                    {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={16} className="text-slate-600" />; })()}
-                                    <span>{categoria.nombre}</span>
-                                </div>
-
                                 {/* Overlay para owner sin fotos del servicio */}
                                 {isOwner && (!service.fotos || service.fotos.length === 0) && (
                                     <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 px-6 text-center">
@@ -678,6 +672,14 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 const v = service.detalles?.[campo.key];
                                 if (v === null || v === undefined || v === '') return false;
                                 if (campo.tipo === 'boolean' && !v) return false; // booleans false no aportan
+                                // Defensa contra datos legacy: hay campos declarados
+                                // como 'text' (ej. razas_especiales) que en una fase
+                                // anterior eran boolean — ver comentario en
+                                // lib/camposPorCategoria.ts L37. Filas legacy pueden
+                                // tener un boolean en lugar de string. Tratamos
+                                // bool false como "no aporta" (skip) y bool true
+                                // como bool (icono check, sin valor textual).
+                                if (typeof v === 'boolean' && !v) return false;
                                 return true;
                             });
                             if (visibles.length === 0) return null;
@@ -690,7 +692,14 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {visibles.map(campo => {
                                             const val = service.detalles?.[campo.key];
-                                            const isBoolean = campo.tipo === 'boolean';
+                                            // `isBoolean` cubre dos casos: (a) el campo
+                                            // esta declarado como boolean en el meta;
+                                            // (b) el campo es text pero la fila legacy
+                                            // tiene boolean en el jsonb (ver filtro
+                                            // arriba). Sin (b), el render caia a
+                                            // formatValorCampo -> String(true) y mostraba
+                                            // "true" literal.
+                                            const isBoolean = campo.tipo === 'boolean' || typeof val === 'boolean';
                                             const displayValue = isBoolean ? null : formatValorCampo(campo, val);
                                             return (
                                                 <div key={campo.key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
@@ -831,11 +840,6 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </div>
                                 )}
 
-                            <Link href={`/proveedor/${proveedor.id}`}
-                                className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
-                                Ver perfil completo de {proveedor.nombre}
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-                            </Link>
                         </div>
 
                         {/* Evaluaciones */}
@@ -855,7 +859,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             </div>
 
                             <div className="mb-10">
-                                <ReviewSummary servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
+                                <ReviewSummary servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} bare />
                             </div>
 
                             {totalReviews > 0 ? (
@@ -923,12 +927,6 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </div>
                                 )}
                             </div>
-
-                            {service.descripcion && (
-                                <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 pb-1">
-                                    {service.descripcion}
-                                </p>
-                            )}
 
                             {/* CTAs — inmediatos */}
                             <div className="flex flex-col gap-3">
