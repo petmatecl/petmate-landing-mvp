@@ -93,6 +93,22 @@ lib/
 - Sistema de booking/transacciones
 - Monetización (será post-lanzamiento: plan destacado para proveedores)
 
+## PWA / Service Worker
+
+La app usa `next-pwa` (config en `next.config.js`). Resumen de la estrategia de cacheo y cache-busting — relevante porque sin entenderlo, "deploys que parecen no haber landed" se vuelven recurrentes.
+
+**Activación del SW nuevo**: `skipWaiting: true` + `clientsClaim: true` (default de next-pwa). Cuando el browser detecta un `/sw.js` nuevo, se instala y activa al instante, sin esperar a que se cierren las tabs.
+
+**Runtime caching** (defaults de next-pwa 5.6, sin override en config):
+- **NetworkFirst** para HTML/navigations y `/api/*` no-auth (10s timeout). El SW intenta network primero; si falla cae al cache. Asegura HTML siempre fresh.
+- **StaleWhileRevalidate** para JS chunks, CSS, imágenes, `_next/data/*.json`, `_next/image`. Sirve cache al instante y refresca en background — la próxima visita ya tiene la versión nueva.
+- **CacheFirst** para fonts (`gstatic`, audio, video). Cambian rara vez.
+- `cleanupOutdatedCaches()` se ejecuta al activar — purga revisions viejas.
+
+**Cache-busting del SW**: `/sw.js` y `/workbox-:hash` se sirven con `Cache-Control: public, max-age=0, must-revalidate` (header explícito en `next.config.js`). Sin esto, Vercel CDN puede cachear el SW largo y el browser nunca re-fetchearía aunque deployemos. Los chunks JS/CSS/imágenes mantienen el caching agresivo default (sus URLs son content-hashed, así que un deploy nuevo = URL nueva = miss natural).
+
+**Limitación conocida (no resuelta)**: el browser re-revisa `sw.js` en navigation events (~24h o cuando vuelve a foco). Con SPA Next.js + client-side routing, las navegaciones internas (Link, router.push) NO disparan re-check. Un user con tab abierta puede tardar en detectar el SW nuevo. Para validar deploys: hard refresh / tab nueva / incógnito.
+
 ## Workflow
 
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático

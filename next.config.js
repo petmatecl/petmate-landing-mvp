@@ -48,7 +48,27 @@ const nextConfig = {
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
           },
         ]
-      }
+      },
+      // Cache-busting del Service Worker. Vercel por default cachea statics
+      // agresivamente; sin no-cache aca, /sw.js puede quedar pegado en la
+      // CDN o en el browser y los users nunca detectan un deploy nuevo
+      // aunque skipWaiting + NetworkFirst estén bien configurados.
+      // /sw.js es URL estable (no content-hashed): siempre revalidar.
+      // /workbox-:hash.js es content-hashed (cambia con next-pwa version),
+      // pero aplicamos la misma policy como cinturon de seguridad.
+      // Ver CLAUDE.md > PWA / Service Worker.
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+        ],
+      },
+      {
+        source: '/workbox-:hash',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+        ],
+      },
     ]
   },
 
