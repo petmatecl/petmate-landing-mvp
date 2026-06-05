@@ -30,10 +30,12 @@ export function Footer() {
           <p className="text-sm text-slate-500 leading-relaxed">
             Conectamos tutores con cuidadores de confianza en Chile.
           </p>
+          {/* Dirección física removida del footer publico por razon de
+              privacidad — vive solo en /terminos y /privacidad como dato
+              del responsable legal. "Interactive SpA" (nombre legal) se
+              mantiene porque no expone direccion ni info personal. */}
           <p className="text-xs text-slate-400 leading-relaxed">
-            Interactive SpA<br />
-            Irarrázaval 2150 D519<br />
-            Ñuñoa, Santiago
+            Interactive SpA
           </p>
         </div>
 
