@@ -131,6 +131,24 @@ Filtrar fixes performativos: un commit que cierra una vulnerabilidad con solo un
 
 Referencia histórica: commit `1bc1897` (audit completo "24 vulnerabilities fixed") cerró 17/20 items con código real, pero #19 (notification spam vector — cualquier user autenticado podía spammear notificaciones a cualquier `userId` arbitrario) quedó con TODO + warn sin gate efectivo — fix performativo. Resuelto agregando relationship check (conversación / agendamiento / admin) en `/api/notifications/create`. Lección: cuando se audita un commit "X vulnerabilities fixed", verificar línea por línea que el fix tiene gate real, no solo telemetría.
 
+## Content Security Policy
+
+La policy en `next.config.js` (header `Content-Security-Policy`) whitelistea orígenes externos específicos que la app efectivamente usa. Cuando se integre algo nuevo que cargue desde otro origen (CDN, API, font provider, embed, analytics):
+
+1. Identificar la categoría CSP que afecta: `img-src` (imágenes), `script-src` (scripts), `style-src` (CSS), `font-src` (fonts), `connect-src` (XHR/fetch/websocket), `media-src` (audio/video), `worker-src` (service workers / web workers), `frame-src` (iframes), `object-src` (plugins).
+2. Agregar el origen específico a esa categoría en el array de directivas. Usar dominios concretos o wildcards de subdominio acotados (ej. `https://*.supabase.co`) — **nunca** wildcards sueltos (`https:` sin host) porque invalidan el propósito.
+3. Re-deploy y smoke test en DevTools → Console buscando `Refused to load ... because it violates the following Content Security Policy directive`. Si aparece violation, el origen no está en la whitelist o la directiva está mal.
+
+**Orígenes actualmente permitidos** (ver `next.config.js` para el listado vivo):
+- Imágenes: Supabase storage, Unsplash, Pexels, ui-avatars, cartocdn y openstreetmap (mapas Leaflet), cdnjs (marker icons), firebasestorage (logo email).
+- Scripts: Google Tag Manager (GA cuando consent).
+- Conexiones: Supabase REST + Realtime websocket, Nominatim (geocoding), Google Analytics.
+- Fonts: Google Fonts (CSS + binarios).
+
+**Limitaciones aceptadas** (`'unsafe-inline'` + `'unsafe-eval'` en `script-src`): Next.js inyecta inline scripts para hydration; libs como react-leaflet usan `Function` eval interno. Migración a nonces vía middleware Next queda como mejora futura — bloqueada por simplicidad operacional actual.
+
+**Referencia histórica**: commit `1bc1897` introdujo una CSP demasiado restrictiva en `img-src` que rompía cross-origin images, removida en `5c05b22` / `e135d1e`. La policy actual es el re-fix correcto con whitelist precisa basada en inventario real de orígenes usados por la app.
+
 ## Workflow
 
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático

@@ -47,6 +47,38 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
           },
+          // Content Security Policy — fix #15 del audit 1bc1897. El CSP
+          // original (commit 1bc1897) fue removido en 5c05b22/e135d1e por
+          // bloquear cross-origin images. Esta version reintroduce el
+          // header con whitelist precisa de orígenes que la app
+          // efectivamente usa (mapas Leaflet, Supabase storage, blog
+          // images, Google Fonts, GA, Nominatim). Ver CLAUDE.md §
+          // "Content Security Policy" para el procedimiento de agregar
+          // nuevos orígenes cuando se integre un CDN/API.
+          //
+          // 'unsafe-inline' + 'unsafe-eval' en script-src se mantienen
+          // por simplicidad operacional (Next.js bootstrap + react-leaflet).
+          // Migracion a nonces queda como mejora futura (requiere
+          // middleware Next).
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://images.pexels.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com https://firebasestorage.googleapis.com",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://www.google-analytics.com",
+              "media-src 'self'",
+              "worker-src 'self'",
+              "frame-src 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "upgrade-insecure-requests",
+            ].join('; ')
+          },
         ]
       },
       // Cache-busting del Service Worker. Vercel por default cachea statics
