@@ -27,7 +27,7 @@ const LocationPicker = dynamic(() => import('../../components/Shared/LocationPic
         </div>
     ),
 });
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format as formatDate } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
@@ -40,7 +40,7 @@ import {
     Clock, AlertTriangle, Briefcase, User as UserIcon, Shield, ShieldCheck, ShieldX,
     Star, MessageSquare, BarChart, Edit, Trash2, LayoutDashboard, Eye, Camera,
     Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink, X,
-    Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin,
+    Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Calendar,
     type LucideIcon
 } from 'lucide-react';
 
@@ -62,7 +62,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
     domicilio: MapPin,
 };
 
-type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas';
+type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas' | 'solicitudes';
 
 // Sub-tabs dentro de Mi Perfil. Refactor a 5 pestanas — el form sigue
 // siendo uno solo con un unico saveProfile; las tabs solo dividen UI.
@@ -126,6 +126,13 @@ export default function ProveedorDashboard() {
     // Tab Data
     const [servicios, setServicios] = useState<any[]>([]);
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);
+    // Sprint 3 agendamiento — solicitudes recibidas por el proveedor.
+    // Joins inline: usuario_buscador (tutor) y servicio publicado (titulo).
+    // Se carga al hidratar el proveedor (no diferido al click del tab) para
+    // poder mostrar el badge de pendientes en el label del tab sin esperar.
+    const [solicitudes, setSolicitudes] = useState<any[]>([]);
+    const [solicitudActionId, setSolicitudActionId] = useState<string | null>(null);
+    const [solicitudNotas, setSolicitudNotas] = useState<Record<string, string>>({});
 
     // Stats via shared hook — uses proveedor.id once loaded
     const { stats, refetch: fetchStats } = useProveedorStats(
@@ -293,6 +300,9 @@ export default function ProveedorDashboard() {
 
         if (data.estado === 'aprobado') {
             loadTabData('servicios', data.id, data.auth_user_id);
+            // Sprint 3 — precargar solicitudes para alimentar el badge del
+            // tab desde el mount (sin esperar al click). Fire-and-forget.
+            fetchSolicitudes(data.id);
         }
         // Reset baseline de dirty tracking. Cualquier re-hidratacion (mount
         // o post-save refresh) re-toma el snapshot post-hydrate como
@@ -342,8 +352,95 @@ export default function ProveedorDashboard() {
             setEvaluaciones(data || []);
         } else if (tab === 'estadisticas') {
             await fetchStats();
+        } else if (tab === 'solicitudes') {
+            // Refetch del listado al abrir el tab (por si cambio algo
+            // desde otra ventana). Tambien lo cargamos en mount via effect
+            // dedicado para tener el badge listo.
+            await fetchSolicitudes(provId);
         }
     };
+
+    // Sprint 3 agendamiento — fetcher de solicitudes. Joins por foreign keys
+    // declaradas en la BD (usuarios_buscadores via tutor_id, servicios_
+    // publicados via servicio_id). Si la BD no tiene las FK declaradas
+    // explicitas, supabase-js cae a null en los joins — el render maneja
+    // eso (titulo: 'servicio sin titulo', etc.).
+    const fetchSolicitudes = useCallback(async (provId: string) => {
+        const { data, error } = await supabase
+            .from('agendamientos')
+            .select(`
+                id, servicio_id, proveedor_id, tutor_id,
+                fecha_preferida, mensaje, estado, nota_proveedor,
+                respondido_at, created_at, updated_at,
+                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
+            `)
+            .eq('proveedor_id', provId)
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.error('[Solicitudes] fetch error:', error);
+            return;
+        }
+        // Ordenar pendientes primero, luego por created_at desc (la BD
+        // ya devuelve por created_at desc; partition local por estado).
+        const pendientes = (data || []).filter(s => s.estado === 'pendiente');
+        const otras = (data || []).filter(s => s.estado !== 'pendiente');
+        setSolicitudes([...pendientes, ...otras]);
+    }, []);
+
+    const solicitudesPendientesCount = useMemo(
+        () => solicitudes.filter(s => s.estado === 'pendiente').length,
+        [solicitudes]
+    );
+
+    const handleResponderSolicitud = useCallback(
+        async (solicitudId: string, nuevoEstado: 'confirmada' | 'rechazada') => {
+            setSolicitudActionId(solicitudId);
+            try {
+                const nota = solicitudNotas[solicitudId]?.trim() || null;
+                const { error } = await supabase
+                    .from('agendamientos')
+                    .update({
+                        estado: nuevoEstado,
+                        nota_proveedor: nota,
+                        respondido_at: new Date().toISOString(),
+                    })
+                    .eq('id', solicitudId);
+                if (error) throw error;
+                toast.success(
+                    nuevoEstado === 'confirmada'
+                        ? 'Solicitud confirmada. El tutor recibirá un email.'
+                        : 'Solicitud rechazada. El tutor recibirá un email.'
+                );
+                // Refresh local: refetch full list para que el badge y
+                // el orden (pendientes primero) queden consistentes.
+                if (proveedor?.id) await fetchSolicitudes(proveedor.id);
+                setSolicitudNotas(prev => {
+                    const next = { ...prev };
+                    delete next[solicitudId];
+                    return next;
+                });
+                // Email al tutor — fire-and-forget. Sprint 3 parte B.
+                // El endpoint /api/agendamientos/notify-tutor se crea
+                // en el commit de la parte B; mientras no exista, la
+                // promesa rechaza y solo loggea (no rompe el UPDATE).
+                fetch('/api/agendamientos/notify-tutor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ''}`,
+                    },
+                    body: JSON.stringify({ agendamientoId: solicitudId }),
+                }).catch(err => console.warn('[Solicitudes] notify-tutor falló:', err));
+            } catch (err: any) {
+                console.error('[Solicitudes] update error:', err);
+                toast.error(`No pudimos actualizar la solicitud: ${err?.message || 'error desconocido'}`);
+            } finally {
+                setSolicitudActionId(null);
+            }
+        },
+        [proveedor?.id, solicitudNotas, fetchSolicitudes]
+    );
 
     const handleTabChange = (tab: TabType) => {
         setActiveTab(tab);
@@ -358,7 +455,7 @@ export default function ProveedorDashboard() {
     useEffect(() => {
         if (!router.isReady) return;
         const queryTab = router.query.tab as TabType | undefined;
-        const validTabs: TabType[] = ['servicios', 'perfil', 'info_servicio', 'evaluaciones', 'mensajes', 'estadisticas'];
+        const validTabs: TabType[] = ['servicios', 'perfil', 'info_servicio', 'evaluaciones', 'mensajes', 'estadisticas', 'solicitudes'];
         if (queryTab && validTabs.includes(queryTab) && queryTab !== activeTab) {
             setActiveTab(queryTab);
         }
@@ -980,6 +1077,7 @@ export default function ProveedorDashboard() {
                                 { id: 'evaluaciones', label: 'Evaluaciones', icon: <Star size={20} /> },
                                 { id: 'mensajes', label: 'Mensajes', icon: <MessageSquare size={20} /> },
                                 { id: 'estadisticas', label: 'Estadísticas', icon: <BarChart size={20} /> },
+                                { id: 'solicitudes', label: 'Solicitudes', icon: <Calendar size={20} />, badge: solicitudesPendientesCount },
                             ].map(item => (
                                 <button
                                     key={item.id}
@@ -987,7 +1085,12 @@ export default function ProveedorDashboard() {
                                     className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-emerald-50 text-[#1A6B4A] font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
                                     {item.icon}
-                                    {item.label}
+                                    <span className="flex-1">{item.label}</span>
+                                    {(item as any).badge > 0 && (
+                                        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-emerald-500 text-white text-[11px] font-semibold rounded-full">
+                                            {(item as any).badge}
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </nav>
@@ -1003,6 +1106,7 @@ export default function ProveedorDashboard() {
                         { id: 'evaluaciones', label: 'Evaluaciones', icon: <Star size={16} /> },
                         { id: 'mensajes', label: 'Mensajes', icon: <MessageSquare size={16} /> },
                         { id: 'estadisticas', label: 'Métricas', icon: <BarChart size={16} /> },
+                        { id: 'solicitudes', label: 'Solicitudes', icon: <Calendar size={16} />, badge: solicitudesPendientesCount },
                     ].map(item => (
                         <button
                             key={item.id}
@@ -1011,6 +1115,11 @@ export default function ProveedorDashboard() {
                         >
                             {item.icon}
                             {item.label}
+                            {(item as any).badge > 0 && (
+                                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-emerald-500 text-white text-[10px] font-semibold rounded-full">
+                                    {(item as any).badge}
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>
@@ -2034,6 +2143,147 @@ export default function ProveedorDashboard() {
                                 </div>
                             </div>
 
+                        </div>
+                    )}
+
+                    {/* SOLICITUDES (Sprint 3 agendamiento) — lista de
+                        agendamientos recibidos. Pendientes primero. RLS ya
+                        restringe a las del proveedor logueado. */}
+                    {activeTab === 'solicitudes' && (
+                        <div className="animate-in fade-in duration-300 max-w-3xl">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Solicitudes de agendamiento</h1>
+                            <p className="text-sm text-slate-500 mb-8 leading-relaxed">
+                                Confirmá o rechazá las solicitudes que recibís para tus servicios con agendamiento habilitado.
+                            </p>
+
+                            {solicitudes.length === 0 ? (
+                                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+                                    <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Calendar size={32} />
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no recibís solicitudes de agendamiento</h3>
+                                    <p className="text-sm text-slate-500 max-w-md mx-auto">
+                                        Las solicitudes aparecen acá cuando algún tutor agenda en uno de tus servicios. Asegurate de tener el toggle de agendamiento habilitado en al menos un servicio.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {solicitudes.map(sol => {
+                                        const tutor = Array.isArray(sol.tutor) ? sol.tutor[0] : sol.tutor;
+                                        const servicio = Array.isArray(sol.servicio) ? sol.servicio[0] : sol.servicio;
+                                        const isPendiente = sol.estado === 'pendiente';
+                                        const isCancelada = sol.estado === 'cancelada';
+                                        const isLoading = solicitudActionId === sol.id;
+                                        const nota = solicitudNotas[sol.id] ?? '';
+
+                                        const fechaPreferida = sol.fecha_preferida
+                                            ? formatDate(new Date(sol.fecha_preferida), "EEEE d 'de' MMMM, HH:mm", { locale: es })
+                                            : 'sin fecha';
+                                        const respondidoAt = sol.respondido_at
+                                            ? formatDate(new Date(sol.respondido_at), "d 'de' MMMM, HH:mm", { locale: es })
+                                            : null;
+
+                                        const estadoBadge = (() => {
+                                            switch (sol.estado) {
+                                                case 'confirmada':
+                                                    return <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
+                                                case 'rechazada':
+                                                    return <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
+                                                case 'cancelada':
+                                                    return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada</span>;
+                                                default:
+                                                    return <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
+                                            }
+                                        })();
+
+                                        const tutorIniciales = tutor
+                                            ? ((tutor.nombre || '?')[0] + (tutor.apellido_p || '')[0] || '').toUpperCase()
+                                            : '?';
+
+                                        return (
+                                            <div key={sol.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+                                                {/* Header: tutor + servicio + estado */}
+                                                <div className="flex items-start justify-between gap-3 mb-4">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-semibold text-sm shrink-0">
+                                                            {tutorIniciales}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                                                {tutor ? `${tutor.nombre} ${tutor.apellido_p || ''}`.trim() : 'Tutor desconocido'}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500 truncate">
+                                                                {servicio?.titulo || 'Servicio eliminado'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="shrink-0">{estadoBadge}</div>
+                                                </div>
+
+                                                {/* Fecha preferida */}
+                                                <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
+                                                    <Calendar size={15} className="text-slate-400 shrink-0" />
+                                                    <span className="capitalize">{fechaPreferida}</span>
+                                                </div>
+
+                                                {/* Mensaje del tutor */}
+                                                {sol.mensaje && (
+                                                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
+                                                        <p className="text-[11px] uppercase tracking-widest text-slate-400 font-medium mb-1">Mensaje del tutor</p>
+                                                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{sol.mensaje}</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Respuesta del proveedor (estados ya resueltos) */}
+                                                {!isPendiente && !isCancelada && (sol.nota_proveedor || respondidoAt) && (
+                                                    <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100 mb-3">
+                                                        <p className="text-[11px] uppercase tracking-widest text-emerald-700 font-medium mb-1">
+                                                            Tu respuesta{respondidoAt ? ` · ${respondidoAt}` : ''}
+                                                        </p>
+                                                        {sol.nota_proveedor
+                                                            ? <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{sol.nota_proveedor}</p>
+                                                            : <p className="text-sm text-slate-500 italic">Sin nota adicional</p>}
+                                                    </div>
+                                                )}
+
+                                                {/* Acciones para pendientes */}
+                                                {isPendiente && (
+                                                    <div className="border-t border-slate-100 pt-4 mt-4 space-y-3">
+                                                        <textarea
+                                                            value={nota}
+                                                            onChange={e => setSolicitudNotas(prev => ({ ...prev, [sol.id]: e.target.value }))}
+                                                            placeholder="Agregá una nota para el tutor, ej: instrucciones específicas, requisitos, etc."
+                                                            rows={2}
+                                                            maxLength={500}
+                                                            disabled={isLoading}
+                                                            className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors resize-none disabled:opacity-60"
+                                                        />
+                                                        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleResponderSolicitud(sol.id, 'rechazada')}
+                                                                disabled={isLoading}
+                                                                className="px-4 py-2 text-sm font-semibold text-red-600 border border-red-300 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
+                                                            >
+                                                                Rechazar
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleResponderSolicitud(sol.id, 'confirmada')}
+                                                                disabled={isLoading}
+                                                                className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                                                            >
+                                                                {isLoading && <Loader2 size={14} className="animate-spin" />}
+                                                                Confirmar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
