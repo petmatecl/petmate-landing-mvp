@@ -12,6 +12,7 @@ import PhoneRevealButton from './PhoneRevealButton';
 import FavoritoButton from '../Shared/FavoritoButton';
 import ReviewModal from '../Service/ReviewModal';
 import ReviewForm from '../Service/ReviewForm';
+import SolicitarAgendamientoModal from './SolicitarAgendamientoModal';
 import ReviewSummary from '../Service/ReviewSummary';
 import ReviewList from '../Service/ReviewList';
 import PreguntasSection from '../Service/PreguntasSection';
@@ -23,7 +24,7 @@ import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles, X,
-    Dog, Cat, FileText, Pencil, CheckCircle, Circle,
+    Dog, Cat, FileText, Pencil, CheckCircle, Circle, Calendar,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -88,6 +89,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     const [fotoActiva, setFotoActiva] = useState(0);
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [agendamientoModalOpen, setAgendamientoModalOpen] = useState(false);
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [imgError, setImgError] = useState(false);
     const [exampleModalAction, setExampleModalAction] = useState<ExampleAction | null>(null);
@@ -302,6 +304,26 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
         setReviewModalOpen(true);
     };
+
+    // Sprint 2 agendamiento — handler del CTA "Solicitar agendamiento".
+    // Mismo gating pattern que los otros CTAs (example → ExampleCTAModal;
+    // guest → LoginRequiredModal; OK → abre el modal de solicitud).
+    const handleSolicitarAgendamiento = async () => {
+        if (isExample) { setExampleModalAction('agendamiento'); return; }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+            setLoginModalOpen(true);
+            return;
+        }
+        setAgendamientoModalOpen(true);
+    };
+
+    // Bandera derivada — agendamiento habilitado en este servicio. Si la
+    // columna no esta en el row (servicio legacy pre-Sprint 1), undefined
+    // se trata como false. NO mostrar el CTA cuando es example: usamos
+    // el flag real, no `true || isExample` — para que la ficha demo se
+    // comporte distinto solo si el servicio demo explicitamente la habilito.
+    const agendamientoOn = service?.agendamiento_habilitado === true;
 
     return (
         // min-h-screen ya lo aplica el wrapper de _app.tsx (`min-h-screen flex
@@ -978,10 +1000,15 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 )}
                             </div>
 
-                            {/* CTAs — Jerarquia explicita: Mensaje (primario,
-                                fill) > WhatsApp (secundario, outline) > Telefono
-                                (terciario, text-link via PhoneRevealButton).
-                                Antes ambos eran fill y competian por primary. */}
+                            {/* CTAs — Jerarquia explicita:
+                                  - Sin agendamiento: Mensaje (filled primary) >
+                                    WhatsApp (outline) > Telefono (text-link).
+                                  - Con agendamiento: Solicitar agendamiento
+                                    (filled primary) > Mensaje (outline) >
+                                    WhatsApp (outline) > Telefono (text-link).
+                                Mensaje degrada a outline cuando agendamiento
+                                es el canal preferido — sigue disponible pero
+                                no compite por la atencion. */}
                             <div className="flex flex-col gap-3">
                                 {/* Gate de login — visible ARRIBA de los CTAs
                                     cuando user no esta autenticado. Da contexto
@@ -994,15 +1021,30 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </p>
                                 )}
 
+                                {agendamientoOn && (
+                                    <button
+                                        onClick={handleSolicitarAgendamiento}
+                                        aria-label={`Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`}
+                                        className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base"
+                                    >
+                                        <Calendar size={20} strokeWidth={2} aria-hidden="true" />
+                                        Solicitar agendamiento
+                                    </button>
+                                )}
+
                                 <button
                                     onClick={handleChatClick}
                                     disabled={isChatLoading}
                                     aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
-                                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
+                                    className={
+                                        agendamientoOn
+                                            ? "w-full bg-white hover:bg-emerald-50 border-2 border-emerald-700 text-emerald-700 font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm disabled:opacity-60"
+                                            : "w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
+                                    }
                                 >
                                     {isChatLoading
-                                        ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        : <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
+                                        ? <div className={agendamientoOn ? "w-4 h-4 border-2 border-emerald-700/30 border-t-emerald-700 rounded-full animate-spin" : "w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"} />
+                                        : <><svg width={agendamientoOn ? 18 : 20} height={agendamientoOn ? 18 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
                                     }
                                 </button>
 
@@ -1247,17 +1289,28 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             <span className="text-xs font-medium text-slate-500 ml-0.5">/{service.unidad_precio}</span>
                         </p>
                     </div>
-                    <button
-                        onClick={handleChatClick}
-                        disabled={isChatLoading}
-                        aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
-                        className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm disabled:opacity-60"
-                    >
-                        {isChatLoading
-                            ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
-                        }
-                    </button>
+                    {agendamientoOn ? (
+                        <button
+                            onClick={handleSolicitarAgendamiento}
+                            aria-label={`Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`}
+                            className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm"
+                        >
+                            <Calendar size={18} strokeWidth={2} aria-hidden="true" />
+                            Solicitar agendamiento
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleChatClick}
+                            disabled={isChatLoading}
+                            aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
+                            className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm disabled:opacity-60"
+                        >
+                            {isChatLoading
+                                ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
+                            }
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -1268,6 +1321,13 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
             <ReviewModal
                 isOpen={reviewModalOpen}
                 onClose={() => setReviewModalOpen(false)}
+                servicioId={service.id}
+                proveedorId={proveedor.id}
+                serviceTitle={service.titulo}
+            />
+            <SolicitarAgendamientoModal
+                isOpen={agendamientoModalOpen}
+                onClose={() => setAgendamientoModalOpen(false)}
                 servicioId={service.id}
                 proveedorId={proveedor.id}
                 serviceTitle={service.titulo}
