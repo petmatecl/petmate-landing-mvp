@@ -57,6 +57,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [uploadingFotos, setUploadingFotos] = useState(false);
     const [showMobilePreview, setShowMobilePreview] = useState(false);
 
+    // Sprint 1 agendamiento (UI). Toggle por servicio. La columna en BD
+    // tiene default false; este state respeta ese default para nuevos.
+    const [agendamientoHabilitado, setAgendamientoHabilitado] = useState(false);
+
     // Category-specific fields (stored as JSONB)
     const [detalles, setDetalles] = useState<Record<string, any>>({});
 
@@ -120,6 +124,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setDetalles({});
         setComunasCobertura([]);
         setComunaSearch('');
+        setAgendamientoHabilitado(false);
     };
 
     const fetchCategorias = useCallback(async () => {
@@ -175,6 +180,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 setFotos(data.fotos || []);
                 setDetalles(data.detalles || {});
                 setComunasCobertura(data.comunas_cobertura || []);
+                setAgendamientoHabilitado(!!data.agendamiento_habilitado);
             }
         } catch (err: any) {
             if (err?.message === 'fetch-timeout') {
@@ -314,6 +320,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             fotos,
             detalles: detallesParaGuardar,
             comunas_cobertura: comunasCobertura,
+            agendamiento_habilitado: agendamientoHabilitado,
         };
 
         if (existingServiceId) {
@@ -620,6 +627,34 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* ── SECCIÓN: Agendamiento ──
+                                Sprint 1 (UI only). Toggle per-servicio. La
+                                ficha publica del servicio mostrara el CTA
+                                "Solicitar agendamiento" cuando este flag sea
+                                true (Sprint 2). El panel de solicitudes del
+                                proveedor es Sprint 3. */}
+                            <div className="border-t border-slate-100 py-6">
+                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agendamiento</p>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <div className="relative shrink-0 mt-0.5">
+                                        <input
+                                            type="checkbox"
+                                            checked={agendamientoHabilitado}
+                                            onChange={e => setAgendamientoHabilitado(e.target.checked)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-10 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full transition-colors" />
+                                        <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-sm text-slate-700 block">Habilitar solicitudes de agendamiento</span>
+                                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Si está habilitado, los tutores podrán solicitar agendamientos para este servicio desde la ficha pública. Vos confirmas o rechazas cada solicitud desde tu panel.
+                                        </p>
+                                    </div>
+                                </label>
                             </div>
 
                             {/* ── SECCIÓN 3: Mascotas ── */}
