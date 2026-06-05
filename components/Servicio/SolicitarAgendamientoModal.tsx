@@ -132,7 +132,16 @@ export default function SolicitarAgendamientoModal({
                 }).catch(err => console.warn('[SolicitarAgendamientoModal] notify-proveedor falló:', err));
             }
 
-            toast.success('Solicitud enviada. El proveedor te responderá pronto.');
+            // Sprint 4: toast con accion "Ver mis solicitudes" — cierra el
+            // loop visual de "cree una solicitud → puedo verla aca". Sonner
+            // soporta action prop con label + onClick.
+            toast.success('Solicitud enviada. El proveedor te responderá pronto.', {
+                action: {
+                    label: 'Ver mis solicitudes',
+                    onClick: () => { window.location.href = '/mis-solicitudes'; },
+                },
+                duration: 8000,
+            });
             reset();
             onClose();
         } catch (err: any) {

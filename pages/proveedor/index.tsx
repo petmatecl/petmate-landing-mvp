@@ -27,8 +27,7 @@ const LocationPicker = dynamic(() => import('../../components/Shared/LocationPic
         </div>
     ),
 });
-import { formatDistanceToNow, format as formatDate } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { formatFechaPreferida, formatFechaCorta } from '../../lib/formatFecha';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
@@ -2176,12 +2175,8 @@ export default function ProveedorDashboard() {
                                         const isLoading = solicitudActionId === sol.id;
                                         const nota = solicitudNotas[sol.id] ?? '';
 
-                                        const fechaPreferida = sol.fecha_preferida
-                                            ? formatDate(new Date(sol.fecha_preferida), "EEEE d 'de' MMMM, HH:mm", { locale: es })
-                                            : 'sin fecha';
-                                        const respondidoAt = sol.respondido_at
-                                            ? formatDate(new Date(sol.respondido_at), "d 'de' MMMM, HH:mm", { locale: es })
-                                            : null;
+                                        const fechaPreferida = formatFechaPreferida(sol.fecha_preferida);
+                                        const respondidoAt = formatFechaCorta(sol.respondido_at);
 
                                         const estadoBadge = (() => {
                                             switch (sol.estado) {

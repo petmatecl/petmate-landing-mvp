@@ -170,6 +170,15 @@ export default function Header() {
               >
                 {dashboardLabel}
               </Link>
+              {/* Sprint 4 agendamiento — acceso a las solicitudes del tutor.
+                  Visible para cualquier autenticado; la pagina maneja el
+                  caso "no tiene perfil de tutor" con un mensaje propio. */}
+              <Link
+                href="/mis-solicitudes"
+                className="text-sm font-normal text-slate-500 hover:text-emerald-700"
+              >
+                Mis solicitudes
+              </Link>
               <button
                 onClick={async () => {
                   setOpen(false);
@@ -288,6 +297,13 @@ export default function Header() {
                   onClick={() => setOpen(false)}
                 >
                   {dashboardLabel}
+                </Link>
+                <Link
+                  href="/mis-solicitudes"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-emerald-700"
+                >
+                  Mis solicitudes
                 </Link>
                 <button
                   onClick={async () => {

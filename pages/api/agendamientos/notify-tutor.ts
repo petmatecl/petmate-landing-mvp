@@ -5,8 +5,7 @@ import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
 import AgendamientoTutorEmail from '../../../components/Emails/AgendamientoTutorEmail';
-import { format as formatDate } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { formatFechaPreferida } from '../../../lib/formatFecha';
 
 /**
  * Sprint 3 agendamiento — notifica al tutor cuando el proveedor responde
@@ -94,9 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(200).json({ skipped: true, reason: 'no_email' });
         }
 
-        const fechaFormateada = agend.fecha_preferida
-            ? formatDate(new Date(agend.fecha_preferida), "EEEE d 'de' MMMM, HH:mm", { locale: es })
-            : 'sin fecha';
+        const fechaFormateada = formatFechaPreferida(agend.fecha_preferida);
 
         // Telefono/WhatsApp del proveedor — solo si esta marcado como publico
         // en su perfil. Si el proveedor no opto por exponerlos, no los

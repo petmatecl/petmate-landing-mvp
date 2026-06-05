@@ -5,8 +5,7 @@ import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
 import AgendamientoProveedorEmail from '../../../components/Emails/AgendamientoProveedorEmail';
-import { format as formatDate } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { formatFechaPreferida } from '../../../lib/formatFecha';
 
 /**
  * Sprint 3 agendamiento — notifica al proveedor cuando un tutor crea una
@@ -83,9 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(200).json({ skipped: true, reason: 'no_email' });
         }
 
-        const fechaFormateada = agend.fecha_preferida
-            ? formatDate(new Date(agend.fecha_preferida), "EEEE d 'de' MMMM, HH:mm", { locale: es })
-            : 'sin fecha';
+        const fechaFormateada = formatFechaPreferida(agend.fecha_preferida);
 
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
