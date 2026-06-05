@@ -123,6 +123,14 @@ Dos patrones de autenticación en `pages/api/`. Elegir según QUIÉN llama:
 
 Referencia canónica: `pages/api/agendamientos/notify-proveedor.ts` y `notify-tutor.ts` (Sprint 3 agendamiento). El sweep que migró 4 endpoints viejos al mismo patrón usó `notify-proveedor` como base.
 
+### Heurística para audits de seguridad
+
+Filtrar fixes performativos: un commit que cierra una vulnerabilidad con solo un comentario TODO + console.warn deja la vulnerabilidad abierta. Auditorías deben distinguir entre:
+- Fix con código real (validation, check, rechazo) → cerrado.
+- Fix con comentario / warning / logging sin lógica de gate → abierto, requiere fix real.
+
+Referencia histórica: commit `1bc1897` (audit completo "24 vulnerabilities fixed") cerró 17/20 items con código real, pero #19 (notification spam vector — cualquier user autenticado podía spammear notificaciones a cualquier `userId` arbitrario) quedó con TODO + warn sin gate efectivo — fix performativo. Resuelto agregando relationship check (conversación / agendamiento / admin) en `/api/notifications/create`. Lección: cuando se audita un commit "X vulnerabilities fixed", verificar línea por línea que el fix tiene gate real, no solo telemetría.
+
 ## Workflow
 
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático

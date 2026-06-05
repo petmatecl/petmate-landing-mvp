@@ -32,8 +32,12 @@ export const pushSendSchema = z.object({
   url: z.string().max(500).optional(),
 });
 
+// `userId` se removio del schema — el endpoint deriva el user de la
+// session (verifySession) y NO consume el campo del payload. Schema
+// previo lo exigia pero el handler lo ignoraba, contrato confuso.
+// Cualquier caller existente que mande `userId` extra: ignorado por
+// Zod (passthrough false default), sin error.
 export const pushSubscribeSchema = z.object({
-  userId: z.string().min(1),
   subscription: z.object({
     endpoint: z.string().url(),
     keys: z.object({
