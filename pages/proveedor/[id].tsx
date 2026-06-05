@@ -667,6 +667,13 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 </section>
 
                 {/* ══ EVALUACIONES ══════════════════════════════════════════ */}
+                {/* h2 "Evaluaciones" es page-level header. ReviewSummary va con
+                    bare={true} para evitar el doble titulo "Evaluaciones" +
+                    "Resumen de Evaluaciones" que ya cerramos en ServiceDetailView
+                    (commit 0a80cf1) y que persistia aca porque esta URL tiene
+                    su propio render inline (no usa ServiceDetailView). Card
+                    wrapper local mantiene la estetica de cards bg-white del
+                    resto de la pagina del proveedor. */}
                 <section className="space-y-4">
                     <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Evaluaciones</h2>
                     {globalTotalEvaluaciones === 0 ? (
@@ -676,10 +683,10 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             <p className="text-slate-400 text-sm mt-1">¡Sé el primero en contactarlo y dejar una reseña!</p>
                         </div>
                     ) : (
-                        <>
-                            <ReviewSummary proveedorId={proveedor.id} />
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-8">
+                            <ReviewSummary proveedorId={proveedor.id} bare />
                             <ReviewList proveedorId={proveedor.id} />
-                        </>
+                        </div>
                     )}
                 </section>
 
