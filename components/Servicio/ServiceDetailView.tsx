@@ -23,7 +23,7 @@ import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles, X,
-    Dog, Cat, FileText, Pencil,
+    Dog, Cat, FileText, Pencil, CheckCircle, Circle,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -1093,10 +1093,23 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                         </div>
                                     )}
 
-                                    {proveedor.primera_ayuda && (
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-[9px] font-black">+</span>
-                                            <span>Primeros Auxilios</span>
+                                    {/* Primeros auxilios — always-on, dos estados.
+                                        Antes era conditional (`primera_ayuda && ...`)
+                                        con badge rojo + simbolo medical. Rojo + plus
+                                        era visualmente punitivo para una señal
+                                        POSITIVA (HAS certificacion). Same treatment
+                                        que cerramos en la seccion Credenciales de
+                                        proveedor/[id].tsx; aca compactado para
+                                        sidebar (text-xs, gap-1.5). */}
+                                    {proveedor.primera_ayuda ? (
+                                        <div className="inline-flex items-center gap-1.5 text-xs text-emerald-700">
+                                            <CheckCircle size={13} className="shrink-0" />
+                                            <span>Primeros auxilios</span>
+                                        </div>
+                                    ) : (
+                                        <div className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+                                            <Circle size={13} className="shrink-0 text-slate-400" />
+                                            <span>No declara primeros auxilios</span>
                                         </div>
                                     )}
 
@@ -1120,6 +1133,16 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 {(() => {
                                     const showEmail = proveedor.email_publico && proveedor.mostrar_email;
                                     const hasAny = showEmail || proveedor.sitio_web || proveedor.instagram;
+                                    // Guest sin canales = no rendear el bloque entero.
+                                    // El EmptyFieldState con "Inicia sesion para ver
+                                    // el contacto" se posicionaba al fondo del
+                                    // sidebar (Y~1019), pareciendo un gate misplaced
+                                    // para los CTAs principales (Y~401) que YA
+                                    // tienen su propio hint arriba. Owners y
+                                    // logged-in tutores siguen viendo el bloque
+                                    // (uno con CTA "Agrega tus redes", el otro
+                                    // con mensaje "Sin canales agregados").
+                                    if (!user && !hasAny) return null;
                                     return (
                                         <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
                                             {hasAny ? (
