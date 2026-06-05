@@ -84,3 +84,11 @@ export const evaluacionNotifySchema = z.object({
 export const logConsentSchema = z.object({
   documentVersion: z.string().min(1).max(50),
 });
+
+// Sprint 3 agendamiento — payloads de los dos endpoints de notificacion.
+// Ambos reciben solo el agendamientoId; el server resuelve todo lo demas
+// (joins a usuarios_buscadores, proveedores, servicios_publicados) para
+// que el cliente no pueda fabricar datos del email.
+export const agendamientoNotifySchema = z.object({
+  agendamientoId: uuid,
+});

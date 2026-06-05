@@ -104,16 +104,33 @@ export default function SolicitarAgendamientoModal({
                 return;
             }
 
-            const { error: insertErr } = await supabase.from('agendamientos').insert({
-                servicio_id: servicioId,
-                proveedor_id: proveedorId,
-                tutor_id: buscador.id,
-                fecha_preferida: fechaDate.toISOString(),
-                mensaje: mensaje.trim() || null,
-                // estado default 'pendiente' viene de la BD.
-            });
+            const { data: inserted, error: insertErr } = await supabase
+                .from('agendamientos')
+                .insert({
+                    servicio_id: servicioId,
+                    proveedor_id: proveedorId,
+                    tutor_id: buscador.id,
+                    fecha_preferida: fechaDate.toISOString(),
+                    mensaje: mensaje.trim() || null,
+                    // estado default 'pendiente' viene de la BD.
+                })
+                .select('id')
+                .single();
 
             if (insertErr) throw insertErr;
+
+            // Sprint 3 parte B: notificar al proveedor por email. Fire-and-
+            // forget — si falla loggea pero NO rollback del INSERT (spec).
+            if (inserted?.id) {
+                fetch('/api/agendamientos/notify-proveedor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ agendamientoId: inserted.id }),
+                }).catch(err => console.warn('[SolicitarAgendamientoModal] notify-proveedor falló:', err));
+            }
 
             toast.success('Solicitud enviada. El proveedor te responderá pronto.');
             reset();
