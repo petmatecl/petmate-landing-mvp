@@ -47,6 +47,7 @@ interface ProveedorProps {
     globalTotalEvaluaciones: number;
     contactosCount: number;
     certificacionesAprobadas: CertificacionPublica[];
+    visitasTotalProveedor: number;
 }
 
 function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number }) {
@@ -68,7 +69,7 @@ function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number
     );
 }
 
-export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount, certificacionesAprobadas }: ProveedorProps) {
+export default function ProveedorPage({ proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount, certificacionesAprobadas, visitasTotalProveedor }: ProveedorProps) {
     const router = useRouter();
     const { user } = useUser();
     const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -437,6 +438,17 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     <p className="text-sm text-slate-700">{servicios.length}</p>
                                 </div>
                             </div>
+                            {visitasTotalProveedor > 0 && (
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                                        <Eye size={16} className="text-slate-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-medium">Visitas a sus servicios</p>
+                                        <p className="text-sm text-slate-700">{visitasTotalProveedor.toLocaleString('es-CL')}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </section>
                 )}
@@ -815,8 +827,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .select('*', { head: true, count: 'exact' })
             .eq('proveedor_id', id);
 
+        // Visitas totales agregadas de todos los servicios activos del
+        // proveedor. Se computa en JS sobre rawServices (que ya viene con
+        // visitas_total + filtro activo=true) — evita una query SUM extra.
+        const visitasTotalProveedor = (rawServices || [])
+            .reduce((acc: number, s: any) => acc + (s.visitas_total ?? 0), 0);
+
         return {
-            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0, certificacionesAprobadas }
+            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0, certificacionesAprobadas, visitasTotalProveedor }
         };
 
     } catch (e) {

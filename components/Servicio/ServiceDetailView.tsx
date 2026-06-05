@@ -542,15 +542,12 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             )}
                         </section>
 
-                        {/* Contador de visitas + botón favorito */}
-                        <div className="flex items-center justify-between gap-3 px-1">
-                            {(service.visitas_total ?? 0) > 0 ? (
-                                <VisitCounter
-                                    total={service.visitas_total ?? 0}
-                                    mes={service.visitas_mes ?? 0}
-                                    variant="full"
-                                />
-                            ) : <div />}
+                        {/* Boton favorito — queda solo aca tras mover el
+                            contador de visitas al sidebar (junto al rating).
+                            El favorito es una accion del tutor; las visitas
+                            son social proof del decision-making moment, que
+                            ocurre mirando los CTAs, no la galeria. */}
+                        <div className="flex justify-end px-1">
                             <FavoritoButton
                                 entidad_tipo="servicio"
                                 entidad_id={service.id}
@@ -957,14 +954,26 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                     </span>
                                     <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
                                 </div>
-                                {/* Rating inline si hay evaluaciones */}
-                                {totalReviews > 0 && (
-                                    <div className="flex items-center gap-1.5 mt-1.5">
-                                        <Star size={14} className="text-amber-400 fill-amber-400" />
-                                        <span className="text-sm font-semibold text-slate-700">
-                                            {(reviews.reduce((a: number, r: any) => a + r.rating, 0) / totalReviews).toFixed(1)}
-                                        </span>
-                                        <span className="text-sm text-slate-500">({totalReviews} evaluaciones)</span>
+                                {/* Trust signals inline: rating + visitas (cada
+                                    uno conditional, separados por · si ambos).
+                                    Mover visitas aca desde abajo de la galeria
+                                    pone el social proof en el punto de decision
+                                    (junto a los CTAs) en vez de fuera de foco. */}
+                                {(totalReviews > 0 || (service.visitas_total ?? 0) > 0) && (
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5 text-sm text-slate-600">
+                                        {totalReviews > 0 && (
+                                            <span className="inline-flex items-center gap-1.5">
+                                                <Star size={14} className="text-amber-400 fill-amber-400" />
+                                                <span className="text-slate-700">
+                                                    {(reviews.reduce((a: number, r: any) => a + r.rating, 0) / totalReviews).toFixed(1)}
+                                                </span>
+                                                <span className="text-slate-500">({totalReviews} evaluaciones)</span>
+                                            </span>
+                                        )}
+                                        {totalReviews > 0 && (service.visitas_total ?? 0) > 0 && (
+                                            <span className="text-slate-300" aria-hidden="true">·</span>
+                                        )}
+                                        <VisitCounter total={service.visitas_total ?? 0} variant="full" />
                                     </div>
                                 )}
                             </div>
