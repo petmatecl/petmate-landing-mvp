@@ -120,7 +120,12 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     const desc = `Conoce a ${displayName}, proveedor de servicios para mascotas en ${proveedor.comuna}. Revisa sus servicios, tarifas y evaluaciones en Pawnecta.`;
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        // min-h-screen ya lo aplica el wrapper de _app.tsx (`min-h-screen flex
+        // flex-col`); duplicarlo aca + pb-20 deja whitespace residual entre el
+        // contenido y el footer (el footer ya tiene mt-20 propio). Mismo fix
+        // que se aplico a ServiceDetailView en commit a711724 — la ficha del
+        // proveedor habia quedado fuera de scope en ese commit.
+        <div className="bg-slate-50">
             <Head>
                 <title>{title}</title>
                 <meta name="description" content={desc} />
