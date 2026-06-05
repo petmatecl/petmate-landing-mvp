@@ -194,17 +194,23 @@ export default function MessageThread({ conversationId, userId }: Props) {
             // Using onlineUsers from context:
             const isRecipientOnline = otherUser && onlineUsers.has(otherUser.auth_user_id);
 
-            if (otherUser?.auth_user_id && !isRecipientOnline) {
-                fetch('/api/notifications/new-message', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        recipientAuthId: otherUser.auth_user_id,
-                        senderName: myUser?.nombre || 'Un usuario',
-                        messagePreview: content.substring(0, 80) + (content.length > 80 ? '...' : ''),
-                        chatUrl: `${window.location.origin}/mensajes?id=${conversationId}`
-                    })
-                }).catch(console.error);
+            // Sweep 1bc1897: payload pasa a id-only. El server resuelve
+            // recipient, sender_name y content desde BD. Bearer del user
+            // logueado para verifySession + ownership check (sender ===
+            // caller).
+            if (otherUser?.auth_user_id && !isRecipientOnline && data?.id) {
+                (async () => {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session?.access_token) return;
+                    fetch('/api/notifications/new-message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ messageId: data.id }),
+                    }).catch(console.error);
+                })();
             }
 
             // Notificacion interna para el destinatario

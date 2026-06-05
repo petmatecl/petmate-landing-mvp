@@ -74,10 +74,14 @@ export default function ProveedorApprovalList() {
                 .eq('id', prov.id);
             if (updateError) throw updateError;
             try {
+                const { data: { session } } = await supabase.auth.getSession();
                 await fetch('/api/admin/notify-provider', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ auth_user_id: prov.auth_user_id, nombre: prov.nombre, estado: 'aprobado' })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session?.access_token ?? ''}`,
+                    },
+                    body: JSON.stringify({ proveedorId: prov.id, estado: 'aprobado' })
                 });
             } catch { toast.warning('Proveedor aprobado, pero falló el envío del email.'); }
             toast.success('Proveedor Aprobado exitosamente');
@@ -112,10 +116,14 @@ export default function ProveedorApprovalList() {
                 .eq('id', rejectingId);
             if (updateError) throw updateError;
             try {
+                const { data: { session } } = await supabase.auth.getSession();
                 await fetch('/api/admin/notify-provider', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ auth_user_id: prov.auth_user_id, nombre: prov.nombre, estado: 'rechazado', motivo: motivoRechazo })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session?.access_token ?? ''}`,
+                    },
+                    body: JSON.stringify({ proveedorId: prov.id, estado: 'rechazado', motivo: motivoRechazo })
                 });
             } catch { toast.warning('Rechazado, pero falló el envío del email.'); }
             toast.success('Solicitud rechazada');

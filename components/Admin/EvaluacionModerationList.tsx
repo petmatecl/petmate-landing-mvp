@@ -93,27 +93,20 @@ export default function EvaluacionModerationList() {
 
             // Email notification on approval
             if (newState === 'aprobado' && ev) {
-                // Check if this is the provider's first approved review
-                const proveedorId = ev.proveedor?.id || ev.proveedor_id;
-                if (proveedorId) {
-                    const { count } = await supabase
-                        .from('evaluaciones')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('proveedor_id', proveedorId)
-                        .eq('estado', 'aprobado');
-
-                    const isFirst = (count ?? 0) <= 1; // just became 1 after this update
-
+                // Sweep 1bc1897: payload pasa a id-only. El server resuelve
+                // proveedor/rating/comentario desde BD y computa isFirst
+                // server-side (no se acepta del cliente — payload
+                // manipulado no puede mandar "primera" cuando no aplica).
+                // Bearer del admin para verifySession + isAdmin check.
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.access_token) {
                     void fetch('/api/evaluaciones/notify', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            proveedorId,
-                            servicioTitulo: ev.servicio?.titulo || '',
-                            rating: ev.rating,
-                            comentario: ev.comentario,
-                            isFirst,
-                        }),
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ evaluacionId: evalId }),
                     });
                 }
             }

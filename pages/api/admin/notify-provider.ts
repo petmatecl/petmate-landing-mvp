@@ -4,36 +4,64 @@ import { createClient } from '@supabase/supabase-js';
 import { emailLimiter } from '../../../lib/rateLimit';
 import { escapeHtml } from '../../../lib/sanitize';
 import { notifyProviderSchema } from '../../../lib/validations';
-import { verifyInternalSecret } from '../../../lib/apiAuth';
+import { verifySession, isAdmin } from '../../../lib/apiAuth';
 
+/**
+ * Notifica al proveedor del cambio de estado de su solicitud (aprobado /
+ * rechazado). Disparado desde el panel de admin (ProveedorApprovalList o
+ * pages/admin/proveedores).
+ *
+ * Sweep 1bc1897: migrado de verifyInternalSecret (que no era llamable
+ * desde browser → 403 silenciado) a verifySession + isAdmin. Patron
+ * id-only — cliente manda solo `proveedorId` + `estado` + `motivo?`,
+ * server resuelve nombre + email desde BD.
+ *
+ * `motivo` viene del payload (no es inferible de BD — es texto libre que
+ * el admin escribe en el momento del rechazo).
+ *
+ * Failure handling: el UPDATE en BD ya fue hecho por el cliente (estado
+ * actualizado), el email es notificacion no transaccional. Errores de
+ * envio → 200 con `skipped: true` para no romper el flow del admin.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-    if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!emailLimiter(req, res)) return;
 
+    const userId = await verifySession(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    if (!(await isAdmin(userId))) return res.status(403).json({ error: 'Forbidden' });
+
+    const parsed = notifyProviderSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
+    const { proveedorId, estado, motivo } = parsed.data;
+
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     try {
-        const parsed = notifyProviderSchema.safeParse(req.body);
-        if (!parsed.success) {
-            return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
-        }
-        const { email: emailDirecto, auth_user_id, nombre, estado, motivo } = parsed.data;
+        // Resolver nombre + auth_user_id del proveedor desde BD.
+        const { data: prov, error: provErr } = await supabaseAdmin
+            .from('proveedores')
+            .select('auth_user_id, nombre')
+            .eq('id', proveedorId)
+            .maybeSingle();
 
-        let email = emailDirecto;
-
-        if (!email && auth_user_id) {
-            const supabaseAdmin = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.SUPABASE_SERVICE_ROLE_KEY!
-            );
-            const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(auth_user_id);
-            email = authUser?.user?.email || undefined;
+        if (provErr || !prov) {
+            console.error('[notify-provider] proveedor no encontrado:', provErr);
+            return res.status(404).json({ error: 'Proveedor no encontrado' });
         }
 
-        if (!email || !nombre || !estado) {
-            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        // Email del proveedor desde auth.users.
+        const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+        if (authErr || !authUser?.user?.email) {
+            console.error('[notify-provider] email inaccesible:', authErr);
+            return res.status(200).json({ skipped: true, reason: 'no_email' });
         }
+        const email = authUser.user.email;
+        const nombre = prov.nombre || 'Proveedor';
 
         let subject = '';
         let htmlBody = '';
@@ -56,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     </p>
                 </div>
             `;
-        } else if (estado === 'rechazado') {
+        } else {
             subject = 'Pawnecta: Actualización sobre tu solicitud';
             htmlBody = `
                 <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -78,8 +106,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     </p>
                 </div>
             `;
-        } else {
-            return res.status(400).json({ error: 'Estado inválido para notificaciones' });
         }
 
         const response = await resend.emails.send({
@@ -89,9 +115,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             html: htmlBody,
         });
 
-        return res.status(200).json({ success: true, response });
+        return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
-        console.error('Notify Provider API Error:', error);
-        return res.status(500).json({ error: 'No se pudo enviar el correo de notificación' });
+        console.error('[notify-provider] catch error:', error);
+        return res.status(200).json({
+            skipped: true,
+            reason: 'send_failed',
+            details: error instanceof Error ? error.message : String(error),
+        });
     }
 }

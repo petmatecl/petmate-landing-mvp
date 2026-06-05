@@ -118,12 +118,15 @@ function GestionProveedores() {
             if (error) throw error;
 
             // Notify
+            const { data: { session: sessionApr } } = await supabase.auth.getSession();
             await fetch('/api/admin/notify-provider', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${sessionApr?.access_token ?? ''}`,
+                },
                 body: JSON.stringify({
-                    auth_user_id: currentProv.auth_user_id,
-                    nombre: currentProv.nombre,
+                    proveedorId: currentProv.id,
                     estado: 'aprobado',
                 })
             });
@@ -151,12 +154,15 @@ function GestionProveedores() {
             if (error) throw error;
 
             // Notify
+            const { data: { session: sessionRej } } = await supabase.auth.getSession();
             await fetch('/api/admin/notify-provider', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${sessionRej?.access_token ?? ''}`,
+                },
                 body: JSON.stringify({
-                    auth_user_id: currentProv.auth_user_id,
-                    nombre: currentProv.nombre,
+                    proveedorId: currentProv.id,
                     estado: 'rechazado',
                     motivo: motivoRechazo,
                 })

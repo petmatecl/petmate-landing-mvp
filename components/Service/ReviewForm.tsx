@@ -115,25 +115,30 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 return;
             }
 
-            fetch('/api/evaluaciones/notify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ proveedorId, servicioTitulo, rating, comentario: comentario.trim() })
-            }).catch(err => console.error('Error despachando notificación:', err));
-
-            // Auto-moderation: fire-and-forget
+            // Sweep 1bc1897: payload pasa a id-only en ambos endpoints.
+            // El server resuelve proveedor/rating/comentario/cliente desde
+            // BD por evaluacionId. Bearer del user logueado para
+            // verifySession + ownership check (caller === evaluacion.usuario_id).
+            // Ambos fetches gated por `data.id` para evitar mandar peticion
+            // sin la fila correspondiente en BD.
             if (data && data.id) {
-                fetch('/api/evaluaciones/auto-moderar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        evaluacionId: data.id,
-                        servicioId,
-                        clienteId: user.id,
-                        rating,
-                        comentario: comentario.trim()
-                    })
-                }).catch(err => console.error('[auto-moderar]', err));
+                (async () => {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session?.access_token) return;
+                    const auth = { Authorization: `Bearer ${session.access_token}` };
+
+                    fetch('/api/evaluaciones/notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...auth },
+                        body: JSON.stringify({ evaluacionId: data.id }),
+                    }).catch(err => console.error('Error despachando notificación:', err));
+
+                    fetch('/api/evaluaciones/auto-moderar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...auth },
+                        body: JSON.stringify({ evaluacionId: data.id }),
+                    }).catch(err => console.error('[auto-moderar]', err));
+                })();
             }
 
             setIsSuccess(true);

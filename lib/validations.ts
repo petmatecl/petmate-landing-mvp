@@ -3,10 +3,11 @@ import { z } from 'zod';
 const email = z.string().email().max(254);
 const uuid = z.string().uuid();
 
+// Migrado a verifySession + id-only payload (sweep 1bc1897 / Sprint
+// agendamiento Sprint 3 pattern). El server resuelve email/nombre desde
+// `proveedores` por proveedorId.
 export const notifyProviderSchema = z.object({
-  email: email.optional(),
-  auth_user_id: uuid.optional(),
-  nombre: z.string().min(1).max(100),
+  proveedorId: uuid,
   estado: z.enum(['aprobado', 'rechazado']),
   motivo: z.string().max(500).optional(),
 });
@@ -51,11 +52,11 @@ export const notificationCreateSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
+// Migrado a id-only — el server resuelve recipient, sender_name y content
+// desde `messages` + `conversations` por messageId. Defensa contra payloads
+// manipulados (nadie puede fabricar el contenido del email).
 export const newMessageSchema = z.object({
-  recipientAuthId: uuid,
-  senderName: z.string().min(1).max(100),
-  messagePreview: z.string().max(300).optional(),
-  chatUrl: z.string().max(500).optional(),
+  messageId: uuid,
 });
 
 export const waitlistSchema = z.object({
@@ -65,20 +66,18 @@ export const waitlistSchema = z.object({
   rol: z.string().max(20).optional(),
 });
 
+// Migrado a id-only. Server resuelve cliente_id/servicio_id/rating/comentario
+// desde `evaluaciones` por evaluacionId. Authz: caller === evaluacion.usuario_id.
 export const autoModerarSchema = z.object({
-  evaluacionId: z.string().min(1),
-  servicioId: z.string().min(1),
-  clienteId: z.string().min(1),
-  rating: z.number().min(1).max(5),
-  comentario: z.string().min(1).max(1000),
+  evaluacionId: uuid,
 });
 
+// Migrado a id-only. Server resuelve proveedor/servicio/rating/comentario
+// desde `evaluaciones` por evaluacionId, e infiere `isFirst` con count
+// server-side cuando el caller es admin (no se acepta del cliente).
+// Authz OR: caller === evaluacion.usuario_id  ||  isAdmin(caller).
 export const evaluacionNotifySchema = z.object({
-  proveedorId: z.string().min(1),
-  servicioTitulo: z.string().min(1).max(200),
-  rating: z.number().min(1).max(5),
-  comentario: z.string().min(1).max(1000),
-  isFirst: z.boolean().optional(),
+  evaluacionId: uuid,
 });
 
 export const logConsentSchema = z.object({
