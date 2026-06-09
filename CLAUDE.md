@@ -157,11 +157,13 @@ Vulnerabilities reportadas por `npm audit` se filtran por exploitability en nues
 
 **Estado actual** (post-bump `next 14.2.3 → 14.2.35`): critical cerrado. Quedan ~14 advisories high en `next` 14.2.x que NO tienen fix backport en la rama 14 (sólo cerradas en 15+). De esos, ~11 no aplican al stack (RSC/App Router/middleware/i18n/beforeInteractive), ~3 aplican parcialmente (rewrites HTTP smuggling, image optimizer DoS). Cierre completo requiere bump a Next 15 mayor — fuera de scope pre-launch.
 
-**Backlog post-launch**:
+**Deuda crítica con timer** (no ordinaria — hacer ASAP post-launch):
+- **Bump Next 14 → 15**. Cierra 3 advisories high que SÍ aplican al stack en 14.2.x y no tienen backport: (a) HTTP request smuggling en rewrites — tenemos `/supabase-proxy/:path*`, vector real; (b) `next/image` Optimization API DoS — uso extensivo en explorar/servicio/proveedor; (c) `next/image` disk cache growth unbounded — agotamiento storage en Vercel. Migración mayor: ~1-2 días con testing exhaustivo (verificar Pages Router compat, build, hidratación, SW). Bumpea también `eslint-config-next` al mismo major, cerrando la cadena eslint de regalo.
+
+**Backlog ordinario post-launch** (defer aceptado):
 - Reemplazar `next-pwa@5.6.0` por `@ducanh2912/next-pwa` (fork activo) — cierra cadena de 7 highs build-time (workbox-build, workbox-webpack-plugin, serialize-javascript, rollup-plugin-terser, lodash, picomatch, @babel/plugin-transform-modules-systemjs).
-- Bump `eslint-config-next` al saltar Next mayor — cierra cadena eslint (5 highs + moderates: glob, minimatch, @typescript-eslint chain, flatted, ajv, js-yaml, brace-expansion).
-- `npm install ws@^8.21.0` con override — cierra moderate de uninitialized memory disclosure (advisory cubre hasta 8.20.0; fix en 8.21).
-- `npm install postcss@^8.5.10` override + bump root — cierra moderate XSS via `</style>` (next 14.2.35 sigue trayendo postcss 8.4.31, así que el bump de next NO cerró postcss colateralmente como se proyectó).
+- `npm install ws@^8.21.0` con override — cierra moderate de uninitialized memory disclosure (advisory cubre hasta 8.20.0; fix en 8.21). Marginal (memory leak hacia Supabase Realtime, mitigado por TLS), pero un override es no-op a nivel app code — sólo upgrade del binario ws.
+- `npm install postcss@^8.5.10` override + bump root — cierra moderate XSS via `</style>` (next 14.2.35 sigue trayendo postcss 8.4.31, así que el bump de next NO cerró postcss colateralmente). Build-time, no recibe user input → riesgo real ≈ 0.
 - `npm install supabase@latest` (dev CLI) — cierra tar path traversal.
 
 ## Workflow
