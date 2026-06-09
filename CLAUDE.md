@@ -196,3 +196,18 @@ Supabase Management API con PAT para migraciones directas
 **Schema sync prod → staging**: manual via Management API dumps. Documentado en `staging-setup/STAGING_PROJECT.md` (file local, no committeado). Cualquier migration aplicada a prod debe replicarse en staging para que los tests sean fieles.
 
 **Promoción a prod NO es fast-forward automático**: el merge `staging → main` puede generar conflictos si hubo hotfixes directos a main. Lo esperado: hotfixes urgentes a main + mirror a staging via `git checkout staging && git merge main`. Resto de cambios siempre staging-first.
+
+### Continuous Integration
+
+GitHub Actions (`.github/workflows/ci.yml`) corre en cada push a `main`/`staging` y en PRs a `main`:
+- `tsc --noEmit` (type check estricto)
+- `npm run build` (build de Next completo)
+
+Concurrency cancela runs viejos del mismo branch para no gastar minutos en pushes consecutivos. Sin env vars en CI: `lib/supabaseClient.ts:4-5` y `next.config.js:155` tienen fallback a `placeholder.supabase.co`, el build pasa sin secrets configurados. Si en el futuro el build empieza a requerir una env var real, agregar via GitHub Secrets con valor de staging (NUNCA prod).
+
+Un rojo en CI bloquea visualmente el push (badge en el commit) pero NO previene el deploy de Vercel — Vercel deploya de forma independiente. Si CI falla, arreglar antes de promover staging → main aunque Vercel haya deployado.
+
+**Mejoras pendientes post-launch**:
+- Tests funcionales (Playwright o equivalente sobre staging URL).
+- Linting en CI (requiere primero cerrar deuda de `eslint-config-next` — ver `## Vulnerability management`).
+- Required check para PRs a main (settings de GitHub branch protection).
