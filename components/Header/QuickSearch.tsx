@@ -68,10 +68,14 @@ export default function QuickSearch() {
             {isOpenMobile && (
                 <div id="quick-search-mobile-panel" role="region" aria-label="Buscador de servicios" className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 px-4 py-3 sm:hidden z-50 animate-in slide-in-from-top-2">
                     <form onSubmit={handleSubmit} className="relative w-full flex">
+                        <label htmlFor="header-search-mobile" className="sr-only">Buscar servicios o proveedores</label>
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search size={16} className="text-slate-400" />
                         </div>
                         <input
+                            id="header-search-mobile"
+                            name="q"
+                            aria-label="Buscar servicios"
                             type="text"
                             placeholder="Busca por servicio o nombre del proveedor..."
                             value={query}
