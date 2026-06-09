@@ -172,6 +172,22 @@ Claude Code (VS Code) → commit + push a main → Vercel deploy automático
 Rama principal: main
 Supabase Management API con PAT para migraciones directas
 
+## Database migrations
+
+Las migrations SQL viven en `migrations/*.sql`. Se aplican manualmente al proyecto Supabase vía Management API o PSQL ad-hoc — NO hay supabase CLI con migrations versionadas integrado.
+
+**Flow para una migration nueva**:
+1. Crear archivo en `migrations/<nombre_o_fecha>_<descripcion>.sql` con el DDL completo.
+2. Aplicar manualmente a prod (`ouezpeeiwjwawauidrqq`) y staging (`jmtadvdkicyylcwjcmcl`).
+3. Commitear el archivo al repo.
+
+Mantener fidelidad prod ↔ staging es manual. Cualquier migration aplicada a un proyecto debe aplicarse al otro para que staging refleje prod.
+
+**Convenciones útiles**:
+- Usar `IF NOT EXISTS` / `OR REPLACE` / `DROP ... IF EXISTS` donde sea posible — migrations idempotentes pueden re-ejecutarse sin romper.
+- DDL destructivo (DROP TABLE, DROP COLUMN, TRUNCATE) requiere comentario explícito al inicio del archivo explicando el blast radius y la verificación previa (ej. "0 filas confirmadas").
+- Numeración no es estrictamente cronológica: archivos viejos usan `NN_descripcion.sql`, recientes usan `YYYYMMDD_descripcion.sql`. Ambos patrones conviven.
+
 ## Staging environment
 
 **Branches**:
