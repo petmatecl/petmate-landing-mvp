@@ -171,3 +171,28 @@ Vulnerabilities reportadas por `npm audit` se filtran por exploitability en nues
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático
 Rama principal: main
 Supabase Management API con PAT para migraciones directas
+
+## Staging environment
+
+**Branches**:
+- `main` → deploy automático a producción (`pawnecta.com`).
+- `staging` → deploy automático a staging (URL Vercel branch — `pawnecta-landing-mvp-git-staging-*.vercel.app` o subdominio custom si se configura).
+
+**Flow básico**:
+1. Hacer cambios en una feature branch o directamente en `staging`.
+2. `git checkout staging && git push` → deploy automático a staging URL.
+3. Validar en staging (visual + funcional, contra Supabase staging).
+4. Promover a prod: `git checkout main && git merge staging && git push`.
+
+**Diferencias entre entornos**:
+- Supabase: prod (`ouezpeeiwjwawauidrqq`) vs staging (`jmtadvdkicyylcwjcmcl`).
+- Emails: prod manda real; staging redirige todos a `AUDIT_INBOX` con subject prefijado `[STAGING] (orig: <email>) ...` (lógica en `lib/resend.ts`).
+- Crons (`vercel.json` los schedulea en cualquier deploy con el archivo): solo ejecutan en producción. Gated por `skipIfNonProd()` en `lib/cronGuard.ts` — chequea `NEXT_PUBLIC_APP_ENV === 'production' || VERCEL_ENV === 'production'`. En staging responden `{ skipped: true, env }` sin tocar BD.
+- VAPID keys (push notifications): propias en cada environment para no cross-contaminate subscriptions.
+- Auth SMTP de Supabase: staging debe usar defaults Supabase (`noreply@mail.supabase.com`), no custom SMTP apuntando a Resend con dominio de prod. Verificar en dashboard staging `Auth → SMTP Settings`.
+
+**Cambios triviales** (typos, copy menor): pueden ir directo a `main`. **Cambios estructurales** (features, schema, security, deps): pasan por `staging` primero.
+
+**Schema sync prod → staging**: manual via Management API dumps. Documentado en `staging-setup/STAGING_PROJECT.md` (file local, no committeado). Cualquier migration aplicada a prod debe replicarse en staging para que los tests sean fieles.
+
+**Promoción a prod NO es fast-forward automático**: el merge `staging → main` puede generar conflictos si hubo hotfixes directos a main. Lo esperado: hotfixes urgentes a main + mirror a staging via `git checkout staging && git merge main`. Resto de cambios siempre staging-first.

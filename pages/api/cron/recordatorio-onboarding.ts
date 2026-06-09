@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
+import { skipIfNonProd } from '../../../lib/cronGuard';
 
 /**
  * Cron: Onboarding reminders for providers
@@ -13,6 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (skipIfNonProd(req, res)) return;
 
   // Vercel Cron sends Authorization: Bearer <secret>
   const authHeader = req.headers.authorization;

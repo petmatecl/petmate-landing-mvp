@@ -2,11 +2,14 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
+import { skipIfNonProd } from '../../../lib/cronGuard';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET' && req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    if (skipIfNonProd(req, res)) return;
 
     // Secure with a shared secret
     // Vercel Cron sends Authorization: Bearer <secret>

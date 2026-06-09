@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { skipIfNonProd } from '../../../lib/cronGuard';
 
 /**
  * Cron: elimina filas de visitas_tracking con created_at > 7 días.
@@ -12,6 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'GET' && req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    if (skipIfNonProd(req, res)) return;
 
     const authHeader = req.headers.authorization;
     const secret = req.headers['x-cron-secret'] || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
