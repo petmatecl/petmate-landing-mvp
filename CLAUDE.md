@@ -149,6 +149,21 @@ La policy en `next.config.js` (header `Content-Security-Policy`) whitelistea or�
 
 **Referencia histórica**: commit `1bc1897` introdujo una CSP demasiado restrictiva en `img-src` que rompía cross-origin images, removida en `5c05b22` / `e135d1e`. La policy actual es el re-fix correcto con whitelist precisa basada en inventario real de orígenes usados por la app.
 
+## Vulnerability management
+
+Vulnerabilities reportadas por `npm audit` se filtran por exploitability en nuestro stack real (Pages Router, sin middleware, sin i18n, sin RSC/Server Actions, `images.domains` no `remotePatterns`, Resend solo SEND sin webhooks IN). No toda vulnerability marcada "high" es alcanzable en Pawnecta — muchas son build-time con inputs controlados desde nuestro source, o dev-only (eslint chain, supabase CLI).
+
+**Patrón operacional**: `npm install <package>@<version>` explícito > `npm audit fix` para tener control sobre qué se mueve. `--force` solo si está documentada la cascada de breaking changes que implica.
+
+**Estado actual** (post-bump `next 14.2.3 → 14.2.35`): critical cerrado. Quedan ~14 advisories high en `next` 14.2.x que NO tienen fix backport en la rama 14 (sólo cerradas en 15+). De esos, ~11 no aplican al stack (RSC/App Router/middleware/i18n/beforeInteractive), ~3 aplican parcialmente (rewrites HTTP smuggling, image optimizer DoS). Cierre completo requiere bump a Next 15 mayor — fuera de scope pre-launch.
+
+**Backlog post-launch**:
+- Reemplazar `next-pwa@5.6.0` por `@ducanh2912/next-pwa` (fork activo) — cierra cadena de 7 highs build-time (workbox-build, workbox-webpack-plugin, serialize-javascript, rollup-plugin-terser, lodash, picomatch, @babel/plugin-transform-modules-systemjs).
+- Bump `eslint-config-next` al saltar Next mayor — cierra cadena eslint (5 highs + moderates: glob, minimatch, @typescript-eslint chain, flatted, ajv, js-yaml, brace-expansion).
+- `npm install ws@^8.21.0` con override — cierra moderate de uninitialized memory disclosure (advisory cubre hasta 8.20.0; fix en 8.21).
+- `npm install postcss@^8.5.10` override + bump root — cierra moderate XSS via `</style>` (next 14.2.35 sigue trayendo postcss 8.4.31, así que el bump de next NO cerró postcss colateralmente como se proyectó).
+- `npm install supabase@latest` (dev CLI) — cierra tar path traversal.
+
 ## Workflow
 
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático
