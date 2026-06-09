@@ -34,10 +34,14 @@ export default function QuickSearch() {
             {/* Desktop View */}
             <div className="hidden sm:flex items-center w-full max-w-xs mx-4">
                 <form onSubmit={handleSubmit} className="relative w-full">
+                    <label htmlFor="header-search" className="sr-only">Buscar servicios o proveedores</label>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search size={16} className="text-slate-400" />
                     </div>
                     <input
+                        id="header-search"
+                        name="q"
+                        aria-label="Buscar servicios"
                         type="text"
                         placeholder="Busca por servicio o nombre del proveedor..."
                         value={query}

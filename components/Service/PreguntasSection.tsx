@@ -102,8 +102,12 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
             {/* Ask form */}
             {!isProveedor && (
                 <form onSubmit={handleSubmit} className="mb-6">
+                    <label htmlFor="pregunta-input" className="sr-only">Escribir pregunta sobre el servicio</label>
                     <div className="flex gap-2">
                         <input
+                            id="pregunta-input"
+                            name="pregunta"
+                            aria-label="Escribir pregunta sobre el servicio"
                             type="text"
                             value={pregunta}
                             onChange={e => setPregunta(e.target.value)}
