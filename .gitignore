@@ -20,6 +20,7 @@ out/
 .idea/
 .vercel
 mcp_github_config.json
+.mcp.json
 stdout.txt
 stderr.txt
 push_output.txt
