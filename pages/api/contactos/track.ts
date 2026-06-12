@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { verifySession } from '../../../lib/apiAuth';
+import { trackContactoSchema } from '../../../lib/validations';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -8,16 +9,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userId = await verifySession(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { servicio_id, proveedor_id, canal } = req.body;
-
-    if (!servicio_id || !proveedor_id || !canal) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    const validCanales = ['mensaje', 'whatsapp', 'llamada', 'email_copiado'];
-    if (!validCanales.includes(canal)) {
-        return res.status(400).json({ error: 'Invalid canal' });
-    }
+    const parsed = trackContactoSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid input' });
+    const { servicio_id, proveedor_id, canal } = parsed.data;
 
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,6 +34,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(201).json({ ok: true });
     } catch (err: any) {
         console.error('Track contact error:', err);
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: 'Error interno del servidor' });
     }
 }

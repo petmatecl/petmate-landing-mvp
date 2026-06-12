@@ -53,6 +53,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json({ codigo });
   } catch (err: any) {
     console.error('Referral code error:', err);
-    return res.status(500).json({ error: err.message || 'Error generating code' });
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 }

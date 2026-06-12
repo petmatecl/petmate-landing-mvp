@@ -76,6 +76,6 @@ export default async function handler(
         return res.status(200).json({ success: true });
     } catch (error: any) {
         console.error('Error logging consent:', error);
-        return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 }

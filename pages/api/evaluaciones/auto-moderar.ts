@@ -130,6 +130,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     } catch (err: any) {
         console.error('[auto-moderar] Error:', err);
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: 'Error interno del servidor' });
     }
 }

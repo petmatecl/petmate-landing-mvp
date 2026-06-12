@@ -35,12 +35,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (error) {
             console.error('[cron/cleanup-visitas-tracking] RPC error:', error);
-            return res.status(500).json({ error: error.message });
+            return res.status(500).json({ error: 'Internal error' });
         }
 
         return res.status(200).json({ ok: true, rows_deleted: data ?? 0 });
     } catch (err: any) {
         console.error('[cron/cleanup-visitas-tracking] failed:', err);
-        return res.status(500).json({ error: err?.message ?? 'Internal error' });
+        return res.status(500).json({ error: 'Internal error' });
     }
 }

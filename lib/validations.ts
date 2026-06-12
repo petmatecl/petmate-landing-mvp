@@ -95,3 +95,12 @@ export const logConsentSchema = z.object({
 export const agendamientoNotifySchema = z.object({
   agendamientoId: uuid,
 });
+
+// Tracking de contactos (mensaje, whatsapp, llamada, email_copiado).
+// Reemplaza la validacion manual previa (truthy check + whitelist hardcoded)
+// por consistencia con el resto del codebase.
+export const trackContactoSchema = z.object({
+  servicio_id: uuid,
+  proveedor_id: uuid,
+  canal: z.enum(['mensaje', 'whatsapp', 'llamada', 'email_copiado']),
+});
