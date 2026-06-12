@@ -109,6 +109,16 @@ La app usa `next-pwa` (config en `next.config.js`). Resumen de la estrategia de 
 
 **Limitación conocida (no resuelta)**: el browser re-revisa `sw.js` en navigation events (~24h o cuando vuelve a foco). Con SPA Next.js + client-side routing, las navegaciones internas (Link, router.push) NO disparan re-check. Un user con tab abierta puede tardar en detectar el SW nuevo. Para validar deploys: hard refresh / tab nueva / incógnito.
 
+## Auth flow (arquitectura)
+
+El login y logout reales son **100% client-side via Supabase JS SDK** (`supabase.auth.signInWithPassword`, `supabase.auth.signOut`). NO hay endpoints server propios de auth — los antiguos `/api/auth/login` y `/api/auth/logout` eran no-ops legacy y se removieron. Rate limit anti-brute-force al login lo provee Supabase a nivel plataforma.
+
+Endpoints server que SÍ participan del flujo de auth:
+- `/api/auth/signup`: crea user + perfil con service_role en una transacción server-side (admin.createUser + rollback en caso de fallo del INSERT en `proveedores`/`usuarios_buscadores`). Rate-limitado con `authLimiter` (in-memory; ver caveat abajo).
+- `/api/auth/welcome`: server-to-server llamado desde signup, gated por `verifyInternalSecret`. Manda email de bienvenida.
+
+**Caveat del rate limit**: `lib/rateLimit.ts > authLimiter` es in-memory. En Vercel serverless cada invocación arranca con memoria fresca → el contador NO persiste entre invocaciones → el limit es efectivo solo en dev (single process). Documentado como deuda P1 en `staging-setup/MASTER_AUDIT_REPORT.md` (#15). Fix real requiere store distribuido (Upstash Redis u equivalente) — sprint propio post-launch.
+
 ## Auth para endpoints internos
 
 Dos patrones de autenticación en `pages/api/`. Elegir según QUIÉN llama:
