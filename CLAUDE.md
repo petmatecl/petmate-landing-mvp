@@ -85,6 +85,7 @@ lib/
 - `evaluaciones.usuario_id` referencia `auth.users.id`, NO `usuarios_buscadores.id`
 - `buscar_servicios` RPC: p_comuna debe aceptar NULL (no solo string vacío)
 - El header tiene banner "EXCLUSIVO LANZAMIENTO" que agrega altura variable — no hardcodear px para sidebars
+- **Admin verificación de carnet — imagen rota en prod**. [components/Admin/ProveedorApprovalList.tsx:376,384](components/Admin/ProveedorApprovalList.tsx#L376-L384) renderiza `<img src={prov.foto_carnet}>` con URLs `/storage/v1/object/public/documents/...` guardadas en BD. El bucket `documents` es **privado** (verificado por probe: el endpoint `/object/public/` retorna 400 "Bucket not found" para buckets privados, incluso con cookie de admin — el endpoint no acepta auth). El upload en [pages/proveedor/index.tsx:771-789](pages/proveedor/index.tsx#L771-L789) usa `getPublicUrl()` que genera URLs cosméticamente "públicas" pero inválidas para bucket privado. Fix post-launch: cambiar el upload a guardar el `path` (no la URL); en el render del admin, `await supabase.storage.from('documents').createSignedUrl(path, 60)`. No es un riesgo de seguridad (los carnets NO se descargan sin auth), es un bug funcional del flujo de verificación.
 
 ## Lo que NO hace Pawnecta — no implementar sin confirmación
 
