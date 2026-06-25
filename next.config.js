@@ -68,7 +68,36 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://images.pexels.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com https://firebasestorage.googleapis.com",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://www.google-analytics.com",
+              // connect-src cubre fetch/XHR/WebSocket/beacon — Y los fetch() que
+              // el service worker (next-pwa workbox) hace internamente cuando
+              // intercepta requests para cachearlos. Por eso debe espejar las
+              // origenes de img-src/font-src/script-src para no romper el SW
+              // runtime caching ni las llamadas internas de gtag.js.
+              // Bug latente desde bfc6b31 — refresh del SW en el deploy de
+              // hoy invalido cache y expuso el problema a todos los users.
+              [
+                "connect-src 'self'",
+                // Supabase REST + Realtime
+                "https://*.supabase.co",
+                "wss://*.supabase.co",
+                // Geocoding
+                "https://nominatim.openstreetmap.org",
+                // Analytics — explicito + wildcard regional GA4 + dominio analytics
+                "https://www.googletagmanager.com",
+                "https://*.google-analytics.com",
+                "https://analytics.google.com",
+                // Imagenes (mirror de img-src para que el SW pueda cachear)
+                "https://images.unsplash.com",
+                "https://images.pexels.com",
+                "https://ui-avatars.com",
+                "https://*.basemaps.cartocdn.com",
+                "https://*.tile.openstreetmap.org",
+                "https://cdnjs.cloudflare.com",
+                "https://firebasestorage.googleapis.com",
+                // Fuentes (preventivo — si el SW cachea via fetch())
+                "https://fonts.gstatic.com",
+                "https://fonts.googleapis.com",
+              ].join(' '),
               "media-src 'self'",
               "worker-src 'self'",
               "frame-src 'none'",
