@@ -146,6 +146,17 @@ export default function SolicitarAgendamientoModal({
             onClose();
         } catch (err: any) {
             console.error('[SolicitarAgendamientoModal] insert error:', err);
+            // Mejora A: el index parcial UNIQUE (tutor_id, servicio_id)
+            // WHERE estado='pendiente' tira 23505 (unique_violation) cuando el
+            // tutor ya tiene una pendiente para este servicio. Catcheamos para
+            // mostrar mensaje accionable en vez del error crudo de BD.
+            if (err?.code === '23505') {
+                setErrorMsg(
+                    'Ya tenés una solicitud pendiente para este servicio. ' +
+                    'Esperá a que el proveedor responda, o revisá tus solicitudes desde "Mis solicitudes".'
+                );
+                return;
+            }
             setErrorMsg(err?.message || 'Hubo un error al enviar la solicitud. Intentá de nuevo.');
         } finally {
             setSubmitting(false);
