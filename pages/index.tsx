@@ -11,6 +11,7 @@ import {
   BadgeCheck, Sparkles
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { fetchProveedoresPublicosByIds } from "../lib/supabase/queries/proveedoresPublicos";
 import { toast } from "sonner";
 
 import SearchBar from "../components/Home/SearchBar";
@@ -694,14 +695,26 @@ export async function getStaticProps() {
       .from('servicios_publicados')
       .select(`
         *,
-        proveedor:proveedores(nombre, apellido_p, foto_perfil, comuna, perfil_completo, es_ejemplo),
+        proveedor_id,
         categoria:categorias_servicio(nombre, icono, slug)
       `)
       .eq('activo', true)
       .order('created_at', { ascending: false })
       .limit(120);
     if (data) {
-      const mapped = data.map(mapJoinToServiceResult);
+      // Hidratacion del proveedor desde proveedores_publicos (post-RLS fix).
+      // El embed directo proveedor:proveedores(...) fallaria por permisos:
+      // PostgREST materializa el join contra la tabla base (sin grant a anon
+      // tras el sprint RLS junio 2026).
+      const provMap = await fetchProveedoresPublicosByIds(
+        data.map(s => s.proveedor_id),
+        'id,nombre,apellido_p,foto_perfil,comuna,perfil_completo,es_ejemplo',
+      );
+      const merged = data.map(s => ({
+        ...s,
+        proveedor: provMap.get(s.proveedor_id) ?? null,
+      }));
+      const mapped = merged.map(mapJoinToServiceResult);
       featuredServices = [
         ...mapped.filter(s => s.fotos && s.fotos.length > 0),
         ...mapped.filter(s => !s.fotos || s.fotos.length === 0),
@@ -724,9 +737,8 @@ export async function getStaticProps() {
     countServicios = sCount || 0;
 
     const { count: pCount } = await supabase
-      .from("proveedores")
-      .select("*", { count: "exact", head: true })
-      .eq("estado", "aprobado");
+      .from("proveedores_publicos")
+      .select("*", { count: "exact", head: true });
     countProveedores = pCount || 0;
 
     const { count: cCount } = await supabase
@@ -735,9 +747,8 @@ export async function getStaticProps() {
     countCategorias = cCount || 0;
 
     const { data: comunasData } = await supabase
-      .from("proveedores")
-      .select("comunas_cobertura, comuna")
-      .eq("estado", "aprobado");
+      .from("proveedores_publicos")
+      .select("comunas_cobertura, comuna");
 
     if (comunasData) {
       comunasData.forEach(p => {

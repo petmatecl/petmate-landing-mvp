@@ -722,12 +722,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     try {
         const { data: proveedor, error: provError } = await supabase
-            .from('proveedores')
+            .from('proveedores_publicos')
             .select(`
                 id, auth_user_id, nombre, apellido_p, nombre_publico, foto_perfil, bio, comuna,
                 tipo_entidad, razon_social, nombre_fantasia, giro,
-                genero, ocupacion, fecha_nacimiento, anios_experiencia,
-                certificaciones, primera_ayuda, rut_verificado, verificacion_estado,
+                ocupacion, anios_experiencia,
+                certificaciones, primera_ayuda, rut_verificado,
                 sitio_web, instagram, facebook, tiktok, youtube,
                 idiomas, politica_cancelacion, politica_cancelacion_nota,
                 lat, lng,
@@ -743,11 +743,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             return { notFound: true };
         }
 
-        // Privacidad: reduce la precision de lat/lng expuestas al cliente
-        // de 3 decimales (~111m, lo guardado en BD) a 2 decimales (~1km).
-        // El Circle de Leaflet en la ficha publica usa radio 1000m, asi que
-        // la zona visible cubre el ruido. La BD NO se toca aqui — los 3
-        // decimales originales se preservan para calculos internos.
+        // Defense-in-depth: la vista proveedores_publicos ya devuelve lat/lng
+        // redondeados a 2 decimales a nivel BD (CASE round(...) en CREATE VIEW).
+        // Mantenemos roundCoordsForPublic por si en el futuro algun path lee de
+        // la tabla base — el doble redondeo es idempotente.
         const { lat: latPublica, lng: lngPublica } = roundCoordsForPublic(
             proveedor.lat as number | null,
             proveedor.lng as number | null

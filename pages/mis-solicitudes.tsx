@@ -17,6 +17,7 @@ import { Calendar, ArrowRight, Clock, CheckCircle, XCircle, Phone } from 'lucide
 import { toast } from 'sonner';
 import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
+import { fetchProveedoresPublicosByIds } from '../lib/supabase/queries/proveedoresPublicos';
 import ConfirmDialog from '../components/Shared/ConfirmDialog';
 import { formatFechaPreferida, formatFechaCorta } from '../lib/formatFecha';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
@@ -66,13 +67,16 @@ export default function MisSolicitudesPage() {
         }
 
         // 2. Listar agendamientos del tutor. RLS restringe a las propias.
+        //    El embed proveedor:proveedores!fk(...) se reemplaza por hidratacion
+        //    via vista publica (post-RLS fix junio 2026 — anon/tutor no-owner no
+        //    puede leer la tabla base). El embed servicio:servicios_publicados
+        //    funciona sin cambios (esa tabla no fue tocada por el fix).
         const { data, error } = await supabase
             .from('agendamientos')
             .select(`
                 id, servicio_id, proveedor_id, tutor_id,
                 fecha_preferida, mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
-                proveedor:proveedores!agendamientos_proveedor_id_fkey(id, nombre, apellido_p, foto_perfil, telefono, whatsapp, mostrar_telefono, mostrar_whatsapp),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)
             .eq('tutor_id', buscador.id)
@@ -84,9 +88,20 @@ export default function MisSolicitudesPage() {
             return;
         }
 
+        // Hidratar proveedor desde vista publica (gating de telefono/whatsapp
+        // por mostrar_* ya aplicado a nivel BD en la vista).
+        const provMap = await fetchProveedoresPublicosByIds(
+            (data || []).map((a: any) => a.proveedor_id),
+            'id,nombre,apellido_p,foto_perfil,telefono,whatsapp,mostrar_telefono,mostrar_whatsapp',
+        );
+        const hydrated = (data || []).map((a: any) => ({
+            ...a,
+            proveedor: provMap.get(a.proveedor_id) ?? null,
+        }));
+
         // Sort pendientes primero. PG no soporta CASE en order via supabase-js;
         // partition local sobre la lista que ya viene por created_at desc.
-        const raw = (data || []) as unknown as AgendamientoConRelaciones[];
+        const raw = hydrated as unknown as AgendamientoConRelaciones[];
         const pendientes = raw.filter(a => a.estado === 'pendiente');
         const otras = raw.filter(a => a.estado !== 'pendiente');
         setState({ kind: 'ready', agendamientos: [...pendientes, ...otras] });

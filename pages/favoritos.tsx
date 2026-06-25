@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { Heart, ArrowRight } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
+import { fetchProveedoresPublicosByIds } from '../lib/supabase/queries/proveedoresPublicos';
 import ServiceCard, { ServiceResult } from '../components/Explore/ServiceCard';
 import ProveedorCard, { ProveedorCardData } from '../components/Explore/ProveedorCard';
 import { mapJoinToServiceResult } from '../lib/serviceMapper';
@@ -75,13 +76,23 @@ export default function FavoritosPage() {
                         .from('servicios_publicados')
                         .select(`
                             *,
-                            proveedor:proveedores(nombre, apellido_p, nombre_publico, foto_perfil, comuna, perfil_completo, es_ejemplo),
+                            proveedor_id,
                             categoria:categorias_servicio(nombre, icono, slug)
                         `)
                         .in('id', ids)
                         .eq('activo', true);
                     if (cancelled) return;
-                    const map = new Map<string, any>((data ?? []).map((s: any) => [s.id, s]));
+                    // Hidratacion del proveedor desde vista publica (post-RLS fix).
+                    const provMap = await fetchProveedoresPublicosByIds(
+                        (data ?? []).map((s: any) => s.proveedor_id),
+                        'id,nombre,apellido_p,nombre_publico,foto_perfil,comuna,perfil_completo,es_ejemplo',
+                    );
+                    if (cancelled) return;
+                    const withProv = (data ?? []).map((s: any) => ({
+                        ...s,
+                        proveedor: provMap.get(s.proveedor_id) ?? null,
+                    }));
+                    const map = new Map<string, any>(withProv.map((s: any) => [s.id, s]));
                     const ordered = ids
                         .map(id => map.get(id))
                         .filter(Boolean)
@@ -89,10 +100,9 @@ export default function FavoritosPage() {
                     setServicios(ordered);
                 } else {
                     const { data } = await supabase
-                        .from('proveedores')
+                        .from('proveedores_publicos')
                         .select('id, nombre, apellido_p, nombre_publico, foto_perfil, comuna, rut_verificado, perfil_completo, es_ejemplo, favoritos_total')
-                        .in('id', ids)
-                        .eq('estado', 'aprobado');
+                        .in('id', ids);
                     if (cancelled) return;
                     const map = new Map<string, any>((data ?? []).map((p: any) => [p.id, p]));
                     const ordered: ProveedorCardData[] = ids

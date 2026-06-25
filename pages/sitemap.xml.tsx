@@ -8,9 +8,8 @@ const STATIC_ROUTES = [
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     // Fetch approved providers
     const { data: proveedores } = await supabase
-        .from("proveedores")
-        .select("id, updated_at")
-        .eq("estado", "aprobado");
+        .from("proveedores_publicos")
+        .select("id, updated_at");
 
     // Fetch active services
     const { data: servicios } = await supabase

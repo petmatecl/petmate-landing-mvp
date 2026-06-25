@@ -62,7 +62,7 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
                 const missingIds = userIds.filter(id => !userMap.has(id));
                 if (missingIds.length > 0) {
                     const { data: provs } = await supabase
-                        .from('proveedores')
+                        .from('proveedores_publicos')
                         .select('auth_user_id, nombre, apellido_p, foto_perfil, nombre_publico')
                         .in('auth_user_id', missingIds);
                     (provs || []).forEach(p => userMap.set(p.auth_user_id, {

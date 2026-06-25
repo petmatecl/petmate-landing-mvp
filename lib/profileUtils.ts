@@ -15,7 +15,7 @@ export interface ParticipantProfile {
  */
 export async function getParticipantProfile(authUserId: string): Promise<ParticipantProfile | null> {
     const { data: prov } = await supabase
-        .from('proveedores')
+        .from('proveedores_publicos')
         .select('auth_user_id, nombre, apellido_p, foto_perfil')
         .eq('auth_user_id', authUserId)
         .maybeSingle();

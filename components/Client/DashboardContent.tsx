@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from "../../lib/supabaseClient";
+import { fetchProveedoresPublicosByIds } from "../../lib/supabase/queries/proveedoresPublicos";
 import Link from "next/link";
 import { MessagesSquare, Search, Heart, X, Star } from "lucide-react";
 import ReviewModal from "../Service/ReviewModal";
@@ -57,7 +58,10 @@ export default function DashboardContent() {
 
         let isMounted = true;
 
-        // 1. Fetch Conversaciones
+        // 1. Fetch Conversaciones. El embed proveedores!fk(...) se reemplaza
+        //    por hidratacion via vista publica (post-RLS fix junio 2026).
+        //    sitter_id en conversations es auth_user_id directo del proveedor
+        //    (no proveedor.id), asi que hidratamos por auth_user_id no por id.
         const loadConversations = async () => {
             try {
                 const { data, error } = await supabase
@@ -66,11 +70,6 @@ export default function DashboardContent() {
                         id,
                         updated_at,
                         sitter_id,
-                        proveedores!conversations_sitter_id_fkey(
-                            nombre,
-                            apellido_p,
-                            foto_perfil
-                        ),
                         messages(
                             content,
                             created_at
@@ -83,8 +82,16 @@ export default function DashboardContent() {
                 if (error) throw error;
 
                 if (isMounted && data) {
+                    // Hidratar partner desde vista por auth_user_id (sitter_id es FK a auth.users).
+                    const partnerAuthIds = data.map((c: any) => c.sitter_id).filter(Boolean);
+                    const { data: partners } = await supabase
+                        .from('proveedores_publicos')
+                        .select('auth_user_id, nombre, apellido_p, foto_perfil')
+                        .in('auth_user_id', partnerAuthIds);
+                    const partnerMap = new Map<string, any>((partners ?? []).map((p: any) => [p.auth_user_id, p]));
+
                     const parsed = data.map((conv: any) => {
-                        const partner = Array.isArray(conv.proveedores) ? conv.proveedores[0] : conv.proveedores;
+                        const partner = partnerMap.get(conv.sitter_id) ?? null;
                         const msgs = conv.messages || [];
                         const lastMsg = msgs.length > 0
                             ? msgs.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b)?.content
@@ -109,7 +116,10 @@ export default function DashboardContent() {
 
         // Favoritos: feature movido a /favoritos. El dashboard solo linkea.
 
-        // 3. Fetch Servicios consultados (DISTINCT por servicio, últimos 6)
+        // 3. Fetch Servicios consultados (DISTINCT por servicio, últimos 6).
+        //    Embed nested proveedores!inner se reemplaza por hidratacion desde
+        //    vista publica (post-RLS fix). Embed a servicios_publicados se
+        //    mantiene intacto (tabla no tocada por el fix).
         const loadContactedServices = async () => {
             try {
                 const { data, error } = await supabase
@@ -118,8 +128,7 @@ export default function DashboardContent() {
                         id,
                         created_at,
                         servicios_publicados!inner(
-                            id, titulo, fotos, precio_desde, unidad_precio, proveedor_id,
-                            proveedores!inner(nombre, apellido_p, foto_perfil)
+                            id, titulo, fotos, precio_desde, unidad_precio, proveedor_id
                         )
                     `)
                     .eq('client_id', user.id)
@@ -127,13 +136,25 @@ export default function DashboardContent() {
                     .limit(20);
 
                 if (!error && data) {
+                    // Hidratar proveedor anidado dentro de cada servicio.
+                    const provIds = data
+                        .map((c: any) => {
+                            const sp = c.servicios_publicados;
+                            return Array.isArray(sp) ? sp[0]?.proveedor_id : sp?.proveedor_id;
+                        })
+                        .filter(Boolean);
+                    const provMap = await fetchProveedoresPublicosByIds(
+                        provIds,
+                        'id,nombre,apellido_p,foto_perfil',
+                    );
+
                     const seen = new Set<string>();
                     const unique: ContactedService[] = [];
                     for (const conv of data) {
                         const sp = conv.servicios_publicados as any;
                         if (!sp?.id || seen.has(sp.id)) continue;
                         seen.add(sp.id);
-                        const prov = Array.isArray(sp.proveedores) ? sp.proveedores[0] : sp.proveedores;
+                        const prov = provMap.get(sp.proveedor_id) ?? null;
                         unique.push({
                             conversation_id: conv.id,
                             servicio_id: sp.id,
@@ -181,12 +202,17 @@ export default function DashboardContent() {
                 if (pendingIds.length > 0) {
                     const { data: extras } = await supabase
                         .from('servicios_publicados')
-                        .select('id, titulo, fotos, proveedor_id, proveedores(nombre, apellido_p)')
+                        .select('id, titulo, fotos, proveedor_id')
                         .in('id', pendingIds);
 
                     if (isMounted && extras) {
+                        // Hidratar proveedores desde vista publica (post-RLS fix).
+                        const provMap = await fetchProveedoresPublicosByIds(
+                            extras.map((s: any) => s.proveedor_id),
+                            'id,nombre,apellido_p',
+                        );
                         const mapped: PendingReview[] = extras.map((s: any) => {
-                            const prov = Array.isArray(s.proveedores) ? s.proveedores[0] : s.proveedores;
+                            const prov = provMap.get(s.proveedor_id) ?? null;
                             return {
                                 servicio_id: s.id,
                                 proveedor_id: s.proveedor_id ?? '',
