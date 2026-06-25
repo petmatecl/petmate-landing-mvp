@@ -182,7 +182,7 @@ export default function MisSolicitudesPage() {
                         Mis solicitudes de agendamiento
                     </h1>
                     <p className="text-sm text-slate-500 leading-relaxed">
-                        Acá ves todas tus solicitudes y su estado. El proveedor responde por email; también podés verlo acá.
+                        Aquí ves todas tus solicitudes y su estado. El proveedor responde por email; también puedes verlo aquí.
                     </p>
                 </header>
 
@@ -199,7 +199,7 @@ export default function MisSolicitudesPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 mb-2">Completá tu perfil de tutor</h3>
                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                            Necesitás completar tu perfil de tutor antes de ver tus solicitudes.
+                            Necesitas completar tu perfil de tutor antes de ver tus solicitudes.
                         </p>
                         <Link
                             href="/register?rol=usuario"
@@ -257,7 +257,7 @@ export default function MisSolicitudesPage() {
                         open={cancelDialogId !== null}
                         title={eraConfirmada ? 'Cancelar cita confirmada' : '¿Cancelar esta solicitud?'}
                         message={eraConfirmada
-                            ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelás ahora, le enviaremos un aviso por email. Si podés, contactalo directamente para coordinar.'
+                            ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
                             : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.'}
                         confirmLabel={eraConfirmada ? 'Cancelar cita' : 'Cancelar solicitud'}
                         cancelLabel="Volver"

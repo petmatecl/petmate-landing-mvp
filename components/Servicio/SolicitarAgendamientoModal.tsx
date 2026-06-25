@@ -100,7 +100,7 @@ export default function SolicitarAgendamientoModal({
 
             if (buscadorErr) throw buscadorErr;
             if (!buscador) {
-                setErrorMsg('Necesitás completar tu perfil de tutor antes de agendar. Andá a registrarte como tutor.');
+                setErrorMsg('Necesitas completar tu perfil de tutor antes de agendar. Regístrate como tutor para continuar.');
                 return;
             }
 
@@ -152,8 +152,8 @@ export default function SolicitarAgendamientoModal({
             // mostrar mensaje accionable en vez del error crudo de BD.
             if (err?.code === '23505') {
                 setErrorMsg(
-                    'Ya tenés una solicitud pendiente para este servicio. ' +
-                    'Esperá a que el proveedor responda, o revisá tus solicitudes desde "Mis solicitudes".'
+                    'Ya tienes una solicitud pendiente para este servicio. ' +
+                    'Espera a que el proveedor responda, o revisa tus solicitudes desde "Mis solicitudes".'
                 );
                 return;
             }
@@ -221,7 +221,7 @@ export default function SolicitarAgendamientoModal({
                             onChange={e => setMensaje(e.target.value)}
                             maxLength={500}
                             rows={4}
-                            placeholder="Contá detalles de tu mascota, condiciones especiales, o cualquier cosa que el proveedor necesite saber."
+                            placeholder="Cuéntanos detalles de tu mascota, condiciones especiales, o cualquier cosa que el proveedor necesite saber."
                             className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors resize-none"
                         />
                         <p className="text-xs text-slate-400 mt-1 text-right">{mensaje.length} / 500</p>

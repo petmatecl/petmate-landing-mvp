@@ -735,7 +735,7 @@ export default function ExplorarPage() {
                                         {inclusionesActivas ? (
                                             <>
                                                 <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
-                                                    Ningún servicio cumple todos los requisitos seleccionados. Probá quitando alguno.
+                                                    Ningún servicio cumple todos los requisitos seleccionados. Prueba quitando alguno.
                                                 </p>
                                                 <div className="flex flex-wrap justify-center gap-2 mt-4">
                                                     <button

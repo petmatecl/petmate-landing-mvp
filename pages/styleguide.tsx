@@ -480,7 +480,7 @@ export default function StyleGuide() {
                     ═══════════════════════════════════════════════════════════════ */}
                     <section id="excepciones" className="scroll-mt-8">
                         <h2 className="text-2xl font-semibold tracking-tight text-slate-900 mb-2">6. Excepciones documentadas</h2>
-                        <p className="text-sm text-slate-500 mb-8">Tres excepciones explícitas con justificación. Cualquier desviación adicional debe documentarse acá.</p>
+                        <p className="text-sm text-slate-500 mb-8">Tres excepciones explícitas con justificación. Cualquier desviación adicional debe documentarse aquí.</p>
 
                         <div className="space-y-6">
 

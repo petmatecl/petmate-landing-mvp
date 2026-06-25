@@ -168,7 +168,7 @@ export default function CookieBanner() {
                         {/* Analíticas */}
                         <ConsentRow
                             title="Analíticas"
-                            description="Google Analytics. Nos ayuda a entender cómo usás el sitio para mejorarlo. Datos agregados y anónimos."
+                            description="Google Analytics. Nos ayuda a entender cómo usas el sitio para mejorarlo. Datos agregados y anónimos."
                             checked={draftPrefs.analytics}
                             onToggle={() => setDraftPrefs(p => ({ ...p, analytics: !p.analytics }))}
                         />

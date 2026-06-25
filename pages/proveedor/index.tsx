@@ -2167,7 +2167,7 @@ export default function ProveedorDashboard() {
                         <div className="animate-in fade-in duration-300 max-w-3xl">
                             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Solicitudes de agendamiento</h1>
                             <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                                Confirmá o rechazá las solicitudes que recibís para tus servicios con agendamiento habilitado.
+                                Confirma o rechaza las solicitudes que recibes para tus servicios con agendamiento habilitado.
                             </p>
 
                             {solicitudes.length === 0 ? (
@@ -2175,9 +2175,9 @@ export default function ProveedorDashboard() {
                                     <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Calendar size={32} />
                                     </div>
-                                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no recibís solicitudes de agendamiento</h3>
+                                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no recibes solicitudes de agendamiento</h3>
                                     <p className="text-sm text-slate-500 max-w-md mx-auto">
-                                        Las solicitudes aparecen acá cuando algún tutor agenda en uno de tus servicios. Asegurate de tener el toggle de agendamiento habilitado en al menos un servicio.
+                                        Las solicitudes aparecen aquí cuando algún tutor agenda en uno de tus servicios. Asegúrate de tener el toggle de agendamiento habilitado en al menos un servicio.
                                     </p>
                                 </div>
                             ) : (
