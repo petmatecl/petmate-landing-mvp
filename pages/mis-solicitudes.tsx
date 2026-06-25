@@ -114,6 +114,14 @@ export default function MisSolicitudesPage() {
 
     const handleConfirmCancel = async () => {
         if (!cancelDialogId) return;
+        // Mejora B: si la solicitud que se cancela era CONFIRMADA, notificar
+        // al proveedor para que sepa que esa cita ya no esta en pie. Cancelar
+        // pendientes NO genera notificacion (decision UX original).
+        const sol = state.kind === 'ready'
+            ? state.agendamientos.find(a => a.id === cancelDialogId)
+            : null;
+        const eraConfirmada = sol?.estado === 'confirmada';
+
         setCancelLoading(true);
         try {
             const { error } = await supabase
@@ -124,11 +132,25 @@ export default function MisSolicitudesPage() {
                 })
                 .eq('id', cancelDialogId);
             if (error) throw error;
-            toast.success('Solicitud cancelada.');
+
+            if (eraConfirmada) {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    fetch('/api/agendamientos/notify-proveedor-cancel', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ agendamientoId: cancelDialogId }),
+                    }).catch(err => console.warn('[mis-solicitudes] notify-cancel falló:', err));
+                }
+            }
+
+            toast.success(eraConfirmada
+                ? 'Cancelación enviada. El proveedor fue notificado.'
+                : 'Solicitud cancelada.');
             setCancelDialogId(null);
-            // Spec: NO se manda email al proveedor por cancelacion del tutor
-            // (decision: ruido innecesario). Si en el futuro se quiere, se
-            // agrega un POST a un nuevo endpoint notify-proveedor-cancel.
             await fetchSolicitudes();
         } catch (err: any) {
             console.error('[mis-solicitudes] cancel error:', err);
@@ -221,17 +243,31 @@ export default function MisSolicitudesPage() {
                 )}
             </div>
 
-            <ConfirmDialog
-                open={cancelDialogId !== null}
-                title="¿Cancelar esta solicitud?"
-                message="Esta acción no se puede revertir. El proveedor verá que cancelaste."
-                confirmLabel="Cancelar solicitud"
-                cancelLabel="Volver"
-                variant="danger"
-                loading={cancelLoading}
-                onConfirm={handleConfirmCancel}
-                onCancel={() => setCancelDialogId(null)}
-            />
+            {/* Mejora B: el copy del dialog depende del estado actual de la
+                solicitud que se cancela. Cancelar una CONFIRMADA es mas
+                serio (cita acordada, proveedor reservo el horario) — texto
+                explicito + aviso de que se le manda email. */}
+            {(() => {
+                const sol = state.kind === 'ready'
+                    ? state.agendamientos.find(a => a.id === cancelDialogId)
+                    : null;
+                const eraConfirmada = sol?.estado === 'confirmada';
+                return (
+                    <ConfirmDialog
+                        open={cancelDialogId !== null}
+                        title={eraConfirmada ? 'Cancelar cita confirmada' : '¿Cancelar esta solicitud?'}
+                        message={eraConfirmada
+                            ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelás ahora, le enviaremos un aviso por email. Si podés, contactalo directamente para coordinar.'
+                            : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.'}
+                        confirmLabel={eraConfirmada ? 'Cancelar cita' : 'Cancelar solicitud'}
+                        cancelLabel="Volver"
+                        variant="danger"
+                        loading={cancelLoading}
+                        onConfirm={handleConfirmCancel}
+                        onCancel={() => setCancelDialogId(null)}
+                    />
+                );
+            })()}
         </>
     );
 }

@@ -394,6 +394,21 @@ export default function ProveedorDashboard() {
 
     const handleResponderSolicitud = useCallback(
         async (solicitudId: string, nuevoEstado: 'confirmada' | 'rechazada') => {
+            // Gate de re-respuesta (#3): la policy RLS solo valida el NUEVO
+            // estado; no bloquea transiciones desde estados terminales. Si el
+            // proveedor clickea Confirmar despues de Rechazar (race entre tabs,
+            // botones residuales por algun bug futuro de render), sin este
+            // check se re-disparria el UPDATE + el email al tutor. State machine
+            // pendiente -> {confirmada | rechazada} terminal vive en codigo.
+            // La UI tambien ya gatea (botones solo se rendean si isPendiente),
+            // esto es defensa en profundidad.
+            const sol = solicitudes.find(s => s.id === solicitudId);
+            if (!sol) return;
+            if (sol.estado !== 'pendiente') {
+                toast.error('Esta solicitud ya fue respondida.');
+                return;
+            }
+
             setSolicitudActionId(solicitudId);
             try {
                 const nota = solicitudNotas[solicitudId]?.trim() || null;
@@ -438,7 +453,7 @@ export default function ProveedorDashboard() {
                 setSolicitudActionId(null);
             }
         },
-        [proveedor?.id, solicitudNotas, fetchSolicitudes]
+        [proveedor?.id, solicitudes, solicitudNotas, fetchSolicitudes]
     );
 
     const handleTabChange = (tab: TabType) => {
