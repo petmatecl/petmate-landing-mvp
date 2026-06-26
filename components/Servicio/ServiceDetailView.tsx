@@ -929,27 +929,34 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                                 </div>
                             ) : null}
 
+                            {/* Badge "ya evaluaste" — feedback de esta seccion,
+                                no una seccion propia. Integrado adentro del card
+                                Evaluaciones para eliminar el hijo intermedio
+                                que generaba ~146px de hueco entre Evaluaciones
+                                y Preguntas (parent gap-8 + mt-8 + badge thin +
+                                gap-8). Ahora el badge es el ultimo elemento del
+                                card cuando aplica. */}
+                            {user && yaEvaluo && (
+                                <div className="mt-6 flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-xl">
+                                    <Star size={16} className="fill-emerald-500 text-emerald-500" />
+                                    Ya dejaste una evaluación para este servicio
+                                </div>
+                            )}
+
                         </div>
 
-                        {/* Formulario de Evaluación (Solo Autenticados) */}
-                        {user && (
-                            <div className="mt-8">
-                                {yaEvaluo ? (
-                                    <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-xl">
-                                        <Star size={16} className="fill-emerald-500 text-emerald-500" />
-                                        Ya dejaste una evaluación para este servicio
-                                    </div>
-                                ) : (
-                                    <ReviewForm
-                                        servicioId={service.id}
-                                        proveedorId={proveedor.id}
-                                        servicioTitulo={service.titulo}
-                                        onSuccess={() => {
-                                            setYaEvaluo(true);
-                                        }}
-                                    />
-                                )}
-                            </div>
+                        {/* Formulario de Evaluación (Solo Autenticados + no evaluo).
+                            Sin mt-8 — el parent flex usa gap-8, mt-8 estaba
+                            duplicando el espacio. */}
+                        {user && !yaEvaluo && (
+                            <ReviewForm
+                                servicioId={service.id}
+                                proveedorId={proveedor.id}
+                                servicioTitulo={service.titulo}
+                                onSuccess={() => {
+                                    setYaEvaluo(true);
+                                }}
+                            />
                         )}
 
                         {/* Preguntas al proveedor */}
