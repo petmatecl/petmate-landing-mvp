@@ -1,22 +1,27 @@
 // components/Servicio/SolicitarAgendamientoModal.tsx
 // ----------------------------------------------------------------------------
 // Sprint 2 agendamiento — modal de solicitud del tutor.
+// Fase 1 del feature multi-dia: branching del form segun categoria del
+// servicio (V1 puntual fecha+hora vs V2 cuidado rango de noches sin hora).
 //
 // Flow:
 //   1. Tutor ve "Solicitar agendamiento" en sidebar/sticky de la ficha.
-//   2. Click abre este modal. Form: fecha+hora (required, futura) + mensaje
-//      opcional (max 500).
+//   2. Click abre este modal.
+//      - V1 (default, todas las categorias salvo cuidado): fecha+hora
+//        (required, futura) + mensaje opcional (max 500).
+//      - V2 (categoria 'cuidado'): fecha inicio + fecha fin (ambas dia, sin
+//        hora; fin > inicio; ambas futuras) + mensaje opcional.
 //   3. Submit: resuelve usuarios_buscadores.id por auth_user_id, INSERT a
-//      `agendamientos` con estado default 'pendiente'.
+//      `agendamientos` con estado default 'pendiente'. Para V2 incluye
+//      fecha_fin; para V1 fecha_fin queda null.
 //   4. Success: toast + cierra modal. No redirect (la pagina /mis-solicitudes
 //      llega en Sprint 4).
-//
-// NO incluye: emails al proveedor (Sprint 3), panel del proveedor (Sprint 3).
 // ----------------------------------------------------------------------------
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Calendar, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getVarianteFormulario } from '../../lib/categoriaTemporal';
 
 interface SolicitarAgendamientoModalProps {
     isOpen: boolean;
@@ -24,6 +29,9 @@ interface SolicitarAgendamientoModalProps {
     servicioId: string;
     proveedorId: string;
     serviceTitle: string;
+    // Fase 1: slug de la categoria del servicio para decidir variante de
+    // form. Si no se pasa (legacy callers), cae en V1 (puntual fecha+hora).
+    categoriaSlug?: string | null;
 }
 
 // Devuelve YYYY-MM-DDTHH:mm en horario local — formato esperado por
@@ -35,14 +43,28 @@ function minDateTimeLocal(): string {
     return local.toISOString().slice(0, 16);
 }
 
+// YYYY-MM-DD en horario local — formato esperado por <input type="date"/>
+// para el atributo `min`. Day-granularity (sin hora) para V2.
+function minDateLocal(): string {
+    const now = new Date();
+    const off = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - off * 60 * 1000);
+    return local.toISOString().slice(0, 10);
+}
+
 export default function SolicitarAgendamientoModal({
     isOpen,
     onClose,
     servicioId,
     proveedorId,
     serviceTitle,
+    categoriaSlug,
 }: SolicitarAgendamientoModalProps) {
-    const [fechaPreferida, setFechaPreferida] = useState('');
+    const variante = getVarianteFormulario(categoriaSlug);
+    const isV2 = variante === 'V2';
+
+    const [fechaPreferida, setFechaPreferida] = useState(''); // V1: datetime-local; V2: date inicio
+    const [fechaFin, setFechaFin] = useState(''); // V2: date fin
     const [mensaje, setMensaje] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
@@ -51,6 +73,7 @@ export default function SolicitarAgendamientoModal({
 
     const reset = () => {
         setFechaPreferida('');
+        setFechaFin('');
         setMensaje('');
         setErrorMsg('');
     };
@@ -65,16 +88,51 @@ export default function SolicitarAgendamientoModal({
         e.preventDefault();
         setErrorMsg('');
 
-        if (!fechaPreferida) {
-            setErrorMsg('Selecciona una fecha y hora preferida.');
-            return;
+        // Validacion branching V1 vs V2. Ambos extremos en hora LOCAL del
+        // tutor: V1 = datetime-local (input ya devuelve sin TZ), V2 = date
+        // que parseamos como medianoche local (00:00 CLT) — la diferencia
+        // entre check-in y check-out en dias de calendario es lo que cuenta.
+        let fechaInicioIso: string;
+        let fechaFinIso: string | null = null;
+
+        if (isV2) {
+            if (!fechaPreferida || !fechaFin) {
+                setErrorMsg('Selecciona la fecha de inicio y la fecha de término.');
+                return;
+            }
+            // Input type="date" → parsear como medianoche local agregando T00:00.
+            const inicioDate = new Date(`${fechaPreferida}T00:00:00`);
+            const finDate = new Date(`${fechaFin}T00:00:00`);
+            if (Number.isNaN(inicioDate.getTime()) || Number.isNaN(finDate.getTime())) {
+                setErrorMsg('Las fechas seleccionadas no son válidas.');
+                return;
+            }
+            // Ambas futuras (medianoche del dia >= hoy 00:00).
+            const hoyMidnight = new Date();
+            hoyMidnight.setHours(0, 0, 0, 0);
+            if (inicioDate.getTime() < hoyMidnight.getTime()) {
+                setErrorMsg('La fecha de inicio debe ser desde hoy en adelante.');
+                return;
+            }
+            if (finDate.getTime() <= inicioDate.getTime()) {
+                setErrorMsg('La fecha de término debe ser posterior a la de inicio.');
+                return;
+            }
+            fechaInicioIso = inicioDate.toISOString();
+            fechaFinIso = finDate.toISOString();
+        } else {
+            if (!fechaPreferida) {
+                setErrorMsg('Selecciona una fecha y hora preferida.');
+                return;
+            }
+            const fechaDate = new Date(fechaPreferida);
+            if (Number.isNaN(fechaDate.getTime()) || fechaDate.getTime() <= Date.now()) {
+                setErrorMsg('La fecha y hora deben ser futuras.');
+                return;
+            }
+            fechaInicioIso = fechaDate.toISOString();
         }
-        // Validar futuro client-side. Constraint adicional en BD si existe.
-        const fechaDate = new Date(fechaPreferida);
-        if (Number.isNaN(fechaDate.getTime()) || fechaDate.getTime() <= Date.now()) {
-            setErrorMsg('La fecha y hora deben ser futuras.');
-            return;
-        }
+
         if (mensaje.length > 500) {
             setErrorMsg('El mensaje supera el máximo de 500 caracteres.');
             return;
@@ -110,7 +168,8 @@ export default function SolicitarAgendamientoModal({
                     servicio_id: servicioId,
                     proveedor_id: proveedorId,
                     tutor_id: buscador.id,
-                    fecha_preferida: fechaDate.toISOString(),
+                    fecha_preferida: fechaInicioIso,
+                    fecha_fin: fechaFinIso, // V1: null, V2: ISO del check-out
                     mensaje: mensaje.trim() || null,
                     // estado default 'pendiente' viene de la BD.
                 })
@@ -164,6 +223,8 @@ export default function SolicitarAgendamientoModal({
     };
 
     const minDt = minDateTimeLocal();
+    const minD = minDateLocal();
+    const submitDisabled = submitting || !fechaPreferida || (isV2 && !fechaFin);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
@@ -191,24 +252,65 @@ export default function SolicitarAgendamientoModal({
 
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    <div>
-                        <label htmlFor="agend-fecha" className="block text-sm font-medium text-slate-700 mb-1.5">
-                            Fecha y hora preferida <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            id="agend-fecha"
-                            name="agend-fecha"
-                            type="datetime-local"
-                            value={fechaPreferida}
-                            onChange={e => setFechaPreferida(e.target.value)}
-                            min={minDt}
-                            required
-                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
-                        />
-                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                            Cuándo te gustaría recibir el servicio. El proveedor confirmará o propondrá otra opción.
-                        </p>
-                    </div>
+                    {isV2 ? (
+                        // V2 — cuidado rango de noches (sin hora; entrega/retiro
+                        // se conversa en chat). Dos inputs date, fin > inicio.
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label htmlFor="agend-fecha-inicio" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                    Fecha de inicio <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="agend-fecha-inicio"
+                                    name="agend-fecha-inicio"
+                                    type="date"
+                                    value={fechaPreferida}
+                                    onChange={e => setFechaPreferida(e.target.value)}
+                                    min={minD}
+                                    required
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="agend-fecha-fin" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                    Fecha de término <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="agend-fecha-fin"
+                                    name="agend-fecha-fin"
+                                    type="date"
+                                    value={fechaFin}
+                                    onChange={e => setFechaFin(e.target.value)}
+                                    min={fechaPreferida || minD}
+                                    required
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                />
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1 leading-relaxed sm:col-span-2">
+                                Período de cuidado (sin hora). El horario de entrega y retiro lo coordinas con el proveedor por chat una vez confirmada la solicitud.
+                            </p>
+                        </div>
+                    ) : (
+                        // V1 — puntual fecha+hora (sin cambios desde Sprint 2).
+                        <div>
+                            <label htmlFor="agend-fecha" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Fecha y hora preferida <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                id="agend-fecha"
+                                name="agend-fecha"
+                                type="datetime-local"
+                                value={fechaPreferida}
+                                onChange={e => setFechaPreferida(e.target.value)}
+                                min={minDt}
+                                required
+                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                            />
+                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                Cuándo te gustaría recibir el servicio. El proveedor confirmará o propondrá otra opción.
+                            </p>
+                        </div>
+                    )}
 
                     <div>
                         <label htmlFor="agend-mensaje" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -244,7 +346,7 @@ export default function SolicitarAgendamientoModal({
                         </button>
                         <button
                             type="submit"
-                            disabled={submitting || !fechaPreferida}
+                            disabled={submitDisabled}
                             className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {submitting && <Loader2 size={16} className="animate-spin" />}

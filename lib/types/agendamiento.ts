@@ -16,6 +16,11 @@ export interface AgendamientoRow {
     proveedor_id: string;
     tutor_id: string;
     fecha_preferida: string | null;
+    // Fase 1 del feature multi-dia: para variante V2 (cuidado rango noches)
+    // este campo trae el check-out. fecha_preferida = check-in. Para V1
+    // (puntual fecha+hora) queda null. Fases 2-3 lo reusan (V3 guarderia,
+    // V4a cuidado a domicilio rango).
+    fecha_fin: string | null;
     mensaje: string | null;
     estado: EstadoAgendamiento;
     nota_proveedor: string | null;

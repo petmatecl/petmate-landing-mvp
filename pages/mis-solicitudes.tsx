@@ -19,7 +19,7 @@ import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
 import { fetchProveedoresPublicosByIds } from '../lib/supabase/queries/proveedoresPublicos';
 import ConfirmDialog from '../components/Shared/ConfirmDialog';
-import { formatFechaPreferida, formatFechaCorta } from '../lib/formatFecha';
+import { formatFechaPreferida, formatFechaCorta, formatRangoNoches } from '../lib/formatFecha';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
 
 type LoadState =
@@ -75,7 +75,7 @@ export default function MisSolicitudesPage() {
             .from('agendamientos')
             .select(`
                 id, servicio_id, proveedor_id, tutor_id,
-                fecha_preferida, mensaje, estado, nota_proveedor,
+                fecha_preferida, fecha_fin, mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)
@@ -287,7 +287,12 @@ function SolicitudCard({
     const isRechazada = solicitud.estado === 'rechazada';
     const isCancelada = solicitud.estado === 'cancelada';
 
-    const fechaPreferida = formatFechaPreferida(solicitud.fecha_preferida);
+    // Branching V1 (puntual fecha+hora) vs V2 (cuidado rango noches): la
+    // presencia de fecha_fin encoda la variante — no necesitamos consultar la
+    // categoria del servicio al render.
+    const fechaPreferida = solicitud.fecha_fin
+        ? formatRangoNoches(solicitud.fecha_preferida, solicitud.fecha_fin)
+        : formatFechaPreferida(solicitud.fecha_preferida);
     const respondidoAt = formatFechaCorta(solicitud.respondido_at);
 
     const estadoBadge = (() => {

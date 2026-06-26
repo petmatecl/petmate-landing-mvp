@@ -1407,6 +1407,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                 servicioId={service.id}
                 proveedorId={proveedor.id}
                 serviceTitle={service.titulo}
+                categoriaSlug={categoria?.slug ?? null}
             />
             <ExampleCTAModal
                 isOpen={exampleModalAction !== null}

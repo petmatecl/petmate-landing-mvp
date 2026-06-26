@@ -27,7 +27,7 @@ const LocationPicker = dynamic(() => import('../../components/Shared/LocationPic
         </div>
     ),
 });
-import { formatFechaPreferida, formatFechaCorta } from '../../lib/formatFecha';
+import { formatFechaPreferida, formatFechaCorta, formatRangoNoches } from '../../lib/formatFecha';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
@@ -369,7 +369,7 @@ export default function ProveedorDashboard() {
             .from('agendamientos')
             .select(`
                 id, servicio_id, proveedor_id, tutor_id,
-                fecha_preferida, mensaje, estado, nota_proveedor,
+                fecha_preferida, fecha_fin, mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
@@ -2190,7 +2190,11 @@ export default function ProveedorDashboard() {
                                         const isLoading = solicitudActionId === sol.id;
                                         const nota = solicitudNotas[sol.id] ?? '';
 
-                                        const fechaPreferida = formatFechaPreferida(sol.fecha_preferida);
+                                        // Branching V1 vs V2: presencia de
+                                        // fecha_fin encoda la variante.
+                                        const fechaPreferida = sol.fecha_fin
+                                            ? formatRangoNoches(sol.fecha_preferida, sol.fecha_fin)
+                                            : formatFechaPreferida(sol.fecha_preferida);
                                         const respondidoAt = formatFechaCorta(sol.respondido_at);
 
                                         const estadoBadge = (() => {
