@@ -1258,12 +1258,16 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                 </div>
 
                 {/* Otros proveedores — ancho completo. Grid columns adaptado al
-                    count para evitar celdas vacias visibles. 1 card → 1 col;
-                    2 cards → 2 cols (sin tercera vacia); 3+ cards → 3 cols
-                    (tope, antes era xl:4 pero sobre-densificaba en wide). */}
+                    count para evitar celdas vacias visibles. 1 card → 1 col
+                    con max-w-sm para que la card no se estire al ancho de la
+                    seccion (ServiceCard fue disenado para columnas de ~250-350px
+                    en multi-col; estirado a ~1100px en desktop la imagen y la
+                    card se ven descuadradas); 2 cards → 2 cols (sin tercera
+                    vacia); 3+ cards → 3 cols (tope, antes era xl:4 pero
+                    sobre-densificaba en wide). */}
                 {otrosServicios && otrosServicios.length > 0 && (() => {
                     const colsClass = otrosServicios.length === 1
-                        ? 'grid-cols-1'
+                        ? 'grid-cols-1 max-w-sm'
                         : otrosServicios.length === 2
                             ? 'grid-cols-1 sm:grid-cols-2'
                             : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
