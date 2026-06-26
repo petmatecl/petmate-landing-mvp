@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useStickyBox } from 'react-sticky-box';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -324,6 +325,52 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     // el flag real, no `true || isExample` — para que la ficha demo se
     // comporte distinto solo si el servicio demo explicitamente la habilito.
     const agendamientoOn = service?.agendamiento_habilitado === true;
+
+    // S3 backlog UX: sticky bidireccional para la columna derecha (patron
+    // Airbnb). useStickyBox aplica position:sticky con offset top + bottom
+    // y reposiciona segun direccion de scroll, asi todo el contenido del
+    // card es accesible incluso cuando es mas alto que el viewport (con
+    // sticky simple lg:sticky lg:top-X la mitad inferior quedaba inaccesible).
+    //
+    // offsetTop dinamico: lee --header-height (105 con launch banner / 64 sin)
+    // y escucha MutationObserver sobre el style del <html> porque Header.tsx
+    // setea la var via documentElement.style.setProperty — el observer detecta
+    // cualquier cambio del attribute style. +16px de respiro contra header.
+    //
+    // Mobile guard (isDesktop): el hook aplica sticky siempre, pero en mobile
+    // (<lg) las columnas se apilan en flex-col → el card termina al fondo de
+    // la pagina y al hacer scroll hacia arriba se "stickearia" en la parte
+    // superior del viewport, pisando o compitiendo con la barra fija mobile
+    // inferior. Brancheamos: en mobile NO atachamos el ref → flow normal.
+    const [headerOffset, setHeaderOffset] = useState(121); // initial: 105+16 (banner asumido visible en first paint)
+    const [isDesktop, setIsDesktop] = useState(false);
+    useEffect(() => {
+        // Read CSS var current value + listen to changes via MutationObserver
+        // sobre <html> (Header.tsx muta el inline style cuando el banner se
+        // toggle). Mas simple y barato que un context compartido.
+        const readOffset = () => {
+            const headerH = parseInt(
+                getComputedStyle(document.documentElement).getPropertyValue('--header-height')
+            ) || 105;
+            setHeaderOffset(headerH + 16);
+        };
+        readOffset();
+        const observer = new MutationObserver(readOffset);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+
+        // Mobile guard via matchMedia. lg breakpoint en Tailwind default = 1024px.
+        const mq = window.matchMedia('(min-width: 1024px)');
+        setIsDesktop(mq.matches);
+        const onMqChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+        mq.addEventListener('change', onMqChange);
+
+        return () => {
+            observer.disconnect();
+            mq.removeEventListener('change', onMqChange);
+        };
+    }, []);
+
+    const stickyRef = useStickyBox({ offsetTop: headerOffset, offsetBottom: 16 });
 
     return (
         // min-h-screen ya lo aplica el wrapper de _app.tsx (`min-h-screen flex
@@ -970,25 +1017,27 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
                     </div>
 
-                    {/* COLUMNA DERECHA: SIDEBAR sticky en desktop.
-                        Offset dinamico via CSS var --header-height que
-                        Header.tsx:30 mantiene actualizada (105px con launch
-                        banner visible, 64px sin). +16px de respiro entre
-                        header y top del sticky card. Asi el offset es preciso
-                        en ambos estados sin gap excesivo cuando el banner se
-                        cierra.
-
-                        Mobile (<lg): sticky no aplica por el lg: prefix → flow
-                        normal apilado. La barra fija inferior de CTA mobile
-                        (L1283) es path independiente, sin conflicto.
-
-                        Nota: este sticky simple deja la parte inferior del
-                        card (experiencia, certificaciones, "En Pawnecta desde")
-                        inaccesible cuando el card es mas alto que el viewport.
-                        Fix de eso en commit aparte con react-sticky-box (sticky
-                        bidireccional). */}
+                    {/* COLUMNA DERECHA: SIDEBAR sticky bidireccional (Airbnb pattern)
+                        en desktop, via react-sticky-box.
+                        - offsetTop dinamico: lee var(--header-height) y se
+                          actualiza si el launch banner se cierra (MutationObserver
+                          sobre <html>). +16px de respiro.
+                        - offsetBottom 16px: permite que el card "se despegue" al
+                          final del contenido scrollable, evita pisar el footer.
+                        - Bidireccional: al scrollear DOWN, el card sigue el scroll
+                          hasta que su bottom llega al bottom del viewport, y ahi
+                          se fija → parte inferior accesible. Al scrollear UP, el
+                          card sigue hasta que su top llega al top del viewport.
+                          Asi TODO el contenido del card se ve aunque sea mas alto
+                          que el viewport (problema del sticky simple anterior).
+                        - Mobile guard (isDesktop): en mobile el ref NO se
+                          atacha → flow normal apilado en flex-col. La barra
+                          fija inferior de CTA mobile (L+) sigue intacta. */}
                     <div className="w-full lg:w-1/3 space-y-6">
-                        <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5 lg:sticky lg:top-[calc(var(--header-height)+16px)]">
+                        <div
+                            ref={isDesktop ? stickyRef : undefined}
+                            className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5"
+                        >
 
                             {/* PRECIO — protagonista */}
                             <div>
