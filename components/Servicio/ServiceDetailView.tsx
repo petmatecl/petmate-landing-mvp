@@ -970,9 +970,20 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
 
                     </div>
 
-                    {/* COLUMNA DERECHA: SIDEBAR (Sticky) */}
+                    {/* COLUMNA DERECHA: SIDEBAR sticky en desktop.
+                        Antes la columna terminaba temprano (el card finito)
+                        dejando la mitad derecha del viewport vacia mientras
+                        el contenido seguia en la columna izquierda — mal uso
+                        de espacio reportado en UX backlog.
+                        lg:sticky lg:top-24 fija el card al hacer scroll (top-24
+                        = 96px = header h-16/64px + banner "Estamos en lanzamiento"
+                        de altura variable + ~16px de respiro). Si visualmente
+                        sigue tapado, subir a lg:top-28.
+                        Mobile (<lg): sticky no aplica → flow normal apilado.
+                        La barra fija inferior de CTA mobile (L1283) es path
+                        independiente, sin conflicto. */}
                     <div className="w-full lg:w-1/3 space-y-6">
-                        <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5">
+                        <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5 lg:sticky lg:top-24">
 
                             {/* PRECIO — protagonista */}
                             <div>
