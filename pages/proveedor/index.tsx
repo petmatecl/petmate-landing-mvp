@@ -2237,7 +2237,7 @@ export default function ProveedorDashboard() {
                                                 {/* Fecha preferida */}
                                                 <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
                                                     <Calendar size={15} className="text-slate-400 shrink-0" />
-                                                    <span className="capitalize">{fechaPreferida}</span>
+                                                    <span>{fechaPreferida}</span>
                                                 </div>
 
                                                 {/* Mensaje del tutor */}

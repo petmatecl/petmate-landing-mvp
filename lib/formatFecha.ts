@@ -14,28 +14,44 @@
 import { differenceInCalendarDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// Capitaliza SOLO la primera letra del string, sin tocar el resto. Necesario
+// porque en espanol los dias/meses/preposiciones van en MINUSCULA (a
+// diferencia del ingles donde se usa Title Case). El callsite anterior usaba
+// la clase tailwind `capitalize` que aplica CSS text-transform:capitalize, el
+// cual capitaliza CADA palabra — daba "Del Miercoles 1 De Julio Al Viernes 3
+// De Julio (2 Noches)" en lugar de "Del miercoles 1 de julio al viernes 3 de
+// julio (2 noches)". Pasaba desapercibido cuando el string empezaba con una
+// sola palabra (e.g. "Sabado 15 de junio") pero quedo evidente con el rango.
+function capitalizarPrimera(s: string): string {
+    if (!s) return s;
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /**
- * "sábado 15 de junio, 14:00" — formato largo para fecha preferida del
+ * "Sábado 15 de junio, 14:00" — formato largo para fecha preferida del
  * agendamiento. Incluye dia de la semana, util porque el tutor agenda
- * con dias de anticipacion.
+ * con dias de anticipacion. Primera letra en mayuscula para que se vea
+ * natural al inicio de un valor; el resto en minuscula segun convencion
+ * del espanol.
  */
 export function formatFechaPreferida(input: Date | string | null | undefined): string {
     if (!input) return 'sin fecha';
     const d = input instanceof Date ? input : new Date(input);
     if (Number.isNaN(d.getTime())) return 'sin fecha';
-    return format(d, "EEEE d 'de' MMMM, HH:mm", { locale: es });
+    return capitalizarPrimera(format(d, "EEEE d 'de' MMMM, HH:mm", { locale: es }));
 }
 
 /**
  * "15 de junio, 14:00" — formato corto, sin dia de la semana. Para timestamps
  * de respondido_at / cancelado_at donde el contexto (ya pasó) no necesita
- * destacar el dia.
+ * destacar el dia. Empieza con numero — capitalizar la primera letra es
+ * no-op pero lo aplicamos por consistencia con los otros helpers.
  */
 export function formatFechaCorta(input: Date | string | null | undefined): string {
     if (!input) return '';
     const d = input instanceof Date ? input : new Date(input);
     if (Number.isNaN(d.getTime())) return '';
-    return format(d, "d 'de' MMMM, HH:mm", { locale: es });
+    return capitalizarPrimera(format(d, "d 'de' MMMM, HH:mm", { locale: es }));
 }
 
 /**
