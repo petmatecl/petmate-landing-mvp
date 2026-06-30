@@ -21,6 +21,7 @@ import { fetchProveedoresPublicosByIds } from '../lib/supabase/queries/proveedor
 import ConfirmDialog from '../components/Shared/ConfirmDialog';
 import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntualConDuracion } from '../lib/formatFecha';
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../lib/categoriaTemporal';
+import { formatDireccionLinea } from '../lib/formatDireccion';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
 
 type LoadState =
@@ -78,6 +79,7 @@ export default function MisSolicitudesPage() {
                 id, servicio_id, proveedor_id, tutor_id,
                 fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
+                region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
@@ -313,7 +315,18 @@ function SolicitudCard({
     const modalidadLabel = solicitud.modalidad_elegida
         ? MODALIDAD_LABELS[solicitud.modalidad_elegida as ModalidadCuidado] ?? null
         : null;
-    const direccionServicio = solicitud.direccion_servicio || null;
+    // Ola 1: direccion compacta (formato nuevo si region/comuna/calle/
+    // numero pobles; fallback a direccion_servicio text legacy si los 5
+    // estructurados estan null). Info adicional aparte en linea italica.
+    const direccionLinea = formatDireccionLinea({
+        region: solicitud.region,
+        comuna: solicitud.comuna,
+        calle: solicitud.calle,
+        numero: solicitud.numero,
+        direccion_info: solicitud.direccion_info,
+        direccion_servicio: solicitud.direccion_servicio,
+    });
+    const direccionInfo = solicitud.direccion_info;
 
     const estadoBadge = (() => {
         switch (solicitud.estado) {
@@ -378,11 +391,15 @@ function SolicitudCard({
                 </div>
             )}
 
-            {/* Direccion — Fase 2: solo V4a/V4b (modalidad casa_tutor) */}
-            {direccionServicio && (
+            {/* Direccion — V4a/V4b (modalidad casa_tutor). Ola 1: formato
+                estructurado compacto + info adicional opcional en italica. */}
+            {direccionLinea && (
                 <div className="flex items-start gap-2 text-sm text-slate-700 mb-3">
                     <Home size={15} className="text-slate-400 shrink-0 mt-0.5" />
-                    <span className="whitespace-pre-wrap">{direccionServicio}</span>
+                    <div>
+                        <span className="whitespace-pre-wrap">{direccionLinea}</span>
+                        {direccionInfo && <p className="text-xs text-slate-500 italic mt-0.5">{direccionInfo}</p>}
+                    </div>
                 </div>
             )}
 

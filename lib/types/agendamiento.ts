@@ -31,8 +31,18 @@ export interface AgendamientoRow {
     // Fase 2 — solo V4b. Duracion del servicio puntual a domicilio (1-12).
     duracion_horas: number | null;
     // Fase 2 — solo V4a/V4b (modalidad casa_tutor). Direccion libre donde se
-    // presta el servicio. Max 500 chars (CHECK en BD).
+    // presta el servicio. LEGACY desde Ola 1: nuevas solicitudes la dejan
+    // null y usan los 5 campos estructurados de abajo. Filas historicas
+    // pueden tener texto libre.
     direccion_servicio: string | null;
+    // Ola 1 feat direcciones — campos estructurados (solo V4a/V4b). Catalogo
+    // en lib/comunas.ts; CHECK BD: solo se pueblan cuando
+    // modalidad_elegida='casa_tutor'.
+    region: string | null;
+    comuna: string | null;
+    calle: string | null;
+    numero: string | null;
+    direccion_info: string | null;
     mensaje: string | null;
     estado: EstadoAgendamiento;
     nota_proveedor: string | null;

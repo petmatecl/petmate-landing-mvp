@@ -25,7 +25,7 @@
 // ----------------------------------------------------------------------------
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { Calendar, X, Loader2, MapPin } from 'lucide-react';
+import { Calendar, X, Loader2, MapPin, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import {
     esCategoriaMultiDia,
@@ -35,6 +35,7 @@ import {
     type ModalidadCuidado,
     type ModoTarifa,
 } from '../../lib/categoriaTemporal';
+import RegionComunaPicker from '../Shared/RegionComunaPicker';
 
 interface SolicitarAgendamientoModalProps {
     isOpen: boolean;
@@ -68,8 +69,12 @@ function minDateLocal(): string {
     return local.toISOString().slice(0, 10);
 }
 
-const DIRECCION_MIN_CHARS = 10;
-const DIRECCION_MAX_CHARS = 500;
+// Ola 1: limites de los campos estructurados (matchean los CHECK de BD).
+const CALLE_MIN_CHARS = 2;
+const CALLE_MAX_CHARS = 200;
+const NUMERO_MIN_CHARS = 1;
+const NUMERO_MAX_CHARS = 30;
+const DIRECCION_INFO_MAX_CHARS = 200;
 const DURACION_MIN_HORAS = 1;
 const DURACION_MAX_HORAS = 12;
 
@@ -98,7 +103,14 @@ export default function SolicitarAgendamientoModal({
     const [fechaPreferida, setFechaPreferida] = useState(''); // V1: datetime-local; V2/V4a: date inicio; V4b: datetime-local
     const [fechaFin, setFechaFin] = useState(''); // V2/V4a: date fin
     const [duracionHoras, setDuracionHoras] = useState(''); // V4b
-    const [direccion, setDireccion] = useState(''); // V4a/V4b
+    // Ola 1 feat direcciones: 5 campos estructurados (solo V4a/V4b). State
+    // se preserva al cambiar chip/toggle (la direccion del tutor es
+    // invariante a la modalidad del servicio).
+    const [region, setRegion] = useState<string | null>(null);
+    const [comuna, setComuna] = useState<string | null>(null);
+    const [calle, setCalle] = useState('');
+    const [numero, setNumero] = useState('');
+    const [direccionInfo, setDireccionInfo] = useState('');
     const [mensaje, setMensaje] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
@@ -133,7 +145,11 @@ export default function SolicitarAgendamientoModal({
         setFechaPreferida('');
         setFechaFin('');
         setDuracionHoras('');
-        setDireccion('');
+        setRegion(null);
+        setComuna(null);
+        setCalle('');
+        setNumero('');
+        setDireccionInfo('');
         setMensaje('');
         setErrorMsg('');
     };
@@ -162,7 +178,10 @@ export default function SolicitarAgendamientoModal({
         let fechaInicioIso: string;
         let fechaFinIso: string | null = null;
         let duracionInt: number | null = null;
-        let direccionTrim: string | null = null;
+        // Ola 1: direccion estructurada (5 campos). Se popula solo V4a/V4b.
+        let calleTrim: string | null = null;
+        let numeroTrim: string | null = null;
+        let direccionInfoTrim: string | null = null;
 
         if (variante === 'V2' || variante === 'V4a') {
             // 2 inputs date sin hora — parsear como medianoche local.
@@ -220,18 +239,44 @@ export default function SolicitarAgendamientoModal({
             fechaInicioIso = fechaDate.toISOString();
         }
 
-        // Direccion requerida en V4a y V4b. >=10 chars trim + <=500.
+        // Direccion estructurada (Ola 1) requerida en V4a y V4b.
+        // Region + comuna + calle + numero obligatorios. Info adicional
+        // opcional. Numero acepta texto ("S/N", "1290-A", "12 Bis").
         if (variante === 'V4a' || variante === 'V4b') {
-            const t = direccion.trim();
-            if (t.length < DIRECCION_MIN_CHARS) {
-                setErrorMsg(`Ingresa la dirección donde se prestará el servicio (mínimo ${DIRECCION_MIN_CHARS} caracteres).`);
+            if (!region) {
+                setErrorMsg('Selecciona la región.');
                 return;
             }
-            if (t.length > DIRECCION_MAX_CHARS) {
-                setErrorMsg(`La dirección supera el máximo de ${DIRECCION_MAX_CHARS} caracteres.`);
+            if (!comuna) {
+                setErrorMsg('Selecciona la comuna.');
                 return;
             }
-            direccionTrim = t;
+            const c = calle.trim();
+            if (c.length < CALLE_MIN_CHARS) {
+                setErrorMsg('Ingresa la calle.');
+                return;
+            }
+            if (c.length > CALLE_MAX_CHARS) {
+                setErrorMsg(`La calle supera el máximo de ${CALLE_MAX_CHARS} caracteres.`);
+                return;
+            }
+            const n = numero.trim();
+            if (n.length < NUMERO_MIN_CHARS) {
+                setErrorMsg('Ingresa el número (puedes poner "S/N" si la dirección no tiene).');
+                return;
+            }
+            if (n.length > NUMERO_MAX_CHARS) {
+                setErrorMsg(`El número supera el máximo de ${NUMERO_MAX_CHARS} caracteres.`);
+                return;
+            }
+            const info = direccionInfo.trim();
+            if (info.length > DIRECCION_INFO_MAX_CHARS) {
+                setErrorMsg(`La info adicional supera el máximo de ${DIRECCION_INFO_MAX_CHARS} caracteres.`);
+                return;
+            }
+            calleTrim = c;
+            numeroTrim = n;
+            direccionInfoTrim = info || null;
         }
 
         if (mensaje.length > 500) {
@@ -263,6 +308,14 @@ export default function SolicitarAgendamientoModal({
             // quedan null. modalidad_elegida se popula siempre que isCuidado
             // (incluyendo V2 con casa_cuidador o recinto — info util para
             // el proveedor, no breaking para Fase 1 historica).
+            //
+            // Ola 1: las nuevas solicitudes V4a/V4b pueblan region+comuna+
+            // calle+numero+direccion_info y dejan direccion_servicio=null.
+            // El campo direccion_servicio legacy sigue existiendo en BD
+            // pero ya no se popula desde el modal — los renders/emails
+            // tienen branching que cae a el solo si los 5 estructurados
+            // estan null (filas historicas de Fase 2).
+            const esV4 = variante === 'V4a' || variante === 'V4b';
             const { data: inserted, error: insertErr } = await supabase
                 .from('agendamientos')
                 .insert({
@@ -274,7 +327,12 @@ export default function SolicitarAgendamientoModal({
                     modalidad_elegida: isCuidado ? modalidadElegida : null,
                     modo_tarifa: variante === 'V4a' ? 'noches' : variante === 'V4b' ? 'horas' : null,
                     duracion_horas: duracionInt,
-                    direccion_servicio: direccionTrim,
+                    direccion_servicio: null,
+                    region: esV4 ? region : null,
+                    comuna: esV4 ? comuna : null,
+                    calle: esV4 ? calleTrim : null,
+                    numero: esV4 ? numeroTrim : null,
+                    direccion_info: esV4 ? direccionInfoTrim : null,
                     mensaje: mensaje.trim() || null,
                 })
                 .select('id')
@@ -512,27 +570,78 @@ export default function SolicitarAgendamientoModal({
                         </div>
                     )}
 
-                    {/* Direccion — solo V4a/V4b (modalidad casa_tutor) */}
+                    {/* Direccion estructurada — solo V4a/V4b (modalidad
+                        casa_tutor). Ola 1: region+comuna via picker
+                        encadenado, calle/numero/info en inputs. */}
                     {formVisible && (variante === 'V4a' || variante === 'V4b') && (
-                        <div>
-                            <label htmlFor="agend-direccion" className="block text-sm font-medium text-slate-700 mb-1.5">
-                                <span className="inline-flex items-center gap-1.5">
-                                    <MapPin size={14} className="text-slate-500" />
-                                    Dirección donde se prestará el servicio
-                                </span>
-                                {' '}<span className="text-red-500">*</span>
-                            </label>
-                            <textarea
-                                id="agend-direccion"
-                                name="agend-direccion"
-                                value={direccion}
-                                onChange={e => setDireccion(e.target.value)}
-                                maxLength={DIRECCION_MAX_CHARS}
-                                rows={3}
-                                placeholder="Calle, número, depto o casa, comuna. El proveedor lo necesita para llegar."
-                                className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors resize-none"
+                        <div className="space-y-3">
+                            <p className="text-sm font-medium text-slate-700 inline-flex items-center gap-1.5">
+                                <Home size={14} className="text-slate-500" />
+                                Dirección donde se prestará el servicio
+                            </p>
+
+                            <RegionComunaPicker
+                                region={region}
+                                comuna={comuna}
+                                onChange={next => {
+                                    setRegion(next.region);
+                                    setComuna(next.comuna);
+                                }}
+                                required
+                                disabled={submitting}
                             />
-                            <p className="text-xs text-slate-400 mt-1 text-right">{direccion.length} / {DIRECCION_MAX_CHARS}</p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-3">
+                                <div>
+                                    <label htmlFor="agend-calle" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                        Calle <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        id="agend-calle"
+                                        name="agend-calle"
+                                        type="text"
+                                        value={calle}
+                                        onChange={e => setCalle(e.target.value)}
+                                        maxLength={CALLE_MAX_CHARS}
+                                        placeholder="Ej: Mayecura"
+                                        required
+                                        className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="agend-numero" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                        Número <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        id="agend-numero"
+                                        name="agend-numero"
+                                        type="text"
+                                        value={numero}
+                                        onChange={e => setNumero(e.target.value)}
+                                        maxLength={NUMERO_MAX_CHARS}
+                                        placeholder='Ej: 1290 o "S/N"'
+                                        required
+                                        className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="agend-direccion-info" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                    Información adicional <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                                </label>
+                                <input
+                                    id="agend-direccion-info"
+                                    name="agend-direccion-info"
+                                    type="text"
+                                    value={direccionInfo}
+                                    onChange={e => setDireccionInfo(e.target.value)}
+                                    maxLength={DIRECCION_INFO_MAX_CHARS}
+                                    placeholder="Ej: Depto 502 torre B, casa interior, timbre 3 veces"
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                />
+                                <p className="text-xs text-slate-400 mt-1 text-right">{direccionInfo.length} / {DIRECCION_INFO_MAX_CHARS}</p>
+                            </div>
                         </div>
                     )}
 

@@ -29,6 +29,7 @@ const LocationPicker = dynamic(() => import('../../components/Shared/LocationPic
 });
 import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntualConDuracion } from '../../lib/formatFecha';
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../../lib/categoriaTemporal';
+import { formatDireccionLinea } from '../../lib/formatDireccion';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
@@ -372,6 +373,7 @@ export default function ProveedorDashboard() {
                 id, servicio_id, proveedor_id, tutor_id,
                 fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
+                region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
@@ -2208,14 +2210,21 @@ export default function ProveedorDashboard() {
                                         })();
                                         const respondidoAt = formatFechaCorta(sol.respondido_at);
 
-                                        // Fase 2: modalidad + direccion solo cuando el
-                                        // INSERT las pobló (solicitudes de cuidado con
-                                        // modalidad explicita; null para historicas Fase 1
-                                        // y para servicios no-cuidado).
+                                        // Fase 2: modalidad solo cuando el INSERT la
+                                        // pobló. Ola 1: direccion estructurada con
+                                        // fallback a direccion_servicio legacy.
                                         const modalidadLabel = sol.modalidad_elegida
                                             ? MODALIDAD_LABELS[sol.modalidad_elegida as ModalidadCuidado] ?? null
                                             : null;
-                                        const direccionServicio = sol.direccion_servicio || null;
+                                        const direccionLinea = formatDireccionLinea({
+                                            region: sol.region,
+                                            comuna: sol.comuna,
+                                            calle: sol.calle,
+                                            numero: sol.numero,
+                                            direccion_info: sol.direccion_info,
+                                            direccion_servicio: sol.direccion_servicio,
+                                        });
+                                        const direccionInfo = sol.direccion_info;
 
                                         const estadoBadge = (() => {
                                             switch (sol.estado) {
@@ -2268,11 +2277,16 @@ export default function ProveedorDashboard() {
                                                     </div>
                                                 )}
 
-                                                {/* Direccion — Fase 2: V4a/V4b (modalidad casa_tutor) */}
-                                                {direccionServicio && (
+                                                {/* Direccion — V4a/V4b (modalidad casa_tutor).
+                                                    Ola 1: formato estructurado + info adicional
+                                                    opcional en italica. */}
+                                                {direccionLinea && (
                                                     <div className="flex items-start gap-2 text-sm text-slate-700 mb-3">
                                                         <Home size={15} className="text-slate-400 shrink-0 mt-0.5" />
-                                                        <span className="whitespace-pre-wrap">{direccionServicio}</span>
+                                                        <div>
+                                                            <span className="whitespace-pre-wrap">{direccionLinea}</span>
+                                                            {direccionInfo && <p className="text-xs text-slate-500 italic mt-0.5">{direccionInfo}</p>}
+                                                        </div>
                                                     </div>
                                                 )}
 
