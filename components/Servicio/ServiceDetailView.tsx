@@ -1408,6 +1408,9 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                 proveedorId={proveedor.id}
                 serviceTitle={service.titulo}
                 categoriaSlug={categoria?.slug ?? null}
+                modalidades={Array.isArray((service as any).detalles?.modalidad)
+                    ? (service as any).detalles.modalidad as string[]
+                    : []}
             />
             <ExampleCTAModal
                 isOpen={exampleModalAction !== null}

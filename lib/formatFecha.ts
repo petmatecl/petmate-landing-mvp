@@ -78,3 +78,22 @@ export function formatRangoNoches(
     const sufijoNoches = noches === 1 ? '1 noche' : `${noches} noches`;
     return `Del ${inicioFmt} al ${finFmt} (${sufijoNoches})`;
 }
+
+/**
+ * "Jueves 4 de julio, 14:00 · 3 horas" — formato para agendamientos V4b
+ * (cuidado a domicilio puntual por horas). Combina fecha+hora con la
+ * duracion. Plural correcto: 1 hora vs N horas. La duracion se separa por
+ * un separador medium-dot por consistencia visual con otros campos de
+ * sufijo en la UI.
+ */
+export function formatPuntualConDuracion(
+    fechaHora: Date | string | null | undefined,
+    horas: number | null | undefined
+): string {
+    if (!fechaHora || horas == null || horas < 1) return 'sin fecha';
+    const d = fechaHora instanceof Date ? fechaHora : new Date(fechaHora);
+    if (Number.isNaN(d.getTime())) return 'sin fecha';
+    const fechaFmt = capitalizarPrimera(format(d, "EEEE d 'de' MMMM, HH:mm", { locale: es }));
+    const duracionFmt = horas === 1 ? '1 hora' : `${horas} horas`;
+    return `${fechaFmt} · ${duracionFmt}`;
+}

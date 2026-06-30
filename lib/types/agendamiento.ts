@@ -21,6 +21,18 @@ export interface AgendamientoRow {
     // (puntual fecha+hora) queda null. Fases 2-3 lo reusan (V3 guarderia,
     // V4a cuidado a domicilio rango).
     fecha_fin: string | null;
+    // Fase 2 — modalidad elegida por el tutor cuando solicita cuidado
+    // (casa_tutor | casa_cuidador | recinto). Para servicios no-cuidado o
+    // solicitudes legacy de Fase 1 queda null.
+    modalidad_elegida: string | null;
+    // Fase 2 — distingue V4a (casa_tutor noches) de V4b (casa_tutor horas).
+    // Solo se popula cuando modalidad_elegida='casa_tutor'. null en otras.
+    modo_tarifa: string | null;
+    // Fase 2 — solo V4b. Duracion del servicio puntual a domicilio (1-12).
+    duracion_horas: number | null;
+    // Fase 2 — solo V4a/V4b (modalidad casa_tutor). Direccion libre donde se
+    // presta el servicio. Max 500 chars (CHECK en BD).
+    direccion_servicio: string | null;
     mensaje: string | null;
     estado: EstadoAgendamiento;
     nota_proveedor: string | null;
