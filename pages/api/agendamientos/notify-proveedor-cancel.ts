@@ -5,7 +5,7 @@ import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
 import AgendamientoCancelacionTutorEmail from '../../../components/Emails/AgendamientoCancelacionTutorEmail';
-import { formatFechaPreferida } from '../../../lib/formatFecha';
+import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
 
 /**
  * Sprint cierre agendamiento — notifica al proveedor cuando un tutor cancela
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { data: agend, error: agendErr } = await supabaseAdmin
             .from('agendamientos')
             .select(`
-                id, fecha_preferida, estado, tutor_id, proveedor_id, servicio_id,
+                id, fecha_preferida, fecha_fin, estado, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre, apellido_p),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
@@ -90,7 +90,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(200).json({ skipped: true, reason: 'no_email' });
         }
 
-        const fechaFormateada = formatFechaPreferida(agend.fecha_preferida);
+        // Branching V1 vs V2: presencia de fecha_fin encoda la variante.
+        // V2 (cuidado rango noches) → "Del miercoles 1 de julio al viernes 3
+        // de julio (2 noches)". V1 (puntual) → "Jueves 25 de junio, 18:45".
+        // El template no cambia; recibe siempre un string ya formateado.
+        const fechaFormateada = agend.fecha_fin
+            ? formatRangoNoches(agend.fecha_preferida, agend.fecha_fin)
+            : formatFechaPreferida(agend.fecha_preferida);
 
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
