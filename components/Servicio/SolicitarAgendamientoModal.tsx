@@ -149,7 +149,7 @@ export default function SolicitarAgendamientoModal({
         setErrorMsg('');
 
         if (necesitaElegirModalidad) {
-            setErrorMsg('Selecciona cómo querés el cuidado.');
+            setErrorMsg('Selecciona cómo quieres el cuidado.');
             return;
         }
         if (necesitaElegirModo) {
@@ -243,7 +243,7 @@ export default function SolicitarAgendamientoModal({
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-                setErrorMsg('Tu sesión expiró. Recarga la página e iniciá sesión de nuevo.');
+                setErrorMsg('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
                 return;
             }
 
@@ -311,7 +311,7 @@ export default function SolicitarAgendamientoModal({
                 );
                 return;
             }
-            setErrorMsg(err?.message || 'Hubo un error al enviar la solicitud. Intentá de nuevo.');
+            setErrorMsg(err?.message || 'Hubo un error al enviar la solicitud. Intenta de nuevo.');
         } finally {
             setSubmitting(false);
         }
@@ -391,7 +391,7 @@ export default function SolicitarAgendamientoModal({
                     {requiereChipSelector && (
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                ¿Cómo querés el cuidado? <span className="text-red-500">*</span>
+                                ¿Cómo quieres el cuidado? <span className="text-red-500">*</span>
                             </label>
                             <div className="flex flex-wrap gap-2">
                                 {modalidadesValidas.map(renderChipModalidad)}
