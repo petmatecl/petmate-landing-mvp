@@ -304,6 +304,43 @@ export function getRegionPorLabel(label: string | null | undefined): Region | nu
     ) ?? null;
 }
 
+/**
+ * Quita tildes/diacriticos de una string y la baja a lowercase. Util para
+ * comparaciones tolerantes a acentos (e.g. "vina" debe matchear "Viña",
+ * "nuble" debe matchear "Ñuble"). NFD + remocion del block combining-marks.
+ */
+function normalizarParaBusqueda(s: string): string {
+    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+/**
+ * Filtra una lista de comunas por termino con criterio "alguna palabra
+ * EMPIEZA con el termino" — no "contiene en cualquier lugar". Insensible
+ * a tildes y mayusculas.
+ *
+ *   "cur" → Curacavi, Curacautin, Curanilahue, Curepto, Curico
+ *           (NO matchea Vitacura ni Quilicura — el 'cur' esta en el medio).
+ *   "montt" → Puerto Montt (segunda palabra empieza con montt).
+ *   "mar"  → Vina del Mar (tercera palabra empieza con mar).
+ *   "vina" → Vina del Mar (insensible a tildes).
+ *   "nuble" → Nuble (insensible a la enie).
+ *
+ * Termino vacio / solo whitespace → devuelve la lista completa sin filtrar.
+ * Preserva el orden original — no re-ordena ni dedup. El caller hace
+ * .slice() para limitar resultados.
+ *
+ * Usado en: SearchBar (home), register, proveedor/index (perfil),
+ * ServiceFormModal (comunas_cobertura), SidebarFiltros (/explorar).
+ */
+export function filtrarComunasPorTermino(termino: string | null | undefined, comunas: string[]): string[] {
+    const t = termino ? normalizarParaBusqueda(termino.trim()) : '';
+    if (!t) return comunas;
+    return comunas.filter(c => {
+        const palabras = normalizarParaBusqueda(c).split(/\s+/);
+        return palabras.some(p => p.startsWith(t));
+    });
+}
+
 // Centroide de Santiago — fallback cuando no hay comuna ni lat/lng.
 export const CENTER_SANTIAGO: [number, number] = [-33.4489, -70.6693];
 

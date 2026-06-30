@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Search, MapPin, LayoutGrid, ChevronDown } from 'lucide-react';
 
-import { COMUNAS_CHILE } from '../../lib/comunas';
+import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 
 const CATEGORIAS = [
     { slug: 'cuidado', label: 'Cuidado y Hospedaje' },
@@ -41,10 +41,13 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
         return () => clearInterval(id);
     }, [categoria, catOpen]);
 
-    const comunasFiltradas = (comunaQuery.length === 0
-        ? COMUNAS_CHILE
-        : COMUNAS_CHILE.filter(c => c.toLowerCase().includes(comunaQuery.toLowerCase()))
-    ).slice(0, 8);
+    // Ola 1 feat direcciones: match por "palabra empieza con" (no substring
+    // "contiene") + normalizacion de tildes. Antes con 65 comunas no se
+    // notaba; con 346 saltaban falsos positivos como "Vitacura" / "Quilicura"
+    // al tipear "cur". Helper centralizado en lib/comunas.ts — mismo
+    // criterio en register, perfil proveedor, ServiceFormModal y
+    // SidebarFiltros.
+    const comunasFiltradas = filtrarComunasPorTermino(comunaQuery, COMUNAS_CHILE).slice(0, 8);
 
     const selectedCatLabel = CATEGORIAS.find(c => c.slug === categoria)?.label;
 

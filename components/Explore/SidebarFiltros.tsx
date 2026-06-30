@@ -6,7 +6,7 @@ import {
     Dog, Cat, Bird,
     LucideIcon
 } from 'lucide-react';
-import { COMUNAS_CHILE, ZONAS_RM, getZonaFromComuna, type ZonaRM } from '../../lib/comunas';
+import { COMUNAS_CHILE, ZONAS_RM, getZonaFromComuna, filtrarComunasPorTermino, type ZonaRM } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -113,14 +113,21 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
     // Listado base de comunas segun la zona seleccionada. Sin zona ->
     // COMUNAS_CHILE completo (incluye otras regiones). Con zona -> solo
-    // sus comunas. Sobre eso se aplica el filtro por substring del
-    // input.
+    // sus comunas. Sobre eso se aplica el filtro por palabra-empieza-con
+    // del input.
+    //
+    // TODO Ola 2 feat direcciones: el filtro de ZONA aplica solo a RM.
+    // Para otras regiones no tiene sentido. Cuando migremos /explorar al
+    // modelo region+comuna, REGION pasa a ser el filtro previo, y ZONA
+    // solo se despliega cuando region=Metropolitana. Hoy esto queda como
+    // estaba — Ola 1 no toca /explorar mas alla del filtro de texto.
     const comunasBase = zona
         ? (ZONAS_RM.find(z => z.slug === zona)?.comunas ?? [])
         : COMUNAS_CHILE;
-    const comunasFiltradas = comunasBase.filter(c =>
-        comunaInput ? c.toLowerCase().includes(comunaInput.toLowerCase()) : true
-    ).slice(0, 40);
+    // Ola 1 feat direcciones: match por "palabra empieza con" (helper
+    // compartido en lib/comunas.ts). Sin tildes, mismo criterio que los
+    // otros 4 callsites de filtro de comuna.
+    const comunasFiltradas = filtrarComunasPorTermino(comunaInput, comunasBase).slice(0, 40);
 
     // Cambio de zona: si la comuna actual no pertenece a la nueva zona,
     // se limpia para evitar estado inconsistente. "Todas" (next=null)

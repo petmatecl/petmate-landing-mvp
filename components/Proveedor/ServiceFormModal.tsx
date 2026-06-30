@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
-import { COMUNAS_CHILE } from '../../lib/comunas';
+import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { useUser } from '../../contexts/UserContext';
 
@@ -386,9 +386,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
     const coverPreview = fotos[0] || null;
 
-    const comunasFiltradas = COMUNAS_CHILE.filter(c =>
-        comunaSearch ? c.toLowerCase().includes(comunaSearch.toLowerCase()) : true
-    ).slice(0, 50);
+    // Ola 1 feat direcciones: match por "palabra empieza con" (no substring
+    // "contiene") + normalizacion de tildes. Helper compartido — mismo
+    // criterio en SearchBar, register, perfil proveedor, SidebarFiltros.
+    const comunasFiltradas = filtrarComunasPorTermino(comunaSearch, COMUNAS_CHILE).slice(0, 50);
 
     const PreviewCard = () => (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">

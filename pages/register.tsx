@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
-import { COMUNAS_CHILE } from "../lib/comunas";
+import { COMUNAS_CHILE, filtrarComunasPorTermino } from "../lib/comunas";
 
 const CATEGORIA_ICONS: Record<string, React.ElementType> = {
   veterinario: Stethoscope,
@@ -84,9 +84,11 @@ export default function RegisterWizard() {
     }
   }, [error]);
 
-  const comunasFiltradas = COMUNAS_CHILE.filter(c =>
-    c.toLowerCase().includes(comunaQuery.toLowerCase())
-  ).slice(0, 8);
+  // Ola 1 feat direcciones: match por "palabra empieza con" (no substring
+  // "contiene") + normalizacion de tildes. Antes con 65 comunas no se
+  // notaba; con 346 saltaban falsos positivos como "Vitacura" / "Quilicura"
+  // al tipear "cur". Helper centralizado en lib/comunas.ts.
+  const comunasFiltradas = filtrarComunasPorTermino(comunaQuery, COMUNAS_CHILE).slice(0, 8);
 
   // Cierra el dropdown al hacer click fuera
   useEffect(() => {

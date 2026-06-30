@@ -32,7 +32,7 @@ import { MODALIDAD_LABELS, type ModalidadCuidado } from '../../lib/categoriaTemp
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
-import { COMUNAS_CHILE } from '../../lib/comunas';
+import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { IDIOMAS_DISPONIBLES } from '../../lib/idiomas';
 import type { PoliticaCancelacion } from '../../types';
 import Link from 'next/link';
@@ -1679,7 +1679,7 @@ export default function ProveedorDashboard() {
                                         />
                                         {comunaOpen && comuna && (
                                             <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                                                {COMUNAS_CHILE.filter(c => c.toLowerCase().includes(comuna.toLowerCase())).slice(0, 8).map(c => (
+                                                {filtrarComunasPorTermino(comuna, COMUNAS_CHILE).slice(0, 8).map(c => (
                                                     <li key={c}>
                                                         <button
                                                             type="button"
