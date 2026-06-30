@@ -10,6 +10,9 @@ interface AgendamientoCancelacionTutorEmailProps {
     modalidadLabel?: string | null;
     direccionServicio?: string | null;
     duracionLabel?: string | null;
+    // Ola 1 feat direcciones — info adicional opcional (italica debajo
+    // de direccionServicio cuando esta presente).
+    direccionInfo?: string | null;
 }
 
 // Sprint cierre agendamiento — email al proveedor cuando un tutor cancela
@@ -24,6 +27,7 @@ export const AgendamientoCancelacionTutorEmail = ({
     modalidadLabel,
     direccionServicio,
     duracionLabel,
+    direccionInfo,
 }: AgendamientoCancelacionTutorEmailProps) => {
     return (
         <Html>
@@ -58,6 +62,9 @@ export const AgendamientoCancelacionTutorEmail = ({
                                     <Hr style={hrLight} />
                                     <Text style={infoLabel}>Dirección</Text>
                                     <Text style={infoValue}>{direccionServicio}</Text>
+                                    {direccionInfo && (
+                                        <Text style={infoValueItalic}>{direccionInfo}</Text>
+                                    )}
                                 </>
                             )}
 
@@ -128,6 +135,13 @@ const infoValue = {
     margin: '0 0 12px',
     // Sin text-transform — el helper de formato ya devuelve casing correcto
     // del espanol (primera letra mayuscula, resto minuscula).
+};
+const infoValueItalic = {
+    color: '#334155',
+    fontSize: '15px',
+    lineHeight: '22px',
+    margin: '0 0 12px',
+    fontStyle: 'italic' as const,
 };
 const hr = { borderColor: '#e2e8f0', margin: '32px 0 24px' };
 const hrLight = { borderColor: '#f1f5f9', margin: '16px 0' };

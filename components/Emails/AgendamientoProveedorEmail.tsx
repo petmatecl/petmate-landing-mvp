@@ -11,6 +11,10 @@ interface AgendamientoProveedorEmailProps {
     modalidadLabel?: string | null;
     direccionServicio?: string | null;
     duracionLabel?: string | null;
+    // Ola 1 feat direcciones — info adicional opcional (depto/casa
+    // interior/instrucciones). Se renderiza como linea italica debajo
+    // de direccionServicio cuando esta presente.
+    direccionInfo?: string | null;
 }
 
 export const AgendamientoProveedorEmail = ({
@@ -22,6 +26,7 @@ export const AgendamientoProveedorEmail = ({
     modalidadLabel,
     direccionServicio,
     duracionLabel,
+    direccionInfo,
 }: AgendamientoProveedorEmailProps) => {
     return (
         <Html>
@@ -56,6 +61,9 @@ export const AgendamientoProveedorEmail = ({
                                     <Hr style={hrLight} />
                                     <Text style={infoLabel}>Dirección</Text>
                                     <Text style={infoValue}>{direccionServicio}</Text>
+                                    {direccionInfo && (
+                                        <Text style={infoValueItalic}>{direccionInfo}</Text>
+                                    )}
                                 </>
                             )}
 

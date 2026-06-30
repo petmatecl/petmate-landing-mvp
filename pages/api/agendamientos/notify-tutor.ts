@@ -7,6 +7,7 @@ import { verifySession } from '../../../lib/apiAuth';
 import AgendamientoTutorEmail from '../../../components/Emails/AgendamientoTutorEmail';
 import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
 import { MODALIDAD_LABELS, esModalidadValida } from '../../../lib/categoriaTemporal';
+import { formatDireccionLinea } from '../../../lib/formatDireccion';
 
 /**
  * Sprint 3 agendamiento — notifica al tutor cuando el proveedor responde
@@ -48,6 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .select(`
                 id, fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
+                region, comuna, calle, numero, direccion_info,
                 estado, nota_proveedor, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre, apellido_p),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre, telefono, whatsapp, mostrar_telefono, mostrar_whatsapp),
@@ -109,7 +111,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const duracionLabel = agend.duracion_horas
             ? (agend.duracion_horas === 1 ? '1 hora' : `${agend.duracion_horas} horas`)
             : null;
-        const direccionServicio = agend.direccion_servicio || null;
+        // Ola 1: direccion compacta + info aparte (italica en template).
+        const direccionServicio = formatDireccionLinea({
+            region: agend.region,
+            comuna: agend.comuna,
+            calle: agend.calle,
+            numero: agend.numero,
+            direccion_info: agend.direccion_info,
+            direccion_servicio: agend.direccion_servicio,
+        });
+        const direccionInfo = agend.direccion_info || null;
 
         // Telefono/WhatsApp del proveedor — solo si esta marcado como publico
         // en su perfil. Si el proveedor no opto por exponerlos, no los
@@ -144,6 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 whatsappLink,
                 modalidadLabel,
                 direccionServicio,
+                direccionInfo,
                 duracionLabel,
             }) as React.ReactElement,
         });

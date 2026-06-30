@@ -18,6 +18,9 @@ interface AgendamientoTutorEmailProps {
     modalidadLabel?: string | null;
     direccionServicio?: string | null;
     duracionLabel?: string | null;
+    // Ola 1 feat direcciones — info adicional opcional (italica debajo
+    // de direccionServicio cuando esta presente).
+    direccionInfo?: string | null;
 }
 
 export const AgendamientoTutorEmail = ({
@@ -33,6 +36,7 @@ export const AgendamientoTutorEmail = ({
     modalidadLabel,
     direccionServicio,
     duracionLabel,
+    direccionInfo,
 }: AgendamientoTutorEmailProps) => {
     const isConfirmada = estado === 'confirmada';
     const preview = isConfirmada
@@ -79,6 +83,9 @@ export const AgendamientoTutorEmail = ({
                                     <Hr style={hrLight} />
                                     <Text style={infoLabel}>Dirección</Text>
                                     <Text style={infoValue}>{direccionServicio}</Text>
+                                    {direccionInfo && (
+                                        <Text style={infoValueItalic}>{direccionInfo}</Text>
+                                    )}
                                 </>
                             )}
 
