@@ -7,6 +7,10 @@ interface AgendamientoProveedorEmailProps {
     servicioTitulo: string;
     fechaFormateada: string;
     mensaje: string | null;
+    // Fase 2 — opcionales. Solo se renderizan cuando vienen poblados.
+    modalidadLabel?: string | null;
+    direccionServicio?: string | null;
+    duracionLabel?: string | null;
 }
 
 export const AgendamientoProveedorEmail = ({
@@ -15,6 +19,9 @@ export const AgendamientoProveedorEmail = ({
     servicioTitulo,
     fechaFormateada,
     mensaje,
+    modalidadLabel,
+    direccionServicio,
+    duracionLabel,
 }: AgendamientoProveedorEmailProps) => {
     return (
         <Html>
@@ -35,6 +42,31 @@ export const AgendamientoProveedorEmail = ({
                         <Section style={infoBox}>
                             <Text style={infoLabel}>Fecha preferida</Text>
                             <Text style={infoValue}>{fechaFormateada}</Text>
+
+                            {modalidadLabel && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Modalidad</Text>
+                                    <Text style={infoValue}>{modalidadLabel}</Text>
+                                </>
+                            )}
+
+                            {direccionServicio && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Dirección</Text>
+                                    <Text style={infoValue}>{direccionServicio}</Text>
+                                </>
+                            )}
+
+                            {duracionLabel && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Duración</Text>
+                                    <Text style={infoValue}>{duracionLabel}</Text>
+                                </>
+                            )}
+
                             <Hr style={hrLight} />
                             <Text style={infoLabel}>Mensaje del tutor</Text>
                             <Text style={infoValueItalic}>
@@ -104,7 +136,12 @@ const infoValue = {
     fontSize: '16px',
     lineHeight: '22px',
     margin: '0 0 12px',
-    textTransform: 'capitalize' as const,
+    // Sin text-transform — el helper de formato ya devuelve el casing
+    // correcto (primera letra mayuscula, resto minuscula segun convencion
+    // del espanol). Fase 1 commit 973c4ae aplico el mismo fix en /mis-
+    // solicitudes y panel proveedor (el viejo `capitalize` aplicaba Title
+    // Case ingles y rompia "Del miercoles 1 de julio" → "Del Miercoles 1 De
+    // Julio").
 };
 const infoValueItalic = {
     color: '#334155',

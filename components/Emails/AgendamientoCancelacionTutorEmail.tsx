@@ -6,6 +6,10 @@ interface AgendamientoCancelacionTutorEmailProps {
     nombreTutor: string;
     servicioTitulo: string;
     fechaFormateada: string;
+    // Fase 2 — opcionales. Solo se renderizan cuando vienen poblados.
+    modalidadLabel?: string | null;
+    direccionServicio?: string | null;
+    duracionLabel?: string | null;
 }
 
 // Sprint cierre agendamiento — email al proveedor cuando un tutor cancela
@@ -17,6 +21,9 @@ export const AgendamientoCancelacionTutorEmail = ({
     nombreTutor,
     servicioTitulo,
     fechaFormateada,
+    modalidadLabel,
+    direccionServicio,
+    duracionLabel,
 }: AgendamientoCancelacionTutorEmailProps) => {
     return (
         <Html>
@@ -37,6 +44,30 @@ export const AgendamientoCancelacionTutorEmail = ({
                         <Section style={infoBox}>
                             <Text style={infoLabel}>Fecha que tenían acordada</Text>
                             <Text style={infoValue}>{fechaFormateada}</Text>
+
+                            {modalidadLabel && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Modalidad</Text>
+                                    <Text style={infoValue}>{modalidadLabel}</Text>
+                                </>
+                            )}
+
+                            {direccionServicio && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Dirección</Text>
+                                    <Text style={infoValue}>{direccionServicio}</Text>
+                                </>
+                            )}
+
+                            {duracionLabel && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Duración</Text>
+                                    <Text style={infoValue}>{duracionLabel}</Text>
+                                </>
+                            )}
                         </Section>
 
                         <Text style={text}>
@@ -94,8 +125,10 @@ const infoValue = {
     color: '#0f172a',
     fontSize: '16px',
     lineHeight: '22px',
-    margin: '0',
-    textTransform: 'capitalize' as const,
+    margin: '0 0 12px',
+    // Sin text-transform — el helper de formato ya devuelve casing correcto
+    // del espanol (primera letra mayuscula, resto minuscula).
 };
 const hr = { borderColor: '#e2e8f0', margin: '32px 0 24px' };
+const hrLight = { borderColor: '#f1f5f9', margin: '16px 0' };
 const footer = { color: '#64748b', fontSize: '13px', lineHeight: '20px', textAlign: 'center' as const };

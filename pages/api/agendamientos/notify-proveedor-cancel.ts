@@ -6,6 +6,7 @@ import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
 import AgendamientoCancelacionTutorEmail from '../../../components/Emails/AgendamientoCancelacionTutorEmail';
 import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
+import { MODALIDAD_LABELS, esModalidadValida } from '../../../lib/categoriaTemporal';
 
 /**
  * Sprint cierre agendamiento — notifica al proveedor cuando un tutor cancela
@@ -44,7 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { data: agend, error: agendErr } = await supabaseAdmin
             .from('agendamientos')
             .select(`
-                id, fecha_preferida, fecha_fin, estado, tutor_id, proveedor_id, servicio_id,
+                id, fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
+                duracion_horas, direccion_servicio,
+                estado, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre, apellido_p),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
@@ -90,13 +93,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(200).json({ skipped: true, reason: 'no_email' });
         }
 
-        // Branching V1 vs V2: presencia de fecha_fin encoda la variante.
-        // V2 (cuidado rango noches) → "Del miercoles 1 de julio al viernes 3
-        // de julio (2 noches)". V1 (puntual) → "Jueves 25 de junio, 18:45".
-        // El template no cambia; recibe siempre un string ya formateado.
+        // Branching V1/V2/V4 — el fechaFormateada solo lleva fecha (sin
+        // duracion); la duracion va en bloque separado del template (opcion C).
         const fechaFormateada = agend.fecha_fin
             ? formatRangoNoches(agend.fecha_preferida, agend.fecha_fin)
             : formatFechaPreferida(agend.fecha_preferida);
+
+        // Fase 2 — bloques extra del template (null cuando no aplican).
+        const modalidadLabel = agend.modalidad_elegida && esModalidadValida(agend.modalidad_elegida)
+            ? MODALIDAD_LABELS[agend.modalidad_elegida]
+            : null;
+        const duracionLabel = agend.duracion_horas
+            ? (agend.duracion_horas === 1 ? '1 hora' : `${agend.duracion_horas} horas`)
+            : null;
+        const direccionServicio = agend.direccion_servicio || null;
 
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
@@ -109,6 +119,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     : 'El tutor',
                 servicioTitulo: servicio?.titulo || 'tu servicio',
                 fechaFormateada,
+                modalidadLabel,
+                direccionServicio,
+                duracionLabel,
             }) as React.ReactElement,
         });
 

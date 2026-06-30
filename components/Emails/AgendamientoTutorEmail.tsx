@@ -14,6 +14,10 @@ interface AgendamientoTutorEmailProps {
     // null cuando no aplica.
     telefonoVisible: string | null;
     whatsappLink: string | null;
+    // Fase 2 — opcionales. Solo se renderizan cuando vienen poblados.
+    modalidadLabel?: string | null;
+    direccionServicio?: string | null;
+    duracionLabel?: string | null;
 }
 
 export const AgendamientoTutorEmail = ({
@@ -26,6 +30,9 @@ export const AgendamientoTutorEmail = ({
     notaProveedor,
     telefonoVisible,
     whatsappLink,
+    modalidadLabel,
+    direccionServicio,
+    duracionLabel,
 }: AgendamientoTutorEmailProps) => {
     const isConfirmada = estado === 'confirmada';
     const preview = isConfirmada
@@ -47,15 +54,43 @@ export const AgendamientoTutorEmail = ({
 
                         {isConfirmada ? (
                             <Text style={text}>
-                                <strong>{nombreProveedor}</strong> confirmó tu solicitud para <strong>{servicioTitulo}</strong> el <strong>{fechaFormateada}</strong>.
+                                <strong>{nombreProveedor}</strong> confirmó tu solicitud para <strong>{servicioTitulo}</strong>.
                             </Text>
                         ) : (
                             <Text style={text}>
-                                <strong>{nombreProveedor}</strong> no pudo confirmar tu solicitud para <strong>{servicioTitulo}</strong> el <strong>{fechaFormateada}</strong>.
+                                <strong>{nombreProveedor}</strong> no pudo confirmar tu solicitud para <strong>{servicioTitulo}</strong>.
                             </Text>
                         )}
 
                         <Section style={infoBox}>
+                            <Text style={infoLabel}>Fecha</Text>
+                            <Text style={infoValue}>{fechaFormateada}</Text>
+
+                            {modalidadLabel && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Modalidad</Text>
+                                    <Text style={infoValue}>{modalidadLabel}</Text>
+                                </>
+                            )}
+
+                            {direccionServicio && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Dirección</Text>
+                                    <Text style={infoValue}>{direccionServicio}</Text>
+                                </>
+                            )}
+
+                            {duracionLabel && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Duración</Text>
+                                    <Text style={infoValue}>{duracionLabel}</Text>
+                                </>
+                            )}
+
+                            <Hr style={hrLight} />
                             <Text style={infoLabel}>Nota del proveedor</Text>
                             <Text style={infoValueItalic}>
                                 {notaProveedor ? `"${notaProveedor}"` : 'Sin nota adicional.'}
@@ -64,7 +99,7 @@ export const AgendamientoTutorEmail = ({
 
                         {isConfirmada && (telefonoVisible || whatsappLink) && (
                             <Text style={text}>
-                                Podés contactarlo directamente:
+                                Puedes contactarlo directamente:
                                 {telefonoVisible && <><br />Teléfono: <strong>{telefonoVisible}</strong></>}
                                 {whatsappLink && <><br /><a href={whatsappLink} style={inlineLink}>Abrir WhatsApp</a></>}
                             </Text>
@@ -129,6 +164,14 @@ const infoLabel = {
     fontWeight: 600 as const,
     margin: '0 0 4px',
 };
+const infoValue = {
+    color: '#0f172a',
+    fontSize: '16px',
+    lineHeight: '22px',
+    margin: '0 0 12px',
+    // Sin text-transform — el helper de formato ya devuelve casing correcto
+    // del espanol (primera letra mayuscula, resto minuscula).
+};
 const infoValueItalic = {
     color: '#334155',
     fontSize: '15px',
@@ -136,6 +179,7 @@ const infoValueItalic = {
     margin: '0',
     fontStyle: 'italic' as const,
 };
+const hrLight = { borderColor: '#f1f5f9', margin: '16px 0' };
 const buttonContainer = { textAlign: 'center' as const, margin: '32px 0' };
 const button = {
     backgroundColor: '#1A6B4A',
