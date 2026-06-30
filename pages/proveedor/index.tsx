@@ -27,7 +27,8 @@ const LocationPicker = dynamic(() => import('../../components/Shared/LocationPic
         </div>
     ),
 });
-import { formatFechaPreferida, formatFechaCorta, formatRangoNoches } from '../../lib/formatFecha';
+import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntualConDuracion } from '../../lib/formatFecha';
+import { MODALIDAD_LABELS, type ModalidadCuidado } from '../../lib/categoriaTemporal';
 import { toast, Toaster } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
@@ -369,7 +370,9 @@ export default function ProveedorDashboard() {
             .from('agendamientos')
             .select(`
                 id, servicio_id, proveedor_id, tutor_id,
-                fecha_preferida, fecha_fin, mensaje, estado, nota_proveedor,
+                fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
+                duracion_horas, direccion_servicio,
+                mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
@@ -2190,12 +2193,29 @@ export default function ProveedorDashboard() {
                                         const isLoading = solicitudActionId === sol.id;
                                         const nota = solicitudNotas[sol.id] ?? '';
 
-                                        // Branching V1 vs V2: presencia de
-                                        // fecha_fin encoda la variante.
-                                        const fechaPreferida = sol.fecha_fin
-                                            ? formatRangoNoches(sol.fecha_preferida, sol.fecha_fin)
-                                            : formatFechaPreferida(sol.fecha_preferida);
+                                        // Branching de formato segun variante.
+                                        //   V4b (cuidado a domicilio horas):  modo_tarifa='horas' + duracion
+                                        //   V2/V4a (rango noches):            fecha_fin presente
+                                        //   V1 (puntual):                     else
+                                        const fechaPreferida = (() => {
+                                            if (sol.modo_tarifa === 'horas' && sol.duracion_horas) {
+                                                return formatPuntualConDuracion(sol.fecha_preferida, sol.duracion_horas);
+                                            }
+                                            if (sol.fecha_fin) {
+                                                return formatRangoNoches(sol.fecha_preferida, sol.fecha_fin);
+                                            }
+                                            return formatFechaPreferida(sol.fecha_preferida);
+                                        })();
                                         const respondidoAt = formatFechaCorta(sol.respondido_at);
+
+                                        // Fase 2: modalidad + direccion solo cuando el
+                                        // INSERT las pobló (solicitudes de cuidado con
+                                        // modalidad explicita; null para historicas Fase 1
+                                        // y para servicios no-cuidado).
+                                        const modalidadLabel = sol.modalidad_elegida
+                                            ? MODALIDAD_LABELS[sol.modalidad_elegida as ModalidadCuidado] ?? null
+                                            : null;
+                                        const direccionServicio = sol.direccion_servicio || null;
 
                                         const estadoBadge = (() => {
                                             switch (sol.estado) {
@@ -2234,11 +2254,27 @@ export default function ProveedorDashboard() {
                                                     <div className="shrink-0">{estadoBadge}</div>
                                                 </div>
 
-                                                {/* Fecha preferida */}
+                                                {/* Fecha preferida (formato segun variante) */}
                                                 <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
                                                     <Calendar size={15} className="text-slate-400 shrink-0" />
                                                     <span>{fechaPreferida}</span>
                                                 </div>
+
+                                                {/* Modalidad — Fase 2: solo si el tutor la eligio */}
+                                                {modalidadLabel && (
+                                                    <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
+                                                        <MapPin size={15} className="text-slate-400 shrink-0" />
+                                                        <span>{modalidadLabel}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Direccion — Fase 2: V4a/V4b (modalidad casa_tutor) */}
+                                                {direccionServicio && (
+                                                    <div className="flex items-start gap-2 text-sm text-slate-700 mb-3">
+                                                        <Home size={15} className="text-slate-400 shrink-0 mt-0.5" />
+                                                        <span className="whitespace-pre-wrap">{direccionServicio}</span>
+                                                    </div>
+                                                )}
 
                                                 {/* Mensaje del tutor */}
                                                 {sol.mensaje && (

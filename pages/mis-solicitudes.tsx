@@ -13,13 +13,14 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Calendar, ArrowRight, Clock, CheckCircle, XCircle, Phone } from 'lucide-react';
+import { Calendar, ArrowRight, Clock, CheckCircle, XCircle, Phone, MapPin, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
 import { fetchProveedoresPublicosByIds } from '../lib/supabase/queries/proveedoresPublicos';
 import ConfirmDialog from '../components/Shared/ConfirmDialog';
-import { formatFechaPreferida, formatFechaCorta, formatRangoNoches } from '../lib/formatFecha';
+import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntualConDuracion } from '../lib/formatFecha';
+import { MODALIDAD_LABELS, type ModalidadCuidado } from '../lib/categoriaTemporal';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
 
 type LoadState =
@@ -75,7 +76,9 @@ export default function MisSolicitudesPage() {
             .from('agendamientos')
             .select(`
                 id, servicio_id, proveedor_id, tutor_id,
-                fecha_preferida, fecha_fin, mensaje, estado, nota_proveedor,
+                fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
+                duracion_horas, direccion_servicio,
+                mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)
@@ -287,13 +290,30 @@ function SolicitudCard({
     const isRechazada = solicitud.estado === 'rechazada';
     const isCancelada = solicitud.estado === 'cancelada';
 
-    // Branching V1 (puntual fecha+hora) vs V2 (cuidado rango noches): la
-    // presencia de fecha_fin encoda la variante — no necesitamos consultar la
-    // categoria del servicio al render.
-    const fechaPreferida = solicitud.fecha_fin
-        ? formatRangoNoches(solicitud.fecha_preferida, solicitud.fecha_fin)
-        : formatFechaPreferida(solicitud.fecha_preferida);
+    // Branching de formato segun variante: la combinacion de modo_tarifa +
+    // fecha_fin encoda cual de V1/V2/V4a/V4b. No consultamos la categoria
+    // del servicio al render — la solicitud trae todo lo que necesitamos.
+    //   V4b (cuidado a domicilio por horas):  modo_tarifa='horas' + duracion
+    //   V2/V4a (rango noches):                fecha_fin presente
+    //   V1 (puntual):                         else
+    const fechaPreferida = (() => {
+        if (solicitud.modo_tarifa === 'horas' && solicitud.duracion_horas) {
+            return formatPuntualConDuracion(solicitud.fecha_preferida, solicitud.duracion_horas);
+        }
+        if (solicitud.fecha_fin) {
+            return formatRangoNoches(solicitud.fecha_preferida, solicitud.fecha_fin);
+        }
+        return formatFechaPreferida(solicitud.fecha_preferida);
+    })();
     const respondidoAt = formatFechaCorta(solicitud.respondido_at);
+
+    // Modalidad label (presente solo en solicitudes Fase 2+ de cuidado). El
+    // fallback a null para legacy (modalidad_elegida=null de Fase 1) o para
+    // un valor futuro no presente en el mapa.
+    const modalidadLabel = solicitud.modalidad_elegida
+        ? MODALIDAD_LABELS[solicitud.modalidad_elegida as ModalidadCuidado] ?? null
+        : null;
+    const direccionServicio = solicitud.direccion_servicio || null;
 
     const estadoBadge = (() => {
         switch (solicitud.estado) {
@@ -344,11 +364,27 @@ function SolicitudCard({
                 <div className="shrink-0">{estadoBadge}</div>
             </div>
 
-            {/* Fecha preferida */}
+            {/* Fecha preferida (formato segun variante) */}
             <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
                 <Calendar size={15} className="text-slate-400 shrink-0" />
                 <span>{fechaPreferida}</span>
             </div>
+
+            {/* Modalidad — Fase 2: solo si el servicio es cuidado */}
+            {modalidadLabel && (
+                <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
+                    <MapPin size={15} className="text-slate-400 shrink-0" />
+                    <span>{modalidadLabel}</span>
+                </div>
+            )}
+
+            {/* Direccion — Fase 2: solo V4a/V4b (modalidad casa_tutor) */}
+            {direccionServicio && (
+                <div className="flex items-start gap-2 text-sm text-slate-700 mb-3">
+                    <Home size={15} className="text-slate-400 shrink-0 mt-0.5" />
+                    <span className="whitespace-pre-wrap">{direccionServicio}</span>
+                </div>
+            )}
 
             {/* Mensaje original del tutor */}
             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
