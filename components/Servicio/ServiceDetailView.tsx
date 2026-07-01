@@ -626,59 +626,109 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             />
                         </div>
 
-                        {/* Encabezado del Servicio */}
+                        {/* Encabezado h1 fallback — solo cuando falla la carga
+                            de la imagen (el overlay de la galeria porta el h1
+                            en el caso normal). Simplificado: solo el titulo;
+                            ubicacion + rating viven ahora en el hero de datos
+                            de abajo, siempre visibles. */}
                         {imgError && (
-                            <div>
-                                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
-                                    {service.titulo}
-                                </h1>
-                                <div className="flex flex-wrap items-center gap-4 text-slate-600 text-sm md:text-base font-medium">
-                                    <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-lg">
-                                        <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                        {proveedor.comuna}
-                                    </span>
-                                    {totalReviews > 0 && (
-                                        <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-lg">
-                                            <Star size={14} className="text-emerald-500 fill-emerald-500" />
-                                            {totalReviews} evaluaci{totalReviews !== 1 ? 'ones' : 'ón'}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+                            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight tracking-tight px-1">
+                                {service.titulo}
+                            </h1>
                         )}
 
-                        {/* Mascotas Aceptadas — lee booleans acepta_perros/gatos/
-                            otras de la BD. Antes era un card completo con heading
-                            "Tipos de mascota" para contener solo 1-2 chips —
-                            overkill visual. Ahora es una linea inline compacta
-                            tipo "Atiende:  Perros · Gatos", sin card ni heading
-                            (la info es trivial, no requiere protagonismo). */}
-                        {(service.acepta_perros || service.acepta_gatos || service.acepta_otras || service.tamanos_permitidos?.length > 0) && (
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-slate-600 px-1">
-                                <span className="font-semibold text-slate-700">Atiende:</span>
-                                {service.acepta_perros && (
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <Dog size={15} strokeWidth={1.5} className="text-slate-500" /> Perros
-                                    </span>
-                                )}
-                                {service.acepta_gatos && (
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <Cat size={15} strokeWidth={1.5} className="text-slate-500" /> Gatos
-                                    </span>
-                                )}
-                                {service.acepta_otras && (
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <PawPrint size={15} strokeWidth={1.5} className="text-slate-500" /> Otras
-                                    </span>
-                                )}
-                                {service.tamanos_permitidos?.length > 0 && (
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <span className="text-slate-400">·</span>
-                                        <span>Tallas: <span className="text-slate-700">{service.tamanos_permitidos.join(', ')}</span></span>
+                        {/* Hero de datos del servicio — Commit 1 rediseno estructural.
+                            Sube info decisoria (categoria + ubicacion + rating +
+                            precio + Atiende) del renglon gris perdido a un bloque
+                            visible sin scroll. Se muestra SIEMPRE (no depende de
+                            imgError). El overlay de la galeria arriba mantiene el
+                            titulo como visual context; este bloque lo complementa
+                            con datos objetivos para descarte rapido. */}
+                        <div className="px-1 space-y-3">
+
+                            {/* Categoria badge + ubicacion + rating inline */}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                                {categoria && (() => {
+                                    const CategoriaIcon = SLUG_ICONS[categoria.slug] ?? Grid2x2;
+                                    return (
+                                        <Link
+                                            href={`/explorar?categoria=${categoria.slug}`}
+                                            className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1 rounded-lg transition-colors"
+                                        >
+                                            <CategoriaIcon size={14} className="text-slate-500" />
+                                            {categoria.nombre}
+                                        </Link>
+                                    );
+                                })()}
+                                <span className="inline-flex items-center gap-1.5 text-slate-600">
+                                    <MapPin size={14} className="text-slate-400" />
+                                    {proveedor.comuna}
+                                </span>
+                                {totalReviews > 0 && (
+                                    <span className="inline-flex items-center gap-1 text-slate-600">
+                                        <Star size={14} className="text-emerald-500 fill-emerald-500" />
+                                        <span className="font-semibold text-slate-900">
+                                            {(reviews.reduce((a: number, r: any) => a + r.rating, 0) / totalReviews).toFixed(1)}
+                                        </span>
+                                        <span className="text-slate-500">
+                                            ({totalReviews} evaluaci{totalReviews !== 1 ? 'ones' : 'ón'})
+                                        </span>
                                     </span>
                                 )}
                             </div>
-                        )}
+
+                            {/* Precio destacado — "Desde $X.XXX / unidad" */}
+                            {service.precio_desde != null && (
+                                <div className="flex items-baseline gap-2">
+                                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Desde</p>
+                                    <span className="text-2xl md:text-3xl font-bold text-emerald-700">
+                                        ${service.precio_desde.toLocaleString('es-CL')}
+                                    </span>
+                                    <span className="text-slate-500 font-medium text-sm">
+                                        /{service.unidad_precio}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Atiende — chips con iconos. Solo los tipos que el
+                                servicio marca; tallas en linea aparte si aplica.
+                                Movido aca desde el renglon gris que estaba mas
+                                abajo y pasaba desapercibido. */}
+                            {(service.acepta_perros || service.acepta_gatos || service.acepta_otras || service.tamanos_permitidos?.length > 0) && (
+                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Atiende</span>
+                                    {service.acepta_perros && (
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
+                                            <Dog size={14} strokeWidth={2} />
+                                            Perros
+                                        </span>
+                                    )}
+                                    {service.acepta_gatos && (
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
+                                            <Cat size={14} strokeWidth={2} />
+                                            Gatos
+                                        </span>
+                                    )}
+                                    {service.acepta_otras && (
+                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
+                                            <PawPrint size={14} strokeWidth={2} />
+                                            Otras
+                                        </span>
+                                    )}
+                                    {service.tamanos_permitidos?.length > 0 && (
+                                        <>
+                                            <span className="text-slate-400 mx-1">·</span>
+                                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tallas</span>
+                                            {service.tamanos_permitidos.map((talla: string, i: number) => (
+                                                <span key={i} className="inline-flex items-center bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
+                                                    {talla}
+                                                </span>
+                                            ))}
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         {/* Descripcion */}
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
