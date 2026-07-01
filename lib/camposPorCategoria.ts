@@ -395,6 +395,99 @@ export function getCampoMeta(categoria: string, key: string): CampoDinamico | un
     return CAMPOS_POR_CATEGORIA[categoria]?.find(c => c.key === key);
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// Rediseno ficha Commit 3 — TOP CAMPOS POR CATEGORIA
+//
+// Sub-seleccion de los campos "descarte rapido" que se muestran en el grid
+// principal "Informacion del servicio" de la ficha. El resto de campos
+// (visibles con la misma logica de filtrado que antes) va al bloque
+// colapsable "Informacion completa" mas abajo. Cero campos perdidos —
+// solo pierden jerarquia.
+//
+// Excluidos por design: multiselect ya tienen sus bloques dedicados
+// (`inclusiones` → "Que incluye", `modalidad` → "Modalidades"); credenciales
+// puras (`universidad`, `numero_registro`, `portfolio_url`) van a la
+// tarjeta resumen del proveedor (Zona B, Commit 4). `notas` tiene bloque
+// propio "Detalles adicionales".
+//
+// Para `cuidado`: el config es un mapa por modalidad porque el set de
+// campos aplicables cambia segun donde se presta el servicio. Si el
+// servicio ofrece >1 modalidad, el render agrupa por subtitulo; si solo
+// 1, va directo sin subtitulo.
+//
+// Fallback defensivo: categoria sin entrada aca → el render cae al grid
+// completo como estaba antes. Cero regresion.
+// ────────────────────────────────────────────────────────────────────────────
+
+export const TOP_CAMPOS_POR_CATEGORIA: Record<string, string[] | Record<string, string[]>> = {
+    cuidado: {
+        casa_cuidador: ['tipo_espacio', 'capacidad', 'tiene_patio', 'camara_vigilancia', 'mascotas_propias'],
+        casa_tutor:    ['visitas_por_dia', 'duracion_visita', 'radio_cobertura_km'],
+        recinto:       ['capacidad', 'camara_vigilancia'],
+    },
+    guarderia:     ['capacidad', 'horario', 'tiene_patio', 'camara_vigilancia'],
+    paseos:        ['max_perros', 'duracion_minutos', 'radio_cobertura_km', 'zona_paseo', 'razas_fuerza'],
+    peluqueria:    ['anios_experiencia', 'duracion_estimada', 'mesa_hidraulica', 'radio_cobertura_km', 'razas_especiales'],
+    veterinario:   ['radio_cobertura_km', 'especialidades', 'anio_titulacion', 'emite_boleta'],
+    adiestramiento:['metodo', 'anios_experiencia', 'duracion_sesion', 'radio_cobertura_km'],
+    traslado:      ['tipo_vehiculo', 'capacidad_mascotas', 'radio_cobertura_km'],
+    fotografia:    ['anios_experiencia', 'duracion_sesion', 'fotos_entregadas'],
+};
+
+/** Discriminated union para el resultado del helper. */
+export type TopCamposResult =
+    | { tipo: 'flat'; keys: string[] }
+    | { tipo: 'agrupado'; grupos: Array<{ modalidadSlug: string; keys: string[] }> }
+    | null;
+
+/**
+ * Devuelve los top campos "descarte rapido" para una categoria + modalidades
+ * elegidas por el servicio. Formas de retorno:
+ *
+ *   - `null` → categoria no tiene entrada en TOP_CAMPOS_POR_CATEGORIA. El
+ *     caller debe caer al grid completo (fallback defensivo).
+ *   - `{ tipo: 'flat', keys }` → una lista plana. Aplica a categorias con
+ *     config lineal (guarderia, paseos, etc.) Y al caso `cuidado` con 1 sola
+ *     modalidad (colapsamos para no mostrar subtitulo redundante).
+ *   - `{ tipo: 'agrupado', grupos }` → cuidado con >1 modalidad. Cada grupo
+ *     lleva su slug de modalidad (para resolver el label via MODALIDAD_LABELS
+ *     en categoriaTemporal.ts) y sus keys.
+ *
+ * Si `cuidado` no tiene modalidades poblado (data legacy o edge), retorna
+ * null → fallback a grid completo.
+ */
+export function getTopCamposPorCategoria(
+    categoriaSlug: string,
+    modalidadesElegidas?: string[]
+): TopCamposResult {
+    const config = TOP_CAMPOS_POR_CATEGORIA[categoriaSlug];
+    if (!config) return null;
+
+    // Config plano (guarderia, paseos, etc): retornar tal cual.
+    if (Array.isArray(config)) {
+        return { tipo: 'flat', keys: config };
+    }
+
+    // Config por modalidad (cuidado): filtrar por las modalidades del servicio.
+    const mods = Array.isArray(modalidadesElegidas) ? modalidadesElegidas : [];
+    if (mods.length === 0) return null;
+
+    const configPorMod = config as Record<string, string[]>;
+    const grupos = mods
+        .filter(m => Array.isArray(configPorMod[m]))
+        .map(m => ({ modalidadSlug: m, keys: configPorMod[m] }));
+
+    if (grupos.length === 0) return null;
+
+    // 1 sola modalidad: sin subtitulo redundante — colapsar a flat.
+    if (grupos.length === 1) {
+        return { tipo: 'flat', keys: grupos[0].keys };
+    }
+
+    return { tipo: 'agrupado', grupos };
+}
+
+
 /**
  * Formatea un valor de `detalles[key]` para mostrar en la UI segun el tipo
  * del campo. Centraliza la logica que antes vivia duplicada en

@@ -20,12 +20,13 @@ import PreguntasSection from '../Service/PreguntasSection';
 import ServiceCard, { ServiceResult } from '../Explore/ServiceCard';
 import Breadcrumb from '../Shared/Breadcrumb';
 import { instagramUsernameFromUrl } from '../../lib/validators';
-import { CAMPOS_POR_CATEGORIA, getCampoMeta, formatValorCampo } from '../../lib/camposPorCategoria';
+import { CAMPOS_POR_CATEGORIA, getCampoMeta, formatValorCampo, getTopCamposPorCategoria } from '../../lib/camposPorCategoria';
+import { MODALIDAD_LABELS, esModalidadValida, type ModalidadCuidado } from '../../lib/categoriaTemporal';
 import {
     ShieldCheck, Star, User as UserIcon2,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Briefcase, Award, Globe, Instagram, BadgeCheck, Sparkles, X,
-    Dog, Cat, FileText, Pencil, CheckCircle, Circle, Calendar,
+    Dog, Cat, FileText, Pencil, CheckCircle, Circle, Calendar, ChevronDown,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -90,6 +91,10 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
     const [fotoActiva, setFotoActiva] = useState(0);
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    // Commit 3 rediseno ficha: state del bloque colapsable "Informacion
+    // completa" que agrupa los campos no-top-N (los que no son "descarte
+    // rapido" segun TOP_CAMPOS_POR_CATEGORIA). Cerrado por default.
+    const [infoCompletaOpen, setInfoCompletaOpen] = useState(false);
     const [agendamientoModalOpen, setAgendamientoModalOpen] = useState(false);
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [imgError, setImgError] = useState(false);
@@ -895,69 +900,157 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             </div>
                         )}
 
-                        {/* 6. Informacion del servicio (grid dinamico) — itera SOLO los campos
-                            definidos en CAMPOS_POR_CATEGORIA[categoria] (no las keys
-                            crudas del jsonb). Asi las keys legacy huerfanas
-                            (envia_foto_reporte, administra_medicamentos, etc.
-                            absorbidas a `inclusiones` en Fase 2) no rinden mas como
-                            texto snake_case suelto. `inclusiones` y `notas` van en
-                            secciones dedicadas arriba; los demas campos del set
-                            canonico van aqui. */}
+                        {/* 6. Informacion del servicio (top-N por categoria) +
+                            "Informacion completa" colapsable con el resto.
+                            Commit 3 del rediseno: sub-selecciona los 4-6 campos
+                            "descarte rapido" segun TOP_CAMPOS_POR_CATEGORIA.
+                            Para cuidado multi-modalidad, agrupa por modalidad con
+                            subtitulo. Cero campos perdidos — los no-top van al
+                            colapsable "Informacion completa" abajo. Fallback: si
+                            la categoria no tiene top definido, el grid completo
+                            renderiza como antes. */}
                         {(() => {
                             const slug = categoria?.slug ?? '';
                             const campos = CAMPOS_POR_CATEGORIA[slug] || [];
                             const visibles = campos.filter(campo => {
                                 if (campo.tipo === 'info') return false;
-                                if (campo.tipo === 'multiselect') return false; // chips arriba
+                                if (campo.tipo === 'multiselect') return false; // chips arriba (Modalidades / Que incluye)
                                 if (campo.key === 'notas') return false; // seccion arriba
                                 const v = service.detalles?.[campo.key];
                                 if (v === null || v === undefined || v === '') return false;
-                                if (campo.tipo === 'boolean' && !v) return false; // booleans false no aportan
-                                // Defensa contra datos legacy: hay campos declarados
-                                // como 'text' (ej. razas_especiales) que en una fase
-                                // anterior eran boolean — ver comentario en
-                                // lib/camposPorCategoria.ts L37. Filas legacy pueden
-                                // tener un boolean en lugar de string. Tratamos
-                                // bool false como "no aporta" (skip) y bool true
-                                // como bool (icono check, sin valor textual).
+                                if (campo.tipo === 'boolean' && !v) return false;
                                 if (typeof v === 'boolean' && !v) return false;
                                 return true;
                             });
                             if (visibles.length === 0) return null;
-                            return (
-                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                    <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                                        Información del servicio
-                                    </h3>
+
+                            // Render helper para una card de campo — mismo look que
+                            // el grid anterior. Se reusa para top y para resto.
+                            const renderCampoCard = (campo: typeof visibles[number]) => {
+                                const val = service.detalles?.[campo.key];
+                                const isBoolean = campo.tipo === 'boolean' || typeof val === 'boolean';
+                                const displayValue = isBoolean ? null : formatValorCampo(campo, val);
+                                return (
+                                    <div key={campo.key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
+                                        {isBoolean ? (
+                                            <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                        ) : (
+                                            <svg className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="text-xs text-slate-500 font-medium">{campo.label}</p>
+                                            {displayValue && <p className="text-sm text-slate-700 mt-0.5 break-words">{displayValue}</p>}
+                                        </div>
+                                    </div>
+                                );
+                            };
+
+                            // Obtener el top-N segun categoria + modalidades del servicio.
+                            const modalidadesServicio: string[] = Array.isArray(service.detalles?.modalidad)
+                                ? service.detalles.modalidad
+                                : [];
+                            const topResult = getTopCamposPorCategoria(slug, modalidadesServicio);
+
+                            // Fallback defensivo: sin top-N definido, render grid completo como antes.
+                            if (!topResult) {
+                                return (
+                                    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                        <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                            Información del servicio
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {visibles.map(renderCampoCard)}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Set de keys top (union en caso agrupado) para separar top vs resto.
+                            const allTopKeys: Set<string> = topResult.tipo === 'flat'
+                                ? new Set(topResult.keys)
+                                : new Set(topResult.grupos.flatMap(g => g.keys));
+                            const restoCampos = visibles.filter(c => !allTopKeys.has(c.key));
+
+                            // Render principal: caso flat.
+                            const renderFlat = (keys: string[]) => {
+                                const topCampos = visibles.filter(c => keys.includes(c.key));
+                                if (topCampos.length === 0) return null;
+                                return (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {visibles.map(campo => {
-                                            const val = service.detalles?.[campo.key];
-                                            // `isBoolean` cubre dos casos: (a) el campo
-                                            // esta declarado como boolean en el meta;
-                                            // (b) el campo es text pero la fila legacy
-                                            // tiene boolean en el jsonb (ver filtro
-                                            // arriba). Sin (b), el render caia a
-                                            // formatValorCampo -> String(true) y mostraba
-                                            // "true" literal.
-                                            const isBoolean = campo.tipo === 'boolean' || typeof val === 'boolean';
-                                            const displayValue = isBoolean ? null : formatValorCampo(campo, val);
-                                            return (
-                                                <div key={campo.key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
-                                                    {isBoolean ? (
-                                                        <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                                                    ) : (
-                                                        <svg className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
-                                                    )}
-                                                    <div className="min-w-0">
-                                                        <p className="text-xs text-slate-500 font-medium">{campo.label}</p>
-                                                        {displayValue && <p className="text-sm text-slate-700 mt-0.5 break-words">{displayValue}</p>}
+                                        {topCampos.map(renderCampoCard)}
+                                    </div>
+                                );
+                            };
+
+                            // Render principal: caso agrupado (cuidado multi-modalidad).
+                            const renderAgrupado = (grupos: Array<{ modalidadSlug: string; keys: string[] }>) => (
+                                <div className="space-y-5">
+                                    {grupos.map(g => {
+                                        const camposDelGrupo = visibles.filter(c => g.keys.includes(c.key));
+                                        if (camposDelGrupo.length === 0) return null;
+                                        const label = esModalidadValida(g.modalidadSlug)
+                                            ? MODALIDAD_LABELS[g.modalidadSlug as ModalidadCuidado]
+                                            : g.modalidadSlug;
+                                        return (
+                                            <div key={g.modalidadSlug}>
+                                                <p className="text-xs uppercase tracking-widest font-semibold text-slate-500 mb-3">
+                                                    {label}
+                                                </p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    {camposDelGrupo.map(renderCampoCard)}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+
+                            return (
+                                <>
+                                    {/* Bloque principal — top-N (flat o agrupado por modalidad). */}
+                                    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                        <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                            Información del servicio
+                                        </h3>
+                                        {topResult.tipo === 'flat'
+                                            ? renderFlat(topResult.keys)
+                                            : renderAgrupado(topResult.grupos)}
+                                    </div>
+
+                                    {/* Colapsable "Informacion completa" — solo si hay
+                                        campos no-top. Cerrado por default; expandible
+                                        con boton. Cero campos perdidos. */}
+                                    {restoCampos.length > 0 && (
+                                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                                            <button
+                                                type="button"
+                                                onClick={() => setInfoCompletaOpen(o => !o)}
+                                                aria-expanded={infoCompletaOpen}
+                                                className="w-full flex items-center justify-between p-6 sm:p-8 text-left"
+                                            >
+                                                <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                                                    Ver más detalles del servicio
+                                                    <span className="text-xs text-slate-500 font-normal">
+                                                        ({restoCampos.length} {restoCampos.length === 1 ? 'campo' : 'campos'})
+                                                    </span>
+                                                </h3>
+                                                <ChevronDown
+                                                    size={20}
+                                                    className={`text-slate-500 transition-transform ${infoCompletaOpen ? 'rotate-180' : ''}`}
+                                                />
+                                            </button>
+                                            {infoCompletaOpen && (
+                                                <div className="px-6 sm:px-8 pb-6 sm:pb-8">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        {restoCampos.map(renderCampoCard)}
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </>
                             );
                         })()}
 
