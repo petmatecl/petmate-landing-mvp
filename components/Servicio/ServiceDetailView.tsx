@@ -730,61 +730,42 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             )}
                         </div>
 
-                        {/* Descripcion */}
-                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                Acerca del Servicio
-                            </h3>
-                            {service.descripcion ? (
-                                <ExpandibleText text={service.descripcion} maxChars={400} />
-                            ) : (
-                                <EmptyFieldState
-                                    label="descripción"
-                                    isOwner={isOwner}
-                                    ownerCTA={{ text: 'Agregar descripción', href: '/proveedor?tab=servicios' }}
-                                />
-                            )}
-                        </div>
+                        {/* ═══════════ ZONA A — Lo del servicio ═══════════
+                            Commit 2 del rediseno: reorden para poner datos duros
+                            arriba, narrativa abajo. Orden:
+                              1. Modalidades (si aplica)
+                              2. Que incluye (fusion inclusiones + que_incluye)
+                              3. Cobertura
+                              4. Disponibilidad
+                              5. Detalles adicionales
+                              6. Informacion del servicio (grid completo — Commit 3
+                                 lo filtra a top-N)
+                              7. Acerca del servicio (descripcion narrativa — baja aca)
+                              8. Sobre el proveedor (bio — se mantiene por ahora,
+                                 Commit 4 la reemplaza por tarjeta resumen Zona B)
+                        */}
 
-                        {/* Sobre el proveedor (bio) */}
-                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                <UserIcon2 size={22} className="text-emerald-500" />
-                                Sobre {proveedor.nombre_publico || proveedor.nombre}
-                            </h3>
-                            {proveedor.bio ? (
-                                <ExpandibleText text={proveedor.bio} maxChars={400} />
-                            ) : (
-                                <EmptyFieldState
-                                    label="información personal"
-                                    isOwner={isOwner}
-                                    ownerCTA={{ text: 'Cuéntale a los tutores quién eres', href: '/proveedor?tab=perfil' }}
-                                    tutorMessage="Este proveedor no agregó información personal aún"
-                                />
-                            )}
-                        </div>
-
-                        {/* Inclusiones — chips dedicados (Sprint 4 Fase 2 Commit C).
-                            Renderizamos el multiselect `inclusiones` aparte del grid
-                            de campos para darle protagonismo visual y reusar el
-                            estilo de chips emerald que ya tienen idiomas / comunas
-                            en la ficha proveedor. */}
-                        {Array.isArray(service.detalles?.inclusiones) && service.detalles.inclusiones.length > 0 && (() => {
+                        {/* 1. Modalidades — bloque nuevo para las categorias con
+                            campo `modalidad` como multiselect (cuidado, peluqueria,
+                            adiestramiento). Hoy este campo estaba filtrado del
+                            grid de "Informacion del servicio" (multiselect skip)
+                            pero nunca tuvo bloque dedicado — informacion invisible.
+                            Commit 2 la sube a bloque explicito. */}
+                        {Array.isArray(service.detalles?.modalidad) && service.detalles.modalidad.length > 0 && (() => {
                             const slug = categoria?.slug ?? '';
-                            const campo = getCampoMeta(slug, 'inclusiones');
-                            const chips: string[] = service.detalles.inclusiones.map((slugInc: string) => (
-                                campo?.opciones?.find(o => String(o.value) === String(slugInc))?.label ?? String(slugInc)
+                            const campo = getCampoMeta(slug, 'modalidad');
+                            const chips: string[] = service.detalles.modalidad.map((slugMod: string) => (
+                                campo?.opciones?.find(o => String(o.value) === String(slugMod))?.label ?? String(slugMod)
                             ));
                             return (
                                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><polyline points="20 6 9 17 4 12" /></svg>
-                                        Incluye
+                                        <MapPin size={22} className="text-emerald-500" />
+                                        Modalidades
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
                                         {chips.map((label, i) => (
-                                            <span key={i} className="bg-emerald-50 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full border border-emerald-100">
+                                            <span key={i} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1.5 rounded-full">
                                                 {label}
                                             </span>
                                         ))}
@@ -793,11 +774,115 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             );
                         })()}
 
-                        {/* Detalles adicionales — textarea libre por servicio
-                            (campo `notas` en jsonb; label visible renombrado para
-                            que no se confunda con "Incluye"). Heading alineado
-                            con el patron de las otras secciones: text-xl +
-                            FileText icon + flex items-center. */}
+                        {/* 2. Que incluye — fusion de los dos bloques redundantes
+                            anteriores ("Inclusiones" chips + "¿Que incluye?" list).
+                            Un solo titulo, un solo bloque. Chips (multiselect
+                            estructurado) arriba; items del `que_incluye` (text[]
+                            libre por servicio) abajo. Ambas fuentes son opcionales
+                            — el bloque se muestra si al menos una tiene contenido. */}
+                        {(() => {
+                            const slug = categoria?.slug ?? '';
+                            const campoInc = getCampoMeta(slug, 'inclusiones');
+                            const chips: string[] = Array.isArray(service.detalles?.inclusiones)
+                                ? service.detalles.inclusiones.map((slugInc: string) => (
+                                    campoInc?.opciones?.find(o => String(o.value) === String(slugInc))?.label ?? String(slugInc)
+                                ))
+                                : [];
+                            const items: string[] = Array.isArray(service.que_incluye) ? service.que_incluye : [];
+                            if (chips.length === 0 && items.length === 0) return null;
+                            return (
+                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                    <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><polyline points="20 6 9 17 4 12" /></svg>
+                                        Qué incluye
+                                    </h3>
+                                    {chips.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-4 last:mb-0">
+                                            {chips.map((label, i) => (
+                                                <span key={i} className="bg-emerald-50 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full border border-emerald-100">
+                                                    {label}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {items.length > 0 && (
+                                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {items.map((inc, i) => (
+                                                <li key={i} className="flex items-start gap-2 text-slate-600">
+                                                    <svg className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
+                                                    <span>{inc}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            );
+                        })()}
+
+                        {/* 3. Cobertura — se sube de su posicion anterior (post-info
+                            del servicio) a mas arriba: "que incluye" + "donde" son
+                            datos de descarte rapido. */}
+                        {service.comunas_cobertura && service.comunas_cobertura.length > 0 && (
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                    <MapPin size={22} className="text-emerald-500" />
+                                    Zona de cobertura
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {service.comunas_cobertura.map((c: string) => (
+                                        <span key={c} className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm font-medium px-3 py-1.5 rounded-full">
+                                            <MapPin size={12} />
+                                            {c}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 4. Disponibilidad — sube junto con cobertura. */}
+                        {service.disponibilidad && (() => {
+                            let parsed: Record<string, any> | null = null;
+                            try { parsed = JSON.parse(service.disponibilidad); } catch {}
+
+                            if (parsed && typeof parsed === 'object') {
+                                const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                                const activeDays = days.filter(d => parsed![d]?.activo);
+                                if (activeDays.length === 0) return null;
+                                return (
+                                    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                        <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            Disponibilidad
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {days.map(dia => {
+                                                const d = parsed![dia];
+                                                if (!d?.activo) return null;
+                                                return (
+                                                    <div key={dia} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                                                        <span className="text-sm text-slate-700">{dia}</span>
+                                                        <span className="text-sm text-slate-500">{d.desde} — {d.hasta}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return (
+                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                    <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        Disponibilidad
+                                    </h3>
+                                    <p className="text-sm text-slate-600">{service.disponibilidad}</p>
+                                </div>
+                            );
+                        })()}
+
+                        {/* 5. Detalles adicionales — textarea libre por servicio
+                            (campo `notas` en jsonb). Heading alineado con el
+                            patron de las otras secciones. */}
                         {service.detalles && typeof service.detalles.notas === 'string' && service.detalles.notas.trim() && (
                             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                 <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
@@ -810,7 +895,7 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             </div>
                         )}
 
-                        {/* Detalles especificos de categoria — itera SOLO los campos
+                        {/* 6. Informacion del servicio (grid dinamico) — itera SOLO los campos
                             definidos en CAMPOS_POR_CATEGORIA[categoria] (no las keys
                             crudas del jsonb). Asi las keys legacy huerfanas
                             (envia_foto_reporte, administra_medicamentos, etc.
@@ -876,84 +961,46 @@ export default function ServiceDetailView({ service, reviews, otrosServicios, is
                             );
                         })()}
 
-                        {/* Comunas de cobertura */}
-                        {service.comunas_cobertura && service.comunas_cobertura.length > 0 && (
-                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                    <MapPin size={22} className="text-emerald-500" />
-                                    Zona de cobertura
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {service.comunas_cobertura.map((c: string) => (
-                                        <span key={c} className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm font-medium px-3 py-1.5 rounded-full">
-                                            <MapPin size={12} />
-                                            {c}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        {/* 7. Acerca del Servicio — descripcion narrativa larga.
+                            Baja del segundo bloque (que era) al final de Zona A:
+                            los datos duros arriba, el relato al final. */}
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                Acerca del servicio
+                            </h3>
+                            {service.descripcion ? (
+                                <ExpandibleText text={service.descripcion} maxChars={400} />
+                            ) : (
+                                <EmptyFieldState
+                                    label="descripción"
+                                    isOwner={isOwner}
+                                    ownerCTA={{ text: 'Agregar descripción', href: '/proveedor?tab=servicios' }}
+                                />
+                            )}
+                        </div>
 
-                        {/* Disponibilidad */}
-                        {service.disponibilidad && (() => {
-                            // Try parsing as JSON (new structured format)
-                            let parsed: Record<string, any> | null = null;
-                            try { parsed = JSON.parse(service.disponibilidad); } catch {}
-
-                            if (parsed && typeof parsed === 'object') {
-                                const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-                                const activeDays = days.filter(d => parsed![d]?.activo);
-                                if (activeDays.length === 0) return null;
-                                return (
-                                    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                        <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                            Disponibilidad
-                                        </h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {days.map(dia => {
-                                                const d = parsed![dia];
-                                                if (!d?.activo) return null;
-                                                return (
-                                                    <div key={dia} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                                                        <span className="text-sm text-slate-700">{dia}</span>
-                                                        <span className="text-sm text-slate-500">{d.desde} — {d.hasta}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            }
-                            // Fallback: plain text
-                            return (
-                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                    <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                        Disponibilidad
-                                    </h3>
-                                    <p className="text-sm text-slate-600">{service.disponibilidad}</p>
-                                </div>
-                            );
-                        })()}
-
-                        {/* Que Incluye */}
-                        {service.que_incluye && service.que_incluye.length > 0 && (
-                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                                    ¿Qué incluye?
-                                </h3>
-                                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {service.que_incluye.map((inc: string, i: number) => (
-                                        <li key={i} className="flex items-start gap-2 text-slate-600">
-                                            <svg className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                            <span>{inc}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                        {/* 8. Sobre el proveedor (bio) — se mantiene por ahora en
+                            este orden (post-descripcion, cerrando la narrativa).
+                            Commit 4 la reemplaza por una tarjeta resumen compacta
+                            que va en la misma posicion (Zona B), con boton "Ver
+                            perfil completo →". */}
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                <UserIcon2 size={22} className="text-emerald-500" />
+                                Sobre {proveedor.nombre_publico || proveedor.nombre}
+                            </h3>
+                            {proveedor.bio ? (
+                                <ExpandibleText text={proveedor.bio} maxChars={400} />
+                            ) : (
+                                <EmptyFieldState
+                                    label="información personal"
+                                    isOwner={isOwner}
+                                    ownerCTA={{ text: 'Cuéntale a los tutores quién eres', href: '/proveedor?tab=perfil' }}
+                                    tutorMessage="Este proveedor no agregó información personal aún"
+                                />
+                            )}
+                        </div>
 
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
