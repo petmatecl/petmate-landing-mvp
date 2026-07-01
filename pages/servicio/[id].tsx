@@ -10,6 +10,10 @@ interface ServiceDetailProps {
     service: any;
     reviews: any[];
     otrosServicios: ServiceResult[];
+    // Rediseno Commit 4: rating global del proveedor (todas sus evaluaciones,
+    // no solo este servicio) para la tarjeta resumen Zona B.
+    globalRatingPromedio: number;
+    globalTotalEvaluaciones: number;
 }
 
 export default function ServicioPage(props: ServiceDetailProps) {
@@ -74,13 +78,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         // estaba en el embed) — el render usa props.service.proveedores.X.
         (service as any).proveedores = proveedorHidratado;
 
-        // Fetch Reviews
+        // Fetch Reviews de este servicio (para el hero + Zona C).
         const { data: reviews, error: reviewsError } = await supabase
             .from('evaluaciones')
             .select('*')
             .eq('servicio_id', id)
             .eq('estado', 'aprobado')
             .order('created_at', { ascending: false });
+
+        // Rediseno Commit 4: rating global del proveedor (todas sus evaluaciones,
+        // no solo este servicio) para la tarjeta resumen Zona B. Query separada
+        // porque `reviews` de arriba filtra por servicio_id.
+        const { data: reviewsGlobalProv } = await supabase
+            .from('evaluaciones')
+            .select('rating')
+            .eq('proveedor_id', service.proveedor_id)
+            .eq('estado', 'aprobado');
+        let globalRatingPromedio = 0;
+        let globalTotalEvaluaciones = 0;
+        if (reviewsGlobalProv && reviewsGlobalProv.length > 0) {
+            globalTotalEvaluaciones = reviewsGlobalProv.length;
+            globalRatingPromedio = reviewsGlobalProv.reduce((acc, r: any) => acc + r.rating, 0) / globalTotalEvaluaciones;
+        }
 
         // Fetch servicios similares: misma categoría, misma comuna, distinto proveedor
         const categoriaSlug = service.categorias_servicio?.slug;
@@ -107,6 +126,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 service,
                 reviews: reviews || [],
                 otrosServicios,
+                globalRatingPromedio,
+                globalTotalEvaluaciones,
             }
         };
 
