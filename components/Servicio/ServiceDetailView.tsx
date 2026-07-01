@@ -747,6 +747,57 @@ export default function ServiceDetailView({
                             )}
                         </div>
 
+                        {/* CTA INLINE MOBILE — Commit 5 del rediseno. Aparece
+                            post-hero, antes de Zona A. Reduce la friccion del
+                            "primer contacto sin scroll": el tutor decide con
+                            galeria + hero + Atiende ya visibles y actua sin
+                            recorrer largo. La barra fija inferior (L~1400) sigue
+                            existiendo como backup para quien scrollea lejos
+                            (evaluaciones, otros servicios). Ambos respetan el
+                            gate agendamientoOn. */}
+                        <div className="lg:hidden">
+                            {!user && !isExample && (
+                                <p className="text-xs text-slate-600 leading-relaxed mb-2 px-1">
+                                    Inicia sesión para contactar al proveedor.
+                                </p>
+                            )}
+                            {agendamientoOn ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        onClick={handleSolicitarAgendamiento}
+                                        aria-label={`Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`}
+                                        className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm"
+                                    >
+                                        <Calendar size={18} strokeWidth={2} aria-hidden="true" />
+                                        Agendar
+                                    </button>
+                                    <button
+                                        onClick={handleChatClick}
+                                        disabled={isChatLoading}
+                                        aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
+                                        className="bg-white hover:bg-emerald-50 border-2 border-emerald-700 text-emerald-700 font-medium tracking-wide py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm disabled:opacity-60"
+                                    >
+                                        {isChatLoading
+                                            ? <div className="w-4 h-4 border-2 border-emerald-700/30 border-t-emerald-700 rounded-full animate-spin" />
+                                            : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Mensaje</>
+                                        }
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleChatClick}
+                                    disabled={isChatLoading}
+                                    aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
+                                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm disabled:opacity-60"
+                                >
+                                    {isChatLoading
+                                        ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
+                                    }
+                                </button>
+                            )}
+                        </div>
+
                         {/* ═══════════ ZONA A — Lo del servicio ═══════════
                             Commit 2 del rediseno: reorden para poner datos duros
                             arriba, narrativa abajo. Orden:
@@ -1234,34 +1285,24 @@ export default function ServiceDetailView({
                             className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5"
                         >
 
-                            {/* PRECIO — protagonista */}
+                            {/* PRECIO — compacto en el action panel del sticky right.
+                                Commit 5 del rediseno: reducido de 4xl grande a
+                                2xl para no duplicar el hero (donde el precio ya
+                                aparece destacado). El "Desde" pasa a inline en
+                                lugar de header block arriba. El rating summary
+                                se elimina (ya esta en el hero y en la tarjeta
+                                resumen del proveedor). VisitCounter se mantiene
+                                como social proof pasivo al pie del bloque. */}
                             <div>
-                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Desde</p>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-bold text-emerald-700">
+                                <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1">
+                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Desde</span>
+                                    <span className="text-2xl font-bold text-emerald-700">
                                         ${service.precio_desde?.toLocaleString("es-CL")}
                                     </span>
                                     <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
                                 </div>
-                                {/* Trust signals inline: rating + visitas (cada
-                                    uno conditional, separados por · si ambos).
-                                    Mover visitas aca desde abajo de la galeria
-                                    pone el social proof en el punto de decision
-                                    (junto a los CTAs) en vez de fuera de foco. */}
-                                {(totalReviews > 0 || (service.visitas_total ?? 0) > 0) && (
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5 text-sm text-slate-600">
-                                        {totalReviews > 0 && (
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <Star size={14} className="text-amber-400 fill-amber-400" />
-                                                <span className="text-slate-700">
-                                                    {(reviews.reduce((a: number, r: any) => a + r.rating, 0) / totalReviews).toFixed(1)}
-                                                </span>
-                                                <span className="text-slate-500">({totalReviews} evaluaciones)</span>
-                                            </span>
-                                        )}
-                                        {totalReviews > 0 && (service.visitas_total ?? 0) > 0 && (
-                                            <span className="text-slate-300" aria-hidden="true">·</span>
-                                        )}
+                                {(service.visitas_total ?? 0) > 0 && (
+                                    <div className="mt-2 text-sm text-slate-600">
                                         <VisitCounter total={service.visitas_total ?? 0} variant="full" />
                                     </div>
                                 )}
