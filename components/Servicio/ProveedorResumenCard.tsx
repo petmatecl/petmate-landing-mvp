@@ -52,7 +52,7 @@ export default function ProveedorResumenCard({
 
                 {/* Foto */}
                 <Link href={`/proveedor/${proveedor.id}`} className="shrink-0">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-200 hover:border-accent-400 overflow-hidden bg-slate-100 transition-colors">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-200 hover:border-accent-600 overflow-hidden bg-slate-100 transition-colors">
                         {proveedor.foto_perfil ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img

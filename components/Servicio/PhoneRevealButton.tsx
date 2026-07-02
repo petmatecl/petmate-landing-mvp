@@ -57,7 +57,7 @@ export default function PhoneRevealButton({
                 href={`tel:${telefono}`}
                 onClick={handleClick}
                 aria-label={`Llamar a ${nombre}`}
-                className="w-full text-emerald-700 hover:text-emerald-900 hover:underline underline-offset-4 font-medium py-2 inline-flex items-center justify-center gap-1.5 transition-colors text-sm"
+                className="w-full text-accent-700 hover:text-accent-900 hover:underline underline-offset-4 font-medium py-2 inline-flex items-center justify-center gap-1.5 transition-colors text-sm"
             >
                 <Phone size={16} aria-hidden="true" />
                 Llamar
@@ -80,7 +80,7 @@ export default function PhoneRevealButton({
                 type="button"
                 onClick={handleReveal}
                 aria-label={`Mostrar teléfono de ${nombre}`}
-                className="w-full text-emerald-700 hover:text-emerald-900 hover:underline underline-offset-4 font-medium py-2 inline-flex items-center justify-center gap-1.5 transition-colors text-sm"
+                className="w-full text-accent-700 hover:text-accent-900 hover:underline underline-offset-4 font-medium py-2 inline-flex items-center justify-center gap-1.5 transition-colors text-sm"
             >
                 <Phone size={16} aria-hidden="true" />
                 Mostrar teléfono
@@ -100,16 +100,16 @@ export default function PhoneRevealButton({
     };
 
     return (
-        <div className="w-full border-2 border-emerald-200 bg-emerald-50/40 rounded-xl py-3 px-4 flex items-center justify-between gap-3">
+        <div className="w-full border-2 border-accent-200 bg-accent-50/40 rounded-xl py-3 px-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
-                <Phone size={18} className="text-emerald-600 shrink-0" aria-hidden="true" />
+                <Phone size={18} className="text-accent-600 shrink-0" aria-hidden="true" />
                 <span className="font-semibold text-slate-900 text-sm tabular-nums truncate">{formatted}</span>
             </div>
             <button
                 type="button"
                 onClick={handleCopy}
                 aria-label={`Copiar teléfono al portapapeles`}
-                className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800 font-semibold text-sm shrink-0"
+                className="inline-flex items-center gap-1.5 text-accent-700 hover:text-accent-800 font-semibold text-sm shrink-0"
             >
                 {copied ? (
                     <span aria-live="polite" className="inline-flex items-center gap-1.5">
