@@ -46,7 +46,7 @@ export default function Header() {
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-center gap-2">
               <p className="text-center font-medium tracking-wide">
-                <Link href="/register?rol=proveedor" className="hover:underline decoration-emerald-500 underline-offset-2">Estamos en lanzamiento — Regístrate como proveedor</Link>
+                <Link href="/register?rol=proveedor" className="hover:underline decoration-accent-500 underline-offset-2">Estamos en lanzamiento — Regístrate como proveedor</Link>
               </p>
             </div>
             <button
@@ -83,13 +83,13 @@ export default function Header() {
         <nav aria-label="Navegación principal" className="hidden items-center gap-3 sm:flex">
           <Link
             href="/blog"
-            className="text-sm font-normal text-slate-500 hover:text-emerald-700 mr-4"
+            className="text-sm font-normal text-slate-500 hover:text-accent-600 mr-4"
           >
             Blog
           </Link>
           <Link
             href="/explorar"
-            className="text-sm font-normal text-slate-500 hover:text-emerald-700 mr-2"
+            className="text-sm font-normal text-slate-500 hover:text-accent-600 mr-2"
           >
             Explorar servicios
           </Link>
@@ -97,19 +97,19 @@ export default function Header() {
             <>
               <Link
                 href="/login"
-                className="text-sm font-normal text-slate-500 hover:text-emerald-700 mr-2"
+                className="text-sm font-normal text-slate-500 hover:text-accent-600 mr-2"
               >
                 Ingresar
               </Link>
               <Link
                 href="/register?rol=usuario"
-                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 hover:border-accent-600 hover:text-accent-600 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2"
               >
                 Soy tutor
               </Link>
               <Link
                 href="/register?rol=proveedor"
-                className="inline-flex items-center rounded-lg px-6 py-2 bg-emerald-700 text-white text-sm font-medium tracking-wide hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                className="inline-flex items-center rounded-lg px-6 py-2 bg-accent-600 text-white text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2"
               >
                 Soy proveedor
               </Link>
@@ -117,9 +117,9 @@ export default function Header() {
           ) : (
             <>
               {/* Chip usuario demo */}
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1">
+              <div className="inline-flex items-center gap-2 rounded-full bg-accent-50 px-3 py-1">
                 <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
-                <span className="text-sm font-normal text-emerald-900">{userName}</span>
+                <span className="text-sm font-normal text-accent-900">{userName}</span>
               </div>
 
               {/* Profile Switcher & Unread Badge */}
@@ -131,7 +131,7 @@ export default function Header() {
                   <button
                     onClick={() => switchMode('buscador')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeMode === 'buscador'
-                      ? 'bg-emerald-700 text-white font-semibold shadow-sm'
+                      ? 'bg-accent-600 text-white font-semibold shadow-sm'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
@@ -141,7 +141,7 @@ export default function Header() {
                   <button
                     onClick={() => switchMode('proveedor')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeMode === 'proveedor'
-                      ? 'bg-emerald-700 text-white font-semibold shadow-sm'
+                      ? 'bg-accent-600 text-white font-semibold shadow-sm'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                   >
@@ -166,7 +166,7 @@ export default function Header() {
 
               <Link
                 href={dashboardLink}
-                className="inline-flex items-center rounded-lg bg-emerald-700 px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-emerald-800"
+                className="inline-flex items-center rounded-lg bg-accent-600 px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-accent-700"
               >
                 {dashboardLabel}
               </Link>
@@ -175,7 +175,7 @@ export default function Header() {
                   caso "no tiene perfil de tutor" con un mensaje propio. */}
               <Link
                 href="/mis-solicitudes"
-                className="text-sm font-normal text-slate-500 hover:text-emerald-700"
+                className="text-sm font-normal text-slate-500 hover:text-accent-600"
               >
                 Mis solicitudes
               </Link>
@@ -238,35 +238,35 @@ export default function Header() {
               <>
                 <Link
                   href="/blog"
-                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-emerald-700"
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
                   onClick={() => setOpen(false)}
                 >
                   Blog
                 </Link>
                 <Link
                   href="/explorar"
-                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-emerald-700"
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
                   onClick={() => setOpen(false)}
                 >
                   Explorar servicios
                 </Link>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-emerald-700"
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
                   onClick={() => setOpen(false)}
                 >
                   Ingresar
                 </Link>
                 <Link
                   href="/register?rol=usuario"
-                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 hover:border-accent-600 hover:text-accent-600 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   Soy tutor
                 </Link>
                 <Link
                   href="/register?rol=proveedor"
-                  className="inline-flex items-center justify-center rounded-lg px-6 py-2 bg-emerald-700 text-white text-sm font-medium tracking-wide hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                  className="inline-flex items-center justify-center rounded-lg px-6 py-2 bg-accent-600 text-white text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   Soy proveedor
@@ -276,16 +276,16 @@ export default function Header() {
               <>
                 <Link
                   href="/explorar"
-                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-emerald-700 mb-2"
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600 mb-2"
                   onClick={() => setOpen(false)}
                 >
                   Explorar servicios
                 </Link>
-                <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3.5 py-2">
+                <div className="flex items-center gap-2 rounded-lg bg-accent-50 px-3.5 py-2">
                   <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-normal text-emerald-900">{userName}</span>
-                    <span className="text-[11px] text-emerald-700">Conectado</span>
+                    <span className="text-sm font-normal text-accent-900">{userName}</span>
+                    <span className="text-[11px] text-accent-700">Conectado</span>
                   </div>
                 </div>
                 <div className="flex justify-center my-2">
@@ -293,7 +293,7 @@ export default function Header() {
                 </div>
                 <Link
                   href={dashboardLink}
-                  className="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-emerald-800"
+                  className="inline-flex items-center justify-center rounded-lg bg-accent-600 px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-accent-700"
                   onClick={() => setOpen(false)}
                 >
                   {dashboardLabel}
@@ -301,7 +301,7 @@ export default function Header() {
                 <Link
                   href="/mis-solicitudes"
                   onClick={() => setOpen(false)}
-                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-emerald-700"
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
                 >
                   Mis solicitudes
                 </Link>

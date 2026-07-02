@@ -46,7 +46,7 @@ export default function QuickSearch() {
                         placeholder="Busca por servicio o nombre del proveedor..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 block pl-9 p-2 transition-colors placeholder-slate-400 cursor-text outline-none"
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-1 focus:ring-accent-600 focus:border-accent-600 block pl-9 p-2 transition-colors placeholder-slate-400 cursor-text outline-none"
                     />
                 </form>
             </div>
@@ -55,7 +55,7 @@ export default function QuickSearch() {
             <div className="sm:hidden flex items-center mr-2">
                 <button
                     onClick={() => setIsOpenMobile(!isOpenMobile)}
-                    className="p-2 text-slate-500 hover:text-emerald-700 focus:outline-none rounded-full focus:bg-slate-100"
+                    className="p-2 text-slate-500 hover:text-accent-600 focus:outline-none rounded-full focus:bg-slate-100"
                     aria-label="Buscar"
                     aria-expanded={isOpenMobile}
                     aria-controls="quick-search-mobile-panel"
@@ -82,7 +82,7 @@ export default function QuickSearch() {
                             onChange={(e) => setQuery(e.target.value)}
                             // eslint-disable-next-line jsx-a11y/no-autofocus
                             autoFocus
-                            className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 block pl-9 p-2.5 transition-colors placeholder-slate-400 outline-none"
+                            className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-1 focus:ring-accent-600 focus:border-accent-600 block pl-9 p-2.5 transition-colors placeholder-slate-400 outline-none"
                         />
                         <button type="button" onClick={() => setIsOpenMobile(false)} className="ml-3 text-slate-500 font-medium text-sm hover:text-slate-700">
                             Cancelar
