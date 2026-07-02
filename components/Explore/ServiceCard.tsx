@@ -99,28 +99,38 @@ export default function ServiceCard({ service }: Props) {
                 <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full shadow-sm">
                     {service.categoria_nombre}
                 </div>
+
+                {/* Rating overlay (bottom-left) — con reseñas: estrella filled
+                    amber-400 + rating decimal + contador. Sin reseñas: estrella
+                    outline slate-400 + texto "Sin reseñas". Chip bg-white/90 aisla
+                    contraste sobre imagen impredecible. Eje izquierdo (info)
+                    espeja a la categoria arriba; el derecho queda para acciones
+                    (corazon favorito). */}
+                {service.total_evaluaciones > 0 ? (
+                    <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm shadow-sm px-2.5 py-1 rounded-full flex items-center gap-1 text-slate-900 text-xs font-semibold">
+                        <Star size={12} className="fill-amber-400 text-amber-400" />
+                        {Number(service.rating_promedio).toFixed(1)}
+                        <span className="text-slate-500 font-normal">({service.total_evaluaciones})</span>
+                    </div>
+                ) : (
+                    <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm shadow-sm px-2.5 py-1 rounded-full flex items-center gap-1 text-slate-500 text-xs font-medium">
+                        <Star size={12} className="text-slate-400" />
+                        Sin reseñas
+                    </div>
+                )}
             </div>
 
             {/* Contenido Card */}
             <div className="p-5 flex flex-col flex-grow">
 
-                {/* Encabezado: Titulo y Rating */}
-                <div className="flex justify-between items-start gap-3 mb-2">
-                    <h3 title={service.titulo} className="font-semibold text-lg leading-tight text-slate-900 group-hover:text-accent-600 transition-colors line-clamp-3">
-                        {service.titulo}
-                    </h3>
-                    {service.total_evaluaciones > 0 ? (
-                        <div className="flex items-center gap-1 bg-accent-50 text-accent-800 px-2 py-1 rounded-lg shrink-0">
-                            <svg className="w-4 h-4 text-accent-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <span className="font-semibold text-sm">{Number(service.rating_promedio).toFixed(1)}</span>
-                            <span className="text-accent-700/70 text-xs">({service.total_evaluaciones})</span>
-                        </div>
-                    ) : (
-                        <div className="bg-slate-50 text-slate-400 px-2 py-1 rounded-lg shrink-0">
-                            <span className="text-xs font-medium">Sin reseñas aún</span>
-                        </div>
-                    )}
-                </div>
+                {/* Titulo — el rating se movio al overlay bottom-left de la imagen.
+                    line-clamp-2: corta con "..." en la 3ra linea. min-h-[2.5em]:
+                    reserva altura de 2 lineas (2 x 1.25 line-height del leading-tight)
+                    para alinear proveedor/precio verticalmente entre cards vecinas
+                    del grid, aunque un titulo sea de 1 linea y otro de 2. */}
+                <h3 title={service.titulo} className="font-semibold text-lg leading-tight text-slate-900 group-hover:text-accent-600 transition-colors line-clamp-2 min-h-[2.5em] mb-2">
+                    {service.titulo}
+                </h3>
 
                 {/* Proveedor info (Footer de texto) */}
                 <div className="flex items-center gap-2 mb-2">
@@ -151,8 +161,11 @@ export default function ServiceCard({ service }: Props) {
                     </div>
                 )}
 
-                {/* Trust badges (máx 3): EJEMPLO + Verificado + rating */}
-                {(service.proveedor_es_ejemplo || service.proveedor_verificado || service.total_evaluaciones > 0) ? (
+                {/* Trust badges: EJEMPLO + Verificado (rating vive en el overlay
+                    de la imagen — eliminada la duplicacion vs chip amber viejo).
+                    Fallback <div mb-3 /> preserva el spacing cuando ningun trust
+                    badge aplica. */}
+                {(service.proveedor_es_ejemplo || service.proveedor_verificado) ? (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                         {service.proveedor_es_ejemplo && (
                             <span
@@ -165,11 +178,6 @@ export default function ServiceCard({ service }: Props) {
                         {service.proveedor_verificado && (
                             <span className="flex items-center gap-1 px-2 py-0.5 bg-accent-50 text-accent-800 rounded-full text-[11px] font-medium">
                                 <ShieldCheck size={10} /> Verificado
-                            </span>
-                        )}
-                        {service.total_evaluaciones > 0 && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-[11px] font-semibold">
-                                <Star size={10} className="fill-amber-400 text-amber-400" /> {Number(service.rating_promedio).toFixed(1)} ({service.total_evaluaciones})
                             </span>
                         )}
                     </div>
