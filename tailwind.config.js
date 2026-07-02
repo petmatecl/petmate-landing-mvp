@@ -14,8 +14,12 @@
  *               a los mismos hex que accent.*. No usar en codigo nuevo — usar
  *               accent.* directamente.
  *
- * Fuente:
- *   sans → Nunito (variable via next/font/google, ver pages/_app.tsx).
+ * Fuentes (font pairing):
+ *   sans    → Inter    (body copy, labels, botones — legibilidad neutra).
+ *   heading → Poppins  (h1-h6, encabezados — personalidad redondeada moderna).
+ *   Ambas variables se setean via next/font/google en pages/_app.tsx.
+ *   globals.css aplica font-heading a h1-h6 globalmente — cero cambios
+ *   componente por componente para el swap.
  *
  * Migracion progresiva (rollout Commit 2+): los componentes usan `emerald-*`
  * de Tailwind default en el legacy; se migran pantalla por pantalla a
@@ -90,10 +94,13 @@ module.exports = {
         },
       },
       fontFamily: {
-        // Nunito via next/font/google — la CSS var --font-nunito se define
-        // en pages/_app.tsx y se expone en el wrapper del layout. sans-serif
-        // como fallback si la fuente no carga.
-        sans: ['var(--font-nunito)', 'sans-serif'],
+        // Body copy — Inter. Default de Tailwind's font-sans → todo lo que
+        // no tenga override recibe Inter. Ideal para labels, cuerpo, botones.
+        sans: ['var(--font-inter)', 'sans-serif'],
+        // Encabezados — Poppins. Aplicado globalmente a h1-h6 via globals.css.
+        // Si algun caso necesita forzar heading en un tag no-h (raro), usar
+        // className="font-heading".
+        heading: ['var(--font-poppins)', 'sans-serif'],
       },
       boxShadow: {
         card:  '0 1px 3px 0 rgb(0 0 0 / 0.05)',

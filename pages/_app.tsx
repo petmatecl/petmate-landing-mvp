@@ -1,20 +1,35 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { Nunito } from "next/font/google";
+import { Poppins, Inter } from "next/font/google";
 import { UserContextProvider } from "../contexts/UserContext";
 import { useRouter } from "next/router";
 import "../styles/globals.css";
 
-// Fuente principal — Nunito (Google Fonts) via next/font. Self-hosted
-// automaticamente por Next: sin dependencia del CDN de Google en runtime,
-// preload optimizado, zero layout shift, sin FOUC.
-// Weights: 400 (regular), 600 (semibold), 700 (bold), 800 (extrabold).
-// La variable --font-nunito se expone en el wrapper del layout de abajo y
-// la lee tailwind.config.js (fontFamily.sans) + globals.css (body).
-const nunito = Nunito({
+// Font pairing del sistema visual v2 — self-hosted via next/font/google.
+// Poppins → titulos (h1-h6). Personalidad redondeada moderna, con caracter
+//           en encabezados. Weights medium/semibold/bold/extrabold que son
+//           los que usan realmente los headings del codebase.
+// Inter   → cuerpo. Neutra, maxima legibilidad en pantalla. Weights
+//           regular/medium/semibold para body copy + botones + labels.
+//
+// Ventajas next/font vs <link>: self-hosted automaticamente (sin dependencia
+// del CDN de Google en runtime), preload optimizado, zero layout shift,
+// sin FOUC.
+//
+// Las variables --font-poppins y --font-inter se exponen en el wrapper del
+// layout de abajo. tailwind.config.js las lee via fontFamily.sans (Inter,
+// default del body) + fontFamily.heading (Poppins, para h1-h6). globals.css
+// aplica font-heading a h1-h6 globalmente.
+const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
-  variable: "--font-nunito",
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-poppins",
+  display: "swap",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
   display: "swap",
 });
 import "react-day-picker/dist/style.css"; // GLOBAL CSS IMPORT for Calendar
@@ -52,7 +67,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <OnlineStatusProvider>
-        <div className={`${nunito.variable} min-h-screen flex flex-col bg-slate-50`}>
+        <div className={`${poppins.variable} ${inter.variable} min-h-screen flex flex-col bg-slate-50`}>
           <RoleSelectionInterceptor />
           <ConsentScripts />
 
