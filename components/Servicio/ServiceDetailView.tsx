@@ -83,7 +83,7 @@ function ExpandibleText({ text, maxChars = 400 }: { text: string; maxChars?: num
                 <button
                     type="button"
                     onClick={() => setExpanded(v => !v)}
-                    className="mt-3 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors"
+                    className="mt-3 text-sm font-semibold text-accent-700 hover:text-accent-900 transition-colors"
                 >
                     {expanded ? 'Ver menos ↑' : 'Ver más ↓'}
                 </button>
@@ -545,7 +545,7 @@ export default function ServiceDetailView({
                                     setFotoActiva(i => (i + 1) % service.fotos.length);
                                 }
                             }}
-                            className="relative focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:rounded-2xl"
+                            className="relative focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:rounded-2xl"
                         >
                             {/* Foto principal */}
                             <div
@@ -645,7 +645,7 @@ export default function ServiceDetailView({
                                             onClick={() => setFotoActiva(i)}
                                             aria-label={`Ver foto ${i + 1}`}
                                             aria-current={fotoActiva === i ? 'true' : undefined}
-                                            className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${fotoActiva === i ? 'border-emerald-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
+                                            className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${fotoActiva === i ? 'border-accent-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
                                                 }`}
                                         >
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -705,7 +705,7 @@ export default function ServiceDetailView({
                                 </span>
                                 {totalReviews > 0 && (
                                     <span className="inline-flex items-center gap-1 text-slate-600">
-                                        <Star size={14} className="text-emerald-500 fill-emerald-500" />
+                                        <Star size={14} className="text-accent-500 fill-accent-500" />
                                         <span className="font-semibold text-slate-900">
                                             {(reviews.reduce((a: number, r: any) => a + r.rating, 0) / totalReviews).toFixed(1)}
                                         </span>
@@ -810,7 +810,7 @@ export default function ServiceDetailView({
                             return (
                                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                        <MapPin size={22} className="text-emerald-500" />
+                                        <MapPin size={22} className="text-accent-500" />
                                         Modalidades
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
@@ -843,13 +843,13 @@ export default function ServiceDetailView({
                             return (
                                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><polyline points="20 6 9 17 4 12" /></svg>
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-500"><polyline points="20 6 9 17 4 12" /></svg>
                                         Qué incluye
                                     </h3>
                                     {chips.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-4 last:mb-0">
                                             {chips.map((label, i) => (
-                                                <span key={i} className="bg-emerald-50 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full border border-emerald-100">
+                                                <span key={i} className="bg-accent-50 text-accent-800 text-sm font-medium px-3 py-1.5 rounded-full border border-accent-100">
                                                     {label}
                                                 </span>
                                             ))}
@@ -859,7 +859,7 @@ export default function ServiceDetailView({
                                         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             {items.map((inc, i) => (
                                                 <li key={i} className="flex items-start gap-2 text-slate-600">
-                                                    <svg className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
+                                                    <svg className="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
                                                     <span>{inc}</span>
                                                 </li>
                                             ))}
@@ -875,12 +875,12 @@ export default function ServiceDetailView({
                         {service.comunas_cobertura && service.comunas_cobertura.length > 0 && (
                             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                 <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                    <MapPin size={22} className="text-emerald-500" />
+                                    <MapPin size={22} className="text-accent-500" />
                                     Zona de cobertura
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
                                     {service.comunas_cobertura.map((c: string) => (
-                                        <span key={c} className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm font-medium px-3 py-1.5 rounded-full">
+                                        <span key={c} className="flex items-center gap-1.5 bg-accent-50 text-accent-800 border border-accent-200 text-sm font-medium px-3 py-1.5 rounded-full">
                                             <MapPin size={12} />
                                             {c}
                                         </span>
@@ -901,7 +901,7 @@ export default function ServiceDetailView({
                                 return (
                                     <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                         <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                             Disponibilidad
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -922,7 +922,7 @@ export default function ServiceDetailView({
                             return (
                                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                         Disponibilidad
                                     </h3>
                                     <p className="text-sm text-slate-600">{service.disponibilidad}</p>
@@ -936,7 +936,7 @@ export default function ServiceDetailView({
                         {service.detalles && typeof service.detalles.notas === 'string' && service.detalles.notas.trim() && (
                             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                 <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                    <FileText size={22} className="text-emerald-500" />
+                                    <FileText size={22} className="text-accent-500" />
                                     Detalles adicionales
                                 </h3>
                                 <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
@@ -978,7 +978,7 @@ export default function ServiceDetailView({
                                 return (
                                     <div key={campo.key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
                                         {isBoolean ? (
-                                            <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                            <svg className="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
                                         ) : (
                                             <svg className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
                                         )}
@@ -1001,7 +1001,7 @@ export default function ServiceDetailView({
                                 return (
                                     <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                         <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
                                             Información del servicio
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1056,7 +1056,7 @@ export default function ServiceDetailView({
                                     {/* Bloque principal — top-N (flat o agrupado por modalidad). */}
                                     <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                         <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
                                             Información del servicio
                                         </h3>
                                         {topResult.tipo === 'flat'
@@ -1104,7 +1104,7 @@ export default function ServiceDetailView({
                             los datos duros arriba, el relato al final. */}
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                                 Acerca del servicio
                             </h3>
                             {service.descripcion ? (
@@ -1136,7 +1136,7 @@ export default function ServiceDetailView({
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
                                 {/* Icono cámara */}
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
                                 Fotos del espacio
                             </h3>
 
@@ -1186,7 +1186,7 @@ export default function ServiceDetailView({
                                 </h3>
                                 <button
                                     onClick={handleLeaveReview}
-                                    className="inline-flex items-center gap-1.5 border border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold py-1.5 px-3.5 rounded-lg transition-colors text-sm"
+                                    className="inline-flex items-center gap-1.5 border border-accent-600 text-accent-700 hover:bg-accent-50 font-semibold py-1.5 px-3.5 rounded-lg transition-colors text-sm"
                                 >
                                     <Pencil size={14} aria-hidden="true" />
                                     Dejar mi evaluación
@@ -1212,8 +1212,8 @@ export default function ServiceDetailView({
                                 gap-8). Ahora el badge es el ultimo elemento del
                                 card cuando aplica. */}
                             {user && yaEvaluo && (
-                                <div className="mt-6 flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-xl">
-                                    <Star size={16} className="fill-emerald-500 text-emerald-500" />
+                                <div className="mt-6 flex items-center gap-2 text-sm font-medium text-accent-800 bg-accent-50 border border-accent-200 px-4 py-3 rounded-xl">
+                                    <Star size={16} className="fill-accent-500 text-accent-500" />
                                     Ya dejaste una evaluación para este servicio
                                 </div>
                             )}
@@ -1275,7 +1275,7 @@ export default function ServiceDetailView({
                             <div>
                                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Desde</p>
                                 <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1">
-                                    <span className="text-3xl font-bold text-emerald-700">
+                                    <span className="text-3xl font-bold text-accent-700">
                                         ${service.precio_desde?.toLocaleString("es-CL")}
                                     </span>
                                     <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
@@ -1312,7 +1312,7 @@ export default function ServiceDetailView({
                                     <button
                                         onClick={handleSolicitarAgendamiento}
                                         aria-label={`Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`}
-                                        className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base"
+                                        className="w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base"
                                     >
                                         <Calendar size={20} strokeWidth={2} aria-hidden="true" />
                                         Solicitar agendamiento
@@ -1325,12 +1325,12 @@ export default function ServiceDetailView({
                                     aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
                                     className={
                                         agendamientoOn
-                                            ? "w-full bg-white hover:bg-emerald-50 border-2 border-emerald-700 text-emerald-700 font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm disabled:opacity-60"
-                                            : "w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
+                                            ? "w-full bg-white hover:bg-accent-50 border-2 border-accent-700 text-accent-700 font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm disabled:opacity-60"
+                                            : "w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
                                     }
                                 >
                                     {isChatLoading
-                                        ? <div className={agendamientoOn ? "w-4 h-4 border-2 border-emerald-700/30 border-t-emerald-700 rounded-full animate-spin" : "w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"} />
+                                        ? <div className={agendamientoOn ? "w-4 h-4 border-2 border-accent-700/30 border-t-accent-700 rounded-full animate-spin" : "w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"} />
                                         : <><svg width={agendamientoOn ? 18 : 20} height={agendamientoOn ? 18 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Enviar Mensaje</>
                                     }
                                 </button>
@@ -1411,7 +1411,7 @@ export default function ServiceDetailView({
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
                     <div className="shrink-0">
                         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Desde</p>
-                        <p className="text-lg font-bold text-emerald-700 leading-tight">
+                        <p className="text-lg font-bold text-accent-700 leading-tight">
                             ${service.precio_desde?.toLocaleString('es-CL')}
                             <span className="text-xs font-medium text-slate-500 ml-0.5">/{service.unidad_precio}</span>
                         </p>
@@ -1423,7 +1423,7 @@ export default function ServiceDetailView({
                             : `Contactar a ${proveedor.nombre_publico || proveedor.nombre}`}
                         aria-expanded={contactSheetOpen}
                         aria-controls="mobile-action-sheet-title"
-                        className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm"
+                        className="flex-1 bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-sm"
                     >
                         {agendamientoOn ? (
                             <>
@@ -1467,7 +1467,7 @@ export default function ServiceDetailView({
                                 handleSolicitarAgendamiento();
                             }}
                             aria-label={`Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`}
-                            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base"
+                            className="w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base"
                         >
                             <Calendar size={20} strokeWidth={2} aria-hidden="true" />
                             Solicitar agendamiento
@@ -1483,12 +1483,12 @@ export default function ServiceDetailView({
                         aria-label={`Enviar mensaje a ${proveedor.nombre_publico || proveedor.nombre}`}
                         className={
                             agendamientoOn
-                                ? "w-full bg-white hover:bg-emerald-50 border-2 border-emerald-700 text-emerald-700 font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm disabled:opacity-60"
-                                : "w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
+                                ? "w-full bg-white hover:bg-accent-50 border-2 border-accent-700 text-accent-700 font-medium tracking-wide py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm disabled:opacity-60"
+                                : "w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base disabled:opacity-60"
                         }
                     >
                         {isChatLoading
-                            ? <div className={agendamientoOn ? "w-4 h-4 border-2 border-emerald-700/30 border-t-emerald-700 rounded-full animate-spin" : "w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"} />
+                            ? <div className={agendamientoOn ? "w-4 h-4 border-2 border-accent-700/30 border-t-accent-700 rounded-full animate-spin" : "w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"} />
                             : <><svg width={agendamientoOn ? 18 : 20} height={agendamientoOn ? 18 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg> Enviar mensaje</>
                         }
                     </button>

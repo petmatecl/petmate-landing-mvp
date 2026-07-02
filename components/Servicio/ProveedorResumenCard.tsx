@@ -52,7 +52,7 @@ export default function ProveedorResumenCard({
 
                 {/* Foto */}
                 <Link href={`/proveedor/${proveedor.id}`} className="shrink-0">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-200 hover:border-emerald-400 overflow-hidden bg-slate-100 transition-colors">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-200 hover:border-accent-400 overflow-hidden bg-slate-100 transition-colors">
                         {proveedor.foto_perfil ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
@@ -74,14 +74,14 @@ export default function ProveedorResumenCard({
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <Link
                             href={`/proveedor/${proveedor.id}`}
-                            className="font-semibold text-slate-900 text-base hover:text-emerald-700 transition-colors"
+                            className="font-semibold text-slate-900 text-base hover:text-accent-700 transition-colors"
                         >
                             {nombreVisible}
                         </Link>
                         {proveedor.rut_verificado && (
                             <span
                                 title="Identidad verificada"
-                                className="inline-flex items-center gap-1 text-emerald-600"
+                                className="inline-flex items-center gap-1 text-accent-600"
                             >
                                 <ShieldCheck size={16} />
                             </span>
@@ -120,7 +120,7 @@ export default function ProveedorResumenCard({
                         Si el proveedor no lo declara, no se muestra nada
                         (evita ruido negativo — para el detalle esta el perfil). */}
                     {proveedor.primera_ayuda && (
-                        <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-medium px-2 py-0.5 rounded-full border border-emerald-100 mt-1">
+                        <div className="inline-flex items-center gap-1.5 bg-accent-50 text-accent-800 text-xs font-medium px-2 py-0.5 rounded-full border border-accent-100 mt-1">
                             <CheckCircle size={12} className="shrink-0" />
                             Primeros auxilios
                         </div>
@@ -141,7 +141,7 @@ export default function ProveedorResumenCard({
             <div className="mt-4">
                 <Link
                     href={`/proveedor/${proveedor.id}`}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-emerald-700 hover:text-emerald-900 transition-colors"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-accent-700 hover:text-accent-900 transition-colors"
                 >
                     Ver perfil completo
                     <span aria-hidden="true">→</span>
