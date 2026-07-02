@@ -1,35 +1,25 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { Poppins, Inter } from "next/font/google";
+import { Outfit } from "next/font/google";
 import { UserContextProvider } from "../contexts/UserContext";
 import { useRouter } from "next/router";
 import "../styles/globals.css";
 
-// Font pairing del sistema visual v2 — self-hosted via next/font/google.
-// Poppins → titulos (h1-h6). Personalidad redondeada moderna, con caracter
-//           en encabezados. Weights medium/semibold/bold/extrabold que son
-//           los que usan realmente los headings del codebase.
-// Inter   → cuerpo. Neutra, maxima legibilidad en pantalla. Weights
-//           regular/medium/semibold para body copy + botones + labels.
+// Fuente unica — Outfit via next/font/google (self-hosted automatico).
+// Vuelta a la fuente original despues de probar Nunito y Poppins+Inter,
+// pero conservando la mejora tecnica: se carga por next/font en vez del
+// <link> a fonts.googleapis.com que estaba antes. Ventajas: self-hosted
+// (cero dependencia del CDN de Google en runtime), preload optimizado,
+// zero layout shift, sin FOUC.
 //
-// Ventajas next/font vs <link>: self-hosted automaticamente (sin dependencia
-// del CDN de Google en runtime), preload optimizado, zero layout shift,
-// sin FOUC.
-//
-// Las variables --font-poppins y --font-inter se exponen en el wrapper del
-// layout de abajo. tailwind.config.js las lee via fontFamily.sans (Inter,
-// default del body) + fontFamily.heading (Poppins, para h1-h6). globals.css
-// aplica font-heading a h1-h6 globalmente.
-const poppins = Poppins({
+// Weights: 300 / 400 / 500 / 600 / 700 / 800 (los que usaba el <link>
+// original antes del intento de v2). La variable --font-outfit se expone
+// en el wrapper del layout y la lee tailwind.config.js (fontFamily.sans)
+// + globals.css (body).
+const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-poppins",
-  display: "swap",
-});
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-outfit",
   display: "swap",
 });
 import "react-day-picker/dist/style.css"; // GLOBAL CSS IMPORT for Calendar
@@ -67,7 +57,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <OnlineStatusProvider>
-        <div className={`${poppins.variable} ${inter.variable} min-h-screen flex flex-col bg-slate-50`}>
+        <div className={`${outfit.variable} min-h-screen flex flex-col bg-slate-50`}>
           <RoleSelectionInterceptor />
           <ConsentScripts />
 

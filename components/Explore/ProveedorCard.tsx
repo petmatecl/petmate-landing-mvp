@@ -70,7 +70,7 @@ export default function ProveedorCard({ proveedor }: Props) {
 
             {/* Contenido */}
             <div className="p-5 flex flex-col flex-grow">
-                <h3 className="font-semibold text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">
+                <h3 className="font-semibold text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
                     {proveedor.nombre_publico}
                 </h3>
                 <p className="text-sm text-slate-500 mt-1 truncate">{proveedor.comuna}</p>

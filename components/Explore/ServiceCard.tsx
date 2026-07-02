@@ -106,7 +106,7 @@ export default function ServiceCard({ service }: Props) {
 
                 {/* Encabezado: Titulo y Rating */}
                 <div className="flex justify-between items-start gap-3 mb-2">
-                    <h3 title={service.titulo} className="font-semibold text-lg leading-tight text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                    <h3 title={service.titulo} className="font-semibold text-lg leading-tight text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-3">
                         {service.titulo}
                     </h3>
                     {service.total_evaluaciones > 0 ? (

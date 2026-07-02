@@ -170,7 +170,7 @@ function ServiceCardItem({ s }: { s: any }) {
         )}
       </div>
       <div className="p-4 flex flex-col flex-1">
-        <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
+        <p className="text-sm font-semibold text-slate-900 line-clamp-3 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
           {s.titulo}
         </p>
         {s.proveedor_nombre && (

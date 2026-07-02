@@ -11,12 +11,10 @@ html, body {
 }
 
 :root {
-  /* Font pairing sistema visual v2 — las variables las setea next/font/google
-     via pages/_app.tsx (expuestas en el wrapper). Estos fallbacks CSS
-     aplican solo si la variable no se pobla por alguna razon.
-     Cuerpo: Inter. Titulos (h1-h6): Poppins. */
-  --font-inter: 'Inter', sans-serif;
-  --font-poppins: 'Poppins', sans-serif;
+  /* --font-outfit la setea next/font/google via pages/_app.tsx (variable
+     expuesta en el wrapper). Este fallback CSS aplica solo si la variable
+     no se pobla por alguna razon. */
+  --font-outfit: 'Outfit', sans-serif;
 
   /* Dynamic header height — updated by Header.tsx based on launch banner visibility.
      Default 105px assumes launch banner is showing (40 topbar + 65 navbar).
@@ -59,7 +57,7 @@ html, body {
 }
 
 body {
-  font-family: var(--font-inter);
+  font-family: var(--font-outfit);
   background-color: var(--page-bg);
   color: #1e293b;
   /* Slate-800 */
@@ -208,19 +206,14 @@ body {
   @apply mb-2 block text-sm font-bold text-slate-700;
 }
 
-/* Titulos — Poppins (font-heading en tailwind.config.js) aplicado
-   globalmente a todos los h1-h6 del sitio. El codebase usa HTML
-   semantico para titulos (293 usos de h1-h6 verificados), asi que
-   esta regla los cubre todos automaticamente. Los pocos stats
-   numericos en admin (<p> con text-4xl font-bold) NO son titulos y
-   quedan en Inter — correcto. */
+/* Titulos y textos */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  @apply tracking-tight text-slate-900 font-heading;
+  @apply tracking-tight text-slate-900;
 }
 
 .text-gradient {
