@@ -529,15 +529,6 @@ export default function ServiceDetailView({
                     {/* COLUMNA IZQUIERDA: DETALLES */}
                     <div className="w-full lg:w-2/3 flex flex-col gap-8">
 
-                        {/* Grupo hero: galeria + fallback h1 (si imgError) +
-                            bloque identidad + linea visits mobile. Wrapper
-                            con gap-4 (16px) en lugar del gap-8 del padre para
-                            que la identidad quede pegada a los thumbnails de
-                            la galeria — antes con el corazon flotando entre
-                            medio + gap-8 el hueco se veia enorme. Los bloques
-                            de Zona A siguen con gap-8 al hero wrapper. */}
-                        <div className="flex flex-col gap-4">
-
                         {/* Galeria / Portada */}
                         <section
                             role="region"
@@ -682,14 +673,17 @@ export default function ServiceDetailView({
                             </h1>
                         )}
 
-                        {/* Hero de datos del servicio — Commit 1 rediseno estructural.
-                            Sube info decisoria (categoria + ubicacion + rating +
-                            precio + Atiende) del renglon gris perdido a un bloque
-                            visible sin scroll. Se muestra SIEMPRE (no depende de
-                            imgError). El overlay de la galeria arriba mantiene el
-                            titulo como visual context; este bloque lo complementa
-                            con datos objetivos para descarte rapido. */}
-                        <div className="px-1 space-y-3">
+                        {/* Hero de identidad del servicio — encuadrado como card
+                            blanca (mismo estilo que los bloques de Zona A) para
+                            consistencia visual. Antes flotaba sobre el gris con
+                            solo px-1, se veia desconectado de los cards de datos
+                            que siguen abajo (Modalidades, Que incluye, etc.). Al
+                            encuadrarlo, la identidad se integra como el primer
+                            card de datos de la ficha. La galeria (arriba) sigue
+                            full-width, con el corazon overlay en la esquina
+                            superior derecha. */}
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <div className="space-y-3">
 
                             {/* Categoria badge + ubicacion + rating inline */}
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
@@ -769,26 +763,22 @@ export default function ServiceDetailView({
                                     )}
                                 </div>
                             )}
-                        </div>
 
-                        {/* CTA inline post-hero mobile ELIMINADO — decision
-                            final: en mobile toda la accion de contacto pasa al
-                            bottom sheet que se abre desde la barra fija inferior.
-                            Un solo punto de entrada. Cero duplicacion.
+                            {/* Linea sutil con VisitCounter (trust signal) — solo
+                                mobile. En desktop el VisitCounter vive en el
+                                sticky right (junto a los CTAs); en mobile, como
+                                el sticky right queda oculto (hidden lg:block),
+                                aparece aca dentro del card de identidad. */}
+                            {(service.visitas_total ?? 0) > 0 && (
+                                <div className="lg:hidden text-sm text-slate-500">
+                                    <VisitCounter total={service.visitas_total ?? 0} variant="full" />
+                                </div>
+                            )}
 
-                            En su lugar: linea sutil con VisitCounter (trust
-                            signal). El VisitCounter vive en el sticky right en
-                            desktop; como el sticky right queda oculto en mobile
-                            (hidden lg:block), este es el unico lugar donde el
-                            tutor mobile ve las visitas. */}
-                        {(service.visitas_total ?? 0) > 0 && (
-                            <div className="lg:hidden px-1 text-sm text-slate-500">
-                                <VisitCounter total={service.visitas_total ?? 0} variant="full" />
                             </div>
-                        )}
-
+                            {/* ↑ fin space-y-3 interno del card */}
                         </div>
-                        {/* ↑ fin grupo hero (galeria + identidad + visits) */}
+                        {/* ↑ fin card hero de identidad */}
 
                         {/* ═══════════ ZONA A — Lo del servicio ═══════════
                             Commit 2 del rediseno: reorden para poner datos duros
