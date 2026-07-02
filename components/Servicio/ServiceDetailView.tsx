@@ -758,15 +758,11 @@ export default function ServiceDetailView({
                             momento de la decision (junto a los CTAs). La barra
                             fija tambien lleva precio como backup. */}
                         <div className="lg:hidden">
-                            {service.precio_desde != null && (
-                                <div className="flex items-baseline gap-2 mb-3 px-1">
-                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Desde</span>
-                                    <span className="text-2xl font-bold text-emerald-700">
-                                        ${service.precio_desde.toLocaleString('es-CL')}
-                                    </span>
-                                    <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
-                                </div>
-                            )}
+                            {/* Precio removido de este bloque — decision final:
+                                en mobile el precio queda UNICO en la barra fija
+                                inferior (siempre visible mientras el user
+                                scrollea). Aca dejamos solo el gate hint y los
+                                botones. */}
                             {!user && !isExample && (
                                 <p className="text-xs text-slate-600 leading-relaxed mb-2 px-1">
                                     Inicia sesión para contactar al proveedor.
@@ -1296,25 +1292,29 @@ export default function ServiceDetailView({
                             className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5"
                         >
 
-                            {/* PRECIO — action panel del sticky right. Ajuste
-                                Commit 5 post-decision: al eliminarse el precio
-                                del hero, este pasa a ser el UNICO precio en
-                                desktop y puede tener peso visual sin competir.
-                                Sube a 3xl bold + "Desde" como header pequeno
-                                arriba (patron mas limpio para un unico lugar de
-                                precio). Rating summary sigue eliminado (esta en
-                                el hero y en la tarjeta resumen). VisitCounter
-                                al pie. */}
+                            {/* PRECIO + VisitCounter — action panel del sticky
+                                right. La columna donde vive este bloque (`w-full
+                                lg:w-1/3`) es full-width en mobile: el precio
+                                dentro del sticky right terminaba apareciendo
+                                tambien como panel apilado en mobile, DUPLICANDO
+                                con la barra fija inferior + el CTA inline
+                                post-hero. Solucion: envolver SOLO el precio en
+                                `hidden lg:block` (visible solo desktop). El
+                                VisitCounter queda fuera del wrapper → visible
+                                en ambos como trust signal. Barra fija inferior
+                                queda como UNICO lugar del precio en mobile. */}
                             <div>
-                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Desde</p>
-                                <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1">
-                                    <span className="text-3xl font-bold text-emerald-700">
-                                        ${service.precio_desde?.toLocaleString("es-CL")}
-                                    </span>
-                                    <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
+                                <div className="hidden lg:block">
+                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Desde</p>
+                                    <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1">
+                                        <span className="text-3xl font-bold text-emerald-700">
+                                            ${service.precio_desde?.toLocaleString("es-CL")}
+                                        </span>
+                                        <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
+                                    </div>
                                 </div>
                                 {(service.visitas_total ?? 0) > 0 && (
-                                    <div className="mt-2 text-sm text-slate-600">
+                                    <div className="mt-2 lg:mt-2 text-sm text-slate-600">
                                         <VisitCounter total={service.visitas_total ?? 0} variant="full" />
                                     </div>
                                 )}
