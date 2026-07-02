@@ -400,14 +400,15 @@ export default function ServiceDetailView({
         // flex-col`); duplicarlo aca + pb-20 dejaba ~80-160px extra de gris
         // entre el contenido y el footer (el footer ya tiene mt-20 propio).
         // Mantengo bg-slate-50 porque es el background visual de la ficha.
-        // pb-16 lg:pb-0 reserva espacio para el sticky CTA bar mobile
-        // (h ~56-64px) que se monta abajo; en desktop no hay bar. Ajustado
-        // de pb-24 a pb-16 para reducir el hueco pre-footer en mobile — se
-        // stackeaba con el mt-20 del footer dando ~176px de gris. Con
-        // pb-16 (64px) + mt-20 footer (80px) = 144px, mas natural. Si
-        // aparece overlap en iOS con home indicator (safe area 34px),
-        // escalar a solucion con env(safe-area-inset-bottom) en la barra.
-        <div className="bg-slate-50 pb-16 lg:pb-0">
+        // pb-8 lg:pb-0. Ajuste final: la barra fija mide ~68px; pb-8
+        // (32px) deja que el bar cubra ~36px del ultimo card ("Otros
+        // proveedores"), 24px de los cuales son padding interno del card
+        // — impacto en contenido real ~12px, aceptable. Combinado con el
+        // Footer mt-12 (48px, reducido del mt-20 default), gap total
+        // pre-footer en mobile = 32+48 = 80px, natural. Si aparece
+        // overlap perceptible en iOS con home indicator, escalar a
+        // env(safe-area-inset-bottom) en la barra.
+        <div className="bg-slate-50 pb-8 lg:pb-0">
             {isExample && exampleBannerVisible && (
                 <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
@@ -528,6 +529,15 @@ export default function ServiceDetailView({
                     {/* COLUMNA IZQUIERDA: DETALLES */}
                     <div className="w-full lg:w-2/3 flex flex-col gap-8">
 
+                        {/* Grupo hero: galeria + fallback h1 (si imgError) +
+                            bloque identidad + linea visits mobile. Wrapper
+                            con gap-4 (16px) en lugar del gap-8 del padre para
+                            que la identidad quede pegada a los thumbnails de
+                            la galeria — antes con el corazon flotando entre
+                            medio + gap-8 el hueco se veia enorme. Los bloques
+                            de Zona A siguen con gap-8 al hero wrapper. */}
+                        <div className="flex flex-col gap-4">
+
                         {/* Galeria / Portada */}
                         <section
                             role="region"
@@ -617,6 +627,22 @@ export default function ServiceDetailView({
                                         </div>
                                     </>
                                 )}
+
+                                {/* Corazon favorito — overlay estilo Airbnb en
+                                    esquina superior derecha. Fondo blanco/90 +
+                                    shadow para contrastar contra fotos claras
+                                    u oscuras. Mismo estilo que los botones de
+                                    nav ‹ › de la galeria. El contador '1/4' de
+                                    fotos vive abajo a la derecha (bottom-4
+                                    right-4), sin colision. */}
+                                <FavoritoButton
+                                    entidad_tipo="servicio"
+                                    entidad_id={service.id}
+                                    contador_inicial={service.favoritos_total ?? 0}
+                                    es_ejemplo={!!isExample}
+                                    variant="icon"
+                                    className="absolute top-3 right-3 z-10 bg-white/90 hover:bg-white shadow-md"
+                                />
                             </div>
 
                             {/* Thumbnails — solo si hay 2+ fotos */}
@@ -639,20 +665,11 @@ export default function ServiceDetailView({
                             )}
                         </section>
 
-                        {/* Boton favorito — queda solo aca tras mover el
-                            contador de visitas al sidebar (junto al rating).
-                            El favorito es una accion del tutor; las visitas
-                            son social proof del decision-making moment, que
-                            ocurre mirando los CTAs, no la galeria. */}
-                        <div className="flex justify-end px-1">
-                            <FavoritoButton
-                                entidad_tipo="servicio"
-                                entidad_id={service.id}
-                                contador_inicial={service.favoritos_total ?? 0}
-                                es_ejemplo={!!isExample}
-                                variant="icon-with-count"
-                            />
-                        </div>
+                        {/* Boton favorito standalone ELIMINADO — el corazon
+                            ahora vive como overlay en la esquina superior
+                            derecha de la galeria (patron Airbnb). Ver el
+                            <FavoritoButton .../> con className="absolute top-3
+                            right-3 ..." dentro del gallery-main-image div. */}
 
                         {/* Encabezado h1 fallback — solo cuando falla la carga
                             de la imagen (el overlay de la galeria porta el h1
@@ -769,6 +786,9 @@ export default function ServiceDetailView({
                                 <VisitCounter total={service.visitas_total ?? 0} variant="full" />
                             </div>
                         )}
+
+                        </div>
+                        {/* ↑ fin grupo hero (galeria + identidad + visits) */}
 
                         {/* ═══════════ ZONA A — Lo del servicio ═══════════
                             Commit 2 del rediseno: reorden para poner datos duros
