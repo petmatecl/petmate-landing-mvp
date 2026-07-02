@@ -1,9 +1,26 @@
 /**
- * DESIGN TOKENS OFICIALES — Pawnecta
- * brand.*   → verde primario  (bg-brand-DEFAULT = emerald-600)
- * surface.*  → fondos y bordes de superficie
- * shadow-card / shadow-modal → elevaciones estándar
- * rounded-card / rounded-chip → radios estándar
+ * DESIGN TOKENS — Pawnecta (sistema visual v2)
+ *
+ * Paleta actual:
+ *   accent.*  → Verde vivo (base #22C55E). Acento principal para acciones,
+ *               botones, highlights. IMPORTANTE: botones filled con texto
+ *               blanco usan accent-600 (#16A34A, WCAG AA 4.7:1). accent-500
+ *               (#22C55E) se reserva para focus rings, iconos sobre fondos
+ *               claros, highlights sobre bg-deep-900, detalles de acento.
+ *   deep.*    → Verde petroleo (base #134E4A). Elementos serios, textos de
+ *               peso, footer, superficies dark alternativas.
+ *   surface.* → Superficies neutrales.
+ *   brand.*   → LEGACY / DEPRECATED. Los pocos usos que queden se redirigen
+ *               a los mismos hex que accent.*. No usar en codigo nuevo — usar
+ *               accent.* directamente.
+ *
+ * Fuente:
+ *   sans → Nunito (variable via next/font/google, ver pages/_app.tsx).
+ *
+ * Migracion progresiva (rollout Commit 2+): los componentes usan `emerald-*`
+ * de Tailwind default en el legacy; se migran pantalla por pantalla a
+ * accent-* / deep-*. Ambos verdes (accent y emerald) son muy similares al
+ * ojo, la convivencia durante el rollout no genera choque visual.
  */
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -11,33 +28,79 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          DEFAULT: '#059669',  // emerald-600
-          light: '#ECFDF5',  // emerald-50
-          dark: '#065F46',  // emerald-900
-          50: "#f0faf7",
-          100: "#d6f4ea",
-          200: "#b0e7d6",
-          300: "#85d7c0",
-          400: "#5bcaa9",
-          500: "#35b993",
-          600: "#269a7b",
-          700: "#1d7861",
-          800: "#175e4d",
-          900: "#114438",
+        // ── Verde acento (base #22C55E) ────────────────────────────────
+        // Escala oficial Tailwind `green-*` — la usamos con nuestro prefix
+        // semantico `accent-*` para diferenciar de `emerald-*` legacy.
+        accent: {
+          50:  '#F0FDF4',
+          100: '#DCFCE7',
+          200: '#BBF7D0',
+          300: '#86EFAC',
+          400: '#4ADE80',
+          500: '#22C55E',  // ⭐ base — focus rings, iconos, highlights
+          600: '#16A34A',  // ⭐ botones filled con texto blanco (WCAG AA)
+          700: '#15803D',  // hover de boton primario
+          800: '#166534',
+          900: '#14532D',
         },
+
+        // ── Verde petroleo (base #134E4A) ──────────────────────────────
+        // Escala oficial Tailwind `teal-*` — la usamos con nuestro prefix
+        // semantico `deep-*`. base #134E4A = teal-900.
+        deep: {
+          50:  '#F0FDFA',
+          100: '#CCFBF1',
+          200: '#99F6E4',
+          300: '#5EEAD4',
+          400: '#2DD4BF',
+          500: '#14B8A6',
+          600: '#0D9488',
+          700: '#0F766E',
+          800: '#115E59',  // hover sobre botones deep
+          900: '#134E4A',  // ⭐ base — footer, textos peso, superficies dark
+          950: '#042F2E',  // contraste maximo
+        },
+
+        // ── DEPRECATED: brand.* — redirigido a accent.* ─────────────────
+        // Legacy tokens del sistema anterior. Cero usos actuales en el
+        // codebase (grep confirmado en Commit 1 auditoria). Se conserva
+        // redirigido a accent-* por si algun futuro import lo referencia
+        // — el color resultante sera consistente con el nuevo sistema.
+        // No usar en codigo nuevo.
+        brand: {
+          DEFAULT: '#16A34A',  // accent-600
+          light:   '#F0FDF4',  // accent-50
+          dark:    '#14532D',  // accent-900
+          50:  '#F0FDF4',
+          100: '#DCFCE7',
+          200: '#BBF7D0',
+          300: '#86EFAC',
+          400: '#4ADE80',
+          500: '#22C55E',
+          600: '#16A34A',
+          700: '#15803D',
+          800: '#166534',
+          900: '#14532D',
+        },
+
         surface: {
           DEFAULT: '#FFFFFF',
-          subtle: '#F8FAFC',   // slate-50
-          border: '#E2E8F0',   // slate-200
+          subtle:  '#F8FAFC',  // slate-50
+          border:  '#E2E8F0',  // slate-200
         },
       },
+      fontFamily: {
+        // Nunito via next/font/google — la CSS var --font-nunito se define
+        // en pages/_app.tsx y se expone en el wrapper del layout. sans-serif
+        // como fallback si la fuente no carga.
+        sans: ['var(--font-nunito)', 'sans-serif'],
+      },
       boxShadow: {
-        card: '0 1px 3px 0 rgb(0 0 0 / 0.05)',
+        card:  '0 1px 3px 0 rgb(0 0 0 / 0.05)',
         modal: '0 20px 60px -15px rgb(0 0 0 / 0.15)',
       },
       borderRadius: {
-        xl: '1rem',
+        xl:   '1rem',
         card: '1rem',    // 16px = rounded-2xl
         chip: '9999px',  // rounded-full
       },

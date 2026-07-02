@@ -8,9 +8,10 @@ export default function Document() {
                 <link rel="apple-touch-icon" href="/favicon_sin_fondo_png.png" />
                 <link rel="manifest" href="/manifest.json" />
                 <meta name="theme-color" content="#ffffff" />
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+                {/* Fuente Nunito — se carga via next/font/google en pages/_app.tsx
+                    (self-hosted + preload optimizado). Ya no se necesita el
+                    <link href="fonts.googleapis.com/...Outfit..."> que estaba
+                    aca antes del cambio de sistema visual (v2). */}
             </Head>
             <body>
                 <Main />

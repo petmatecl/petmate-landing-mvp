@@ -1,8 +1,22 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { Nunito } from "next/font/google";
 import { UserContextProvider } from "../contexts/UserContext";
 import { useRouter } from "next/router";
 import "../styles/globals.css";
+
+// Fuente principal — Nunito (Google Fonts) via next/font. Self-hosted
+// automaticamente por Next: sin dependencia del CDN de Google en runtime,
+// preload optimizado, zero layout shift, sin FOUC.
+// Weights: 400 (regular), 600 (semibold), 700 (bold), 800 (extrabold).
+// La variable --font-nunito se expone en el wrapper del layout de abajo y
+// la lee tailwind.config.js (fontFamily.sans) + globals.css (body).
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-nunito",
+  display: "swap",
+});
 import "react-day-picker/dist/style.css"; // GLOBAL CSS IMPORT for Calendar
 import "leaflet/dist/leaflet.css"; // Fix Leaflet Map visibility
 import Header from "../components/Header";
@@ -38,7 +52,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <OnlineStatusProvider>
-        <div className="min-h-screen flex flex-col bg-slate-50">
+        <div className={`${nunito.variable} min-h-screen flex flex-col bg-slate-50`}>
           <RoleSelectionInterceptor />
           <ConsentScripts />
 
