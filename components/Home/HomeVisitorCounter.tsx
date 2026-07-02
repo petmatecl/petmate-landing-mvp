@@ -27,7 +27,7 @@ function formatThreshold(n: number): number {
  * - Bajo el threshold de 5.000 visitas/mes: NO renderiza nada (mejor silencio
  *   que un número débil).
  * - Sobre el threshold: muestra el número redondeado hacia abajo + CTA suave.
- * - Lucide TrendingUp (sin emojis), estilo emerald discreto.
+ * - Lucide TrendingUp (sin emojis), estilo accent discreto.
  *
  * El total se calcula en getStaticProps (revalidate 30s) sumando
  * servicios_publicados.visitas_mes — se actualiza orgánicamente sin deploy.
@@ -38,8 +38,8 @@ export default function HomeVisitorCounter({ totalVisitasMes }: HomeVisitorCount
     const display = formatThreshold(totalVisitasMes);
 
     return (
-        <div className="max-w-2xl mx-auto mb-12 bg-emerald-50/60 border border-emerald-100 rounded-2xl px-6 py-5 flex items-center gap-4">
-            <div className="shrink-0 text-emerald-600">
+        <div className="max-w-2xl mx-auto mb-12 bg-accent-50/60 border border-accent-100 rounded-2xl px-6 py-5 flex items-center gap-4">
+            <div className="shrink-0 text-accent-600">
                 <TrendingUp size={28} strokeWidth={1.75} aria-hidden="true" />
             </div>
             <div className="text-left">

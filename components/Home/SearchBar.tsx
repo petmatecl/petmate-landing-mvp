@@ -124,7 +124,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                             <button type="button"
                                 role="option"
                                 aria-selected={!categoria}
-                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!categoria ? 'text-emerald-700 font-semibold bg-emerald-50' : 'text-slate-600 hover:bg-slate-50'}`}
+                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!categoria ? 'text-accent-800 font-semibold bg-accent-50' : 'text-slate-600 hover:bg-slate-50'}`}
                                 onMouseDown={() => { setCategoria(''); setCatOpen(false); setErrorMsg(''); }}
                             >
                                 Todos los servicios
@@ -135,7 +135,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                                 <button type="button"
                                     role="option"
                                     aria-selected={categoria === c.slug}
-                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${categoria === c.slug ? 'text-emerald-700 font-semibold bg-emerald-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${categoria === c.slug ? 'text-accent-800 font-semibold bg-accent-50' : 'text-slate-700 hover:bg-slate-50'}`}
                                     onMouseDown={() => { setCategoria(c.slug); setCatOpen(false); setErrorMsg(''); }}
                                 >
                                     {c.label}
@@ -173,7 +173,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                                 <button type="button"
                                     role="option"
                                     aria-selected={false}
-                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-accent-50 hover:text-accent-600 transition-colors"
                                     onMouseDown={() => { setComunaQuery(c); setShowComunaList(false); }}
                                 >{c}</button>
                             </li>
@@ -185,7 +185,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
             {/* Botón buscar */}
             <button
                 type="submit"
-                className="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide px-6 py-3 sm:py-2.5 sm:my-1.5 sm:mr-1.5 rounded-xl transition-colors shrink-0 text-sm"
+                className="flex items-center justify-center gap-2 bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide px-6 py-3 sm:py-2.5 sm:my-1.5 sm:mr-1.5 rounded-xl transition-colors shrink-0 text-sm"
             >
                 <Search className="w-5 h-5" />
                 <span>Buscar</span>

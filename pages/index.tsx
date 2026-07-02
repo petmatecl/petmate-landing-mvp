@@ -57,8 +57,8 @@ function PrelaunchDemandCapture() {
         </p>
 
         {done ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-8 py-10">
-            <p className="text-emerald-800 font-semibold text-lg">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
+          <div className="bg-accent-50 border border-accent-200 rounded-2xl px-8 py-10">
+            <p className="text-accent-800 font-semibold text-lg">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
@@ -68,12 +68,12 @@ function PrelaunchDemandCapture() {
               placeholder="Tu correo electrónico"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder:text-slate-400 transition-colors"
+              className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
             />
             <select
               value={comuna}
               onChange={e => setComuna(e.target.value)}
-              className="h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+              className="h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 transition-colors"
             >
               <option value="">Mi comuna...</option>
               {COMUNAS_CHILE.slice(0, 20).map(c => (
@@ -82,7 +82,7 @@ function PrelaunchDemandCapture() {
             </select>
             <button
               type="submit"
-              className="h-12 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
+              className="h-12 px-6 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
             >
               Avisarme
             </button>
@@ -164,23 +164,23 @@ function ServiceCardItem({ s }: { s: any }) {
           </div>
         )}
         {s.proveedor_perfil_completo && (
-          <div title="Perfil completo" aria-label="Perfil completo" className="absolute bottom-2.5 right-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
+          <div title="Perfil completo" aria-label="Perfil completo" className="absolute bottom-2.5 right-2.5 bg-accent-50 text-accent-800 border border-accent-200 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
             <BadgeCheck size={14} aria-hidden="true" />
           </div>
         )}
       </div>
       <div className="p-4 flex flex-col flex-1">
-        <p className="text-sm font-semibold text-slate-900 line-clamp-3 leading-snug group-hover:text-emerald-700 transition-colors mb-1">
+        <p className="text-sm font-semibold text-slate-900 line-clamp-3 leading-snug group-hover:text-accent-600 transition-colors mb-1">
           {s.titulo}
         </p>
         {s.proveedor_nombre && (
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-5 h-5 rounded-full overflow-hidden bg-emerald-100 shrink-0 flex items-center justify-center">
+            <div className="w-5 h-5 rounded-full overflow-hidden bg-accent-100 shrink-0 flex items-center justify-center">
               {s.proveedor_foto ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={s.proveedor_foto} alt={s.proveedor_nombre} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-[9px] font-semibold text-emerald-700">{s.proveedor_nombre.charAt(0).toUpperCase()}</span>
+                <span className="text-[9px] font-semibold text-accent-700">{s.proveedor_nombre.charAt(0).toUpperCase()}</span>
               )}
             </div>
             <p className="text-xs text-slate-500 truncate">{s.proveedor_nombre}</p>
@@ -232,12 +232,12 @@ function FranjaDual({
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
                 <IconA className="w-5 h-5 text-slate-400" />
-                <IconB className="w-4 h-4 text-emerald-400" />
+                <IconB className="w-4 h-4 text-accent-600" />
               </div>
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{titulo}</h2>
               <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
             </div>
-            <button onClick={onVerMas} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${titulo}`}>
+            <button onClick={onVerMas} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-accent-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${titulo}`}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
@@ -280,7 +280,7 @@ function FranjaCategoria({
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{categoria.nombre}</h2>
               <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
             </div>
-            <button onClick={onVerTodos} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${categoria.nombre}`}>
+            <button onClick={onVerTodos} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-accent-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${categoria.nombre}`}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
@@ -386,7 +386,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900
                            leading-tight tracking-tight mb-4">
               Servicios para tu mascota,{" "}
-              <span className="text-emerald-700">cerca de ti</span>
+              <span className="text-accent-700">cerca de ti</span>
             </h1>
             <p className="text-lg text-slate-500 mb-8">
               Encuentra a alguien de confianza para tu mascota, en tu barrio.
@@ -395,7 +395,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
             <p className="text-sm text-slate-400 mt-4">
               ¿Ofreces servicios para mascotas?{" "}
               <Link href="/register?rol=proveedor"
-                className="text-emerald-700 font-semibold hover:underline">
+                className="text-accent-700 font-semibold hover:underline">
                 Publica gratis →
               </Link>
             </p>
@@ -452,7 +452,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               },
             ].map(({ Icon, titulo, desc }) => (
               <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 mb-4">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-50 text-accent-600 mb-4">
                   <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">{titulo}</h3>
@@ -537,11 +537,11 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                     transition-all duration-200
                     ${isProxima
                       ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 hover:shadow-sm cursor-pointer'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-accent-600 hover:text-accent-600 hover:bg-accent-50 hover:shadow-sm cursor-pointer'
                     }
                   `}
                 >
-                  <cat.Icon className={`w-4 h-4 ${isProxima ? 'text-slate-300' : 'text-emerald-500'}`} />
+                  <cat.Icon className={`w-4 h-4 ${isProxima ? 'text-slate-300' : 'text-accent-600'}`} />
                   {cat.nombre}
                   {!isProxima && cat.count > 0 && (
                     <span className="text-[11px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">
@@ -563,7 +563,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       ═══════════════════════════════════════════ */}
       <section aria-label="Cómo funciona para dueños de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
         <div className="mb-16">
-          <p className="text-emerald-700 font-medium uppercase tracking-widest text-xs mb-3">Para dueños de mascotas</p>
+          <p className="text-accent-700 font-medium uppercase tracking-widest text-xs mb-3">Para dueños de mascotas</p>
           <h2 className="text-3xl font-semibold text-slate-900 tracking-tight">Encuentra al proveedor ideal en minutos</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -583,19 +583,19 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-10">Proveedores que puedes conocer</h2>
               <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-900 p-8 md:px-12 rounded-3xl mb-12 max-w-5xl mx-auto text-left md:text-center">
                 <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <IdCard className="w-8 h-8 text-emerald-400 mb-3" />
+                  <IdCard className="w-8 h-8 text-accent-500 mb-3" />
                   <h4 className="font-semibold text-white mb-2">Verificación de identidad</h4>
                   <p className="text-sm text-slate-300">RUT validado y revisión manual del equipo Pawnecta antes de activar cada perfil</p>
                 </div>
                 <div className="hidden md:block w-px h-24 bg-slate-700" />
                 <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <ClipboardCheck className="w-8 h-8 text-emerald-400 mb-3" />
+                  <ClipboardCheck className="w-8 h-8 text-accent-500 mb-3" />
                   <h4 className="font-semibold text-white mb-2">Revisión del equipo</h4>
                   <p className="text-sm text-slate-300">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
                 </div>
                 <div className="hidden md:block w-px h-24 bg-slate-700" />
                 <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <Star className="w-8 h-8 text-emerald-400 mb-3" />
+                  <Star className="w-8 h-8 text-accent-500 mb-3" />
                   <h4 className="font-semibold text-white mb-2">Reseñas reales</h4>
                   <p className="text-sm text-slate-300">Solo dueños que contactaron al proveedor pueden dejar evaluaciones</p>
                 </div>
@@ -614,7 +614,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
             <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">Únete a nuestra red de proveedores</h2>
             <p className="text-slate-600 mb-8">Sé de los primeros proveedores en ofrecer tus servicios en tu comuna</p>
             <Link href="/register?rol=proveedor"
-              className="inline-flex items-center justify-center h-12 rounded-2xl bg-emerald-700 hover:bg-emerald-800 px-8 text-base font-semibold text-white shadow-sm transition-colors">
+              className="inline-flex items-center justify-center h-12 rounded-2xl bg-accent-600 hover:bg-accent-700 px-8 text-base font-semibold text-white shadow-sm transition-colors">
               Registrarse como proveedor
             </Link>
           </div>
@@ -627,7 +627,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       <section aria-label="Cómo funciona para proveedores" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <p className="text-emerald-400 font-medium uppercase tracking-widest text-xs mb-3">Para proveedores</p>
+            <p className="text-accent-500 font-medium uppercase tracking-widest text-xs mb-3">Para proveedores</p>
             <h2 className="text-3xl md:text-4xl font-semibold text-white tracking-tight">Ofrece tus servicios en Pawnecta</h2>
             <p className="text-slate-300 mt-4 text-lg">Visibilidad en búsquedas en tu comuna</p>
           </div>
@@ -655,7 +655,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
           <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Explora proveedores verificados en tu comuna ahora.</p>
           <button
             onClick={() => router.push('/explorar')}
-            className="inline-flex items-center justify-center h-14 rounded-2xl bg-emerald-700 hover:bg-emerald-800 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all mb-4">
+            className="inline-flex items-center justify-center h-14 rounded-2xl bg-accent-600 hover:bg-accent-700 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all mb-4">
             Buscar servicios
           </button>
           <p className="text-slate-500 font-medium mb-16">Sin registro. Sin costo.</p>

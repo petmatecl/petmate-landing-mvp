@@ -14,11 +14,11 @@ export default function StepCard({ paso, titulo, descripcion, Icon, variante = '
 
     return (
         <div className={`flex flex-col items-center text-center p-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 relative ${isDark ? 'bg-white/10' : 'bg-emerald-100'}`}>
-                <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm border-4 ${isDark ? 'bg-emerald-700 border-slate-900 text-white' : 'bg-emerald-700 border-slate-50 text-white'}`}>
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 relative ${isDark ? 'bg-white/10' : 'bg-accent-100'}`}>
+                <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm border-4 ${isDark ? 'bg-accent-600 border-slate-900 text-white' : 'bg-accent-600 border-slate-50 text-white'}`}>
                     {paso}
                 </div>
-                <Icon className={`w-8 h-8 ${isDark ? 'text-white' : 'text-emerald-600'}`} />
+                <Icon className={`w-8 h-8 ${isDark ? 'text-white' : 'text-accent-600'}`} />
             </div>
             <h3 className="text-xl font-semibold mb-3">{titulo}</h3>
             <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>

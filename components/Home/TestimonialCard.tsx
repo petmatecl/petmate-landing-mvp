@@ -13,7 +13,7 @@ export default function TestimonialCard({ nombre, ciudad, rol, mascota, texto, v
     const initials = nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
     return (
-        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col h-full hover:shadow-md hover:border-emerald-200 transition-all">
+        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col h-full hover:shadow-md hover:border-accent-600 transition-all">
             <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center font-semibold text-slate-700 shrink-0">
                     {initials}
@@ -27,7 +27,7 @@ export default function TestimonialCard({ nombre, ciudad, rol, mascota, texto, v
                         </p>
                     )}
                     {verificado && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-accent-800 bg-accent-50 px-2 py-0.5 rounded-full mt-1">
                             Usuario verificado
                         </span>
                     )}
