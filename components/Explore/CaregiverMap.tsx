@@ -153,8 +153,8 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                 center={[s.lat, s.lng]}
                                 radius={600}
                                 pathOptions={{
-                                    color: '#059669',
-                                    fillColor: '#10b981',
+                                    color: '#16A34A',
+                                    fillColor: '#22C55E',
                                     fillOpacity: 0.07,
                                     weight: 1,
                                     dashArray: '4, 4'
@@ -183,7 +183,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
 
                                         <div className="flex items-center gap-1.5 mb-3">
                                             <div className="flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
-                                                <span className="text-emerald-500 mr-1">★</span>
+                                                <span className="text-accent-600 mr-1">★</span>
                                                 {Number(s.rating_promedio).toFixed(1)}
                                             </div>
                                             <span className="text-xs text-slate-400">({s.total_evaluaciones} reseñas)</span>
@@ -196,7 +196,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
 
                                         <Link
                                             href={`/proveedor/${s.proveedor_id}`}
-                                            className="block w-full py-2 bg-emerald-700 text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-emerald-800 transition-colors shadow-sm"
+                                            className="block w-full py-2 bg-accent-600 text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
                                         >
                                             Ver perfil completo
                                         </Link>

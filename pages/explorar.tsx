@@ -102,8 +102,8 @@ function ExplorarPrelaunch() {
             </p>
 
             {done ? (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-8 py-8 max-w-md mx-auto">
-                    <p className="text-emerald-800 font-semibold">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
+                <div className="bg-accent-50 border border-accent-200 rounded-2xl px-8 py-8 max-w-md mx-auto">
+                    <p className="text-accent-800 font-semibold">¡Listo! Te avisamos en cuanto haya proveedores en tu zona.</p>
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
@@ -113,19 +113,19 @@ function ExplorarPrelaunch() {
                         placeholder="Tu correo electrónico"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder:text-slate-400 transition-colors"
+                        className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
                     />
                     <select
                         value={cat}
                         onChange={e => setCat(e.target.value)}
-                        className="h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                        className="h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 transition-colors"
                     >
                         <option value="">Qué servicio...</option>
                         {CATS.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
                     </select>
                     <button
                         type="submit"
-                        className="h-12 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
+                        className="h-12 px-6 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors text-sm shrink-0"
                     >
                         Avisarme cuando haya disponibles
                     </button>
@@ -135,7 +135,7 @@ function ExplorarPrelaunch() {
             <p className="text-xs text-slate-400 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores en tu zona.</p>
 
             <div className="mt-8 pt-6 border-t border-slate-100">
-                <Link href="/register?rol=proveedor" className="text-sm text-emerald-700 font-semibold hover:underline">
+                <Link href="/register?rol=proveedor" className="text-sm text-accent-700 font-semibold hover:underline">
                     ¿Ofreces servicios para mascotas? Publica tu perfil gratis y sé de los primeros →
                 </Link>
             </div>
@@ -532,7 +532,7 @@ export default function ExplorarPage() {
                     <Filter size={15} />
                     Filtros
                     {hasActiveFilters && (
-                        <span className="bg-emerald-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                        <span className="bg-accent-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                             {activeFiltersCount}
                         </span>
                     )}
@@ -568,7 +568,7 @@ export default function ExplorarPage() {
                         <div className="p-5 border-t border-slate-100">
                             <button
                                 onClick={() => setMobileFiltersOpen(false)}
-                                className="w-full bg-emerald-700 text-white font-medium tracking-wide py-3 rounded-xl hover:bg-emerald-800 transition-colors"
+                                className="w-full bg-accent-600 text-white font-medium tracking-wide py-3 rounded-xl hover:bg-accent-700 transition-colors"
                             >
                                 Ver {totalCount} resultado{totalCount !== 1 ? 's' : ''}
                             </button>
@@ -616,11 +616,11 @@ export default function ExplorarPage() {
                                 <div className="flex flex-wrap gap-2 mb-4">
 
                                     {filters.categoria && (
-                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-normal px-3 py-1.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 bg-accent-50 border border-accent-200 text-accent-800 text-xs font-normal px-3 py-1.5 rounded-full">
                                             {categories.find(c => c.slug === filters.categoria)?.nombre ?? filters.categoria}
                                             <button
                                                 onClick={() => updateQueryParams({ categoria: null })}
-                                                className="text-emerald-700 hover:text-emerald-900 leading-none ml-0.5"
+                                                className="text-accent-700 hover:text-accent-900 leading-none ml-0.5"
                                                 aria-label="Quitar categoría"
                                             >×</button>
                                         </span>
@@ -632,11 +632,11 @@ export default function ExplorarPage() {
                                             : null;
                                         const label = campoMod?.opciones?.find(o => o.value === modSlug)?.label ?? modSlug;
                                         return (
-                                            <span key={modSlug} className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-normal px-3 py-1.5 rounded-full">
+                                            <span key={modSlug} className="inline-flex items-center gap-1.5 bg-accent-50 border border-accent-200 text-accent-800 text-xs font-normal px-3 py-1.5 rounded-full">
                                                 {label}
                                                 <button
                                                     onClick={() => updateQueryParams({ modalidad: filters.modalidad.filter(s => s !== modSlug) })}
-                                                    className="text-emerald-700 hover:text-emerald-900 leading-none ml-0.5"
+                                                    className="text-accent-700 hover:text-accent-900 leading-none ml-0.5"
                                                     aria-label={`Quitar modalidad ${label}`}
                                                 >×</button>
                                             </span>
@@ -675,11 +675,11 @@ export default function ExplorarPage() {
                                     )}
 
                                     {filters.fecha && (
-                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-normal px-3 py-1.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 bg-accent-50 border border-accent-200 text-accent-800 text-xs font-normal px-3 py-1.5 rounded-full">
                                             📅 {new Date(filters.fecha + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
                                             <button
                                                 onClick={() => updateQueryParams({ fecha: '' })}
-                                                className="text-emerald-700 hover:text-emerald-900 leading-none ml-0.5"
+                                                className="text-accent-700 hover:text-accent-900 leading-none ml-0.5"
                                             >×</button>
                                         </span>
                                     )}
@@ -692,7 +692,7 @@ export default function ExplorarPage() {
                                 <p className="text-slate-500 mb-3">No se pudieron cargar los servicios.</p>
                                 <button
                                     onClick={() => { setFetchError(false); setLoading(true); }}
-                                    className="text-sm text-emerald-700 font-medium hover:underline"
+                                    className="text-sm text-accent-700 font-medium hover:underline"
                                 >
                                     Reintentar
                                 </button>
@@ -740,7 +740,7 @@ export default function ExplorarPage() {
                                                 <div className="flex flex-wrap justify-center gap-2 mt-4">
                                                     <button
                                                         onClick={() => updateQueryParams({ inclusiones: [] })}
-                                                        className="inline-flex px-4 py-2 bg-emerald-50 text-emerald-700 font-medium rounded-full text-sm border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                                                        className="inline-flex px-4 py-2 bg-accent-50 text-accent-800 font-medium rounded-full text-sm border border-accent-200 hover:bg-accent-100 transition-colors"
                                                     >
                                                         Quitar inclusiones
                                                     </button>
@@ -756,7 +756,7 @@ export default function ExplorarPage() {
                                                         <button
                                                             key={c}
                                                             onClick={() => updateQueryParams({ comuna: c })}
-                                                            className="inline-flex px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors"
+                                                            className="inline-flex px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:bg-accent-50 hover:border-accent-600 hover:text-accent-600 transition-colors"
                                                         >
                                                             {c}
                                                         </button>
@@ -772,7 +772,7 @@ export default function ExplorarPage() {
                                             <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
                                                 Ver todos los servicios
                                             </button>
-                                            <Link href="/register?rol=proveedor" className="px-6 py-2.5 bg-emerald-50 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-100 transition-colors text-sm text-center">
+                                            <Link href="/register?rol=proveedor" className="px-6 py-2.5 bg-accent-50 text-accent-800 font-semibold rounded-xl hover:bg-accent-100 transition-colors text-sm text-center">
                                                 ¿Eres proveedor? Publica tu servicio →
                                             </Link>
                                         </div>
@@ -827,7 +827,7 @@ export default function ExplorarPage() {
                                             <select
                                                 value={filters.orden}
                                                 onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
-                                                className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors cursor-pointer appearance-none"
+                                                className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 transition-colors cursor-pointer appearance-none"
                                             >
                                                 <option value="relevancia">Mejor coincidencia</option>
                                                 <option value="rating">Mejor evaluados</option>
@@ -885,7 +885,7 @@ export default function ExplorarPage() {
                                                     <button
                                                         key={item}
                                                         onClick={() => goToPage(item as number)}
-                                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-emerald-700 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${item === pagina ? 'bg-accent-600 text-white' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
                                                         aria-current={item === pagina ? 'page' : undefined}
                                                     >
                                                         {item}
@@ -894,7 +894,7 @@ export default function ExplorarPage() {
                                             )}
                                         </div>
 
-                                        <span className="sm:hidden rounded-lg px-3 py-2 text-sm font-medium bg-emerald-700 text-white">
+                                        <span className="sm:hidden rounded-lg px-3 py-2 text-sm font-medium bg-accent-600 text-white">
                                             {pagina}
                                         </span>
 
@@ -917,7 +917,7 @@ export default function ExplorarPage() {
 
             {/* CTA Proveedores */}
             {!user && (
-                <section className="py-16 px-4 bg-emerald-50 border-t border-emerald-100">
+                <section className="py-16 px-4 bg-accent-50 border-t border-accent-100">
                     <div className="max-w-4xl mx-auto text-center">
                         <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-4">
                             ¿Ofreces servicios para mascotas?
@@ -927,7 +927,7 @@ export default function ExplorarPage() {
                         </p>
                         <Link
                             href="/register?rol=proveedor"
-                            className="inline-block px-8 py-4 bg-emerald-700 text-white font-semibold rounded-2xl hover:bg-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 shadow-sm"
+                            className="inline-block px-8 py-4 bg-accent-600 text-white font-semibold rounded-2xl hover:bg-accent-700 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2 shadow-sm"
                         >
                             Publicar mi servicio
                         </Link>
@@ -939,10 +939,10 @@ export default function ExplorarPage() {
                                 { label: 'Clientes reales', sub: 'Conecta con dueños verificados' },
                             ].map((b, i) => (
                                 <div key={b.label} className="text-center">
-                                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        {i === 0 && <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                        {i === 1 && <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                        {i === 2 && <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
+                                    <div className="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        {i === 0 && <svg className="w-6 h-6 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                        {i === 1 && <svg className="w-6 h-6 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                        {i === 2 && <svg className="w-6 h-6 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
                                     </div>
                                     <p className="text-sm text-slate-900 font-semibold">{b.label}</p>
                                     <p className="text-xs text-slate-500 mt-0.5">{b.sub}</p>

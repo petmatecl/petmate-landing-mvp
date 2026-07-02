@@ -245,7 +245,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         onChange={(e) => onFilterChange({ q: e.target.value })}
                         placeholder="Servicio o nombre del proveedor..."
                         className="w-full h-10 pl-9 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white
+                                   focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white
                                    placeholder:text-slate-400 transition-colors"
                     />
                 </div>
@@ -264,15 +264,15 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     aria-checked={filters.categoria === null}
                     onClick={() => selectCategoria(null)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-normal transition-colors mb-1 ${filters.categoria === null
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        ? 'bg-accent-50 text-accent-800 border border-accent-200'
                         : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                         }`}
                 >
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${filters.categoria === null ? 'border-emerald-600' : 'border-slate-300'
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${filters.categoria === null ? 'border-accent-600' : 'border-slate-300'
                         }`}>
-                        {filters.categoria === null && <div className="w-2 h-2 rounded-full bg-emerald-700" />}
+                        {filters.categoria === null && <div className="w-2 h-2 rounded-full bg-accent-700" />}
                     </div>
-                    <Grid2x2 size={14} className={filters.categoria === null ? 'text-emerald-700' : 'text-slate-400'} />
+                    <Grid2x2 size={14} className={filters.categoria === null ? 'text-accent-600' : 'text-slate-400'} />
                     <span>Todas las categorías</span>
                 </button>
 
@@ -299,20 +299,20 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     aria-checked={checked}
                                     onClick={() => selectCategoria(cat.slug)}
                                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-normal transition-colors ${checked
-                                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                        ? 'bg-accent-50 text-accent-800 border border-accent-200'
                                         : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                                         }`}
                                 >
-                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${checked ? 'border-emerald-600' : 'border-slate-300'
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${checked ? 'border-accent-600' : 'border-slate-300'
                                         }`}>
-                                        {checked && <div className="w-2 h-2 rounded-full bg-emerald-700" />}
+                                        {checked && <div className="w-2 h-2 rounded-full bg-accent-700" />}
                                     </div>
-                                    <CatIcon size={14} className={checked ? 'text-emerald-700' : 'text-slate-400'} />
+                                    <CatIcon size={14} className={checked ? 'text-accent-600' : 'text-slate-400'} />
                                     <span className="text-left flex-1 truncate">{cat.nombre}</span>
                                 </button>
 
                                 {checked && opcionesModalidad.length > 0 && (
-                                    <div className="pl-7 pr-1 py-1.5 border-l-2 border-emerald-100 ml-3 mt-0.5 mb-1 space-y-1">
+                                    <div className="pl-7 pr-1 py-1.5 border-l-2 border-accent-100 ml-3 mt-0.5 mb-1 space-y-1">
                                         {opcionesModalidad.map(opt => {
                                             const modChecked = filters.modalidad.includes(opt.value);
                                             return (
@@ -323,11 +323,11 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                                     aria-checked={modChecked}
                                                     onClick={() => toggleModalidad(opt.value)}
                                                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${modChecked
-                                                        ? 'bg-emerald-50 text-emerald-800'
+                                                        ? 'bg-accent-50 text-accent-800'
                                                         : 'text-slate-600 hover:bg-slate-50'
                                                         }`}
                                                 >
-                                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${modChecked ? 'bg-emerald-700 border-emerald-600' : 'border-slate-300'
+                                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${modChecked ? 'bg-accent-600 border-accent-600' : 'border-slate-300'
                                                         }`}>
                                                         {modChecked && <Check size={8} strokeWidth={3} className="text-white" />}
                                                     </div>
@@ -362,7 +362,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     onClick={() => toggleInclusion(opt.value)}
                                     className={
                                         active
-                                            ? 'bg-emerald-100 text-emerald-800 text-xs font-normal px-2.5 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                            ? 'bg-accent-100 text-accent-800 text-xs font-normal px-2.5 py-1.5 rounded-full hover:bg-accent-200 transition-colors'
                                             : 'bg-slate-50 text-slate-600 text-xs font-normal px-2.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
                                     }
                                 >
@@ -391,7 +391,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     id="sidebar-zona"
                     value={zona ?? ''}
                     onChange={e => changeZona((e.target.value || null) as ZonaRM | null)}
-                    className="w-full h-10 px-3 mb-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                    className="w-full h-10 px-3 mb-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                 >
                     <option value="">Todas las comunas</option>
                     {ZONAS_RM.map(z => (
@@ -470,7 +470,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         placeholder={zona ? `Comuna en zona ${ZONAS_RM.find(z => z.slug === zona)?.label.toLowerCase()}` : '¿En qué comuna?'}
                         autoComplete="off"
-                        className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-slate-400 transition-colors"
+                        className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
                     />
                     {comunaOpen && comunasFiltradas.length > 0 && (
                         <ul id="sidebar-comuna-listbox" role="listbox" aria-label="Sugerencias de comuna" className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
@@ -480,7 +480,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                         type="button"
                                         role="option"
                                         aria-selected={false}
-                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-accent-50 hover:text-accent-600 transition-colors"
                                         onMouseDown={() => { onFilterChange({ comuna: c }); setComunaOpen(false); }}
                                     >
                                         {c}
@@ -509,11 +509,11 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                             type="button"
                             onClick={() => onFilterChange({ mascota: opt.id as any, tamano: null })}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-normal border transition-all ${filters.mascota === opt.id
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-sm'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-200 hover:bg-white'
+                                ? 'bg-accent-50 text-accent-800 border-accent-200 shadow-sm'
+                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-accent-600 hover:bg-white'
                                 }`}
                         >
-                            <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-emerald-700' : 'text-slate-400'} />
+                            <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-accent-600' : 'text-slate-400'} />
                             <span>{opt.label}</span>
                         </button>
                     ))}
@@ -530,8 +530,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     type="button"
                                     onClick={() => onFilterChange({ tamano: size })}
                                     className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-normal border transition-all capitalize ${filters.tamano === size
-                                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-200'
+                                        ? 'bg-accent-100 text-accent-800 border-accent-300'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-accent-600'
                                         }`}
                                 >
                                     {size === 'pequeno' ? 'Pequeño' : size.charAt(0).toUpperCase() + size.slice(1)}
@@ -562,8 +562,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         placeholder="Mín"
                         className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
-                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600
-                                   focus:border-emerald-600 focus:bg-white transition-colors"
+                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-600
+                                   focus:border-accent-600 focus:bg-white transition-colors"
                     />
                     <span className="text-slate-400 text-sm font-medium select-none shrink-0">a</span>
                     <input
@@ -580,8 +580,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         placeholder="Máx"
                         className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
-                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600
-                                   focus:border-emerald-600 focus:bg-white transition-colors"
+                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-600
+                                   focus:border-accent-600 focus:bg-white transition-colors"
                     />
                 </div>
             </div>
