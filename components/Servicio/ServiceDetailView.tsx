@@ -694,18 +694,14 @@ export default function ServiceDetailView({
                                 )}
                             </div>
 
-                            {/* Precio destacado — "Desde $X.XXX / unidad" */}
-                            {service.precio_desde != null && (
-                                <div className="flex items-baseline gap-2">
-                                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Desde</p>
-                                    <span className="text-2xl md:text-3xl font-bold text-emerald-700">
-                                        ${service.precio_desde.toLocaleString('es-CL')}
-                                    </span>
-                                    <span className="text-slate-500 font-medium text-sm">
-                                        /{service.unidad_precio}
-                                    </span>
-                                </div>
-                            )}
+                            {/* Precio ELIMINADO del hero — Commit 5 (ajuste
+                                post-decision). El hero se enfoca en identidad
+                                (categoria + titulo + ubicacion + rating + Atiende).
+                                El precio queda solo en el sticky right desktop
+                                (junto a los CTAs, donde ocurre la decision) y
+                                en el CTA inline mobile + barra fija (mobile no
+                                tiene sticky lateral). Evita ver dos precios
+                                simultaneamente al principio del scroll. */}
 
                             {/* Atiende — chips con iconos. Solo los tipos que el
                                 servicio marca; tallas en linea aparte si aplica.
@@ -754,8 +750,23 @@ export default function ServiceDetailView({
                             recorrer largo. La barra fija inferior (L~1400) sigue
                             existiendo como backup para quien scrollea lejos
                             (evaluaciones, otros servicios). Ambos respetan el
-                            gate agendamientoOn. */}
+                            gate agendamientoOn.
+
+                            Ajuste post-decision: el precio salio del hero y
+                            en mobile no hay sticky lateral. Sumamos el precio
+                            al TOP de este bloque para que quede visible en el
+                            momento de la decision (junto a los CTAs). La barra
+                            fija tambien lleva precio como backup. */}
                         <div className="lg:hidden">
+                            {service.precio_desde != null && (
+                                <div className="flex items-baseline gap-2 mb-3 px-1">
+                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Desde</span>
+                                    <span className="text-2xl font-bold text-emerald-700">
+                                        ${service.precio_desde.toLocaleString('es-CL')}
+                                    </span>
+                                    <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
+                                </div>
+                            )}
                             {!user && !isExample && (
                                 <p className="text-xs text-slate-600 leading-relaxed mb-2 px-1">
                                     Inicia sesión para contactar al proveedor.
@@ -1285,18 +1296,19 @@ export default function ServiceDetailView({
                             className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col gap-5"
                         >
 
-                            {/* PRECIO — compacto en el action panel del sticky right.
-                                Commit 5 del rediseno: reducido de 4xl grande a
-                                2xl para no duplicar el hero (donde el precio ya
-                                aparece destacado). El "Desde" pasa a inline en
-                                lugar de header block arriba. El rating summary
-                                se elimina (ya esta en el hero y en la tarjeta
-                                resumen del proveedor). VisitCounter se mantiene
-                                como social proof pasivo al pie del bloque. */}
+                            {/* PRECIO — action panel del sticky right. Ajuste
+                                Commit 5 post-decision: al eliminarse el precio
+                                del hero, este pasa a ser el UNICO precio en
+                                desktop y puede tener peso visual sin competir.
+                                Sube a 3xl bold + "Desde" como header pequeno
+                                arriba (patron mas limpio para un unico lugar de
+                                precio). Rating summary sigue eliminado (esta en
+                                el hero y en la tarjeta resumen). VisitCounter
+                                al pie. */}
                             <div>
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Desde</p>
                                 <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1">
-                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Desde</span>
-                                    <span className="text-2xl font-bold text-emerald-700">
+                                    <span className="text-3xl font-bold text-emerald-700">
                                         ${service.precio_desde?.toLocaleString("es-CL")}
                                     </span>
                                     <span className="text-slate-500 font-medium text-sm">/{service.unidad_precio}</span>
