@@ -12,13 +12,18 @@ import "../styles/globals.css";
 // (cero dependencia del CDN de Google en runtime), preload optimizado,
 // zero layout shift, sin FOUC.
 //
-// Weights: 300 / 400 / 500 / 600 / 700 / 800 (los que usaba el <link>
-// original antes del intento de v2). La variable --font-outfit se expone
-// en el wrapper del layout y la lee tailwind.config.js (fontFamily.sans)
-// + globals.css (body).
+// IMPORTANTE — sin prop `weight`: al omitirlo, next/font descarga la
+// VARIABLE FONT de Outfit (un solo archivo .woff2 con eje wght continuo
+// 100-900). Con `weight: [...]` next/font descarga versiones estaticas
+// separadas por peso, cuya metrica no siempre coincide con la variable
+// font que Google Fonts sirve al <link> en prod → letras se veian mas
+// estrechas/condensadas en font-semibold/bold. Con la variable font el
+// render matchea al <link>.
+//
+// La variable --font-outfit se expone en el wrapper del layout y la lee
+// tailwind.config.js (fontFamily.sans) + globals.css (body).
 const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-outfit",
   display: "swap",
 });
