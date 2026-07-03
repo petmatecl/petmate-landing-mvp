@@ -26,10 +26,10 @@ export default function ServicePlaceholderCard({
             <Link
                 href={href}
                 aria-label={`${question} Publica gratis tu servicio.`}
-                className="group flex flex-col rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 hover:shadow-lg transition-all duration-300 overflow-hidden"
+                className="group flex flex-col rounded-2xl border border-slate-200 bg-white hover:border-accent-600 hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 min-h-[200px]">
-                    <div className="text-emerald-600">
+                    <div className="text-accent-600">
                         <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
                     </div>
                     <p className="text-base font-medium text-slate-900 leading-snug max-w-[220px]">
@@ -39,8 +39,8 @@ export default function ServicePlaceholderCard({
                         {subtitle}
                     </p>
                 </div>
-                <div className="border-t border-slate-100 px-4 py-3.5 bg-slate-50 group-hover:bg-emerald-50 transition-colors">
-                    <span className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-700">
+                <div className="border-t border-slate-100 px-4 py-3.5 bg-slate-50 group-hover:bg-accent-50 transition-colors">
+                    <span className="flex items-center justify-center gap-2 text-sm font-semibold text-accent-700">
                         Publica gratis
                         <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                     </span>
@@ -54,10 +54,10 @@ export default function ServicePlaceholderCard({
         <Link
             href={href}
             aria-label={`${question} Publica gratis tu servicio.`}
-            className="group flex flex-col h-full rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 hover:shadow-lg transition-all duration-300 overflow-hidden"
+            className="group flex flex-col h-full rounded-2xl border border-slate-200 bg-white hover:border-accent-600 hover:shadow-lg transition-all duration-300 overflow-hidden"
         >
             <div className="flex-1 flex flex-col items-center justify-center text-center p-10 gap-5 min-h-[300px]">
-                <div className="text-emerald-600">
+                <div className="text-accent-600">
                     <Sparkles size={36} strokeWidth={1.5} aria-hidden="true" />
                 </div>
                 <p className="text-base font-medium text-slate-900 leading-snug max-w-[240px]">
@@ -67,8 +67,8 @@ export default function ServicePlaceholderCard({
                     {subtitle}
                 </p>
             </div>
-            <div className="border-t border-slate-100 px-5 py-4 bg-slate-50 group-hover:bg-emerald-50 transition-colors">
-                <span className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-700">
+            <div className="border-t border-slate-100 px-5 py-4 bg-slate-50 group-hover:bg-accent-50 transition-colors">
+                <span className="flex items-center justify-center gap-2 text-sm font-semibold text-accent-700">
                     Publica gratis
                     <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                 </span>

@@ -31,7 +31,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
                                 {item.label}
                             </span>
                         ) : (
-                            <Link href={item.href} className="hover:text-emerald-700 hover:underline transition-colors whitespace-nowrap">
+                            <Link href={item.href} className="hover:text-accent-600 hover:underline transition-colors whitespace-nowrap">
                                 {item.label}
                             </Link>
                         )}
