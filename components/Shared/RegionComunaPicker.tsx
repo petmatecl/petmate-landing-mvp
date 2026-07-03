@@ -22,7 +22,7 @@
 //
 // Diseño visual: 2 <select> nativos lado a lado en desktop, apilados en
 // mobile. Consistente con los <select> existentes del modal (h-11,
-// rounded-xl, focus:ring-emerald-600).
+// rounded-xl, focus:ring-accent-600).
 // ----------------------------------------------------------------------------
 import React from 'react';
 import { REGIONES_CHILE, getRegionPorLabel, getComunasDeRegion } from '../../lib/comunas';
@@ -82,7 +82,7 @@ export default function RegionComunaPicker({
     const regionValue = regionActual ? regionActual.slug : '';
     const comunaValue = comuna ?? '';
 
-    const baseInputClass = 'w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseInputClass = 'w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

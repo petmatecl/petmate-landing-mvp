@@ -62,14 +62,14 @@ export default function ForgotPasswordPage() {
           <Link href="/">
             <Image src="/pawnecta_logo_final-trans.png" alt="Pawnecta" width={110} height={32} className="h-7 w-auto" />
           </Link>
-          <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-emerald-700 transition-colors">
+          <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-accent-600 transition-colors">
             ← Volver al inicio de sesión
           </Link>
         </header>
 
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-md shadow-sm">
-            <Link href="/login" className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors mb-4">
+            <Link href="/login" className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-accent-600 transition-colors mb-4">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
               Volver
             </Link>
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
                     placeholder="tu@correo.com"
                     autoComplete="off"
                     required
-                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                    className="w-full h-12 pl-10 pr-4 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:bg-white text-sm text-slate-900"
                   />
                 </div>
               </div>
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
                 <div
                   className={`p-4 rounded-lg text-sm font-medium border ${message.type === "error"
                       ? "bg-red-50 text-red-700 border-red-200"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-accent-50 text-accent-800 border-accent-200"
                     }`}
                   role="alert"
                 >
@@ -115,17 +115,17 @@ export default function ForgotPasswordPage() {
 
               <button
                 type="submit"
-                className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                className="w-full h-12 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
                 disabled={loading}
               >
                 {loading ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : "Enviar enlace"}
               </button>
 
               <div className="flex items-center justify-between mt-2 text-sm text-slate-500">
-                <Link href="/login" className="hover:text-emerald-700 hover:underline">
+                <Link href="/login" className="hover:text-accent-600 hover:underline">
                   Iniciar sesión
                 </Link>
-                <Link href="/register" className="hover:text-emerald-700 hover:underline">
+                <Link href="/register" className="hover:text-accent-600 hover:underline">
                   Crear cuenta
                 </Link>
               </div>

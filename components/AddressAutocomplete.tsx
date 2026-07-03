@@ -208,7 +208,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                     aria-autocomplete="list"
                     aria-haspopup="listbox"
                     aria-activedescendant={activeIndex >= 0 ? `address-option-${activeIndex}` : undefined}
-                    className="w-full text-sm rounded-lg px-3 py-2 border-2 border-slate-300 outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all pl-9"
+                    className="w-full text-sm rounded-lg px-3 py-2 border-2 border-slate-300 outline-none focus:ring-2 focus:ring-accent-600/20 focus:border-accent-600 transition-all pl-9"
                     placeholder={placeholder}
                     value={query}
                     onChange={handleInput}
@@ -264,10 +264,10 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                             onClick={() => handleSelect(result)}
                             onMouseEnter={() => setActiveIndex(idx)}
                             className={`w-full text-left px-4 py-3 text-xs border-b border-slate-50 last:border-0 flex flex-col gap-0.5 group ${
-                                idx === activeIndex ? 'bg-emerald-50' : 'hover:bg-emerald-50'
+                                idx === activeIndex ? 'bg-accent-50' : 'hover:bg-accent-50'
                             }`}
                         >
-                            <span className="font-semibold text-slate-700 block truncate group-hover:text-emerald-700">
+                            <span className="font-semibold text-slate-700 block truncate group-hover:text-accent-600">
                                 {result.display_name.split(',')[0]}
                             </span>
                             <span className="text-slate-500 block truncate text-[10px]">

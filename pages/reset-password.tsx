@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
                     <Link href="/">
                         <Image src="/pawnecta_logo_final-trans.png" alt="Pawnecta" width={110} height={32} className="h-7 w-auto" />
                     </Link>
-                    <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-emerald-700 transition-colors">
+                    <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-accent-600 transition-colors">
                         ← Volver al inicio de sesión
                     </Link>
                 </header>
@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
                                 <p className="text-sm text-slate-500 mb-6">{linkError}</p>
                                 <Link
                                     href="/forgot-password"
-                                    className="inline-block w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors leading-[3rem] text-center text-sm"
+                                    className="inline-block w-full h-12 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors leading-[3rem] text-center text-sm"
                                 >
                                     Solicitar nuevo enlace
                                 </Link>
@@ -144,7 +144,7 @@ export default function ResetPasswordPage() {
                                                 type={showPassword ? "text" : "password"}
                                                 placeholder="Mínimo 8 caracteres"
                                                 required
-                                                className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                                className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:bg-white text-sm text-slate-900"
                                             />
                                             <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -167,7 +167,7 @@ export default function ResetPasswordPage() {
                                                 type={showConfirm ? "text" : "password"}
                                                 placeholder="Repite tu contraseña"
                                                 required
-                                                className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-sm text-slate-900"
+                                                className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:bg-white text-sm text-slate-900"
                                             />
                                             <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                                                 {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -179,7 +179,7 @@ export default function ResetPasswordPage() {
                                         <div
                                             className={`p-4 rounded-lg text-sm font-medium border ${message.type === "error"
                                                     ? "bg-red-50 text-red-700 border-red-200"
-                                                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                    : "bg-accent-50 text-accent-800 border-accent-200"
                                                 }`}
                                             role="alert"
                                         >
@@ -189,7 +189,7 @@ export default function ResetPasswordPage() {
 
                                     <button
                                         type="submit"
-                                        className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                                        className="w-full h-12 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
                                         disabled={loading}
                                     >
                                         {loading ? <><Loader2 size={18} className="animate-spin" /> Actualizando...</> : "Actualizar contraseña"}

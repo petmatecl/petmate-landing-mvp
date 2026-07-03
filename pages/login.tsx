@@ -7,7 +7,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 const inputClass =
-  "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors";
+  "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors";
 
 // Mapea el redirect path al copy contextual del banner. Mostrar "continuar
 // donde estabas" generico cuando no matchea ningun prefijo conocido.
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
           {/* Context banner when coming from protected action */}
           {redirect && (
-            <div className="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
+            <div className="mb-5 px-4 py-3 bg-accent-50 border border-accent-200 rounded-xl text-sm text-accent-800">
               {getRedirectMessage(redirect)}
             </div>
           )}
@@ -186,7 +186,7 @@ export default function LoginPage() {
                     <Lock size={15} className="text-slate-400" />
                     Contraseña
                   </label>
-                  <Link href="/forgot-password" className="text-xs text-emerald-700 hover:underline">
+                  <Link href="/forgot-password" className="text-xs text-accent-700 hover:underline">
                     ¿Olvidaste tu contraseña?
                   </Link>
                 </div>
@@ -222,7 +222,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                className="w-full h-12 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
               >
                 {loading && <Loader2 size={18} className="animate-spin" />}
                 {loading ? "Ingresando..." : "Ingresar"}
@@ -231,7 +231,7 @@ export default function LoginPage() {
               {/* Secondary link */}
               <p className="text-sm text-center text-slate-500 mt-1">
                 ¿No tienes cuenta?{" "}
-                <Link href="/register" className="text-emerald-700 font-semibold hover:underline">
+                <Link href="/register" className="text-accent-700 font-semibold hover:underline">
                   Regístrate gratis
                 </Link>
               </p>

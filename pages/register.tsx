@@ -245,7 +245,7 @@ export default function RegisterWizard() {
 
   const getTotalSteps = () => rol === 'proveedor' ? 4 : 3;
 
-  const inputClass = "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors";
+  const inputClass = "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors";
 
   return (
     <>
@@ -262,14 +262,14 @@ export default function RegisterWizard() {
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Crea tu cuenta en Pawnecta</h1>
             {step < 4 && (
               <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
-                <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step >= 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100'}`}>1</span>
-                <div className={`w-10 h-[2px] ${step >= 2 ? 'bg-emerald-200' : 'bg-slate-200'}`}></div>
-                <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step >= 2 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100'}`}>2</span>
+                <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step >= 1 ? 'bg-accent-100 text-accent-700' : 'bg-slate-100'}`}>1</span>
+                <div className={`w-10 h-[2px] ${step >= 2 ? 'bg-accent-200' : 'bg-slate-200'}`}></div>
+                <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step >= 2 ? 'bg-accent-100 text-accent-700' : 'bg-slate-100'}`}>2</span>
 
                 {rol === 'proveedor' && (
                   <>
-                    <div className={`w-10 h-[2px] ${step >= 3 ? 'bg-emerald-200' : 'bg-slate-200'}`}></div>
-                    <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step >= 3 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100'}`}>3</span>
+                    <div className={`w-10 h-[2px] ${step >= 3 ? 'bg-accent-200' : 'bg-slate-200'}`}></div>
+                    <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step >= 3 ? 'bg-accent-100 text-accent-700' : 'bg-slate-100'}`}>3</span>
                   </>
                 )}
               </div>
@@ -294,9 +294,9 @@ export default function RegisterWizard() {
                   <button
                     type="button"
                     onClick={() => setRol('usuario')}
-                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'usuario' ? 'border-emerald-600 bg-emerald-50' : 'border-slate-200 hover:border-emerald-300'}`}
+                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'usuario' ? 'border-accent-600 bg-accent-50' : 'border-slate-200 hover:border-accent-600'}`}
                   >
-                    <div className={`p-4 rounded-full mb-4 ${rol === 'usuario' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${rol === 'usuario' ? 'bg-accent-100 text-accent-700' : 'bg-slate-100 text-slate-600'}`}>
                       <Search size={32} />
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-2">Busco servicios</h3>
@@ -306,9 +306,9 @@ export default function RegisterWizard() {
                   <button
                     type="button"
                     onClick={() => setRol('proveedor')}
-                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'proveedor' ? 'border-emerald-600 bg-emerald-50' : 'border-slate-200 hover:border-emerald-300'}`}
+                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'proveedor' ? 'border-accent-600 bg-accent-50' : 'border-slate-200 hover:border-accent-600'}`}
                   >
-                    <div className={`p-4 rounded-full mb-4 ${rol === 'proveedor' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${rol === 'proveedor' ? 'bg-accent-100 text-accent-700' : 'bg-slate-100 text-slate-600'}`}>
                       <Briefcase size={32} />
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-2">Ofrezco servicios</h3>
@@ -319,7 +319,7 @@ export default function RegisterWizard() {
                 <div className="pt-6">
                   <button
                     onClick={proceedToStep2}
-                    className="w-full bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors"
+                    className="w-full bg-accent-600 text-white font-semibold py-4 rounded-xl hover:bg-accent-700 transition-colors"
                   >
                     Continuar
                   </button>
@@ -341,7 +341,7 @@ export default function RegisterWizard() {
                       <button type="button"
                         onClick={() => setTipoEntidad("persona_natural")}
                         className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
-                          ? "border-emerald-500 bg-emerald-50"
+                          ? "border-accent-600 bg-accent-50"
                           : "border-slate-200 hover:border-slate-300"
                           }`}
                       >
@@ -351,7 +351,7 @@ export default function RegisterWizard() {
                       <button type="button"
                         onClick={() => setTipoEntidad("empresa")}
                         className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
-                          ? "border-emerald-500 bg-emerald-50"
+                          ? "border-accent-600 bg-accent-50"
                           : "border-slate-200 hover:border-slate-300"
                           }`}
                       >
@@ -487,7 +487,7 @@ export default function RegisterWizard() {
 
                 <div className="pt-6 flex gap-3">
                   <button onClick={() => setStep(1)} className="w-1/3 border border-slate-300 text-slate-700 font-semibold py-4 rounded-xl hover:bg-slate-50 transition-colors">Atrás</button>
-                  <button onClick={proceedToNextStep} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                  <button onClick={proceedToNextStep} disabled={loading} className="w-2/3 bg-accent-600 text-white font-semibold py-4 rounded-xl hover:bg-accent-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                     {loading ? (
                       <><Loader2 size={18} className="animate-spin" /> Procesando...</>
                     ) : rol === "proveedor" ? "Siguiente" : "Crear Cuenta"}
@@ -496,9 +496,9 @@ export default function RegisterWizard() {
                 {rol === 'usuario' && (
                   <p className="text-xs text-slate-500 text-center mt-3">
                     Al crear tu cuenta aceptas los{' '}
-                    <Link href="/terminos" target="_blank" className="text-emerald-700 hover:underline">Términos y Condiciones</Link>
+                    <Link href="/terminos" target="_blank" className="text-accent-700 hover:underline">Términos y Condiciones</Link>
                     {' '}y la{' '}
-                    <Link href="/privacidad" target="_blank" className="text-emerald-700 hover:underline">Política de Privacidad</Link>.
+                    <Link href="/privacidad" target="_blank" className="text-accent-700 hover:underline">Política de Privacidad</Link>.
                   </p>
                 )}
               </div>
@@ -530,7 +530,7 @@ export default function RegisterWizard() {
                           <li key={c}>
                             <button
                               type="button"
-                              className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                              className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-accent-50 hover:text-accent-600 transition-colors"
                               onMouseDown={() => { setComunaQuery(c); setShowComunaList(false); }}
                             >
                               {c}
@@ -556,7 +556,7 @@ export default function RegisterWizard() {
                     maxLength={500}
                     rows={4}
                     placeholder="Ej: Tengo 5 años cuidando perros y gatos de raza..."
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                   />
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-xs text-slate-500">Mínimo 50 caracteres. Una buena descripción aumenta tus consultas.</p>
@@ -565,20 +565,21 @@ export default function RegisterWizard() {
                 </div>
 
                 <div className="flex items-start gap-3">
+                  {/* accent-color nativo del checkbox; hex directo porque la utility accent-* de Tailwind colisiona con el token accent-* del sistema. Mismo tratamiento que FeedbackWidget L267. */}
                   <input
                     type="checkbox"
                     id="politica"
                     checked={aceptaPolitica}
                     onChange={e => setAceptaPolitica(e.target.checked)}
-                    className="mt-1 rounded border-slate-300 accent-emerald-600 cursor-pointer"
+                    className="mt-1 rounded border-slate-300 accent-[#16A34A] cursor-pointer"
                   />
                   <label htmlFor="politica" className="text-sm text-slate-600 cursor-pointer">
                     Acepto los{' '}
-                    <Link href="/terminos" target="_blank" className="text-emerald-700 hover:underline">
+                    <Link href="/terminos" target="_blank" className="text-accent-700 hover:underline">
                       Términos y Condiciones
                     </Link>
                     {' '}y la{' '}
-                    <Link href="/privacidad" target="_blank" className="text-emerald-700 hover:underline">
+                    <Link href="/privacidad" target="_blank" className="text-accent-700 hover:underline">
                       Política de Privacidad
                     </Link>
                     . Entiendo que mi perfil será revisado por el equipo de Pawnecta antes de ser publicado.
@@ -587,7 +588,7 @@ export default function RegisterWizard() {
 
                 <div className="pt-2 flex gap-3">
                   <button onClick={() => setStep(2)} disabled={loading} className="w-1/3 border border-slate-300 text-slate-700 font-semibold py-4 rounded-xl hover:bg-slate-50 transition-colors">Atrás</button>
-                  <button onClick={handleFinalSubmit} disabled={loading} className="w-2/3 bg-emerald-700 text-white font-semibold py-4 rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                  <button onClick={handleFinalSubmit} disabled={loading} className="w-2/3 bg-accent-600 text-white font-semibold py-4 rounded-xl hover:bg-accent-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                     {loading ? (
                       <><Loader2 size={18} className="animate-spin" /> Creando cuenta...</>
                     ) : "Enviar Solicitud"}
@@ -599,7 +600,7 @@ export default function RegisterWizard() {
             {/* Step 4: Success Message */}
             {step === 4 && (
               <div className="animate-fade-in text-center py-6">
-                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 size={40} />
                 </div>
                 <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">¡Registro Exitoso!</h2>
@@ -622,7 +623,7 @@ export default function RegisterWizard() {
 
                 <button
                   onClick={() => router.push('/')}
-                  className="bg-emerald-700 text-white font-semibold py-3 px-8 rounded-xl hover:bg-emerald-800 transition-colors inline-block"
+                  className="bg-accent-600 text-white font-semibold py-3 px-8 rounded-xl hover:bg-accent-700 transition-colors inline-block"
                 >
                   Volver al Inicio
                 </button>
@@ -635,7 +636,7 @@ export default function RegisterWizard() {
         {step < 4 && (
           <div className="mt-6 text-center text-sm text-slate-500">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/login" className="text-emerald-700 font-semibold hover:underline">
+            <Link href="/login" className="text-accent-700 font-semibold hover:underline">
               Ingresa aquí
             </Link>
           </div>
