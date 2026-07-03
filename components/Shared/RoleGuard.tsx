@@ -81,7 +81,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-accent-600 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-slate-500 text-sm animate-pulse">Verificando acceso...</p>
                 </div>
             </div>

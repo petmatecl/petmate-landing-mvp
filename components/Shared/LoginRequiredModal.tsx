@@ -28,7 +28,7 @@ export default function LoginRequiredModal({
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
 
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 </div>
 
@@ -43,13 +43,13 @@ export default function LoginRequiredModal({
                 <div className="flex flex-col gap-3">
                     <button
                         onClick={() => router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`)}
-                        className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-4 rounded-xl transition-colors"
+                        className="w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-3 px-4 rounded-xl transition-colors"
                     >
                         Ingresar a mi cuenta
                     </button>
                     <button
                         onClick={() => router.push('/register')}
-                        className="w-full bg-white hover:bg-slate-50 text-emerald-700 border-2 border-emerald-600 font-medium tracking-wide py-3 px-4 rounded-xl transition-colors"
+                        className="w-full bg-white hover:bg-slate-50 text-accent-700 border-2 border-accent-600 font-medium tracking-wide py-3 px-4 rounded-xl transition-colors"
                     >
                         Registrarme gratis
                     </button>

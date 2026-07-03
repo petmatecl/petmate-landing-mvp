@@ -13,7 +13,7 @@ interface Props {
     apellidoP?: string | null;
     /** sm = 24px (navbar chip), lg = 40px (sidebar bloque identidad) */
     size?: 'sm' | 'lg';
-    /** Tailwind bg class. Default emerald-700 (matchea el chip historico del navbar). */
+    /** Tailwind bg class. Default accent-600 (matchea el chip historico del navbar). */
     bgColor?: string;
 }
 
@@ -28,7 +28,7 @@ export default function UserInitialsAvatar({
     nombre,
     apellidoP,
     size = 'sm',
-    bgColor = 'bg-emerald-700',
+    bgColor = 'bg-accent-600',
 }: Props) {
     const initials = getUserInitials(nombre, apellidoP);
     const sizeClasses = size === 'lg'
