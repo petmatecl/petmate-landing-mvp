@@ -119,7 +119,7 @@ export default function NotificationBell() {
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
                 aria-controls="notification-bell-menu"
-                className="relative p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+                className="relative p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600 focus:outline-none focus:ring-2 focus:ring-accent-600/20"
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (
@@ -142,7 +142,7 @@ export default function NotificationBell() {
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={handleMarkAllRead}
-                                        className="text-xs font-medium text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                                        className="text-xs font-medium text-accent-700 hover:text-accent-800 flex items-center gap-1"
                                     >
                                         <Check size={14} /> Marcar leídas
                                     </button>
@@ -168,9 +168,9 @@ export default function NotificationBell() {
                                         <div
                                             key={n.id}
                                             onClick={() => handleNotificationClick(n)}
-                                            className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!n.read ? 'bg-emerald-50/30' : ''}`}
+                                            className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!n.read ? 'bg-accent-50/30' : ''}`}
                                         >
-                                            <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${!n.read ? 'bg-emerald-500' : 'bg-transparent'}`} />
+                                            <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${!n.read ? 'bg-accent-600' : 'bg-transparent'}`} />
                                             <div className="flex-1">
                                                 <p className={`text-sm ${!n.read ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
                                                     {n.title}
@@ -189,7 +189,7 @@ export default function NotificationBell() {
                         </div>
 
                         <div className="p-2 border-t border-slate-300 bg-slate-50/50 text-center">
-                            <Link href="/notificaciones" className="text-xs font-medium text-slate-600 hover:text-emerald-700">
+                            <Link href="/notificaciones" className="text-xs font-medium text-slate-600 hover:text-accent-600">
                                 Ver todas
                             </Link>
                         </div>

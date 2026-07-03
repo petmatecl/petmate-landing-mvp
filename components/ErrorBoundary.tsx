@@ -46,13 +46,13 @@ export default class ErrorBoundary extends Component<Props, State> {
                   this.setState({ hasError: false, error: null });
                   window.location.reload();
                 }}
-                className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors"
+                className="w-full h-12 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors"
               >
                 Recargar página
               </button>
               <Link
                 href="/"
-                className="text-sm text-emerald-700 font-semibold hover:underline"
+                className="text-sm text-accent-700 font-semibold hover:underline"
               >
                 Volver al inicio
               </Link>

@@ -158,7 +158,7 @@ export default function FeedbackWidget() {
                     aria-expanded={false}
                     aria-controls="feedback-widget-panel"
                     aria-label="Enviar feedback"
-                    className="fixed bottom-6 right-6 z-40 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:border-emerald-300 rounded-full shadow-lg font-medium opacity-60 hover:opacity-100 transition-all w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 sm:text-sm"
+                    className="fixed bottom-6 right-6 z-40 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-accent-600 hover:border-accent-600 rounded-full shadow-lg font-medium opacity-60 hover:opacity-100 transition-all w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                     <MessageCircle size={16} aria-hidden="true" />
                     <span className="hidden sm:inline">Feedback</span>
@@ -188,7 +188,7 @@ export default function FeedbackWidget() {
 
                     {sent ? (
                         <div className="p-6 text-center">
-                            <Check size={32} className="text-emerald-500 mx-auto mb-2" />
+                            <Check size={32} className="text-accent-600 mx-auto mb-2" />
                             <p className="text-sm font-semibold text-slate-700">Gracias, te leeremos.</p>
                         </div>
                     ) : (
@@ -207,7 +207,7 @@ export default function FeedbackWidget() {
                                         id="feedback-rol"
                                         value={rolAnonimo}
                                         onChange={e => setRolAnonimo(e.target.value as Rol)}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                     >
                                         <option value="">Elige una opción</option>
                                         <option value="tutor">Tutor (busco servicios)</option>
@@ -226,7 +226,7 @@ export default function FeedbackWidget() {
                                     id="feedback-categoria"
                                     value={categoria}
                                     onChange={e => setCategoria(e.target.value as Categoria)}
-                                    className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                 >
                                     <option value="">Elige una opción</option>
                                     <option value="bug">Bug</option>
@@ -248,7 +248,7 @@ export default function FeedbackWidget() {
                                     placeholder={categoria ? CATEGORIA_PLACEHOLDERS[categoria] : 'Cuéntanos qué piensas...'}
                                     rows={4}
                                     maxLength={2000}
-                                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none placeholder:text-slate-400"
+                                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none resize-none placeholder:text-slate-400"
                                 />
                                 <div className="flex justify-end mt-1">
                                     <span className={`text-[10px] ${mensaje.length > 2000 || (mensaje.length > 0 && mensaje.length < 10) ? 'text-red-500' : 'text-slate-400'}`}>
@@ -260,11 +260,12 @@ export default function FeedbackWidget() {
                             {/* Checkbox contacto (solo logueado) */}
                             {isAuthenticated && (
                                 <label className="flex items-start gap-2 text-xs text-slate-600 cursor-pointer">
+                                    {/* accent-color nativo del checkbox; hex directo porque la utility accent-* de Tailwind colisiona con el token accent-* del sistema. Único hex hardcodeado del rollout. */}
                                     <input
                                         type="checkbox"
                                         checked={permitirContacto}
                                         onChange={e => setPermitirContacto(e.target.checked)}
-                                        className="mt-0.5 accent-emerald-600"
+                                        className="mt-0.5 accent-[#16A34A]"
                                     />
                                     <span>Permitir asociar mi cuenta para que me contactes (opcional)</span>
                                 </label>
@@ -286,7 +287,7 @@ export default function FeedbackWidget() {
                             <button
                                 type="submit"
                                 disabled={sending}
-                                className="w-full flex items-center justify-center gap-1.5 bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-emerald-800 disabled:opacity-50 transition-colors"
+                                className="w-full flex items-center justify-center gap-1.5 bg-accent-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-accent-700 disabled:opacity-50 transition-colors"
                             >
                                 {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                                 {sending ? 'Enviando...' : 'Enviar'}

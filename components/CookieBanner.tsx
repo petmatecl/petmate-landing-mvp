@@ -80,11 +80,11 @@ export default function CookieBanner() {
             >
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-4 lg:items-center">
                     <div className="flex items-start gap-3 flex-1">
-                        <Cookie className="text-emerald-700 shrink-0 mt-0.5" size={20} aria-hidden="true" />
+                        <Cookie className="text-accent-600 shrink-0 mt-0.5" size={20} aria-hidden="true" />
                         <p className="text-sm text-slate-600 leading-relaxed">
                             Usamos cookies para mejorar tu experiencia y analizar el uso del sitio. Las necesarias son
                             obligatorias. Puedes aceptar todas, rechazar las opcionales o personalizar tus preferencias.{' '}
-                            <Link href="/privacidad" className="text-emerald-700 underline hover:text-emerald-800">
+                            <Link href="/privacidad" className="text-accent-700 underline hover:text-accent-800">
                                 Más información
                             </Link>
                             .
@@ -108,7 +108,7 @@ export default function CookieBanner() {
                         </button>
                         <button
                             onClick={() => { acceptAll(); setView(null); }}
-                            className="px-4 py-2 text-sm font-semibold text-white bg-emerald-700 rounded-xl hover:bg-emerald-800 transition-colors"
+                            className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >
                             Aceptar todas
                         </button>
@@ -134,7 +134,7 @@ export default function CookieBanner() {
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
                         <div className="flex items-center gap-2">
-                            <Cookie className="text-emerald-700" size={20} aria-hidden="true" />
+                            <Cookie className="text-accent-600" size={20} aria-hidden="true" />
                             <h2 id="cookie-prefs-title" className="text-lg font-semibold text-slate-900 tracking-tight">
                                 Preferencias de cookies
                             </h2>
@@ -192,7 +192,7 @@ export default function CookieBanner() {
                         </button>
                         <button
                             onClick={handleSavePrefs}
-                            className="px-4 py-2 text-sm font-semibold text-white bg-emerald-700 rounded-xl hover:bg-emerald-800 transition-colors"
+                            className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >
                             Guardar preferencias
                         </button>
@@ -229,7 +229,7 @@ function ConsentRow({
                 aria-label={title}
                 disabled={disabled}
                 onClick={onToggle}
-                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors mt-0.5 ${checked ? 'bg-emerald-600' : 'bg-slate-300'
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors mt-0.5 ${checked ? 'bg-accent-600' : 'bg-slate-300'
                     } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
                 <span

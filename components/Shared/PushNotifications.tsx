@@ -90,7 +90,7 @@ export default function PushNotifications() {
                 <X size={16} />
             </button>
             <div className="flex items-start gap-3 mt-1">
-                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center shrink-0">
                     <BellRing size={20} />
                 </div>
                 <div>
@@ -102,7 +102,7 @@ export default function PushNotifications() {
             </div>
             <button
                 onClick={subscribeToPush}
-                className="w-full mt-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 rounded-lg text-sm transition-colors shadow-sm"
+                className="w-full mt-1 bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 rounded-lg text-sm transition-colors shadow-sm"
             >
                 Activar notificaciones
             </button>
