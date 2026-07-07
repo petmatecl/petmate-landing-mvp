@@ -11,10 +11,16 @@ html, body {
 }
 
 :root {
-  /* --font-outfit la setea next/font/google via pages/_app.tsx (variable
-     expuesta en el wrapper). Este fallback CSS aplica solo si la variable
-     no se pobla por alguna razon. */
-  --font-outfit: 'Outfit', sans-serif;
+  /* --font-outfit la setea next/font/google via lib/fonts.ts (instancia
+     compartida, variable expuesta en el <body> por _document.tsx y en el
+     wrapper interno por _app.tsx). Este fallback CSS actua como red de
+     contencion si la variable no llega a algun elemento (edge cases fuera
+     del arbol). NO puede referenciar 'Outfit' literal porque next/font
+     hashea el nombre real (__Outfit_xxx) y no lo expone globalmente — con
+     ese nombre el browser cae directo al sans-serif del sistema. En su
+     lugar usa el mismo stack canonico que components/Emails/*Email.tsx
+     definio para las plantillas de email. */
+  --font-outfit: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
 
   /* Dynamic header height — updated by Header.tsx based on launch banner visibility.
      Default 105px assumes launch banner is showing (40 topbar + 65 navbar).

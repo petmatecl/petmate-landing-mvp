@@ -1,32 +1,9 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { Outfit } from "next/font/google";
 import { UserContextProvider } from "../contexts/UserContext";
 import { useRouter } from "next/router";
 import "../styles/globals.css";
-
-// Fuente unica — Outfit via next/font/google (self-hosted automatico).
-// Vuelta a la fuente original despues de probar Nunito y Poppins+Inter,
-// pero conservando la mejora tecnica: se carga por next/font en vez del
-// <link> a fonts.googleapis.com que estaba antes. Ventajas: self-hosted
-// (cero dependencia del CDN de Google en runtime), preload optimizado,
-// zero layout shift, sin FOUC.
-//
-// IMPORTANTE — sin prop `weight`: al omitirlo, next/font descarga la
-// VARIABLE FONT de Outfit (un solo archivo .woff2 con eje wght continuo
-// 100-900). Con `weight: [...]` next/font descarga versiones estaticas
-// separadas por peso, cuya metrica no siempre coincide con la variable
-// font que Google Fonts sirve al <link> en prod → letras se veian mas
-// estrechas/condensadas en font-semibold/bold. Con la variable font el
-// render matchea al <link>.
-//
-// La variable --font-outfit se expone en el wrapper del layout y la lee
-// tailwind.config.js (fontFamily.sans) + globals.css (body).
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  display: "swap",
-});
+import { outfit } from "../lib/fonts";
 import "react-day-picker/dist/style.css"; // GLOBAL CSS IMPORT for Calendar
 import "leaflet/dist/leaflet.css"; // Fix Leaflet Map visibility
 import Header from "../components/Header";
