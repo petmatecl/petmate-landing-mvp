@@ -35,7 +35,7 @@ export default function EmptyFieldState({
             return (
                 <span className="text-sm text-slate-400 italic">
                     Sin {label} ·{' '}
-                    <Link href={ownerCTA.href} className="text-emerald-700 hover:text-emerald-800 not-italic font-medium underline underline-offset-2">
+                    <Link href={ownerCTA.href} className="text-accent-700 hover:text-accent-800 not-italic font-medium underline underline-offset-2">
                         {ownerCTA.text} →
                     </Link>
                 </span>
@@ -43,7 +43,7 @@ export default function EmptyFieldState({
         }
         if (isGuest && guestCTA) {
             return (
-                <Link href={guestCTA.href} className="text-sm font-medium text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
+                <Link href={guestCTA.href} className="text-sm font-medium text-accent-700 hover:text-accent-800 underline underline-offset-2">
                     {guestCTA.text}
                 </Link>
             );
@@ -58,7 +58,7 @@ export default function EmptyFieldState({
                     <span className="text-sm text-slate-600">Falta agregar {label}</span>
                     <Link
                         href={ownerCTA.href}
-                        className="text-sm font-semibold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
+                        className="text-sm font-semibold text-accent-700 hover:text-accent-800 inline-flex items-center gap-1"
                     >
                         {ownerCTA.text}
                         <ArrowRight size={14} aria-hidden="true" />
@@ -67,7 +67,7 @@ export default function EmptyFieldState({
             ) : isGuest && guestCTA ? (
                 <Link
                     href={guestCTA.href}
-                    className="flex items-center justify-between gap-3 flex-wrap text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                    className="flex items-center justify-between gap-3 flex-wrap text-sm font-semibold text-accent-700 hover:text-accent-800"
                 >
                     <span>{guestCTA.text}</span>
                     <ArrowRight size={14} aria-hidden="true" />

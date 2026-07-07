@@ -163,8 +163,9 @@ export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride
                             {level.label}
                         </span>
                         <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden flex items-center">
+                            {/* amber: pertenece al sistema de rating (estrellas amber-400), fuera del sistema de marca accent. */}
                             <div
-                                className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
+                                className="h-full bg-amber-400 rounded-full transition-all duration-500 ease-out"
                                 style={{ width: `${calculatePercentage(level.count)}%` }}
                             ></div>
                         </div>

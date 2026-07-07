@@ -74,7 +74,7 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                     {/* Header */}
                     <div className="flex items-start justify-between p-5 border-b border-slate-100">
                         <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-700">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-accent-50 text-accent-700">
                                 <Sparkles size={20} aria-hidden="true" />
                             </div>
                             <h2 id="example-cta-title" className="text-base font-semibold text-slate-900 mt-2">
@@ -103,7 +103,7 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                         <Link
                             ref={primaryCTARef}
                             href="/register?rol=usuario"
-                            className="text-center px-4 py-2.5 text-sm font-semibold text-white bg-emerald-700 rounded-xl hover:bg-emerald-800 transition-colors"
+                            className="text-center px-4 py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >
                             Registrarme como tutor
                         </Link>

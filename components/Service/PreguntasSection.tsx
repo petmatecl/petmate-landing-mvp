@@ -94,7 +94,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
     return (
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-xl font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                <MessageCircle size={22} className="text-emerald-500" />
+                <MessageCircle size={22} className="text-accent-600" />
                 Preguntas al proveedor
             </h3>
             <p className="text-sm text-slate-400 mb-6">Las preguntas y respuestas son públicas y ayudan a otros tutores.</p>
@@ -114,13 +114,13 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                             placeholder={isExample ? 'Escribe tu pregunta...' : (user ? 'Escribe tu pregunta...' : 'Inicia sesión para preguntar')}
                             disabled={!isExample && !user}
                             maxLength={300}
-                            className="flex-1 h-10 px-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none disabled:opacity-50"
+                            className="flex-1 h-10 px-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none disabled:opacity-50"
                         />
                         <button
                             type="submit"
                             disabled={submitting || (!isExample && !user) || (!isExample && !pregunta.trim())}
                             onClick={isExample ? (e) => { e.preventDefault(); onExampleAction?.(); } : undefined}
-                            className="px-4 h-10 bg-emerald-700 text-white text-sm font-semibold rounded-xl hover:bg-emerald-800 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                            className="px-4 h-10 bg-accent-600 text-white text-sm font-semibold rounded-xl hover:bg-accent-700 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
                         >
                             {submitting && <Loader2 size={14} className="animate-spin" />}
                             Preguntar
@@ -138,6 +138,9 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                 <div className="space-y-4">
                     {visible.map(q => (
                         <div key={q.id} className="border-t border-slate-100 pt-4">
+                            {/* semantica de estado intencional — par CATEGORIA pregunta (P-emerald) / respuesta
+                                (R-slate L153). Ambos chips coexisten en el mismo item Q&A cuando hay respuesta.
+                                Reservado para sprint de tokens semanticos. NO migrar aislado. */}
                             <div className="flex items-start gap-2">
                                 <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
                                 <div className="flex-1">
@@ -166,7 +169,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                                                 type="text" value={replyText} onChange={e => setReplyText(e.target.value)}
                                                 placeholder="Escribe tu respuesta..."
                                                 maxLength={500}
-                                                className="flex-1 h-9 px-3 border border-slate-200 rounded-lg bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                className="flex-1 h-9 px-3 border border-slate-200 rounded-lg bg-slate-50 text-sm focus:ring-2 focus:ring-accent-600 outline-none"
                                             />
                                             <button onClick={() => handleReply(q.id)} disabled={replying || !replyText.trim()}
                                                 className="text-xs font-medium bg-slate-900 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
@@ -177,7 +180,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                                         </div>
                                     ) : (
                                         <button onClick={() => setReplyId(q.id)}
-                                            className="text-xs font-semibold text-emerald-700 hover:text-emerald-800">
+                                            className="text-xs font-semibold text-accent-700 hover:text-accent-800">
                                             Responder esta pregunta
                                         </button>
                                     )}
@@ -190,7 +193,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
 
                     {preguntas.length > 3 && !showAll && (
                         <button onClick={() => setShowAll(true)}
-                            className="flex items-center gap-1 text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors mx-auto mt-2">
+                            className="flex items-center gap-1 text-sm font-medium text-accent-700 hover:text-accent-800 transition-colors mx-auto mt-2">
                             Ver todas las preguntas ({preguntas.length})
                             <ChevronDown size={14} />
                         </button>

@@ -115,7 +115,7 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={u.foto_perfil} alt={displayName} className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full bg-emerald-100 text-emerald-700 font-semibold flex items-center justify-center text-sm">{displayName[0]}</div>
+                                            <div className="w-full h-full bg-accent-100 text-accent-700 font-semibold flex items-center justify-center text-sm">{displayName[0]}</div>
                                         )}
                                     </div>
                                     <div>
@@ -147,8 +147,8 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
 
                             {/* Respuesta del proveedor */}
                             {review.respuesta_proveedor && (
-                                <div className="bg-slate-50 border-l-2 border-emerald-600 pl-4 mt-3 py-2">
-                                    <p className="text-xs font-semibold text-emerald-700 mb-1 uppercase tracking-widest">Respuesta del proveedor</p>
+                                <div className="bg-slate-50 border-l-2 border-accent-600 pl-4 mt-3 py-2">
+                                    <p className="text-xs font-semibold text-accent-600 mb-1 uppercase tracking-widest">Respuesta del proveedor</p>
                                     <p className="text-sm text-slate-600 leading-relaxed">{review.respuesta_proveedor}</p>
                                 </div>
                             )}

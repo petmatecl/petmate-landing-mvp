@@ -154,12 +154,12 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
 
     if (isSuccess) {
         return (
-            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center animate-in fade-in duration-500">
-                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="bg-accent-50 border border-accent-100 rounded-2xl p-6 text-center animate-in fade-in duration-500">
+                <div className="w-12 h-12 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-3">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-                <h4 className="text-emerald-800 font-semibold text-lg mb-2">¡Gracias por tu evaluación!</h4>
-                <p className="text-emerald-700 text-sm max-w-md mx-auto">
+                <h4 className="text-accent-800 font-semibold text-lg mb-2">¡Gracias por tu evaluación!</h4>
+                <p className="text-accent-700 text-sm max-w-md mx-auto">
                     Será revisada por nuestro equipo antes de publicarse en el perfil del prestador.
                 </p>
             </div>
@@ -219,7 +219,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                         placeholder="Cuenta tu experiencia con este proveedor..."
                         value={comentario}
                         onChange={(e) => setComentario(e.target.value)}
-                        className={`w-full bg-slate-50 border rounded-xl p-4 text-sm focus:outline-none focus:ring-2 transition-all resize-none ${comentario.length > 500 ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-emerald-600/20 focus:border-emerald-600'
+                        className={`w-full bg-slate-50 border rounded-xl p-4 text-sm focus:outline-none focus:ring-2 transition-all resize-none ${comentario.length > 500 ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-accent-600/20 focus:border-accent-600'
                             }`}
                         disabled={isSubmitting}
                     />
@@ -237,7 +237,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                 <button
                     type="submit"
                     disabled={isSubmitting || rating === 0 || comentario.trim().length < 20 || comentario.length > 500}
-                    className="w-full sm:w-auto self-end bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-8 rounded-xl flex items-center justify-center gap-2 transition-all mt-2"
+                    className="w-full sm:w-auto self-end bg-accent-600 hover:bg-accent-700 disabled:opacity-50 disabled:hover:bg-accent-700 text-white font-medium tracking-wide py-3 px-8 rounded-xl flex items-center justify-center gap-2 transition-all mt-2"
                 >
                     {isSubmitting ? (
                         <>

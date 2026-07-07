@@ -109,7 +109,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                 <div className="p-6">
                     {success ? (
                         <div className="text-center py-8">
-                            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-20 h-20 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </div>
                             <h3 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">¡Gracias por tu reseña!</h3>
@@ -161,7 +161,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                                     id="comentario"
                                     rows={4}
                                     placeholder="¿Qué te gustó del servicio? ¿Cómo fue el trato con la mascota?"
-                                    className="w-full rounded-xl border-slate-300 focus:border-emerald-600 focus:ring-emerald-600 text-sm p-3 resize-none shadow-sm"
+                                    className="w-full rounded-xl border-slate-300 focus:border-accent-600 focus:ring-accent-600 text-sm p-3 resize-none shadow-sm"
                                     value={comentario}
                                     onChange={(e) => setComentario(e.target.value)}
                                     disabled={isSubmitting}
@@ -196,7 +196,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-3 px-6 rounded-xl transition-colors flex justify-center items-center shadow-md shadow-emerald-200"
+                                    className="flex-1 bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-3 px-6 rounded-xl transition-colors flex justify-center items-center shadow-md shadow-accent-200"
                                     disabled={isSubmitting || comentario.length > 500}
                                 >
                                     {isSubmitting ? (

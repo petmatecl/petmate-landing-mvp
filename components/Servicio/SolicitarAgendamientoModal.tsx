@@ -379,7 +379,7 @@ export default function SolicitarAgendamientoModal({
     const minD = minDateLocal();
 
     // Render helpers — chip y toggle siguen el mismo patron visual: button
-    // group con estado seleccionado en emerald-700, no seleccionado en slate.
+    // group con estado seleccionado en accent-600, no seleccionado en slate.
     const renderChipModalidad = (mod: ModalidadCuidado) => {
         const selected = modalidadElegida === mod;
         return (
@@ -390,7 +390,7 @@ export default function SolicitarAgendamientoModal({
                 disabled={submitting}
                 className={`text-sm font-medium px-3 py-2 rounded-xl border transition-colors ${
                     selected
-                        ? 'bg-emerald-700 text-white border-emerald-700'
+                        ? 'bg-accent-600 text-white border-accent-600'
                         : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
             >
@@ -409,7 +409,7 @@ export default function SolicitarAgendamientoModal({
                 disabled={submitting}
                 className={`flex-1 text-sm font-medium px-3 py-2 rounded-xl border transition-colors ${
                     selected
-                        ? 'bg-emerald-700 text-white border-emerald-700'
+                        ? 'bg-accent-600 text-white border-accent-600'
                         : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
             >
@@ -426,7 +426,7 @@ export default function SolicitarAgendamientoModal({
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-start gap-3 shrink-0">
                     <div className="min-w-0">
                         <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
-                            <Calendar size={20} className="text-emerald-600 shrink-0" />
+                            <Calendar size={20} className="text-accent-600 shrink-0" />
                             Solicitar agendamiento
                         </h2>
                         <p className="text-sm text-slate-500 truncate mt-0.5">{serviceTitle}</p>
@@ -485,7 +485,7 @@ export default function SolicitarAgendamientoModal({
                                     onChange={e => setFechaPreferida(e.target.value)}
                                     min={minD}
                                     required
-                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
                             </div>
                             <div>
@@ -500,7 +500,7 @@ export default function SolicitarAgendamientoModal({
                                     onChange={e => setFechaFin(e.target.value)}
                                     min={fechaPreferida || minD}
                                     required
-                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
                             </div>
                             <p className="text-xs text-slate-500 mt-1 leading-relaxed sm:col-span-2">
@@ -523,7 +523,7 @@ export default function SolicitarAgendamientoModal({
                                     onChange={e => setFechaPreferida(e.target.value)}
                                     min={minDt}
                                     required
-                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
                             </div>
                             <div>
@@ -542,7 +542,7 @@ export default function SolicitarAgendamientoModal({
                                     step={1}
                                     placeholder="Ej: 3"
                                     required
-                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
                                 <p className="text-xs text-slate-500 mt-1">Entre {DURACION_MIN_HORAS} y {DURACION_MAX_HORAS} horas.</p>
                             </div>
@@ -562,7 +562,7 @@ export default function SolicitarAgendamientoModal({
                                 onChange={e => setFechaPreferida(e.target.value)}
                                 min={minDt}
                                 required
-                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                             />
                             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                                 Cuándo te gustaría recibir el servicio. El proveedor confirmará o propondrá otra opción.
@@ -605,7 +605,7 @@ export default function SolicitarAgendamientoModal({
                                         maxLength={CALLE_MAX_CHARS}
                                         placeholder="Ej: Mayecura"
                                         required
-                                        className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                        className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                     />
                                 </div>
                                 <div>
@@ -621,7 +621,7 @@ export default function SolicitarAgendamientoModal({
                                         maxLength={NUMERO_MAX_CHARS}
                                         placeholder='Ej: 1290 o "S/N"'
                                         required
-                                        className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                        className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                     />
                                 </div>
                             </div>
@@ -638,7 +638,7 @@ export default function SolicitarAgendamientoModal({
                                     onChange={e => setDireccionInfo(e.target.value)}
                                     maxLength={DIRECCION_INFO_MAX_CHARS}
                                     placeholder="Ej: Depto 502 torre B, casa interior, timbre 3 veces"
-                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
                                 <p className="text-xs text-slate-400 mt-1 text-right">{direccionInfo.length} / {DIRECCION_INFO_MAX_CHARS}</p>
                             </div>
@@ -658,7 +658,7 @@ export default function SolicitarAgendamientoModal({
                             maxLength={500}
                             rows={4}
                             placeholder="Cuéntanos detalles de tu mascota, condiciones especiales, o cualquier cosa que el proveedor necesite saber."
-                            className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors resize-none"
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors resize-none"
                         />
                         <p className="text-xs text-slate-400 mt-1 text-right">{mensaje.length} / 500</p>
                     </div>
@@ -681,7 +681,7 @@ export default function SolicitarAgendamientoModal({
                         <button
                             type="submit"
                             disabled={submitting || necesitaElegirModalidad || necesitaElegirModo}
-                            className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {submitting && <Loader2 size={16} className="animate-spin" />}
                             Enviar solicitud
