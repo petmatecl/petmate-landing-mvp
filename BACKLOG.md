@@ -2,12 +2,18 @@
 
 ## Producto (features nuevas)
 
-### Fichas de mascotas del tutor
+### Fichas de mascotas del tutor — IMPLEMENTADA (parcial)
 - El tutor crea perfiles de sus mascotas (nombre, especie, raza, edad, tamaño, condiciones) y los adjunta a solicitudes de servicio.
 - Objetivo: apropiación (engagement del tutor) + comunicación (el proveedor tiene contexto sin preguntar).
-- Infra: la tabla `mascotas` ya existe — revisar campos, relación con `usuarios_buscadores` (dueño) y con `agendamientos` (asociación).
-- Capas: CRUD de mascotas en panel tutor; selector en SolicitarAgendamientoModal; vista de la ficha para el proveedor en solicitud/chat.
-- Decisión pendiente: ficha obligatoria u opcional al solicitar servicio.
+- ✅ **Hecho**:
+  - Selector opcional de mascota en `SolicitarAgendamientoModal` (Forma B: asocia `mascota_id` real, fallback a texto libre cuando el tutor no tiene ficha o eligió "Otra").
+  - Persistencia del `mascota_id` en `agendamientos` (migration `20260707_agendamientos_mascota.sql` — agrega `mascota_id` FK a `mascotas` + `tipo_mascota_texto` fallback, ambos NULLABLE).
+  - Ficha completa visible al proveedor en su panel de solicitudes (`/proveedor` tab Solicitudes), con join a `mascotas` (nombre, tipo, raza, sexo, edad calculada, foto, condiciones médicas, trato especial).
+  - Cero regresión en solicitudes sin ficha (retrocompat total: si `mascota_id` y `tipo_mascota_texto` son null, la tarjeta no se renderiza).
+- ⏳ **Pendiente**:
+  - CRUD de mascotas en panel tutor (`/usuario/mascotas` — hoy es placeholder que va a 404; el CTA "Agregar una mascota" del modal linkea acá).
+  - Referencia compacta de la mascota en el chat — **bloqueada**: las conversaciones no se vinculan a agendamientos, así que no se puede inferir con certeza cuál mascota corresponde a un hilo (ver proyecto "Vincular conversaciones a agendamientos" abajo).
+  - Decisión pendiente: ficha obligatoria u opcional al solicitar servicio (hoy es opcional).
 
 ### Categoría: Retratos / pinturas de mascotas
 - Servicio de alto valor emocional/regalo, diferenciador.
@@ -18,6 +24,17 @@
 - Etólogo / especialista en conducta animal, distinta de adiestramiento.
 - Mismo camino de categoría nueva (`camposPorCategoria.ts` + tabla + ícono + demo).
 - Decisión pendiente: cómo diferenciarla de adiestramiento.
+
+## Proyectos estructurales
+
+### Vincular conversaciones a agendamientos
+- Hoy las conversaciones del chat son genéricas (tutor↔proveedor), sin atarse a una solicitud puntual. Eso bloquea mostrar la mascota correcta en el chat (un tutor con varias solicitudes → no se sabe cuál mascota va en el hilo).
+- Cambio: agregar `agendamiento_id` a la tabla `conversations`.
+- Habilita: chip de mascota en el chat (cierra la feature de mascotas) + modelo de chat más rico (poder mostrar contexto del agendamiento en el header del hilo).
+- Decisiones pendientes:
+  - **Modelo**: ¿un hilo por agendamiento (múltiples chats entre el mismo par tutor↔proveedor si hay varias solicitudes), o una conversación con "agendamiento activo" (un hilo persistente por par, el `agendamiento_id` apunta al más reciente)?
+  - **Migración de datos**: las conversaciones existentes en prod → ¿quedan huérfanas (`agendamiento_id = null`), se migran por heurística (el agendamiento más reciente del mismo par tutor+servicio), o se archivan?
+- Es un proyecto con schema + migración de datos + refactor del flujo de creación de conversation en `ServiceDetailView`, NO un ajuste menor.
 
 ## Deuda técnica / pulido
 
