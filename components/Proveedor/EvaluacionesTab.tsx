@@ -76,8 +76,8 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
 
                                         {/* Respuesta existente */}
                                         {ev.respuesta_proveedor && (
-                                            <div className="bg-slate-50 border-l-2 border-emerald-600 pl-4 mt-4 py-2">
-                                                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Tu respuesta</p>
+                                            <div className="bg-slate-50 border-l-2 border-accent-600 pl-4 mt-4 py-2">
+                                                <p className="text-xs font-semibold text-accent-600 uppercase tracking-widest mb-1">Tu respuesta</p>
                                                 <p className="text-sm text-slate-600">{ev.respuesta_proveedor}</p>
                                             </div>
                                         )}
@@ -93,7 +93,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                                             placeholder="Escribe tu respuesta pública..."
                                                             maxLength={300}
                                                             rows={3}
-                                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm resize-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                                         />
                                                         <div className="flex items-center justify-between mt-2">
                                                             <span className="text-xs text-slate-400">{(replyTexts[ev.id] || '').length}/300</span>
@@ -102,7 +102,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                                                 <button
                                                                     onClick={() => handleSubmitReply(ev.id)}
                                                                     disabled={!replyTexts[ev.id]?.trim() || submitting === ev.id}
-                                                                    className="flex items-center gap-1.5 text-sm font-medium tracking-wide bg-emerald-700 text-white px-4 py-1.5 rounded-lg hover:bg-emerald-800 transition-colors disabled:opacity-50"
+                                                                    className="flex items-center gap-1.5 text-sm font-medium tracking-wide bg-accent-600 text-white px-4 py-1.5 rounded-lg hover:bg-accent-700 transition-colors disabled:opacity-50"
                                                                 >
                                                                     {submitting === ev.id && <Loader2 size={12} className="animate-spin" />}
                                                                     Publicar respuesta
@@ -111,7 +111,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <button onClick={() => setOpenReply(ev.id)} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800 transition-colors">
+                                                    <button onClick={() => setOpenReply(ev.id)} className="text-sm font-semibold text-accent-700 hover:text-accent-800 transition-colors">
                                                         Responder
                                                     </button>
                                                 )}
@@ -119,7 +119,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                         )}
                                     </div>
                                     <div className="sm:w-1/4 flex flex-col justify-center sm:items-end sm:border-l sm:border-slate-100 sm:pl-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                                        {ev.estado === 'aprobado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-[#1A6B4A] rounded-full text-xs font-medium uppercase tracking-widest"><CheckCircle size={14} /> Publicada</span>}
+                                        {ev.estado === 'aprobado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent-100 text-accent-800 rounded-full text-xs font-medium uppercase tracking-widest"><CheckCircle size={14} /> Publicada</span>}
                                         {ev.estado === 'pendiente' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium uppercase tracking-widest"><Clock size={14} /> En revisión</span>}
                                         {ev.estado === 'rechazado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium uppercase tracking-widest"><XCircle size={14} /> No Publicada</span>}
                                     </div>

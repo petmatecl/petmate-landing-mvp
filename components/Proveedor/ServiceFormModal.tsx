@@ -417,7 +417,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 {comunasCobertura.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                         {comunasCobertura.slice(0, 3).map(c => (
-                            <span key={c} className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full border border-emerald-100">
+                            <span key={c} className="text-[10px] bg-accent-50 text-accent-600 px-1.5 py-0.5 rounded-full border border-accent-100">
                                 {c}
                             </span>
                         ))}
@@ -429,7 +429,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                     <div>
                         {precioDesde ? (
-                            <span className="text-emerald-700 font-semibold text-sm">
+                            <span className="text-accent-700 font-semibold text-sm">
                                 ${Number(precioDesde).toLocaleString('es-CL')}
                                 <span className="text-slate-400 font-normal text-xs ml-1">{unidadPrecio}</span>
                             </span>
@@ -460,7 +460,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                 {fetching ? (
                     <div className="p-12 flex justify-center items-center">
-                        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-accent-600 animate-spin" />
                     </div>
                 ) : (
                     <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-0 min-h-0">
@@ -475,7 +475,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         <div className="md:col-span-1">
                                             <label className="block text-sm font-medium text-slate-700 mb-1.5">Categoría</label>
                                             <select
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                                 value={categoriaId}
                                                 onChange={(e) => { setCategoriaId(e.target.value); setDetalles({}); }}
                                                 required
@@ -497,7 +497,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 maxLength={80}
                                                 required
                                                 placeholder="Ej: Hospedaje cariñoso con amplio patio"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                             />
                                             <div className="text-right text-xs text-slate-400 mt-1">{titulo.length}/80</div>
                                         </div>
@@ -514,7 +514,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             maxLength={500}
                                             rows={3}
                                             placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
-                                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                                         />
                                         <div className="text-right text-xs text-slate-400 mt-1">{descripcion.length}/500</div>
                                     </div>
@@ -538,7 +538,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioDesde(raw ? Number(raw) : ''); }}
                                                 required
                                                 placeholder="15.000"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                             />
                                         </div>
                                         <div>
@@ -552,7 +552,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 value={precioHasta ? Number(precioHasta).toLocaleString('es-CL') : ''}
                                                 onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioHasta(raw ? Number(raw) : ''); }}
                                                 placeholder="Opcional"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                             />
                                         </div>
                                         <div>
@@ -560,7 +560,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             <select
                                                 value={unidadPrecio}
                                                 onChange={e => setUnidadPrecio(e.target.value)}
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                             >
                                                 <option value="por noche">por noche</option>
                                                 <option value="por hora">por hora</option>
@@ -593,7 +593,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             onClick={() => updateDay('activo', !dayData.activo)}
                                                             className={`w-20 shrink-0 text-xs font-semibold py-1.5 rounded-lg border text-center transition-colors ${
                                                                 dayData.activo
-                                                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                                                    ? 'bg-accent-50 border-accent-600 text-accent-800'
                                                                     : 'border-slate-200 text-slate-400'
                                                             }`}
                                                         >
@@ -608,7 +608,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                     type="time"
                                                                     value={dayData.desde}
                                                                     onChange={e => updateDay('desde', e.target.value)}
-                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600" />
+                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600" />
                                                                 <span className="text-slate-400 text-xs">a</span>
                                                                 <label htmlFor={`hora-hasta-${dia}`} className="sr-only">{dia}: hora de fin</label>
                                                                 <input
@@ -617,7 +617,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                     type="time"
                                                                     value={dayData.hasta}
                                                                     onChange={e => updateDay('hasta', e.target.value)}
-                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600" />
+                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600" />
                                                             </div>
                                                         ) : (
                                                             <span className="text-xs text-slate-300">No disponible</span>
@@ -646,7 +646,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             onChange={e => setAgendamientoHabilitado(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-10 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full transition-colors" />
+                                        <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
                                         <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
                                     </div>
                                     <div className="min-w-0">
@@ -669,7 +669,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     ].map(m => (
                                         <button key={m.label} type="button" onClick={() => m.set(!m.checked)}
                                             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${m.checked
-                                                ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                                ? 'bg-accent-50 border-accent-600 text-accent-800'
                                                 : 'border-slate-200 text-slate-500 hover:border-slate-300'
                                             }`}>
                                             {m.label}
@@ -715,7 +715,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 key={c}
                                                 type="button"
                                                 onClick={() => toggleComuna(c)}
-                                                className="flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-1 rounded-full hover:bg-emerald-200 transition-colors"
+                                                className="flex items-center gap-1 bg-accent-100 text-accent-800 text-xs font-medium px-2.5 py-1 rounded-full hover:bg-accent-200 transition-colors"
                                             >
                                                 {c}
                                                 <X size={10} />
@@ -755,11 +755,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         key={c}
                                                         type="button"
                                                         onClick={() => { toggleComuna(c); setComunaSearch(''); }}
-                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${comunasCobertura.includes(c) ? 'text-emerald-700 font-semibold' : 'text-slate-700'}`}
+                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${comunasCobertura.includes(c) ? 'text-accent-700 font-semibold' : 'text-slate-700'}`}
                                                     >
                                                         {c}
                                                         {comunasCobertura.includes(c) && (
-                                                            <span className="text-emerald-500 text-xs">✓</span>
+                                                            <span className="text-accent-600 text-xs">✓</span>
                                                         )}
                                                     </button>
                                                 ))
@@ -773,14 +773,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {camposCategoria.length > 0 && (
                                 <div className="border-t border-slate-100 pt-6 pb-2">
                                     <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
-                                        <span className="text-sm font-semibold text-emerald-700">{selectedCat?.nombre?.charAt(0)}</span>
+                                        <span className="text-sm font-semibold text-accent-700">{selectedCat?.nombre?.charAt(0)}</span>
                                         Detalles de {selectedCat?.nombre}
                                     </h3>
                                     <div className="space-y-4">
                                         {camposCategoria.map(campo => (
                                             <div key={campo.key}>
                                                 {campo.tipo === 'info' ? (
-                                                    <p className="text-sm text-slate-600 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100 italic">
+                                                    <p className="text-sm text-slate-600 px-3 py-2 bg-accent-50 rounded-lg border border-accent-100 italic">
                                                         {campo.label}
                                                     </p>
                                                 ) : campo.tipo === 'boolean' ? (
@@ -792,7 +792,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 onChange={e => setDetalle(campo.key, e.target.checked)}
                                                                 className="sr-only peer"
                                                             />
-                                                            <div className="w-10 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full transition-colors" />
+                                                            <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
                                                             <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
                                                         </div>
                                                         <span className="text-sm text-slate-700">{campo.label}</span>
@@ -805,7 +805,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             name={`campo-${campo.key}`}
                                                             value={mergedDetalles[campo.key] ?? ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
-                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors"
+                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                                         >
                                                             <option value="">Seleccionar...</option>
                                                             {campo.opciones?.map(opt => (
@@ -835,7 +835,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                             onClick={() => toggle(opt.value)}
                                                                             className={
                                                                                 active
-                                                                                    ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                                                                    ? 'flex items-center gap-1.5 bg-accent-100 text-accent-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-accent-200 transition-colors'
                                                                                     : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
                                                                             }
                                                                         >
@@ -863,7 +863,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 placeholder={campo.placeholder}
                                                                 rows={3}
                                                                 maxLength={300}
-                                                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                                                             />
                                                             <p className="text-xs text-slate-400 mt-1 text-right">{valor.length} / 300</p>
                                                         </div>
@@ -881,7 +881,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 onChange={e => setDetalle(campo.key, e.target.value ? Number(e.target.value) : '')}
                                                                 placeholder={campo.placeholder}
                                                                 min={0}
-                                                                className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                                className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                                             />
                                                         </div>
                                                     </div>
@@ -896,7 +896,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             value={mergedDetalles[campo.key] ?? ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             placeholder={campo.placeholder}
-                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
                                                         />
                                                     </div>
                                                 )}
@@ -915,7 +915,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                                 {uploadingFotos && (
                                     <div className="w-full h-1 bg-slate-100 rounded-full mb-3 overflow-hidden">
-                                        <div className="h-full bg-emerald-500 animate-pulse w-2/3 rounded-full" />
+                                        <div className="h-full bg-accent-600 animate-pulse w-2/3 rounded-full" />
                                     </div>
                                 )}
 
@@ -925,7 +925,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             <img src={url} alt={"Foto " + (i + 1)} className="w-full h-full object-cover" />
 
                                             {i === 0 && (
-                                                <div className="absolute top-1.5 left-1.5 bg-emerald-700 text-white text-[10px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded-full leading-none">
+                                                <div className="absolute top-1.5 left-1.5 bg-accent-600 text-white text-[10px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded-full leading-none">
                                                     PORTADA
                                                 </div>
                                             )}
@@ -960,7 +960,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         <label className={[
                                             "rounded-xl border-2 border-dashed border-slate-300 bg-slate-50",
                                             "flex flex-col items-center justify-center cursor-pointer",
-                                            "hover:bg-slate-100 hover:border-emerald-400 transition-colors",
+                                            "hover:bg-slate-100 hover:border-accent-600 transition-colors",
                                             fotos.length === 0 ? "col-span-2 sm:col-span-4 py-10" : "aspect-square"
                                         ].join(" ")}
                                         >
@@ -986,7 +986,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 </div>
 
                                 <p className="text-xs text-slate-400 leading-relaxed">
-                                    <span className="font-semibold text-emerald-600">La primera foto es la portada</span>
+                                    <span className="font-semibold text-accent-600">La primera foto es la portada</span>
                                     {" "}y es la que aparece en el listado. Usa las flechas para reordenar. Puedes subir hasta 8 fotos (JPG, PNG, WebP, max 5MB cada una).
                                 </p>
                             </div>
@@ -1026,7 +1026,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     <button
                         onClick={handleSubmit}
                         disabled={loading || fetching || uploadingFotos}
-                        className="px-6 py-2.5 bg-emerald-700 text-white font-medium tracking-wide rounded-xl hover:bg-emerald-800 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-2.5 bg-accent-600 text-white font-medium tracking-wide rounded-xl hover:bg-accent-700 transition-colors shadow-lg shadow-accent-600/20 disabled:opacity-50 flex items-center gap-2"
                     >
                         {loading && <Loader2 size={16} className="animate-spin" />}
                         {existingServiceId ? 'Guardar Cambios' : 'Publicar Servicio'}

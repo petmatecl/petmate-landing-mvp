@@ -35,7 +35,7 @@ interface Props {
     submitLabel?: string;
 }
 
-const inputClass = "w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none";
+const inputClass = "w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none";
 
 export default function ServicioDetallesForm({
     categoria,
@@ -103,7 +103,7 @@ export default function ServicioDetallesForm({
             {visibles.map((campo) => (
                 <div key={campo.key}>
                     {campo.tipo === 'info' ? (
-                        <p className="text-sm text-slate-600 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100 italic">
+                        <p className="text-sm text-slate-600 px-3 py-2 bg-accent-50 rounded-lg border border-accent-100 italic">
                             {campo.label}
                         </p>
                     ) : (
@@ -117,13 +117,14 @@ export default function ServicioDetallesForm({
                             </label>
                             {campo.tipo === 'boolean' ? (
                                 <label className="flex items-center gap-3 cursor-pointer">
+                                    {/* accent-color nativo del checkbox; hex directo porque la utility accent-* de Tailwind colisiona con el token accent-* del sistema. Mismo tratamiento que FeedbackWidget L267 y register L573. */}
                                     <input
                                         id={`campo-${campo.key}`}
                                         name={`campo-${campo.key}`}
                                         type="checkbox"
                                         checked={!!values[campo.key]}
                                         onChange={(e) => setValor(campo.key, e.target.checked)}
-                                        className="w-5 h-5 rounded border-slate-300 accent-emerald-600"
+                                        className="w-5 h-5 rounded border-slate-300 accent-[#16A34A]"
                                     />
                                     <span className="text-sm text-slate-600">Sí</span>
                                 </label>
@@ -166,7 +167,7 @@ export default function ServicioDetallesForm({
                                                     onClick={() => toggle(op.value)}
                                                     className={
                                                         active
-                                                            ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                                            ? 'flex items-center gap-1.5 bg-accent-100 text-accent-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-accent-200 transition-colors'
                                                             : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
                                                     }
                                                 >
@@ -239,7 +240,7 @@ export default function ServicioDetallesForm({
                 <button
                     type="submit"
                     disabled={saving}
-                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 px-6 rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                    className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-6 rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
                     {saving && <Loader2 size={16} className="animate-spin" />}
                     {submitLabel}

@@ -60,7 +60,7 @@ function BioExpandible({ bio, maxChars = 280 }: { bio: string; maxChars?: number
             {needsTruncation && (
                 <button
                     onClick={() => setExpanded(v => !v)}
-                    className="mt-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors"
+                    className="mt-2 text-sm font-semibold text-accent-700 hover:text-accent-900 transition-colors"
                 >
                     {expanded ? 'Leer menos ↑' : 'Leer más ↓'}
                 </button>
@@ -205,7 +205,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {/* Volver */}
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors mb-2"
+                    className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-accent-600 transition-colors mb-2"
                 >
                     <ChevronLeft size={16} /> Volver
                 </button>
@@ -226,12 +226,12 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     <div className="p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
 
                         {/* Foto 120×120 */}
-                        <div className={`w-28 h-28 rounded-2xl shrink-0 overflow-hidden border-2 ${proveedor.rut_verificado ? 'border-emerald-400 ring-4 ring-emerald-100' : 'border-slate-200'}`}>
+                        <div className={`w-28 h-28 rounded-2xl shrink-0 overflow-hidden border-2 ${proveedor.rut_verificado ? 'border-accent-600 ring-4 ring-accent-100' : 'border-slate-200'}`}>
                             {proveedor.foto_perfil ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-700 font-semibold text-4xl">
+                                <div className="w-full h-full flex items-center justify-center bg-accent-50 text-accent-700 font-semibold text-4xl">
                                     {proveedor.nombre.charAt(0)}
                                 </div>
                             )}
@@ -244,12 +244,12 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                     {displayName}
                                 </h1>
                                 {(proveedor.rut_verificado || proveedor.verificacion_estado === 'aprobado') && (
-                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
+                                    <span className="inline-flex items-center gap-1.5 bg-accent-50 text-accent-600 text-xs font-medium px-2.5 py-1 rounded-full border border-accent-200 w-fit mx-auto sm:mx-0">
                                         <ShieldCheck size={12} /> Identidad Verificada
                                     </span>
                                 )}
                                 {proveedor.perfil_completo && (
-                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200 w-fit mx-auto sm:mx-0">
+                                    <span className="inline-flex items-center gap-1.5 bg-accent-50 text-accent-600 text-xs font-medium px-2.5 py-1 rounded-full border border-accent-200 w-fit mx-auto sm:mx-0">
                                         <BadgeCheck size={12} /> Perfil completo
                                     </span>
                                 )}
@@ -318,7 +318,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         <div className="border-t border-slate-100 px-6 md:px-8 py-3 flex flex-wrap gap-x-5 gap-y-2">
                             {proveedor.email_publico && proveedor.mostrar_email && (
                                 <a href={`mailto:${proveedor.email_publico}`}
-                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors font-medium">
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-accent-600 transition-colors font-medium">
                                     <MapPin size={15} className="hidden" /><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                                     {proveedor.email_publico}
                                 </a>
@@ -326,7 +326,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {proveedor.sitio_web && (
                                 <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
                                     onClick={handleProtectedLinkClick} target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors font-medium">
+                                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-accent-600 transition-colors font-medium">
                                     <Globe size={15} /> Sitio web
                                 </a>
                             )}
@@ -383,7 +383,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                             {proveedor.ocupacion && (
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                                    <div className="w-9 h-9 rounded-lg bg-accent-50 flex items-center justify-center shrink-0">
                                         <Briefcase size={16} className="text-slate-400" />
                                     </div>
                                     <div>
@@ -484,14 +484,14 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     per-servicio, no aca. */}
                 <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                     <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                        <ShieldCheck size={17} className="text-emerald-500" />
+                        <ShieldCheck size={17} className="text-accent-600" />
                         Credenciales
                     </h2>
                     <div className="space-y-3">
 
                         {/* Primeros auxilios: siempre visible, dos estados */}
                         {proveedor.primera_ayuda ? (
-                            <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-100">
+                            <div className="inline-flex items-center gap-1.5 bg-accent-50 text-accent-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-accent-100">
                                 <CheckCircle size={13} className="shrink-0" />
                                 Certificación en primeros auxilios para mascotas
                             </div>
@@ -505,7 +505,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         {/* Certificaciones (texto libre, opcional) */}
                         {proveedor.certificaciones && (
                             <div className="flex items-start gap-2.5 text-sm text-slate-700 pt-1">
-                                <ShieldCheck size={17} className="text-emerald-500 shrink-0 mt-0.5" />
+                                <ShieldCheck size={17} className="text-accent-600 shrink-0 mt-0.5" />
                                 <p className="leading-relaxed">{proveedor.certificaciones}</p>
                             </div>
                         )}
@@ -532,7 +532,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                                 href={cert.documento_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 shrink-0 self-center"
+                                                className="text-xs font-semibold text-accent-700 hover:text-accent-900 shrink-0 self-center"
                                             >
                                                 Ver
                                             </a>
@@ -555,7 +555,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {proveedor.idiomas.map((idioma: string) => (
                                 <span
                                     key={idioma}
-                                    className="bg-emerald-50 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full border border-emerald-100"
+                                    className="bg-accent-50 text-accent-800 text-sm font-medium px-3 py-1.5 rounded-full border border-accent-100"
                                 >
                                     {idioma}
                                 </span>

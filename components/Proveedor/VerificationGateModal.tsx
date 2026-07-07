@@ -75,7 +75,7 @@ export default function VerificationGateModal({
     } else {
         // 'sin_enviar' (default)
         icon = Shield;
-        iconColor = 'text-emerald-600 bg-emerald-50';
+        iconColor = 'text-accent-600 bg-accent-50';
         title = 'Verifica tu identidad para publicar';
         body = 'Para publicar tu primer servicio necesitas verificar tu identidad. Esto incluye tu RUT y una foto de tu carnet (frontal y dorso). Es por seguridad de la plataforma y de quienes contratan tus servicios.';
         primaryLabel = 'Verificar ahora';
@@ -137,7 +137,7 @@ export default function VerificationGateModal({
                         <button
                             ref={primaryButtonRef}
                             onClick={primaryAction}
-                            className="px-4 py-2 text-sm font-semibold text-white bg-emerald-700 rounded-xl hover:bg-emerald-800 transition-colors"
+                            className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >
                             {primaryLabel}
                         </button>

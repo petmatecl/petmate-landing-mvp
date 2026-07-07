@@ -955,7 +955,7 @@ export default function ProveedorDashboard() {
         return (
             <>
                 <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-accent-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
             </>
         );
@@ -985,8 +985,8 @@ export default function ProveedorDashboard() {
                             {/* Paso 1: Completado */}
                             <div className="relative flex items-center gap-4">
                                 <div className="absolute left-[11px] top-8 w-[2px] h-6 bg-slate-200"></div>
-                                <div className="bg-white z-10 text-emerald-500 rounded-full bg-emerald-50 w-6 h-6 flex items-center justify-center shrink-0">
-                                    <CheckCircle2 size={24} className="fill-current text-white bg-emerald-500 rounded-full border-2 border-white" />
+                                <div className="bg-white z-10 text-accent-600 rounded-full bg-accent-50 w-6 h-6 flex items-center justify-center shrink-0">
+                                    <CheckCircle2 size={24} className="fill-current text-white bg-accent-600 rounded-full border-2 border-white" />
                                 </div>
                                 <span className="text-slate-900 font-medium line-through decoration-slate-300">Solicitud recibida</span>
                             </div>
@@ -1078,7 +1078,6 @@ export default function ProveedorDashboard() {
                                 nombre={proveedor.nombre}
                                 apellidoP={proveedor.apellido_p}
                                 size="lg"
-                                bgColor="bg-emerald-600"
                             />
                             <div className="flex flex-col min-w-0">
                                 <span className="text-base font-semibold text-slate-900 truncate">
@@ -1101,12 +1100,12 @@ export default function ProveedorDashboard() {
                                 <button
                                     key={item.id}
                                     onClick={() => handleTabChange(item.id as TabType)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-emerald-50 text-[#1A6B4A] font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-accent-50 text-deep-800 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
                                     {item.icon}
                                     <span className="flex-1">{item.label}</span>
                                     {(item as any).badge > 0 && (
-                                        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-emerald-500 text-white text-[11px] font-semibold rounded-full">
+                                        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-accent-600 text-white text-[11px] font-semibold rounded-full">
                                             {(item as any).badge}
                                         </span>
                                     )}
@@ -1130,12 +1129,12 @@ export default function ProveedorDashboard() {
                         <button
                             key={item.id}
                             onClick={() => handleTabChange(item.id as TabType)}
-                            className={`flex items-center gap-2 px-4 py-3 font-semibold text-sm whitespace-nowrap snap-start border-b-2 transition-all ${activeTab === item.id ? 'border-[#1A6B4A] text-[#1A6B4A]' : 'border-transparent text-slate-500'}`}
+                            className={`flex items-center gap-2 px-4 py-3 font-semibold text-sm whitespace-nowrap snap-start border-b-2 transition-all ${activeTab === item.id ? 'border-deep-800 text-deep-800' : 'border-transparent text-slate-500'}`}
                         >
                             {item.icon}
                             {item.label}
                             {(item as any).badge > 0 && (
-                                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-emerald-500 text-white text-[10px] font-semibold rounded-full">
+                                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-accent-600 text-white text-[10px] font-semibold rounded-full">
                                     {(item as any).badge}
                                 </span>
                             )}
@@ -1168,9 +1167,9 @@ export default function ProveedorDashboard() {
 
                                 if (score >= 100) {
                                     return (
-                                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                                        <div className="bg-accent-50 border border-accent-200 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
+                                                <div className="w-10 h-10 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center shrink-0">
                                                     <CheckCircle size={24} />
                                                 </div>
                                                 <div>
@@ -1180,7 +1179,7 @@ export default function ProveedorDashboard() {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <a href={`/proveedor/${proveedor.id}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-emerald-700 font-medium text-sm bg-white border border-emerald-200 px-4 py-2 rounded-xl hover:bg-emerald-50 transition-colors inline-block text-center whitespace-nowrap w-full sm:w-auto">
+                                            <a href={`/proveedor/${proveedor.id}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-accent-700 font-medium text-sm bg-white border border-accent-200 px-4 py-2 rounded-xl hover:bg-accent-50 transition-colors inline-block text-center whitespace-nowrap w-full sm:w-auto">
                                                 Ver mi perfil público
                                             </a>
                                         </div>
@@ -1191,10 +1190,10 @@ export default function ProveedorDashboard() {
                                     <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6">
                                         <div className="flex items-center justify-between mb-3">
                                             <h3 className="font-semibold text-slate-900 text-sm">Completitud del perfil</h3>
-                                            <span className="text-sm font-semibold text-emerald-600">{score}%</span>
+                                            <span className="text-sm font-semibold text-accent-600">{score}%</span>
                                         </div>
                                         <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-emerald-700 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
+                                            <div className="h-full bg-accent-600 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
                                         </div>
                                         <div className="mt-4 space-y-2">
                                             {pendientes.map(p => (
@@ -1212,7 +1211,7 @@ export default function ProveedorDashboard() {
                                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mis Servicios</h1>
                                 <button
                                     onClick={handlePublishClick}
-                                    className="bg-[#1A6B4A] hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
+                                    className="bg-deep-800 hover:bg-deep-900 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
                                 >
                                     <span>+</span><span className="hidden sm:inline">Publicar nuevo servicio</span><span className="sm:hidden">Nuevo</span>
                                 </button>
@@ -1227,7 +1226,7 @@ export default function ProveedorDashboard() {
                                     <p className="text-slate-500 mb-6">Ofrece hospedaje, guardería, paseos o visitas para empezar a ganar clientes.</p>
                                     <button
                                         onClick={handlePublishClick}
-                                        className="bg-emerald-700 hover:bg-emerald-800 transition-colors text-white font-medium tracking-wide py-2.5 px-6 rounded-xl"
+                                        className="bg-accent-600 hover:bg-accent-700 transition-colors text-white font-medium tracking-wide py-2.5 px-6 rounded-xl"
                                     >
                                         Crear mi primer servicio
                                     </button>
@@ -1270,7 +1269,7 @@ export default function ProveedorDashboard() {
                                                             checked={servicio.activo}
                                                             onChange={() => toggleServiceStatus(servicio.id, servicio.activo)}
                                                         />
-                                                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1A6B4A] relative"></div>
+                                                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-deep-800 relative"></div>
                                                         <span className="text-sm font-medium text-slate-700">{servicio.activo ? 'Activo' : 'Pausado'}</span>
                                                     </label>
 
@@ -1283,7 +1282,7 @@ export default function ProveedorDashboard() {
                                                     </Link>
                                                     <button
                                                         onClick={() => { setEditingServiceId(servicio.id); setIsServiceModalOpen(true); }}
-                                                        className="p-2 text-emerald-600 hover:text-[#1A6B4A] hover:bg-emerald-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
+                                                        className="p-2 text-accent-600 hover:text-deep-800 hover:bg-accent-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
                                                     >
                                                         <Edit size={16} /> <span className="hidden sm:inline">Editar</span>
                                                     </button>
@@ -1328,7 +1327,7 @@ export default function ProveedorDashboard() {
                                             key={t.id}
                                             type="button"
                                             onClick={() => handlePerfilTabChange(t.id)}
-                                            className={`relative px-4 py-3 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${perfilTab === t.id ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                            className={`relative px-4 py-3 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${perfilTab === t.id ? 'border-accent-600 text-accent-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                                         >
                                             {t.label}
                                             {perfilTabErrors.has(t.id) && (
@@ -1362,7 +1361,7 @@ export default function ProveedorDashboard() {
                                                         <UserIcon size={40} />
                                                     )}
                                                 </div>
-                                                <label className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 cursor-pointer hover:text-[#1A6B4A] hover:border-[#1A6B4A] transition-colors">
+                                                <label className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 cursor-pointer hover:text-deep-800 hover:border-deep-800 transition-colors">
                                                     {uploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
                                                     <input type="file" className="hidden" accept="image/*" onChange={uploadAvatar} disabled={uploadingAvatar} />
                                                 </label>
@@ -1398,7 +1397,7 @@ export default function ProveedorDashboard() {
                                                         onChange={e => setNombrePublico(e.target.value)}
                                                         placeholder={`${proveedor.nombre} ${proveedor.apellido_p}`}
                                                         maxLength={60}
-                                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                                     />
                                                     <p className="text-[11px] text-slate-400 mt-1">Así te verán los clientes en tu perfil y servicios.</p>
                                                 </div>
@@ -1408,7 +1407,7 @@ export default function ProveedorDashboard() {
                                             <div id="verificacion-section" className="border border-slate-200 rounded-2xl overflow-hidden">
                                                 <div className="flex items-center gap-3 p-5 border-b border-slate-100 bg-slate-50/50">
                                                     {verificacionEstado === 'aprobado'
-                                                        ? <ShieldCheck size={22} className="text-emerald-500" />
+                                                        ? <ShieldCheck size={22} className="text-accent-600" />
                                                         : verificacionEstado === 'rechazado'
                                                             ? <ShieldX size={22} className="text-red-500" />
                                                             : <Shield size={22} className="text-slate-400" />
@@ -1418,7 +1417,7 @@ export default function ProveedorDashboard() {
                                                 <p className="text-xs text-slate-500 mt-0.5">Confirma tu identidad con tu RUT y una foto de tu carnet</p>
                                             </div>
                                             {verificacionEstado === 'aprobado' && (
-                                                <span className="bg-emerald-100 text-emerald-600 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full">Verificado</span>
+                                                <span className="bg-accent-100 text-accent-600 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full">Verificado</span>
                                             )}
                                             {verificacionEstado === 'pendiente' && (
                                                 <span className="bg-amber-100 text-amber-700 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1.5">
@@ -1434,11 +1433,11 @@ export default function ProveedorDashboard() {
                                         <div className="p-5">
                                             {/* ESTADO: aprobado */}
                                             {verificacionEstado === 'aprobado' && (
-                                                <div className="flex items-center gap-3 text-emerald-600">
+                                                <div className="flex items-center gap-3 text-accent-600">
                                                     <CheckCircle size={20} className="shrink-0" />
                                                     <div>
                                                         <p className="font-semibold text-sm">Identidad verificada</p>
-                                                        <p className="text-xs text-emerald-600 mt-0.5">Tu RUT <span className="font-mono font-semibold">{rutInput}</span> fue validado por el equipo de Pawnecta.</p>
+                                                        <p className="text-xs text-accent-600 mt-0.5">Tu RUT <span className="font-mono font-semibold">{rutInput}</span> fue validado por el equipo de Pawnecta.</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -1489,7 +1488,7 @@ export default function ProveedorDashboard() {
                                                             }}
                                                             placeholder="Ej: 12.345.678-9"
                                                             maxLength={12}
-                                                            className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none font-mono ${rutInputError ? 'border-red-400 focus:border-red-400 focus:ring-red-300' : 'border-slate-200 focus:border-emerald-500'
+                                                            className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 outline-none font-mono ${rutInputError ? 'border-red-400 focus:border-red-400 focus:ring-red-300' : 'border-slate-200 focus:border-accent-600'
                                                                 }`}
                                                         />
                                                         {rutInputError && <p className="text-xs text-red-500 mt-1 font-medium">{rutInputError}</p>}
@@ -1500,14 +1499,14 @@ export default function ProveedorDashboard() {
                                                             Foto del Carnet de Identidad <span className="text-red-500">*</span>
                                                             <span className="text-slate-400 font-normal ml-1">(lado con tu foto)</span>
                                                         </label>
-                                                        <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${carnetPreview ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50'
+                                                        <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${carnetPreview ? 'border-accent-600 bg-accent-50' : 'border-slate-300 hover:border-accent-600 hover:bg-accent-50'
                                                             }`}>
                                                             {carnetPreview ? (
                                                                 <div className="flex items-center gap-3">
                                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                    <img src={carnetPreview} alt="Vista previa carnet" className="h-16 w-24 object-cover rounded-lg border border-emerald-200" />
+                                                                    <img src={carnetPreview} alt="Vista previa carnet" className="h-16 w-24 object-cover rounded-lg border border-accent-200" />
                                                                     <div>
-                                                                        <p className="text-sm font-semibold text-emerald-600">Foto lista</p>
+                                                                        <p className="text-sm font-semibold text-accent-600">Foto lista</p>
                                                                         <p className="text-xs text-slate-500">{carnetFile?.name}</p>
                                                                     </div>
                                                                 </div>
@@ -1527,14 +1526,14 @@ export default function ProveedorDashboard() {
                                                             Dorso del Carnet <span className="text-red-500">*</span>
                                                             <span className="text-slate-400 font-normal ml-1">(lado trasero)</span>
                                                         </label>
-                                                        <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${carnetDorsoPreview ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50'
+                                                        <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${carnetDorsoPreview ? 'border-accent-600 bg-accent-50' : 'border-slate-300 hover:border-accent-600 hover:bg-accent-50'
                                                             }`}>
                                                             {carnetDorsoPreview ? (
                                                                 <div className="flex items-center gap-3">
                                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                    <img src={carnetDorsoPreview} alt="Vista previa dorso" className="h-16 w-24 object-cover rounded-lg border border-emerald-200" />
+                                                                    <img src={carnetDorsoPreview} alt="Vista previa dorso" className="h-16 w-24 object-cover rounded-lg border border-accent-200" />
                                                                     <div>
-                                                                        <p className="text-sm font-semibold text-emerald-600">Foto lista</p>
+                                                                        <p className="text-sm font-semibold text-accent-600">Foto lista</p>
                                                                         <p className="text-xs text-slate-500">{carnetDorsoFile?.name}</p>
                                                                     </div>
                                                                 </div>
@@ -1555,7 +1554,7 @@ export default function ProveedorDashboard() {
                                                     </div>
 
                                                     <button type="button" onClick={handleEnviarVerificacion} disabled={uploadingCarnet}
-                                                        className="w-full py-3 bg-[#1A6B4A] hover:bg-emerald-800 text-white font-medium tracking-wide rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60">
+                                                        className="w-full py-3 bg-deep-800 hover:bg-deep-900 text-white font-medium tracking-wide rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60">
                                                         {uploadingCarnet ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
                                                         {uploadingCarnet ? 'Enviando...' : 'Enviar para verificación'}
                                                     </button>
@@ -1570,7 +1569,7 @@ export default function ProveedorDashboard() {
                                         <button type="button"
                                             onClick={() => setTipoEntidad("persona_natural")}
                                             className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
-                                                ? "border-emerald-500 bg-emerald-50"
+                                                ? "border-accent-600 bg-accent-50"
                                                 : "border-slate-200 hover:border-slate-300"
                                                 }`}
                                         >
@@ -1579,7 +1578,7 @@ export default function ProveedorDashboard() {
                                         <button type="button"
                                             onClick={() => setTipoEntidad("empresa")}
                                             className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
-                                                ? "border-emerald-500 bg-emerald-50"
+                                                ? "border-accent-600 bg-accent-50"
                                                 : "border-slate-200 hover:border-slate-300"
                                                 }`}
                                         >
@@ -1631,7 +1630,7 @@ export default function ProveedorDashboard() {
                                                     value={ocupacion}
                                                     onChange={e => setOcupacion(e.target.value)}
                                                     placeholder="Ej: Veterinaria, Paseadora, Bióloga..."
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                                 />
                                             </div>
                                             <div>
@@ -1639,7 +1638,7 @@ export default function ProveedorDashboard() {
                                                 <select
                                                     value={genero}
                                                     onChange={e => setGenero(e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                                 >
                                                     <option value="">Prefiero no indicar</option>
                                                     <option value="mujer">Mujer</option>
@@ -1660,7 +1659,7 @@ export default function ProveedorDashboard() {
                                             value={bio} onChange={e => setBio(e.target.value)}
                                             rows={6} maxLength={1000}
                                             placeholder="Cuéntale a los clientes sobre tu experiencia y amor por las mascotas..."
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none resize-none"
                                         />
                                         <div className="text-right text-xs text-slate-400 mt-1">{bio?.length || 0}/1000</div>
                                     </div>
@@ -1677,7 +1676,7 @@ export default function ProveedorDashboard() {
                                             onFocus={() => setComunaOpen(true)}
                                             onBlur={() => setTimeout(() => setComunaOpen(false), 150)}
                                             placeholder="Escribe tu comuna..."
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                         />
                                         {comunaOpen && comuna && (
                                             <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
@@ -1685,7 +1684,7 @@ export default function ProveedorDashboard() {
                                                     <li key={c}>
                                                         <button
                                                             type="button"
-                                                            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                                                            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-accent-50 hover:text-accent-600 transition-colors"
                                                             onMouseDown={() => { setComuna(c); setComunaOpen(false); }}
                                                         >
                                                             {c}
@@ -1729,7 +1728,7 @@ export default function ProveedorDashboard() {
                                                     onClick={() => setIdiomas(prev => activo ? prev.filter(i => i !== idioma) : [...prev, idioma])}
                                                     className={
                                                         activo
-                                                            ? 'flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors'
+                                                            ? 'flex items-center gap-1.5 bg-accent-100 text-accent-800 text-sm font-medium px-3 py-1.5 rounded-full hover:bg-accent-200 transition-colors'
                                                             : 'flex items-center gap-1.5 bg-slate-50 text-slate-600 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors'
                                                     }
                                                 >
@@ -1762,7 +1761,7 @@ export default function ProveedorDashboard() {
                                     </div>
                                     <div className="mt-4">
                                         <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 border border-slate-200 rounded-xl w-fit">
-                                            <input type="checkbox" checked={primeraAyuda} onChange={e => setPrimeraAyuda(e.target.checked)} className="w-5 h-5 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500" />
+                                            <input type="checkbox" checked={primeraAyuda} onChange={e => setPrimeraAyuda(e.target.checked)} className="w-5 h-5 rounded text-accent-700 border-slate-300 focus:ring-accent-600" />
                                             <div>
                                                 <span className="text-sm font-semibold text-slate-700 block">Primeros auxilios para mascotas</span>
                                                 <span className="text-xs text-slate-500 block">Tengo conocimientos en primeros auxilios veterinarios</span>
@@ -1798,11 +1797,11 @@ export default function ProveedorDashboard() {
                                                         </button>
                                                     </div>
                                                     <div className="flex justify-between items-center bg-white/90 rounded-lg p-1">
-                                                        <button type="button" disabled={idx === 0} onClick={() => moveGaleriaFoto(idx, 'left')} className="p-1 disabled:opacity-30 hover:text-[#1A6B4A]">
+                                                        <button type="button" disabled={idx === 0} onClick={() => moveGaleriaFoto(idx, 'left')} className="p-1 disabled:opacity-30 hover:text-deep-800">
                                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                                                         </button>
-                                                        {idx === 0 && <span className="text-[10px] font-medium uppercase tracking-widest text-[#1A6B4A]">PORTADA</span>}
-                                                        <button type="button" disabled={idx === galeria.length - 1} onClick={() => moveGaleriaFoto(idx, 'right')} className="p-1 disabled:opacity-30 hover:text-[#1A6B4A]">
+                                                        {idx === 0 && <span className="text-[10px] font-medium uppercase tracking-widest text-deep-800">PORTADA</span>}
+                                                        <button type="button" disabled={idx === galeria.length - 1} onClick={() => moveGaleriaFoto(idx, 'right')} className="p-1 disabled:opacity-30 hover:text-deep-800">
                                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                                                         </button>
                                                     </div>
@@ -1811,7 +1810,7 @@ export default function ProveedorDashboard() {
                                         ))}
 
                                         {galeria.length < 8 && (
-                                            <label className="aspect-square bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#1A6B4A] hover:bg-emerald-50 transition-colors text-slate-500 hover:text-[#1A6B4A]">
+                                            <label className="aspect-square bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-deep-800 hover:bg-accent-50 transition-colors text-slate-500 hover:text-deep-800">
                                                 {uploadingGaleria ? (
                                                     <Loader2 className="w-8 h-8 animate-spin" />
                                                 ) : (
@@ -1915,7 +1914,7 @@ export default function ProveedorDashboard() {
                                                 <input id="whatsapp" name="whatsapp" autoComplete="tel" type="text" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+56912345678" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <label className="flex items-center gap-3 cursor-pointer">
-                                                <input type="checkbox" checked={mostrarWhatsapp} onChange={e => setMostrarWhatsapp(e.target.checked)} className="w-5 h-5 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500" />
+                                                <input type="checkbox" checked={mostrarWhatsapp} onChange={e => setMostrarWhatsapp(e.target.checked)} className="w-5 h-5 rounded text-accent-700 border-slate-300 focus:ring-accent-600" />
                                                 <span className="text-sm font-semibold text-slate-700">Mostrar botón de WhatsApp público</span>
                                             </label>
                                         </div>
@@ -1925,7 +1924,7 @@ export default function ProveedorDashboard() {
                                                 <input id="telefono" name="telefono" autoComplete="tel" type="text" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56912345678" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" />
                                             </div>
                                             <label className="flex items-center gap-3 cursor-pointer">
-                                                <input type="checkbox" checked={mostrarTelefono} onChange={e => setMostrarTelefono(e.target.checked)} className="w-5 h-5 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500" />
+                                                <input type="checkbox" checked={mostrarTelefono} onChange={e => setMostrarTelefono(e.target.checked)} className="w-5 h-5 rounded text-accent-700 border-slate-300 focus:ring-accent-600" />
                                                 <span className="text-sm font-semibold text-slate-700">Mostrar botón Llamar Teléfono</span>
                                             </label>
                                         </div>
@@ -1946,7 +1945,7 @@ export default function ProveedorDashboard() {
                                             type="submit"
                                             form="perfil-form"
                                             disabled={savingProfile}
-                                            className="bg-[#1A6B4A] text-white font-medium tracking-wide py-3 px-6 sm:px-8 rounded-xl hover:bg-emerald-800 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                            className="bg-deep-800 text-white font-medium tracking-wide py-3 px-6 sm:px-8 rounded-xl hover:bg-accent-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
                                         >
                                             {savingProfile && <Loader2 size={18} className="animate-spin" />}
                                             Guardar Cambios
@@ -1978,7 +1977,7 @@ export default function ProveedorDashboard() {
                                         </p>
                                         <button
                                             onClick={() => handleTabChange('servicios')}
-                                            className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2.5 px-6 rounded-lg transition-colors shadow-sm"
+                                            className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-6 rounded-lg transition-colors shadow-sm"
                                         >
                                             Ir a Mis Servicios
                                         </button>
@@ -2033,7 +2032,7 @@ export default function ProveedorDashboard() {
                                                         </div>
                                                         <p className="text-sm font-semibold text-slate-900 truncate">{servicio.titulo}</p>
                                                     </div>
-                                                    <Edit size={16} className={`shrink-0 transition-transform ${isExpanded ? 'rotate-90 text-emerald-700' : 'text-slate-400'}`} />
+                                                    <Edit size={16} className={`shrink-0 transition-transform ${isExpanded ? 'rotate-90 text-accent-700' : 'text-slate-400'}`} />
                                                 </button>
                                                 {isExpanded && (
                                                     <div className="px-5 sm:px-6 pb-6 pt-2 border-t border-slate-100">
@@ -2101,9 +2100,10 @@ export default function ProveedorDashboard() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* STAT 1: Vistas */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
+                                    <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl mb-1">{stats.vistas}</h3>
                                     <p className="text-slate-600 text-sm font-medium mb-1">Vistas de Perfil (7 días)</p>
+                                    {/* emerald semantico intencional: par verde/rojo (positivo/negativo), NO es acento de marca. Candidato a token success futuro. NO migrar sin migrar tambien el rojo. */}
                                     {stats.vistasTrend && (
                                         <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                             {stats.vistasTrend}
@@ -2113,7 +2113,7 @@ export default function ProveedorDashboard() {
 
                                 {/* STAT 2: Conversaciones */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><MessageSquare size={20} /></div>
+                                    <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3"><MessageSquare size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl mb-1">{stats.consultas}</h3>
                                     <p className="text-slate-600 text-sm font-medium">Nuevos mensajes (30 días)</p>
                                 </div>
@@ -2129,7 +2129,7 @@ export default function ProveedorDashboard() {
 
                                 {/* STAT: Contactos totales */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3">
+                                    <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                     </div>
                                     <h3 className="text-slate-900 text-3xl mb-1">{stats.contactosTotal}</h3>
@@ -2139,7 +2139,7 @@ export default function ProveedorDashboard() {
 
                                 {/* STAT 4: Tasa de Conversión */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3">
+                                    <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                                     </div>
                                     <h3 className="text-slate-900 text-3xl mb-1">{stats.conversionRate}</h3>
@@ -2151,7 +2151,7 @@ export default function ProveedorDashboard() {
 
                                 {/* STAT 5: Rating */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
-                                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3"><Star size={20} /></div>
+                                    <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3"><Star size={20} /></div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <h3 className="text-slate-900 text-3xl">{stats.ratingAvg}</h3>
                                         <div className="flex text-amber-400">
@@ -2229,7 +2229,7 @@ export default function ProveedorDashboard() {
                                         const estadoBadge = (() => {
                                             switch (sol.estado) {
                                                 case 'confirmada':
-                                                    return <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
+                                                    return <span className="inline-flex items-center gap-1 bg-accent-50 text-accent-700 border border-accent-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
                                                 case 'rechazada':
                                                     return <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
                                                 case 'cancelada':
@@ -2248,7 +2248,7 @@ export default function ProveedorDashboard() {
                                                 {/* Header: tutor + servicio + estado */}
                                                 <div className="flex items-start justify-between gap-3 mb-4">
                                                     <div className="flex items-center gap-3 min-w-0">
-                                                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-semibold text-sm shrink-0">
+                                                        <div className="w-10 h-10 rounded-full bg-accent-50 text-accent-700 flex items-center justify-center font-semibold text-sm shrink-0">
                                                             {tutorIniciales}
                                                         </div>
                                                         <div className="min-w-0">
@@ -2300,8 +2300,8 @@ export default function ProveedorDashboard() {
 
                                                 {/* Respuesta del proveedor (estados ya resueltos) */}
                                                 {!isPendiente && !isCancelada && (sol.nota_proveedor || respondidoAt) && (
-                                                    <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100 mb-3">
-                                                        <p className="text-[11px] uppercase tracking-widest text-emerald-700 font-medium mb-1">
+                                                    <div className="bg-accent-50/50 rounded-xl p-3 border border-accent-100 mb-3">
+                                                        <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium mb-1">
                                                             Tu respuesta{respondidoAt ? ` · ${respondidoAt}` : ''}
                                                         </p>
                                                         {sol.nota_proveedor
@@ -2320,7 +2320,7 @@ export default function ProveedorDashboard() {
                                                             rows={2}
                                                             maxLength={500}
                                                             disabled={isLoading}
-                                                            className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:bg-white transition-colors resize-none disabled:opacity-60"
+                                                            className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors resize-none disabled:opacity-60"
                                                         />
                                                         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                                                             <button
@@ -2335,7 +2335,7 @@ export default function ProveedorDashboard() {
                                                                 type="button"
                                                                 onClick={() => handleResponderSolicitud(sol.id, 'confirmada')}
                                                                 disabled={isLoading}
-                                                                className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide py-2 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                                                                className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                                                             >
                                                                 {isLoading && <Loader2 size={14} className="animate-spin" />}
                                                                 Confirmar
