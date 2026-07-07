@@ -57,7 +57,7 @@ interface Props {
     card?: boolean;
 }
 
-// ─── Icon mapping (matches CategoryChips.tsx) ─────────────────────────────────
+// ─── Icon mapping ─────────────────────────────────────────────────────────────
 
 const SLUG_ICONS: Record<string, LucideIcon> = {
     cuidado: Home,
