@@ -76,7 +76,7 @@ function ExpandibleText({ text, maxChars = 400 }: { text: string; maxChars?: num
     const shown = expanded || !needsToggle ? text : text.slice(0, maxChars).trimEnd() + '…';
     return (
         <div>
-            <div className="prose prose-slate prose-emerald max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
+            <div className="max-w-none break-words whitespace-pre-wrap text-slate-600 leading-relaxed">
                 {shown}
             </div>
             {needsToggle && (
