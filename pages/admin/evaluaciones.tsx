@@ -177,14 +177,22 @@ function GestionEvaluaciones() {
         );
     };
 
-    // T1 — semantica de estado intencional: triada aprobado-emerald / pendiente-amber / rechazado-red.
-    // Reservado para sprint de tokens semanticos (success/danger/warning). NO migrar el emerald aislado —
-    // rompe el sistema visual de moderacion (deja triada mestiza accent + amber viejo + red viejo).
+    // T1 — badge de estado de moderacion migrado a tokens semanticos:
+    //   warning = pendiente     (amber default de Tailwind)
+    //   success = aprobado      (emerald default de Tailwind)
+    //   danger  = rechazado     (red default de Tailwind)
+    // Piloto del sprint de tokens semanticos (ver tailwind.config.js). Los aliases
+    // apuntan al mismo hex que sus escalas Tailwind → cero cambio visual, solo
+    // renombra por significado en vez de por color. El resto de admin sigue en
+    // emerald/red/amber literal (par aprobar/rechazar de acciones L369, stat cards
+    // amber L219, otras triadas de proveedores.tsx) hasta que se barra en commits
+    // siguientes. Default (estado desconocido) queda en slate — "sin color", no
+    // es semantico de estado.
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
-            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/50 text-emerald-600 border border-emerald-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
-            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
-            case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><XCircle size={12} /> Rechazado</span>;
+            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-success-100/50 text-success-600 border border-success-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
+            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-warning-100 text-warning-700 border border-warning-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
+            case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-danger-50 text-danger-600 border border-danger-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><XCircle size={12} /> Rechazado</span>;
             default: return <span className="bg-slate-100 text-slate-500 px-2 py-1 rounded text-[10px]">{estado}</span>;
         }
     };
