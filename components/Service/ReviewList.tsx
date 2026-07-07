@@ -135,7 +135,7 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
                                     </div>
                                     <button
                                         onClick={() => setReportTarget(review.id)}
-                                        className="text-slate-400 hover:text-red-500 transition-colors"
+                                        className="text-slate-400 hover:text-danger-500 transition-colors"
                                         aria-label="Reportar evaluación"
                                         title="Reportar"
                                     >

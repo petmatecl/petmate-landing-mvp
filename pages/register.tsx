@@ -278,7 +278,7 @@ export default function RegisterWizard() {
 
           <div className="p-6 sm:px-10 sm:py-8">
             {error && (
-              <div ref={errorRef} className="p-4 mb-6 text-sm text-red-700 bg-red-50 rounded-xl border border-red-100">
+              <div ref={errorRef} className="p-4 mb-6 text-sm text-danger-700 bg-danger-50 rounded-xl border border-danger-100">
                 {error}
               </div>
             )}
@@ -449,7 +449,7 @@ export default function RegisterWizard() {
                         }}
                         required
                         minLength={8}
-                        className={`${inputClass} pr-12 ${passwordConfirmError ? 'border-red-400 focus:ring-red-400 focus:border-red-400' : ''}`}
+                        className={`${inputClass} pr-12 ${passwordConfirmError ? 'border-danger-400 focus:ring-danger-400 focus:border-danger-400' : ''}`}
                       />
                       <button
                         type="button"
@@ -461,7 +461,7 @@ export default function RegisterWizard() {
                       </button>
                     </div>
                     {passwordConfirmError && (
-                      <p className="text-xs text-red-600 mt-1 font-medium">{passwordConfirmError}</p>
+                      <p className="text-xs text-danger-600 mt-1 font-medium">{passwordConfirmError}</p>
                     )}
                   </div>
                 </div>

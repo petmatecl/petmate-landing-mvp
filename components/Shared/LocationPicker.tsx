@@ -206,7 +206,7 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
                         // del click cycle ya corrio.
                         setTimeout(() => onChange(null, null), 0);
                     }}
-                    className="text-xs font-medium text-slate-500 hover:text-red-600 transition-colors underline-offset-2 hover:underline"
+                    className="text-xs font-medium text-slate-500 hover:text-danger-600 transition-colors underline-offset-2 hover:underline"
                 >
                     Quitar ubicación
                 </button>

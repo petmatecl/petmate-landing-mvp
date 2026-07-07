@@ -144,6 +144,10 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                 {cards.map((card) => {
                     const Icon = card.icon;
                     const isClickable = !!card.tab;
+                    // card.urgent → token warning. Chip literal "Requiere acción"
+                    // encaja exacto en la semántica warning (alerta pendiente reversible,
+                    // no error terminal). Amber→warning es mapeo 1:1 por shade, cero
+                    // cambio visual.
                     return (
                         <button
                             key={card.label}
@@ -151,19 +155,19 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                             disabled={!isClickable}
                             className={`text-left p-5 rounded-xl border transition-all ${
                                 card.urgent
-                                    ? 'bg-white border-amber-200 hover:border-amber-300'
+                                    ? 'bg-white border-warning-200 hover:border-warning-300'
                                     : 'bg-white border-slate-200 hover:border-slate-300'
                             } ${isClickable ? 'cursor-pointer hover:shadow-sm' : 'cursor-default'}`}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <Icon size={18} className={card.urgent ? 'text-amber-500' : 'text-slate-400'} />
+                                <Icon size={18} className={card.urgent ? 'text-warning-500' : 'text-slate-400'} />
                                 {card.urgent && (
-                                    <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                                    <span className="text-[10px] font-semibold text-warning-600 bg-warning-50 px-2 py-0.5 rounded-full">
                                         Requiere acción
                                     </span>
                                 )}
                             </div>
-                            <p className={`text-3xl font-bold tracking-tight ${card.urgent ? 'text-amber-600' : 'text-slate-900'}`}>
+                            <p className={`text-3xl font-bold tracking-tight ${card.urgent ? 'text-warning-600' : 'text-slate-900'}`}>
                                 {card.value}
                             </p>
                             <p className="text-xs text-slate-500 mt-1 font-medium">{card.label}</p>

@@ -141,7 +141,7 @@ export default function LoginPage() {
 
           {/* Banner cuando OAuth registro falló y se hizo rollback de la sesión */}
           {registroFallido && (
-            <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+            <div className="mb-5 px-4 py-3 bg-danger-50 border border-danger-200 rounded-xl text-sm text-danger-800">
               Hubo un problema al completar tu registro. Por favor intentá de nuevo.
             </div>
           )}
@@ -154,7 +154,7 @@ export default function LoginPage() {
 
             {/* Config warning */}
             {process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder") && (
-              <div className="bg-amber-50 text-amber-800 p-4 rounded-xl mb-5 text-sm border border-amber-200">
+              <div className="bg-warning-50 text-warning-800 p-4 rounded-xl mb-5 text-sm border border-warning-200">
                 Advertencia: la base de datos no está configurada. Faltan variables de entorno de Supabase.
               </div>
             )}
@@ -213,7 +213,7 @@ export default function LoginPage() {
 
               {/* Error */}
               {error && (
-                <p className="text-sm text-red-600 -mt-1" role="alert" aria-live="polite">
+                <p className="text-sm text-danger-600 -mt-1" role="alert" aria-live="polite">
                   {error}
                 </p>
               )}

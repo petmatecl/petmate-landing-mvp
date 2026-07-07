@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                                 className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                             />
                             {loginError && (
-                                <p className="text-red-500 text-sm text-center">{loginError}</p>
+                                <p className="text-danger-500 text-sm text-center">{loginError}</p>
                             )}
                             <button
                                 type="submit"

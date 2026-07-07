@@ -108,8 +108,8 @@ export default function ResetPasswordPage() {
                         {linkError ? (
                             /* Estado: link expirado */
                             <div className="text-center">
-                                <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Lock size={24} className="text-red-400" />
+                                <div className="w-14 h-14 bg-danger-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Lock size={24} className="text-danger-400" />
                                 </div>
                                 <h1 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Enlace expirado</h1>
                                 <p className="text-sm text-slate-500 mb-6">{linkError}</p>
@@ -178,8 +178,8 @@ export default function ResetPasswordPage() {
                                     {message && (
                                         <div
                                             className={`p-4 rounded-lg text-sm font-medium border ${message.type === "error"
-                                                    ? "bg-red-50 text-red-700 border-red-200"
-                                                    : "bg-accent-50 text-accent-800 border-accent-200"
+                                                    ? "bg-danger-50 text-danger-700 border-danger-200"
+                                                    : "bg-success-50 text-success-800 border-success-200"
                                                 }`}
                                             role="alert"
                                         >

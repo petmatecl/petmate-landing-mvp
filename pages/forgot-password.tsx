@@ -104,8 +104,8 @@ export default function ForgotPasswordPage() {
               {message && (
                 <div
                   className={`p-4 rounded-lg text-sm font-medium border ${message.type === "error"
-                      ? "bg-red-50 text-red-700 border-red-200"
-                      : "bg-accent-50 text-accent-800 border-accent-200"
+                      ? "bg-danger-50 text-danger-700 border-danger-200"
+                      : "bg-success-50 text-success-800 border-success-200"
                     }`}
                   role="alert"
                 >

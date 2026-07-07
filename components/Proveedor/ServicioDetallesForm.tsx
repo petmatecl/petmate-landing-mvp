@@ -58,7 +58,7 @@ export default function ServicioDetallesForm({
 
     if (campos.length === 0) {
         return (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+            <div className="bg-warning-50 border border-warning-200 rounded-xl p-4 text-sm text-warning-800">
                 No hay campos específicos definidos para la categoría &quot;{categoria}&quot;.
             </div>
         );
@@ -231,7 +231,7 @@ export default function ServicioDetallesForm({
             ))}
 
             {error && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700">
+                <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
                     {error}
                 </div>
             )}

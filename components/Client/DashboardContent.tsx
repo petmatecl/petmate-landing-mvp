@@ -289,14 +289,14 @@ export default function DashboardContent() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {pendingReviews.map(item => (
-                                <div key={item.servicio_id} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col gap-3">
+                                <div key={item.servicio_id} className="bg-warning-50 border border-warning-200 rounded-2xl p-4 flex flex-col gap-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-xl bg-amber-100 overflow-hidden shrink-0">
+                                        <div className="w-12 h-12 rounded-xl bg-warning-100 overflow-hidden shrink-0">
                                             {item.foto ? (
                                                 // eslint-disable-next-line @next/next/no-img-element
                                                 <img src={item.foto} alt={item.titulo} className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-amber-400">
+                                                <div className="w-full h-full flex items-center justify-center text-warning-400">
                                                     <Star size={20} />
                                                 </div>
                                             )}
@@ -308,7 +308,7 @@ export default function DashboardContent() {
                                     </div>
                                     <button
                                         onClick={() => setReviewingId(item.servicio_id)}
-                                        className="w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium tracking-wide py-2 rounded-xl transition-colors"
+                                        className="w-full flex items-center justify-center gap-1.5 bg-warning-500 hover:bg-warning-600 text-white text-sm font-medium tracking-wide py-2 rounded-xl transition-colors"
                                     >
                                         <Star size={14} />
                                         Dejar reseña

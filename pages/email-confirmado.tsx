@@ -241,8 +241,8 @@ export default function EmailConfirmadoPage() {
 
                 {registrationConflict ? (
                     <Card padding="l" className="w-full max-w-[520px] text-center relative pointer-events-auto">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-amber-500 rounded-t-2xl" />
-                        <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-amber-100 text-amber-600 text-4xl shadow-sm">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-warning-500 rounded-t-2xl" />
+                        <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-warning-100 text-warning-600 text-4xl shadow-sm">
                             ⚠️
                         </div>
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight m-0 mb-2">

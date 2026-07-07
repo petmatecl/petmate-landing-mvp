@@ -29,7 +29,8 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 max-w-md w-full text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              {/* stroke #dc2626 = red-600 = danger-600 (mismo hex, danger apunta a red) */}
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />

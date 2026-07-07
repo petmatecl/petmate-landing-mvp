@@ -80,8 +80,11 @@ export default function UnreadBadge({ userId, className }: Props) {
 
     if (count === 0) return null;
 
+    // danger token por unificación de paleta del rojo de UI. Semánticamente
+    // es indicador de NO-LEÍDO (notificación), no error/peligro. Si a futuro
+    // se quiere separar, crear token 'notification' en tailwind.config.js.
     return (
-        <span className={`bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center rounded-full ${className || ''}`}>
+        <span className={`bg-danger-500 text-white text-[10px] font-semibold flex items-center justify-center rounded-full ${className || ''}`}>
             {count > 9 ? '9+' : count}
         </span>
     );

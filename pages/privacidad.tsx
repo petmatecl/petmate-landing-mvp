@@ -55,7 +55,7 @@ export default function PrivacidadPage() {
                                     <li><strong className="text-slate-800">Comunicaciones:</strong> mensajes e información intercambiada entre usuarios a través del Sitio.</li>
                                     <li><strong className="text-slate-800">Datos técnicos:</strong> IP, fecha/hora de acceso, identificadores del navegador/dispositivo, logs, cookies y tecnologías similares (seguridad, métricas y funcionamiento).</li>
                                 </ul>
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-amber-800 text-base">
+                                <div className="bg-warning-50 p-4 rounded-xl border border-warning-100 text-warning-800 text-base">
                                     <strong>Recomendación:</strong> Comparte solo lo estrictamente necesario. La documentación de seguridad se solicita con fines de verificación y no debe incluir información adicional innecesaria.
                                 </div>
                             </div>

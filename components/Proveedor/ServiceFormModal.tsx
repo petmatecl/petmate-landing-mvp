@@ -948,7 +948,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     )}
                                                 </div>
                                                 <button type="button" onClick={() => removeFoto(url)}
-                                                    className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors"
+                                                    className="bg-danger-500 hover:bg-danger-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors"
                                                     title="Eliminar foto">
                                                     <X size={12} />
                                                 </button>

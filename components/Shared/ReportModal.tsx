@@ -76,8 +76,8 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                 ) : (
                     <form onSubmit={handleSubmit}>
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                                <Flag size={18} className="text-red-500" />
+                            <div className="w-10 h-10 bg-danger-50 rounded-xl flex items-center justify-center">
+                                <Flag size={18} className="text-danger-500" />
                             </div>
                             <h3 className="text-lg font-semibold text-slate-900 tracking-tight">Reportar contenido</h3>
                         </div>
@@ -120,7 +120,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                                className="flex-1 bg-danger-500 hover:bg-danger-600 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                             >
                                 {loading && <Loader2 size={14} className="animate-spin" />}
                                 Enviar reporte

@@ -251,7 +251,7 @@ export default function FeedbackWidget() {
                                     className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none resize-none placeholder:text-slate-400"
                                 />
                                 <div className="flex justify-end mt-1">
-                                    <span className={`text-[10px] ${mensaje.length > 2000 || (mensaje.length > 0 && mensaje.length < 10) ? 'text-red-500' : 'text-slate-400'}`}>
+                                    <span className={`text-[10px] ${mensaje.length > 2000 || (mensaje.length > 0 && mensaje.length < 10) ? 'text-danger-500' : 'text-slate-400'}`}>
                                         {mensaje.length}/2000 (mín 10)
                                     </span>
                                 </div>
@@ -273,7 +273,7 @@ export default function FeedbackWidget() {
 
                             {/* Error */}
                             {error && (
-                                <div role="alert" aria-live="polite" className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                                <div role="alert" aria-live="polite" className="flex items-start gap-2 text-xs text-danger-600 bg-danger-50 border border-danger-100 rounded-lg px-3 py-2">
                                     <AlertCircle size={14} className="shrink-0 mt-0.5" aria-hidden="true" />
                                     <span>
                                         {rateLimitSeconds > 0

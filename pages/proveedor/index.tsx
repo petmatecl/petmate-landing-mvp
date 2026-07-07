@@ -1493,10 +1493,10 @@ export default function ProveedorDashboard() {
                                                             }}
                                                             placeholder="Ej: 12.345.678-9"
                                                             maxLength={12}
-                                                            className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 outline-none font-mono ${rutInputError ? 'border-red-400 focus:border-red-400 focus:ring-red-300' : 'border-slate-200 focus:border-accent-600'
+                                                            className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 outline-none font-mono ${rutInputError ? 'border-danger-400 focus:border-danger-400 focus:ring-danger-300' : 'border-slate-200 focus:border-accent-600'
                                                                 }`}
                                                         />
-                                                        {rutInputError && <p className="text-xs text-red-500 mt-1 font-medium">{rutInputError}</p>}
+                                                        {rutInputError && <p className="text-xs text-danger-500 mt-1 font-medium">{rutInputError}</p>}
                                                     </div>
 
                                                     <div>

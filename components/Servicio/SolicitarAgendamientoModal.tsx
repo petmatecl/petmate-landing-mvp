@@ -664,7 +664,7 @@ export default function SolicitarAgendamientoModal({
                     </div>
 
                     {errorMsg && (
-                        <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700">
+                        <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
                             {errorMsg}
                         </div>
                     )}

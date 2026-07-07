@@ -209,7 +209,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                         <label htmlFor="comentario" className="block text-sm font-semibold text-slate-700">
                             Cuéntanos tu experiencia <span className="text-red-500">*</span>
                         </label>
-                        <span className={`text-xs font-semibold ${comentario.length > 500 || (comentario.length > 0 && comentario.length < 20) ? 'text-red-500' : 'text-slate-400'}`}>
+                        <span className={`text-xs font-semibold ${comentario.length > 500 || (comentario.length > 0 && comentario.length < 20) ? 'text-danger-500' : 'text-slate-400'}`}>
                             {comentario.length}/500
                         </span>
                     </div>
@@ -219,7 +219,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                         placeholder="Cuenta tu experiencia con este proveedor..."
                         value={comentario}
                         onChange={(e) => setComentario(e.target.value)}
-                        className={`w-full bg-slate-50 border rounded-xl p-4 text-sm focus:outline-none focus:ring-2 transition-all resize-none ${comentario.length > 500 ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-accent-600/20 focus:border-accent-600'
+                        className={`w-full bg-slate-50 border rounded-xl p-4 text-sm focus:outline-none focus:ring-2 transition-all resize-none ${comentario.length > 500 ? 'border-danger-300 focus:ring-danger-200' : 'border-slate-200 focus:ring-accent-600/20 focus:border-accent-600'
                             }`}
                         disabled={isSubmitting}
                     />
@@ -228,7 +228,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
 
                 {/* 3. Error state local */}
                 {errorMsg && (
-                    <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
+                    <div className="flex items-start gap-2 text-sm text-danger-600 bg-danger-50 p-3 rounded-lg border border-danger-100">
                         <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <p>{errorMsg}</p>
                     </div>
