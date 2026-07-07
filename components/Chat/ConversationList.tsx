@@ -176,7 +176,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                     <button
                         key={conv.id}
                         onClick={() => onSelect(conv.id)}
-                        className={`flex items-center gap-3 p-4 border-b border-slate-50 transition-colors text-left hover:bg-slate-50 ${isActive ? 'bg-emerald-50/50 border-emerald-100' : ''}`}
+                        className={`flex items-center gap-3 p-4 border-b border-slate-50 transition-colors text-left hover:bg-slate-50 ${isActive ? 'bg-accent-50/50 border-accent-100' : ''}`}
                     >
                         {/* Avatar */}
                         <div className="relative">
@@ -199,7 +199,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline mb-0.5">
-                                <h4 className={`text-sm font-semibold truncate ${isActive ? 'text-emerald-900' : 'text-slate-900'}`}>
+                                <h4 className={`text-sm font-semibold truncate ${isActive ? 'text-accent-900' : 'text-slate-900'}`}>
                                     {other?.nombre} {other?.apellido_p}
                                 </h4>
                                 <span className="text-[10px] text-slate-400 shrink-0">

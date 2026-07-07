@@ -254,7 +254,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
     if (loading) return (
         <div className="flex-1 flex items-center justify-center text-slate-400">
             <div className="flex flex-col items-center gap-2">
-                <span className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></span>
+                <span className="w-4 h-4 border-2 border-accent-600 border-t-transparent rounded-full animate-spin"></span>
                 <span>Cargando...</span>
             </div>
         </div>
@@ -266,7 +266,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 <p className="text-slate-500 text-sm mb-3">No se pudieron cargar los mensajes.</p>
                 <button
                     onClick={() => { setFetchError(false); fetchMessages(); }}
-                    className="text-sm text-emerald-700 font-medium hover:underline"
+                    className="text-sm text-accent-700 font-medium hover:underline"
                 >
                     Reintentar
                 </button>
@@ -296,13 +296,17 @@ export default function MessageThread({ conversationId, userId }: Props) {
                         )}
                         {/* Online Indicator Dot */}
                         {isOnline && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-accent-600 border-2 border-white rounded-full"></div>
                         )}
                     </div>
                     <div>
                         <h3 className="font-semibold text-slate-900 text-sm">
                             {otherUser.nombre} {otherUser.apellido_p}
                         </h3>
+                        {/* semantica de estado intencional — par PRESENCIA (online-emerald / offline-slate).
+                            Ambos textos siempre visibles segun isOnline: migrar solo el verde deja el estado
+                            "En linea" en accent mientras "Desconectado" queda slate — semanticamente
+                            inconsistente. Reservado para sprint de tokens semanticos. NO migrar aislado. */}
                         {isOnline ? (
                             <span className="text-[10px] font-medium text-emerald-700 animate-pulse">
                                 ● En línea
@@ -330,6 +334,12 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                     {format(new Date(msg.created_at), 'EEEE d MMMM', { locale: es })}
                                 </div>
                             )}
+                            {/* semantica de estado intencional — par IDENTIDAD de mensaje (mio-emerald / otros-slate).
+                                Las burbujas mias (bg-emerald-700 text-white) y de otros (bg-white slate) siempre
+                                coexisten en el thread — migrar solo el verde rompe el par visual que distingue
+                                autoria. Timestamp interior L341 tambien es par (text-emerald-200 dentro burbuja
+                                mia dark vs text-slate-400 sobre burbuja blanca). Reservado para sprint de tokens
+                                semanticos. NO migrar aislado. */}
                             <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                 <div
                                     className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-sm text-sm ${isMe
@@ -359,6 +369,11 @@ export default function MessageThread({ conversationId, userId }: Props) {
             </div>
 
             {/* Typing / Online indicator */}
+            {/* semantica de estado intencional — par PRESENCIA (online-emerald / offline-slate) explicito
+                doble: dot (bg-emerald-500 vs bg-slate-300) + texto ("en linea" vs "desconectado") ambos
+                siempre visibles segun onlineUsers.has(). Este dot L366 es DIFERENTE del dot L299 del avatar
+                (aquel no tiene contraparte visible y ya migro a accent-600 como positivo-persistente aislado).
+                Reservado para sprint de tokens semanticos. NO migrar aislado. */}
             {otherUser && (
               <div className="px-4 py-1.5 text-xs text-slate-400 bg-white border-t border-slate-100">
                 {onlineUsers.has(otherUser.auth_user_id) ? (
@@ -383,13 +398,13 @@ export default function MessageThread({ conversationId, userId }: Props) {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Escribe un mensaje..."
-                        className="flex-1 rounded-full border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:ring-emerald-600 focus:border-emerald-600 transition-shadow outline-none"
+                        className="flex-1 rounded-full border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:ring-accent-600 focus:border-accent-600 transition-shadow outline-none"
                         maxLength={1000}
                     />
                     <button
                         type="submit"
                         disabled={!newMessage.trim()}
-                        className="bg-emerald-700 text-white p-3 rounded-full hover:bg-emerald-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/20 active:scale-95 flex items-center justify-center shrink-0"
+                        className="bg-accent-600 text-white p-3 rounded-full hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent-600/20 active:scale-95 flex items-center justify-center shrink-0"
                     >
                         <Send size={18} />
                     </button>
