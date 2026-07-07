@@ -50,9 +50,6 @@ html, body {
   --surface-ring: 0 0 0 1px rgba(15, 23, 42, 0.08);
   --surface-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 
-  --surface-hover-border: #10b981;
-  /* emerald-500 */
-  --surface-hover-ring: 0 0 0 1px rgba(16, 185, 129, 0.4);
   --surface-hover-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
@@ -189,17 +186,8 @@ body {
   @apply -translate-y-1 shadow-2xl shadow-slate-200 border-slate-400;
 }
 
-.btn-primary {
-  @apply inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-emerald-300 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none;
-}
-
 .btn-secondary {
   @apply inline-flex items-center justify-center rounded-2xl border-2 border-slate-400 bg-white px-6 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-500 hover:text-slate-900 transition-all duration-300;
-}
-
-/* Campos de formulario modernos */
-.form-input {
-  @apply w-full rounded-xl border-2 border-slate-400 bg-white px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 shadow-sm;
 }
 
 .form-label {
@@ -214,10 +202,6 @@ h4,
 h5,
 h6 {
   @apply tracking-tight text-slate-900;
-}
-
-.text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500;
 }
 
 /* Custom Scrollbar */
