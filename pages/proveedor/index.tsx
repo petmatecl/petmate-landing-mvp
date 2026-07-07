@@ -1945,7 +1945,7 @@ export default function ProveedorDashboard() {
                                             type="submit"
                                             form="perfil-form"
                                             disabled={savingProfile}
-                                            className="bg-deep-800 text-white font-medium tracking-wide py-3 px-6 sm:px-8 rounded-xl hover:bg-accent-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                            className="bg-deep-800 text-white font-medium tracking-wide py-3 px-6 sm:px-8 rounded-xl hover:bg-deep-900 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
                                         >
                                             {savingProfile && <Loader2 size={18} className="animate-spin" />}
                                             Guardar Cambios

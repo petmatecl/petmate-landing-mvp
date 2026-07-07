@@ -245,7 +245,7 @@ export default function ProveedorApprovalList() {
                         </div>
                     ) : proveedores.length === 0 ? (
                         <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
-                            <div className="w-16 h-16 bg-slate-50 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-slate-50 text-accent-400 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Check size={32} />
                             </div>
                             <h3 className="text-lg font-semibold text-slate-900 mb-2">¡Todo al día!</h3>
@@ -331,7 +331,7 @@ export default function ProveedorApprovalList() {
                         </div>
                     ) : verificaciones.length === 0 ? (
                         <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
-                            <div className="w-16 h-16 bg-slate-50 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-slate-50 text-accent-400 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <ShieldCheck size={32} />
                             </div>
                             <h3 className="text-lg font-bold text-slate-700 mb-2">Sin verificaciones pendientes</h3>

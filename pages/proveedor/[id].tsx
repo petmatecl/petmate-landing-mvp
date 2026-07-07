@@ -226,7 +226,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     <div className="p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
 
                         {/* Foto 120×120 */}
-                        <div className={`w-28 h-28 rounded-2xl shrink-0 overflow-hidden border-2 ${proveedor.rut_verificado ? 'border-accent-600 ring-4 ring-accent-100' : 'border-slate-200'}`}>
+                        <div className={`w-28 h-28 rounded-2xl shrink-0 overflow-hidden border-2 ${proveedor.rut_verificado ? 'border-accent-400 ring-4 ring-accent-100' : 'border-slate-200'}`}>
                             {proveedor.foto_perfil ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
