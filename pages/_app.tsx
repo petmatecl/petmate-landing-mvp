@@ -62,7 +62,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <OnlineStatusProvider>
-        <div className={`${outfit.variable} min-h-screen flex flex-col bg-slate-50`}>
+        <div className={`${outfit.className} ${outfit.variable} min-h-screen flex flex-col bg-slate-50`}>
           <RoleSelectionInterceptor />
           <ConsentScripts />
 
