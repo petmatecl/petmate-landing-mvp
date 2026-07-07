@@ -22,7 +22,7 @@ export default function EjemploPage({ service, reviews, otrosServicios }: Ejempl
             </Head>
 
             {/* Banner ejemplo — sticky superior */}
-            <div className="sticky top-0 z-30 bg-emerald-700 text-white shadow-md">
+            <div className="sticky top-0 z-30 bg-accent-600 text-white shadow-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <p className="text-sm sm:text-base font-medium text-center sm:text-left inline-flex items-center gap-2">
                         <PawPrint size={16} aria-hidden="true" className="shrink-0" />
@@ -30,7 +30,7 @@ export default function EjemploPage({ service, reviews, otrosServicios }: Ejempl
                     </p>
                     <Link
                         href="/register?rol=proveedor"
-                        className="shrink-0 inline-flex items-center bg-white text-emerald-700 font-medium tracking-wide text-sm px-5 py-2 rounded-xl hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                        className="shrink-0 inline-flex items-center bg-white text-accent-700 font-medium tracking-wide text-sm px-5 py-2 rounded-xl hover:bg-accent-50 transition-colors whitespace-nowrap"
                     >
                         Publica el tuyo gratis →
                     </Link>

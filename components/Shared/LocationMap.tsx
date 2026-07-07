@@ -53,8 +53,8 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 100
                         center={center}
                         radius={radius}
                         pathOptions={{
-                            color: '#10b981', // emerald-500
-                            fillColor: '#10b981',
+                            color: '#16A34A', // accent-600 hex
+                            fillColor: '#16A34A',
                             fillOpacity: 0.2,
                             weight: 2
                         }}

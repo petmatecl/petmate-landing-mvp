@@ -61,8 +61,8 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
 
                 {success ? (
                     <div className="text-center py-6">
-                        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Flag size={20} className="text-emerald-600" />
+                        <div className="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Flag size={20} className="text-accent-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-2">Reporte enviado</h3>
                         <p className="text-slate-500 text-sm">Tu reporte fue enviado. Lo revisaremos pronto.</p>
@@ -88,7 +88,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                                 <select
                                     value={motivo}
                                     onChange={e => setMotivo(e.target.value)}
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                 >
                                     {MOTIVOS.map(m => <option key={m} value={m}>{m}</option>)}
                                 </select>
@@ -104,7 +104,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                                     placeholder="Describe el problema (opcional)"
                                     rows={3}
                                     maxLength={300}
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 resize-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                 />
                             </div>
                         </div>

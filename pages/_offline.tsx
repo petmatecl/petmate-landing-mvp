@@ -25,7 +25,7 @@ export default function OfflinePage() {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors"
+            className="w-full h-12 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-xl transition-colors"
           >
             Reintentar
           </button>

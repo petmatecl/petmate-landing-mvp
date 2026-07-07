@@ -158,7 +158,7 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                         <>
                             {/* Banner sé el primero */}
                             <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-10 mb-8 text-center">
-                                <div className="flex justify-center mb-4 text-emerald-600">
+                                <div className="flex justify-center mb-4 text-accent-600">
                                     <Sparkles size={32} strokeWidth={1.5} aria-hidden="true" />
                                 </div>
                                 <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-3">
@@ -169,7 +169,7 @@ export default function CategoriaComuna({ categoria, comuna, services }: Props) 
                                 </p>
                                 <Link
                                     href={buildRegisterUrl(categoria.slug, comuna)}
-                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-700 text-white font-semibold rounded-xl hover:bg-emerald-800 transition-colors"
+                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent-600 text-white font-semibold rounded-xl hover:bg-accent-700 transition-colors"
                                 >
                                     Publica gratis tu servicio
                                     <ArrowRight size={16} aria-hidden="true" />

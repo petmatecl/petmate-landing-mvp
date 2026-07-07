@@ -237,7 +237,7 @@ export default function EmailConfirmadoPage() {
                 <title>¡Correo confirmado! — Pawnecta</title>
             </Head>
 
-            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-emerald-50 to-white">
+            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-accent-50 to-white">
 
                 {registrationConflict ? (
                     <Card padding="l" className="w-full max-w-[520px] text-center relative pointer-events-auto">
@@ -266,10 +266,10 @@ export default function EmailConfirmadoPage() {
                 ) : isSuccess ? (
 
                     <Card padding="l" className="w-full max-w-[500px] text-center animate-in zoom-in-95 duration-500">
-                        <CheckCircle size={64} className="text-emerald-600 mx-auto mb-6 drop-shadow-sm" />
+                        <CheckCircle size={64} className="text-accent-600 mx-auto mb-6 drop-shadow-sm" />
                         <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">¡Correo Confirmado!</h1>
                         <p className="text-lg text-slate-600 mb-2">Gracias por verificar tu cuenta electrónica.</p>
-                        <p className="text-emerald-700 font-semibold mb-6 animate-pulse">
+                        <p className="text-accent-700 font-semibold mb-6 animate-pulse">
                             {statusText}
                         </p>
                     </Card>
@@ -277,7 +277,7 @@ export default function EmailConfirmadoPage() {
                 ) : (
 
                     <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500">
-                        <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mb-6"></div>
+                        <div className="w-16 h-16 border-4 border-accent-100 border-t-accent-600 rounded-full animate-spin mb-6"></div>
                         <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">Validando Email...</h2>
                         <p className="text-slate-500 mb-1 max-w-sm text-center">{statusText}</p>
 
@@ -295,7 +295,7 @@ export default function EmailConfirmadoPage() {
                                     </button>
                                     <button
                                         onClick={() => router.replace('/proveedor')}
-                                        className="text-sm font-medium text-emerald-700 bg-emerald-100 px-4 py-3 rounded-xl hover:bg-emerald-200 transition-colors"
+                                        className="text-sm font-medium text-accent-700 bg-accent-100 px-4 py-3 rounded-xl hover:bg-accent-200 transition-colors"
                                     >
                                         Ofrecer servicios (Proveedor)
                                     </button>

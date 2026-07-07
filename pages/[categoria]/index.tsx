@@ -54,7 +54,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 {/* Encabezado */}
                 <div className="mb-12">
                     <h1 className="text-4xl font-bold text-slate-900 tracking-tight">
-                        {categoria.nombre} <span className="text-emerald-700">cerca de ti</span>
+                        {categoria.nombre} <span className="text-accent-700">cerca de ti</span>
                     </h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl">
                         {categoria.descripcion || `Descubre los mejores profesionales de ${categoria.nombre.toLowerCase()} en nuestra red. Filtra por tu comuna para encontrar opciones más cercanas.`}
@@ -64,7 +64,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                 {/* Buscador Rápido de Comunas (Enlaces SEO) */}
                 <div className="mb-12 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-2 mb-4">
-                        <MapPinIcon className="w-5 h-5 text-emerald-700" />
+                        <MapPinIcon className="w-5 h-5 text-accent-700" />
                         <h2 className="text-lg font-semibold text-slate-900">Busca por comuna en Santiago</h2>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-4">
@@ -72,7 +72,7 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
                             <Link
                                 key={comuna.slug}
                                 href={`/${categoria.slug}/${comuna.slug}`}
-                                className="px-4 py-2 bg-slate-50 text-slate-700 font-medium rounded-full border border-slate-200 hover:border-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition-all text-sm"
+                                className="px-4 py-2 bg-slate-50 text-slate-700 font-medium rounded-full border border-slate-200 hover:border-accent-600 hover:text-accent-600 hover:bg-accent-50 transition-all text-sm"
                             >
                                 {comuna.name}
                             </Link>

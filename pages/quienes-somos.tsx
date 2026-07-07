@@ -13,8 +13,8 @@ export default function QuienesSomos() {
             <div className="bg-white">
                 {/* Hero Section */}
                 <section className="relative isolate overflow-hidden bg-white px-6 py-10 sm:py-16 lg:px-8">
-                    <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.emerald.100),white)] opacity-20" />
-                    <div className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-white shadow-xl shadow-emerald-600/10 ring-1 ring-emerald-50 sm:mr-28 lg:mr-0 xl:mr-16 xl:origin-center" />
+                    <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.accent.100),white)] opacity-20" />
+                    <div className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-white shadow-xl shadow-accent-600/10 ring-1 ring-accent-50 sm:mr-28 lg:mr-0 xl:mr-16 xl:origin-center" />
 
                     <div className="mx-auto max-w-2xl text-center">
                         <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-6xl text-pretty">
@@ -99,7 +99,7 @@ export default function QuienesSomos() {
                         <div className="mt-8 flex items-center justify-center gap-x-6">
                             <Link
                                 href="/register"
-                                className="rounded-xl bg-emerald-700 px-6 py-3 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                className="rounded-xl bg-accent-600 px-6 py-3 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-accent-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
                             >
                                 Únete a Pawnecta
                             </Link>

@@ -57,7 +57,7 @@ const ShareButton = ({ title, text }: { title: string, text: string }) => {
     return (
         <button
             onClick={handleShare}
-            className={`flex items-center gap-2 transition-all duration-300 ${copied ? "text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full" : "hover:text-emerald-700"
+            className={`flex items-center gap-2 transition-all duration-300 ${copied ? "text-accent-700 bg-accent-50 px-3 py-1.5 rounded-full" : "hover:text-accent-600"
                 }`}
             title="Compartir"
         >
@@ -92,7 +92,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                 {/* Back Link */}
                 <div className="mb-8">
-                    <Link href="/blog" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors">
+                    <Link href="/blog" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-accent-600 transition-colors">
                         <ChevronLeft size={16} className="mr-1" /> Volver al Blog
                     </Link>
                 </div>
@@ -104,7 +104,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     <header className="mb-10 text-center md:text-left border-b border-slate-300 pb-10">
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
                             {post.tags.map(tag => (
-                                <span key={tag} className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600 uppercase tracking-widest">
+                                <span key={tag} className="inline-flex items-center rounded-full bg-accent-50 px-3 py-1 text-xs font-medium text-accent-800 uppercase tracking-widest">
                                     {tag}
                                 </span>
                             ))}
@@ -148,10 +148,10 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         className="prose prose-slate prose-lg max-w-none 
                         prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:tracking-tight
                         prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg
-                        prose-a:text-emerald-700 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                        prose-a:text-accent-700 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
                         prose-strong:text-slate-700 prose-strong:font-semibold
-                        prose-li:text-slate-600 prose-li:marker:text-emerald-500
-                        prose-blockquote:border-l-4 prose-blockquote:border-emerald-200 prose-blockquote:bg-emerald-50/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
+                        prose-li:text-slate-600 prose-li:marker:text-accent-600
+                        prose-blockquote:border-l-4 prose-blockquote:border-accent-200 prose-blockquote:bg-accent-50/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
                         prose-img:rounded-2xl prose-img:shadow-sm"
                         dangerouslySetInnerHTML={{ __html: post.content }}
                     />
@@ -164,8 +164,8 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         const titulo = ctaCopy?.titulo ?? "Encuentra servicios verificados para tu mascota";
                         const href = ctaCopy?.href ?? "/explorar";
                         return (
-                            <div className="mt-16 rounded-2xl border border-emerald-100 bg-white p-8 text-center">
-                                <div className="flex justify-center mb-4 text-emerald-600">
+                            <div className="mt-16 rounded-2xl border border-accent-100 bg-white p-8 text-center">
+                                <div className="flex justify-center mb-4 text-accent-600">
                                     <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
                                 </div>
                                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
@@ -176,7 +176,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                                 </p>
                                 <Link
                                     href={href}
-                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-700 text-white font-semibold rounded-xl hover:bg-emerald-800 transition-colors"
+                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent-600 text-white font-semibold rounded-xl hover:bg-accent-700 transition-colors"
                                 >
                                     Ver profesionales
                                     <ArrowRight size={16} aria-hidden="true" />
@@ -201,7 +201,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {relatedPosts.map((relatedPost) => (
                                 <Link href={`/blog/${relatedPost.slug}`} key={relatedPost.id} className="group">
-                                    <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-md hover:shadow-emerald-900/5 transition-all duration-300">
+                                    <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-md hover:shadow-accent-900/5 transition-all duration-300">
                                         {/* Image */}
                                         <div className="relative h-48 overflow-hidden">
                                             <Image
@@ -214,13 +214,13 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
 
                                         {/* Content */}
                                         <div className="p-5 flex flex-col flex-grow">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                                            <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-accent-600 transition-colors line-clamp-2">
                                                 {relatedPost.title}
                                             </h3>
                                             <p className="text-slate-500 text-sm line-clamp-2 mb-4">
                                                 {relatedPost.excerpt}
                                             </p>
-                                            <div className="mt-auto flex items-center text-emerald-700 font-medium text-xs uppercase tracking-widest">
+                                            <div className="mt-auto flex items-center text-accent-700 font-medium text-xs uppercase tracking-widest">
                                                 Leer más <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
                                             </div>
                                         </div>

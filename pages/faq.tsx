@@ -72,7 +72,7 @@ export default function FAQ() {
             <div className="flex-grow py-12 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">
                 <div className="max-w-3xl mx-auto">
                     <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center p-3 bg-emerald-100 text-emerald-600 rounded-full mb-4">
+                        <div className="inline-flex items-center justify-center p-3 bg-accent-100 text-accent-600 rounded-full mb-4">
                             <HelpCircle size={32} />
                         </div>
                         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">
@@ -93,7 +93,7 @@ export default function FAQ() {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Busca una pregunta o palabra clave..."
-                            className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-2xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 placeholder:text-slate-400 transition-colors"
+                            className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-2xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
                         />
                     </div>
 
@@ -105,7 +105,7 @@ export default function FAQ() {
                                 </p>
                                 <button
                                     onClick={() => setQuery("")}
-                                    className="text-sm text-emerald-700 hover:text-emerald-800 font-medium underline underline-offset-2"
+                                    className="text-sm text-accent-700 hover:text-accent-800 font-medium underline underline-offset-2"
                                 >
                                     Limpiar búsqueda
                                 </button>
@@ -116,8 +116,8 @@ export default function FAQ() {
                             <div
                                 key={index}
                                 className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
-                                    ? "border-emerald-500 shadow-md"
-                                    : "border-slate-300 hover:border-emerald-300"
+                                    ? "border-accent-600 shadow-md"
+                                    : "border-slate-300 hover:border-accent-600"
                                     }`}
                             >
                                 <button
@@ -127,11 +127,11 @@ export default function FAQ() {
                                     onClick={() => toggleFAQ(index)}
                                     className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
                                 >
-                                    <span className={`text-lg font-semibold ${openIndex === index ? "text-emerald-700" : "text-slate-900"}`}>
+                                    <span className={`text-lg font-semibold ${openIndex === index ? "text-accent-700" : "text-slate-900"}`}>
                                         {faq.question}
                                     </span>
                                     {openIndex === index ? (
-                                        <ChevronUp className="text-emerald-500 transition-transform" />
+                                        <ChevronUp className="text-accent-600 transition-transform" />
                                     ) : (
                                         <ChevronDown className="text-slate-400 transition-transform" />
                                     )}
@@ -155,7 +155,7 @@ export default function FAQ() {
                         <p className="text-slate-600 mb-6">Estamos aquí para ayudarte. Contáctanos directamente.</p>
                         <a
                             href="mailto:contacto@pawnecta.com"
-                            className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-emerald-700 hover:bg-emerald-800 transition w-full sm:w-auto"
+                            className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-600 hover:bg-accent-700 transition w-full sm:w-auto"
                         >
                             Contactar Soporte
                         </a>
