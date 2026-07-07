@@ -126,7 +126,7 @@ export default function NotificationCenter({ userId }: Props) {
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
                 aria-controls="notification-center-menu"
-                className="relative p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-all"
+                className="relative p-2 text-slate-500 hover:text-accent-600 hover:bg-accent-50 rounded-full transition-all"
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (
@@ -141,7 +141,7 @@ export default function NotificationCenter({ userId }: Props) {
                         <div className="p-3 border-b border-slate-300 flex justify-between items-center bg-slate-50">
                             <h3 className="text-sm font-semibold text-slate-900">Notificaciones</h3>
                             {unreadCount > 0 && (
-                                <button onClick={markAllAsRead} className="text-xs text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1">
+                                <button onClick={markAllAsRead} className="text-xs text-accent-700 hover:text-accent-800 font-medium flex items-center gap-1">
                                     <Check size={12} /> Marcar todo
                                 </button>
                             )}
@@ -155,10 +155,10 @@ export default function NotificationCenter({ userId }: Props) {
                                     {notifications.map(notif => (
                                         <li
                                             key={notif.id}
-                                            className={`p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group flex gap-3 ${!notif.read ? 'bg-emerald-50/50' : ''}`}
+                                            className={`p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group flex gap-3 ${!notif.read ? 'bg-accent-50/50' : ''}`}
                                             onClick={() => markAsRead(notif.id)}
                                         >
-                                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${!notif.read ? 'bg-emerald-500' : 'bg-transparent'}`}></div>
+                                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${!notif.read ? 'bg-accent-600' : 'bg-transparent'}`}></div>
                                             <div className="flex-1">
                                                 <p className={`text-xs ${!notif.read ? 'font-semibold text-slate-900' : 'text-slate-600'}`}>
                                                     {notif.message}
