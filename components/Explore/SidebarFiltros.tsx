@@ -509,8 +509,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                             type="button"
                             onClick={() => onFilterChange({ mascota: opt.id as any, tamano: null })}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-normal border transition-all ${filters.mascota === opt.id
-                                ? 'bg-accent-50 text-accent-800 border-accent-200 shadow-sm'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-accent-600 hover:bg-white'
+                                ? 'bg-accent-50 text-accent-800 border-accent-600 shadow-sm'
+                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-accent-300 hover:bg-white'
                                 }`}
                         >
                             <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-accent-600' : 'text-slate-400'} />
@@ -530,8 +530,8 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                     type="button"
                                     onClick={() => onFilterChange({ tamano: size })}
                                     className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-normal border transition-all capitalize ${filters.tamano === size
-                                        ? 'bg-accent-100 text-accent-800 border-accent-300'
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-accent-600'
+                                        ? 'bg-accent-100 text-accent-800 border-accent-600'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-accent-300'
                                         }`}
                                 >
                                     {size === 'pequeno' ? 'Pequeño' : size.charAt(0).toUpperCase() + size.slice(1)}

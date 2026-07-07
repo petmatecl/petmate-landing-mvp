@@ -294,7 +294,7 @@ export default function RegisterWizard() {
                   <button
                     type="button"
                     onClick={() => setRol('usuario')}
-                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'usuario' ? 'border-accent-600 bg-accent-50' : 'border-slate-200 hover:border-accent-600'}`}
+                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'usuario' ? 'border-accent-600 bg-accent-50 ring-2 ring-accent-600/20' : 'border-slate-200 hover:border-accent-300'}`}
                   >
                     <div className={`p-4 rounded-full mb-4 ${rol === 'usuario' ? 'bg-accent-100 text-accent-700' : 'bg-slate-100 text-slate-600'}`}>
                       <Search size={32} />
@@ -306,7 +306,7 @@ export default function RegisterWizard() {
                   <button
                     type="button"
                     onClick={() => setRol('proveedor')}
-                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'proveedor' ? 'border-accent-600 bg-accent-50' : 'border-slate-200 hover:border-accent-600'}`}
+                    className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'proveedor' ? 'border-accent-600 bg-accent-50 ring-2 ring-accent-600/20' : 'border-slate-200 hover:border-accent-300'}`}
                   >
                     <div className={`p-4 rounded-full mb-4 ${rol === 'proveedor' ? 'bg-accent-100 text-accent-700' : 'bg-slate-100 text-slate-600'}`}>
                       <Briefcase size={32} />
