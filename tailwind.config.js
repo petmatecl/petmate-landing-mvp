@@ -1,7 +1,7 @@
 /**
  * DESIGN TOKENS — Pawnecta (sistema visual v2)
  *
- * Paleta actual:
+ * Paleta de MARCA (por color):
  *   accent.*  → Verde vivo (base #22C55E). Acento principal para acciones,
  *               botones, highlights. IMPORTANTE: botones filled con texto
  *               blanco usan accent-600 (#16A34A, WCAG AA 4.7:1). accent-500
@@ -14,17 +14,43 @@
  *               a los mismos hex que accent.*. No usar en codigo nuevo — usar
  *               accent.* directamente.
  *
+ * Tokens SEMANTICOS (por significado, no por color):
+ *   success.* → estado positivo/exito (aprobado, confirmado, verificado, online).
+ *               Alias de la escala `emerald` de Tailwind. IMPORTANTE: es DISTINTO
+ *               de `accent.*` a proposito — accent es la marca (green/grass),
+ *               success es el estado. Separandolos podemos rotarlos independiente
+ *               (ej. cambiar la marca sin afectar como se ven los estados de
+ *               moderacion) y evita el clasico "verde de marca = verde de ok"
+ *               que confunde al usuario cuando lee un boton primary como si
+ *               fuera un estado positivo.
+ *   danger.*  → estado negativo/error (rechazado, suspendido, cancelado). Alias
+ *               de `red`.
+ *   warning.* → estado de atencion (pendiente, suspendido, alerta). Alias de
+ *               `amber`.
+ *   info.*    → estado informativo neutro (categoria, tag no accionable). Alias
+ *               de `blue`.
+ *
+ *   Los 4 tokens semanticos existen para colapsar los ~27 emerald-* que
+ *   sobrevivieron al rollout de color como "semantica de estado intencional"
+ *   comentados en el codebase (pares/triadas aprobar/rechazar, presencia,
+ *   estados de solicitud, etc.). El sprint de tokens semanticos migra esos
+ *   emerald-* a success-* uno por uno; hasta entonces ambos coexisten y
+ *   apuntan al MISMO hex (emerald default de Tailwind), o sea CERO cambio
+ *   visual mientras se migra.
+ *
  * Fuente:
- *   sans → Outfit (via next/font/google, ver pages/_app.tsx). Vuelta a la
- *          fuente original — probamos Nunito y Poppins+Inter en la fase
- *          fundacional pero volvimos a Outfit. Se conserva la mejora
- *          tecnica: cargada por next/font en vez de <link> a fonts.google.
+ *   sans → Outfit (via next/font/google, ver lib/fonts.ts, aplicado en
+ *          _app.tsx y _document.tsx). Vuelta a la fuente original — probamos
+ *          Nunito y Poppins+Inter en la fase fundacional pero volvimos a
+ *          Outfit.
  *
  * Migracion progresiva (rollout Commit 2+): los componentes usan `emerald-*`
  * de Tailwind default en el legacy; se migran pantalla por pantalla a
  * accent-* / deep-*. Ambos verdes (accent y emerald) son muy similares al
  * ojo, la convivencia durante el rollout no genera choque visual.
  */
+const colors = require('tailwindcss/colors');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}", "./lib/**/*.{js,ts,jsx,tsx}"],
@@ -91,6 +117,23 @@ module.exports = {
           subtle:  '#F8FAFC',  // slate-50
           border:  '#E2E8F0',  // slate-200
         },
+
+        // ── Tokens SEMANTICOS (por significado, no por color) ───────────
+        // Aliases de escalas oficiales de Tailwind. NO son hex custom —
+        // apuntan al mismo objeto de `tailwindcss/colors`, o sea que
+        // success-600 === emerald-600 exactamente (mismo hex). Esto tiene
+        // dos consecuencias importantes:
+        //   1. Cero costo de bundle si nadie los usa (Tailwind JIT solo
+        //      emite clases referenciadas — mismo hex, dos clases posibles
+        //      pero solo se emite la que aparece en el content).
+        //   2. Durante la migracion, emerald-600 y success-600 conviven
+        //      pintando el MISMO color exacto. Podemos migrar un archivo
+        //      a la vez sin riesgo visual.
+        // Ver comentario del header para el "por que" semantico.
+        success: colors.emerald,
+        danger:  colors.red,
+        warning: colors.amber,
+        info:    colors.blue,
       },
       fontFamily: {
         // Outfit para todo — cuerpo, titulos, botones, labels. La variable
