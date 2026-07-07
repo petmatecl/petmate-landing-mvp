@@ -366,6 +366,12 @@ export default function ProveedorDashboard() {
     // publicados via servicio_id). Si la BD no tiene las FK declaradas
     // explicitas, supabase-js cae a null en los joins — el render maneja
     // eso (titulo: 'servicio sin titulo', etc.).
+    //
+    // Feature mascotas: join opcional con mascotas via mascota_id (nullable).
+    // Los campos son los de la ficha rica (tipo, raza, sexo, fecha_nacimiento,
+    // enfermedades, trato_especial, foto). Si mascota_id es null (fallback
+    // texto libre o solicitud vieja sin mascota), el join retorna null y el
+    // render lee tipo_mascota_texto como fallback.
     const fetchSolicitudes = useCallback(async (provId: string) => {
         const { data, error } = await supabase
             .from('agendamientos')
@@ -376,8 +382,10 @@ export default function ProveedorDashboard() {
                 region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
+                mascota_id, tipo_mascota_texto,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo),
+                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, raza, sexo, fecha_nacimiento, enfermedades, trato_especial, trato_especial_desc, foto_mascota)
             `)
             .eq('proveedor_id', provId)
             .order('created_at', { ascending: false });
@@ -2197,6 +2205,23 @@ export default function ProveedorDashboard() {
                                     {solicitudes.map(sol => {
                                         const tutor = Array.isArray(sol.tutor) ? sol.tutor[0] : sol.tutor;
                                         const servicio = Array.isArray(sol.servicio) ? sol.servicio[0] : sol.servicio;
+                                        // Feature mascotas: puede venir null si mascota_id era null o si el
+                                        // join no encontró la fila (mascota eliminada tras la solicitud).
+                                        const mascota = Array.isArray(sol.mascota) ? sol.mascota[0] : sol.mascota;
+                                        const edadMascota = (() => {
+                                            if (!mascota?.fecha_nacimiento) return null;
+                                            const nac = new Date(mascota.fecha_nacimiento);
+                                            const ahora = new Date();
+                                            const anos = ahora.getFullYear() - nac.getFullYear();
+                                            const mesDiff = ahora.getMonth() - nac.getMonth();
+                                            const total = mesDiff < 0 || (mesDiff === 0 && ahora.getDate() < nac.getDate()) ? anos - 1 : anos;
+                                            if (total < 0) return null;
+                                            if (total === 0) {
+                                                const meses = Math.max(0, (ahora.getFullYear() - nac.getFullYear()) * 12 + mesDiff);
+                                                return `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+                                            }
+                                            return `${total} ${total === 1 ? 'año' : 'años'}`;
+                                        })();
                                         const isPendiente = sol.estado === 'pendiente';
                                         const isCancelada = sol.estado === 'cancelada';
                                         const isLoading = solicitudActionId === sol.id;
@@ -2300,6 +2325,64 @@ export default function ProveedorDashboard() {
                                                         </div>
                                                     </div>
                                                 )}
+
+                                                {/* Ficha de la mascota — Feature "fichas de mascotas → solicitud".
+                                                    Densidad COMPLETA (el proveedor decide si acepta, necesita todo).
+                                                    - Si mascota_id joineó: tarjeta rica con nombre, especie/raza,
+                                                      edad calculada, sexo, condiciones médicas, trato especial y foto.
+                                                    - Si joined es null pero hay texto libre: fallback compacto.
+                                                    - Si no hay nada: sin tarjeta (retrocompat con solicitudes viejas). */}
+                                                {mascota ? (
+                                                    <div className="bg-accent-50/40 rounded-xl p-4 border border-accent-100 mb-3">
+                                                        <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium mb-3 flex items-center gap-1.5">
+                                                            <PawPrint size={12} /> Ficha de la mascota
+                                                        </p>
+                                                        <div className="flex items-start gap-3">
+                                                            {mascota.foto_mascota && (
+                                                                /* eslint-disable-next-line @next/next/no-img-element */
+                                                                <img
+                                                                    src={mascota.foto_mascota}
+                                                                    alt={mascota.nombre}
+                                                                    className="w-16 h-16 rounded-xl object-cover border border-accent-100 shrink-0"
+                                                                />
+                                                            )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-semibold text-slate-900 text-sm">
+                                                                    {mascota.nombre}
+                                                                    <span className="text-slate-500 font-normal"> · {mascota.tipo.charAt(0).toUpperCase() + mascota.tipo.slice(1)}</span>
+                                                                </p>
+                                                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-slate-600">
+                                                                    {mascota.raza && <span>Raza: <strong className="text-slate-700 font-medium">{mascota.raza}</strong></span>}
+                                                                    {edadMascota && <span>Edad: <strong className="text-slate-700 font-medium">{edadMascota}</strong></span>}
+                                                                    {mascota.sexo && <span>Sexo: <strong className="text-slate-700 font-medium capitalize">{mascota.sexo}</strong></span>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {(mascota.enfermedades || mascota.trato_especial) && (
+                                                            <div className="mt-3 space-y-2">
+                                                                {mascota.enfermedades && (
+                                                                    <div className="bg-warning-50 border border-warning-100 rounded-lg p-2.5">
+                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-0.5">Condiciones médicas</p>
+                                                                        <p className="text-xs text-warning-800 leading-relaxed whitespace-pre-wrap">{mascota.enfermedades}</p>
+                                                                    </div>
+                                                                )}
+                                                                {mascota.trato_especial && mascota.trato_especial_desc && (
+                                                                    <div className="bg-warning-50 border border-warning-100 rounded-lg p-2.5">
+                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-0.5">Trato especial</p>
+                                                                        <p className="text-xs text-warning-800 leading-relaxed whitespace-pre-wrap">{mascota.trato_especial_desc}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : sol.tipo_mascota_texto ? (
+                                                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
+                                                        <p className="text-[11px] uppercase tracking-widest text-slate-400 font-medium mb-1 flex items-center gap-1.5">
+                                                            <PawPrint size={12} /> Mascota
+                                                        </p>
+                                                        <p className="text-sm text-slate-700 leading-relaxed">{sol.tipo_mascota_texto}</p>
+                                                    </div>
+                                                ) : null}
 
                                                 {/* Mensaje del tutor */}
                                                 {sol.mensaje && (

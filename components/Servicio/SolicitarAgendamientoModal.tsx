@@ -25,7 +25,7 @@
 // ----------------------------------------------------------------------------
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { Calendar, X, Loader2, MapPin, Home } from 'lucide-react';
+import { Calendar, X, Loader2, MapPin, Home, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
 import {
     esCategoriaMultiDia,
@@ -115,6 +115,37 @@ export default function SolicitarAgendamientoModal({
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
+    // Feature "fichas de mascotas → solicitud":
+    // Cargamos las mascotas del tutor logueado al abrir el modal. El selector
+    // asocia la ficha real (mascota_id) o cae a texto libre (tipo_mascota_texto)
+    // mutuamente exclusivos en la UI. Ambos NULLABLE en DB — solicitudes sin
+    // mascota siguen siendo válidas (retrocompat).
+    type MascotaFicha = { id: string; nombre: string; tipo: string };
+    const [misMascotas, setMisMascotas] = useState<MascotaFicha[]>([]);
+    const [mascotaId, setMascotaId] = useState<string | null>(null);
+    const [tipoMascotaTexto, setTipoMascotaTexto] = useState('');
+    // 'otra' → tutor con mascotas eligió "no está en mi lista" y ve el input libre.
+    const [otraSeleccionada, setOtraSeleccionada] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        (async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return;
+            const { data, error } = await supabase
+                .from('mascotas')
+                .select('id, nombre, tipo')
+                .eq('user_id', session.user.id)
+                .order('created_at', { ascending: true });
+            if (error) {
+                console.warn('[SolicitarAgendamientoModal] fetch mascotas falló:', error);
+                setMisMascotas([]);
+                return;
+            }
+            setMisMascotas(data || []);
+        })();
+    }, [isOpen]);
+
     // Reset fechas cuando cambia el shape del form. Mensaje y direccion se
     // preservan (la direccion del tutor es invariante a la modalidad del
     // servicio, el mensaje es comentario libre). En el mount inicial,
@@ -151,6 +182,9 @@ export default function SolicitarAgendamientoModal({
         setNumero('');
         setDireccionInfo('');
         setMensaje('');
+        setMascotaId(null);
+        setTipoMascotaTexto('');
+        setOtraSeleccionada(false);
         setErrorMsg('');
     };
 
@@ -334,6 +368,15 @@ export default function SolicitarAgendamientoModal({
                     numero: esV4 ? numeroTrim : null,
                     direccion_info: esV4 ? direccionInfoTrim : null,
                     mensaje: mensaje.trim() || null,
+                    // Feature mascotas: mutuamente exclusivos por UI. Si el tutor
+                    // eligió ficha real → mascota_id set, tipo_mascota_texto null.
+                    // Si eligió "otra" o no tiene fichas y escribió texto → mascota_id
+                    // null, tipo_mascota_texto set. Si no seleccionó nada → ambos null
+                    // (retrocompat con solicitudes sin mascota).
+                    mascota_id: mascotaId,
+                    tipo_mascota_texto: !mascotaId && tipoMascotaTexto.trim()
+                        ? tipoMascotaTexto.trim()
+                        : null,
                 })
                 .select('id')
                 .single();
@@ -645,6 +688,79 @@ export default function SolicitarAgendamientoModal({
                         </div>
                     )}
 
+                    {/* Selector de mascota — Feature "fichas de mascotas → solicitud":
+                        Si el tutor tiene fichas: dropdown con sus mascotas + opción "Otra"
+                        que revela input libre. Si no tiene: input libre directo + CTA
+                        "Agregar una mascota". Ficha vs texto son mutuamente exclusivos. */}
+                    <div>
+                        <label htmlFor="agend-mascota" className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
+                            <PawPrint size={14} className="text-slate-400" />
+                            ¿Para cuál de tus mascotas? (opcional)
+                        </label>
+                        {misMascotas.length > 0 ? (
+                            <>
+                                <select
+                                    id="agend-mascota"
+                                    value={otraSeleccionada ? '__otra__' : (mascotaId || '')}
+                                    onChange={e => {
+                                        const v = e.target.value;
+                                        if (v === '__otra__') {
+                                            setOtraSeleccionada(true);
+                                            setMascotaId(null);
+                                        } else if (v === '') {
+                                            setOtraSeleccionada(false);
+                                            setMascotaId(null);
+                                            setTipoMascotaTexto('');
+                                        } else {
+                                            setOtraSeleccionada(false);
+                                            setMascotaId(v);
+                                            setTipoMascotaTexto('');
+                                        }
+                                    }}
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                >
+                                    <option value="">Sin especificar</option>
+                                    {misMascotas.map(m => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.nombre} · {m.tipo.charAt(0).toUpperCase() + m.tipo.slice(1)}
+                                        </option>
+                                    ))}
+                                    <option value="__otra__">Otra / no está en mi lista</option>
+                                </select>
+                                {otraSeleccionada && (
+                                    <input
+                                        type="text"
+                                        value={tipoMascotaTexto}
+                                        onChange={e => setTipoMascotaTexto(e.target.value.slice(0, 140))}
+                                        maxLength={140}
+                                        placeholder="Describí brevemente tu mascota (ej. Perro Beagle 3 años)"
+                                        className="mt-2 w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                    />
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <input
+                                    id="agend-mascota"
+                                    type="text"
+                                    value={tipoMascotaTexto}
+                                    onChange={e => setTipoMascotaTexto(e.target.value.slice(0, 140))}
+                                    maxLength={140}
+                                    placeholder="Describí brevemente tu mascota (ej. Perro Beagle 3 años)"
+                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                />
+                                <a
+                                    href="/usuario/mascotas"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-1.5 inline-flex items-center gap-1 text-xs text-accent-700 hover:text-accent-800 font-medium"
+                                >
+                                    <PawPrint size={12} /> Agregar una mascota a tu perfil
+                                </a>
+                            </>
+                        )}
+                    </div>
+
                     {/* Mensaje — siempre presente */}
                     <div>
                         <label htmlFor="agend-mensaje" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -657,7 +773,7 @@ export default function SolicitarAgendamientoModal({
                             onChange={e => setMensaje(e.target.value)}
                             maxLength={500}
                             rows={4}
-                            placeholder="Cuéntanos detalles de tu mascota, condiciones especiales, o cualquier cosa que el proveedor necesite saber."
+                            placeholder="Cualquier info adicional para el proveedor (condiciones, horarios, contexto)."
                             className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors resize-none"
                         />
                         <p className="text-xs text-slate-400 mt-1 text-right">{mensaje.length} / 500</p>
