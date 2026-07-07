@@ -219,16 +219,15 @@ export default function ProveedorManagementList() {
                                                 <span className="text-[10px] uppercase font-medium text-slate-400 tracking-widest">Publicados</span>
                                             </div>
                                         </td>
-                                        {/* T3 — semantica de estado intencional: misma triada del panel proveedores
-                                            (aprobado-emerald / suspendido-red / rechazado-slate / pendiente-amber),
-                                            duplicada en esta lista. NO migrar el verde aislado. Reservado para sprint
-                                            de tokens semanticos. */}
+                                        {/* T3 — misma triada de T2 (proveedores.tsx) con tokens semanticos:
+                                            success = aprobado, warning = suspendido (pausa reversible, no danger),
+                                            slate = rechazado (terminal), warning = pendiente (fallback del ternario). */}
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-widest
-                                                ${prov.estado === 'aprobado' ? 'bg-emerald-100 text-emerald-600' :
-                                                    prov.estado === 'suspendido' ? 'bg-red-100 text-red-700' :
+                                                ${prov.estado === 'aprobado' ? 'bg-success-100 text-success-600' :
+                                                    prov.estado === 'suspendido' ? 'bg-warning-100 text-warning-700' :
                                                         prov.estado === 'rechazado' ? 'bg-slate-200 text-slate-600' :
-                                                            'bg-amber-100 text-amber-700'
+                                                            'bg-warning-100 text-warning-700'
                                                 }
                                             `}>
                                                 {prov.estado === 'aprobado' && <CheckCircle size={12} />}
@@ -243,21 +242,22 @@ export default function ProveedorManagementList() {
                                                         onClick={() => { setProviderToSuspend(prov); setSuspendModalOpen(true); }}
                                                         disabled={actionId === prov.id}
                                                         title="Suspender cuenta"
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        className="p-2 text-slate-400 hover:text-warning-600 hover:bg-warning-50 rounded-lg transition-colors"
                                                     >
                                                         {actionId === prov.id ? <Loader2 size={18} className="animate-spin" /> : <ShieldAlert size={18} />}
                                                     </button>
                                                 )}
 
-                                                {/* P6 — par contextual suspender/reactivar (verde vs rojo). El "Suspender"
-                                                    de arriba (L246 hover:text-red-600) forma par con este "Reactivar" verde.
-                                                    NO migrar el verde aislado. */}
+                                                {/* P6 — par contextual suspender/reactivar con tokens semanticos.
+                                                    Suspender (icono arriba, hover warning) es la accion sobre aprobado;
+                                                    Reactivar (este boton, success) es la accion sobre suspendido.
+                                                    Warning para suspender porque es pausa reversible. */}
                                                 {prov.estado === 'suspendido' && (
                                                     <button
                                                         onClick={() => handleReactivate(prov.id)}
                                                         disabled={actionId === prov.id}
                                                         title="Reactivar cuenta"
-                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5"
+                                                        className="px-3 py-1.5 bg-success-50 text-success-700 hover:bg-success-100 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5"
                                                     >
                                                         {actionId === prov.id ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />} Reactivar
                                                     </button>
@@ -290,7 +290,7 @@ export default function ProveedorManagementList() {
             {suspendModalOpen && providerToSuspend && (
                 <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 text-left whitespace-normal">
-                        <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6">
+                        <div className="w-12 h-12 bg-warning-100 text-warning-600 rounded-full flex items-center justify-center mb-6">
                             <AlertTriangle size={24} />
                         </div>
                         <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Suspender Proveedor</h2>
@@ -306,7 +306,7 @@ export default function ProveedorManagementList() {
                                     value={suspensionReason}
                                     onChange={(e) => setSuspensionReason(e.target.value)}
                                     placeholder="Detalla las razones por las que este proveedor ha sido suspendido..."
-                                    className="w-full h-24 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none resize-none text-sm"
+                                    className="w-full h-24 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-warning-500 outline-none resize-none text-sm"
                                     required
                                 />
                             </div>
@@ -314,7 +314,7 @@ export default function ProveedorManagementList() {
                                 <button type="button" onClick={() => { setSuspendModalOpen(false); setProviderToSuspend(null); setSuspensionReason(''); }} className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">
                                     Cancelar
                                 </button>
-                                <button type="submit" disabled={actionId === providerToSuspend.id || !suspensionReason.trim()} className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-red-600/20">
+                                <button type="submit" disabled={actionId === providerToSuspend.id || !suspensionReason.trim()} className="px-5 py-2.5 bg-warning-600 hover:bg-warning-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-warning-600/20">
                                     {actionId === providerToSuspend.id ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />} Suspender
                                 </button>
                             </div>

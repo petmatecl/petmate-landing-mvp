@@ -355,7 +355,7 @@ function GestionServicios() {
                                         <td className="px-6 py-4">
                                             <p className="font-semibold text-slate-700">{s.proveedor_nombre} {s.proveedor_apellido}</p>
                                             {s.proveedor_estado !== 'aprobado' && (
-                                                <span className="text-[9px] font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded ml-1 uppercase tracking-widest">Cta. {s.proveedor_estado}</span>
+                                                <span className="text-[9px] font-medium text-warning-600 bg-warning-50 px-1.5 py-0.5 rounded ml-1 uppercase tracking-widest">Cta. {s.proveedor_estado}</span>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
@@ -376,15 +376,15 @@ function GestionServicios() {
                                                     <Eye size={18} />
                                                 </button>
 
-                                                {/* semantica de estado intencional — par toggle Activar/Ocultar (verde/rojo)
-                                                    exclusivos en el mismo slot: mismo boton cambia de color segun s.activo,
-                                                    idem patron P5 de SitterDetailModal. NO migrar el verde aislado — rompe el
-                                                    par visual del toggle. Reservado para sprint de tokens semanticos. */}
+                                                {/* Par toggle Activar/Ocultar con tokens semanticos (success/danger)
+                                                    exclusivos en el mismo slot: mismo boton cambia de color segun s.activo.
+                                                    Ocultar = danger (accion destructiva reversible), activar = success
+                                                    (rehabilita el servicio). Mismo patron canonico que P5 de SitterDetailModal. */}
                                                 {s.activo ? (
                                                     <button
                                                         disabled={actionLoading}
                                                         onClick={() => requestOcultar(s)}
-                                                        className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 font-semibold rounded-lg text-[10px] uppercase tracking-widest transition-colors"
+                                                        className="px-3 py-1.5 bg-danger-50 text-danger-600 hover:bg-danger-600 hover:text-white border border-danger-200 font-semibold rounded-lg text-[10px] uppercase tracking-widest transition-colors"
                                                     >
                                                         Ocultar
                                                     </button>
@@ -392,7 +392,7 @@ function GestionServicios() {
                                                     <button
                                                         disabled={actionLoading}
                                                         onClick={() => toggleEstadoServicio(s.id, true)}
-                                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-800 hover:text-white border border-emerald-200 font-semibold rounded-lg text-[10px] uppercase tracking-widest transition-colors"
+                                                        className="px-3 py-1.5 bg-success-50 text-success-700 hover:bg-success-800 hover:text-white border border-success-200 font-semibold rounded-lg text-[10px] uppercase tracking-widest transition-colors"
                                                     >
                                                         Activar
                                                     </button>
@@ -454,9 +454,9 @@ function GestionServicios() {
                             )}
 
                             {modalData.requisitos && (
-                                <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
-                                    <p className="text-[10px] font-medium text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-1.5"><AlertTriangle size={14} /> Condiciones / Requisitos</p>
-                                    <p className="text-amber-900 text-sm whitespace-pre-wrap">{modalData.requisitos}</p>
+                                <div className="bg-warning-50 rounded-2xl p-4 border border-warning-100">
+                                    <p className="text-[10px] font-medium text-warning-600 uppercase tracking-widest mb-2 flex items-center gap-1.5"><AlertTriangle size={14} /> Condiciones / Requisitos</p>
+                                    <p className="text-warning-900 text-sm whitespace-pre-wrap">{modalData.requisitos}</p>
                                 </div>
                             )}
                         </div>

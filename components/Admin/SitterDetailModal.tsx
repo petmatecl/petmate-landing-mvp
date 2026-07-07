@@ -57,18 +57,19 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                 {/* Content Scrollable */}
                 <div className="overflow-y-auto p-6 flex-1 bg-white">
 
-                    {/* Alerta de Perfil Incompleto */}
+                    {/* Alerta de Perfil Incompleto — token warning: perfil incompleto es alerta
+                        de "algo falta", no error terminal (el usuario puede completar y volver). */}
                     {sitter.missingFields && sitter.missingFields.length > 0 && (
-                        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                            <AlertTriangle className="text-amber-500" size={24} />
+                        <div className="mb-6 bg-warning-50 border border-warning-200 rounded-xl p-4 flex items-start gap-3">
+                            <AlertTriangle className="text-warning-500" size={24} />
                             <div>
-                                <h4 className="font-semibold text-amber-800 text-sm uppercase tracking-widest">Perfil Incompleto</h4>
-                                <p className="text-xs text-amber-700 mt-1">
+                                <h4 className="font-semibold text-warning-800 text-sm uppercase tracking-widest">Perfil Incompleto</h4>
+                                <p className="text-xs text-warning-700 mt-1">
                                     Para ser verificado, el usuario debe completar los siguientes campos:
                                 </p>
                                 <div className="flex flex-wrap gap-1 mt-2">
                                     {sitter.missingFields.map(field => (
-                                        <span key={field} className="px-2 py-0.5 bg-white bg-opacity-50 border border-amber-200 rounded text-[10px] font-medium text-amber-800 uppercase tracking-widest">
+                                        <span key={field} className="px-2 py-0.5 bg-white bg-opacity-50 border border-warning-200 rounded text-[10px] font-medium text-warning-800 uppercase tracking-widest">
                                             {field}
                                         </span>
                                     ))}
@@ -103,7 +104,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     {sitter.aprobado && (!sitter.missingFields || sitter.missingFields.length === 0)
                                         ? <span className="flex items-center gap-1"><CheckCircle size={14} /> Aprobado</span>
                                         : sitter.aprobado
-                                            ? <span className="flex items-center gap-1 text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) <AlertTriangle size={14} /></span>
+                                            ? <span className="flex items-center gap-1 text-warning-700 bg-warning-100 px-2 py-0.5 rounded-full">Aprobado (Falta Info) <AlertTriangle size={14} /></span>
                                             : <span className="flex items-center gap-1">Pendiente <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" /></span>
                                     }
                                 </div>
@@ -142,9 +143,11 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 )}
                                 <div>
                                     <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Identidad</span>
-                                    {/* P8 — par binario verificado/no verificado (verde/slate). El slate = neutro
-                                        no destructivo, pero forma par semantico con el verde. NO migrar aislado. */}
-                                    <span className={`text-sm font-semibold ${sitter.rut_verificado ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                    {/* P8 — par binario verificado/no verificado con tokens semanticos:
+                                        success = verificado (positivo), slate = sin verificar (neutro, "sin color
+                                        de estado activo" — no es danger porque no verificado no es error, es
+                                        estado default esperado). */}
+                                    <span className={`text-sm font-semibold ${sitter.rut_verificado ? 'text-success-600' : 'text-slate-500'}`}>
                                         {sitter.rut_verificado ? '✓ Verificada' : 'Sin verificar'}
                                     </span>
                                 </div>
@@ -252,16 +255,19 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                     >
                         Cerrar
                     </button>
-                    {/* P5 — par filled toggle Aprobar/Revocar (verde/rojo). Bidireccional bidireccional puro:
-                        el mismo boton cambia de color segun estado. NO migrar el verde aislado. */}
+                    {/* P5 — par filled toggle Aprobar/Revocar con tokens semanticos:
+                        success = Aprobar (positivo, activa la cuenta);
+                        danger  = Revocar (revierte una decision positiva previa; usar danger
+                                  porque revocar es destructivo/severo, distinto de suspender
+                                  que es reversible con reactivar). */}
                     <button
                         onClick={() => {
                             onApprove(sitter.id, sitter.aprobado);
                             onClose();
                         }}
                         className={`px-6 py-2 rounded-lg text-white font-medium tracking-wide text-sm shadow-sm transition-all ${sitter.aprobado
-                            ? "bg-red-500 hover:bg-red-600 ring-4 ring-red-500/20"
-                            : "bg-emerald-700 hover:bg-emerald-800 ring-4 ring-emerald-600/20"
+                            ? "bg-danger-500 hover:bg-danger-600 ring-4 ring-danger-500/20"
+                            : "bg-success-700 hover:bg-success-800 ring-4 ring-success-600/20"
                             }`}
                     >
                         {sitter.aprobado ? "Revocar Aprobación" : "Aprobar Proveedor"}

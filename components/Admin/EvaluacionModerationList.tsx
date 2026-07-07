@@ -188,21 +188,21 @@ export default function EvaluacionModerationList() {
                             </div>
 
                             {/* Actions */}
-                            {/* semantica de estado intencional — par aprobar/rechazar de moderacion (el boton
-                                Rechazar rojo esta L199-205 adyacente, mismo bloque de acciones). Reservado para
-                                sprint de tokens semanticos (success/danger/warning). NO migrar aislado. */}
+                            {/* Par aprobar/rechazar de moderacion con tokens semanticos:
+                                success = boton Aprobar filled (accion positiva canonica);
+                                danger  = boton Rechazar outlined (accion negativa terminal). */}
                             <div className="xl:w-48 flex flex-row xl:flex-col justify-end gap-3 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-100 pt-4 xl:pt-0 xl:pl-6">
                                 <button
                                     onClick={() => requestAction(ev, 'aprobado')}
                                     disabled={isSubmitting === ev.id}
-                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-success-700 hover:bg-success-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     {isSubmitting === ev.id ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />} <span className="hidden sm:inline">Aprobar</span>
                                 </button>
                                 <button
                                     onClick={() => requestAction(ev, 'rechazado')}
                                     disabled={isSubmitting === ev.id}
-                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-danger-200 hover:bg-danger-50 text-danger-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     <X size={18} /> <span className="hidden sm:inline">Rechazar</span>
                                 </button>
@@ -213,7 +213,7 @@ export default function EvaluacionModerationList() {
                                             Auto-moderado
                                         </span>
                                     )}
-                                    <div className="flex items-center gap-2 w-full justify-center text-xs text-amber-600 font-medium uppercase tracking-widest bg-amber-50 px-3 py-2 rounded-lg">
+                                    <div className="flex items-center gap-2 w-full justify-center text-xs text-warning-600 font-medium uppercase tracking-widest bg-warning-50 px-3 py-2 rounded-lg">
                                         <AlertCircle size={14} /> Requiere acción
                                     </div>
                                 </div>

@@ -224,12 +224,12 @@ function GestionEvaluaciones() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-2">
-                            <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
+                            <div className="w-12 h-12 bg-warning-50 text-warning-500 rounded-2xl flex items-center justify-center">
                                 <Clock size={24} />
                             </div>
                         </div>
                         <div>
-                            <p className="text-4xl font-bold text-amber-600 mb-1">{stats.pendientes}</p>
+                            <p className="text-4xl font-bold text-warning-600 mb-1">{stats.pendientes}</p>
                             <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Pendientes de Revisión</p>
                         </div>
                     </div>
@@ -313,7 +313,7 @@ function GestionEvaluaciones() {
                 <div className="space-y-4">
                     {loading && (
                         <div className="text-center py-12 flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200">
-                            <div className="w-8 h-8 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin mb-4"></div>
+                            <div className="w-8 h-8 border-4 border-slate-200 border-t-warning-500 rounded-full animate-spin mb-4"></div>
                             <p className="text-slate-500 font-medium">Cargando evaluaciones...</p>
                         </div>
                     )}
@@ -357,7 +357,7 @@ function GestionEvaluaciones() {
 
                                     {/* Mostrar motivo si fue rechazada */}
                                     {evaluacion.estado === 'rechazado' && (evaluacion as any).motivo_rechazo && (
-                                        <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-xl text-xs border border-red-100 flex items-start gap-2">
+                                        <div className="mt-4 p-3 bg-danger-50 text-danger-700 rounded-xl text-xs border border-danger-100 flex items-start gap-2">
                                             <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                                             <div>
                                                 <strong>Rechazada por:</strong> {(evaluacion as any).motivo_rechazo}
@@ -367,21 +367,23 @@ function GestionEvaluaciones() {
                                 </div>
 
                                 {/* Acciones (Solo para pendientes) */}
-                                {/* P1 — par bidireccional aprobar/rechazar (outline verde/rojo). NO migrar el verde aislado —
-                                    rompe el par visual con el boton Rechazar rojo de abajo. Reservado para sprint semantico. */}
+                                {/* P1 — par bidireccional aprobar/rechazar (outline) con tokens semanticos
+                                    (success/danger). Ambos botones usan el shade -50 con hover a full-color
+                                    (-800/-600) e invierten el texto a blanco — patron canonico de par de
+                                    moderacion outlined. */}
                                 {evaluacion.estado === 'pendiente' && (
                                     <div className="flex flex-row md:flex-col gap-2 shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
                                         <button
                                             onClick={() => handleAprobar(evaluacion.id)}
                                             disabled={actionLoading}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-emerald-50 hover:bg-emerald-800 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-success-50 hover:bg-success-800 text-success-700 hover:text-white border border-success-200 hover:border-success-600 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
                                         >
                                             <CheckCircle2 size={16} /> Aprobar
                                         </button>
                                         <button
                                             onClick={() => openRechazarModal(evaluacion.id)}
                                             disabled={actionLoading}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-red-50 hover:bg-red-600 text-red-700 hover:text-white border border-red-200 hover:border-red-600 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-danger-50 hover:bg-danger-600 text-danger-700 hover:text-white border border-danger-200 hover:border-danger-600 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
                                         >
                                             <XCircle size={16} /> Rechazar
                                         </button>
@@ -398,7 +400,7 @@ function GestionEvaluaciones() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl">
                         <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
-                            <XCircle className="text-red-500" /> Rechazar Evaluación
+                            <XCircle className="text-danger-500" /> Rechazar Evaluación
                         </h3>
                         <p className="text-slate-600 text-sm mb-6">
                             La evaluación no será visible públicamente. Por favor indica el motivo para el historial interno.
@@ -407,7 +409,7 @@ function GestionEvaluaciones() {
                         <div className="mb-4">
                             <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo</label>
                             <textarea
-                                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none bg-slate-50"
+                                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-danger-500 outline-none resize-none bg-slate-50"
                                 rows={3}
                                 value={motivoRechazo}
                                 onChange={e => setMotivoRechazo(e.target.value)}
@@ -437,7 +439,7 @@ function GestionEvaluaciones() {
                             <button
                                 onClick={handleRechazar}
                                 disabled={!motivoRechazo || actionLoading}
-                                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
+                                className="flex-1 px-4 py-2.5 rounded-lg bg-danger-600 text-white font-medium tracking-wide hover:bg-danger-700 disabled:opacity-50"
                             >
                                 {actionLoading ? 'Guardando...' : 'Rechazar Eval.'}
                             </button>

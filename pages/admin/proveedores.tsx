@@ -216,14 +216,20 @@ function GestionProveedores() {
         }
     };
 
-    // T2 — semantica de estado intencional: sistema de 5 estados de moderacion
-    // (aprobado-emerald / pendiente-amber / suspendido-red / rechazado-slate). Reservado
-    // para sprint de tokens semanticos (success/danger/warning). NO migrar el emerald aislado.
+    // T2 — badge de estado de moderacion con tokens semanticos:
+    //   success = aprobado    (positivo, activo)
+    //   warning = pendiente   (espera de decision)
+    //   warning = suspendido  (pausa reversible: existe boton "Reactivar" que
+    //                          transiciona de vuelta a aprobado — ver P4/P7.
+    //                          NO usar danger aqui: rompe la distincion con
+    //                          rechazado terminal).
+    //   slate   = rechazado   (terminal, "sin color de estado activo").
+    // Los aliases apuntan al mismo hex que emerald/amber → cero cambio visual.
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
-            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-xs font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
-            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
-            case 'suspendido': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium uppercase tracking-widest"><AlertTriangle size={12} /> Suspendido</span>;
+            case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-success-100 text-success-600 rounded-full text-xs font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
+            case 'pendiente': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-warning-100 text-warning-700 rounded-full text-xs font-medium uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
+            case 'suspendido': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-warning-100 text-warning-700 rounded-full text-xs font-medium uppercase tracking-widest"><AlertTriangle size={12} /> Suspendido</span>;
             case 'rechazado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium uppercase tracking-widest"><XCircle size={12} /> Rechazado</span>;
             default: return <span className="bg-slate-100 text-slate-500 px-2 py-1 rounded text-xs">{estado}</span>;
         }
@@ -369,26 +375,28 @@ function GestionProveedores() {
                                                     {prov.es_placeholder ? '🪆 Es placeholder' : 'Marcar placeholder'}
                                                 </button>
                                                 {/* Botones condicionales */}
-                                                {/* P2 — par bidireccional soft aprobar/rechazar (verde/rojo). NO migrar el verde
-                                                    aislado. Reservado para sprint semantico. */}
+                                                {/* P2 — par bidireccional soft aprobar/rechazar con tokens semanticos
+                                                    (success/danger). Aprobar es la accion positiva, rechazar la negativa
+                                                    terminal — pareja canonica del sistema. */}
                                                 {prov.estado === 'pendiente' && (
                                                     <>
-                                                        <button onClick={() => openModal('aprobar', prov)} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold rounded-lg text-xs transition-colors">Aprobar</button>
-                                                        <button onClick={() => openModal('rechazar', prov)} className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 font-semibold rounded-lg text-xs transition-colors">Rechazar</button>
+                                                        <button onClick={() => openModal('aprobar', prov)} className="px-3 py-1.5 bg-success-100 text-success-700 hover:bg-success-200 font-semibold rounded-lg text-xs transition-colors">Aprobar</button>
+                                                        <button onClick={() => openModal('rechazar', prov)} className="px-3 py-1.5 bg-danger-100 text-danger-700 hover:bg-danger-200 font-semibold rounded-lg text-xs transition-colors">Rechazar</button>
                                                     </>
                                                 )}
                                                 {prov.estado === 'aprobado' && (
                                                     <>
                                                         <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
-                                                        <button onClick={() => openModal('suspender', prov)} className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 font-semibold rounded-lg text-xs transition-colors">Suspender</button>
+                                                        <button onClick={() => openModal('suspender', prov)} className="px-3 py-1.5 bg-warning-100 text-warning-700 hover:bg-warning-200 font-semibold rounded-lg text-xs transition-colors">Suspender</button>
                                                     </>
                                                 )}
-                                                {/* P7 — reactivar (accion positiva) contrapesada por el badge suspendido rojo del
-                                                    mismo estado (par contextual verde/rojo). NO migrar el verde aislado. */}
+                                                {/* P7 — reactivar (accion positiva) contrapesada por el badge suspendido
+                                                    warning del mismo estado. Reactivar transiciona suspendido → aprobado
+                                                    (por eso success), mientras el badge queda en warning (pausa reversible). */}
                                                 {prov.estado === 'suspendido' && (
                                                     <>
                                                         <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
-                                                        <button onClick={() => openModal('reactivar', prov)} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold rounded-lg text-xs transition-colors">Reactivar</button>
+                                                        <button onClick={() => openModal('reactivar', prov)} className="px-3 py-1.5 bg-success-100 text-success-700 hover:bg-success-200 font-semibold rounded-lg text-xs transition-colors">Reactivar</button>
                                                     </>
                                                 )}
                                                 {prov.estado === 'rechazado' && (
@@ -418,11 +426,11 @@ function GestionProveedores() {
                             <p className="text-slate-600 text-sm mb-6">
                                 ¿Estás seguro de aprobar a <strong className="text-slate-900">{modalConfig.prov.nombre}</strong> como proveedor verificado en plataforma?
                             </p>
-                            {/* P3 — par filled aprobar/rechazar modal (verde/rojo). El boton rojo esta en el
-                                modal Rechazar de abajo (L468 bg-red-600). NO migrar el verde aislado — rompe el par. */}
+                            {/* P3 — par filled aprobar/rechazar modal con tokens semanticos
+                                (success/danger). El boton danger esta en el modal Rechazar (bg-danger-600). */}
                             <div className="flex gap-3">
                                 <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
-                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-700 text-white font-medium tracking-wide hover:bg-emerald-800 disabled:opacity-50">
+                                <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-lg bg-success-700 text-white font-medium tracking-wide hover:bg-success-800 disabled:opacity-50">
                                     {actionLoading ? 'Procesando...' : 'Sí, Aprobar'}
                                 </button>
                             </div>
@@ -433,7 +441,7 @@ function GestionProveedores() {
                     {modalConfig.type === 'rechazar' && (
                         <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl">
                             <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
-                                <XCircle className="text-red-500" /> Rechazar Solicitud
+                                <XCircle className="text-danger-500" /> Rechazar Solicitud
                             </h3>
                             <p className="text-slate-600 text-sm mb-4">
                                 Proveedor: <strong>{modalConfig.prov.nombre}</strong>
@@ -442,7 +450,7 @@ function GestionProveedores() {
                             <div className="mb-4">
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo (visible para el proveedor)</label>
                                 <textarea
-                                    className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none bg-slate-50"
+                                    className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-danger-500 outline-none resize-none bg-slate-50"
                                     rows={3}
                                     value={motivoRechazo}
                                     onChange={e => setMotivoRechazo(e.target.value)}
@@ -467,7 +475,7 @@ function GestionProveedores() {
                                 <button
                                     onClick={handleRechazar}
                                     disabled={!motivoRechazo || actionLoading}
-                                    className="px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium tracking-wide hover:bg-red-700 disabled:opacity-50"
+                                    className="px-5 py-2.5 rounded-lg bg-danger-600 text-white font-medium tracking-wide hover:bg-danger-700 disabled:opacity-50"
                                 >
                                     {actionLoading ? 'Rechazando...' : 'Rechazar Solicitud'}
                                 </button>
@@ -476,11 +484,12 @@ function GestionProveedores() {
                     )}
 
                     {/* Modales Simples: Suspender / Reactivar */}
-                    {/* P4 — par condicional aprobar/suspender (verde vs amber): mismo modal cambia de color
-                        segun type. NO migrar el verde aislado — rompe el sistema visual del selector de accion. */}
+                    {/* P4 — par condicional reactivar/suspender con tokens semanticos: mismo modal
+                        cambia de color segun type. Reactivar = success (transiciona a aprobado);
+                        suspender = warning (pausa reversible, no danger porque no es terminal). */}
                     {(modalConfig.type === 'suspender' || modalConfig.type === 'reactivar') && (
                         <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${modalConfig.type === 'suspender' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${modalConfig.type === 'suspender' ? 'bg-warning-100 text-warning-600' : 'bg-success-100 text-success-600'}`}>
                                 {modalConfig.type === 'suspender' ? <AlertTriangle size={32} /> : <CheckCircle2 size={32} />}
                             </div>
                             <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 capitalize">{modalConfig.type} Cuenta</h3>
@@ -492,7 +501,7 @@ function GestionProveedores() {
                                 <button
                                     onClick={() => updateStatusSimple(modalConfig.prov.id, modalConfig.type === 'suspender' ? 'suspendido' : 'aprobado')}
                                     disabled={actionLoading}
-                                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium tracking-wide text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-700 hover:bg-emerald-800'}`}
+                                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium tracking-wide text-white disabled:opacity-50 ${modalConfig.type === 'suspender' ? 'bg-warning-600 hover:bg-warning-700' : 'bg-success-700 hover:bg-success-800'}`}
                                 >
                                     Confirmar
                                 </button>
@@ -545,9 +554,9 @@ function GestionProveedores() {
                                     </div>
 
                                     {modalConfig.prov.notas_admin && (
-                                        <div className="mt-6 p-3 bg-red-50 border border-red-100 rounded-xl">
-                                            <p className="text-[10px] font-medium text-red-700 uppercase tracking-widest mb-1">Notas de Admin</p>
-                                            <p className="text-sm text-red-900">{modalConfig.prov.notas_admin}</p>
+                                        <div className="mt-6 p-3 bg-danger-50 border border-danger-100 rounded-xl">
+                                            <p className="text-[10px] font-medium text-danger-700 uppercase tracking-widest mb-1">Notas de Admin</p>
+                                            <p className="text-sm text-danger-900">{modalConfig.prov.notas_admin}</p>
                                         </div>
                                     )}
                                 </div>

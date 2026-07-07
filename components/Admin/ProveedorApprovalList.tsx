@@ -301,16 +301,15 @@ export default function ProveedorApprovalList() {
                                             )}
                                         </div>
                                     </div>
-                                    {/* semantica de estado intencional — par aprobar/rechazar de moderacion (el boton
-                                        Rechazar rojo esta L309-312 adyacente, mismo bloque de acciones). Reservado para
-                                        sprint de tokens semanticos (success/danger/warning). NO migrar aislado. */}
+                                    {/* Par aprobar/rechazar de moderacion con tokens semanticos:
+                                        success = Aprobar filled, danger = Rechazar outlined. */}
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobar(prov)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-success-700 hover:bg-success-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <Check size={18} /> <span className="hidden sm:inline">Aprobar</span>
                                         </button>
                                         <button onClick={() => setRejectingId(prov.id)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-danger-200 hover:bg-danger-50 text-danger-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <X size={18} /> <span className="hidden sm:inline">Rechazar</span>
                                         </button>
                                     </div>
@@ -360,8 +359,8 @@ export default function ProveedorApprovalList() {
                                             </a>
                                             <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1"><MapPin size={12} /> {prov.comuna || '—'}</p>
                                             <div className="flex items-center gap-1.5 mt-2">
-                                                <Clock size={12} className="text-amber-500" />
-                                                <span className="text-xs text-amber-600 font-semibold">Pendiente de revisión</span>
+                                                <Clock size={12} className="text-warning-500" />
+                                                <span className="text-xs text-warning-600 font-semibold">Pendiente de revisión</span>
                                             </div>
                                         </div>
                                     </div>
@@ -400,16 +399,15 @@ export default function ProveedorApprovalList() {
                                     </div>
 
                                     {/* Actions */}
-                                    {/* semantica de estado intencional — par verificar/rechazar-verificacion de
-                                        moderacion (el boton Rechazar rojo esta L408-411 adyacente, mismo bloque de
-                                        acciones). Reservado para sprint de tokens semanticos. NO migrar aislado. */}
+                                    {/* Par verificar/rechazar-verificacion con tokens semanticos:
+                                        success = Verificar filled, danger = Rechazar outlined. */}
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobarVerif(prov)} disabled={isSubmitting || !prov.foto_carnet}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-success-700 hover:bg-success-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <ShieldCheck size={16} /> <span className="hidden sm:inline">Verificar</span>
                                         </button>
                                         <button onClick={() => setRejectingVerifId(prov.id)} disabled={isSubmitting}
-                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                            className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-danger-200 hover:bg-danger-50 text-danger-600 font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                             <ShieldX size={16} /> <span className="hidden sm:inline">Rechazar</span>
                                         </button>
                                     </div>
@@ -443,7 +441,7 @@ export default function ProveedorApprovalList() {
             {rejectingId && (
                 <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
-                        <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6"><AlertTriangle size={24} /></div>
+                        <div className="w-12 h-12 bg-danger-100 text-danger-600 rounded-full flex items-center justify-center mb-6"><AlertTriangle size={24} /></div>
                         <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Rechazar Solicitud</h2>
                         <p className="text-sm text-slate-500 mb-6">Indica el motivo del rechazo. El usuario recibirá esta información por correo.</p>
                         <form onSubmit={handleRechazar}>
@@ -451,13 +449,13 @@ export default function ProveedorApprovalList() {
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo *</label>
                                 <textarea value={motivoRechazo} onChange={e => setMotivoRechazo(e.target.value)}
                                     placeholder="Ej: Foto de carnet ilegible, datos incompletos..."
-                                    className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none resize-none text-sm" required />
+                                    className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-danger-500 outline-none resize-none text-sm" required />
                             </div>
                             <div className="flex gap-3 justify-end">
                                 <button type="button" onClick={() => { setRejectingId(null); setMotivoRechazo(''); }}
                                     className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
                                 <button type="submit" disabled={isSubmitting || !motivoRechazo.trim()}
-                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
+                                    className="px-5 py-2.5 bg-danger-600 hover:bg-danger-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
                                     {isSubmitting && <Loader2 size={16} className="animate-spin" />} Confirmar Rechazo
                                 </button>
                             </div>
@@ -470,7 +468,7 @@ export default function ProveedorApprovalList() {
             {rejectingVerifId && (
                 <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
-                        <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6"><ShieldX size={24} /></div>
+                        <div className="w-12 h-12 bg-danger-100 text-danger-600 rounded-full flex items-center justify-center mb-6"><ShieldX size={24} /></div>
                         <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Rechazar Verificación</h2>
                         <p className="text-sm text-slate-500 mb-6">El proveedor verá este mensaje en su dashboard y podrá reenviar su solicitud.</p>
                         <form onSubmit={handleRechazarVerif}>
@@ -478,13 +476,13 @@ export default function ProveedorApprovalList() {
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo *</label>
                                 <textarea value={notaVerif} onChange={e => setNotaVerif(e.target.value)}
                                     placeholder="Ej: Foto ilegible, carnet vencido, RUT no coincide con la imagen..."
-                                    className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none resize-none text-sm" required />
+                                    className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-danger-500 outline-none resize-none text-sm" required />
                             </div>
                             <div className="flex gap-3 justify-end">
                                 <button type="button" onClick={() => { setRejectingVerifId(null); setNotaVerif(''); }}
                                     className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
                                 <button type="submit" disabled={isSubmitting || !notaVerif.trim()}
-                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
+                                    className="px-5 py-2.5 bg-danger-600 hover:bg-danger-700 text-white font-medium tracking-wide rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm">
                                     {isSubmitting && <Loader2 size={16} className="animate-spin" />} Rechazar Verificación
                                 </button>
                             </div>

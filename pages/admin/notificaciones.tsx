@@ -101,17 +101,17 @@ function AdminNotifications() {
 
                         {/* Quick Actions / Pending Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-amber-100 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-warning-100 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-warning-50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <div className="bg-amber-100 p-2 rounded-lg text-amber-600">
+                                        <div className="bg-warning-100 p-2 rounded-lg text-warning-600">
                                             <User size={20} />
                                         </div>
                                         <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Proveedores Pendientes</p>
                                     </div>
                                     <p className="text-4xl font-bold text-slate-900 tracking-tight">{stats.proveedoresPendientes}</p>
-                                    <Link href="/admin/proveedores?estado=pendiente" className="mt-4 text-amber-600 font-medium text-sm hover:underline flex items-center gap-1">
+                                    <Link href="/admin/proveedores?estado=pendiente" className="mt-4 text-warning-600 font-medium text-sm hover:underline flex items-center gap-1">
                                         Revisar solicitudes <ChevronRight size={14} />
                                     </Link>
                                 </div>
@@ -143,10 +143,15 @@ function AdminNotifications() {
                             <div className="divide-y divide-slate-100">
                                 {activities.map((user) => (
                                     <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                                        {/* Par de CATEGORIA proveedor(verde) / usuario(azul). NO migrar el verde aislado —
-                                            rompe la codificacion de tipo de usuario del sistema. */}
+                                        {/* Par de CATEGORIA de usuario con tokens semanticos:
+                                              success = proveedor (rol activo que genera valor en la plataforma)
+                                              info    = usuario   (rol consumidor, categoria neutra)
+                                            No es un par "positivo/negativo" como aprobar/rechazar — es distincion
+                                            de tipo. Success/info se eligen porque son las familias del sistema
+                                            que mejor codifican "categoria primaria/creador" vs "categoria
+                                            neutra/consumidor". */}
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm uppercase shrink-0
-                                            ${user.tipo === 'proveedor' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
+                                            ${user.tipo === 'proveedor' ? 'bg-success-100 text-success-600' : 'bg-info-100 text-info-600'}
                                         `}>
                                             {user.nombre?.[0] || "?"}
                                         </div>
@@ -159,20 +164,22 @@ function AdminNotifications() {
                                             </p>
                                         </div>
 
-                                        {/* Par de ESTADO aprobado(verde) / pendiente(amber). Misma semantica de moderacion
-                                            que T2/T3. NO migrar el verde aislado — deja tri estado mestizo. */}
+                                        {/* Par de ESTADO con tokens semanticos: success=aprobado, warning=pendiente.
+                                            Misma semantica de moderacion que T2/T3 (proveedores.tsx). El chip
+                                            info=usuario del else externo mantiene la codificacion de tipo del div
+                                            del avatar (proveedor=success, usuario=info). */}
                                         {user.tipo === 'proveedor' ? (
                                             user.estado === 'aprobado' ? (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-600 uppercase tracking-widest">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-success-100 text-success-600 uppercase tracking-widest">
                                                     Aprobado
                                                 </span>
                                             ) : (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 uppercase tracking-widest">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-warning-100 text-warning-700 uppercase tracking-widest">
                                                     Pendiente
                                                 </span>
                                             )
                                         ) : (
-                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 uppercase tracking-widest">
+                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-info-100 text-info-700 uppercase tracking-widest">
                                                 Usuario
                                             </span>
                                         )}
