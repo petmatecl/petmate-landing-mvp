@@ -240,12 +240,12 @@ export default function ProveedorApprovalList() {
                 <>
                     {loading ? (
                         <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
-                            <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
+                            <Loader2 className="w-8 h-8 animate-spin text-accent-600 mx-auto mb-4" />
                             <p className="text-slate-500 font-medium">Cargando solicitudes pendientes...</p>
                         </div>
                     ) : proveedores.length === 0 ? (
                         <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
-                            <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-slate-50 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Check size={32} />
                             </div>
                             <h3 className="text-lg font-semibold text-slate-900 mb-2">¡Todo al día!</h3>
@@ -267,7 +267,7 @@ export default function ProveedorApprovalList() {
                                         </div>
                                         <div>
                                             <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                                className="text-base font-semibold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                                                className="text-base font-semibold text-slate-900 hover:text-accent-600 transition-colors flex items-center gap-1.5">
                                                 {prov.nombre} {prov.apellido_p}
                                                 <ExternalLink size={14} className="text-slate-300" />
                                             </a>
@@ -301,6 +301,9 @@ export default function ProveedorApprovalList() {
                                             )}
                                         </div>
                                     </div>
+                                    {/* semantica de estado intencional — par aprobar/rechazar de moderacion (el boton
+                                        Rechazar rojo esta L309-312 adyacente, mismo bloque de acciones). Reservado para
+                                        sprint de tokens semanticos (success/danger/warning). NO migrar aislado. */}
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobar(prov)} disabled={isSubmitting}
                                             className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">
@@ -323,12 +326,12 @@ export default function ProveedorApprovalList() {
                 <>
                     {loadingVerif ? (
                         <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
-                            <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
+                            <Loader2 className="w-8 h-8 animate-spin text-accent-600 mx-auto mb-4" />
                             <p className="text-slate-500 font-medium">Cargando verificaciones...</p>
                         </div>
                     ) : verificaciones.length === 0 ? (
                         <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
-                            <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-slate-50 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <ShieldCheck size={32} />
                             </div>
                             <h3 className="text-lg font-bold text-slate-700 mb-2">Sin verificaciones pendientes</h3>
@@ -351,7 +354,7 @@ export default function ProveedorApprovalList() {
                                         </div>
                                         <div>
                                             <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                                className="font-semibold text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                                                className="font-semibold text-slate-900 hover:text-accent-600 transition-colors flex items-center gap-1.5">
                                                 {prov.nombre} {prov.apellido_p}
                                                 <ExternalLink size={12} className="text-slate-300" />
                                             </a>
@@ -397,6 +400,9 @@ export default function ProveedorApprovalList() {
                                     </div>
 
                                     {/* Actions */}
+                                    {/* semantica de estado intencional — par verificar/rechazar-verificacion de
+                                        moderacion (el boton Rechazar rojo esta L408-411 adyacente, mismo bloque de
+                                        acciones). Reservado para sprint de tokens semanticos. NO migrar aislado. */}
                                     <div className="xl:w-1/4 flex flex-row xl:flex-col justify-end gap-3 shrink-0">
                                         <button onClick={() => handleAprobarVerif(prov)} disabled={isSubmitting || !prov.foto_carnet}
                                             className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50">

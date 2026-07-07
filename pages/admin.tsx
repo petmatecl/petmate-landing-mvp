@@ -167,7 +167,7 @@ export default function AdminDashboard() {
         return (
             <>
                 <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-600"></div>
                 </div>
             </>
         );
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
                 <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-white border-r border-slate-200" style={{ position: 'sticky', top: headerH, height: `calc(100vh - ${headerH}px)` }}>
                     <div className="p-5 border-b border-slate-100">
                         <div className="flex items-center gap-2.5">
-                            <ShieldCheck className="w-7 h-7 text-emerald-700" />
+                            <ShieldCheck className="w-7 h-7 text-accent-700" />
                             <div>
                                 <h2 className="text-sm font-semibold text-slate-900 leading-tight">Admin</h2>
                                 <p className="text-[11px] text-slate-400">Pawnecta</p>
@@ -261,11 +261,11 @@ export default function AdminDashboard() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
-                                        ? 'bg-emerald-50 text-emerald-700 font-semibold'
+                                        ? 'bg-accent-50 text-accent-700 font-semibold'
                                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
-                                    <Icon size={18} className={isActive ? 'text-emerald-700' : 'text-slate-400'} />
+                                    <Icon size={18} className={isActive ? 'text-accent-700' : 'text-slate-400'} />
                                     {tab.label}
                                 </button>
                             );
@@ -283,7 +283,7 @@ export default function AdminDashboard() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${isActive
-                                    ? 'bg-emerald-700 text-white font-semibold'
+                                    ? 'bg-accent-600 text-white font-semibold'
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
                             >

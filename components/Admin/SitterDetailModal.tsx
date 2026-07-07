@@ -99,7 +99,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 </div>
                                 <h2 className="text-xl font-semibold text-slate-900 tracking-tight">{sitter.nombre} {sitter.apellido_p || ""}</h2>
                                 <p className="text-sm text-slate-500">{sitter.email || "Sin email"}</p>
-                                <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-100 text-accent-800">
                                     {sitter.aprobado && (!sitter.missingFields || sitter.missingFields.length === 0)
                                         ? <span className="flex items-center gap-1"><CheckCircle size={14} /> Aprobado</span>
                                         : sitter.aprobado
@@ -142,6 +142,8 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                 )}
                                 <div>
                                     <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Identidad</span>
+                                    {/* P8 — par binario verificado/no verificado (verde/slate). El slate = neutro
+                                        no destructivo, pero forma par semantico con el verde. NO migrar aislado. */}
                                     <span className={`text-sm font-semibold ${sitter.rut_verificado ? 'text-emerald-600' : 'text-slate-500'}`}>
                                         {sitter.rut_verificado ? '✓ Verificada' : 'Sin verificar'}
                                     </span>
@@ -216,7 +218,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                     <h4 className="font-medium text-slate-400 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">Sitio Web</h4>
                                     <a href={sitter.sitio_web.startsWith('http') ? sitter.sitio_web : `https://${sitter.sitio_web}`}
                                         target="_blank" rel="noopener noreferrer"
-                                        className="text-emerald-700 hover:underline text-sm"
+                                        className="text-accent-700 hover:underline text-sm"
                                     >
                                         {sitter.sitio_web}
                                     </a>
@@ -250,6 +252,8 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                     >
                         Cerrar
                     </button>
+                    {/* P5 — par filled toggle Aprobar/Revocar (verde/rojo). Bidireccional bidireccional puro:
+                        el mismo boton cambia de color segun estado. NO migrar el verde aislado. */}
                     <button
                         onClick={() => {
                             onApprove(sitter.id, sitter.aprobado);

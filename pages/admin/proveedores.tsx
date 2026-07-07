@@ -216,6 +216,9 @@ function GestionProveedores() {
         }
     };
 
+    // T2 — semantica de estado intencional: sistema de 5 estados de moderacion
+    // (aprobado-emerald / pendiente-amber / suspendido-red / rechazado-slate). Reservado
+    // para sprint de tokens semanticos (success/danger/warning). NO migrar el emerald aislado.
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
             case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-xs font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
@@ -238,7 +241,7 @@ function GestionProveedores() {
                         </Link>
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                                <ShieldCheck className="text-emerald-400" />
+                                <ShieldCheck className="text-accent-600" />
                                 Gestión de Proveedores
                             </h1>
                             <p className="text-sm text-slate-400">Panel administrativo de perfiles</p>
@@ -272,13 +275,13 @@ function GestionProveedores() {
                                     placeholder="Buscar nombre o RUT..."
                                     value={busqueda}
                                     onChange={e => setBusqueda(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent-600"
                                 />
                             </div>
                             <select
                                 value={orden}
                                 onChange={e => setOrden(e.target.value as OrdenType)}
-                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-600"
+                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-accent-600"
                             >
                                 <option value="fecha_desc">Más recientes primero</option>
                                 <option value="fecha_asc">Más antiguos primero</option>
@@ -306,7 +309,7 @@ function GestionProveedores() {
                                 {loading && (
                                     <tr>
                                         <td colSpan={5} className="py-12 text-center text-slate-400">
-                                            <div className="flex justify-center mb-2"><div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div></div>
+                                            <div className="flex justify-center mb-2"><div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin"></div></div>
                                             Cargando datos...
                                         </td>
                                     </tr>
@@ -328,7 +331,7 @@ function GestionProveedores() {
                                                     {prov.foto_perfil ? <img src={prov.foto_perfil} alt="" className="w-full h-full object-cover" /> : <UserIcon size={20} />}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-slate-900 cursor-pointer hover:text-emerald-700" onClick={() => openModal('detalle', prov)}>
+                                                    <p className="font-semibold text-slate-900 cursor-pointer hover:text-accent-600" onClick={() => openModal('detalle', prov)}>
                                                         {prov.nombre} {prov.apellido_p}
                                                     </p>
                                                     {prov.es_placeholder && (
@@ -338,7 +341,7 @@ function GestionProveedores() {
                                                     )}
                                                     <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
                                                         {prov.rut}
-                                                        {prov.rut_verificado && <CheckCircle2 size={12} className="text-emerald-500" />}
+                                                        {prov.rut_verificado && <CheckCircle2 size={12} className="text-accent-600" />}
                                                     </p>
                                                 </div>
                                             </div>
@@ -366,6 +369,8 @@ function GestionProveedores() {
                                                     {prov.es_placeholder ? '🪆 Es placeholder' : 'Marcar placeholder'}
                                                 </button>
                                                 {/* Botones condicionales */}
+                                                {/* P2 — par bidireccional soft aprobar/rechazar (verde/rojo). NO migrar el verde
+                                                    aislado. Reservado para sprint semantico. */}
                                                 {prov.estado === 'pendiente' && (
                                                     <>
                                                         <button onClick={() => openModal('aprobar', prov)} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold rounded-lg text-xs transition-colors">Aprobar</button>
@@ -378,6 +383,8 @@ function GestionProveedores() {
                                                         <button onClick={() => openModal('suspender', prov)} className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 font-semibold rounded-lg text-xs transition-colors">Suspender</button>
                                                     </>
                                                 )}
+                                                {/* P7 — reactivar (accion positiva) contrapesada por el badge suspendido rojo del
+                                                    mismo estado (par contextual verde/rojo). NO migrar el verde aislado. */}
                                                 {prov.estado === 'suspendido' && (
                                                     <>
                                                         <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
@@ -404,13 +411,15 @@ function GestionProveedores() {
                     {/* Modal Aprobar */}
                     {modalConfig.type === 'aprobar' && (
                         <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center">
-                            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle2 size={32} />
                             </div>
                             <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Aprobar Proveedor</h3>
                             <p className="text-slate-600 text-sm mb-6">
                                 ¿Estás seguro de aprobar a <strong className="text-slate-900">{modalConfig.prov.nombre}</strong> como proveedor verificado en plataforma?
                             </p>
+                            {/* P3 — par filled aprobar/rechazar modal (verde/rojo). El boton rojo esta en el
+                                modal Rechazar de abajo (L468 bg-red-600). NO migrar el verde aislado — rompe el par. */}
                             <div className="flex gap-3">
                                 <button onClick={closeModal} className="flex-1 px-4 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">Cancelar</button>
                                 <button onClick={handleAprobar} disabled={actionLoading} className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-700 text-white font-medium tracking-wide hover:bg-emerald-800 disabled:opacity-50">
@@ -467,6 +476,8 @@ function GestionProveedores() {
                     )}
 
                     {/* Modales Simples: Suspender / Reactivar */}
+                    {/* P4 — par condicional aprobar/suspender (verde vs amber): mismo modal cambia de color
+                        segun type. NO migrar el verde aislado — rompe el sistema visual del selector de accion. */}
                     {(modalConfig.type === 'suspender' || modalConfig.type === 'reactivar') && (
                         <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center">
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${modalConfig.type === 'suspender' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>

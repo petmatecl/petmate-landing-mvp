@@ -177,6 +177,9 @@ function GestionEvaluaciones() {
         );
     };
 
+    // T1 — semantica de estado intencional: triada aprobado-emerald / pendiente-amber / rechazado-red.
+    // Reservado para sprint de tokens semanticos (success/danger/warning). NO migrar el emerald aislado —
+    // rompe el sistema visual de moderacion (deja triada mestiza accent + amber viejo + red viejo).
     const EstadoBadge = ({ estado }: { estado: string }) => {
         switch (estado) {
             case 'aprobado': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/50 text-emerald-600 border border-emerald-200 rounded-lg text-[10px] font-medium uppercase tracking-widest"><CheckCircle2 size={12} /> Aprobado</span>;
@@ -225,12 +228,12 @@ function GestionEvaluaciones() {
 
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-2">
-                            <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center">
+                            <div className="w-12 h-12 bg-accent-50 text-accent-600 rounded-2xl flex items-center justify-center">
                                 <CheckCircle2 size={24} />
                             </div>
                         </div>
                         <div>
-                            <p className="text-4xl font-bold text-emerald-700 mb-1">{stats.aprobadasMes}</p>
+                            <p className="text-4xl font-bold text-accent-700 mb-1">{stats.aprobadasMes}</p>
                             <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Aprobadas este mes</p>
                         </div>
                     </div>
@@ -279,13 +282,13 @@ function GestionEvaluaciones() {
                                     placeholder="Buscar por proveedor, servicio o comentario..."
                                     value={busqueda}
                                     onChange={e => setBusqueda(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-shadow"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 transition-shadow"
                                 />
                             </div>
                             <select
                                 value={filtroEstrellas}
                                 onChange={e => setFiltroEstrellas(e.target.value === 'todas' ? 'todas' : Number(e.target.value) as any)}
-                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-600 min-w-[120px]"
+                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-accent-600 min-w-[120px]"
                             >
                                 <option value="todas">Cualquier rating</option>
                                 <option value="5">5 Estrellas</option>
@@ -356,6 +359,8 @@ function GestionEvaluaciones() {
                                 </div>
 
                                 {/* Acciones (Solo para pendientes) */}
+                                {/* P1 — par bidireccional aprobar/rechazar (outline verde/rojo). NO migrar el verde aislado —
+                                    rompe el par visual con el boton Rechazar rojo de abajo. Reservado para sprint semantico. */}
                                 {evaluacion.estado === 'pendiente' && (
                                     <div className="flex flex-row md:flex-col gap-2 shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
                                         <button

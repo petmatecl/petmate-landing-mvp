@@ -134,7 +134,7 @@ export default function ProveedorManagementList() {
     if (loading) {
         return (
             <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
+                <Loader2 className="w-8 h-8 animate-spin text-accent-600 mx-auto mb-4" />
                 <p className="text-slate-500 font-medium">Cargando base de proveedores...</p>
             </div>
         );
@@ -149,7 +149,7 @@ export default function ProveedorManagementList() {
                         placeholder="Buscar por nombre, email o RUT..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent-600 outline-none text-sm"
                     />
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 </div>
@@ -157,7 +157,7 @@ export default function ProveedorManagementList() {
                 <select
                     value={estadoFilter}
                     onChange={(e) => setEstadoFilter(e.target.value)}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-medium text-slate-700 cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent-600 outline-none text-sm font-medium text-slate-700 cursor-pointer"
                 >
                     <option value="todos">Todos los Estados</option>
                     <option value="aprobado">Aprobados</option>
@@ -201,7 +201,7 @@ export default function ProveedorManagementList() {
                                                 </div>
                                                 <div>
                                                     <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                                        className="font-semibold text-slate-900 hover:text-emerald-700 transition-colors inline-flex items-center gap-1">
+                                                        className="font-semibold text-slate-900 hover:text-accent-600 transition-colors inline-flex items-center gap-1">
                                                         {prov.nombre} {prov.apellido_p}
                                                         <ExternalLink size={12} className="text-slate-300" />
                                                     </a>
@@ -219,6 +219,10 @@ export default function ProveedorManagementList() {
                                                 <span className="text-[10px] uppercase font-medium text-slate-400 tracking-widest">Publicados</span>
                                             </div>
                                         </td>
+                                        {/* T3 — semantica de estado intencional: misma triada del panel proveedores
+                                            (aprobado-emerald / suspendido-red / rechazado-slate / pendiente-amber),
+                                            duplicada en esta lista. NO migrar el verde aislado. Reservado para sprint
+                                            de tokens semanticos. */}
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-widest
                                                 ${prov.estado === 'aprobado' ? 'bg-emerald-100 text-emerald-600' :
@@ -245,6 +249,9 @@ export default function ProveedorManagementList() {
                                                     </button>
                                                 )}
 
+                                                {/* P6 — par contextual suspender/reactivar (verde vs rojo). El "Suspender"
+                                                    de arriba (L246 hover:text-red-600) forma par con este "Reactivar" verde.
+                                                    NO migrar el verde aislado. */}
                                                 {prov.estado === 'suspendido' && (
                                                     <button
                                                         onClick={() => handleReactivate(prov.id)}

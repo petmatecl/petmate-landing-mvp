@@ -124,7 +124,7 @@ export default function EvaluacionModerationList() {
     if (loading) {
         return (
             <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
+                <Loader2 className="w-8 h-8 animate-spin text-accent-600 mx-auto mb-4" />
                 <p className="text-slate-500 font-medium">Cargando evaluaciones pendientes...</p>
             </div>
         );
@@ -133,7 +133,7 @@ export default function EvaluacionModerationList() {
     if (evaluaciones.length === 0) {
         return (
             <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
-                <div className="w-16 h-16 bg-slate-50 text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-slate-50 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Check size={32} />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">Sin revisiones pendientes</h3>
@@ -188,6 +188,9 @@ export default function EvaluacionModerationList() {
                             </div>
 
                             {/* Actions */}
+                            {/* semantica de estado intencional — par aprobar/rechazar de moderacion (el boton
+                                Rechazar rojo esta L199-205 adyacente, mismo bloque de acciones). Reservado para
+                                sprint de tokens semanticos (success/danger/warning). NO migrar aislado. */}
                             <div className="xl:w-48 flex flex-row xl:flex-col justify-end gap-3 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-100 pt-4 xl:pt-0 xl:pl-6">
                                 <button
                                     onClick={() => requestAction(ev, 'aprobado')}
