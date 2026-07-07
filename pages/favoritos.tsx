@@ -170,7 +170,7 @@ export default function FavoritosPage() {
                         onClick={() => changeTab('servicio')}
                         className={`pb-3 -mb-px text-sm border-b-2 transition-colors ${
                             tab === 'servicio'
-                                ? 'border-emerald-700 text-emerald-700 font-semibold'
+                                ? 'border-accent-600 text-accent-700 font-semibold'
                                 : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
                         }`}
                     >
@@ -182,7 +182,7 @@ export default function FavoritosPage() {
                         onClick={() => changeTab('proveedor')}
                         className={`pb-3 -mb-px text-sm border-b-2 transition-colors ${
                             tab === 'proveedor'
-                                ? 'border-emerald-700 text-emerald-700 font-semibold'
+                                ? 'border-accent-600 text-accent-700 font-semibold'
                                 : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
                         }`}
                     >
@@ -221,7 +221,7 @@ export default function FavoritosPage() {
                         </p>
                         <Link
                             href="/explorar"
-                            className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide rounded-lg px-4 py-2 transition"
+                            className="inline-flex items-center gap-2 bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide rounded-lg px-4 py-2 transition"
                         >
                             Explorar servicios
                             <ArrowRight className="w-4 h-4" strokeWidth={1.5} />

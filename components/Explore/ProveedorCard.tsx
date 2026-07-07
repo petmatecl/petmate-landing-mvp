@@ -70,7 +70,7 @@ export default function ProveedorCard({ proveedor }: Props) {
 
             {/* Contenido */}
             <div className="p-5 flex flex-col flex-grow">
-                <h3 className="font-semibold text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                <h3 className="font-semibold text-base text-slate-900 group-hover:text-accent-600 transition-colors line-clamp-2">
                     {proveedor.nombre_publico}
                 </h3>
                 <p className="text-sm text-slate-500 mt-1 truncate">{proveedor.comuna}</p>
@@ -78,12 +78,12 @@ export default function ProveedorCard({ proveedor }: Props) {
                 {(proveedor.rut_verificado || proveedor.perfil_completo) && (
                     <div className="flex flex-wrap gap-1.5 mt-3">
                         {proveedor.rut_verificado && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-[11px] font-medium">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-accent-50 text-accent-800 border border-accent-200 rounded-full text-[11px] font-medium">
                                 <ShieldCheck size={10} strokeWidth={1.5} aria-hidden="true" /> Verificado
                             </span>
                         )}
                         {proveedor.perfil_completo && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-[11px] font-medium">
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-accent-50 text-accent-800 border border-accent-200 rounded-full text-[11px] font-medium">
                                 <BadgeCheck size={10} strokeWidth={1.5} aria-hidden="true" /> Perfil completo
                             </span>
                         )}
