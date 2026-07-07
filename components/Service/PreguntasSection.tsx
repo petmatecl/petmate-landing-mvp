@@ -138,11 +138,14 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                 <div className="space-y-4">
                     {visible.map(q => (
                         <div key={q.id} className="border-t border-slate-100 pt-4">
-                            {/* semantica de estado intencional — par CATEGORIA pregunta (P-emerald) / respuesta
-                                (R-slate L153). Ambos chips coexisten en el mismo item Q&A cuando hay respuesta.
-                                Reservado para sprint de tokens semanticos. NO migrar aislado. */}
+                            {/* Chip P pregunta — token accent (marca). NO es semantica de
+                                estado ni categoria neutra (info): una pregunta es el momento
+                                del usuario en la marca, chip destacado en el color del sitio.
+                                El chip R respuesta (L153) queda slate porque la respuesta es
+                                contexto secundario del hilo, sin color propio. Asimetria
+                                intencional: la pregunta inicia y destaca, la respuesta acompaña. */}
                             <div className="flex items-start gap-2">
-                                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
+                                <span className="text-xs font-semibold text-accent-600 bg-accent-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
                                 <div className="flex-1">
                                     <p className="text-sm text-slate-700">{q.pregunta}</p>
                                     <p className="text-[11px] text-slate-400 mt-1">

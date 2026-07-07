@@ -969,8 +969,8 @@ export default function ProveedorDashboard() {
                     <div className="bg-white max-w-lg w-full rounded-2xl shadow-sm border border-slate-200 p-8">
                         {/* Header Centralizado */}
                         <div className="text-center mb-8">
-                            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Clock size={40} className="text-amber-500" />
+                            <div className="w-20 h-20 bg-warning-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Clock size={40} className="text-warning-500" />
                             </div>
                             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                                 Tu solicitud está en revisión
@@ -994,10 +994,10 @@ export default function ProveedorDashboard() {
                             {/* Paso 2: Activo */}
                             <div className="relative flex items-center gap-4">
                                 <div className="absolute left-[11px] top-8 w-[2px] h-6 bg-slate-100"></div>
-                                <div className="bg-white z-10 text-amber-500 shrink-0">
+                                <div className="bg-white z-10 text-warning-500 shrink-0">
                                     <Clock size={24} className="bg-white" />
                                 </div>
-                                <span className="text-amber-700 font-semibold">En revisión por el equipo</span>
+                                <span className="text-warning-700 font-semibold">En revisión por el equipo</span>
                             </div>
 
                             {/* Paso 3: Pendiente */}
@@ -1050,8 +1050,13 @@ export default function ProveedorDashboard() {
             <>
                 <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 p-4">
                     <div className="bg-white max-w-lg w-full rounded-2xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center">
-                        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
-                            <AlertTriangle className="w-10 h-10 text-red-500" />
+                        {/* Pantalla de "cuenta suspendida" — token warning (mismo criterio
+                            que admin: suspendido es reversible, no terminal). Aunque acá el
+                            proveedor no puede reactivar por si mismo, la naturaleza del estado
+                            sigue siendo reversible administrativamente — la consistencia con
+                            el admin manda. */}
+                        <div className="w-20 h-20 bg-warning-50 rounded-full flex items-center justify-center mb-6">
+                            <AlertTriangle className="w-10 h-10 text-warning-500" />
                         </div>
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-4">Tu cuenta fue suspendida</h1>
                         <p className="text-slate-600 mb-8 leading-relaxed">
@@ -1288,7 +1293,7 @@ export default function ProveedorDashboard() {
                                                     </button>
                                                     <button
                                                         onClick={() => deleteService(servicio.id)}
-                                                        className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
+                                                        className="p-2 text-danger-500 hover:text-danger-600 hover:bg-danger-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
                                                     >
                                                         <Trash2 size={16} /> <span className="hidden sm:inline">Eliminar</span>
                                                     </button>
@@ -1333,7 +1338,7 @@ export default function ProveedorDashboard() {
                                             {perfilTabErrors.has(t.id) && (
                                                 <span
                                                     aria-label="Tiene errores de validación"
-                                                    className="ml-1.5 inline-block w-1.5 h-1.5 bg-red-500 rounded-full align-middle"
+                                                    className="ml-1.5 inline-block w-1.5 h-1.5 bg-danger-500 rounded-full align-middle"
                                                 />
                                             )}
                                         </button>
@@ -1409,7 +1414,7 @@ export default function ProveedorDashboard() {
                                                     {verificacionEstado === 'aprobado'
                                                         ? <ShieldCheck size={22} className="text-accent-600" />
                                                         : verificacionEstado === 'rechazado'
-                                                            ? <ShieldX size={22} className="text-red-500" />
+                                                            ? <ShieldX size={22} className="text-danger-500" />
                                                             : <Shield size={22} className="text-slate-400" />
                                                     }
                                             <div className="flex-1">
@@ -1420,13 +1425,13 @@ export default function ProveedorDashboard() {
                                                 <span className="bg-accent-100 text-accent-600 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full">Verificado</span>
                                             )}
                                             {verificacionEstado === 'pendiente' && (
-                                                <span className="bg-amber-100 text-amber-700 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1.5">
-                                                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                                                <span className="bg-warning-100 text-warning-700 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1.5">
+                                                    <span className="w-1.5 h-1.5 bg-warning-500 rounded-full animate-pulse" />
                                                     En revisión
                                                 </span>
                                             )}
                                             {verificacionEstado === 'rechazado' && (
-                                                <span className="bg-red-100 text-red-700 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full">Rechazado</span>
+                                                <span className="bg-danger-100 text-danger-700 text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full">Rechazado</span>
                                             )}
                                         </div>
 
@@ -1442,25 +1447,25 @@ export default function ProveedorDashboard() {
                                                 </div>
                                             )}
 
-                                            {/* ESTADO: pendiente */}
+                                            {/* ESTADO: pendiente — warning (en espera de decisión admin) */}
                                             {verificacionEstado === 'pendiente' && (
-                                                <div className="flex items-center gap-3 text-amber-700 bg-amber-50 rounded-xl p-4">
+                                                <div className="flex items-center gap-3 text-warning-700 bg-warning-50 rounded-xl p-4">
                                                     <Clock size={20} className="shrink-0" />
                                                     <div>
                                                         <p className="font-semibold text-sm">Solicitud enviada — en revisión</p>
-                                                        <p className="text-xs text-amber-600 mt-0.5">Revisamos las solicitudes en un plazo de 24 a 48 horas hábiles.</p>
+                                                        <p className="text-xs text-warning-600 mt-0.5">Revisamos las solicitudes en un plazo de 24 a 48 horas hábiles.</p>
                                                     </div>
                                                 </div>
                                             )}
 
-                                            {/* ESTADO: rechazado */}
+                                            {/* ESTADO: rechazado — danger (negativo terminal, hay opción de reintentar) */}
                                             {verificacionEstado === 'rechazado' && (
                                                 <div className="space-y-4">
-                                                    <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl p-4">
-                                                        <XCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
+                                                    <div className="flex items-start gap-3 bg-danger-50 border border-danger-100 rounded-xl p-4">
+                                                        <XCircle size={20} className="text-danger-500 shrink-0 mt-0.5" />
                                                         <div>
-                                                            <p className="font-semibold text-sm text-red-800">Verificación rechazada</p>
-                                                            {verificacionNota && <p className="text-xs text-red-700 mt-1 leading-relaxed">{verificacionNota}</p>}
+                                                            <p className="font-semibold text-sm text-danger-800">Verificación rechazada</p>
+                                                            {verificacionNota && <p className="text-xs text-danger-700 mt-1 leading-relaxed">{verificacionNota}</p>}
                                                         </div>
                                                     </div>
                                                     <button type="button" onClick={handleReiniciarVerificacion}
@@ -1792,7 +1797,7 @@ export default function ProveedorDashboard() {
                                                 <img src={url} alt={`Foto espacio ${idx + 1}`} className="w-full h-full object-cover" />
                                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
                                                     <div className="flex justify-end">
-                                                        <button type="button" onClick={() => removeGaleriaFoto(idx)} className="w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 tooltip">
+                                                        <button type="button" onClick={() => removeGaleriaFoto(idx)} className="w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center text-danger-500 hover:bg-danger-50 tooltip">
                                                             <Trash2 size={16} />
                                                         </button>
                                                     </div>
@@ -2025,7 +2030,7 @@ export default function ProveedorDashboard() {
                                                                 {categoriaNombre}
                                                             </span>
                                                             {!servicio.activo && (
-                                                                <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border border-amber-100">
+                                                                <span className="inline-flex items-center bg-warning-50 text-warning-700 text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border border-warning-100">
                                                                     Pausado
                                                                 </span>
                                                             )}
@@ -2103,9 +2108,11 @@ export default function ProveedorDashboard() {
                                     <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
                                     <h3 className="text-slate-900 text-3xl mb-1">{stats.vistas}</h3>
                                     <p className="text-slate-600 text-sm font-medium mb-1">Vistas de Perfil (7 días)</p>
-                                    {/* emerald semantico intencional: par verde/rojo (positivo/negativo), NO es acento de marca. Candidato a token success futuro. NO migrar sin migrar tambien el rojo. */}
+                                    {/* Par trend positivo/negativo con tokens semanticos: success = trend
+                                        positivo o cero (mas vistas que el periodo anterior); danger = trend
+                                        negativo (caida). Par bidireccional clasico del panel. */}
                                     {stats.vistasTrend && (
-                                        <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                        <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-success-600' : 'text-danger-500'}`}>
                                             {stats.vistasTrend}
                                         </p>
                                     )}
@@ -2226,16 +2233,20 @@ export default function ProveedorDashboard() {
                                         });
                                         const direccionInfo = sol.direccion_info;
 
+                                        // Badge de estado de solicitud (vista del proveedor) con tokens
+                                        // semanticos, mismo mapeo que mis-solicitudes.tsx (vista del tutor).
+                                        // Estado confirmada estaba en accent tras el rollout de color; migrado
+                                        // ahora a success para separar marca (accent) de estado positivo (success).
                                         const estadoBadge = (() => {
                                             switch (sol.estado) {
                                                 case 'confirmada':
-                                                    return <span className="inline-flex items-center gap-1 bg-accent-50 text-accent-700 border border-accent-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
+                                                    return <span className="inline-flex items-center gap-1 bg-success-50 text-success-700 border border-success-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
                                                 case 'rechazada':
-                                                    return <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
+                                                    return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
                                                 case 'cancelada':
                                                     return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada</span>;
                                                 default:
-                                                    return <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
+                                                    return <span className="inline-flex items-center gap-1 bg-warning-50 text-warning-700 border border-warning-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
                                             }
                                         })();
 
@@ -2327,7 +2338,7 @@ export default function ProveedorDashboard() {
                                                                 type="button"
                                                                 onClick={() => handleResponderSolicitud(sol.id, 'rechazada')}
                                                                 disabled={isLoading}
-                                                                className="px-4 py-2 text-sm font-semibold text-red-600 border border-red-300 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
+                                                                className="px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors disabled:opacity-50"
                                                             >
                                                                 Rechazar
                                                             </button>

@@ -328,19 +328,21 @@ function SolicitudCard({
     });
     const direccionInfo = solicitud.direccion_info;
 
-    // T1 — semantica de estado intencional: triada de 4 estados de solicitud
-    // (pendiente-amber / confirmada-emerald / rechazada-red / cancelada-slate).
-    // Reservado para sprint de tokens semanticos. NO migrar aislado.
+    // Badge de estado de solicitud con tokens semanticos:
+    //   success = confirmada    (positivo, la solicitud fue aceptada)
+    //   danger  = rechazada     (negativo terminal)
+    //   slate   = cancelada     (tutor cancelo, sin color activo)
+    //   warning = pendiente     (default del switch, espera de decision)
     const estadoBadge = (() => {
         switch (solicitud.estado) {
             case 'confirmada':
-                return <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
+                return <span className="inline-flex items-center gap-1 bg-success-50 text-success-700 border border-success-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
             case 'rechazada':
-                return <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
+                return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
             case 'cancelada':
                 return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada</span>;
             default:
-                return <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
+                return <span className="inline-flex items-center gap-1 bg-warning-50 text-warning-700 border border-warning-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
         }
     })();
 
@@ -415,14 +417,14 @@ function SolicitudCard({
             </div>
 
             {/* Respuesta del proveedor — solo si ya respondio (no cancelada) */}
-            {/* P1 — semantica de estado intencional: par bidireccional respuesta del proveedor
-                (confirmada-emerald / rechazada-red). El bg + border + text cambian en el mismo
-                bloque JSX segun isConfirmada. Cuando la lista tiene solicitudes en distintos
-                estados, ambos colores coexisten simultaneamente en la pantalla. Reservado para
-                sprint de tokens semanticos. NO migrar aislado. */}
+            {/* Par bidireccional respuesta del proveedor con tokens semanticos:
+                success = confirmada, danger = rechazada. Bg + border + text cambian en el
+                mismo bloque JSX segun isConfirmada. Cuando la lista tiene solicitudes en
+                distintos estados, ambos colores coexisten en la pantalla — cierre del
+                par visual con el badge de estado de arriba. */}
             {(isConfirmada || isRechazada) && (
-                <div className={`rounded-xl p-3 border mb-3 ${isConfirmada ? 'bg-emerald-50/50 border-emerald-100' : 'bg-red-50/40 border-red-100'}`}>
-                    <p className={`text-[11px] uppercase tracking-widest font-medium mb-1 ${isConfirmada ? 'text-emerald-700' : 'text-red-700'}`}>
+                <div className={`rounded-xl p-3 border mb-3 ${isConfirmada ? 'bg-success-50/50 border-success-100' : 'bg-danger-50/40 border-danger-100'}`}>
+                    <p className={`text-[11px] uppercase tracking-widest font-medium mb-1 ${isConfirmada ? 'text-success-700' : 'text-danger-700'}`}>
                         Respuesta del proveedor{respondidoAt ? ` · ${respondidoAt}` : ''}
                     </p>
                     {solicitud.nota_proveedor
@@ -461,7 +463,7 @@ function SolicitudCard({
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="inline-flex items-center px-4 py-2 text-sm font-semibold text-red-600 border border-red-300 hover:bg-red-50 rounded-xl transition-colors"
+                        className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors"
                     >
                         Cancelar solicitud
                     </button>

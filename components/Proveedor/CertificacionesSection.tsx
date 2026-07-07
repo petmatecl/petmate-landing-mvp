@@ -80,8 +80,10 @@ export default function CertificacionesSection({ proveedorId }: Props) {
 
     const statusBadge = (estado: string) => {
         if (estado === 'aprobado') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-accent-600 bg-accent-50 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> Verificada</span>;
-        if (estado === 'pendiente') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full"><Clock size={10} /> En revisión</span>;
-        return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded-full"><XCircle size={10} /> Rechazada</span>;
+        // Estado de certificacion con tokens semanticos: warning = pendiente,
+        // danger = rechazada (fallback del switch).
+        if (estado === 'pendiente') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-warning-700 bg-warning-50 px-2 py-0.5 rounded-full"><Clock size={10} /> En revisión</span>;
+        return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-danger-600 bg-danger-50 px-2 py-0.5 rounded-full"><XCircle size={10} /> Rechazada</span>;
     };
 
     return (
@@ -98,7 +100,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
                             {cert.anio && `(${cert.anio})`}
                         </p>
                         {cert.estado === 'rechazado' && cert.nota_admin && (
-                            <p className="text-xs text-red-500 mt-1">Motivo: {cert.nota_admin}</p>
+                            <p className="text-xs text-danger-500 mt-1">Motivo: {cert.nota_admin}</p>
                         )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
@@ -107,7 +109,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
                                 className="text-xs text-blue-600 hover:underline font-medium">Ver</a>
                         )}
                         {cert.estado !== 'aprobado' && (
-                            <button onClick={() => handleDelete(cert.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                            <button onClick={() => handleDelete(cert.id)} className="text-slate-400 hover:text-danger-500 transition-colors">
                                 <Trash2 size={14} />
                             </button>
                         )}

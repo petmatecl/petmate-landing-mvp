@@ -120,8 +120,8 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                     </div>
                                     <div className="sm:w-1/4 flex flex-col justify-center sm:items-end sm:border-l sm:border-slate-100 sm:pl-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                                         {ev.estado === 'aprobado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent-100 text-accent-800 rounded-full text-xs font-medium uppercase tracking-widest"><CheckCircle size={14} /> Publicada</span>}
-                                        {ev.estado === 'pendiente' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium uppercase tracking-widest"><Clock size={14} /> En revisión</span>}
-                                        {ev.estado === 'rechazado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium uppercase tracking-widest"><XCircle size={14} /> No Publicada</span>}
+                                        {ev.estado === 'pendiente' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-warning-100 text-warning-700 rounded-full text-xs font-medium uppercase tracking-widest"><Clock size={14} /> En revisión</span>}
+                                        {ev.estado === 'rechazado' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-danger-100 text-danger-700 rounded-full text-xs font-medium uppercase tracking-widest"><XCircle size={14} /> No Publicada</span>}
                                     </div>
                                 </div>
                             </div>

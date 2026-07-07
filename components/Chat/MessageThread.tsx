@@ -294,21 +294,23 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                 <UserIcon size={20} />
                             </div>
                         )}
-                        {/* Online Indicator Dot */}
+                        {/* Online Indicator Dot — token success (presencia positiva de
+                            disponibilidad). Reunido con el resto de indicadores de presencia
+                            del chat (texto abajo + dot footer L381) en el mismo token para
+                            que "online" use una sola familia en toda la vista. */}
                         {isOnline && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-accent-600 border-2 border-white rounded-full"></div>
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-success-500 border-2 border-white rounded-full"></div>
                         )}
                     </div>
                     <div>
                         <h3 className="font-semibold text-slate-900 text-sm">
                             {otherUser.nombre} {otherUser.apellido_p}
                         </h3>
-                        {/* semantica de estado intencional — par PRESENCIA (online-emerald / offline-slate).
-                            Ambos textos siempre visibles segun isOnline: migrar solo el verde deja el estado
-                            "En linea" en accent mientras "Desconectado" queda slate — semanticamente
-                            inconsistente. Reservado para sprint de tokens semanticos. NO migrar aislado. */}
+                        {/* Par PRESENCIA (online-success / offline-slate) — online es estado
+                            positivo de disponibilidad (facilita la conversacion); offline es
+                            slate porque "sin color activo", no es negativo. */}
                         {isOnline ? (
-                            <span className="text-[10px] font-medium text-emerald-700 animate-pulse">
+                            <span className="text-[10px] font-medium text-success-700 animate-pulse">
                                 ● En línea
                             </span>
                         ) : (
@@ -334,21 +336,24 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                     {format(new Date(msg.created_at), 'EEEE d MMMM', { locale: es })}
                                 </div>
                             )}
-                            {/* semantica de estado intencional — par IDENTIDAD de mensaje (mio-emerald / otros-slate).
-                                Las burbujas mias (bg-emerald-700 text-white) y de otros (bg-white slate) siempre
-                                coexisten en el thread — migrar solo el verde rompe el par visual que distingue
-                                autoria. Timestamp interior L341 tambien es par (text-emerald-200 dentro burbuja
-                                mia dark vs text-slate-400 sobre burbuja blanca). Reservado para sprint de tokens
-                                semanticos. NO migrar aislado. */}
+                            {/* Par IDENTIDAD de mensaje (mio-accent / otros-slate). NO es semantica
+                                de estado — es identidad de emisor: "mi color" en la conversacion. Por
+                                eso va a accent (marca de la app en tanto yo soy el actor autenticado),
+                                NO a success (una burbuja mia no es un estado positivo). Slate del otro
+                                = neutro, "sin color de identidad". Timestamp interior tambien pareja
+                                (accent-200 dentro burbuja dark vs slate-400 sobre blanca).
+
+                                CAMBIO VISUAL menor confirmado en el sprint: emerald-700 (#047857) →
+                                accent-700 (#15803D) — hex distinto, mismo rol semantico de identidad. */}
                             <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                 <div
                                     className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-sm text-sm ${isMe
-                                        ? 'bg-emerald-700 text-white rounded-tr-none'
+                                        ? 'bg-accent-700 text-white rounded-tr-none'
                                         : 'bg-white text-slate-700 rounded-tl-none border-2 border-slate-300'
                                         } ${isTemp ? 'opacity-70' : ''}`}
                                 >
                                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                                    <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? 'text-emerald-200' : 'text-slate-400'}`}>
+                                    <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? 'text-accent-200' : 'text-slate-400'}`}>
                                         {format(new Date(msg.created_at), 'HH:mm')}
                                         {isTemp && <span className="animate-pulse">...</span>}
                                     </div>
@@ -369,16 +374,16 @@ export default function MessageThread({ conversationId, userId }: Props) {
             </div>
 
             {/* Typing / Online indicator */}
-            {/* semantica de estado intencional — par PRESENCIA (online-emerald / offline-slate) explicito
-                doble: dot (bg-emerald-500 vs bg-slate-300) + texto ("en linea" vs "desconectado") ambos
-                siempre visibles segun onlineUsers.has(). Este dot L366 es DIFERENTE del dot L299 del avatar
-                (aquel no tiene contraparte visible y ya migro a accent-600 como positivo-persistente aislado).
-                Reservado para sprint de tokens semanticos. NO migrar aislado. */}
+            {/* Par PRESENCIA (online-success / offline-slate) — dot + texto siempre visibles
+                segun onlineUsers.has(). Este dot es DIFERENTE del dot del avatar (L299): aquel
+                queda solo cuando isOnline, este par tiene contraparte offline visible. Ambos
+                reunidos en la familia success para que "online" use una sola familia en todo
+                el chat. */}
             {otherUser && (
               <div className="px-4 py-1.5 text-xs text-slate-400 bg-white border-t border-slate-100">
                 {onlineUsers.has(otherUser.auth_user_id) ? (
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                    <span className="w-2 h-2 rounded-full bg-success-500 inline-block" />
                     {otherUser.nombre} en línea
                   </span>
                 ) : (

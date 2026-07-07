@@ -172,7 +172,9 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
             </Head>
 
             {proveedor.es_ejemplo && exampleBannerVisible && (
-                <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
+                /* Banner "Aviso proveedor de ejemplo" — token warning: alerta al usuario
+                   que este perfil no es real. Semantica de "atencion, esto es demostrativo". */
+                <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-warning-100 text-warning-900 border-b border-warning-300 shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Sparkles size={16} aria-hidden="true" className="shrink-0" />
@@ -184,7 +186,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         <div className="flex items-center gap-2 shrink-0">
                             <Link
                                 href="/register?rol=usuario"
-                                className="inline-flex items-center bg-amber-900 text-amber-50 font-medium text-xs uppercase tracking-widest px-3 py-1.5 rounded-md hover:bg-amber-800 transition-colors whitespace-nowrap"
+                                className="inline-flex items-center bg-warning-900 text-warning-50 font-medium text-xs uppercase tracking-widest px-3 py-1.5 rounded-md hover:bg-warning-800 transition-colors whitespace-nowrap"
                             >
                                 Registrarme →
                             </Link>
@@ -192,7 +194,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 type="button"
                                 onClick={() => setExampleBannerVisible(false)}
                                 aria-label="Cerrar aviso de ejemplo"
-                                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-amber-700 hover:text-amber-900 transition-colors"
+                                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-warning-700 hover:text-warning-900 transition-colors"
                             >
                                 <X size={16} aria-hidden="true" />
                             </button>
@@ -210,11 +212,14 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     <ChevronLeft size={16} /> Volver
                 </button>
 
-                {/* Banner para perfiles no aprobados */}
+                {/* Banner para perfiles no aprobados — tokens semanticos:
+                    warning = pendiente (en revision), danger = otro estado (suspendido o
+                    rechazado, señal fuerte de que el perfil no es publico). Consistente
+                    con el resto del panel proveedor. */}
                 {proveedor.estado !== 'aprobado' && (
                     <div className={`rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2 ${
-                        proveedor.estado === 'pendiente' ? 'bg-amber-50 text-amber-800 border border-amber-200' :
-                        'bg-red-50 text-red-800 border border-red-200'
+                        proveedor.estado === 'pendiente' ? 'bg-warning-50 text-warning-800 border border-warning-200' :
+                        'bg-danger-50 text-danger-800 border border-danger-200'
                     }`}>
                         <span className="text-base">⚠</span>
                         Este perfil tiene estado <strong className="ml-1">{proveedor.estado}</strong>. No es visible públicamente para usuarios.

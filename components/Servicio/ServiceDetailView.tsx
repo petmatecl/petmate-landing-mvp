@@ -410,7 +410,9 @@ export default function ServiceDetailView({
         // env(safe-area-inset-bottom) en la barra.
         <div className="bg-slate-50 pb-8 lg:pb-0">
             {isExample && exampleBannerVisible && (
-                <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-amber-100 text-amber-900 border-b border-amber-300 shadow-sm">
+                /* Banner "Aviso proveedor de ejemplo" — token warning (mismo patron que
+                   pages/proveedor/[id].tsx). Alerta al usuario que la ficha es demostrativa. */
+                <div role="region" aria-label="Aviso proveedor de ejemplo" style={{ top: 'var(--header-height, 105px)' }} className="sticky z-30 bg-warning-100 text-warning-900 border-b border-warning-300 shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Sparkles size={16} aria-hidden="true" className="shrink-0" />
@@ -422,7 +424,7 @@ export default function ServiceDetailView({
                         <div className="flex items-center gap-2 shrink-0">
                             <Link
                                 href="/register?rol=usuario"
-                                className="inline-flex items-center bg-amber-900 text-amber-50 font-medium text-xs uppercase tracking-widest px-3 py-1.5 rounded-md hover:bg-amber-800 transition-colors whitespace-nowrap"
+                                className="inline-flex items-center bg-warning-900 text-warning-50 font-medium text-xs uppercase tracking-widest px-3 py-1.5 rounded-md hover:bg-warning-800 transition-colors whitespace-nowrap"
                             >
                                 Registrarme →
                             </Link>
@@ -430,7 +432,7 @@ export default function ServiceDetailView({
                                 type="button"
                                 onClick={() => setExampleBannerVisible(false)}
                                 aria-label="Cerrar aviso de ejemplo"
-                                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-amber-700 hover:text-amber-900 transition-colors"
+                                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-warning-700 hover:text-warning-900 transition-colors"
                             >
                                 <X size={16} aria-hidden="true" />
                             </button>

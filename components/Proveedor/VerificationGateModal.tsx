@@ -58,14 +58,14 @@ export default function VerificationGateModal({
 
     if (verificacionEstado === 'pendiente') {
         icon = Clock;
-        iconColor = 'text-amber-600 bg-amber-50';
+        iconColor = 'text-warning-600 bg-warning-50';
         title = 'Verificación en revisión';
         body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisaremos por email cuando esté lista (24-48h). Mientras tanto, no puedes publicar servicios.';
         primaryLabel = 'Entendido';
         primaryAction = onClose;
     } else if (verificacionEstado === 'rechazado') {
         icon = ShieldX;
-        iconColor = 'text-red-600 bg-red-50';
+        iconColor = 'text-danger-600 bg-danger-50';
         title = 'Verificación rechazada';
         body = verificacionNota
             ? `Tu verificación fue rechazada: ${verificacionNota}`
