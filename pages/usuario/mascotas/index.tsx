@@ -7,6 +7,7 @@ import RoleGuard from '../../../components/Shared/RoleGuard';
 import ClientLayout from '../../../components/Client/ClientLayout';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 import { toast } from 'sonner';
+import imageCompression from 'browser-image-compression';
 import {
     PawPrint, Plus, Edit, Trash2, X, Loader2,
     ChevronLeft, Dog, Cat, Camera, ImagePlus,
@@ -19,18 +20,45 @@ import {
 // proveedor y las fotos de servicios) con el prefix `mascotas/{user_id}/` que
 // las policies de storage validan (creadas via SQL fuera de codigo).
 //
-// Limites calibrados contra el patron vivo (ServiceFormModal / uploadGaleriaFoto):
-//   - 5 MB por foto (mismo cap de fotos de servicio).
-//   - Galeria hasta 6 fotos (menor que las 8 del servicio: mascota es
-//     contexto para el proveedor, no portfolio profesional).
-// Cleanup: al remover una foto del form, borramos el objeto del bucket para
-// no dejar huerfanos. Cancel del modal sin guardar deja los recien subidos
-// huerfanos — mismo comportamiento que la galeria del proveedor, aceptado.
+// Pipeline: compresion client-side (browser-image-compression) -> upload
+// al bucket. El input se acepta hasta 20 MB (fotos de celular hasta HEIC/RAW
+// entran) y el output final al bucket queda en ~500 KB con lado mayor 1600px,
+// normalizado a JPEG. Ver COMPRESS_OPTIONS abajo.
+//
+// Limites: galeria hasta 6 fotos (menor que las 8 del servicio — la mascota
+// es contexto para el proveedor, no portfolio profesional).
+//
+// Cleanup del bucket: se difiere a save-success (borrar iniciales que
+// desaparecieron del state + intermedios subidos que fueron reemplazados) o
+// cancel (borrar todos los huerfanos subidos que nunca se persistieron). Ver
+// state uploadedThisSession + handleSubmit + handleCancel.
 // ────────────────────────────────────────────────────────────────────────────
 
 const FOTOS_BUCKET = 'servicios-fotos';
-const MAX_FOTO_SIZE_MB = 5;
+// Cap del archivo INPUT antes de comprimir. Con compresion client-side el
+// tamano real de subida siempre sera <= COMPRESS_MAX_SIZE_MB. El cap de
+// input existe solo para rechazar archivos absurdos (RAW, videos mal
+// nombrados) antes de gastar CPU. Fotos de celular tipicas: 4-12 MB.
+const MAX_INPUT_SIZE_MB = 20;
 const MAX_GALERIA_MASCOTA = 6;
+
+// Config de browser-image-compression:
+//   - maxWidthOrHeight: 1600px sobra para display en la ficha del proveedor
+//     y card del listado (max render ~500px @ 3x DPR = 1500px real).
+//   - maxSizeMB: 0.5 (~500 KB) es el target final tras iteraciones binarias
+//     de calidad JPEG que hace la lib internamente. En la practica alcanza
+//     con quality ~80% para fotos de mascota tipicas.
+//   - useWebWorker: true -> no bloquea el main thread, la UI no se congela
+//     con archivos grandes.
+//   - fileType 'image/jpeg': normalizamos SIEMPRE a JPEG. Las fotos de
+//     mascota no necesitan alpha (PNG no aporta), JPEG comprime mejor las
+//     fotos, y tener un unico formato en el bucket simplifica el path/ext.
+const COMPRESS_OPTIONS = {
+    maxWidthOrHeight: 1600,
+    maxSizeMB: 0.5,
+    useWebWorker: true,
+    fileType: 'image/jpeg',
+};
 
 function fotoPathFromUrl(url: string): string | null {
     const marker = `/${FOTOS_BUCKET}/`;
@@ -44,22 +72,50 @@ function fotoPathFromUrl(url: string): string | null {
 const UPLOAD_TIMEOUT_MS = 30_000;
 
 async function subirFotoAStorage(file: File, userId: string): Promise<{ url?: string; error?: string }> {
-    const ext = file.name.split('.').pop() || 'jpg';
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-    const filePath = `mascotas/${userId}/${fileName}`;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     try {
-        const uploadPromise = supabase.storage.from(FOTOS_BUCKET).upload(filePath, file);
+        // Compresion + upload viajan en la MISMA race contra el timeout de 30s.
+        // Rationale: el usuario percibe todo el proceso como "subir la foto",
+        // no como dos pasos. Si la compresion sola tarda 25s (raro pero
+        // posible con archivos enormes en dispositivos lentos), no queremos
+        // dar otro margen de 30s adicional al upload; el UX ya se rompio.
+        const compressAndUpload = (async () => {
+            let compressed: File;
+            try {
+                compressed = await imageCompression(file, COMPRESS_OPTIONS);
+            } catch (compErr: any) {
+                // Errores posibles: formato no soportado por canvas (HEIC en
+                // Safari iOS < 17 sin decoder), archivo corrupto, memoria
+                // insuficiente en dispositivos muy chicos. NO fallback a
+                // subir el original sin comprimir — si no podemos procesarla,
+                // no la subimos.
+                throw new Error(
+                    `No pudimos procesar la imagen. Probá con un JPG o PNG. (${compErr?.message ?? 'error desconocido'})`
+                );
+            }
+            // Extension fija .jpg porque normalizamos a image/jpeg via
+            // fileType. El browser puede devolver el File con el nombre
+            // original (foo.png) pero el content-type es jpeg.
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.jpg`;
+            const filePath = `mascotas/${userId}/${fileName}`;
+            const uploadRes = await supabase.storage
+                .from(FOTOS_BUCKET)
+                .upload(filePath, compressed, { contentType: 'image/jpeg' });
+            return { uploadRes, filePath };
+        })();
+
         const timeoutPromise = new Promise<never>((_, reject) => {
             timeoutId = setTimeout(
                 () => reject(new Error('La subida tardó más de 30 segundos. Verificá tu conexión.')),
                 UPLOAD_TIMEOUT_MS
             );
         });
-        const result = await Promise.race([uploadPromise, timeoutPromise]);
-        if (result.error) {
-            console.error('[Mascotas] upload error:', result.error);
-            return { error: result.error.message || 'No pudimos subir la foto.' };
+
+        const { uploadRes, filePath } = await Promise.race([compressAndUpload, timeoutPromise]);
+
+        if (uploadRes.error) {
+            console.error('[Mascotas] upload error:', uploadRes.error);
+            return { error: uploadRes.error.message || 'No pudimos subir la foto.' };
         }
         const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(filePath);
         return { url: data.publicUrl };
@@ -67,12 +123,12 @@ async function subirFotoAStorage(file: File, userId: string): Promise<{ url?: st
         console.error('[Mascotas] upload exception:', err);
         return { error: err?.message || 'Error inesperado subiendo la foto.' };
     } finally {
-        // Fix: siempre limpiar el timeout, gane quien gane la race. Sin esto
-        // el setTimeout queda vivo hasta cumplir los 30s y despues arroja una
+        // Siempre limpiar el timeout gane quien gane la race. Sin esto el
+        // setTimeout queda vivo hasta cumplir los 30s y despues arroja una
         // rejection que nadie captura -> unhandled promise rejection. N uploads
-        // exitosos -> N rejections orfanas acumuladas en el event loop, que
-        // pueden envenenar el estado del SDK de supabase-js (mecanismo del
-        // bug de "spinner eterno en Nueva mascota" tras Editar exitoso).
+        // exitosos -> N rejections orfanas acumuladas -> el estado del SDK de
+        // supabase-js puede envenenarse (mecanismo del bug "spinner eterno en
+        // Nueva mascota tras Editar exitoso" reportado por Aldo).
         if (timeoutId !== null) clearTimeout(timeoutId);
     }
 }
@@ -413,8 +469,8 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         const file = e.target.files?.[0];
         e.target.value = '';
         if (!file) return;
-        if (file.size > MAX_FOTO_SIZE_MB * 1024 * 1024) {
-            toast.error(`La imagen supera ${MAX_FOTO_SIZE_MB} MB.`);
+        if (file.size > MAX_INPUT_SIZE_MB * 1024 * 1024) {
+            toast.error(`La imagen supera ${MAX_INPUT_SIZE_MB} MB. Es un archivo inusualmente grande — probá con una versión mas chica.`);
             return;
         }
         setUploadingPrincipal(true);
@@ -455,8 +511,8 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         try {
             const nuevas: string[] = [];
             for (const file of files) {
-                if (file.size > MAX_FOTO_SIZE_MB * 1024 * 1024) {
-                    toast.error(`${file.name} supera ${MAX_FOTO_SIZE_MB} MB.`);
+                if (file.size > MAX_INPUT_SIZE_MB * 1024 * 1024) {
+                    toast.error(`${file.name} supera ${MAX_INPUT_SIZE_MB} MB (archivo inusualmente grande).`);
                     continue;
                 }
                 const res = await subirFotoAStorage(file, userId);
@@ -662,7 +718,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                                 <p className="text-xs text-slate-500">
                                     {fotoMascota ? 'Tocá la imagen para reemplazarla, o la X para quitarla.' : 'Tocá el recuadro para subir una foto.'}
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1">JPG o PNG. Máximo {MAX_FOTO_SIZE_MB} MB.</p>
+                                <p className="text-xs text-slate-400 mt-1">JPG o PNG. Se comprime automáticamente al subir.</p>
                             </div>
                         </div>
                     </div>
@@ -701,7 +757,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                                 </label>
                             )}
                         </div>
-                        <p className="text-xs text-slate-400 mt-1.5">Fotos extra para que el proveedor conozca a tu mascota. Máximo {MAX_FOTO_SIZE_MB} MB por foto.</p>
+                        <p className="text-xs text-slate-400 mt-1.5">Fotos extra para que el proveedor conozca a tu mascota. Se comprimen automáticamente al subir.</p>
                     </div>
                     <div className="border-t border-slate-100 pt-4" />
 
