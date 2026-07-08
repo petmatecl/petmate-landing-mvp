@@ -179,6 +179,12 @@ export default function Header() {
               >
                 Mis solicitudes
               </Link>
+              <Link
+                href="/usuario/mascotas"
+                className="text-sm font-normal text-slate-500 hover:text-accent-600"
+              >
+                Mis mascotas
+              </Link>
               <button
                 onClick={async () => {
                   setOpen(false);
@@ -304,6 +310,13 @@ export default function Header() {
                   className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
                 >
                   Mis solicitudes
+                </Link>
+                <Link
+                  href="/usuario/mascotas"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
+                >
+                  Mis mascotas
                 </Link>
                 <button
                   onClick={async () => {
