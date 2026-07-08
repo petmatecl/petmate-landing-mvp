@@ -310,13 +310,18 @@ function MascotaCard({ mascota, onEdit, onDelete }: {
     const Icon = mascota.tipo === 'gato' ? Cat : Dog;
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="aspect-[4/3] bg-slate-100 relative">
+            {/* aspect-[4/5] fijo (portrait, ~0.8): sirve tanto para fotos
+                originalmente landscape como portrait — object-cover center
+                recorta al centro para mostrar el sujeto. Todas las cards del
+                mismo alto en la grilla, con o sin foto (el placeholder hereda
+                el mismo contenedor). */}
+            <div className="aspect-[4/5] bg-slate-100 relative">
                 {mascota.foto_mascota ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                         src={mascota.foto_mascota}
                         alt={mascota.nombre}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-300">
