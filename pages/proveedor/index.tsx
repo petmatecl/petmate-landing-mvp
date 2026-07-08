@@ -303,7 +303,15 @@ export default function ProveedorDashboard() {
             loadTabData('servicios', data.id, data.auth_user_id);
             // Sprint 3 — precargar solicitudes para alimentar el badge del
             // tab desde el mount (sin esperar al click). Fire-and-forget.
-            fetchSolicitudes(data.id);
+            //
+            // Guard: solo disparar si estamos efectivamente en /proveedor.
+            // hydrateLocalFromRow tambien se ejecuta por transiciones de
+            // contexto (proveedorRow cambia en UserContext) durante nav a
+            // otras rutas; el fetch de solicitudes es especifico del panel
+            // proveedor y no debe correr fuera de el.
+            if (router.pathname.startsWith('/proveedor')) {
+                fetchSolicitudes(data.id);
+            }
         }
         // Reset baseline de dirty tracking. Cualquier re-hidratacion (mount
         // o post-save refresh) re-toma el snapshot post-hydrate como

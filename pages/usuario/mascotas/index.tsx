@@ -38,17 +38,31 @@ function fotoPathFromUrl(url: string): string | null {
     return idx === -1 ? null : url.substring(idx + marker.length);
 }
 
-async function subirFotoAStorage(file: File, userId: string): Promise<string | null> {
+// Timeout defensivo: si el fetch al backend de storage cuelga por red,
+// CORS raro o TLS lento, resolvemos con error explicito en vez de dejar
+// la promise pendiente eternamente (que dejaria el spinner girando).
+const UPLOAD_TIMEOUT_MS = 30_000;
+
+async function subirFotoAStorage(file: File, userId: string): Promise<{ url?: string; error?: string }> {
     const ext = file.name.split('.').pop() || 'jpg';
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
     const filePath = `mascotas/${userId}/${fileName}`;
-    const { error } = await supabase.storage.from(FOTOS_BUCKET).upload(filePath, file);
-    if (error) {
-        console.error('[Mascotas] upload error:', error);
-        return null;
+    try {
+        const uploadPromise = supabase.storage.from(FOTOS_BUCKET).upload(filePath, file);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('La subida tardó más de 30 segundos. Verificá tu conexión.')), UPLOAD_TIMEOUT_MS)
+        );
+        const result = await Promise.race([uploadPromise, timeoutPromise]);
+        if (result.error) {
+            console.error('[Mascotas] upload error:', result.error);
+            return { error: result.error.message || 'No pudimos subir la foto.' };
+        }
+        const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(filePath);
+        return { url: data.publicUrl };
+    } catch (err: any) {
+        console.error('[Mascotas] upload exception:', err);
+        return { error: err?.message || 'Error inesperado subiendo la foto.' };
     }
-    const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(filePath);
-    return data.publicUrl;
 }
 
 async function borrarFotoDeStorage(url: string): Promise<void> {
@@ -375,11 +389,17 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         }
         setUploadingPrincipal(true);
         try {
-            const url = await subirFotoAStorage(file, userId);
-            if (!url) { toast.error('No pudimos subir la foto.'); return; }
+            const res = await subirFotoAStorage(file, userId);
+            if (res.error) {
+                toast.error(res.error);
+                return;
+            }
             // Reemplazo: borrar la anterior del bucket para no dejar huerfano.
             if (fotoMascota) await borrarFotoDeStorage(fotoMascota);
-            setFotoMascota(url);
+            setFotoMascota(res.url!);
+        } catch (err: any) {
+            console.error('[Mascotas] handleUploadPrincipal error:', err);
+            toast.error(err?.message || 'Error inesperado al subir la foto.');
         } finally {
             setUploadingPrincipal(false);
         }
@@ -408,11 +428,17 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     toast.error(`${file.name} supera ${MAX_FOTO_SIZE_MB} MB.`);
                     continue;
                 }
-                const url = await subirFotoAStorage(file, userId);
-                if (url) nuevas.push(url);
-                else toast.error(`No pudimos subir ${file.name}.`);
+                const res = await subirFotoAStorage(file, userId);
+                if (res.error) {
+                    toast.error(`${file.name}: ${res.error}`);
+                    continue;
+                }
+                nuevas.push(res.url!);
             }
             if (nuevas.length > 0) setGaleria(prev => [...prev, ...nuevas]);
+        } catch (err: any) {
+            console.error('[Mascotas] handleUploadGaleria error:', err);
+            toast.error(err?.message || 'Error inesperado al subir las fotos.');
         } finally {
             setUploadingGaleria(false);
         }
