@@ -2,6 +2,11 @@
 
 ## Producto (features nuevas)
 
+### Retratos de Mascotas — CERRADA EN PROD
+- Categoría "Retratos de Mascotas" (slug `retratos`, ícono Lucide `Palette`) publicada en prod.
+- Entrada en `lib/camposPorCategoria.ts` con campos de encargo (tecnica, plazo_entrega, formatos, desde_foto, modalidad_entrega, portfolio_url, inclusiones artísticas). CHECK constraint de `unidad_precio` ampliado con `'por obra'`. Demo servicio colgado del proveedor Patricia.
+- Consumo actualizado: SearchBar, SidebarFiltros (icono), register wizard, [categoria] getStaticPaths (SEO `/retratos`).
+
 ### Fichas de mascotas del tutor — IMPLEMENTADA (parcial)
 - El tutor crea perfiles de sus mascotas (nombre, especie, raza, edad, tamaño, condiciones) y los adjunta a solicitudes de servicio.
 - Objetivo: apropiación (engagement del tutor) + comunicación (el proveedor tiene contexto sin preguntar).
@@ -15,17 +20,51 @@
   - Referencia compacta de la mascota en el chat — **bloqueada**: las conversaciones no se vinculan a agendamientos, así que no se puede inferir con certeza cuál mascota corresponde a un hilo (ver proyecto "Vincular conversaciones a agendamientos" abajo).
   - Decisión pendiente: ficha obligatoria u opcional al solicitar servicio (hoy es opcional).
 
-### Categoría: Retratos / pinturas de mascotas
-- Servicio de alto valor emocional/regalo, diferenciador.
-- Camino de categoría nueva: entrada en `lib/camposPorCategoria.ts` + tabla `categorias_servicio` + ícono + demo.
-- Decisiones: ¿categoría o modalidad? (digital vs físico); campos propios (técnica, formato, plazo, desde foto/presencial); dar peso a la galería del proveedor en la ficha.
-
 ### Categoría: Etología
 - Etólogo / especialista en conducta animal, distinta de adiestramiento.
 - Mismo camino de categoría nueva (`camposPorCategoria.ts` + tabla + ícono + demo).
 - Decisión pendiente: cómo diferenciarla de adiestramiento.
 
+### Catálogo de categorías futuras (roadmap producto)
+Orden por prioridad estimada; cada una entra por el mismo camino (`camposPorCategoria.ts` + INSERT en `categorias_servicio` + ícono + demo + opcionalmente flag de modalidad).
+1. **Asesoría veterinaria online** — PRIORITARIA. Consulta remota por video/chat, sin desplazamiento. Habilitada por el proyecto "categorías por modalidad" (remota pura).
+2. **Nutrición animal** — planes alimenticios personalizados. Puede ser presencial o remota (mixta).
+3. **Fisioterapia veterinaria** — rehabilitación motora, generalmente presencial.
+4. **Hotel felino** — hospedaje especializado en gatos, presencial (recinto).
+5. **Visitas de medicación** — administración de tratamientos a domicilio, presencial.
+6. **Entrenamiento deportivo** — agility, canicross, deportes caninos, presencial.
+7. **Servicios funerarios** — cremación, entierro, memoriales para mascotas. Presencial o mixto según proveedor.
+
 ## Proyectos estructurales
+
+### Categorías por modalidad (presencial / remoto / mixto)
+- Descubierto en el sprint de Retratos: la ficha + wizard asumen presencialidad (comunas de cobertura obligatorias, disponibilidad horaria, "fotos del espacio"). Retratos es asincrónico y remoto → varias secciones no aplicaban. Fix mínimo interino: ocultar secciones sin contenido (aplicado). Fix estructural: modelar modalidad.
+- **Diseño esbozado**:
+  - Flag `modalidad_default: 'presencial' | 'remoto' | 'mixto'` a nivel categoría en `lib/camposPorCategoria.ts` (record hermano de `CAMPOS_POR_CATEGORIA`).
+  - Categorías **mixtas** (ej. peluquería que ofrece local + domicilio, nutrición presencial + online): refinamiento per-servicio en `servicios_publicados` (columna `modalidad_efectiva` o similar). El proveedor elige al publicar; overrides el default de la categoría solo dentro del rango permitido.
+  - Categorías **presenciales puras** (paseos, hotel felino): sin override, wizard pide comunas/disponibilidad como hoy.
+  - Categorías **remotas puras** (retratos, asesoría veterinaria online, ilustración digital): sin comunas obligatorias, sin disponibilidad horaria en wizard, ficha oculta secciones de cobertura y "fotos del espacio", CTA de agendamiento cambia de fecha+hora a "solicitar encargo" (sin V1 puntual).
+  - **Habilita categorías remotas futuras** — bloqueante para asesoría veterinaria online, nutrición remota, cualquier servicio de consulta digital.
+- **Fricción concreta que resuelve** (documentada al descubrir Retratos):
+  - Wizard: `comunas_cobertura` es required (`if (comunasCobertura.length === 0) return toast.error(...)`) — bloquea publicar servicio remoto.
+  - Wizard: sección "Disponibilidad" semanal L-D con 7 switches + 14 inputs — ruido visual para servicios asincrónicos.
+  - Ficha: "Zona de cobertura", "Disponibilidad", "Fotos del espacio" son genéricas, sin condicional por categoría (el fix interino solo oculta cuando la data está vacía, no cuando la categoría no aplica).
+- **Alternativa considerada** (descartada por deuda a mediano plazo): Set explícito `CATEGORIAS_ASINCRONICAS` paralelo a `CATEGORIAS_MULTI_DIA`. Simple pero no modela categorías mixtas. Bien como stepping stone si urge — migrar Set → record es mecánico.
+
+### Roadmap producto (Doctoralia-style)
+Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia sugerida por dependencias:
+1. **Reseñas automáticas post-servicio** — email + push al tutor N horas/días después del agendamiento marcado como completado. Boost del social proof + señal para el ranking.
+2. **Agenda con disponibilidad real** — construcción propia (no Calendly/Google embed). El proveedor bloquea rangos, la disponibilidad publicada refleja slots reales. Bloquea el hardcode actual de disponibilidad JSONB.
+3. **Recordatorios** — 24h + 1h antes del servicio, al tutor y al proveedor. Push + email + SMS opcional. Reduce no-shows.
+4. **Pagos** — Transbank Webpay para tarjetas locales, opcional Stripe para internacional. Habilita comisión de plataforma. Cambia la propuesta de valor (hoy "directorio" → mañana "marketplace").
+5. **Video-consulta** — habilita categorías remotas puras (asesoría veterinaria online, nutrición remota). Depende de "categorías por modalidad" para modelar el servicio como remoto.
+
+### Vincular conversaciones a agendamientos
+
+### Hero rotativo del home
+- El hero de `pages/index.tsx` es estático (un mensaje + un CTA + una imagen). Rotar mensajes/CTAs para probar variantes de copy, destacar categorías nuevas (retratos, futuras) o promociones estacionales.
+- Camino corto: componente `HeroRotator` con array de slides + auto-rotate cada N segundos + indicadores dot navegables. Sin dependencias externas.
+- Camino largo: variantes A/B con tracking en `contactos` o tabla nueva para medir CTR por copy.
 
 ### Vincular conversaciones a agendamientos
 - Hoy las conversaciones del chat son genéricas (tutor↔proveedor), sin atarse a una solicitud puntual. Eso bloquea mostrar la mascota correcta en el chat (un tutor con varias solicitudes → no se sabe cuál mascota va en el hilo).

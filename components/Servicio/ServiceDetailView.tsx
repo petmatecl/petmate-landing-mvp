@@ -7,7 +7,6 @@ import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
 import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
-import EmptyFieldState from './EmptyFieldState';
 import VisitCounter from '../Shared/VisitCounter';
 import PhoneRevealButton from './PhoneRevealButton';
 import FavoritoButton from '../Shared/FavoritoButton';
@@ -1103,22 +1102,20 @@ export default function ServiceDetailView({
 
                         {/* 7. Acerca del Servicio — descripcion narrativa larga.
                             Baja del segundo bloque (que era) al final de Zona A:
-                            los datos duros arriba, el relato al final. */}
-                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                Acerca del servicio
-                            </h3>
-                            {service.descripcion ? (
+                            los datos duros arriba, el relato al final.
+                            Criterio "sin datos → sin seccion": sin descripcion no
+                            se renderea heading + placeholder. En la practica
+                            descripcion es required en el wizard, asi que solo
+                            afecta a servicios legacy con la columna vacia. */}
+                        {service.descripcion && (
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                    Acerca del servicio
+                                </h3>
                                 <ExpandibleText text={service.descripcion} maxChars={400} />
-                            ) : (
-                                <EmptyFieldState
-                                    label="descripción"
-                                    isOwner={isOwner}
-                                    ownerCTA={{ text: 'Agregar descripción', href: '/proveedor?tab=servicios' }}
-                                />
-                            )}
-                        </div>
+                            </div>
+                        )}
 
                         {/* 8. Zona B — Tarjeta resumen del proveedor.
                             Commit 4 del rediseno: reemplaza al bloque grande
@@ -1135,21 +1132,20 @@ export default function ServiceDetailView({
                             globalTotalEvaluaciones={globalTotalEvaluaciones}
                         />
 
-                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                {/* Icono cámara */}
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent-600"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
-                                Fotos del espacio
-                            </h3>
+                        {/* Fotos del espacio — sin galeria, sin seccion (ni heading
+                            ni placeholder). Criterio generico "sin datos → sin
+                            seccion": para servicios asincronicos / remotos donde
+                            el proveedor no cargo espacio, evitamos el placeholder
+                            que sugiere presencialidad ausente. */}
+                        {proveedor.galeria && proveedor.galeria.length > 0 && (
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                    {/* Icono cámara */}
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent-600"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+                                    Fotos del espacio
+                                </h3>
 
-                            {!proveedor.galeria || proveedor.galeria.length === 0 ? (
-                                <EmptyFieldState
-                                    label="fotos del espacio"
-                                    isOwner={isOwner}
-                                    ownerCTA={{ text: 'Sube fotos', href: '/proveedor?tab=perfil' }}
-                                    tutorMessage="Sin fotos del espacio agregadas"
-                                />
-                            ) : proveedor.galeria.length === 1 ? (
+                                {proveedor.galeria.length === 1 ? (
                                     // Una foto — full width
                                     <div className="w-full aspect-[16/9] rounded-xl overflow-hidden">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1175,8 +1171,8 @@ export default function ServiceDetailView({
                                         ))}
                                     </div>
                                 )}
-
-                        </div>
+                            </div>
+                        )}
 
                         {/* Evaluaciones */}
 
