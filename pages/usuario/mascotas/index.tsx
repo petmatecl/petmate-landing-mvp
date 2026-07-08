@@ -366,19 +366,20 @@ function MascotaCard({ mascota, onEdit, onDelete }: {
     const Icon = mascota.tipo === 'gato' ? Cat : Dog;
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            {/* aspect-[4/5] fijo (portrait, ~0.8): sirve tanto para fotos
-                originalmente landscape como portrait — object-cover center
-                recorta al centro para mostrar el sujeto. Todas las cards del
-                mismo alto en la grilla, con o sin foto (el placeholder hereda
-                el mismo contenedor).
-                Fix bug portrait: la img va `absolute inset-0` (fuera del flujo)
-                para que su tamano intrinseco NO pueda estirar el wrapper.
-                aspect-ratio en CSS es tamano PREFERIDO, no hard constraint —
-                con img `w-full h-full` en el flujo y foto portrait, el wrapper
-                se estiraba al ratio natural de la imagen (2:3, 3:4) y el 4:5
-                se rompia. Con position absolute, la img queda escalada al
-                wrapper sin poder empujarlo. */}
-            <div className="aspect-[4/5] bg-slate-100 relative">
+            {/* aspect-square: en grid de 3 columnas anchas el 4/5 daba imagenes
+                ~540px y hacia caer la ficha (nombre + botones) fuera del
+                viewport. El square es mas compacto y deja siempre visible el
+                cuerpo de la card sin necesidad de scroll. object-cover center
+                recorta al centro para mostrar el sujeto. Placeholder hereda el
+                mismo contenedor -> grilla pareja con o sin foto.
+                Img va `absolute inset-0` (fuera del flujo) para que su tamano
+                intrinseco NO pueda estirar el wrapper. aspect-ratio en CSS es
+                tamano PREFERIDO, no hard constraint — con img `w-full h-full`
+                en el flujo y foto portrait, el wrapper se estiraba al ratio
+                natural de la imagen (2:3, 3:4) y el square se rompia. Con
+                position absolute, la img queda escalada al wrapper sin poder
+                empujarlo. */}
+            <div className="aspect-square bg-slate-100 relative">
                 {mascota.foto_mascota ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -997,7 +998,12 @@ export default function MisMascotasPage() {
 
     return (
         <RoleGuard requiredRole="usuario">
-            <ClientLayout userId={userId} title="Mis mascotas — Pawnecta">
+            {/* NO pasamos `title` al ClientLayout: el default "Panel Usuario — Pawnecta"
+                dispara el ternario del layout (title !== default ? title : null) y
+                oculta el h1 duplicado. El h1 visual + document title los maneja el
+                page content (Head con "Mis mascotas — Pawnecta" gana por deepest Head
+                merge de Next.js). */}
+            <ClientLayout userId={userId}>
                 <MascotasPageContent />
             </ClientLayout>
         </RoleGuard>
