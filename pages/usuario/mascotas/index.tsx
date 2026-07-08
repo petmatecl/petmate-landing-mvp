@@ -10,8 +10,9 @@ import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
 import {
     PawPrint, Plus, Edit, Trash2, X, Loader2,
-    ChevronLeft, Dog, Cat, Camera, ImagePlus,
+    ChevronLeft, Dog, Cat, Camera, ImagePlus, Eye,
 } from 'lucide-react';
+import FichaMascota from '../../../components/Mascota/FichaMascota';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Storage helpers para fotos de mascotas
@@ -195,6 +196,7 @@ function MascotasPageContent() {
     const [mascotas, setMascotas] = useState<Mascota[]>([]);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState<Mascota | 'new' | null>(null);
+    const [viewing, setViewing] = useState<Mascota | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [deletingLoading, setDeletingLoading] = useState(false);
 
@@ -321,6 +323,7 @@ function MascotasPageContent() {
                             <MascotaCard
                                 key={m.id}
                                 mascota={m}
+                                onView={() => setViewing(m)}
                                 onEdit={() => setEditing(m)}
                                 onDelete={() => setDeletingId(m.id)}
                             />
@@ -328,6 +331,19 @@ function MascotasPageContent() {
                     </div>
                 )}
             </div>
+
+            {viewing && (
+                <MascotaViewModal
+                    mascota={viewing}
+                    onClose={() => setViewing(null)}
+                    onEdit={() => {
+                        // Handoff: cerrar view, abrir form. Un solo tick de React
+                        // basta — el form monta con la mascota completa como prop.
+                        setEditing(viewing);
+                        setViewing(null);
+                    }}
+                />
+            )}
 
             {editing && userId && (
                 <MascotaFormModal
@@ -357,15 +373,25 @@ function MascotasPageContent() {
 // Card de mascota
 // ────────────────────────────────────────────────────────────────────────────
 
-function MascotaCard({ mascota, onEdit, onDelete }: {
+function MascotaCard({ mascota, onView, onEdit, onDelete }: {
     mascota: Mascota;
+    onView: () => void;
     onEdit: () => void;
     onDelete: () => void;
 }) {
     const edad = calcularEdad(mascota.fecha_nacimiento);
     const Icon = mascota.tipo === 'gato' ? Cat : Dog;
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        // Card completa clickeable -> abre la ficha read-only (misma vista que
+        // ve el proveedor). Editar/eliminar cortan la propagacion para
+        // preservar su accion original.
+        <div
+            role="button"
+            tabIndex={0}
+            onClick={onView}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onView(); } }}
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col cursor-pointer hover:shadow-md hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2"
+        >
             {/* aspect-square: en grid de 3 columnas anchas el 4/5 daba imagenes
                 ~540px y hacia caer la ficha (nombre + botones) fuera del
                 viewport. El square es mas compacto y deja siempre visible el
@@ -411,17 +437,85 @@ function MascotaCard({ mascota, onEdit, onDelete }: {
                 )}
                 <div className="flex items-center gap-2 mt-auto pt-2">
                     <button
-                        onClick={onEdit}
+                        onClick={(e) => { e.stopPropagation(); onEdit(); }}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 text-sm font-medium text-accent-700 bg-accent-50 hover:bg-accent-100 rounded-xl py-1.5 transition-colors"
                     >
                         <Edit size={14} /> Editar
                     </button>
                     <button
-                        onClick={onDelete}
+                        onClick={(e) => { e.stopPropagation(); onDelete(); }}
                         aria-label="Eliminar ficha"
                         className="inline-flex items-center justify-center text-sm text-slate-400 hover:text-danger-600 hover:bg-danger-50 rounded-xl w-9 h-9 transition-colors"
                     >
                         <Trash2 size={14} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Modal read-only — muestra la ficha completa como la ve el proveedor.
+// ────────────────────────────────────────────────────────────────────────────
+
+function MascotaViewModal({ mascota, onClose, onEdit }: {
+    mascota: Mascota;
+    onClose: () => void;
+    onEdit: () => void;
+}) {
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={onClose}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Ficha de ${mascota.nombre}`}
+        >
+            <div
+                className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between p-5 border-b border-slate-200">
+                    <h2 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <Eye size={18} className="text-accent-600" />
+                        Ficha de {mascota.nombre}
+                    </h2>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Cerrar"
+                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <div className="p-5 space-y-4 overflow-y-auto">
+                    {/* Hint: transparencia con el tutor. Esta es LITERALMENTE la
+                        misma vista que ve el proveedor al recibir la solicitud. */}
+                    <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-start gap-2">
+                        <Eye size={14} className="text-slate-400 shrink-0 mt-0.5" />
+                        <span>Esta es la ficha que ve el proveedor cuando solicitás un servicio.</span>
+                    </div>
+
+                    <FichaMascota mascota={mascota} showHeader={false} />
+                </div>
+
+                <div className="flex justify-end gap-2 p-5 border-t border-slate-200 bg-slate-50">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl hover:bg-white transition-colors"
+                    >
+                        Cerrar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onEdit}
+                        className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-accent-600 hover:bg-accent-700 rounded-xl transition-colors"
+                    >
+                        <Edit size={14} /> Editar
                     </button>
                 </div>
             </div>

@@ -28,6 +28,7 @@ const LocationPicker = dynamic(() => import('../../components/Shared/LocationPic
     ),
 });
 import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntualConDuracion } from '../../lib/formatFecha';
+import FichaMascota from '../../components/Mascota/FichaMascota';
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../../lib/formatDireccion';
 import { toast, Toaster } from 'sonner';
@@ -2216,20 +2217,9 @@ export default function ProveedorDashboard() {
                                         // Feature mascotas: puede venir null si mascota_id era null o si el
                                         // join no encontró la fila (mascota eliminada tras la solicitud).
                                         const mascota = Array.isArray(sol.mascota) ? sol.mascota[0] : sol.mascota;
-                                        const edadMascota = (() => {
-                                            if (!mascota?.fecha_nacimiento) return null;
-                                            const nac = new Date(mascota.fecha_nacimiento);
-                                            const ahora = new Date();
-                                            const anos = ahora.getFullYear() - nac.getFullYear();
-                                            const mesDiff = ahora.getMonth() - nac.getMonth();
-                                            const total = mesDiff < 0 || (mesDiff === 0 && ahora.getDate() < nac.getDate()) ? anos - 1 : anos;
-                                            if (total < 0) return null;
-                                            if (total === 0) {
-                                                const meses = Math.max(0, (ahora.getFullYear() - nac.getFullYear()) * 12 + mesDiff);
-                                                return `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
-                                            }
-                                            return `${total} ${total === 1 ? 'año' : 'años'}`;
-                                        })();
+                                        // Nota: el calculo de edad + toda la ficha rica de mascota
+                                        // vive ahora en components/Mascota/FichaMascota — usado tambien
+                                        // en el modal read-only del tutor en /usuario/mascotas.
                                         const isPendiente = sol.estado === 'pendiente';
                                         const isCancelada = sol.estado === 'cancelada';
                                         const isLoading = solicitudActionId === sol.id;
@@ -2341,70 +2331,8 @@ export default function ProveedorDashboard() {
                                                     - Si joined es null pero hay texto libre: fallback compacto.
                                                     - Si no hay nada: sin tarjeta (retrocompat con solicitudes viejas). */}
                                                 {mascota ? (
-                                                    <div className="bg-accent-50/40 rounded-xl p-4 border border-accent-100 mb-3">
-                                                        <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium mb-3 flex items-center gap-1.5">
-                                                            <PawPrint size={12} /> Ficha de la mascota
-                                                        </p>
-                                                        <div className="flex items-start gap-3">
-                                                            {mascota.foto_mascota && (
-                                                                /* eslint-disable-next-line @next/next/no-img-element */
-                                                                <img
-                                                                    src={mascota.foto_mascota}
-                                                                    alt={mascota.nombre}
-                                                                    className="w-16 h-16 rounded-xl object-cover border border-accent-100 shrink-0"
-                                                                />
-                                                            )}
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="font-semibold text-slate-900 text-sm">
-                                                                    {mascota.nombre}
-                                                                    <span className="text-slate-500 font-normal"> · {mascota.tipo.charAt(0).toUpperCase() + mascota.tipo.slice(1)}</span>
-                                                                </p>
-                                                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-slate-600">
-                                                                    {mascota.raza && <span>Raza: <strong className="text-slate-700 font-medium">{mascota.raza}</strong></span>}
-                                                                    {edadMascota && <span>Edad: <strong className="text-slate-700 font-medium">{edadMascota}</strong></span>}
-                                                                    {mascota.sexo && <span>Sexo: <strong className="text-slate-700 font-medium capitalize">{mascota.sexo}</strong></span>}
-                                                                    {mascota.tamano && <span>Tamaño: <strong className="text-slate-700 font-medium capitalize">{mascota.tamano}</strong></span>}
-                                                                </div>
-                                                                {mascota.descripcion && (
-                                                                    <p className="text-xs text-slate-500 leading-relaxed mt-1.5 italic">{mascota.descripcion}</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        {(mascota.enfermedades || (mascota.trato_especial && mascota.trato_especial_desc)) && (
-                                                            <div className="mt-3 space-y-2">
-                                                                {mascota.enfermedades && (
-                                                                    <div className="bg-warning-50 border border-warning-200 rounded-lg p-3">
-                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-1 flex items-center gap-1">⚠ Condiciones médicas</p>
-                                                                        <p className="text-sm text-warning-900 leading-relaxed whitespace-pre-wrap">{mascota.enfermedades}</p>
-                                                                    </div>
-                                                                )}
-                                                                {mascota.trato_especial && mascota.trato_especial_desc && (
-                                                                    <div className="bg-warning-50 border border-warning-200 rounded-lg p-3">
-                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-1 flex items-center gap-1">⚠ Trato especial</p>
-                                                                        <p className="text-sm text-warning-900 leading-relaxed whitespace-pre-wrap">{mascota.trato_especial_desc}</p>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        {Array.isArray(mascota.fotos_galeria) && mascota.fotos_galeria.length > 0 && (
-                                                            <div className="mt-3">
-                                                                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium mb-1.5">Galería</p>
-                                                                <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
-                                                                    {mascota.fotos_galeria.map((url: string, i: number) => (
-                                                                        /* eslint-disable-next-line @next/next/no-img-element */
-                                                                        <a
-                                                                            key={url}
-                                                                            href={url}
-                                                                            target="_blank"
-                                                                            rel="noreferrer"
-                                                                            className="relative aspect-square rounded-lg overflow-hidden border border-accent-100 hover:border-accent-300 transition-colors"
-                                                                        >
-                                                                            <img src={url} alt={`${mascota.nombre} - foto ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
-                                                                        </a>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                    <div className="mb-3">
+                                                        <FichaMascota mascota={mascota} />
                                                     </div>
                                                 ) : sol.tipo_mascota_texto ? (
                                                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
