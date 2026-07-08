@@ -47,11 +47,15 @@ async function subirFotoAStorage(file: File, userId: string): Promise<{ url?: st
     const ext = file.name.split('.').pop() || 'jpg';
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
     const filePath = `mascotas/${userId}/${fileName}`;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     try {
         const uploadPromise = supabase.storage.from(FOTOS_BUCKET).upload(filePath, file);
-        const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('La subida tardó más de 30 segundos. Verificá tu conexión.')), UPLOAD_TIMEOUT_MS)
-        );
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            timeoutId = setTimeout(
+                () => reject(new Error('La subida tardó más de 30 segundos. Verificá tu conexión.')),
+                UPLOAD_TIMEOUT_MS
+            );
+        });
         const result = await Promise.race([uploadPromise, timeoutPromise]);
         if (result.error) {
             console.error('[Mascotas] upload error:', result.error);
@@ -62,6 +66,14 @@ async function subirFotoAStorage(file: File, userId: string): Promise<{ url?: st
     } catch (err: any) {
         console.error('[Mascotas] upload exception:', err);
         return { error: err?.message || 'Error inesperado subiendo la foto.' };
+    } finally {
+        // Fix: siempre limpiar el timeout, gane quien gane la race. Sin esto
+        // el setTimeout queda vivo hasta cumplir los 30s y despues arroja una
+        // rejection que nadie captura -> unhandled promise rejection. N uploads
+        // exitosos -> N rejections orfanas acumuladas en el event loop, que
+        // pueden envenenar el estado del SDK de supabase-js (mecanismo del
+        // bug de "spinner eterno en Nueva mascota" tras Editar exitoso).
+        if (timeoutId !== null) clearTimeout(timeoutId);
     }
 }
 
@@ -379,6 +391,19 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
+    // Fix Abba: TODAS las eliminaciones de objetos del bucket se difieren a
+    // save-success o cancel — no borramos eager on replace/remove porque si el
+    // usuario cancela (o el save falla), la DB sigue apuntando a un objeto ya
+    // borrado (imagen rota). Trackeamos:
+    //   - initialFoto / initialGaleria: lo que habia en DB al abrir el modal.
+    //   - uploadedThisSession: cada URL que subimos durante la sesion del modal.
+    //     Todo lo que este aca y no aparezca en el state final al momento de
+    //     save es orfano y hay que limpiarlo. Al cancel, todo lo de aca es
+    //     orfano (nada se persistio).
+    const initialFoto = mascota?.foto_mascota || '';
+    const initialGaleria = mascota?.fotos_galeria || [];
+    const [uploadedThisSession, setUploadedThisSession] = useState<string[]>([]);
+
     const handleUploadPrincipal = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         e.target.value = '';
@@ -394,8 +419,10 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 toast.error(res.error);
                 return;
             }
-            // Reemplazo: borrar la anterior del bucket para no dejar huerfano.
-            if (fotoMascota) await borrarFotoDeStorage(fotoMascota);
+            // Fix Abba: NO borramos la foto anterior aca. La limpieza va al
+            // save-success (borrar initialFoto si no esta en el state final) o
+            // al cancel (borrar todo uploadedThisSession, que son orfanos).
+            setUploadedThisSession(prev => [...prev, res.url!]);
             setFotoMascota(res.url!);
         } catch (err: any) {
             console.error('[Mascotas] handleUploadPrincipal error:', err);
@@ -405,11 +432,10 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         }
     };
 
-    const handleRemovePrincipal = async () => {
-        if (!fotoMascota) return;
-        const url = fotoMascota;
+    const handleRemovePrincipal = () => {
+        // Solo limpia el state — el objeto del bucket lo borra el flow de
+        // save/cancel segun corresponda (ver comentario en el state).
         setFotoMascota('');
-        await borrarFotoDeStorage(url);
     };
 
     const handleUploadGaleria = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -435,7 +461,10 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 }
                 nuevas.push(res.url!);
             }
-            if (nuevas.length > 0) setGaleria(prev => [...prev, ...nuevas]);
+            if (nuevas.length > 0) {
+                setUploadedThisSession(prev => [...prev, ...nuevas]);
+                setGaleria(prev => [...prev, ...nuevas]);
+            }
         } catch (err: any) {
             console.error('[Mascotas] handleUploadGaleria error:', err);
             toast.error(err?.message || 'Error inesperado al subir las fotos.');
@@ -444,10 +473,10 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         }
     };
 
-    const handleRemoveGaleria = async (idx: number) => {
-        const url = galeria[idx];
+    const handleRemoveGaleria = (idx: number) => {
+        // Solo limpia el state — el objeto del bucket lo borra el flow de
+        // save/cancel segun corresponda.
         setGaleria(prev => prev.filter((_, i) => i !== idx));
-        if (url) await borrarFotoDeStorage(url);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -484,6 +513,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 fotos_galeria: galeria.length > 0 ? galeria : null,
             };
 
+            let saved: Mascota | null = null;
             if (isNew) {
                 const { data, error } = await supabase
                     .from('mascotas')
@@ -491,8 +521,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     .select()
                     .single();
                 if (error) throw error;
-                onSaved(data as Mascota, true);
-                toast.success(`${nombre.trim()} guardado`);
+                saved = data as Mascota;
             } else if (mascota) {
                 const { data, error } = await supabase
                     .from('mascotas')
@@ -501,8 +530,31 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     .select()
                     .single();
                 if (error) throw error;
-                onSaved(data as Mascota, false);
-                toast.success(`${nombre.trim()} actualizado`);
+                saved = data as Mascota;
+            }
+
+            // Cleanup del bucket POST-SAVE (DB ya persistio los URLs finales):
+            //   - initialFoto que no quedo como final -> orfano en bucket, borrar.
+            //   - urls de initialGaleria que no quedaron en la galeria final -> borrar.
+            //   - urls subidas durante la sesion que no quedaron en el state final
+            //     (reemplazos intermedios) -> borrar.
+            // Fire-and-forget: si algun delete falla no bloqueamos el guardado.
+            const finalUrls = new Set<string>([fotoMascota, ...galeria].filter(Boolean));
+            const toDelete: string[] = [];
+            if (initialFoto && !finalUrls.has(initialFoto)) toDelete.push(initialFoto);
+            for (const url of initialGaleria) {
+                if (url && !finalUrls.has(url)) toDelete.push(url);
+            }
+            for (const url of uploadedThisSession) {
+                if (!finalUrls.has(url)) toDelete.push(url);
+            }
+            for (const url of toDelete) {
+                borrarFotoDeStorage(url).catch(err => console.warn('[Mascotas] post-save cleanup falló:', err));
+            }
+
+            if (saved) {
+                onSaved(saved, isNew);
+                toast.success(`${nombre.trim()} ${isNew ? 'guardado' : 'actualizado'}`);
             }
         } catch (err: any) {
             console.error('[Mascotas] save error:', err);
@@ -510,6 +562,16 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    // Cancel/close: todos los URLs subidos en esta sesion son orfanos (nada se
+    // persistio en DB), asi que los limpiamos del bucket. initialFoto y
+    // initialGaleria se preservan intactos — la DB sigue apuntando a ellos.
+    const handleCancel = () => {
+        for (const url of uploadedThisSession) {
+            borrarFotoDeStorage(url).catch(err => console.warn('[Mascotas] cancel cleanup falló:', err));
+        }
+        onClose();
     };
 
     return (
@@ -522,7 +584,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     </h2>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleCancel}
                         disabled={submitting}
                         aria-label="Cerrar"
                         className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
@@ -531,7 +593,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
+                <form id="mascota-form" onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
                     {/* Fotos: principal + galeria (hasta 6). Upload al bucket
                         `servicios-fotos` bajo `mascotas/{user_id}/…`, con
                         preview inmediato y cleanup del bucket al remover. */}
@@ -826,7 +888,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 <div className="flex justify-end gap-2 p-5 border-t border-slate-200 bg-slate-50">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleCancel}
                         disabled={submitting}
                         className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl hover:bg-white transition-colors disabled:opacity-50"
                     >
@@ -834,7 +896,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     </button>
                     <button
                         type="submit"
-                        onClick={handleSubmit}
+                        form="mascota-form"
                         disabled={submitting}
                         className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-accent-600 hover:bg-accent-700 rounded-xl transition-colors disabled:opacity-50"
                     >
