@@ -346,12 +346,12 @@ export default function DashboardContent() {
                             <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
                                 {contactedServices.map(item => (
                                     <div key={item.servicio_id} className="w-56 shrink-0 border border-slate-200 rounded-xl shadow-sm overflow-hidden bg-white relative">
-                                        <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
+                                        <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
                                             {item.foto ? (
                                                 // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={item.foto} alt={item.titulo} className="w-full h-full object-cover" />
+                                                <img src={item.foto} alt={item.titulo} className="absolute inset-0 w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                <div className="absolute inset-0 flex items-center justify-center text-slate-300">
                                                     <Search size={28} />
                                                 </div>
                                             )}

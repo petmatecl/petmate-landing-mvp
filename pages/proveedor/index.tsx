@@ -1810,7 +1810,7 @@ export default function ProveedorDashboard() {
                                         {galeria.map((url, idx) => (
                                             <div key={idx} className="aspect-square bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative group">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={url} alt={`Foto espacio ${idx + 1}`} className="w-full h-full object-cover" />
+                                                <img src={url} alt={`Foto espacio ${idx + 1}`} className="absolute inset-0 w-full h-full object-cover" />
                                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
                                                     <div className="flex justify-end">
                                                         <button type="button" onClick={() => removeGaleriaFoto(idx)} className="w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center text-danger-500 hover:bg-danger-50 tooltip">
@@ -2397,9 +2397,9 @@ export default function ProveedorDashboard() {
                                                                             href={url}
                                                                             target="_blank"
                                                                             rel="noreferrer"
-                                                                            className="aspect-square rounded-lg overflow-hidden border border-accent-100 hover:border-accent-300 transition-colors"
+                                                                            className="relative aspect-square rounded-lg overflow-hidden border border-accent-100 hover:border-accent-300 transition-colors"
                                                                         >
-                                                                            <img src={url} alt={`${mascota.nombre} - foto ${i + 1}`} className="w-full h-full object-cover" />
+                                                                            <img src={url} alt={`${mascota.nombre} - foto ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
                                                                         </a>
                                                                     ))}
                                                                 </div>

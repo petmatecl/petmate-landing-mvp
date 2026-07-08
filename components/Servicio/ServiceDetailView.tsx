@@ -1184,10 +1184,10 @@ export default function ServiceDetailView({
 
                                 {proveedor.galeria.length === 1 ? (
                                     // Una foto — full width
-                                    <div className="w-full aspect-[16/9] rounded-xl overflow-hidden">
+                                    <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={proveedor.galeria[0]} alt="Espacio del proveedor"
-                                            className="w-full h-full object-cover" />
+                                            className="absolute inset-0 w-full h-full object-cover" />
                                     </div>
                                 ) : (
                                     // 2+ fotos — grid uniforme con aspect-ratio consistente
@@ -1195,7 +1195,7 @@ export default function ServiceDetailView({
                                         {proveedor.galeria.slice(0, 3).map((url: string, i: number) => (
                                             <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden relative">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                                <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                                                 {i === 2 && proveedor.galeria.length > 3 && (
                                                     <Link href={`/proveedor/${proveedor.id}`}
                                                         className="absolute inset-0 bg-black/55 flex items-center justify-center hover:bg-black/65 transition-colors">

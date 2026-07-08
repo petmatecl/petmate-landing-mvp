@@ -650,16 +650,16 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             Fotos del espacio
                         </h2>
                         {proveedor.galeria.length === 1 ? (
-                            <div className="w-full aspect-[16/9] rounded-xl overflow-hidden">
+                            <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={proveedor.galeria[0]} alt="" className="w-full h-full object-cover" />
+                                <img src={proveedor.galeria[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
                             </div>
                         ) : (
                             <div className={`grid gap-2 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
                                 {proveedor.galeria.slice(0, 3).map((url: string, i: number) => (
                                     <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden relative">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                        <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                                         {i === 2 && proveedor.galeria.length > 3 && (
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                 <span className="text-white font-semibold text-lg">+{proveedor.galeria.length - 3} fotos</span>

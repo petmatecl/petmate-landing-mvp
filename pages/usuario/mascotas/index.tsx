@@ -370,17 +370,24 @@ function MascotaCard({ mascota, onEdit, onDelete }: {
                 originalmente landscape como portrait — object-cover center
                 recorta al centro para mostrar el sujeto. Todas las cards del
                 mismo alto en la grilla, con o sin foto (el placeholder hereda
-                el mismo contenedor). */}
+                el mismo contenedor).
+                Fix bug portrait: la img va `absolute inset-0` (fuera del flujo)
+                para que su tamano intrinseco NO pueda estirar el wrapper.
+                aspect-ratio en CSS es tamano PREFERIDO, no hard constraint —
+                con img `w-full h-full` en el flujo y foto portrait, el wrapper
+                se estiraba al ratio natural de la imagen (2:3, 3:4) y el 4:5
+                se rompia. Con position absolute, la img queda escalada al
+                wrapper sin poder empujarlo. */}
             <div className="aspect-[4/5] bg-slate-100 relative">
                 {mascota.foto_mascota ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                         src={mascota.foto_mascota}
                         alt={mascota.nombre}
-                        className="w-full h-full object-cover object-center"
+                        className="absolute inset-0 w-full h-full object-cover object-center"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-300">
                         <Icon size={64} />
                     </div>
                 )}
@@ -732,7 +739,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                             {galeria.map((url, i) => (
                                 <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 group">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={url} alt={`Galería ${i + 1}`} className="w-full h-full object-cover" />
+                                    <img src={url} alt={`Galería ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveGaleria(i)}

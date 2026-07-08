@@ -395,9 +395,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
             <div className="aspect-[4/3] bg-slate-100 relative">
                 {coverPreview ? (
-                    <img src={coverPreview} alt="preview" className="w-full h-full object-cover" />
+                    <img src={coverPreview} alt="preview" className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center">
                         <ImageIcon size={32} className="text-slate-300" />
                     </div>
                 )}
@@ -923,7 +923,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                                     {fotos.map((url, i) => (
                                         <div key={url} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
-                                            <img src={url} alt={"Foto " + (i + 1)} className="w-full h-full object-cover" />
+                                            <img src={url} alt={"Foto " + (i + 1)} className="absolute inset-0 w-full h-full object-cover" />
 
                                             {i === 0 && (
                                                 <div className="absolute top-1.5 left-1.5 bg-accent-600 text-white text-[10px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded-full leading-none">

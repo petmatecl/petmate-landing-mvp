@@ -47,11 +47,11 @@ export default function ProveedorCard({ proveedor }: Props) {
                     <img
                         src={proveedor.foto_perfil}
                         alt={proveedor.nombre_publico}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-400">
                         <svg className="w-1/3 h-1/3" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
