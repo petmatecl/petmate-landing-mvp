@@ -38,15 +38,19 @@ interface UserContextType {
     proveedorRow: any | null;
     refreshProveedorRow: () => Promise<void>;
     roles: string[];
-    activeRole: Role | null; // Keep for backwards compatibility if needed, but we migrate to modes
-    activeMode: 'buscador' | 'proveedor' | null;
-    canSwitchMode: boolean;
+    activeRole: Role | null; // Keep for backwards compatibility (RoleSelectionInterceptor, GoogleAuthButton, login)
+    /**
+     * True si el usuario tiene fila en `usuarios_buscadores` (perfil tutor).
+     * Reemplaza al `canSwitchMode` legacy (que combinaba tutor+proveedor
+     * aprobado en un solo boolean). Ahora los consumidores derivan los items
+     * de nav directamente por rol (`hasSeekerProfile` + `providerStatus`).
+     */
+    hasSeekerProfile: boolean;
     providerStatus: 'none' | 'pendiente' | 'aprobado';
     capabilities: UserCapabilities; // What the user CAN actually do
     onboardingStatus: OnboardingStep;
     isLoading: boolean;
     isAuthenticated: boolean;
-    switchMode: (mode: 'buscador' | 'proveedor') => void;
     activateProviderMode: () => void;
     switchRole: (role: Role) => void;
     refreshProfile: () => Promise<void>;
@@ -71,8 +75,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [proveedorRow, setProveedorRow] = useState<any | null>(null);
     const [activeRole, setActiveRole] = useState<Role | null>(null);
-    const [activeMode, setActiveMode] = useState<'buscador' | 'proveedor' | null>(null);
-    const [canSwitchMode, setCanSwitchMode] = useState(false);
+    const [hasSeekerProfile, setHasSeekerProfile] = useState(false);
     const [providerStatus, setProviderStatus] = useState<'none' | 'pendiente' | 'aprobado'>('none');
     const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStep>('COMPLETE'); // Default optimistic
 
@@ -124,8 +127,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setProfile(null);
             setProveedorRow(null);
             setActiveRole(null);
-            setActiveMode('buscador');
-            setCanSwitchMode(false);
+            setHasSeekerProfile(false);
             setProviderStatus('none');
             setCapabilities(GUEST_CAPABILITIES);
             setOnboardingStatus('COMPLETE');
@@ -193,40 +195,28 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setOnboardingStatus(status);
             setProviderStatus(statusOfProvider as 'none' | 'pendiente' | 'aprobado');
 
-            // Dual Role State resolution
-            const canSwitch = hasApprovedProvider && hasSeeker;
-            setCanSwitchMode(canSwitch);
+            // Expone si el usuario tiene perfil tutor — reemplaza al legacy
+            // `canSwitchMode` (que solo era true si tenia AMBOS). Los items del
+            // dropdown del header ahora se derivan directamente por rol.
+            setHasSeekerProfile(hasSeeker);
 
-            let determinedMode: 'buscador' | 'proveedor' = 'buscador';
-
-            if (canSwitch) {
-                const savedMode = window.localStorage.getItem('pawnecta_active_mode');
-                determinedMode = (savedMode === 'proveedor' || savedMode === 'buscador') ? savedMode : 'buscador';
-            } else if (hasApprovedProvider) {
-                determinedMode = 'proveedor';
-            } else {
-                // includes only seeker, or neither (new signups)
-                determinedMode = 'buscador';
-            }
-
-            setActiveMode(determinedMode);
-
-            // --- Set activeRole Logic ---
+            // --- Set activeRole Logic (legacy, para RoleSelectionInterceptor
+            // y GoogleAuthButton / login). Se deriva del rol disponible mas
+            // especifico: proveedor aprobado > usuario. Sin fallback a
+            // localStorage porque el toggle Usuario/Ofreciendo (que era la
+            // unica fuente que escribia pawnecta_active_mode) fue removido.
             if (finalProfile) {
                 const validRoles = finalProfile.roles || ['usuario'];
 
                 // Set Admin Role Dynamically from DB, NO HARDCODED EMAILS.
-                // Requerimos que esté en 'proveedores' con el array de strings con 'admin' y estado aprobado
                 if (proveedorData?.roles?.includes('admin') && proveedorData?.estado === 'aprobado') {
                     if (!validRoles.includes('admin')) {
                         validRoles.push('admin');
                     }
                 }
 
-                // For backwards compatibility, sync activeRole to mode
-                if (determinedMode === 'proveedor') setActiveRole('proveedor');
-                else if (determinedMode === 'buscador') setActiveRole('usuario');
-                else setActiveRole(null);
+                if (hasApprovedProvider) setActiveRole('proveedor');
+                else setActiveRole('usuario');
             }
 
         } catch (err: any) {
@@ -234,8 +224,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             console.error("UserContext: profile query failed (user stays logged in):", err);
             setProfile(null);
             setProveedorRow(null);
-            setActiveMode('buscador');
-            setCanSwitchMode(false);
+            setHasSeekerProfile(false);
             setProviderStatus('none');
             setCapabilities(GUEST_CAPABILITIES);
         } finally {
@@ -290,14 +279,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         }
     };
 
-    const switchMode = (mode: 'buscador' | 'proveedor') => {
-        setActiveMode(mode);
-        window.localStorage.setItem('pawnecta_active_mode', mode);
-        // also sync activeRole
-        if (mode === 'proveedor') setActiveRole('proveedor');
-        else setActiveRole('usuario');
-    };
-
     const activateProviderMode = () => {
         console.log("activateProviderMode called");
     };
@@ -331,14 +312,12 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         setProfile(null);
         setProveedorRow(null);
         setActiveRole(null);
-        setActiveMode('buscador');
-        setCanSwitchMode(false);
+        setHasSeekerProfile(false);
         setProviderStatus('none');
         setCapabilities(GUEST_CAPABILITIES);
 
         window.localStorage.removeItem('activeRole');
         window.localStorage.removeItem('pm_auth_role_pending');
-        window.localStorage.removeItem('pawnecta_active_mode');
         window.localStorage.removeItem('pawnecta_pending_role');
 
         await supabase.auth.signOut();
@@ -358,14 +337,12 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             refreshProveedorRow,
             roles,
             activeRole,
-            activeMode,
-            canSwitchMode,
+            hasSeekerProfile,
             providerStatus,
             capabilities,
             onboardingStatus,
             isLoading,
             isAuthenticated: !!user,
-            switchMode,
             activateProviderMode,
             switchRole,
             refreshProfile,

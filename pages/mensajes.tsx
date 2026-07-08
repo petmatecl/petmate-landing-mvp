@@ -9,21 +9,22 @@ import { MessageSquare, Loader2, ArrowLeft } from 'lucide-react';
 
 export default function MensajesPage() {
     const router = useRouter();
-    const { activeMode } = useUser();
+    const { hasSeekerProfile, providerStatus } = useUser();
     const [userId, setUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const returnTo = router.query.returnTo as string;
 
-    // "Volver al Panel" destino consciente del rol activo:
-    //   - Proveedor (activeMode === 'proveedor') -> /proveedor.
-    //   - Tutor (activeMode === 'buscador') -> /usuario.
-    //   - null (context aun no hidrato o usuario sin roles claros) -> /usuario
-    //     como default seguro (rol mas comun y menos costoso si se equivoca —
-    //     un tutor en /proveedor sin rol se le muestra el gate; un proveedor
-    //     en /usuario navega bien).
-    // El query param `returnTo` sigue teniendo prioridad si viene explicito
-    // (uso legitimo desde otras paginas que ya saben a donde volver).
-    const defaultReturn = activeMode === 'proveedor' ? '/proveedor' : '/usuario';
+    // "Volver al Panel" destino consciente del rol REAL del usuario
+    //   (no del toggle removido). Reglas:
+    //   - returnTo query param SIEMPRE gana (uso legitimo desde otras paginas
+    //     que ya saben a donde volver).
+    //   - Proveedor puro (aprobado y SIN perfil tutor) -> /proveedor.
+    //   - Cualquier otro caso (tutor puro o dual) -> /usuario. El dual
+    //     tipicamente llega a /mensajes desde el flujo de tutor (contactar
+    //     un servicio); el proveedor cuando revisa una conversacion normal-
+    //     mente entra desde su panel y ya trae returnTo=/proveedor.
+    const isProveedorPuro = providerStatus === 'aprobado' && !hasSeekerProfile;
+    const defaultReturn = isProveedorPuro ? '/proveedor' : '/usuario';
     const returnHref = returnTo || defaultReturn;
 
     useEffect(() => {

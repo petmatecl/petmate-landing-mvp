@@ -7,7 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
 import UserInitialsAvatar from "./Shared/UserInitialsAvatar";
 import QuickSearch from "./Header/QuickSearch";
-import { Search, Briefcase, ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 
 export default function Header() {
 
@@ -20,7 +20,7 @@ export default function Header() {
   const router = useRouter();
 
   // Use Unified Context
-  const { user, profile, isAuthenticated, activeRole, activeMode, canSwitchMode, switchMode, logout, switchRole, roles } = useUser();
+  const { user, profile, isAuthenticated, hasSeekerProfile, providerStatus, logout } = useUser();
 
   // Banner "Estamos en lanzamiento" es solo para guests — usuarios autenticados
   // (tutores, proveedores, admins) NO lo ven para evitar invitación redundante.
@@ -36,11 +36,6 @@ export default function Header() {
   // Nombre a mostrar
   const userName = profile?.nombre || user?.user_metadata?.nombre || "Usuario";
 
-  // Route logic based on ACTIVE MODE preference
-  const isSitterActive = activeMode === 'proveedor';
-  const dashboardLink = isSitterActive ? "/proveedor" : "/favoritos";
-  const dashboardLabel = isSitterActive ? "Mi panel" : "Mis favoritos";
-
   // Estado activo del nav — deriva de router.pathname. Match exacto: cada
   // item se marca solo cuando su ruta coincide con la actual. Simple y
   // predecible; si en el futuro alguna ruta tiene sub-paths que tambien
@@ -48,16 +43,24 @@ export default function Header() {
   // a startsWith en ese item puntual.
   const isRouteActive = (path: string) => router.pathname === path;
 
-  // Items personales del usuario autenticado — se muestran en el dropdown del
-  // avatar (desktop) y en el bloque autenticado del menu mobile. Orden fijo:
-  // dashboard (Mis favoritos para tutor / Mi panel para proveedor segun
-  // activeMode), luego solicitudes, luego mascotas. Cerrar sesion se maneja
-  // aparte porque es una accion, no una ruta.
-  const personalNav = [
-    { href: dashboardLink, label: dashboardLabel },
-    { href: '/mis-solicitudes', label: 'Mis solicitudes' },
-    { href: '/usuario/mascotas', label: 'Mis mascotas' },
-  ];
+  // Items personales del dropdown/menu, derivados por rol real (no por
+  // toggle). Dos secciones separadas por rol; se concatenan con separadores
+  // en el render.
+  //   - Proveedor aprobado -> "Mi panel" (nada mas del panel del tutor).
+  //   - Tutor -> Mis favoritos + Mis solicitudes + Mis mascotas.
+  //   - Ambos -> las dos secciones apiladas con separator entre medio.
+  const isProveedor = providerStatus === 'aprobado';
+  const providerNav = isProveedor
+    ? [{ href: '/proveedor', label: 'Mi panel' }]
+    : [];
+  const tutorNav = hasSeekerProfile
+    ? [
+        { href: '/favoritos', label: 'Mis favoritos' },
+        { href: '/mis-solicitudes', label: 'Mis solicitudes' },
+        { href: '/usuario/mascotas', label: 'Mis mascotas' },
+      ]
+    : [];
+  const personalNav = [...providerNav, ...tutorNav];
   const personalActive = personalNav.some(item => isRouteActive(item.href));
 
   // Sombra sutil al scrollear — patron estandar de header sticky. Listener
@@ -161,40 +164,14 @@ export default function Header() {
             </>
           ) : (
             <>
-              {/* Multi-mode Switcher — publico, no forma parte del menu personal */}
-              {canSwitchMode && (
-                <div className="flex items-center bg-slate-100 rounded-full p-1 border border-slate-200 shadow-inner">
-                  <button
-                    onClick={() => switchMode('buscador')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeMode === 'buscador'
-                      ? 'bg-accent-600 text-white font-semibold shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                      }`}
-                  >
-                    <span><Search size={18} /></span>
-                    <span>Usuario</span>
-                  </button>
-                  <button
-                    onClick={() => switchMode('proveedor')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeMode === 'proveedor'
-                      ? 'bg-accent-600 text-white font-semibold shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                      }`}
-                  >
-                    <Briefcase size={14} />
-                    <span>Ofreciendo</span>
-                  </button>
-                </div>
-              )}
-
               <NotificationBell />
 
               {/* Menu del avatar — colapsa toda la nav personal en un dropdown.
-                  Chip clickeable: si estas en alguna seccion personal, el chip
-                  se marca con bg-accent-100 + ring-accent-300 (senal "estas
-                  navegando algo tuyo"). El item ACTIVO dentro del dropdown
-                  recibe el pill verde bg-accent-600 — es el mismo pill activo
-                  que salta con la navegacion. */}
+                  Los items se derivan por rol real (providerNav + tutorNav),
+                  con separator entre grupos si el user tiene ambos roles. El
+                  chip clickeable se marca con bg-accent-100 + ring cuando
+                  estas en alguna seccion personal; el item activo dentro del
+                  dropdown recibe el pill verde bg-accent-600. */}
               <div ref={avatarRef} className="relative">
                 <button
                   type="button"
@@ -219,7 +196,27 @@ export default function Header() {
                     aria-label="Menu personal"
                     className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1 shadow-lg z-50"
                   >
-                    {personalNav.map(item => {
+                    {providerNav.map(item => {
+                      const active = isRouteActive(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setAvatarOpen(false)}
+                          className={`block w-full rounded-lg px-3 py-2 text-sm transition-colors ${
+                            active
+                              ? 'bg-accent-600 text-white font-semibold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                    {providerNav.length > 0 && tutorNav.length > 0 && (
+                      <div className="my-1 border-t border-slate-100" />
+                    )}
+                    {tutorNav.map(item => {
                       const active = isRouteActive(item.href);
                       return (
                         <Link
@@ -374,9 +371,12 @@ export default function Header() {
                   Blog
                 </Link>
 
-                {/* Personal — mismo orden que el dropdown desktop */}
-                <div className="my-2 border-t border-slate-100" />
-                {personalNav.map(item => {
+                {/* Personal — mismo orden que el dropdown desktop.
+                    Mi panel (proveedor) primero, separador si aplica, luego
+                    tutor nav. Sin roles personales -> nada aca (solo se ve
+                    el separador previo con Cerrar sesion). */}
+                {personalNav.length > 0 && <div className="my-2 border-t border-slate-100" />}
+                {providerNav.map(item => {
                   const active = isRouteActive(item.href);
                   return (
                     <Link
@@ -393,6 +393,27 @@ export default function Header() {
                     </Link>
                   );
                 })}
+                {providerNav.length > 0 && tutorNav.length > 0 && (
+                  <div className="my-2 border-t border-slate-100" />
+                )}
+                {tutorNav.map(item => {
+                  const active = isRouteActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm transition-colors ${
+                        active
+                          ? 'bg-accent-600 text-white font-semibold'
+                          : 'text-slate-500 font-normal hover:text-accent-600'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+                {personalNav.length > 0 && <div className="my-2 border-t border-slate-100" />}
                 <button
                   onClick={async () => {
                     setOpen(false);
