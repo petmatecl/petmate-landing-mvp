@@ -392,6 +392,24 @@ export default function SolicitarAgendamientoModal({
                     },
                     body: JSON.stringify({ agendamientoId: inserted.id }),
                 }).catch(err => console.warn('[SolicitarAgendamientoModal] notify-proveedor falló:', err));
+
+                // Vinculo conversation → agendamiento (modelo b, punto 1).
+                // Si YA existe conversation entre este tutor y este servicio,
+                // apuntamos su agendamiento_id a la solicitud recien creada
+                // (la "activa" pasa a ser la mas reciente). Si no hay conv,
+                // no forzamos crearla — el chat nace cuando alguien escribe.
+                // Match por (client_id, servicio_id): un servicio tiene un
+                // solo proveedor, asi que ese par ya identifica la conv sin
+                // necesidad de resolver sitter_id (auth_user_id del proveedor).
+                // Fire-and-forget: el vinculo es contexto, no critico.
+                supabase
+                    .from('conversations')
+                    .update({ agendamiento_id: inserted.id })
+                    .eq('client_id', session.user.id)
+                    .eq('servicio_id', servicioId)
+                    .then(({ error }) => {
+                        if (error) console.warn('[SolicitarAgendamientoModal] vinculo conv-agendamiento falló:', error);
+                    });
             }
 
             toast.success('Solicitud enviada. El proveedor te responderá pronto.', {

@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { Message } from '../../types/chat';
 import { createNotification } from '../../lib/notifications';
 import { getParticipantProfile } from '../../lib/profileUtils';
-import { Send, User as UserIcon } from 'lucide-react';
+import { Send, User as UserIcon, PawPrint } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -25,6 +25,11 @@ export default function MessageThread({ conversationId, userId }: Props) {
 
     const [myUser, setMyUser] = useState<{ nombre: string } | null>(null);
     const [fetchError, setFetchError] = useState(false);
+    // Vinculo chat-agendamiento (modelo b): si la conv esta linkeada a un
+    // agendamiento y ese agendamiento tiene mascota_id, mostramos chip
+    // compacto con nombre+tipo+foto (contexto de la solicitud, valor
+    // principalmente para el proveedor).
+    const [mascotaChip, setMascotaChip] = useState<{ nombre: string; tipo: string; foto_mascota: string | null } | null>(null);
 
     useEffect(() => {
         if (conversationId && userId) {
@@ -40,9 +45,26 @@ export default function MessageThread({ conversationId, userId }: Props) {
 
     async function fetchConversationDetails() {
         try {
+            // Join extendido: agendamiento vinculado + su mascota (si hay).
+            // El chip solo aparece si ambos IDs estan set — cero ruido si el
+            // vinculo no existe o el agendamiento no tenia mascota.
+            // RLS coverage:
+            //   - Tutor: agendamientos_tutor_select le da acceso a su
+            //     agendamiento; Mascotas Visibility a su mascota.
+            //   - Proveedor: agendamientos_proveedor_select le da acceso al
+            //     agendamiento que va a sus servicios; la policy
+            //     "proveedor_select_mascotas_de_solicitudes" (en prod) /
+            //     "Mascotas Proveedor via Agendamientos" (en staging) le da
+            //     acceso a la mascota via el join.
             const { data, error } = await supabase
                 .from('conversations')
-                .select('client_id, sitter_id')
+                .select(`
+                    client_id, sitter_id,
+                    agendamiento:agendamientos!conversations_agendamiento_id_fkey(
+                        id,
+                        mascota:mascotas!agendamientos_mascota_id_fkey(nombre, tipo, foto_mascota)
+                    )
+                `)
                 .eq('id', conversationId)
                 .single();
 
@@ -57,6 +79,24 @@ export default function MessageThread({ conversationId, userId }: Props) {
             } else {
                 setOtherUser(clientProfile);
                 setMyUser(sitterProfile);
+            }
+
+            // El join devuelve un objeto (o array segun Supabase) para relaciones
+            // 1-a-1. Defensivo: aceptamos ambos shapes.
+            const agend: any = Array.isArray((data as any).agendamiento)
+                ? (data as any).agendamiento[0]
+                : (data as any).agendamiento;
+            const mascota: any = agend?.mascota
+                ? (Array.isArray(agend.mascota) ? agend.mascota[0] : agend.mascota)
+                : null;
+            if (mascota?.nombre && mascota?.tipo) {
+                setMascotaChip({
+                    nombre: mascota.nombre,
+                    tipo: mascota.tipo,
+                    foto_mascota: mascota.foto_mascota ?? null,
+                });
+            } else {
+                setMascotaChip(null);
             }
         } catch (error) {
             console.error('Error fetching conversation details:', error);
@@ -319,6 +359,35 @@ export default function MessageThread({ conversationId, userId }: Props) {
                             </span>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* Chip de mascota vinculada (modelo b, punto 3).
+                Solo aparece si la conv tiene agendamiento_id Y ese agendamiento
+                tiene mascota_id — cero ruido para chats sin vinculo. Valor
+                principal para el proveedor: contexto de que mascota es la
+                solicitud, sin abrir el panel. Layout: banda compacta bajo el
+                header, mini-foto + nombre + tipo. Estatico (no clickeable).
+                Si el proveedor quiere mas contexto (raza, edad, condiciones,
+                galeria) abre la ficha en su panel de solicitudes. */}
+            {mascotaChip && (
+                <div className="px-3 py-2 bg-accent-50/60 border-b border-accent-100 flex items-center gap-2 text-xs">
+                    {mascotaChip.foto_mascota ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                            src={mascotaChip.foto_mascota}
+                            alt={mascotaChip.nombre}
+                            className="w-6 h-6 rounded-lg object-cover shrink-0"
+                        />
+                    ) : (
+                        <span className="w-6 h-6 rounded-lg bg-accent-100 flex items-center justify-center text-accent-700 shrink-0">
+                            <PawPrint size={12} />
+                        </span>
+                    )}
+                    <span className="font-medium text-accent-800 truncate">{mascotaChip.nombre}</span>
+                    <span className="text-slate-500">
+                        · {mascotaChip.tipo.charAt(0).toUpperCase() + mascotaChip.tipo.slice(1)}
+                    </span>
                 </div>
             )}
 

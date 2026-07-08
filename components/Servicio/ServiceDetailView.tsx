@@ -233,6 +233,42 @@ export default function ServiceDetailView({
                 return;
             }
 
+            // Vinculo conversation → agendamiento (modelo b, punto 2).
+            // Antes de crear la conv, buscamos si YA existe un agendamiento
+            // entre este tutor y este servicio; si hay, arrancamos con
+            // agendamiento_id set. Cubre el caso "el tutor solicito primero
+            // y despues abre el chat" — el chip de mascota aparece desde
+            // el primer mensaje sin esperar a que el proveedor solicite
+            // otra cosa. Fire-and-forget en la escritura: si el lookup falla,
+            // agendamiento_id queda null y el punto 1 lo settea en la
+            // proxima solicitud del tutor.
+            let vinculoAgendamientoId: string | null = null;
+            try {
+                const { data: buscadorRow } = await supabase
+                    .from('usuarios_buscadores')
+                    .select('id')
+                    .eq('auth_user_id', userId)
+                    .maybeSingle();
+                if (buscadorRow?.id) {
+                    // agendamientos.tutor_id referencia usuarios_buscadores.id
+                    // (no auth.users.id) — necesitamos el buscador.id para el
+                    // lookup. El scope (tutor + proveedor + servicio) matchea
+                    // exactamente el scope de la conv (per-servicio).
+                    const { data: recent } = await supabase
+                        .from('agendamientos')
+                        .select('id')
+                        .eq('tutor_id', buscadorRow.id)
+                        .eq('proveedor_id', proveedor.id)
+                        .eq('servicio_id', service.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+                    vinculoAgendamientoId = recent?.id ?? null;
+                }
+            } catch (vinculoErr) {
+                console.warn('[handleChatClick] vinculo lookup falló:', vinculoErr);
+            }
+
             // Create new conversation (sitter_id must be auth.users.id)
             const { data: newConv, error } = await supabase
                 .from('conversations')
@@ -240,7 +276,8 @@ export default function ServiceDetailView({
                     client_id: userId,
                     sitter_id: proveedorAuthId,
                     servicio_id: service.id,
-                    proveedor_auth_id: proveedorAuthId
+                    proveedor_auth_id: proveedorAuthId,
+                    agendamiento_id: vinculoAgendamientoId,
                 })
                 .select()
                 .single();
