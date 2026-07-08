@@ -38,6 +38,14 @@ export default function Header() {
   const dashboardLink = isSitterActive ? "/proveedor" : "/favoritos";
   const dashboardLabel = isSitterActive ? "Mi panel" : "Mis favoritos";
 
+  // Estado activo del nav — deriva de router.pathname. Match exacto: cada
+  // item se marca solo cuando su ruta coincide con la actual. Simple y
+  // predecible; si en el futuro alguna ruta tiene sub-paths que tambien
+  // deben mostrar el item activo (ej. /usuario/mascotas/edit/:id), pasar
+  // a startsWith en ese item puntual.
+  const isRouteActive = (path: string) => router.pathname === path;
+  const dashboardActive = isRouteActive(dashboardLink);
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">
       {/* Franja superior lanzamiento — solo para guests no autenticados */}
@@ -151,22 +159,13 @@ export default function Header() {
                 </div>
               )}
 
-              {/* Admin link — directo sin dropdown. Se muestra siempre que
-                  el rol admin esté presente, independientemente del modo dual
-                  (la condicional anterior con !canSwitchMode excluía a admins
-                  con perfil dual tutor+proveedor). */}
-              {profile?.roles && profile.roles.includes('admin') && (
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center rounded-md bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition-colors uppercase tracking-widest opacity-60 hover:opacity-100"
-                >
-                  Admin
-                </Link>
-              )}
-
               <Link
                 href={dashboardLink}
-                className="inline-flex items-center rounded-lg bg-accent-600 px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-accent-700"
+                className={`inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm transition-colors ${
+                  dashboardActive
+                    ? 'bg-accent-700 ring-2 ring-accent-300'
+                    : 'bg-accent-600 hover:bg-accent-700'
+                }`}
               >
                 {dashboardLabel}
               </Link>
@@ -175,13 +174,21 @@ export default function Header() {
                   caso "no tiene perfil de tutor" con un mensaje propio. */}
               <Link
                 href="/mis-solicitudes"
-                className="text-sm font-normal text-slate-500 hover:text-accent-600"
+                className={`text-sm transition-colors ${
+                  isRouteActive('/mis-solicitudes')
+                    ? 'text-accent-700 font-semibold'
+                    : 'text-slate-500 font-normal hover:text-accent-600'
+                }`}
               >
                 Mis solicitudes
               </Link>
               <Link
                 href="/usuario/mascotas"
-                className="text-sm font-normal text-slate-500 hover:text-accent-600"
+                className={`text-sm transition-colors ${
+                  isRouteActive('/usuario/mascotas')
+                    ? 'text-accent-700 font-semibold'
+                    : 'text-slate-500 font-normal hover:text-accent-600'
+                }`}
               >
                 Mis mascotas
               </Link>
@@ -282,7 +289,11 @@ export default function Header() {
               <>
                 <Link
                   href="/explorar"
-                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600 mb-2"
+                  className={`inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm transition-colors mb-2 ${
+                    isRouteActive('/explorar')
+                      ? 'text-accent-700 font-semibold bg-accent-50'
+                      : 'text-slate-500 font-normal hover:text-accent-600'
+                  }`}
                   onClick={() => setOpen(false)}
                 >
                   Explorar servicios
@@ -299,7 +310,11 @@ export default function Header() {
                 </div>
                 <Link
                   href={dashboardLink}
-                  className="inline-flex items-center justify-center rounded-lg bg-accent-600 px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm hover:bg-accent-700"
+                  className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm transition-colors ${
+                    dashboardActive
+                      ? 'bg-accent-700 ring-2 ring-accent-300'
+                      : 'bg-accent-600 hover:bg-accent-700'
+                  }`}
                   onClick={() => setOpen(false)}
                 >
                   {dashboardLabel}
@@ -307,14 +322,22 @@ export default function Header() {
                 <Link
                   href="/mis-solicitudes"
                   onClick={() => setOpen(false)}
-                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
+                  className={`inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm transition-colors ${
+                    isRouteActive('/mis-solicitudes')
+                      ? 'text-accent-700 font-semibold bg-accent-50'
+                      : 'text-slate-500 font-normal hover:text-accent-600'
+                  }`}
                 >
                   Mis solicitudes
                 </Link>
                 <Link
                   href="/usuario/mascotas"
                   onClick={() => setOpen(false)}
-                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
+                  className={`inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm transition-colors ${
+                    isRouteActive('/usuario/mascotas')
+                      ? 'text-accent-700 font-semibold bg-accent-50'
+                      : 'text-slate-500 font-normal hover:text-accent-600'
+                  }`}
                 >
                   Mis mascotas
                 </Link>
