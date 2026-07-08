@@ -568,6 +568,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 <option value="por paseo">por paseo</option>
                                                 <option value="por mes">por mes</option>
                                                 <option value="por visita">por visita</option>
+                                                <option value="por obra">por obra</option>
                                             </select>
                                         </div>
                                     </div>
