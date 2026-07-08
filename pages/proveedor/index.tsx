@@ -43,6 +43,7 @@ import {
     Star, MessageSquare, BarChart, Edit, Trash2, LayoutDashboard, Eye, Camera,
     Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink, X,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Calendar,
+    ChevronDown,
     type LucideIcon
 } from 'lucide-react';
 
@@ -124,6 +125,22 @@ export default function ProveedorDashboard() {
     // "Info del Servicio" (per-servicio, Sprint 4 Fase 1). null = todas las
     // cards colapsadas. Solo una expandida a la vez.
     const [expandedInfoServicioId, setExpandedInfoServicioId] = useState<string | null>(null);
+
+    // Indicador de completitud del perfil: colapsado por default, descartable
+    // via X. La preferencia de descarte se persiste en localStorage por user
+    // (mismo patron que el welcome banner de DashboardContent). Reaparece si
+    // el user llega a 100% y luego baja (edge: borra un campo) — comparamos
+    // el score guardado al descartar vs el score actual.
+    const [completitudExpanded, setCompletitudExpanded] = useState(false);
+    const [completitudDismissedAtScore, setCompletitudDismissedAtScore] = useState<number | null>(null);
+    useEffect(() => {
+        if (!user?.id || typeof window === 'undefined') return;
+        const raw = window.localStorage.getItem(`pawnecta_completitud_dismissed_${user.id}`);
+        if (raw) {
+            const parsed = Number.parseInt(raw, 10);
+            if (Number.isFinite(parsed)) setCompletitudDismissedAtScore(parsed);
+        }
+    }, [user?.id]);
 
     // Tab Data
     const [servicios, setServicios] = useState<any[]>([]);
@@ -1171,7 +1188,16 @@ export default function ProveedorDashboard() {
                     {activeTab === 'servicios' && (
                         <div className="animate-in fade-in duration-300">
 
-                            {/* INDICADOR DE COMPLETITUD */}
+                            {/* INDICADOR DE COMPLETITUD — compacto + descartable.
+                                Reglas:
+                                  - Si score >= 100 -> nada (silencio total, no
+                                    reemplaza con "!Perfil completo!" — no aporta).
+                                  - Si el user descarto y score >= dismissed
+                                    score -> nada. Si score BAJO (borro un
+                                    campo), reaparece para avisarle.
+                                  - Colapsado (default): banda fina, una linea
+                                    con label + porcentaje + chevron + X.
+                                  - Expandido: agrega el checklist pendiente. */}
                             {(() => {
                                 const pasos = [
                                     { label: 'Foto de perfil', done: !!fotoPerfil, puntos: 15 },
@@ -1185,46 +1211,63 @@ export default function ProveedorDashboard() {
                                 ];
                                 const computedScore = pasos.filter(p => p.done).reduce((a, p) => a + p.puntos, 0);
                                 const score = computedScore > 100 ? 100 : computedScore;
-                                const pendientes = pasos.filter(p => !p.done);
 
-                                if (score >= 100) {
-                                    return (
-                                        <div className="bg-accent-50 border border-accent-200 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center shrink-0">
-                                                    <CheckCircle size={24} />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-slate-900 text-sm">¡Perfil completo!</h3>
-                                                    <p className="text-slate-600 text-sm mt-0.5">
-                                                        Los clientes ven tu perfil mejor posicionado en los resultados.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <a href={`/proveedor/${proveedor.id}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-accent-700 font-medium text-sm bg-white border border-accent-200 px-4 py-2 rounded-xl hover:bg-accent-50 transition-colors inline-block text-center whitespace-nowrap w-full sm:w-auto">
-                                                Ver mi perfil público
-                                            </a>
-                                        </div>
-                                    );
+                                // Silencio total al llegar a 100.
+                                if (score >= 100) return null;
+                                // Descartado y el score no bajo desde entonces -> silencio.
+                                if (completitudDismissedAtScore !== null && score >= completitudDismissedAtScore) {
+                                    return null;
                                 }
 
+                                const pendientes = pasos.filter(p => !p.done);
+                                const dismiss = () => {
+                                    if (!user?.id || typeof window === 'undefined') return;
+                                    window.localStorage.setItem(`pawnecta_completitud_dismissed_${user.id}`, String(score));
+                                    setCompletitudDismissedAtScore(score);
+                                };
+
                                 return (
-                                    <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h3 className="font-semibold text-slate-900 text-sm">Completitud del perfil</h3>
-                                            <span className="text-sm font-semibold text-accent-600">{score}%</span>
+                                    <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 mb-4">
+                                        <div className="flex items-center gap-3">
+                                            {/* Barra + label + porcentaje viven en la misma linea */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setCompletitudExpanded(v => !v)}
+                                                aria-expanded={completitudExpanded}
+                                                aria-controls="completitud-checklist"
+                                                className="flex-1 min-w-0 flex items-center gap-3 text-left group"
+                                            >
+                                                <div className="hidden sm:block shrink-0 w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-accent-600 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
+                                                </div>
+                                                <span className="text-sm font-medium text-slate-700 truncate group-hover:text-slate-900 transition-colors">
+                                                    Completitud del perfil <span className="text-accent-700">{score}%</span>
+                                                </span>
+                                                <ChevronDown size={16} className={`text-slate-400 group-hover:text-slate-600 transition-transform shrink-0 ${completitudExpanded ? 'rotate-180' : ''}`} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={dismiss}
+                                                aria-label="Ocultar completitud del perfil"
+                                                className="shrink-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md p-1 transition-colors"
+                                            >
+                                                <X size={14} />
+                                            </button>
                                         </div>
-                                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        {/* Barra mobile (visible solo cuando la horizontal se oculta por espacio) */}
+                                        <div className="sm:hidden mt-2 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                             <div className="h-full bg-accent-600 rounded-full transition-all duration-500" style={{ width: score + '%' }} />
                                         </div>
-                                        <div className="mt-4 space-y-2">
-                                            {pendientes.map(p => (
-                                                <div key={p.label} className="flex items-center gap-2 text-sm text-slate-600">
-                                                    <Circle size={14} className="text-slate-300 shrink-0" />
-                                                    {p.label}
-                                                </div>
-                                            ))}
-                                        </div>
+                                        {completitudExpanded && (
+                                            <div id="completitud-checklist" className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
+                                                {pendientes.map(p => (
+                                                    <div key={p.label} className="flex items-center gap-2 text-sm text-slate-600">
+                                                        <Circle size={12} className="text-slate-300 shrink-0" />
+                                                        {p.label}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })()}

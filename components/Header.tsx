@@ -46,12 +46,12 @@ export default function Header() {
   // Items personales del dropdown/menu, derivados por rol real (no por
   // toggle). Dos secciones separadas por rol; se concatenan con separadores
   // en el render.
-  //   - Proveedor aprobado -> "Mi panel" (nada mas del panel del tutor).
+  //   - Proveedor aprobado -> "Panel de proveedor" (nada mas del panel del tutor).
   //   - Tutor -> Mis favoritos + Mis solicitudes + Mis mascotas.
   //   - Ambos -> las dos secciones apiladas con separator entre medio.
   const isProveedor = providerStatus === 'aprobado';
   const providerNav = isProveedor
-    ? [{ href: '/proveedor', label: 'Mi panel' }]
+    ? [{ href: '/proveedor', label: 'Panel de proveedor' }]
     : [];
   const tutorNav = hasSeekerProfile
     ? [
@@ -372,7 +372,7 @@ export default function Header() {
                 </Link>
 
                 {/* Personal — mismo orden que el dropdown desktop.
-                    Mi panel (proveedor) primero, separador si aplica, luego
+                    Panel de proveedor primero, separador si aplica, luego
                     tutor nav. Sin roles personales -> nada aca (solo se ve
                     el separador previo con Cerrar sesion). */}
                 {personalNav.length > 0 && <div className="my-2 border-t border-slate-100" />}
