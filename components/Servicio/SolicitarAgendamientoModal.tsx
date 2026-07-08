@@ -120,7 +120,7 @@ export default function SolicitarAgendamientoModal({
     // asocia la ficha real (mascota_id) o cae a texto libre (tipo_mascota_texto)
     // mutuamente exclusivos en la UI. Ambos NULLABLE en DB — solicitudes sin
     // mascota siguen siendo válidas (retrocompat).
-    type MascotaFicha = { id: string; nombre: string; tipo: string };
+    type MascotaFicha = { id: string; nombre: string; tipo: string; foto_mascota: string | null };
     const [misMascotas, setMisMascotas] = useState<MascotaFicha[]>([]);
     const [mascotaId, setMascotaId] = useState<string | null>(null);
     const [tipoMascotaTexto, setTipoMascotaTexto] = useState('');
@@ -134,7 +134,7 @@ export default function SolicitarAgendamientoModal({
             if (!session?.user) return;
             const { data, error } = await supabase
                 .from('mascotas')
-                .select('id, nombre, tipo')
+                .select('id, nombre, tipo, foto_mascota')
                 .eq('user_id', session.user.id)
                 .order('created_at', { ascending: true });
             if (error) {
@@ -699,34 +699,77 @@ export default function SolicitarAgendamientoModal({
                         </label>
                         {misMascotas.length > 0 ? (
                             <>
-                                <select
-                                    id="agend-mascota"
-                                    value={otraSeleccionada ? '__otra__' : (mascotaId || '')}
-                                    onChange={e => {
-                                        const v = e.target.value;
-                                        if (v === '__otra__') {
+                                {/* Chip selector: cada mascota es un chip con mini-foto + nombre.
+                                    Nativo <select> no soporta imagenes; el chip pattern ya se
+                                    usa en el resto de la app (modalidad, tamanos, etc). */}
+                                <div id="agend-mascota" className="flex flex-wrap gap-2">
+                                    {misMascotas.map(m => {
+                                        const selected = !otraSeleccionada && mascotaId === m.id;
+                                        return (
+                                            <button
+                                                key={m.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setOtraSeleccionada(false);
+                                                    setMascotaId(m.id);
+                                                    setTipoMascotaTexto('');
+                                                }}
+                                                disabled={submitting}
+                                                className={`inline-flex items-center gap-2 rounded-xl border py-1.5 pl-1.5 pr-3 text-sm font-medium transition-colors ${
+                                                    selected
+                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {m.foto_mascota ? (
+                                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                                    <img
+                                                        src={m.foto_mascota}
+                                                        alt=""
+                                                        className="w-7 h-7 rounded-lg object-cover shrink-0"
+                                                    />
+                                                ) : (
+                                                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                        <PawPrint size={14} />
+                                                    </span>
+                                                )}
+                                                <span className="truncate max-w-[9rem]">
+                                                    {m.nombre}
+                                                    <span className={`font-normal ${selected ? 'text-white/80' : 'text-slate-500'}`}> · {m.tipo.charAt(0).toUpperCase() + m.tipo.slice(1)}</span>
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
                                             setOtraSeleccionada(true);
                                             setMascotaId(null);
-                                        } else if (v === '') {
-                                            setOtraSeleccionada(false);
-                                            setMascotaId(null);
-                                            setTipoMascotaTexto('');
-                                        } else {
-                                            setOtraSeleccionada(false);
-                                            setMascotaId(v);
-                                            setTipoMascotaTexto('');
-                                        }
-                                    }}
-                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
-                                >
-                                    <option value="">Sin especificar</option>
-                                    {misMascotas.map(m => (
-                                        <option key={m.id} value={m.id}>
-                                            {m.nombre} · {m.tipo.charAt(0).toUpperCase() + m.tipo.slice(1)}
-                                        </option>
-                                    ))}
-                                    <option value="__otra__">Otra / no está en mi lista</option>
-                                </select>
+                                        }}
+                                        disabled={submitting}
+                                        className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                                            otraSeleccionada
+                                                ? 'bg-accent-600 text-white border-accent-600'
+                                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 border-dashed'
+                                        }`}
+                                    >
+                                        Otra / no está en mi lista
+                                    </button>
+                                    {(mascotaId || otraSeleccionada) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setOtraSeleccionada(false);
+                                                setMascotaId(null);
+                                                setTipoMascotaTexto('');
+                                            }}
+                                            disabled={submitting}
+                                            className="inline-flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
+                                        >
+                                            Quitar selección
+                                        </button>
+                                    )}
+                                </div>
                                 {otraSeleccionada && (
                                     <input
                                         type="text"

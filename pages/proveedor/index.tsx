@@ -385,7 +385,7 @@ export default function ProveedorDashboard() {
                 mascota_id, tipo_mascota_texto,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo),
-                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, raza, sexo, fecha_nacimiento, tamano, descripcion, enfermedades, trato_especial, trato_especial_desc, foto_mascota)
+                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, raza, sexo, fecha_nacimiento, tamano, descripcion, enfermedades, trato_especial, trato_especial_desc, foto_mascota, fotos_galeria)
             `)
             .eq('proveedor_id', provId)
             .order('created_at', { ascending: false });
@@ -2376,6 +2376,25 @@ export default function ProveedorDashboard() {
                                                                         <p className="text-sm text-warning-900 leading-relaxed whitespace-pre-wrap">{mascota.trato_especial_desc}</p>
                                                                     </div>
                                                                 )}
+                                                            </div>
+                                                        )}
+                                                        {Array.isArray(mascota.fotos_galeria) && mascota.fotos_galeria.length > 0 && (
+                                                            <div className="mt-3">
+                                                                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium mb-1.5">Galería</p>
+                                                                <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
+                                                                    {mascota.fotos_galeria.map((url: string, i: number) => (
+                                                                        /* eslint-disable-next-line @next/next/no-img-element */
+                                                                        <a
+                                                                            key={url}
+                                                                            href={url}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="aspect-square rounded-lg overflow-hidden border border-accent-100 hover:border-accent-300 transition-colors"
+                                                                        >
+                                                                            <img src={url} alt={`${mascota.nombre} - foto ${i + 1}`} className="w-full h-full object-cover" />
+                                                                        </a>
+                                                                    ))}
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>

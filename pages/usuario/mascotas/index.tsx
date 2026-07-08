@@ -9,8 +9,54 @@ import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 import { toast } from 'sonner';
 import {
     PawPrint, Plus, Edit, Trash2, X, Loader2,
-    ChevronLeft, Dog, Cat,
+    ChevronLeft, Dog, Cat, Camera, ImagePlus,
 } from 'lucide-react';
+
+// ────────────────────────────────────────────────────────────────────────────
+// Storage helpers para fotos de mascotas
+//
+// Reusamos el bucket vivo `servicios-fotos` (mismo que usan la galeria del
+// proveedor y las fotos de servicios) con el prefix `mascotas/{user_id}/` que
+// las policies de storage validan (creadas via SQL fuera de codigo).
+//
+// Limites calibrados contra el patron vivo (ServiceFormModal / uploadGaleriaFoto):
+//   - 5 MB por foto (mismo cap de fotos de servicio).
+//   - Galeria hasta 6 fotos (menor que las 8 del servicio: mascota es
+//     contexto para el proveedor, no portfolio profesional).
+// Cleanup: al remover una foto del form, borramos el objeto del bucket para
+// no dejar huerfanos. Cancel del modal sin guardar deja los recien subidos
+// huerfanos — mismo comportamiento que la galeria del proveedor, aceptado.
+// ────────────────────────────────────────────────────────────────────────────
+
+const FOTOS_BUCKET = 'servicios-fotos';
+const MAX_FOTO_SIZE_MB = 5;
+const MAX_GALERIA_MASCOTA = 6;
+
+function fotoPathFromUrl(url: string): string | null {
+    const marker = `/${FOTOS_BUCKET}/`;
+    const idx = url.indexOf(marker);
+    return idx === -1 ? null : url.substring(idx + marker.length);
+}
+
+async function subirFotoAStorage(file: File, userId: string): Promise<string | null> {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const filePath = `mascotas/${userId}/${fileName}`;
+    const { error } = await supabase.storage.from(FOTOS_BUCKET).upload(filePath, file);
+    if (error) {
+        console.error('[Mascotas] upload error:', error);
+        return null;
+    }
+    const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(filePath);
+    return data.publicUrl;
+}
+
+async function borrarFotoDeStorage(url: string): Promise<void> {
+    const path = fotoPathFromUrl(url);
+    if (!path) return;
+    const { error } = await supabase.storage.from(FOTOS_BUCKET).remove([path]);
+    if (error) console.warn('[Mascotas] delete storage error:', error);
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // Tipos y helpers
@@ -312,11 +358,71 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
     const [enfermedades, setEnfermedades] = useState(mascota?.enfermedades || '');
     const [tratoEspecial, setTratoEspecial] = useState(mascota?.trato_especial || false);
     const [tratoEspecialDesc, setTratoEspecialDesc] = useState(mascota?.trato_especial_desc || '');
-    // Foto: read-only en este commit. Si la mascota ya tiene foto_mascota
-    // (subida por otra ruta), la mostramos. El upload queda como mejora en BACKLOG.
-    const fotoMascotaExistente = mascota?.foto_mascota || null;
+    const [fotoMascota, setFotoMascota] = useState<string>(mascota?.foto_mascota || '');
+    const [galeria, setGaleria] = useState<string[]>(mascota?.fotos_galeria || []);
+    const [uploadingPrincipal, setUploadingPrincipal] = useState(false);
+    const [uploadingGaleria, setUploadingGaleria] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+
+    const handleUploadPrincipal = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        if (file.size > MAX_FOTO_SIZE_MB * 1024 * 1024) {
+            toast.error(`La imagen supera ${MAX_FOTO_SIZE_MB} MB.`);
+            return;
+        }
+        setUploadingPrincipal(true);
+        try {
+            const url = await subirFotoAStorage(file, userId);
+            if (!url) { toast.error('No pudimos subir la foto.'); return; }
+            // Reemplazo: borrar la anterior del bucket para no dejar huerfano.
+            if (fotoMascota) await borrarFotoDeStorage(fotoMascota);
+            setFotoMascota(url);
+        } finally {
+            setUploadingPrincipal(false);
+        }
+    };
+
+    const handleRemovePrincipal = async () => {
+        if (!fotoMascota) return;
+        const url = fotoMascota;
+        setFotoMascota('');
+        await borrarFotoDeStorage(url);
+    };
+
+    const handleUploadGaleria = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = '';
+        if (files.length === 0) return;
+        if (galeria.length + files.length > MAX_GALERIA_MASCOTA) {
+            toast.error(`Podés tener máximo ${MAX_GALERIA_MASCOTA} fotos en la galería.`);
+            return;
+        }
+        setUploadingGaleria(true);
+        try {
+            const nuevas: string[] = [];
+            for (const file of files) {
+                if (file.size > MAX_FOTO_SIZE_MB * 1024 * 1024) {
+                    toast.error(`${file.name} supera ${MAX_FOTO_SIZE_MB} MB.`);
+                    continue;
+                }
+                const url = await subirFotoAStorage(file, userId);
+                if (url) nuevas.push(url);
+                else toast.error(`No pudimos subir ${file.name}.`);
+            }
+            if (nuevas.length > 0) setGaleria(prev => [...prev, ...nuevas]);
+        } finally {
+            setUploadingGaleria(false);
+        }
+    };
+
+    const handleRemoveGaleria = async (idx: number) => {
+        const url = galeria[idx];
+        setGaleria(prev => prev.filter((_, i) => i !== idx));
+        if (url) await borrarFotoDeStorage(url);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -348,8 +454,8 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 enfermedades: enfermedades.trim() || null,
                 trato_especial: tratoEspecial,
                 trato_especial_desc: tratoEspecial ? (tratoEspecialDesc.trim() || null) : null,
-                // foto_mascota: sin modificar desde el form. Si venía seteada, se preserva
-                // (INSERT deja null en filas nuevas; UPDATE no incluye el campo, no lo pisa).
+                foto_mascota: fotoMascota || null,
+                fotos_galeria: galeria.length > 0 ? galeria : null,
             };
 
             if (isNew) {
@@ -400,21 +506,89 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
-                    {/* Foto read-only: solo se muestra si la mascota ya tenía foto_mascota
-                        (upload es mejora pendiente en el BACKLOG). Si no hay foto,
-                        no se muestra el bloque — cero ruido en creación. */}
-                    {fotoMascotaExistente && (
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Foto actual</label>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={fotoMascotaExistente}
-                                alt={nombre || 'Foto mascota'}
-                                className="w-24 h-24 rounded-xl object-cover border border-slate-200"
-                            />
-                            <p className="text-xs text-slate-400 mt-1">La edición y subida de foto se agrega en la próxima iteración.</p>
+                    {/* Fotos: principal + galeria (hasta 6). Upload al bucket
+                        `servicios-fotos` bajo `mascotas/{user_id}/…`, con
+                        preview inmediato y cleanup del bucket al remover. */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Foto principal</label>
+                        <div className="flex items-start gap-3">
+                            {fotoMascota ? (
+                                <div className="relative">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={fotoMascota}
+                                        alt={nombre || 'Foto mascota'}
+                                        className="w-24 h-24 rounded-xl object-cover border border-slate-200"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleRemovePrincipal}
+                                        aria-label="Quitar foto principal"
+                                        className="absolute -top-2 -right-2 bg-white border border-slate-200 rounded-full w-6 h-6 flex items-center justify-center text-slate-500 hover:text-danger-600 hover:border-danger-200 transition-colors shadow-sm"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="w-24 h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300">
+                                    <Camera size={24} />
+                                </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                                <label className="inline-flex items-center gap-1.5 text-sm font-medium text-accent-700 bg-accent-50 hover:bg-accent-100 rounded-xl px-3 py-1.5 cursor-pointer transition-colors">
+                                    {uploadingPrincipal ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                                    {fotoMascota ? 'Cambiar foto' : 'Subir foto'}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleUploadPrincipal}
+                                        disabled={uploadingPrincipal}
+                                    />
+                                </label>
+                                <p className="text-xs text-slate-400 mt-1.5">JPG o PNG. Máximo {MAX_FOTO_SIZE_MB} MB.</p>
+                            </div>
                         </div>
-                    )}
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="block text-sm font-medium text-slate-700">Galería (opcional)</label>
+                            <span className="text-xs text-slate-400">{galeria.length}/{MAX_GALERIA_MASCOTA}</span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            {galeria.map((url, i) => (
+                                <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 group">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={url} alt={`Galería ${i + 1}`} className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveGaleria(i)}
+                                        aria-label={`Quitar foto ${i + 1}`}
+                                        className="absolute top-1 right-1 bg-white/90 hover:bg-white border border-slate-200 rounded-full w-5 h-5 flex items-center justify-center text-slate-500 hover:text-danger-600 transition-colors opacity-80 group-hover:opacity-100"
+                                    >
+                                        <X size={10} />
+                                    </button>
+                                </div>
+                            ))}
+                            {galeria.length < MAX_GALERIA_MASCOTA && (
+                                <label className="aspect-square rounded-lg border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-accent-400 flex items-center justify-center cursor-pointer transition-colors text-slate-400 hover:text-accent-600">
+                                    {uploadingGaleria ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handleUploadGaleria}
+                                        disabled={uploadingGaleria}
+                                    />
+                                </label>
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1.5">Fotos extra para que el proveedor conozca a tu mascota. Máximo {MAX_FOTO_SIZE_MB} MB por foto.</p>
+                    </div>
+                    <div className="border-t border-slate-100 pt-4" />
+
 
                     {/* Nombre + Tipo */}
                     <div className="grid grid-cols-2 gap-3">
