@@ -8,7 +8,7 @@ import ClientLayout from '../../../components/Client/ClientLayout';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 import { toast } from 'sonner';
 import {
-    PawPrint, Plus, Edit, Trash2, X, Loader2, Camera,
+    PawPrint, Plus, Edit, Trash2, X, Loader2,
     ChevronLeft, Dog, Cat,
 } from 'lucide-react';
 
@@ -18,6 +18,7 @@ import {
 
 type Tipo = 'perro' | 'gato';
 type Sexo = 'macho' | 'hembra' | '';
+type Tamano = 'pequeño' | 'mediano' | 'grande' | '';
 
 interface Mascota {
     id: string;
@@ -27,6 +28,7 @@ interface Mascota {
     raza: string | null;
     sexo: Sexo | null;
     fecha_nacimiento: string | null; // ISO date
+    tamano: Tamano | null;
     descripcion: string | null;
     tiene_chip: boolean;
     chip_id: string | null;
@@ -35,6 +37,7 @@ interface Mascota {
     trato_especial: boolean;
     trato_especial_desc: string | null;
     foto_mascota: string | null;
+    fotos_galeria: string[] | null;
     created_at: string;
 }
 
@@ -301,6 +304,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
     const [raza, setRaza] = useState(mascota?.raza || '');
     const [sexo, setSexo] = useState<Sexo>((mascota?.sexo as Sexo) || '');
     const [fechaNacimiento, setFechaNacimiento] = useState(mascota?.fecha_nacimiento || '');
+    const [tamano, setTamano] = useState<Tamano>((mascota?.tamano as Tamano) || '');
     const [descripcion, setDescripcion] = useState(mascota?.descripcion || '');
     const [tieneChip, setTieneChip] = useState(mascota?.tiene_chip || false);
     const [chipId, setChipId] = useState(mascota?.chip_id || '');
@@ -308,31 +312,11 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
     const [enfermedades, setEnfermedades] = useState(mascota?.enfermedades || '');
     const [tratoEspecial, setTratoEspecial] = useState(mascota?.trato_especial || false);
     const [tratoEspecialDesc, setTratoEspecialDesc] = useState(mascota?.trato_especial_desc || '');
-    const [fotoMascota, setFotoMascota] = useState(mascota?.foto_mascota || '');
+    // Foto: read-only en este commit. Si la mascota ya tiene foto_mascota
+    // (subida por otra ruta), la mostramos. El upload queda como mejora en BACKLOG.
+    const fotoMascotaExistente = mascota?.foto_mascota || null;
     const [submitting, setSubmitting] = useState(false);
-    const [uploadingFoto, setUploadingFoto] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-
-    const handleFotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setUploadingFoto(true);
-        try {
-            const fileExt = file.name.split('.').pop();
-            const filePath = `mascotas/${userId}/${Date.now()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, file, { upsert: true });
-            if (uploadError) throw uploadError;
-            const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-            setFotoMascota(`${publicData.publicUrl}?t=${Date.now()}`);
-        } catch (err: any) {
-            console.error('[Mascotas] upload foto:', err);
-            toast.error(err.message || 'Error al subir la foto');
-        } finally {
-            setUploadingFoto(false);
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -356,6 +340,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 raza: raza.trim() || null,
                 sexo: sexo || null,
                 fecha_nacimiento: fechaNacimiento || null,
+                tamano: tamano || null,
                 descripcion: descripcion.trim() || null,
                 tiene_chip: tieneChip,
                 chip_id: tieneChip ? (chipId.trim() || null) : null,
@@ -363,7 +348,8 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 enfermedades: enfermedades.trim() || null,
                 trato_especial: tratoEspecial,
                 trato_especial_desc: tratoEspecial ? (tratoEspecialDesc.trim() || null) : null,
-                foto_mascota: fotoMascota || null,
+                // foto_mascota: sin modificar desde el form. Si venía seteada, se preserva
+                // (INSERT deja null en filas nuevas; UPDATE no incluye el campo, no lo pisa).
             };
 
             if (isNew) {
@@ -414,31 +400,21 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
-                    {/* Foto */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Foto</label>
-                        <div className="flex items-center gap-3">
-                            <div className="w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-300">
-                                {fotoMascota ? (
-                                    /* eslint-disable-next-line @next/next/no-img-element */
-                                    <img src={fotoMascota} alt="Foto mascota" className="w-full h-full object-cover" />
-                                ) : (
-                                    <Camera size={28} />
-                                )}
-                            </div>
-                            <label className="inline-flex items-center gap-1.5 text-sm font-medium text-accent-700 bg-accent-50 hover:bg-accent-100 rounded-xl px-3 py-2 cursor-pointer transition-colors">
-                                {uploadingFoto ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                                {uploadingFoto ? 'Subiendo…' : (fotoMascota ? 'Cambiar foto' : 'Subir foto')}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleFotoUpload}
-                                    disabled={uploadingFoto}
-                                />
-                            </label>
+                    {/* Foto read-only: solo se muestra si la mascota ya tenía foto_mascota
+                        (upload es mejora pendiente en el BACKLOG). Si no hay foto,
+                        no se muestra el bloque — cero ruido en creación. */}
+                    {fotoMascotaExistente && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Foto actual</label>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={fotoMascotaExistente}
+                                alt={nombre || 'Foto mascota'}
+                                className="w-24 h-24 rounded-xl object-cover border border-slate-200"
+                            />
+                            <p className="text-xs text-slate-400 mt-1">La edición y subida de foto se agrega en la próxima iteración.</p>
                         </div>
-                    </div>
+                    )}
 
                     {/* Nombre + Tipo */}
                     <div className="grid grid-cols-2 gap-3">
@@ -455,7 +431,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                             />
                         </div>
                         <div>
-                            <label htmlFor="m-tipo" className="block text-sm font-medium text-slate-700 mb-1.5">Especie <span className="text-danger-500">*</span></label>
+                            <label htmlFor="m-tipo" className="block text-sm font-medium text-slate-700 mb-1.5">Tipo <span className="text-danger-500">*</span></label>
                             <select
                                 id="m-tipo"
                                 value={tipo}
@@ -497,18 +473,34 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                         </div>
                     </div>
 
-                    {/* Fecha nacimiento */}
-                    <div>
-                        <label htmlFor="m-fecha" className="block text-sm font-medium text-slate-700 mb-1.5">Fecha de nacimiento (opcional)</label>
-                        <input
-                            id="m-fecha"
-                            type="date"
-                            value={fechaNacimiento}
-                            onChange={e => setFechaNacimiento(e.target.value)}
-                            max={new Date().toISOString().slice(0, 10)}
-                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
-                        />
-                        <p className="text-xs text-slate-500 mt-1">La edad se calcula automáticamente.</p>
+                    {/* Fecha nacimiento + Tamaño */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label htmlFor="m-fecha" className="block text-sm font-medium text-slate-700 mb-1.5">Fecha de nacimiento (opcional)</label>
+                            <input
+                                id="m-fecha"
+                                type="date"
+                                value={fechaNacimiento}
+                                onChange={e => setFechaNacimiento(e.target.value)}
+                                max={new Date().toISOString().slice(0, 10)}
+                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">La edad se calcula automáticamente.</p>
+                        </div>
+                        <div>
+                            <label htmlFor="m-tamano" className="block text-sm font-medium text-slate-700 mb-1.5">Tamaño (opcional)</label>
+                            <select
+                                id="m-tamano"
+                                value={tamano}
+                                onChange={e => setTamano(e.target.value as Tamano)}
+                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                            >
+                                <option value="">Sin especificar</option>
+                                <option value="pequeño">Pequeño</option>
+                                <option value="mediano">Mediano</option>
+                                <option value="grande">Grande</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Descripción */}
@@ -620,7 +612,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     <button
                         type="submit"
                         onClick={handleSubmit}
-                        disabled={submitting || uploadingFoto}
+                        disabled={submitting}
                         className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-accent-600 hover:bg-accent-700 rounded-xl transition-colors disabled:opacity-50"
                     >
                         {submitting && <Loader2 size={14} className="animate-spin" />}

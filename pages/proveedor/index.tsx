@@ -385,7 +385,7 @@ export default function ProveedorDashboard() {
                 mascota_id, tipo_mascota_texto,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo),
-                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, raza, sexo, fecha_nacimiento, enfermedades, trato_especial, trato_especial_desc, foto_mascota)
+                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, raza, sexo, fecha_nacimiento, tamano, descripcion, enfermedades, trato_especial, trato_especial_desc, foto_mascota)
             `)
             .eq('proveedor_id', provId)
             .order('created_at', { ascending: false });
@@ -2355,21 +2355,25 @@ export default function ProveedorDashboard() {
                                                                     {mascota.raza && <span>Raza: <strong className="text-slate-700 font-medium">{mascota.raza}</strong></span>}
                                                                     {edadMascota && <span>Edad: <strong className="text-slate-700 font-medium">{edadMascota}</strong></span>}
                                                                     {mascota.sexo && <span>Sexo: <strong className="text-slate-700 font-medium capitalize">{mascota.sexo}</strong></span>}
+                                                                    {mascota.tamano && <span>Tamaño: <strong className="text-slate-700 font-medium capitalize">{mascota.tamano}</strong></span>}
                                                                 </div>
+                                                                {mascota.descripcion && (
+                                                                    <p className="text-xs text-slate-500 leading-relaxed mt-1.5 italic">{mascota.descripcion}</p>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                        {(mascota.enfermedades || mascota.trato_especial) && (
+                                                        {(mascota.enfermedades || (mascota.trato_especial && mascota.trato_especial_desc)) && (
                                                             <div className="mt-3 space-y-2">
                                                                 {mascota.enfermedades && (
-                                                                    <div className="bg-warning-50 border border-warning-100 rounded-lg p-2.5">
-                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-0.5">Condiciones médicas</p>
-                                                                        <p className="text-xs text-warning-800 leading-relaxed whitespace-pre-wrap">{mascota.enfermedades}</p>
+                                                                    <div className="bg-warning-50 border border-warning-200 rounded-lg p-3">
+                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-1 flex items-center gap-1">⚠ Condiciones médicas</p>
+                                                                        <p className="text-sm text-warning-900 leading-relaxed whitespace-pre-wrap">{mascota.enfermedades}</p>
                                                                     </div>
                                                                 )}
                                                                 {mascota.trato_especial && mascota.trato_especial_desc && (
-                                                                    <div className="bg-warning-50 border border-warning-100 rounded-lg p-2.5">
-                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-0.5">Trato especial</p>
-                                                                        <p className="text-xs text-warning-800 leading-relaxed whitespace-pre-wrap">{mascota.trato_especial_desc}</p>
+                                                                    <div className="bg-warning-50 border border-warning-200 rounded-lg p-3">
+                                                                        <p className="text-[10px] uppercase tracking-widest text-warning-700 font-semibold mb-1 flex items-center gap-1">⚠ Trato especial</p>
+                                                                        <p className="text-sm text-warning-900 leading-relaxed whitespace-pre-wrap">{mascota.trato_especial_desc}</p>
                                                                     </div>
                                                                 )}
                                                             </div>
