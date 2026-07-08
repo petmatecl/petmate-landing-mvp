@@ -539,31 +539,49 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Foto principal</label>
                         <div className="flex items-start gap-3">
                             {fotoMascota ? (
-                                <div className="relative">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={fotoMascota}
-                                        alt={nombre || 'Foto mascota'}
-                                        className="w-24 h-24 rounded-xl object-cover border border-slate-200"
-                                    />
+                                <div className="relative w-24 h-24">
+                                    {/* Con foto: el label envuelve la imagen -> click en la
+                                        imagen abre el picker (reemplazo). La X captura su
+                                        propio click con stopPropagation para no gatillar el
+                                        picker al querer solo quitar la foto. */}
+                                    <label
+                                        className="block w-full h-full cursor-pointer group"
+                                        aria-label="Reemplazar foto principal"
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={fotoMascota}
+                                            alt={nombre || 'Foto mascota'}
+                                            className="w-full h-full rounded-xl object-cover border border-slate-200 group-hover:opacity-90 transition-opacity"
+                                        />
+                                        <div className="absolute inset-0 rounded-xl bg-slate-900/0 group-hover:bg-slate-900/25 flex items-center justify-center transition-colors">
+                                            <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-medium bg-slate-900/60 px-2 py-1 rounded-md transition-opacity">
+                                                {uploadingPrincipal ? 'Subiendo…' : 'Cambiar'}
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleUploadPrincipal}
+                                            disabled={uploadingPrincipal}
+                                        />
+                                    </label>
                                     <button
                                         type="button"
-                                        onClick={handleRemovePrincipal}
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemovePrincipal(); }}
                                         aria-label="Quitar foto principal"
-                                        className="absolute -top-2 -right-2 bg-white border border-slate-200 rounded-full w-6 h-6 flex items-center justify-center text-slate-500 hover:text-danger-600 hover:border-danger-200 transition-colors shadow-sm"
+                                        className="absolute -top-2 -right-2 bg-white border border-slate-200 rounded-full w-6 h-6 flex items-center justify-center text-slate-500 hover:text-danger-600 hover:border-danger-200 transition-colors shadow-sm z-10"
                                     >
                                         <X size={12} />
                                     </button>
                                 </div>
                             ) : (
-                                <div className="w-24 h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300">
-                                    <Camera size={24} />
-                                </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                                <label className="inline-flex items-center gap-1.5 text-sm font-medium text-accent-700 bg-accent-50 hover:bg-accent-100 rounded-xl px-3 py-1.5 cursor-pointer transition-colors">
-                                    {uploadingPrincipal ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                                    {fotoMascota ? 'Cambiar foto' : 'Subir foto'}
+                                /* Sin foto: el slot punteado ES el boton (mismo patron que
+                                    el slot "+" de galeria). Click en cualquier parte abre
+                                    el file picker. */
+                                <label className="w-24 h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-accent-400 flex items-center justify-center cursor-pointer transition-colors text-slate-400 hover:text-accent-600 shrink-0">
+                                    {uploadingPrincipal ? <Loader2 size={24} className="animate-spin" /> : <Camera size={24} />}
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -572,7 +590,12 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                                         disabled={uploadingPrincipal}
                                     />
                                 </label>
-                                <p className="text-xs text-slate-400 mt-1.5">JPG o PNG. Máximo {MAX_FOTO_SIZE_MB} MB.</p>
+                            )}
+                            <div className="flex-1 min-w-0 pt-1">
+                                <p className="text-xs text-slate-500">
+                                    {fotoMascota ? 'Tocá la imagen para reemplazarla, o la X para quitarla.' : 'Tocá el recuadro para subir una foto.'}
+                                </p>
+                                <p className="text-xs text-slate-400 mt-1">JPG o PNG. Máximo {MAX_FOTO_SIZE_MB} MB.</p>
                             </div>
                         </div>
                     </div>
