@@ -131,7 +131,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
     // Legacy slugs (hospedaje, visita-domicilio) se redirigen a /cuidado via next.config.js
     const categorias = [
         'cuidado', 'guarderia-diurna', 'paseo',
-        'peluqueria', 'adiestramiento', 'veterinaria', 'traslado'
+        'peluqueria', 'adiestramiento', 'veterinaria', 'traslado',
+        'retratos'
     ];
     return {
         paths: categorias.map(slug => ({ params: { categoria: slug } })),

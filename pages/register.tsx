@@ -34,6 +34,7 @@ const CATEGORIES = [
   { value: 'veterinario', label: 'Veterinario a Domicilio' },
   { value: 'traslado', label: 'Traslado' },
   { value: 'fotografia', label: 'Fotografía de Mascotas' },
+  { value: 'retratos', label: 'Retratos de Mascotas' },
 ];
 
 

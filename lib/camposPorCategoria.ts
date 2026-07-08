@@ -352,6 +352,40 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         ] },
         { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Estilo fotográfico, locaciones disponibles, paquetes especiales...' },
     ],
+    // Retratos y obras por encargo. Hermana estructural de `fotografia` — mismo
+    // patrón (multiselect requerido primero, resto plano, portfolio_url opcional,
+    // notas al final). Diferencia clave: producto físico/digital estático con
+    // plazo de entrega, no sesión con duración. Precio típico "por obra".
+    retratos: [
+        { key: 'tecnica', label: 'Técnica', tipo: 'multiselect', opciones: [
+            { value: 'digital',       label: 'Digital / ilustración digital' },
+            { value: 'oleo',          label: 'Óleo' },
+            { value: 'acuarela',      label: 'Acuarela' },
+            { value: 'lapiz_grafito', label: 'Lápiz / grafito' },
+            { value: 'otro',          label: 'Otra técnica' },
+        ], requerido: true },
+        { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 5' },
+        { key: 'plazo_entrega', label: 'Plazo de entrega', tipo: 'text', placeholder: 'Ej: 2 a 3 semanas' },
+        { key: 'formatos', label: 'Formatos y tamaños ofrecidos', tipo: 'text', placeholder: 'Ej: A4, 30x40 cm, archivo digital alta resolución' },
+        { key: 'desde_foto', label: 'Trabaja desde fotografías enviadas por el tutor', tipo: 'boolean' },
+        { key: 'modalidad_entrega', label: 'Modalidad de entrega', tipo: 'multiselect', opciones: [
+            { value: 'archivo_digital', label: 'Archivo digital' },
+            { value: 'envio_fisico',    label: 'Envío físico' },
+            { value: 'retiro',          label: 'Retiro en dirección del artista' },
+        ], requerido: true },
+        { key: 'portfolio_url', label: 'Link al portfolio (opcional)', tipo: 'text', placeholder: 'Ej: www.miportfolio.com' },
+        { key: 'inclusiones', label: 'Qué incluye el encargo', tipo: 'multiselect', opciones: [
+            { value: 'obra_terminada',     label: 'Obra terminada lista para colgar / archivo final' },
+            { value: 'bosquejo_previo',    label: 'Bosquejo previo para aprobación' },
+            { value: 'revisiones',         label: 'Revisiones / ajustes durante el proceso' },
+            { value: 'archivo_digital',    label: 'Archivo digital de la obra (además del físico)' },
+            { value: 'multiples_mascotas', label: 'Retratos con varias mascotas en una misma obra' },
+            { value: 'enmarcado',          label: 'Enmarcado incluido' },
+            { value: 'certificado',        label: 'Certificado de autenticidad firmado' },
+            { value: 'envio_gratis',       label: 'Envío gratis dentro de Chile' },
+        ] },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Estilo artístico, materiales, tipos de encargo especiales...' },
+    ],
 };
 
 /**
@@ -432,6 +466,7 @@ export const TOP_CAMPOS_POR_CATEGORIA: Record<string, string[] | Record<string, 
     adiestramiento:['metodo', 'anios_experiencia', 'duracion_sesion', 'radio_cobertura_km'],
     traslado:      ['tipo_vehiculo', 'capacidad_mascotas', 'radio_cobertura_km'],
     fotografia:    ['anios_experiencia', 'duracion_sesion', 'fotos_entregadas'],
+    retratos:      ['anios_experiencia', 'plazo_entrega', 'formatos'],
 };
 
 /** Discriminated union para el resultado del helper. */
