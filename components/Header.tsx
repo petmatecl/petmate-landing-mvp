@@ -1,19 +1,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUser } from "../contexts/UserContext"; // Context Unificado
 import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
 import UserInitialsAvatar from "./Shared/UserInitialsAvatar";
 import QuickSearch from "./Header/QuickSearch";
-import { Search, Briefcase } from "lucide-react";
+import { Search, Briefcase, ChevronDown, LogOut } from "lucide-react";
 
 export default function Header() {
 
   const [open, setOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   // Use Unified Context
@@ -44,10 +47,44 @@ export default function Header() {
   // deben mostrar el item activo (ej. /usuario/mascotas/edit/:id), pasar
   // a startsWith en ese item puntual.
   const isRouteActive = (path: string) => router.pathname === path;
-  const dashboardActive = isRouteActive(dashboardLink);
+
+  // Items personales del usuario autenticado — se muestran en el dropdown del
+  // avatar (desktop) y en el bloque autenticado del menu mobile. Orden fijo:
+  // dashboard (Mis favoritos para tutor / Mi panel para proveedor segun
+  // activeMode), luego solicitudes, luego mascotas. Cerrar sesion se maneja
+  // aparte porque es una accion, no una ruta.
+  const personalNav = [
+    { href: dashboardLink, label: dashboardLabel },
+    { href: '/mis-solicitudes', label: 'Mis solicitudes' },
+    { href: '/usuario/mascotas', label: 'Mis mascotas' },
+  ];
+  const personalActive = personalNav.some(item => isRouteActive(item.href));
+
+  // Sombra sutil al scrollear — patron estandar de header sticky. Listener
+  // pasivo, threshold bajo (4px) para que se active al primer movimiento
+  // sin flicker. Sin dependencias.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Cerrar dropdown del avatar al click afuera. Solo se attachea el listener
+  // cuando el menu esta abierto para no ensuciar el event loop.
+  useEffect(() => {
+    if (!avatarOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [avatarOpen]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-all shadow-sm">
+    <header className={`sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-shadow ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
       {/* Franja superior lanzamiento — solo para guests no autenticados */}
       {showLaunchBanner && (
         <div className="bg-slate-900 text-white text-sm">
@@ -124,16 +161,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              {/* Chip usuario demo */}
-              <div className="inline-flex items-center gap-2 rounded-full bg-accent-50 px-3 py-1">
-                <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
-                <span className="text-sm font-normal text-accent-900">{userName}</span>
-              </div>
-
-              {/* Profile Switcher & Unread Badge */}
-              <NotificationBell />
-
-              {/* Multi-mode Switcher */}
+              {/* Multi-mode Switcher — publico, no forma parte del menu personal */}
               {canSwitchMode && (
                 <div className="flex items-center bg-slate-100 rounded-full p-1 border border-slate-200 shadow-inner">
                   <button
@@ -159,50 +187,71 @@ export default function Header() {
                 </div>
               )}
 
-              <Link
-                href={dashboardLink}
-                className={`inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm transition-colors ${
-                  dashboardActive
-                    ? 'bg-accent-700 ring-2 ring-accent-300'
-                    : 'bg-accent-600 hover:bg-accent-700'
-                }`}
-              >
-                {dashboardLabel}
-              </Link>
-              {/* Sprint 4 agendamiento — acceso a las solicitudes del tutor.
-                  Visible para cualquier autenticado; la pagina maneja el
-                  caso "no tiene perfil de tutor" con un mensaje propio. */}
-              <Link
-                href="/mis-solicitudes"
-                className={`text-sm transition-colors ${
-                  isRouteActive('/mis-solicitudes')
-                    ? 'text-accent-700 font-semibold'
-                    : 'text-slate-500 font-normal hover:text-accent-600'
-                }`}
-              >
-                Mis solicitudes
-              </Link>
-              <Link
-                href="/usuario/mascotas"
-                className={`text-sm transition-colors ${
-                  isRouteActive('/usuario/mascotas')
-                    ? 'text-accent-700 font-semibold'
-                    : 'text-slate-500 font-normal hover:text-accent-600'
-                }`}
-              >
-                Mis mascotas
-              </Link>
-              <button
-                onClick={async () => {
-                  setOpen(false);
-                  setLoggingOut(true);
-                  await logout();
-                  setLoggingOut(false);
-                }}
-                className="inline-flex items-center rounded-lg border px-3.5 py-2 text-sm font-normal text-slate-600 hover:bg-slate-50 bg-white cursor-pointer"
-              >
-                Cerrar sesión
-              </button>
+              <NotificationBell />
+
+              {/* Menu del avatar — colapsa toda la nav personal en un dropdown.
+                  Chip clickeable: si estas en alguna seccion personal, el chip
+                  se marca con bg-accent-100 + ring-accent-300 (senal "estas
+                  navegando algo tuyo"). El item ACTIVO dentro del dropdown
+                  recibe el pill verde bg-accent-600 — es el mismo pill activo
+                  que salta con la navegacion. */}
+              <div ref={avatarRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAvatarOpen(v => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={avatarOpen}
+                  aria-label="Menu de usuario"
+                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 transition-colors ${
+                    personalActive
+                      ? 'bg-accent-100 ring-1 ring-accent-300'
+                      : 'bg-accent-50 hover:bg-accent-100'
+                  }`}
+                >
+                  <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
+                  <span className="text-sm font-normal text-accent-900 max-w-[8rem] truncate">{userName}</span>
+                  <ChevronDown size={14} className={`text-accent-800 transition-transform ${avatarOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {avatarOpen && (
+                  <div
+                    role="menu"
+                    aria-label="Menu personal"
+                    className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1 shadow-lg z-50"
+                  >
+                    {personalNav.map(item => {
+                      const active = isRouteActive(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setAvatarOpen(false)}
+                          className={`block w-full rounded-lg px-3 py-2 text-sm transition-colors ${
+                            active
+                              ? 'bg-accent-600 text-white font-semibold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                    <div className="my-1 border-t border-slate-100" />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setAvatarOpen(false);
+                        setLoggingOut(true);
+                        await logout();
+                        setLoggingOut(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                    >
+                      <LogOut size={14} /> Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </nav>
@@ -287,60 +336,63 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link
-                  href="/explorar"
-                  className={`inline-flex items-center justify-center rounded-xl border border-transparent px-3.5 py-2 text-sm transition-colors mb-2 ${
-                    isRouteActive('/explorar')
-                      ? 'text-accent-700 font-semibold bg-accent-50'
-                      : 'text-slate-500 font-normal hover:text-accent-600'
-                  }`}
-                  onClick={() => setOpen(false)}
-                >
-                  Explorar servicios
-                </Link>
-                <div className="flex items-center gap-2 rounded-lg bg-accent-50 px-3.5 py-2">
+                {/* Chip usuario — presencia visual del avatar en mobile, coherente
+                    con el chip que abre el dropdown en desktop. Aca solo muestra
+                    identidad; los items estan abajo. */}
+                <div className="flex items-center gap-2 rounded-lg bg-accent-50 px-3.5 py-2 mb-2">
                   <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
                   <div className="flex flex-col">
                     <span className="text-sm font-normal text-accent-900">{userName}</span>
                     <span className="text-[11px] text-accent-700">Conectado</span>
                   </div>
                 </div>
-                <div className="flex justify-center my-2">
+                <div className="flex justify-center mb-2">
                   <NotificationBell />
                 </div>
+
+                {/* Publico */}
                 <Link
-                  href={dashboardLink}
-                  className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm font-medium tracking-wide text-white shadow-sm transition-colors ${
-                    dashboardActive
-                      ? 'bg-accent-700 ring-2 ring-accent-300'
-                      : 'bg-accent-600 hover:bg-accent-700'
-                  }`}
-                  onClick={() => setOpen(false)}
-                >
-                  {dashboardLabel}
-                </Link>
-                <Link
-                  href="/mis-solicitudes"
-                  onClick={() => setOpen(false)}
-                  className={`inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm transition-colors ${
-                    isRouteActive('/mis-solicitudes')
-                      ? 'text-accent-700 font-semibold bg-accent-50'
+                  href="/explorar"
+                  className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm transition-colors ${
+                    isRouteActive('/explorar')
+                      ? 'bg-accent-600 text-white font-semibold'
                       : 'text-slate-500 font-normal hover:text-accent-600'
                   }`}
+                  onClick={() => setOpen(false)}
                 >
-                  Mis solicitudes
+                  Explorar servicios
                 </Link>
                 <Link
-                  href="/usuario/mascotas"
-                  onClick={() => setOpen(false)}
-                  className={`inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm transition-colors ${
-                    isRouteActive('/usuario/mascotas')
-                      ? 'text-accent-700 font-semibold bg-accent-50'
+                  href="/blog"
+                  className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm transition-colors ${
+                    isRouteActive('/blog')
+                      ? 'bg-accent-600 text-white font-semibold'
                       : 'text-slate-500 font-normal hover:text-accent-600'
                   }`}
+                  onClick={() => setOpen(false)}
                 >
-                  Mis mascotas
+                  Blog
                 </Link>
+
+                {/* Personal — mismo orden que el dropdown desktop */}
+                <div className="my-2 border-t border-slate-100" />
+                {personalNav.map(item => {
+                  const active = isRouteActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm transition-colors ${
+                        active
+                          ? 'bg-accent-600 text-white font-semibold'
+                          : 'text-slate-500 font-normal hover:text-accent-600'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
                 <button
                   onClick={async () => {
                     setOpen(false);
@@ -348,11 +400,10 @@ export default function Header() {
                     await logout();
                     setLoggingOut(false);
                   }}
-                  className="inline-flex items-center justify-center rounded-lg border px-3.5 py-2 text-sm font-normal text-slate-600 hover:bg-slate-50 w-full"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-normal text-slate-600 hover:bg-slate-50 w-full mt-1"
                 >
-                  Cerrar sesión
+                  <LogOut size={14} /> Cerrar sesión
                 </button>
-
               </>
             )}
           </div>
