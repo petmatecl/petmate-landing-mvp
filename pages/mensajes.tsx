@@ -3,14 +3,28 @@ import ChatLayout from '../components/Chat/ChatLayout';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useUser } from '../contexts/UserContext';
 import Link from 'next/link';
 import { MessageSquare, Loader2, ArrowLeft } from 'lucide-react';
 
 export default function MensajesPage() {
     const router = useRouter();
+    const { activeMode } = useUser();
     const [userId, setUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const returnTo = router.query.returnTo as string;
+
+    // "Volver al Panel" destino consciente del rol activo:
+    //   - Proveedor (activeMode === 'proveedor') -> /proveedor.
+    //   - Tutor (activeMode === 'buscador') -> /usuario.
+    //   - null (context aun no hidrato o usuario sin roles claros) -> /usuario
+    //     como default seguro (rol mas comun y menos costoso si se equivoca —
+    //     un tutor en /proveedor sin rol se le muestra el gate; un proveedor
+    //     en /usuario navega bien).
+    // El query param `returnTo` sigue teniendo prioridad si viene explicito
+    // (uso legitimo desde otras paginas que ya saben a donde volver).
+    const defaultReturn = activeMode === 'proveedor' ? '/proveedor' : '/usuario';
+    const returnHref = returnTo || defaultReturn;
 
     useEffect(() => {
         const checkUser = async () => {
@@ -69,7 +83,7 @@ export default function MensajesPage() {
                     </div>
                     <div>
                         <Link
-                            href={returnTo || '/'}
+                            href={returnHref}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-medium hover:text-accent-600 hover:border-accent-600 transition-colors shadow-sm"
                         >
                             <ArrowLeft size={18} />
