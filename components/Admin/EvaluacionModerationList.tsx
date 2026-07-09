@@ -145,7 +145,7 @@ export default function EvaluacionModerationList() {
     return (
         <div className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-900 tracking-tight mb-4 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-amber-500" /> Moderación de Evaluaciones ({evaluaciones.length})
+                <MessageSquare className="w-5 h-5 text-amber-500" /> Pendientes de moderación ({evaluaciones.length})
             </h2>
 
             <div className="grid gap-4">
