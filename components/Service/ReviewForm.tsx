@@ -36,21 +36,41 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
         checkUser();
     }, []);
 
-    // Once user is known, check conversation
+    // Once user is known, check gate: conversation OR agendamiento confirmado
+    // con fecha ya pasada. Cualquiera habilita el form (backwards-compat con
+    // el flujo actual + habilita el path del cron de invitacion post-servicio).
+    // El nombre `hasConversacion` se conserva por historia; hoy trackea
+    // "cualquier gate aceptado" (conv o agend pasado).
     useEffect(() => {
         if (!user) return;
-        const checkConv = async () => {
+        const checkAccess = async () => {
             setCheckingConv(true);
-            const { data: conv } = await supabase
-                .from('conversations')
-                .select('id')
-                .eq('client_id', user.id)
-                .eq('servicio_id', servicioId)
-                .maybeSingle();
-            setHasConversacion(conv !== null);
+            const nowIso = new Date().toISOString();
+            const [convRes, agendRes] = await Promise.all([
+                supabase
+                    .from('conversations')
+                    .select('id')
+                    .eq('client_id', user.id)
+                    .eq('servicio_id', servicioId)
+                    .maybeSingle(),
+                // agendamientos.tutor_id -> usuarios_buscadores.id, no
+                // auth.users. RLS `agendamientos_tutor_select` ya scopea
+                // por (tutor_id → auth_user_id = auth.uid()), asi que
+                // filtrar por servicio_id + estado + fecha alcanza — el
+                // RLS confirma ownership implicito.
+                supabase
+                    .from('agendamientos')
+                    .select('id')
+                    .eq('servicio_id', servicioId)
+                    .eq('estado', 'confirmada')
+                    .lt('fecha_preferida', nowIso)
+                    .limit(1)
+                    .maybeSingle(),
+            ]);
+            setHasConversacion(convRes.data !== null || agendRes.data !== null);
             setCheckingConv(false);
         };
-        checkConv();
+        checkAccess();
     }, [user, servicioId]);
 
     // ——— Guards (after all hooks) ———

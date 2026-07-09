@@ -126,7 +126,12 @@ export default function ServiceDetailView({
     // Use shared UserContext — avoids double session fetch
     const { user, isLoading: isUserLoading } = useUser();
 
-    // Check if this user already reviewed this service
+    // Check if this user already reviewed this service.
+    // Excluimos las rechazadas para permitir re-intento post-moderacion —
+    // una reseña rechazada NO cuenta como "ya evaluo" (alineado con el
+    // constraint parcial de la BD que solo indexa evaluaciones NO
+    // rechazadas). El cron de invitacion post-servicio aplica el mismo
+    // criterio.
     const [yaEvaluo, setYaEvaluo] = useState(false);
     React.useEffect(() => {
         if (isExample || !user || !service?.id) return;
@@ -135,9 +140,36 @@ export default function ServiceDetailView({
             .select('id')
             .eq('servicio_id', service.id)
             .eq('usuario_id', user.id)
+            .neq('estado', 'rechazado')
             .maybeSingle()
             .then(({ data }) => setYaEvaluo(!!data));
     }, [isExample, user, service?.id]);
+
+    // Deep link ?resenar=<agendamiento_id> — el email/notif de invitacion
+    // post-servicio linkea aca. Validamos que el agendamiento pertenece al
+    // user logueado (RLS `agendamientos_tutor_select` ya scopea por
+    // tutor_id → auth_user_id = auth.uid(); si no le pertenece, el SELECT
+    // retorna 0 filas) y, si es valido y no reseño, scrolleamos al form.
+    const reviewFormRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        const resenarId = typeof router.query.resenar === 'string' ? router.query.resenar : null;
+        if (!resenarId || isExample || !user || !service?.id) return;
+        (async () => {
+            const { data } = await supabase
+                .from('agendamientos')
+                .select('id')
+                .eq('id', resenarId)
+                .eq('servicio_id', service.id) // ademas del RLS, chequeamos que el agend matchea al servicio de la ficha actual
+                .maybeSingle();
+            if (!data) return; // no le pertenece / no matchea el servicio / no existe
+            // Pequena espera para que el form haya montado (yaEvaluo se
+            // resuelve en el effect de arriba, mismo tick pero por prolijidad
+            // esperamos un frame).
+            requestAnimationFrame(() => {
+                reviewFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        })();
+    }, [router.query.resenar, isExample, user, service?.id]);
 
     // Tracking: registrar vista al entrar a la pagina
     React.useEffect(() => {
@@ -1257,16 +1289,20 @@ export default function ServiceDetailView({
 
                         {/* Formulario de Evaluación (Solo Autenticados + no evaluo).
                             Sin mt-8 — el parent flex usa gap-8, mt-8 estaba
-                            duplicando el espacio. */}
+                            duplicando el espacio. Ref para deep link
+                            ?resenar=<agendamiento_id> — el email de invitacion
+                            post-servicio scrollea aca al llegar. */}
                         {user && !yaEvaluo && (
-                            <ReviewForm
-                                servicioId={service.id}
-                                proveedorId={proveedor.id}
-                                servicioTitulo={service.titulo}
-                                onSuccess={() => {
-                                    setYaEvaluo(true);
-                                }}
-                            />
+                            <div ref={reviewFormRef} className="scroll-mt-24">
+                                <ReviewForm
+                                    servicioId={service.id}
+                                    proveedorId={proveedor.id}
+                                    servicioTitulo={service.titulo}
+                                    onSuccess={() => {
+                                        setYaEvaluo(true);
+                                    }}
+                                />
+                            </div>
                         )}
 
                         {/* Preguntas al proveedor */}
