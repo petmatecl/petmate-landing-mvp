@@ -268,6 +268,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         if (!precioDesde) return toast.error("El precio desde es obligatorio.");
         if (!perros && !gatos && !otras) return toast.error("Selecciona al menos un tipo de mascota aceptada.");
         if (comunasCobertura.length === 0) return toast.error("Selecciona al menos una comuna de cobertura.");
+        if (fotos.length === 0) return toast.error("Agrega al menos una foto — los servicios con fotos reciben muchas más consultas.");
 
         setLoading(true);
 
@@ -909,10 +910,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* Fotos */}
                             <div className="border-t border-slate-100 pt-6 mt-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Fotos del servicio</p>
+                                <div className="flex items-center justify-between mb-1">
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+                                        Fotos del servicio <span className="text-danger-500 normal-case">*</span>
+                                    </p>
                                     <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
                                 </div>
+                                <p className="text-xs text-slate-500 mb-3">
+                                    Al menos 1 foto. Los servicios con fotos reciben muchas más consultas.
+                                </p>
 
                                 {uploadingFotos && (
                                     <div className="w-full h-1 bg-slate-100 rounded-full mb-3 overflow-hidden">
