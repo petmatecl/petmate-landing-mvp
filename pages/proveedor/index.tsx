@@ -881,7 +881,7 @@ export default function ProveedorDashboard() {
         title: string;
         message: string;
         confirmLabel: string;
-        variant: 'default' | 'danger';
+        variant: 'default' | 'danger' | 'accent';
         onConfirm: () => void;
     }>({ open: false, title: '', message: '', confirmLabel: '', variant: 'default', onConfirm: () => {} });
     const [actionLoading, setActionLoading] = useState(false);
@@ -940,11 +940,20 @@ export default function ProveedorDashboard() {
     };
 
     const toggleServiceStatus = (id: string, currentStatus: boolean) => {
-        // Activar de inactivo a activo: directo, sin confirmacion (es accion
-        // positiva y reversible con el mismo switch). Solo confirmamos al
-        // PAUSAR un servicio activo, porque deja de aparecer en /explorar.
+        // Ambas direcciones confirman (asimetria previa "instant activar / dialogo
+        // al pausar" confundia — parecia bug). Copy distinto por intento:
+        //   - Pausar: variant default (neutro), enfasis en "deja de aparecer".
+        //   - Activar: variant accent (accion positiva), enfasis en "volvera a
+        //     ser publico". No es protector — es informativo.
         if (!currentStatus) {
-            void applyToggleStatus(id, currentStatus);
+            setConfirmDialog({
+                open: true,
+                title: '¿Activar este servicio?',
+                message: 'Volverá a aparecer en /explorar de inmediato y será visible para todos. Puedes pausarlo de nuevo cuando quieras desde este mismo switch.',
+                confirmLabel: 'Activar servicio',
+                variant: 'accent',
+                onConfirm: () => applyToggleStatus(id, currentStatus),
+            });
             return;
         }
         setConfirmDialog({

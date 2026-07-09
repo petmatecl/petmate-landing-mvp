@@ -6,11 +6,23 @@ interface ConfirmDialogProps {
     message: string;
     confirmLabel?: string;
     cancelLabel?: string;
-    variant?: 'default' | 'danger';
+    /**
+     * Estilo del boton confirmar:
+     *   - default: slate-900 (neutro protector, ej. pausar).
+     *   - danger: danger-600 (destructivo, ej. eliminar).
+     *   - accent: accent-600 (accion positiva/publica, ej. activar).
+     */
+    variant?: 'default' | 'danger' | 'accent';
     loading?: boolean;
     onConfirm: () => void;
     onCancel: () => void;
 }
+
+const CONFIRM_BTN_VARIANTS: Record<NonNullable<ConfirmDialogProps['variant']>, string> = {
+    default: 'bg-slate-900 hover:bg-slate-800 text-white',
+    danger: 'bg-danger-600 hover:bg-danger-700 text-white',
+    accent: 'bg-accent-600 hover:bg-accent-700 text-white',
+};
 
 export default function ConfirmDialog({
     open, title, message, confirmLabel = 'Confirmar', cancelLabel = 'Cancelar',
@@ -35,11 +47,7 @@ export default function ConfirmDialog({
                     <button
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 ${
-                            variant === 'danger'
-                                ? 'bg-danger-600 hover:bg-danger-700 text-white'
-                                : 'bg-slate-900 hover:bg-slate-800 text-white'
-                        }`}
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 ${CONFIRM_BTN_VARIANTS[variant]}`}
                     >
                         {loading ? 'Procesando...' : confirmLabel}
                     </button>
