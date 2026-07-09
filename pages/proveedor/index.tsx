@@ -13,7 +13,6 @@ import MessageThread from '../../components/Chat/MessageThread';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
-import ServicioDetallesForm from '../../components/Proveedor/ServicioDetallesForm';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 import UserInitialsAvatar from '../../components/Shared/UserInitialsAvatar';
 import dynamic from 'next/dynamic';
@@ -40,7 +39,7 @@ import type { PoliticaCancelacion } from '../../types';
 import Link from 'next/link';
 import {
     Clock, AlertTriangle, Briefcase, User as UserIcon, Shield, ShieldCheck, ShieldX,
-    Star, MessageSquare, BarChart, Edit, Trash2, LayoutDashboard, Eye, Camera,
+    Star, MessageSquare, BarChart, Edit, Trash2, Eye, Camera,
     Image as ImageIcon, Loader2, CheckCircle, XCircle, CheckCircle2, Circle, Upload, ExternalLink, X,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Calendar,
     ChevronDown,
@@ -65,7 +64,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
     domicilio: MapPin,
 };
 
-type TabType = 'servicios' | 'perfil' | 'info_servicio' | 'evaluaciones' | 'mensajes' | 'estadisticas' | 'solicitudes';
+type TabType = 'servicios' | 'perfil' | 'evaluaciones' | 'mensajes' | 'estadisticas' | 'solicitudes';
 
 // Sub-tabs dentro de Mi Perfil. Refactor a 5 pestanas — el form sigue
 // siendo uno solo con un unico saveProfile; las tabs solo dividen UI.
@@ -121,10 +120,6 @@ export default function ProveedorDashboard() {
     // Modals
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
     const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-    // ID del servicio cuya seccion de detalles esta expandida en el tab
-    // "Info del Servicio" (per-servicio, Sprint 4 Fase 1). null = todas las
-    // cards colapsadas. Solo una expandida a la vez.
-    const [expandedInfoServicioId, setExpandedInfoServicioId] = useState<string | null>(null);
 
     // Indicador de completitud del perfil: colapsado por default, descartable
     // via X. La preferencia de descarte se persiste en localStorage por user
@@ -363,7 +358,7 @@ export default function ProveedorDashboard() {
     };
 
     const loadTabData = async (tab: TabType, provId: string, authId: string) => {
-        if (tab === 'servicios' || tab === 'info_servicio') {
+        if (tab === 'servicios') {
             const { data } = await supabase
                 .from('servicios_publicados')
                 .select(`*, categoria:categorias_servicio(nombre, icono, slug)`)
@@ -508,7 +503,11 @@ export default function ProveedorDashboard() {
     useEffect(() => {
         if (!router.isReady) return;
         const queryTab = router.query.tab as TabType | undefined;
-        const validTabs: TabType[] = ['servicios', 'perfil', 'info_servicio', 'evaluaciones', 'mensajes', 'estadisticas', 'solicitudes'];
+        // Nota: `info_servicio` fue consolidado en `servicios` (ServiceFormModal
+        // edita tambien los detalles dinamicos). Si alguien tiene un deep-link
+        // viejo con ?tab=info_servicio, el guard de validTabs lo ignora y la
+        // pagina cae al default 'servicios' silenciosamente.
+        const validTabs: TabType[] = ['servicios', 'perfil', 'evaluaciones', 'mensajes', 'estadisticas', 'solicitudes'];
         if (queryTab && validTabs.includes(queryTab) && queryTab !== activeTab) {
             setActiveTab(queryTab);
         }
@@ -1139,7 +1138,6 @@ export default function ProveedorDashboard() {
                             {[
                                 { id: 'servicios', label: 'Mis Servicios', icon: <Briefcase size={20} /> },
                                 { id: 'perfil', label: 'Mi Perfil', icon: <UserIcon size={20} /> },
-                                { id: 'info_servicio', label: 'Info del Servicio', icon: <LayoutDashboard size={20} /> },
                                 { id: 'evaluaciones', label: 'Evaluaciones', icon: <Star size={20} /> },
                                 { id: 'mensajes', label: 'Mensajes', icon: <MessageSquare size={20} /> },
                                 { id: 'estadisticas', label: 'Estadísticas', icon: <BarChart size={20} /> },
@@ -1168,7 +1166,6 @@ export default function ProveedorDashboard() {
                     {[
                         { id: 'servicios', label: 'Servicios', icon: <Briefcase size={16} /> },
                         { id: 'perfil', label: 'Perfil', icon: <UserIcon size={16} /> },
-                        { id: 'info_servicio', label: 'Info Servicio', icon: <LayoutDashboard size={16} /> },
                         { id: 'evaluaciones', label: 'Evaluaciones', icon: <Star size={16} /> },
                         { id: 'mensajes', label: 'Mensajes', icon: <MessageSquare size={16} /> },
                         { id: 'estadisticas', label: 'Métricas', icon: <BarChart size={16} /> },
@@ -2029,106 +2026,6 @@ export default function ProveedorDashboard() {
                             )}
                         </div>
                     )}
-
-                    {/* INFO DEL SERVICIO — Sprint 4 Fase 1: per-servicio.
-                        Antes este tab editaba proveedores.datos_especificos asumiendo
-                        UNA categoria inferida del servicio mas reciente. Ahora lista
-                        TODOS los servicios del proveedor y permite editar los detalles
-                        de cada uno (servicios_publicados.detalles) — soporta proveedores
-                        multi-categoria sin mezclar campos entre rubros. */}
-                    {activeTab === 'info_servicio' && (() => {
-                        if (!servicios || servicios.length === 0) {
-                            return (
-                                <div className="animate-in fade-in duration-300 max-w-3xl">
-                                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-8">Información del Servicio</h1>
-                                    <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
-                                        <div className="w-16 h-16 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Briefcase size={28} />
-                                        </div>
-                                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Publica tu primer servicio</h3>
-                                        <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                                            Para configurar la información específica de un rubro, primero publica un servicio. La categoría que elijas determina los campos.
-                                        </p>
-                                        <button
-                                            onClick={() => handleTabChange('servicios')}
-                                            className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-6 rounded-lg transition-colors shadow-sm"
-                                        >
-                                            Ir a Mis Servicios
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        }
-
-                        const updateDetallesServicio = async (servicioId: string, values: Record<string, any>) => {
-                            const { error } = await supabase
-                                .from('servicios_publicados')
-                                .update({ detalles: values })
-                                .eq('id', servicioId);
-                            if (error) {
-                                toast.error(`Error al guardar: ${error.message}`);
-                                throw error;
-                            }
-                            setServicios(prev => prev.map(s => s.id === servicioId ? { ...s, detalles: values } : s));
-                            toast.success('Información del servicio actualizada');
-                        };
-
-                        return (
-                            <div className="animate-in fade-in duration-300 max-w-3xl">
-                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Información del Servicio</h1>
-                                <p className="text-sm text-slate-500 mb-6">
-                                    Detalles específicos por servicio. Los clientes los ven en la ficha de cada servicio. Cada servicio tiene los campos de su categoría.
-                                </p>
-
-                                <div className="space-y-3">
-                                    {servicios.map(servicio => {
-                                        const isExpanded = expandedInfoServicioId === servicio.id;
-                                        const categoriaSlug = servicio.categoria?.slug || '';
-                                        const categoriaNombre = servicio.categoria?.nombre || categoriaSlug;
-                                        const detalles = (servicio.detalles as Record<string, any>) || {};
-                                        return (
-                                            <div key={servicio.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setExpandedInfoServicioId(isExpanded ? null : servicio.id)}
-                                                    className="w-full px-5 sm:px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors text-left"
-                                                >
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-0.5">
-                                                            <span className="inline-flex items-center bg-slate-100 text-slate-700 text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full">
-                                                                {categoriaNombre}
-                                                            </span>
-                                                            {!servicio.activo && (
-                                                                <span className="inline-flex items-center bg-warning-50 text-warning-700 text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border border-warning-100">
-                                                                    Pausado
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-sm font-semibold text-slate-900 truncate">{servicio.titulo}</p>
-                                                    </div>
-                                                    <Edit size={16} className={`shrink-0 transition-transform ${isExpanded ? 'rotate-90 text-accent-700' : 'text-slate-400'}`} />
-                                                </button>
-                                                {isExpanded && (
-                                                    <div className="px-5 sm:px-6 pb-6 pt-2 border-t border-slate-100">
-                                                        {categoriaSlug ? (
-                                                            <ServicioDetallesForm
-                                                                key={servicio.id}
-                                                                categoria={categoriaSlug}
-                                                                initialValues={detalles}
-                                                                onSave={(values) => updateDetallesServicio(servicio.id, values)}
-                                                            />
-                                                        ) : (
-                                                            <p className="text-sm text-slate-500 py-4">Este servicio no tiene categoría asignada. Edítalo desde la pestaña Mis Servicios para asignar una.</p>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        );
-                    })()}
 
                     {/* EVALUACIONES */}
                     {activeTab === 'evaluaciones' && (
