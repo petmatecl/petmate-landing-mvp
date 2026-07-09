@@ -10,7 +10,6 @@
 //
 // Consumers:
 //   - components/Proveedor/ServiceFormModal.tsx     (edicion completa de un servicio)
-//   - components/Proveedor/ServicioDetallesForm.tsx (edicion rapida de detalles per-servicio — antes DatosEspecificosForm)
 //   - pages/register.tsx                            (Step 3 del wizard)
 //   - components/Servicio/ServiceDetailView.tsx     (ficha publica del servicio)
 //   - pages/proveedor/[id].tsx                      (ficha publica del proveedor)
