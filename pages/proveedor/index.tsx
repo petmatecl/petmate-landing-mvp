@@ -1148,7 +1148,7 @@ export default function ProveedorDashboard() {
                                 <button
                                     key={item.id}
                                     onClick={() => handleTabChange(item.id as TabType)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-accent-50 text-deep-800 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-accent-50 text-accent-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
                                     {item.icon}
                                     <span className="flex-1">{item.label}</span>
@@ -1177,7 +1177,7 @@ export default function ProveedorDashboard() {
                         <button
                             key={item.id}
                             onClick={() => handleTabChange(item.id as TabType)}
-                            className={`flex items-center gap-2 px-4 py-3 font-semibold text-sm whitespace-nowrap snap-start border-b-2 transition-all ${activeTab === item.id ? 'border-deep-800 text-deep-800' : 'border-transparent text-slate-500'}`}
+                            className={`flex items-center gap-2 px-4 py-3 font-semibold text-sm whitespace-nowrap snap-start border-b-2 transition-all ${activeTab === item.id ? 'border-accent-600 text-accent-700' : 'border-transparent text-slate-500'}`}
                         >
                             {item.icon}
                             {item.label}
@@ -1285,7 +1285,7 @@ export default function ProveedorDashboard() {
                                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mis Servicios</h1>
                                 <button
                                     onClick={handlePublishClick}
-                                    className="bg-deep-800 hover:bg-deep-900 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
+                                    className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
                                 >
                                     <span>+</span><span className="hidden sm:inline">Publicar nuevo servicio</span><span className="sm:hidden">Nuevo</span>
                                 </button>
@@ -1343,7 +1343,7 @@ export default function ProveedorDashboard() {
                                                             checked={servicio.activo}
                                                             onChange={() => toggleServiceStatus(servicio.id, servicio.activo)}
                                                         />
-                                                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-deep-800 relative"></div>
+                                                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-600 relative"></div>
                                                         <span className="text-sm font-medium text-slate-700">{servicio.activo ? 'Activo' : 'Pausado'}</span>
                                                     </label>
 
@@ -1356,7 +1356,7 @@ export default function ProveedorDashboard() {
                                                     </Link>
                                                     <button
                                                         onClick={() => { setEditingServiceId(servicio.id); setIsServiceModalOpen(true); }}
-                                                        className="p-2 text-accent-600 hover:text-deep-800 hover:bg-accent-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
+                                                        className="p-2 text-accent-600 hover:text-accent-700 hover:bg-accent-50 rounded-xl transition-colors tooltip flex items-center gap-1.5 text-sm font-semibold"
                                                     >
                                                         <Edit size={16} /> <span className="hidden sm:inline">Editar</span>
                                                     </button>
@@ -1435,7 +1435,7 @@ export default function ProveedorDashboard() {
                                                         <UserIcon size={40} />
                                                     )}
                                                 </div>
-                                                <label className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 cursor-pointer hover:text-deep-800 hover:border-deep-800 transition-colors">
+                                                <label className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 cursor-pointer hover:text-accent-700 hover:border-accent-600 transition-colors">
                                                     {uploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
                                                     <input type="file" className="hidden" accept="image/*" onChange={uploadAvatar} disabled={uploadingAvatar} />
                                                 </label>
@@ -1628,7 +1628,7 @@ export default function ProveedorDashboard() {
                                                     </div>
 
                                                     <button type="button" onClick={handleEnviarVerificacion} disabled={uploadingCarnet}
-                                                        className="w-full py-3 bg-deep-800 hover:bg-deep-900 text-white font-medium tracking-wide rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60">
+                                                        className="w-full py-3 bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60">
                                                         {uploadingCarnet ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
                                                         {uploadingCarnet ? 'Enviando...' : 'Enviar para verificación'}
                                                     </button>
@@ -1871,11 +1871,11 @@ export default function ProveedorDashboard() {
                                                         </button>
                                                     </div>
                                                     <div className="flex justify-between items-center bg-white/90 rounded-lg p-1">
-                                                        <button type="button" disabled={idx === 0} onClick={() => moveGaleriaFoto(idx, 'left')} className="p-1 disabled:opacity-30 hover:text-deep-800">
+                                                        <button type="button" disabled={idx === 0} onClick={() => moveGaleriaFoto(idx, 'left')} className="p-1 disabled:opacity-30 hover:text-accent-700">
                                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                                                         </button>
-                                                        {idx === 0 && <span className="text-[10px] font-medium uppercase tracking-widest text-deep-800">PORTADA</span>}
-                                                        <button type="button" disabled={idx === galeria.length - 1} onClick={() => moveGaleriaFoto(idx, 'right')} className="p-1 disabled:opacity-30 hover:text-deep-800">
+                                                        {idx === 0 && <span className="text-[10px] font-medium uppercase tracking-widest text-accent-700">PORTADA</span>}
+                                                        <button type="button" disabled={idx === galeria.length - 1} onClick={() => moveGaleriaFoto(idx, 'right')} className="p-1 disabled:opacity-30 hover:text-accent-700">
                                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                                                         </button>
                                                     </div>
@@ -1884,7 +1884,7 @@ export default function ProveedorDashboard() {
                                         ))}
 
                                         {galeria.length < 8 && (
-                                            <label className="aspect-square bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-deep-800 hover:bg-accent-50 transition-colors text-slate-500 hover:text-deep-800">
+                                            <label className="aspect-square bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-accent-600 hover:bg-accent-50 transition-colors text-slate-500 hover:text-accent-700">
                                                 {uploadingGaleria ? (
                                                     <Loader2 className="w-8 h-8 animate-spin" />
                                                 ) : (
@@ -2019,7 +2019,7 @@ export default function ProveedorDashboard() {
                                             type="submit"
                                             form="perfil-form"
                                             disabled={savingProfile}
-                                            className="bg-deep-800 text-white font-medium tracking-wide py-3 px-6 sm:px-8 rounded-xl hover:bg-deep-900 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                            className="bg-accent-600 text-white font-medium tracking-wide py-3 px-6 sm:px-8 rounded-xl hover:bg-accent-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
                                         >
                                             {savingProfile && <Loader2 size={18} className="animate-spin" />}
                                             Guardar Cambios
