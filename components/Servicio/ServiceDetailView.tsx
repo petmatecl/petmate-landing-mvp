@@ -26,7 +26,7 @@ import {
     Star,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Sparkles, X,
-    Dog, Cat, FileText, Pencil, Calendar, ChevronDown,
+    Dog, Cat, FileText, Pencil, Calendar, ChevronDown, Clock,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -126,49 +126,73 @@ export default function ServiceDetailView({
     // Use shared UserContext — avoids double session fetch
     const { user, isLoading: isUserLoading } = useUser();
 
-    // Check if this user already reviewed this service.
-    // Excluimos las rechazadas para permitir re-intento post-moderacion —
-    // una reseña rechazada NO cuenta como "ya evaluo" (alineado con el
-    // constraint parcial de la BD que solo indexa evaluaciones NO
-    // rechazadas). El cron de invitacion post-servicio aplica el mismo
-    // criterio.
-    const [yaEvaluo, setYaEvaluo] = useState(false);
+    // Reseña de este user en este servicio. `null` = no reseñó (o solo tiene
+    // rechazadas → forma disponible). 'pendiente' | 'aprobado' = ya envió;
+    // rechazadas se excluyen del check para permitir re-intento (alineado
+    // con el indice parcial de la BD sobre estado != 'rechazado').
+    type MiReviewEstado = 'pendiente' | 'aprobado' | null;
+    const [miReviewEstado, setMiReviewEstado] = useState<MiReviewEstado>(null);
     React.useEffect(() => {
         if (isExample || !user || !service?.id) return;
         supabase
             .from('evaluaciones')
-            .select('id')
+            .select('estado')
             .eq('servicio_id', service.id)
             .eq('usuario_id', user.id)
             .neq('estado', 'rechazado')
             .maybeSingle()
-            .then(({ data }) => setYaEvaluo(!!data));
+            .then(({ data }) => setMiReviewEstado((data?.estado as MiReviewEstado) ?? null));
     }, [isExample, user, service?.id]);
 
     // Deep link ?resenar=<agendamiento_id> — el email/notif de invitacion
     // post-servicio linkea aca. Validamos que el agendamiento pertenece al
-    // user logueado (RLS `agendamientos_tutor_select` ya scopea por
+    // user logueado (RLS `agendamientos_tutor_select` scopea por
     // tutor_id → auth_user_id = auth.uid(); si no le pertenece, el SELECT
-    // retorna 0 filas) y, si es valido y no reseño, scrolleamos al form.
+    // retorna 0 filas). Si valido, scrolleamos al form y encendemos un
+    // highlight temporal para señalizar donde aterrizamos.
+    //
+    // Scroll robusto: la ficha carga contenido async (galeria, related
+    // services, chips) que empuja el layout despues del mount. Un solo
+    // scrollIntoView al montar quedaba corto — el target se desplazaba
+    // hacia abajo mientras el browser terminaba el smooth scroll a la
+    // posicion vieja. Solucion: 3 shots escalonados que absorben la
+    // mayoria de shifts de layout (300ms cubre el primer paint post-
+    // hidratacion; 900ms cubre re-fetches; 1800ms cubre lazyloads de img).
+    // Los shots posteriores confirman/corrigen la posicion; si el target
+    // no se movio, scrollIntoView es un no-op visual.
     const reviewFormRef = React.useRef<HTMLDivElement>(null);
+    const [deepLinkHighlight, setDeepLinkHighlight] = useState(false);
     React.useEffect(() => {
         const resenarId = typeof router.query.resenar === 'string' ? router.query.resenar : null;
         if (!resenarId || isExample || !user || !service?.id) return;
+        let cancelled = false;
+        const timers: ReturnType<typeof setTimeout>[] = [];
         (async () => {
             const { data } = await supabase
                 .from('agendamientos')
                 .select('id')
                 .eq('id', resenarId)
-                .eq('servicio_id', service.id) // ademas del RLS, chequeamos que el agend matchea al servicio de la ficha actual
+                .eq('servicio_id', service.id)
                 .maybeSingle();
-            if (!data) return; // no le pertenece / no matchea el servicio / no existe
-            // Pequena espera para que el form haya montado (yaEvaluo se
-            // resuelve en el effect de arriba, mismo tick pero por prolijidad
-            // esperamos un frame).
-            requestAnimationFrame(() => {
+            if (cancelled || !data) return;
+            const doScroll = () => {
+                if (cancelled) return;
                 reviewFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
+            };
+            // Encender highlight + 3 shots de scroll
+            setDeepLinkHighlight(true);
+            timers.push(setTimeout(doScroll, 300));
+            timers.push(setTimeout(doScroll, 900));
+            timers.push(setTimeout(doScroll, 1800));
+            // Apagar highlight ~2.8s despues del ultimo shot (dura ~4.6s total
+            // desde el aterrizaje — suficiente para que el user perciba el
+            // ring como una señal, no como un elemento decorativo permanente).
+            timers.push(setTimeout(() => { if (!cancelled) setDeepLinkHighlight(false); }, 4600));
         })();
+        return () => {
+            cancelled = true;
+            timers.forEach(t => clearTimeout(t));
+        };
     }, [router.query.resenar, isExample, user, service?.id]);
 
     // Tracking: registrar vista al entrar a la pagina
@@ -358,7 +382,7 @@ export default function ServiceDetailView({
 
     const handleLeaveReview = async () => {
         if (isExample) { setExampleModalAction('evaluar'); return; }
-        if (yaEvaluo) return;
+        if (miReviewEstado) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             setLoginModalOpen(true);
@@ -1278,10 +1302,20 @@ export default function ServiceDetailView({
                                 y Preguntas (parent gap-8 + mt-8 + badge thin +
                                 gap-8). Ahora el badge es el ultimo elemento del
                                 card cuando aplica. */}
-                            {user && yaEvaluo && (
+                            {/* Banner condicional segun estado de la reseña del user:
+                                'pendiente' -> aviso info (en revision).
+                                'aprobado'  -> confirmacion accent (ya publicada).
+                                null / rechazado -> nada aca, el form aparece abajo. */}
+                            {user && miReviewEstado === 'pendiente' && (
+                                <div className="mt-6 flex items-start gap-2 text-sm font-medium text-info-800 bg-info-50 border border-info-200 px-4 py-3 rounded-xl">
+                                    <Clock size={16} className="text-info-600 shrink-0 mt-0.5" />
+                                    <span>Tu evaluación está en revisión y se publicará pronto.</span>
+                                </div>
+                            )}
+                            {user && miReviewEstado === 'aprobado' && (
                                 <div className="mt-6 flex items-center gap-2 text-sm font-medium text-accent-800 bg-accent-50 border border-accent-200 px-4 py-3 rounded-xl">
                                     <Star size={16} className="fill-accent-600 text-accent-600" />
-                                    Ya dejaste una evaluación para este servicio
+                                    Ya dejaste una evaluación para este servicio.
                                 </div>
                             )}
 
@@ -1292,14 +1326,25 @@ export default function ServiceDetailView({
                             duplicando el espacio. Ref para deep link
                             ?resenar=<agendamiento_id> — el email de invitacion
                             post-servicio scrollea aca al llegar. */}
-                        {user && !yaEvaluo && (
-                            <div ref={reviewFormRef} className="scroll-mt-24">
+                        {user && !miReviewEstado && (
+                            <div
+                                ref={reviewFormRef}
+                                className={`scroll-mt-24 rounded-2xl transition-all duration-700 ${
+                                    deepLinkHighlight
+                                        ? 'ring-4 ring-accent-400 ring-offset-4 ring-offset-white shadow-lg'
+                                        : ''
+                                }`}
+                            >
                                 <ReviewForm
                                     servicioId={service.id}
                                     proveedorId={proveedor.id}
                                     servicioTitulo={service.titulo}
                                     onSuccess={() => {
-                                        setYaEvaluo(true);
+                                        // Post-submit la reseña siempre arranca en `pendiente`
+                                        // (moderación en /api/evaluaciones/auto-moderar decide
+                                        // si pasa a 'aprobado'). Mostramos el banner "en revisión"
+                                        // hasta que el proximo mount fetchee el estado real.
+                                        setMiReviewEstado('pendiente');
                                     }}
                                 />
                             </div>
