@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                             }`}
                     >
-                        <Star size={20} /> Reseñas
+                        <Star size={20} /> Evaluaciones
                     </Link>
 
                     <Link

@@ -26,7 +26,7 @@ import {
     Star,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Sparkles, X,
-    Dog, Cat, FileText, Pencil, Calendar, ChevronDown,
+    Dog, Cat, FileText, Pencil, Calendar, ChevronDown, Clock,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -126,18 +126,90 @@ export default function ServiceDetailView({
     // Use shared UserContext — avoids double session fetch
     const { user, isLoading: isUserLoading } = useUser();
 
-    // Check if this user already reviewed this service
-    const [yaEvaluo, setYaEvaluo] = useState(false);
+    // Reseña de este user en este servicio. `null` = no reseñó (o solo tiene
+    // rechazadas → form disponible). 'pendiente' | 'aprobado' = ya envió;
+    // rechazadas se excluyen del check para permitir re-intento (alineado
+    // con el indice parcial de la BD sobre estado != 'rechazado').
+    // miReviewLoaded distingue "cargando" de "no reseñó" — CRITICO para el
+    // deep link (ver useEffect abajo).
+    type MiReviewEstado = 'pendiente' | 'aprobado' | null;
+    const [miReviewEstado, setMiReviewEstado] = useState<MiReviewEstado>(null);
+    const [miReviewLoaded, setMiReviewLoaded] = useState(false);
     React.useEffect(() => {
         if (isExample || !user || !service?.id) return;
         supabase
             .from('evaluaciones')
-            .select('id')
+            .select('estado')
             .eq('servicio_id', service.id)
             .eq('usuario_id', user.id)
+            .neq('estado', 'rechazado')
             .maybeSingle()
-            .then(({ data }) => setYaEvaluo(!!data));
+            .then(({ data }) => {
+                setMiReviewEstado((data?.estado as MiReviewEstado) ?? null);
+                setMiReviewLoaded(true);
+            });
     }, [isExample, user, service?.id]);
+
+    // Deep link ?resenar=<agendamiento_id> — el email/notif de invitacion
+    // post-servicio linkea aca. Validamos que el agendamiento pertenece al
+    // user logueado (RLS `agendamientos_tutor_select` scopea por
+    // tutor_id → auth_user_id = auth.uid(); si no le pertenece, el SELECT
+    // retorna 0 filas). Si valido, scrolleamos al ELEMENTO CORRECTO segun
+    // el estado real de la reseña del user y encendemos un highlight
+    // temporal para señalizar donde aterrizamos:
+    //   'pendiente' → banner "en revisión"  (el user vuelve al link del
+    //                                         email y ve que su reseña ya
+    //                                         esta; no le mostramos el form).
+    //   'aprobado'  → banner "ya evaluaste"  (idem — ya se publico).
+    //   null (o solo rechazadas) → form.
+    //
+    // WAIT hasta miReviewLoaded: sin este guard el effect podia dispararse
+    // antes de que el fetch del estado resolviera, elegia el form como
+    // target por defecto y hacia scroll ahi aunque la reseña estaba en
+    // pendiente. Race resuelto: reruns cuando miReviewLoaded pasa a true.
+    //
+    // Scroll robusto: 3 shots escalonados a 300 / 900 / 1800 ms absorben
+    // los shifts de layout de la ficha (paint inicial, re-fetches, lazyloads
+    // de imagenes). Los shots posteriores son idempotentes — si la posicion
+    // estabilizo temprano, scrollIntoView es no-op visual.
+    const reviewFormRef = React.useRef<HTMLDivElement>(null);
+    const pendingBannerRef = React.useRef<HTMLDivElement>(null);
+    const approvedBannerRef = React.useRef<HTMLDivElement>(null);
+    const [deepLinkHighlight, setDeepLinkHighlight] = useState(false);
+    React.useEffect(() => {
+        const resenarId = typeof router.query.resenar === 'string' ? router.query.resenar : null;
+        if (!resenarId || isExample || !user || !service?.id || !miReviewLoaded) return;
+        let cancelled = false;
+        const timers: ReturnType<typeof setTimeout>[] = [];
+        (async () => {
+            const { data } = await supabase
+                .from('agendamientos')
+                .select('id')
+                .eq('id', resenarId)
+                .eq('servicio_id', service.id)
+                .maybeSingle();
+            if (cancelled || !data) return;
+            const targetRef =
+                miReviewEstado === 'pendiente' ? pendingBannerRef :
+                miReviewEstado === 'aprobado' ? approvedBannerRef :
+                reviewFormRef;
+            const doScroll = () => {
+                if (cancelled) return;
+                targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+            setDeepLinkHighlight(true);
+            timers.push(setTimeout(doScroll, 300));
+            timers.push(setTimeout(doScroll, 900));
+            timers.push(setTimeout(doScroll, 1800));
+            // Apagar highlight ~2.8s despues del ultimo shot (dura ~4.6s
+            // desde el aterrizaje — señal, no decoracion permanente).
+            timers.push(setTimeout(() => { if (!cancelled) setDeepLinkHighlight(false); }, 4600));
+        })();
+        return () => {
+            cancelled = true;
+            timers.forEach(t => clearTimeout(t));
+        };
+    }, [router.query.resenar, isExample, user, service?.id, miReviewLoaded, miReviewEstado]);
 
     // Tracking: registrar vista al entrar a la pagina
     React.useEffect(() => {
@@ -326,7 +398,7 @@ export default function ServiceDetailView({
 
     const handleLeaveReview = async () => {
         if (isExample) { setExampleModalAction('evaluar'); return; }
-        if (yaEvaluo) return;
+        if (miReviewEstado) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             setLoginModalOpen(true);
@@ -1246,10 +1318,40 @@ export default function ServiceDetailView({
                                 y Preguntas (parent gap-8 + mt-8 + badge thin +
                                 gap-8). Ahora el badge es el ultimo elemento del
                                 card cuando aplica. */}
-                            {user && yaEvaluo && (
-                                <div className="mt-6 flex items-center gap-2 text-sm font-medium text-accent-800 bg-accent-50 border border-accent-200 px-4 py-3 rounded-xl">
-                                    <Star size={16} className="fill-accent-600 text-accent-600" />
-                                    Ya dejaste una evaluación para este servicio
+                            {/* Banner condicional segun estado de la reseña del user:
+                                'pendiente' -> aviso info (en revision).
+                                'aprobado'  -> confirmacion accent (ya publicada).
+                                null / rechazado -> nada aca, el form aparece abajo.
+                                Wrappers con scroll-mt-24 + highlight ring condicional
+                                cuando el user aterriza por deep link (?resenar=<id>). */}
+                            {user && miReviewEstado === 'pendiente' && (
+                                <div
+                                    ref={pendingBannerRef}
+                                    className={`mt-6 scroll-mt-24 rounded-xl transition-all duration-700 ${
+                                        deepLinkHighlight
+                                            ? 'ring-4 ring-accent-400 ring-offset-4 ring-offset-white shadow-lg'
+                                            : ''
+                                    }`}
+                                >
+                                    <div className="flex items-start gap-2 text-sm font-medium text-info-800 bg-info-50 border border-info-200 px-4 py-3 rounded-xl">
+                                        <Clock size={16} className="text-info-600 shrink-0 mt-0.5" />
+                                        <span>Tu evaluación está en revisión y se publicará pronto.</span>
+                                    </div>
+                                </div>
+                            )}
+                            {user && miReviewEstado === 'aprobado' && (
+                                <div
+                                    ref={approvedBannerRef}
+                                    className={`mt-6 scroll-mt-24 rounded-xl transition-all duration-700 ${
+                                        deepLinkHighlight
+                                            ? 'ring-4 ring-accent-400 ring-offset-4 ring-offset-white shadow-lg'
+                                            : ''
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2 text-sm font-medium text-accent-800 bg-accent-50 border border-accent-200 px-4 py-3 rounded-xl">
+                                        <Star size={16} className="fill-accent-600 text-accent-600" />
+                                        Ya dejaste una evaluación para este servicio.
+                                    </div>
                                 </div>
                             )}
 
@@ -1257,16 +1359,31 @@ export default function ServiceDetailView({
 
                         {/* Formulario de Evaluación (Solo Autenticados + no evaluo).
                             Sin mt-8 — el parent flex usa gap-8, mt-8 estaba
-                            duplicando el espacio. */}
-                        {user && !yaEvaluo && (
-                            <ReviewForm
-                                servicioId={service.id}
-                                proveedorId={proveedor.id}
-                                servicioTitulo={service.titulo}
-                                onSuccess={() => {
-                                    setYaEvaluo(true);
-                                }}
-                            />
+                            duplicando el espacio. Ref para deep link
+                            ?resenar=<agendamiento_id> — el email de invitacion
+                            post-servicio scrollea aca al llegar. */}
+                        {user && !miReviewEstado && (
+                            <div
+                                ref={reviewFormRef}
+                                className={`scroll-mt-24 rounded-2xl transition-all duration-700 ${
+                                    deepLinkHighlight
+                                        ? 'ring-4 ring-accent-400 ring-offset-4 ring-offset-white shadow-lg'
+                                        : ''
+                                }`}
+                            >
+                                <ReviewForm
+                                    servicioId={service.id}
+                                    proveedorId={proveedor.id}
+                                    servicioTitulo={service.titulo}
+                                    onSuccess={() => {
+                                        // Post-submit la reseña siempre arranca en `pendiente`
+                                        // (moderación en /api/evaluaciones/auto-moderar decide
+                                        // si pasa a 'aprobado'). Mostramos el banner "en revisión"
+                                        // hasta que el proximo mount fetchee el estado real.
+                                        setMiReviewEstado('pendiente');
+                                    }}
+                                />
+                            </div>
                         )}
 
                         {/* Preguntas al proveedor */}

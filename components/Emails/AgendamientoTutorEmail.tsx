@@ -50,7 +50,7 @@ export const AgendamientoTutorEmail = ({
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
-                        <Img src="https://firebasestorage.googleapis.com/v0/b/pawnecta-3fde6.appspot.com/o/pawnecta-logo-vector.png?alt=media&token=8e9e16cc-318e-4b47-abdc-e771e8081f96" width="180" alt="Pawnecta" style={logo} />
+                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-trans.png" width="180" alt="Pawnecta" style={logo} />
                     </Section>
 
                     <Section style={content}>

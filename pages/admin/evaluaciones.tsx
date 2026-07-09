@@ -199,7 +199,7 @@ function GestionEvaluaciones() {
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] font-sans pb-12">
-            <Head><title>Moderación de Evaluaciones | Admin</title></Head>
+            <Head><title>Evaluaciones | Admin</title></Head>
 
             <header className="bg-slate-900 text-white p-6 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 justify-between items-center">
@@ -210,7 +210,7 @@ function GestionEvaluaciones() {
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                                 <MessageSquareWarning className="text-amber-400" />
-                                Moderación de Evaluaciones
+                                Evaluaciones
                             </h1>
                             <p className="text-sm text-slate-400">Revisión de feedback de usuarios a proveedores</p>
                         </div>

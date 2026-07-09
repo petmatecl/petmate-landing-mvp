@@ -95,15 +95,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(200).json({ autoApproved: false, reason: 'contenido_sospechoso' });
         }
 
-        // 4. El cliente debe tener al menos 1 conversacion con ese proveedor para este servicio
+        // 4. Contacto previo con ese proveedor/servicio: (a) al menos una
+        // conversation, o (b) un agendamiento confirmado con fecha ya pasada
+        // (para el path del cron post-servicio, que reseña sin necesidad de
+        // chat previo). Predicado espejo del gate en ReviewForm.
+        //
+        // agendamientos.tutor_id → usuarios_buscadores.id (NO auth.users.id).
+        // Resolvemos via auth_user_id. En el gate client-side esto se hace
+        // implicitamente por RLS `agendamientos_tutor_select`; aca corremos
+        // con service_role (RLS bypass), asi que el filtro por tutor_id es
+        // explicito. La fecha efectiva de fin del servicio es
+        // `fecha_fin ?? fecha_preferida` — servicios rango-noches (V2/V3/V4a)
+        // pueblan fecha_fin, el resto queda NULL y usa fecha_preferida.
         const { count: convCount } = await supabase
             .from('conversations')
             .select('id', { count: 'exact', head: true })
             .eq('client_id', clienteId)
             .eq('servicio_id', servicioId);
 
+        let hasAgendamientoPasado = false;
         if ((convCount ?? 0) === 0) {
-            return res.status(200).json({ autoApproved: false, reason: 'sin_conversacion' });
+            const { data: buscador } = await supabase
+                .from('usuarios_buscadores')
+                .select('id')
+                .eq('auth_user_id', clienteId)
+                .maybeSingle();
+
+            if (buscador?.id) {
+                const nowIso = new Date().toISOString();
+                // PostgREST no acepta `coalesce(fecha_fin, fecha_preferida)`
+                // como columna en `.lt()`. Reescribimos como `or`:
+                //   fecha_fin < now  OR  (fecha_fin IS NULL AND fecha_preferida < now)
+                const { data: agend } = await supabase
+                    .from('agendamientos')
+                    .select('id')
+                    .eq('tutor_id', buscador.id)
+                    .eq('servicio_id', servicioId)
+                    .eq('estado', 'confirmada')
+                    .or(`fecha_fin.lt.${nowIso},and(fecha_fin.is.null,fecha_preferida.lt.${nowIso})`)
+                    .limit(1)
+                    .maybeSingle();
+                hasAgendamientoPasado = agend !== null;
+            }
+        }
+
+        if ((convCount ?? 0) === 0 && !hasAgendamientoPasado) {
+            return res.status(200).json({ autoApproved: false, reason: 'sin_contacto_previo' });
         }
 
         // 5. No mas de 2 evaluaciones en las ultimas 24h del mismo cliente

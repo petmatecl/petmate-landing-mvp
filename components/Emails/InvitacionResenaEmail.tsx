@@ -1,23 +1,40 @@
+// components/Emails/InvitacionResenaEmail.tsx
+// ----------------------------------------------------------------------------
+// Email de invitación a dejar reseña post-servicio. Disparado por el cron
+// `/api/cron/invitacion-resenas` una vez, 24h despues del fin del servicio.
+//
+// Framing: PREGUNTA, no suposicion — no asumimos que el servicio se
+// concreto. Cerramos con salida natural para quien no lo tuvo ("Puedes
+// ignorar este correo"). Menciona la mascota si el agendamiento tenia
+// `mascota_id` — toque personal barato.
+//
+// Molde estetico: NewEvaluationEmail (styles reutilizados).
+// ----------------------------------------------------------------------------
 import * as React from 'react';
 import { Html, Head, Preview, Body, Container, Section, Text, Button, Hr, Img } from '@react-email/components';
 
-interface NewEvaluationEmailProps {
-    nombre: string;
+interface InvitacionResenaEmailProps {
+    tutorNombre: string;
+    proveedorNombre: string;
     servicioTitulo: string;
-    rating: number;
-    comentario: string;
+    mascotaNombre?: string | null;
+    reviewUrl: string;
 }
 
-export const NewEvaluationEmail = ({
-    nombre,
+export const InvitacionResenaEmail = ({
+    tutorNombre,
+    proveedorNombre,
     servicioTitulo,
-    rating,
-    comentario,
-}: NewEvaluationEmailProps) => {
+    mascotaNombre,
+    reviewUrl,
+}: InvitacionResenaEmailProps) => {
+    const forMascota = mascotaNombre ? ` para ${mascotaNombre}` : '';
+    const previewText = `¿Cómo te fue con ${proveedorNombre}${forMascota}? Contanos tu experiencia.`;
+
     return (
         <Html>
             <Head />
-            <Preview>{`🎉 Has recibido una nueva evaluación de ${rating} estrellas para tu servicio en Pawnecta.`}</Preview>
+            <Preview>{previewText}</Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
@@ -25,30 +42,28 @@ export const NewEvaluationEmail = ({
                     </Section>
 
                     <Section style={content}>
-                        <Text style={h1}>¡Hola {nombre}!</Text>
+                        <Text style={h1}>Hola {tutorNombre},</Text>
+
                         <Text style={text}>
-                            Alguien acaba de dejar una nueva evaluación para tu servicio <strong>{servicioTitulo}</strong>.
+                            ¿Se realizó tu servicio con <strong>{proveedorNombre}</strong>{forMascota}?
                         </Text>
 
-                        <Section style={evaluationBox}>
-                            <Text style={ratingStars}>
-                                Calificación: <strong>{rating} de 5 estrellas</strong> {rating === 5 ? '🌟' : '⭐'}
-                            </Text>
-                            <Hr style={hrLight} />
-                            <Text style={commentText}>
-                                &quot;{comentario}&quot;
-                            </Text>
-                        </Section>
-
-                        <Text style={textHighlight}>
-                            Esta evaluación será revisada por nuestro equipo de moderación y aprobada públicamente en un plazo de 24 a 48 horas si cumple con los estándares comunitarios.
+                        <Text style={text}>
+                            Si lo tuviste, tu opinión ayuda a otros tutores a elegir con más
+                            confianza y también le sirve a {proveedorNombre} para seguir
+                            mejorando. Contanos brevemente cómo fue tu experiencia con
+                            <strong> {servicioTitulo}</strong>.
                         </Text>
 
                         <Section style={buttonContainer}>
-                            <Button style={button} href="https://www.pawnecta.com/proveedor">
-                                Ver mi panel de proveedor
+                            <Button style={button} href={reviewUrl}>
+                                Dejar mi reseña
                             </Button>
                         </Section>
+
+                        <Text style={textHighlight}>
+                            ¿No se concretó? Puedes ignorar este correo — no volveremos a preguntarte por este servicio.
+                        </Text>
 
                         <Hr style={hr} />
                         <Text style={footer}>
@@ -62,14 +77,13 @@ export const NewEvaluationEmail = ({
     );
 };
 
-export default NewEvaluationEmail;
+export default InvitacionResenaEmail;
 
-// Estilos (similares o reutilizados de la arquitectura email)
+// Estilos — molde reutilizado de NewEvaluationEmail para consistencia visual.
 const main = {
     backgroundColor: '#f8fafc',
     fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
-
 const container = {
     backgroundColor: '#ffffff',
     margin: '40px auto',
@@ -78,72 +92,38 @@ const container = {
     overflow: 'hidden',
     maxWidth: '600px',
 };
-
 const header = {
     backgroundColor: '#0f172a',
     padding: '32px',
     textAlign: 'center' as const,
 };
-
-const logo = {
-    margin: '0 auto',
-};
-
-const content = {
-    padding: '40px',
-};
-
+const logo = { margin: '0 auto' };
+const content = { padding: '40px' };
 const h1 = {
     color: '#0f172a',
     fontSize: '24px',
     fontWeight: 'bold',
     margin: '0 0 24px',
 };
-
 const text = {
     color: '#334155',
     fontSize: '16px',
     lineHeight: '24px',
-    margin: '0 0 24px',
+    margin: '0 0 20px',
 };
-
 const textHighlight = {
     color: '#64748b',
-    fontSize: '14px',
+    fontSize: '13px',
     lineHeight: '20px',
-    margin: '24px 0',
+    margin: '24px 0 0',
     fontStyle: 'italic',
 };
-
-const evaluationBox = {
-    backgroundColor: '#f8fafc',
-    borderRadius: '12px',
-    padding: '24px',
-    margin: '24px 0',
-    border: '1px solid #e2e8f0',
-};
-
-const ratingStars = {
-    fontSize: '18px',
-    color: '#0f172a',
-    margin: '0 0 16px',
-};
-
-const commentText = {
-    fontSize: '16px',
-    lineHeight: '24px',
-    color: '#334155',
-    margin: '0',
-    fontStyle: 'italic',
-};
-
 const buttonContainer = {
     textAlign: 'center' as const,
-    margin: '32px 0',
+    margin: '32px 0 8px',
 };
-
 const button = {
-    backgroundColor: '#1A6B4A',
+    backgroundColor: '#16A34A',
     borderRadius: '8px',
     color: '#fff',
     fontSize: '16px',
@@ -153,17 +133,10 @@ const button = {
     display: 'inline-block',
     padding: '14px 28px',
 };
-
 const hr = {
     borderColor: '#e2e8f0',
     margin: '32px 0 24px',
 };
-
-const hrLight = {
-    borderColor: '#f1f5f9',
-    margin: '16px 0',
-};
-
 const footer = {
     color: '#64748b',
     fontSize: '13px',

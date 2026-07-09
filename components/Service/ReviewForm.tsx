@@ -10,6 +10,36 @@ interface ReviewFormProps {
     onSuccess: () => void;
 }
 
+// Format publico "Nombre I.": primer token del nombre + inicial del segundo
+// token con punto. Ejemplos:
+//   'Aldo Cano Cortes'         → 'Aldo C.'
+//   'María José López García'  → 'María J.'
+//   'María'                    → 'María'
+//   ''                         → 'Usuario'
+// Fallback a proveedor cuando el user es solo proveedor (sin fila en
+// usuarios_buscadores). Preferimos `nombre_publico` si el proveedor lo tiene
+// seteado (mismo display que usa la ficha publica del proveedor); si no,
+// componemos con nombre + apellido_p.
+function formatearNombrePublico(
+    buscador: { nombre: string | null } | null,
+    proveedor: { nombre: string | null; apellido_p: string | null; nombre_publico: string | null } | null
+): string {
+    const format = (full: string): string => {
+        const tokens = full.trim().split(/\s+/).filter(Boolean);
+        if (tokens.length === 0) return 'Usuario';
+        if (tokens.length === 1) return tokens[0];
+        return `${tokens[0]} ${tokens[1][0].toUpperCase()}.`;
+    };
+
+    if (buscador?.nombre && buscador.nombre.trim()) return format(buscador.nombre);
+    if (proveedor?.nombre_publico && proveedor.nombre_publico.trim()) return proveedor.nombre_publico;
+    if (proveedor?.nombre && proveedor.apellido_p) {
+        return `${proveedor.nombre.trim()} ${proveedor.apellido_p.trim()[0].toUpperCase()}.`;
+    }
+    if (proveedor?.nombre && proveedor.nombre.trim()) return proveedor.nombre.trim();
+    return 'Usuario';
+}
+
 export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, onSuccess }: ReviewFormProps) {
     // Auth
     const [user, setUser] = useState<any>(null);
@@ -36,21 +66,41 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
         checkUser();
     }, []);
 
-    // Once user is known, check conversation
+    // Once user is known, check gate: conversation OR agendamiento confirmado
+    // con fecha ya pasada. Cualquiera habilita el form (backwards-compat con
+    // el flujo actual + habilita el path del cron de invitacion post-servicio).
+    // El nombre `hasConversacion` se conserva por historia; hoy trackea
+    // "cualquier gate aceptado" (conv o agend pasado).
     useEffect(() => {
         if (!user) return;
-        const checkConv = async () => {
+        const checkAccess = async () => {
             setCheckingConv(true);
-            const { data: conv } = await supabase
-                .from('conversations')
-                .select('id')
-                .eq('client_id', user.id)
-                .eq('servicio_id', servicioId)
-                .maybeSingle();
-            setHasConversacion(conv !== null);
+            const nowIso = new Date().toISOString();
+            const [convRes, agendRes] = await Promise.all([
+                supabase
+                    .from('conversations')
+                    .select('id')
+                    .eq('client_id', user.id)
+                    .eq('servicio_id', servicioId)
+                    .maybeSingle(),
+                // agendamientos.tutor_id -> usuarios_buscadores.id, no
+                // auth.users. RLS `agendamientos_tutor_select` ya scopea
+                // por (tutor_id → auth_user_id = auth.uid()), asi que
+                // filtrar por servicio_id + estado + fecha alcanza — el
+                // RLS confirma ownership implicito.
+                supabase
+                    .from('agendamientos')
+                    .select('id')
+                    .eq('servicio_id', servicioId)
+                    .eq('estado', 'confirmada')
+                    .lt('fecha_preferida', nowIso)
+                    .limit(1)
+                    .maybeSingle(),
+            ]);
+            setHasConversacion(convRes.data !== null || agendRes.data !== null);
             setCheckingConv(false);
         };
-        checkConv();
+        checkAccess();
     }, [user, servicioId]);
 
     // ——— Guards (after all hooks) ———
@@ -91,6 +141,21 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
         setIsSubmitting(true);
 
         try {
+            // Denormalizar nombre_autor al INSERT. Motivo: `usuarios_buscadores`
+            // tiene RLS que solo permite leer el propio row → el flow publico
+            // de ReviewList no puede resolver el nombre del reseñador cross-
+            // user, cae al fallback "Usuario". Guardamos aca el nombre
+            // formateado publico ("Nombre I.") para servir el display sin
+            // depender de cross-user reads. Fallback a proveedores para el
+            // caso raro de un reviewer que es solo proveedor (sin fila en
+            // usuarios_buscadores). El user PUEDE leer su propio row de
+            // ambas tablas por RLS estandar.
+            const [buscadorRes, proveedorRes] = await Promise.all([
+                supabase.from('usuarios_buscadores').select('nombre').eq('auth_user_id', user.id).maybeSingle(),
+                supabase.from('proveedores').select('nombre, apellido_p, nombre_publico').eq('auth_user_id', user.id).maybeSingle(),
+            ]);
+            const nombreAutor = formatearNombrePublico(buscadorRes.data, proveedorRes.data);
+
             const { data, error } = await supabase
                 .from('evaluaciones')
                 .insert({
@@ -99,7 +164,8 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                     usuario_id: user.id,
                     rating,
                     comentario: comentario.trim(),
-                    estado: 'pendiente'
+                    estado: 'pendiente',
+                    nombre_autor: nombreAutor,
                 })
                 .select('id')
                 .single();
