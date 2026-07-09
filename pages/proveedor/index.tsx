@@ -492,8 +492,20 @@ export default function ProveedorDashboard() {
 
     const handleTabChange = (tab: TabType) => {
         setActiveTab(tab);
-        // Sync URL so users can share/bookmark a specific tab
-        router.replace({ query: { ...router.query, tab } }, undefined, { shallow: true });
+        // Sync URL — limpiamos los params que NO aplican al tab destino en vez
+        // de spreadear router.query. Si venias del tab Perfil con
+        // ?tab=perfil&seccion=identidad y clickeas Mensajes, la URL queda
+        // ?tab=mensajes (sin `seccion` colgado). El unico sub-param que
+        // preservamos es `seccion` cuando el tab destino es Perfil — el resto
+        // de tabs no tienen sub-state URL.
+        const nextQuery: Record<string, string> = { tab };
+        if (tab === 'perfil') {
+            const currentSeccion = router.query[PERFIL_QUERY_PARAM];
+            if (typeof currentSeccion === 'string' && PERFIL_TAB_IDS.includes(currentSeccion as PerfilTabType)) {
+                nextQuery[PERFIL_QUERY_PARAM] = currentSeccion;
+            }
+        }
+        router.replace({ query: nextQuery }, undefined, { shallow: true });
         if (proveedor) {
             loadTabData(tab, proveedor.id, proveedor.auth_user_id);
         }

@@ -103,9 +103,17 @@ export default function MessageThread({ conversationId, userId }: Props) {
         }
     }
 
-    // Scroll to bottom on new messages
+    // Scroll to bottom on new messages.
+    // `block: 'nearest'` es CLAVE: sin ese hint el default 'start' hace que el
+    // browser scrollee la PAGINA para alinear el target al top del viewport,
+    // arrastrando el panel entero hasta el footer cuando el chat esta embebido
+    // (bug reportado en /proveedor tab Mensajes). Con 'nearest' solo se
+    // scrollea el container interno que efectivamente tiene overflow, sin
+    // propagar al viewport. En /mensajes standalone tambien funciona: el chat
+    // ocupa la vista y el nearest scroll interno hace lo mismo que hacia el
+    // default.
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, [messages]);
 
     const markAsRead = async () => {
