@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Check, X, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { getParticipantProfile } from '../../lib/profileUtils';
 import ConfirmDialog from '../Shared/ConfirmDialog';
 
 export default function EvaluacionModerationList() {
@@ -25,6 +24,16 @@ export default function EvaluacionModerationList() {
     const fetchPendientes = async () => {
         setLoading(true);
         try {
+            // Nombre del reseñador viene denormalizado en `nombre_autor`
+            // (poblado al INSERT desde ReviewForm, formato "Nombre I.").
+            // La logica anterior de `getParticipantProfile(ev.cliente_id)`
+            // arrancaba de un `cliente_id` que NO existe en evaluaciones
+            // (deberia ser `usuario_id`) y encima consultaba usuarios_buscadores
+            // con columnas inexistentes — resolvia siempre null → "Usuario
+            // Anónimo". TODO: para exponer el nombre completo en moderacion
+            // hace falta un endpoint admin server-side (service_role) que
+            // resuelva usuario_id → nombre completo; hoy mostramos el mismo
+            // "Nombre I." publico. Backlog post-launch.
             const { data, error } = await supabase
                 .from('evaluaciones')
                 .select(`
@@ -38,16 +47,7 @@ export default function EvaluacionModerationList() {
 
             if (error) throw error;
 
-            // Resolver el nombre del usuario evaluador por separado
-            const evalConUsuario = await Promise.all(
-                (data || []).map(async (ev: any) => {
-                    if (!ev.cliente_id) return { ...ev, usuario: null };
-                    const perfil = await getParticipantProfile(ev.cliente_id);
-                    return { ...ev, usuario: perfil };
-                })
-            );
-
-            setEvaluaciones(evalConUsuario);
+            setEvaluaciones(data || []);
         } catch (error) {
             console.error('Error fetching evaluaciones', error);
             toast.error('Error al cargar evaluaciones pendientes');
@@ -159,7 +159,7 @@ export default function EvaluacionModerationList() {
                             <div className="flex-1">
                                 {/* Context */}
                                 <div className="flex items-center gap-2 text-sm text-slate-500 mb-4 bg-slate-50 w-fit px-3 py-1.5 rounded-lg border border-slate-100">
-                                    <span className="font-semibold text-slate-700">{ev.usuario?.nombre || 'Usuario Anónimo'}</span>
+                                    <span className="font-semibold text-slate-700">{ev.nombre_autor || 'Usuario'}</span>
                                     evaluó a
                                     <span className="font-semibold text-slate-700">{ev.proveedor?.nombre} {ev.proveedor?.apellido_p}</span>
                                     en el servicio

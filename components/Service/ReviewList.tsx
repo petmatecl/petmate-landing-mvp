@@ -47,33 +47,30 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
                 if (error) throw error;
                 if (!evals || evals.length === 0) { setReviews([]); return; }
 
-                // Fetch user profiles by auth_user_id (usuario_id = auth.users.id)
+                // Nombre publico: viene denormalizado en `evaluaciones.nombre_autor`
+                // (poblado al INSERT desde ReviewForm — formato "Nombre I.").
+                // NO se hace lookup a `usuarios_buscadores` por RLS (tabla privada
+                // con RUT/email — solo el owner lee su fila; cross-user reads
+                // fallan silenciosamente).
+                //
+                // Foto de perfil: solo posible cuando el reseñador es proveedor
+                // (usuarios_buscadores no tiene `foto_perfil`). Consultamos
+                // `proveedores_publicos` (view publica) para no fallar por RLS
+                // — devuelve null si el reviewer es solo tutor y se cae al
+                // avatar-inicial estilizado.
                 const userIds = Array.from(new Set(evals.map(e => e.usuario_id).filter(Boolean)));
-
-                // usuarios_buscadores only has: nombre (no apellido_p, no foto_perfil)
-                const { data: users } = await supabase
-                    .from('usuarios_buscadores')
-                    .select('auth_user_id, nombre')
-                    .in('auth_user_id', userIds);
-
-                const userMap = new Map((users || []).map(u => [u.auth_user_id, { nombre: u.nombre, foto_perfil: null }]));
-
-                // Also check proveedores (in case reviewer is a provider)
-                const missingIds = userIds.filter(id => !userMap.has(id));
-                if (missingIds.length > 0) {
+                const fotoMap = new Map<string, string | null>();
+                if (userIds.length > 0) {
                     const { data: provs } = await supabase
                         .from('proveedores_publicos')
-                        .select('auth_user_id, nombre, apellido_p, foto_perfil, nombre_publico')
-                        .in('auth_user_id', missingIds);
-                    (provs || []).forEach(p => userMap.set(p.auth_user_id, {
-                        nombre: p.nombre_publico || `${p.nombre} ${p.apellido_p}`,
-                        foto_perfil: p.foto_perfil,
-                    }));
+                        .select('auth_user_id, foto_perfil')
+                        .in('auth_user_id', userIds);
+                    (provs || []).forEach(p => fotoMap.set(p.auth_user_id, p.foto_perfil));
                 }
 
                 setReviews(evals.map(e => ({
                     ...e,
-                    _user: userMap.get(e.usuario_id) || null,
+                    _foto_perfil: fotoMap.get(e.usuario_id) || null,
                 })));
 
             } catch (err) {
@@ -104,16 +101,16 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
         <>
             <div className="flex flex-col gap-6">
                 {reviews.map(review => {
-                    const u = review._user;
-                    const displayName = u?.nombre || review.nombre_autor || 'Usuario';
+                    const displayName = review.nombre_autor || 'Usuario';
+                    const fotoPerfil = review._foto_perfil;
                     return (
                         <div key={review.id} className="border-t border-slate-100 pt-6 flex flex-col gap-2">
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                                        {u?.foto_perfil ? (
+                                        {fotoPerfil ? (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={u.foto_perfil} alt={displayName} className="w-full h-full object-cover" />
+                                            <img src={fotoPerfil} alt={displayName} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full bg-accent-100 text-accent-700 font-semibold flex items-center justify-center text-sm">{displayName[0]}</div>
                                         )}
