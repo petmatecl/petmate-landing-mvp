@@ -127,11 +127,14 @@ export default function ServiceDetailView({
     const { user, isLoading: isUserLoading } = useUser();
 
     // Reseña de este user en este servicio. `null` = no reseñó (o solo tiene
-    // rechazadas → forma disponible). 'pendiente' | 'aprobado' = ya envió;
+    // rechazadas → form disponible). 'pendiente' | 'aprobado' = ya envió;
     // rechazadas se excluyen del check para permitir re-intento (alineado
     // con el indice parcial de la BD sobre estado != 'rechazado').
+    // miReviewLoaded distingue "cargando" de "no reseñó" — CRITICO para el
+    // deep link (ver useEffect abajo).
     type MiReviewEstado = 'pendiente' | 'aprobado' | null;
     const [miReviewEstado, setMiReviewEstado] = useState<MiReviewEstado>(null);
+    const [miReviewLoaded, setMiReviewLoaded] = useState(false);
     React.useEffect(() => {
         if (isExample || !user || !service?.id) return;
         supabase
@@ -141,30 +144,41 @@ export default function ServiceDetailView({
             .eq('usuario_id', user.id)
             .neq('estado', 'rechazado')
             .maybeSingle()
-            .then(({ data }) => setMiReviewEstado((data?.estado as MiReviewEstado) ?? null));
+            .then(({ data }) => {
+                setMiReviewEstado((data?.estado as MiReviewEstado) ?? null);
+                setMiReviewLoaded(true);
+            });
     }, [isExample, user, service?.id]);
 
     // Deep link ?resenar=<agendamiento_id> — el email/notif de invitacion
     // post-servicio linkea aca. Validamos que el agendamiento pertenece al
     // user logueado (RLS `agendamientos_tutor_select` scopea por
     // tutor_id → auth_user_id = auth.uid(); si no le pertenece, el SELECT
-    // retorna 0 filas). Si valido, scrolleamos al form y encendemos un
-    // highlight temporal para señalizar donde aterrizamos.
+    // retorna 0 filas). Si valido, scrolleamos al ELEMENTO CORRECTO segun
+    // el estado real de la reseña del user y encendemos un highlight
+    // temporal para señalizar donde aterrizamos:
+    //   'pendiente' → banner "en revisión"  (el user vuelve al link del
+    //                                         email y ve que su reseña ya
+    //                                         esta; no le mostramos el form).
+    //   'aprobado'  → banner "ya evaluaste"  (idem — ya se publico).
+    //   null (o solo rechazadas) → form.
     //
-    // Scroll robusto: la ficha carga contenido async (galeria, related
-    // services, chips) que empuja el layout despues del mount. Un solo
-    // scrollIntoView al montar quedaba corto — el target se desplazaba
-    // hacia abajo mientras el browser terminaba el smooth scroll a la
-    // posicion vieja. Solucion: 3 shots escalonados que absorben la
-    // mayoria de shifts de layout (300ms cubre el primer paint post-
-    // hidratacion; 900ms cubre re-fetches; 1800ms cubre lazyloads de img).
-    // Los shots posteriores confirman/corrigen la posicion; si el target
-    // no se movio, scrollIntoView es un no-op visual.
+    // WAIT hasta miReviewLoaded: sin este guard el effect podia dispararse
+    // antes de que el fetch del estado resolviera, elegia el form como
+    // target por defecto y hacia scroll ahi aunque la reseña estaba en
+    // pendiente. Race resuelto: reruns cuando miReviewLoaded pasa a true.
+    //
+    // Scroll robusto: 3 shots escalonados a 300 / 900 / 1800 ms absorben
+    // los shifts de layout de la ficha (paint inicial, re-fetches, lazyloads
+    // de imagenes). Los shots posteriores son idempotentes — si la posicion
+    // estabilizo temprano, scrollIntoView es no-op visual.
     const reviewFormRef = React.useRef<HTMLDivElement>(null);
+    const pendingBannerRef = React.useRef<HTMLDivElement>(null);
+    const approvedBannerRef = React.useRef<HTMLDivElement>(null);
     const [deepLinkHighlight, setDeepLinkHighlight] = useState(false);
     React.useEffect(() => {
         const resenarId = typeof router.query.resenar === 'string' ? router.query.resenar : null;
-        if (!resenarId || isExample || !user || !service?.id) return;
+        if (!resenarId || isExample || !user || !service?.id || !miReviewLoaded) return;
         let cancelled = false;
         const timers: ReturnType<typeof setTimeout>[] = [];
         (async () => {
@@ -175,25 +189,27 @@ export default function ServiceDetailView({
                 .eq('servicio_id', service.id)
                 .maybeSingle();
             if (cancelled || !data) return;
+            const targetRef =
+                miReviewEstado === 'pendiente' ? pendingBannerRef :
+                miReviewEstado === 'aprobado' ? approvedBannerRef :
+                reviewFormRef;
             const doScroll = () => {
                 if (cancelled) return;
-                reviewFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             };
-            // Encender highlight + 3 shots de scroll
             setDeepLinkHighlight(true);
             timers.push(setTimeout(doScroll, 300));
             timers.push(setTimeout(doScroll, 900));
             timers.push(setTimeout(doScroll, 1800));
-            // Apagar highlight ~2.8s despues del ultimo shot (dura ~4.6s total
-            // desde el aterrizaje — suficiente para que el user perciba el
-            // ring como una señal, no como un elemento decorativo permanente).
+            // Apagar highlight ~2.8s despues del ultimo shot (dura ~4.6s
+            // desde el aterrizaje — señal, no decoracion permanente).
             timers.push(setTimeout(() => { if (!cancelled) setDeepLinkHighlight(false); }, 4600));
         })();
         return () => {
             cancelled = true;
             timers.forEach(t => clearTimeout(t));
         };
-    }, [router.query.resenar, isExample, user, service?.id]);
+    }, [router.query.resenar, isExample, user, service?.id, miReviewLoaded, miReviewEstado]);
 
     // Tracking: registrar vista al entrar a la pagina
     React.useEffect(() => {
@@ -1305,17 +1321,37 @@ export default function ServiceDetailView({
                             {/* Banner condicional segun estado de la reseña del user:
                                 'pendiente' -> aviso info (en revision).
                                 'aprobado'  -> confirmacion accent (ya publicada).
-                                null / rechazado -> nada aca, el form aparece abajo. */}
+                                null / rechazado -> nada aca, el form aparece abajo.
+                                Wrappers con scroll-mt-24 + highlight ring condicional
+                                cuando el user aterriza por deep link (?resenar=<id>). */}
                             {user && miReviewEstado === 'pendiente' && (
-                                <div className="mt-6 flex items-start gap-2 text-sm font-medium text-info-800 bg-info-50 border border-info-200 px-4 py-3 rounded-xl">
-                                    <Clock size={16} className="text-info-600 shrink-0 mt-0.5" />
-                                    <span>Tu evaluación está en revisión y se publicará pronto.</span>
+                                <div
+                                    ref={pendingBannerRef}
+                                    className={`mt-6 scroll-mt-24 rounded-xl transition-all duration-700 ${
+                                        deepLinkHighlight
+                                            ? 'ring-4 ring-accent-400 ring-offset-4 ring-offset-white shadow-lg'
+                                            : ''
+                                    }`}
+                                >
+                                    <div className="flex items-start gap-2 text-sm font-medium text-info-800 bg-info-50 border border-info-200 px-4 py-3 rounded-xl">
+                                        <Clock size={16} className="text-info-600 shrink-0 mt-0.5" />
+                                        <span>Tu evaluación está en revisión y se publicará pronto.</span>
+                                    </div>
                                 </div>
                             )}
                             {user && miReviewEstado === 'aprobado' && (
-                                <div className="mt-6 flex items-center gap-2 text-sm font-medium text-accent-800 bg-accent-50 border border-accent-200 px-4 py-3 rounded-xl">
-                                    <Star size={16} className="fill-accent-600 text-accent-600" />
-                                    Ya dejaste una evaluación para este servicio.
+                                <div
+                                    ref={approvedBannerRef}
+                                    className={`mt-6 scroll-mt-24 rounded-xl transition-all duration-700 ${
+                                        deepLinkHighlight
+                                            ? 'ring-4 ring-accent-400 ring-offset-4 ring-offset-white shadow-lg'
+                                            : ''
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2 text-sm font-medium text-accent-800 bg-accent-50 border border-accent-200 px-4 py-3 rounded-xl">
+                                        <Star size={16} className="fill-accent-600 text-accent-600" />
+                                        Ya dejaste una evaluación para este servicio.
+                                    </div>
                                 </div>
                             )}
 
