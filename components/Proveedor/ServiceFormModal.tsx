@@ -507,6 +507,20 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
         setLoading(true);
 
+        // Endurecimiento del save (post-smoke de Aldo — cuelgue reportado con
+        // spinner eterno):
+        //   1. Wrap try/catch/finally garantiza que setLoading(false) se
+        //      dispare pase lo que pase (throw de Supabase por sesion expirada,
+        //      TypeError inesperado, etc.). Antes cada branch de error hacia
+        //      setLoading(false) manual — cualquier throw silencioso escapaba.
+        //   2. Timeout watchdog de 15s (patron del bug C10 en fetchService).
+        //      El save toca 3 tablas (servicios_publicados + disponibilidad_
+        //      semanal + excepciones_disponibilidad) y puede colgarse por
+        //      contencion del lock de auth o network hiccup. Sin cap, el
+        //      spinner queda para siempre.
+        //   3. Toast visible en TODO fallo (bd, timeout o excepcion) —
+        //      antes el catch mudo dejaba al proveedor sin feedback.
+
         const sizes = [];
         if (perros) {
             if (tamanoPequeno) sizes.push('pequeño');
@@ -569,158 +583,186 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             anticipacion_max_dias: anticipacionMaxDias,
         };
 
-        let savedServicioId: string | null = existingServiceId ?? null;
-        if (existingServiceId) {
-            const { error } = await supabase.from('servicios_publicados').update(payload).eq('id', existingServiceId);
-            if (error) {
-                toast.error('Error al actualizar: ' + error.message);
-                setLoading(false);
-                return;
-            }
-        } else {
-            const { data: inserted, error } = await supabase
-                .from('servicios_publicados')
-                .insert({ ...payload, activo: true })
-                .select('id')
-                .single();
-            if (error) {
-                toast.error('Error al publicar: ' + error.message);
-                setLoading(false);
-                return;
-            }
-            savedServicioId = inserted?.id ?? null;
-        }
-
-        // F1 agenda: diff quirurgico de franjas semanales. Aplicamos INSERT/
-        // UPDATE/DELETE por id contra el snapshot inicial. Si opt-out
-        // (usaAgendaReal=false) preservamos las franjas existentes — el
-        // proveedor puede re-activar sin re-armar la semana. Los servicios
-        // nuevos no tienen snapshot, asi que todo cae a INSERT. Best-effort:
-        // si algo falla, avisamos pero el UPDATE del servicio ya paso.
-        if (savedServicioId && usaAgendaReal) {
-            const idsActuales = new Set(franjasSemana.filter(f => f.id).map(f => f.id!));
-            const toDelete = franjasSemanaInicial.filter(f => f.id && !idsActuales.has(f.id));
-            const toInsert = franjasSemana.filter(f => !f.id);
-            const toUpdate: FranjaSemanal[] = [];
-            for (const f of franjasSemana) {
-                if (!f.id) continue;
-                const inicial = franjasSemanaInicial.find(i => i.id === f.id);
-                if (!inicial) continue;
-                if (
-                    inicial.dia_semana !== f.dia_semana ||
-                    inicial.hora_desde !== f.hora_desde ||
-                    inicial.hora_hasta !== f.hora_hasta
-                ) {
-                    toUpdate.push(f);
+        // Toda la logica de guardado — envuelta en promise para poder
+        // race-la contra el timeout. Retorna true si el guardado se
+        // completo sin errores propios (BD ok, diff ok); false si hubo
+        // un error propio ya reportado con toast (asi el catch external
+        // no lo re-reporta). Los throws inesperados escapan al catch
+        // external.
+        const savePromise = (async (): Promise<boolean> => {
+            let savedServicioId: string | null = existingServiceId ?? null;
+            if (existingServiceId) {
+                const { error } = await supabase.from('servicios_publicados').update(payload).eq('id', existingServiceId);
+                if (error) {
+                    toast.error('Error al actualizar: ' + error.message);
+                    return false;
                 }
+            } else {
+                const { data: inserted, error } = await supabase
+                    .from('servicios_publicados')
+                    .insert({ ...payload, activo: true })
+                    .select('id')
+                    .single();
+                if (error) {
+                    toast.error('Error al publicar: ' + error.message);
+                    return false;
+                }
+                savedServicioId = inserted?.id ?? null;
             }
 
-            let franjasErr: string | null = null;
-            if (toDelete.length > 0) {
-                const { error } = await supabase
-                    .from('disponibilidad_semanal')
-                    .delete()
-                    .in('id', toDelete.map(f => f.id!));
-                if (error) franjasErr = error.message;
-            }
-            if (!franjasErr && toInsert.length > 0) {
-                const { error } = await supabase
-                    .from('disponibilidad_semanal')
-                    .insert(toInsert.map(f => ({
-                        servicio_id: savedServicioId,
-                        dia_semana: f.dia_semana,
-                        hora_desde: f.hora_desde,
-                        hora_hasta: f.hora_hasta,
-                    })));
-                if (error) franjasErr = error.message;
-            }
-            if (!franjasErr) {
-                for (const f of toUpdate) {
+            // F1 agenda: diff quirurgico de franjas semanales. Aplicamos
+            // INSERT/UPDATE/DELETE por id contra el snapshot inicial. Si
+            // opt-out (usaAgendaReal=false) preservamos las franjas
+            // existentes — el proveedor puede re-activar sin re-armar la
+            // semana. Los servicios nuevos no tienen snapshot, asi que
+            // todo cae a INSERT. Best-effort: si algo falla, avisamos pero
+            // el UPDATE del servicio ya paso.
+            if (savedServicioId && usaAgendaReal) {
+                const idsActuales = new Set(franjasSemana.filter(f => f.id).map(f => f.id!));
+                const toDelete = franjasSemanaInicial.filter(f => f.id && !idsActuales.has(f.id));
+                const toInsert = franjasSemana.filter(f => !f.id);
+                const toUpdate: FranjaSemanal[] = [];
+                for (const f of franjasSemana) {
+                    if (!f.id) continue;
+                    const inicial = franjasSemanaInicial.find(i => i.id === f.id);
+                    if (!inicial) continue;
+                    if (
+                        inicial.dia_semana !== f.dia_semana ||
+                        inicial.hora_desde !== f.hora_desde ||
+                        inicial.hora_hasta !== f.hora_hasta
+                    ) {
+                        toUpdate.push(f);
+                    }
+                }
+
+                let franjasErr: string | null = null;
+                if (toDelete.length > 0) {
                     const { error } = await supabase
                         .from('disponibilidad_semanal')
-                        .update({
+                        .delete()
+                        .in('id', toDelete.map(f => f.id!));
+                    if (error) franjasErr = error.message;
+                }
+                if (!franjasErr && toInsert.length > 0) {
+                    const { error } = await supabase
+                        .from('disponibilidad_semanal')
+                        .insert(toInsert.map(f => ({
+                            servicio_id: savedServicioId,
                             dia_semana: f.dia_semana,
                             hora_desde: f.hora_desde,
                             hora_hasta: f.hora_hasta,
-                        })
-                        .eq('id', f.id!);
-                    if (error) { franjasErr = error.message; break; }
+                        })));
+                    if (error) franjasErr = error.message;
                 }
-            }
-
-            if (franjasErr) {
-                toast.error('Servicio guardado, pero hubo un problema con la agenda: ' + franjasErr);
-                setLoading(false);
-                return;
-            }
-
-            // Diff quirurgico de excepciones — mismo patron que franjas.
-            // Comparamos vs snapshot inicial (solo futuras). Historicas quedan
-            // intactas en BD porque nunca las trajimos ni las tocamos.
-            const idsExcActuales = new Set(excepciones.filter(e => e.id).map(e => e.id!));
-            const excToDelete = excepcionesInicial.filter(e => e.id && !idsExcActuales.has(e.id));
-            const excToInsert = excepciones.filter(e => !e.id);
-            const excToUpdate: Excepcion[] = [];
-            for (const e of excepciones) {
-                if (!e.id) continue;
-                const inicial = excepcionesInicial.find(i => i.id === e.id);
-                if (!inicial) continue;
-                if (
-                    inicial.fecha !== e.fecha ||
-                    inicial.hora_desde !== e.hora_desde ||
-                    inicial.hora_hasta !== e.hora_hasta ||
-                    (inicial.motivo ?? null) !== (e.motivo ?? null)
-                ) {
-                    excToUpdate.push(e);
+                if (!franjasErr) {
+                    for (const f of toUpdate) {
+                        const { error } = await supabase
+                            .from('disponibilidad_semanal')
+                            .update({
+                                dia_semana: f.dia_semana,
+                                hora_desde: f.hora_desde,
+                                hora_hasta: f.hora_hasta,
+                            })
+                            .eq('id', f.id!);
+                        if (error) { franjasErr = error.message; break; }
+                    }
                 }
-            }
 
-            let excErr: string | null = null;
-            if (excToDelete.length > 0) {
-                const { error } = await supabase
-                    .from('excepciones_disponibilidad')
-                    .delete()
-                    .in('id', excToDelete.map(e => e.id!));
-                if (error) excErr = error.message;
-            }
-            if (!excErr && excToInsert.length > 0) {
-                const { error } = await supabase
-                    .from('excepciones_disponibilidad')
-                    .insert(excToInsert.map(e => ({
-                        servicio_id: savedServicioId,
-                        fecha: e.fecha,
-                        hora_desde: e.hora_desde,
-                        hora_hasta: e.hora_hasta,
-                        motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
-                    })));
-                if (error) excErr = error.message;
-            }
-            if (!excErr) {
-                for (const e of excToUpdate) {
+                if (franjasErr) {
+                    toast.error('Servicio guardado, pero hubo un problema con la agenda: ' + franjasErr);
+                    return false;
+                }
+
+                // Diff quirurgico de excepciones — mismo patron que franjas.
+                // Comparamos vs snapshot inicial (solo futuras). Historicas
+                // quedan intactas en BD porque nunca las trajimos ni las
+                // tocamos.
+                const idsExcActuales = new Set(excepciones.filter(e => e.id).map(e => e.id!));
+                const excToDelete = excepcionesInicial.filter(e => e.id && !idsExcActuales.has(e.id));
+                const excToInsert = excepciones.filter(e => !e.id);
+                const excToUpdate: Excepcion[] = [];
+                for (const e of excepciones) {
+                    if (!e.id) continue;
+                    const inicial = excepcionesInicial.find(i => i.id === e.id);
+                    if (!inicial) continue;
+                    if (
+                        inicial.fecha !== e.fecha ||
+                        inicial.hora_desde !== e.hora_desde ||
+                        inicial.hora_hasta !== e.hora_hasta ||
+                        (inicial.motivo ?? null) !== (e.motivo ?? null)
+                    ) {
+                        excToUpdate.push(e);
+                    }
+                }
+
+                let excErr: string | null = null;
+                if (excToDelete.length > 0) {
                     const { error } = await supabase
                         .from('excepciones_disponibilidad')
-                        .update({
+                        .delete()
+                        .in('id', excToDelete.map(e => e.id!));
+                    if (error) excErr = error.message;
+                }
+                if (!excErr && excToInsert.length > 0) {
+                    const { error } = await supabase
+                        .from('excepciones_disponibilidad')
+                        .insert(excToInsert.map(e => ({
+                            servicio_id: savedServicioId,
                             fecha: e.fecha,
                             hora_desde: e.hora_desde,
                             hora_hasta: e.hora_hasta,
                             motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
-                        })
-                        .eq('id', e.id!);
-                    if (error) { excErr = error.message; break; }
+                        })));
+                    if (error) excErr = error.message;
+                }
+                if (!excErr) {
+                    for (const e of excToUpdate) {
+                        const { error } = await supabase
+                            .from('excepciones_disponibilidad')
+                            .update({
+                                fecha: e.fecha,
+                                hora_desde: e.hora_desde,
+                                hora_hasta: e.hora_hasta,
+                                motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
+                            })
+                            .eq('id', e.id!);
+                        if (error) { excErr = error.message; break; }
+                    }
+                }
+
+                if (excErr) {
+                    toast.error('Servicio guardado, pero hubo un problema con las excepciones: ' + excErr);
+                    return false;
                 }
             }
 
-            if (excErr) {
-                toast.error('Servicio guardado, pero hubo un problema con las excepciones: ' + excErr);
-                setLoading(false);
-                return;
-            }
-        }
+            return true;
+        })();
 
-        toast.success(existingServiceId ? 'Servicio actualizado correctamente' : 'Servicio publicado correctamente');
-        onSuccess();
-        onClose();
-        setLoading(false);
+        const SAVE_TIMEOUT_MS = 15_000;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('save-timeout')), SAVE_TIMEOUT_MS);
+        });
+
+        try {
+            const ok = await Promise.race([savePromise, timeoutPromise]);
+            if (ok) {
+                toast.success(existingServiceId ? 'Servicio actualizado correctamente' : 'Servicio publicado correctamente');
+                onSuccess();
+                onClose();
+            }
+        } catch (err: any) {
+            if (err?.message === 'save-timeout') {
+                toast.error('El guardado tardó demasiado (15s). Verificá tu conexión y volvé a intentar.');
+            } else {
+                console.error('[ServiceFormModal] save error inesperado:', err);
+                toast.error('Ocurrió un error inesperado al guardar. Intentá nuevamente.');
+            }
+        } finally {
+            // Garantiza que el spinner siempre baje. Ante ok=true, ok=false y
+            // ante cualquier throw (BD, timeout, TypeError, sesion expirada).
+            setLoading(false);
+        }
     };
 
     // Derivaciones que alimentan hooks o handleSubmit (closure). Suben arriba
@@ -1129,19 +1171,53 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 </div>
                             </div>
 
-                            {/* ── SECCIÓN: Agenda con disponibilidad real (F1) ──
-                                Toggle opt-in por servicio. Solo aparece para
-                                categorias de bloque horario (paseos, peluqueria,
-                                adiestramiento, veterinario, traslado). Cuidado y
-                                guarderia quedan para F2/F3.
+                            {/* ── SECCIÓN: Agendamiento (toggle maestro) ──
+                                Interruptor per-servicio. Cuando esta OFF, el
+                                CTA "Solicitar agendamiento" no aparece en la
+                                ficha publica — el servicio no acepta agenda
+                                de ningun tipo (ni flujo viejo ni agenda real).
+                                Va PRIMERO porque es el gate del que depende la
+                                seccion de agenda real (F1) que sigue abajo. */}
+                            <div className="border-t border-slate-100 py-6">
+                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agendamiento</p>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <div className="relative shrink-0 mt-0.5">
+                                        <input
+                                            type="checkbox"
+                                            checked={agendamientoHabilitado}
+                                            onChange={e => setAgendamientoHabilitado(e.target.checked)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
+                                        <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-sm text-slate-700 block">Habilitar solicitudes de agendamiento</span>
+                                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Si está habilitado, los tutores podrán solicitar agendamientos para este servicio desde la ficha pública. Vos confirmas o rechazas cada solicitud desde tu panel.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
 
-                                Cuando el toggle esta ON:
+                            {/* ── SECCIÓN: Agenda con disponibilidad real (F1) ──
+                                Toggle opt-in por servicio, subordinado al toggle
+                                maestro de arriba. Solo aparece para categorias
+                                de bloque horario (paseos, peluqueria, adiestramiento,
+                                veterinario, traslado) Y con agendamiento maestro
+                                habilitado. Cuidado y guarderia quedan para F2/F3.
+
+                                Cuando esta ON:
                                   - Se oculta el editor legacy (7 dias x 1 franja
                                     JSONB text) — fuente de verdad pasa a las tablas
                                     disponibilidad_semanal + excepciones_disponibilidad.
                                   - El tutor ve un picker rigido de slots libres
-                                    en vez de pedir fecha a ciegas (Incremento 4). */}
-                            {admiteAgenda && (
+                                    en vez de pedir fecha a ciegas (Incremento 4).
+
+                                Nota: cuando el maestro se apaga, la config de agenda
+                                (usaAgendaReal + franjas + excepciones) se preserva
+                                en state y en BD — undo natural al reactivar. */}
+                            {admiteAgenda && agendamientoHabilitado && (
                                 <div className="border-t border-slate-100 py-6">
                                     <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda con disponibilidad real</p>
                                     <label className="flex items-start gap-3 cursor-pointer">
@@ -1411,34 +1487,6 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     )}
                                 </div>
                             )}
-
-                            {/* ── SECCIÓN: Agendamiento ──
-                                Sprint 1 (UI only). Toggle per-servicio. La
-                                ficha publica del servicio mostrara el CTA
-                                "Solicitar agendamiento" cuando este flag sea
-                                true (Sprint 2). El panel de solicitudes del
-                                proveedor es Sprint 3. */}
-                            <div className="border-t border-slate-100 py-6">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agendamiento</p>
-                                <label className="flex items-start gap-3 cursor-pointer">
-                                    <div className="relative shrink-0 mt-0.5">
-                                        <input
-                                            type="checkbox"
-                                            checked={agendamientoHabilitado}
-                                            onChange={e => setAgendamientoHabilitado(e.target.checked)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
-                                        <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <span className="text-sm text-slate-700 block">Habilitar solicitudes de agendamiento</span>
-                                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                            Si está habilitado, los tutores podrán solicitar agendamientos para este servicio desde la ficha pública. Vos confirmas o rechazas cada solicitud desde tu panel.
-                                        </p>
-                                    </div>
-                                </label>
-                            </div>
 
                             {/* ── SECCIÓN 3: Mascotas ── */}
                             <div className="border-t border-slate-100 py-6">
