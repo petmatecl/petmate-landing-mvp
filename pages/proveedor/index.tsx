@@ -404,7 +404,7 @@ export default function ProveedorDashboard() {
                 mensaje, estado, nota_proveedor,
                 respondido_at, created_at, updated_at,
                 mascota_id, tipo_mascota_texto,
-                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
+                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo),
                 mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, raza, sexo, fecha_nacimiento, tamano, descripcion, enfermedades, trato_especial, trato_especial_desc, foto_mascota, fotos_galeria)
             `)
@@ -2234,9 +2234,15 @@ export default function ProveedorDashboard() {
                                             }
                                         })();
 
-                                        const tutorIniciales = tutor
-                                            ? ((tutor.nombre || '?')[0] + (tutor.apellido_p || '')[0] || '').toUpperCase()
-                                            : '?';
+                                        // usuarios_buscadores.nombre trae el full name en un solo
+                                        // campo (no hay apellido_p separado). Iniciales = primera
+                                        // letra de los primeros dos tokens.
+                                        const tutorIniciales = (() => {
+                                            const tokens = (tutor?.nombre || '?').trim().split(/\s+/).filter(Boolean);
+                                            if (tokens.length === 0) return '?';
+                                            if (tokens.length === 1) return tokens[0][0].toUpperCase();
+                                            return (tokens[0][0] + tokens[1][0]).toUpperCase();
+                                        })();
 
                                         return (
                                             <div key={sol.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
@@ -2248,7 +2254,7 @@ export default function ProveedorDashboard() {
                                                         </div>
                                                         <div className="min-w-0">
                                                             <p className="text-sm font-semibold text-slate-900 truncate">
-                                                                {tutor ? `${tutor.nombre} ${tutor.apellido_p || ''}`.trim() : 'Tutor desconocido'}
+                                                                {tutor?.nombre || 'Tutor desconocido'}
                                                             </p>
                                                             <p className="text-xs text-slate-500 truncate">
                                                                 {servicio?.titulo || 'Servicio eliminado'}

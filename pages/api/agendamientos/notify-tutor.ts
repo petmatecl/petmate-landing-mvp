@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
                 estado, nota_proveedor, tutor_id, proveedor_id, servicio_id,
-                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre, apellido_p),
+                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre, telefono, whatsapp, mostrar_telefono, mostrar_whatsapp),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)

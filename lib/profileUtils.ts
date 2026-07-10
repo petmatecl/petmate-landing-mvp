@@ -3,6 +3,8 @@ import { supabase } from './supabaseClient';
 export interface ParticipantProfile {
     auth_user_id: string;
     nombre: string;
+    // apellido_p y foto_perfil solo se pueblan cuando el perfil viene de
+    // proveedores. usuarios_buscadores NO tiene esas columnas.
     apellido_p?: string;
     foto_perfil?: string;
     email?: string;
@@ -21,9 +23,11 @@ export async function getParticipantProfile(authUserId: string): Promise<Partici
         .maybeSingle();
     if (prov) return prov;
 
+    // usuarios_buscadores solo tiene nombre (no apellido_p, no foto_perfil).
+    // Pedir esas columnas devuelve 42703 y rompe el fetch entero.
     const { data: bus } = await supabase
         .from('usuarios_buscadores')
-        .select('auth_user_id, nombre, apellido_p, foto_perfil')
+        .select('auth_user_id, nombre')
         .eq('auth_user_id', authUserId)
         .maybeSingle();
     return bus || null;

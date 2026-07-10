@@ -45,9 +45,12 @@ function AdminNotifications() {
             .order('created_at', { ascending: false })
             .limit(10);
 
+        // usuarios_buscadores solo tiene `nombre` (full name concatenado);
+        // apellido_p vive solo en proveedores. El render de abajo maneja
+        // ambos casos con filter(Boolean).join(' ').
         const { data: recentBuscadores } = await supabase
             .from('usuarios_buscadores')
-            .select('id, nombre, apellido_p, created_at')
+            .select('id, nombre, created_at')
             .order('created_at', { ascending: false })
             .limit(10);
 
@@ -157,7 +160,7 @@ function AdminNotifications() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-slate-900 truncate">
-                                                <span className="font-semibold">{user.nombre} {user.apellido_p}</span> se registró como {user.tipo === 'proveedor' ? 'Proveedor' : 'Usuario'}.
+                                                <span className="font-semibold">{[user.nombre, user.apellido_p].filter(Boolean).join(' ')}</span> se registró como {user.tipo === 'proveedor' ? 'Proveedor' : 'Usuario'}.
                                             </p>
                                             <p className="text-xs text-slate-500">
                                                 {new Date(user.created_at).toLocaleString('es-CL')}
