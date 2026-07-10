@@ -30,6 +30,20 @@ export type ModoTarifa = 'noches' | 'horas';
 
 export const CATEGORIAS_MULTI_DIA: ReadonlySet<string> = new Set(['cuidado']);
 
+// F1 del roadmap "agenda con disponibilidad real" — solo categorias de bloque
+// horario admiten el toggle de agenda en el editor. Cuidado (rango-noches) y
+// guarderia (cupo diario) requieren modelos distintos y quedan para F2/F3.
+// Slugs BD (matchean seed 20260506_seed_demos:325+ y explorar): `paseos`,
+// `peluqueria`, `adiestramiento`, `veterinario`, `traslado`.
+export const CATEGORIAS_BLOQUE_HORARIO_F1: ReadonlySet<string> = new Set([
+    'paseos', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado',
+]);
+
+export function categoriaAdmiteAgendaF1(slug: string | null | undefined): boolean {
+    if (!slug) return false;
+    return CATEGORIAS_BLOQUE_HORARIO_F1.has(slug);
+}
+
 // Labels canonicos para mostrar al tutor en el chip selector + al proveedor
 // en /mis-solicitudes / panel / emails. Espejan los labels neutros de
 // lib/camposPorCategoria.ts (cuidado.modalidad opciones). Mantener en sync

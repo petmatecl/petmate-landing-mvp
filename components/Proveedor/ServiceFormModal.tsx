@@ -5,6 +5,31 @@ import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } f
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { useUser } from '../../contexts/UserContext';
+import { categoriaAdmiteAgendaF1 } from '../../lib/categoriaTemporal';
+
+// Fase 1 agenda con disponibilidad real — Incremento 2A.
+// Constantes del editor semanal. Duracion en minutos: opciones canonicas
+// que cubren el rango 5-480 (schema CHECK). ISO dia_semana 1=lunes, 7=domingo.
+const DURACION_SLOT_OPCIONES = [15, 30, 45, 60, 90, 120, 180, 240] as const;
+const DIAS_SEMANA: { iso: number; label: string; corto: string }[] = [
+    { iso: 1, label: 'Lunes', corto: 'Lun' },
+    { iso: 2, label: 'Martes', corto: 'Mar' },
+    { iso: 3, label: 'Miércoles', corto: 'Mié' },
+    { iso: 4, label: 'Jueves', corto: 'Jue' },
+    { iso: 5, label: 'Viernes', corto: 'Vie' },
+    { iso: 6, label: 'Sábado', corto: 'Sáb' },
+    { iso: 7, label: 'Domingo', corto: 'Dom' },
+];
+
+// Franja semanal — id undefined para nuevas (aun no persistidas). El diff
+// quirurgico al guardar compara vs snapshot inicial para decidir INSERT/
+// UPDATE/DELETE por id. hora_desde/hora_hasta en formato HH:MM (input type=time).
+type FranjaSemanal = {
+    id?: string;
+    dia_semana: number;
+    hora_desde: string;
+    hora_hasta: string;
+};
 
 interface ServiceFormModalProps {
     isOpen: boolean;
@@ -60,6 +85,22 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     // Sprint 1 agendamiento (UI). Toggle por servicio. La columna en BD
     // tiene default false; este state respeta ese default para nuevos.
     const [agendamientoHabilitado, setAgendamientoHabilitado] = useState(false);
+
+    // F1 agenda con disponibilidad real (Incremento 2A). Opt-in por servicio.
+    // usaAgendaReal se mapea a `duracion_slot_min IS NOT NULL` al load/save —
+    // no persiste como columna propia; es puro state UI. Los defaults matchean
+    // los defaults del schema (capacidad=1, antic 24h/60d, duracion 60min como
+    // arranque comun).
+    const [usaAgendaReal, setUsaAgendaReal] = useState(false);
+    const [duracionSlotMin, setDuracionSlotMin] = useState<number>(60);
+    const [capacidadSlot, setCapacidadSlot] = useState<number>(1);
+    const [anticipacionMinHoras, setAnticipacionMinHoras] = useState<number>(24);
+    const [anticipacionMaxDias, setAnticipacionMaxDias] = useState<number>(60);
+    const [franjasSemana, setFranjasSemana] = useState<FranjaSemanal[]>([]);
+    // Snapshot inicial para el diff quirurgico al guardar. Solo las franjas
+    // que traiamos de BD llevan id — las nuevas no tienen, y las eliminadas
+    // desaparecen de `franjasSemana` pero siguen en el snapshot inicial.
+    const [franjasSemanaInicial, setFranjasSemanaInicial] = useState<FranjaSemanal[]>([]);
 
     // Category-specific fields (stored as JSONB)
     const [detalles, setDetalles] = useState<Record<string, any>>({});
@@ -125,6 +166,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setComunasCobertura([]);
         setComunaSearch('');
         setAgendamientoHabilitado(false);
+        setUsaAgendaReal(false);
+        setDuracionSlotMin(60);
+        setCapacidadSlot(1);
+        setAnticipacionMinHoras(24);
+        setAnticipacionMaxDias(60);
+        setFranjasSemana([]);
+        setFranjasSemanaInicial([]);
     };
 
     const fetchCategorias = useCallback(async () => {
@@ -181,6 +229,44 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 setDetalles(data.detalles || {});
                 setComunasCobertura(data.comunas_cobertura || []);
                 setAgendamientoHabilitado(!!data.agendamiento_habilitado);
+
+                // F1 agenda: usaAgendaReal se deriva de que duracion_slot_min
+                // este poblada. Si NULL el servicio esta opt-out del sistema
+                // nuevo — sigue el flujo viejo aunque las otras columnas
+                // (capacidad, anticipaciones) tengan defaults.
+                const hasAgenda = data.duracion_slot_min !== null && data.duracion_slot_min !== undefined;
+                setUsaAgendaReal(hasAgenda);
+                if (hasAgenda) {
+                    setDuracionSlotMin(data.duracion_slot_min);
+                }
+                setCapacidadSlot(data.capacidad_slot ?? 1);
+                setAnticipacionMinHoras(data.anticipacion_min_horas ?? 24);
+                setAnticipacionMaxDias(data.anticipacion_max_dias ?? 60);
+
+                // Fetch franjas semanales del servicio. Sin importar si esta
+                // opt-in ahora — si toggleamos opt-in mid-sesion queremos
+                // mostrar lo ultimo que habia. RLS gatea acceso a lo del
+                // proveedor logueado.
+                const { data: franjas, error: franjasErr } = await supabase
+                    .from('disponibilidad_semanal')
+                    .select('id, dia_semana, hora_desde, hora_hasta')
+                    .eq('servicio_id', id)
+                    .order('dia_semana', { ascending: true })
+                    .order('hora_desde', { ascending: true });
+                if (franjasErr) {
+                    console.warn('[ServiceFormModal] fetch franjas fallo:', franjasErr);
+                } else {
+                    // Postgres time viene como 'HH:MM:SS'; el input type=time
+                    // espera 'HH:MM'. Truncamos aca para render consistente.
+                    const parsed: FranjaSemanal[] = (franjas || []).map(f => ({
+                        id: f.id,
+                        dia_semana: f.dia_semana,
+                        hora_desde: (f.hora_desde as string).slice(0, 5),
+                        hora_hasta: (f.hora_hasta as string).slice(0, 5),
+                    }));
+                    setFranjasSemana(parsed);
+                    setFranjasSemanaInicial(parsed);
+                }
             }
         } catch (err: any) {
             if (err?.message === 'fetch-timeout') {
@@ -270,6 +356,47 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         if (comunasCobertura.length === 0) return toast.error("Selecciona al menos una comuna de cobertura.");
         if (fotos.length === 0) return toast.error("Agrega al menos una foto — los servicios con fotos reciben muchas más consultas.");
 
+        // F1 agenda — validaciones (solo si opt-in). El toggle no aparece si
+        // la categoria no admite F1, asi que no re-validamos categoria aca.
+        if (usaAgendaReal) {
+            if (!DURACION_SLOT_OPCIONES.includes(duracionSlotMin as any)) {
+                return toast.error('Selecciona una duracion de slot valida.');
+            }
+            if (!Number.isInteger(capacidadSlot) || capacidadSlot < 1 || capacidadSlot > 20) {
+                return toast.error('La capacidad por slot debe estar entre 1 y 20.');
+            }
+            if (!Number.isInteger(anticipacionMinHoras) || anticipacionMinHoras < 0 || anticipacionMinHoras > 168) {
+                return toast.error('La anticipacion minima debe estar entre 0 y 168 horas.');
+            }
+            if (!Number.isInteger(anticipacionMaxDias) || anticipacionMaxDias < 1 || anticipacionMaxDias > 365) {
+                return toast.error('La ventana maxima debe estar entre 1 y 365 dias.');
+            }
+            if (franjasSemana.length === 0) {
+                return toast.error('Agrega al menos una franja horaria en tu semana tipo.');
+            }
+            // Validaciones por franja: hasta > desde + no solape dentro del
+            // mismo dia. hh:mm en string compara lexicograficamente igual que
+            // como time — evita parseo a Date.
+            for (const f of franjasSemana) {
+                if (f.hora_hasta <= f.hora_desde) {
+                    const nombre = DIAS_SEMANA.find(d => d.iso === f.dia_semana)?.label ?? '';
+                    return toast.error(`${nombre}: la hora de fin debe ser posterior a la de inicio.`);
+                }
+            }
+            // Solape: para cada dia, ordenar por hora_desde y verificar que
+            // la siguiente empieza >= la actual.hora_hasta.
+            for (const dia of DIAS_SEMANA) {
+                const franjasDia = franjasSemana
+                    .filter(f => f.dia_semana === dia.iso)
+                    .sort((a, b) => a.hora_desde.localeCompare(b.hora_desde));
+                for (let i = 1; i < franjasDia.length; i++) {
+                    if (franjasDia[i].hora_desde < franjasDia[i - 1].hora_hasta) {
+                        return toast.error(`${dia.label}: hay franjas que se solapan.`);
+                    }
+                }
+            }
+        }
+
         setLoading(true);
 
         const sizes = [];
@@ -322,27 +449,107 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             detalles: detallesParaGuardar,
             comunas_cobertura: comunasCobertura,
             agendamiento_habilitado: agendamientoHabilitado,
+            // F1 agenda: duracion_slot_min NULL = opt-out. Las otras 3
+            // columnas siempre se envian con valor (default o custom); son
+            // inertes cuando duracion_slot_min es NULL, pero mantener el
+            // valor evita reset silencioso al re-activar. Si la categoria
+            // no admite F1 (guarderia/cuidado), duracion siempre NULL —
+            // defensivo aunque el toggle no aparezca en UI.
+            duracion_slot_min: (usaAgendaReal && categoriaAdmiteAgendaF1(selectedCatSlug)) ? duracionSlotMin : null,
+            capacidad_slot: capacidadSlot,
+            anticipacion_min_horas: anticipacionMinHoras,
+            anticipacion_max_dias: anticipacionMaxDias,
         };
 
+        let savedServicioId: string | null = existingServiceId ?? null;
         if (existingServiceId) {
             const { error } = await supabase.from('servicios_publicados').update(payload).eq('id', existingServiceId);
             if (error) {
                 toast.error('Error al actualizar: ' + error.message);
-            } else {
-                toast.success('Servicio actualizado correctamente');
-                onSuccess();
-                onClose();
+                setLoading(false);
+                return;
             }
         } else {
-            const { error } = await supabase.from('servicios_publicados').insert({ ...payload, activo: true });
+            const { data: inserted, error } = await supabase
+                .from('servicios_publicados')
+                .insert({ ...payload, activo: true })
+                .select('id')
+                .single();
             if (error) {
                 toast.error('Error al publicar: ' + error.message);
-            } else {
-                toast.success('Servicio publicado correctamente');
-                onSuccess();
-                onClose();
+                setLoading(false);
+                return;
+            }
+            savedServicioId = inserted?.id ?? null;
+        }
+
+        // F1 agenda: diff quirurgico de franjas semanales. Aplicamos INSERT/
+        // UPDATE/DELETE por id contra el snapshot inicial. Si opt-out
+        // (usaAgendaReal=false) preservamos las franjas existentes — el
+        // proveedor puede re-activar sin re-armar la semana. Los servicios
+        // nuevos no tienen snapshot, asi que todo cae a INSERT. Best-effort:
+        // si algo falla, avisamos pero el UPDATE del servicio ya paso.
+        if (savedServicioId && usaAgendaReal) {
+            const idsActuales = new Set(franjasSemana.filter(f => f.id).map(f => f.id!));
+            const toDelete = franjasSemanaInicial.filter(f => f.id && !idsActuales.has(f.id));
+            const toInsert = franjasSemana.filter(f => !f.id);
+            const toUpdate: FranjaSemanal[] = [];
+            for (const f of franjasSemana) {
+                if (!f.id) continue;
+                const inicial = franjasSemanaInicial.find(i => i.id === f.id);
+                if (!inicial) continue;
+                if (
+                    inicial.dia_semana !== f.dia_semana ||
+                    inicial.hora_desde !== f.hora_desde ||
+                    inicial.hora_hasta !== f.hora_hasta
+                ) {
+                    toUpdate.push(f);
+                }
+            }
+
+            let franjasErr: string | null = null;
+            if (toDelete.length > 0) {
+                const { error } = await supabase
+                    .from('disponibilidad_semanal')
+                    .delete()
+                    .in('id', toDelete.map(f => f.id!));
+                if (error) franjasErr = error.message;
+            }
+            if (!franjasErr && toInsert.length > 0) {
+                const { error } = await supabase
+                    .from('disponibilidad_semanal')
+                    .insert(toInsert.map(f => ({
+                        servicio_id: savedServicioId,
+                        dia_semana: f.dia_semana,
+                        hora_desde: f.hora_desde,
+                        hora_hasta: f.hora_hasta,
+                    })));
+                if (error) franjasErr = error.message;
+            }
+            if (!franjasErr) {
+                for (const f of toUpdate) {
+                    const { error } = await supabase
+                        .from('disponibilidad_semanal')
+                        .update({
+                            dia_semana: f.dia_semana,
+                            hora_desde: f.hora_desde,
+                            hora_hasta: f.hora_hasta,
+                        })
+                        .eq('id', f.id!);
+                    if (error) { franjasErr = error.message; break; }
+                }
+            }
+
+            if (franjasErr) {
+                toast.error('Servicio guardado, pero hubo un problema con la agenda: ' + franjasErr);
+                setLoading(false);
+                return;
             }
         }
+
+        toast.success(existingServiceId ? 'Servicio actualizado correctamente' : 'Servicio publicado correctamente');
+        onSuccess();
+        onClose();
         setLoading(false);
     };
 
@@ -382,6 +589,32 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         Object.assign(merged, detalles || {});
         return merged;
     }, [camposCategoria, detalles]);
+
+    // F1 agenda: handlers para el editor de semana tipo. Todos operan sobre
+    // el state franjasSemana; el diff quirurgico al save compara vs snapshot
+    // inicial para decidir INSERT/UPDATE/DELETE. Franjas nuevas nacen sin id.
+    const addFranja = (diaIso: number) => {
+        // Default sensato: si el dia ya tiene franjas, la nueva empieza en
+        // la hora_hasta de la ultima (continuar), sino 09:00-13:00.
+        const delDia = franjasSemana.filter(f => f.dia_semana === diaIso);
+        const ultima = delDia.length > 0 ? delDia.sort((a, b) => a.hora_desde.localeCompare(b.hora_desde))[delDia.length - 1] : null;
+        const desde = ultima ? ultima.hora_hasta : '09:00';
+        // Sumar 4h como default. Si "hora + 4" pasa de 23:59, capamos a 23:59.
+        const [h, m] = desde.split(':').map(n => parseInt(n, 10));
+        const finMin = Math.min(23 * 60 + 59, h * 60 + m + 240);
+        const hasta = `${String(Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;
+        setFranjasSemana(prev => [...prev, { dia_semana: diaIso, hora_desde: desde, hora_hasta: hasta }]);
+    };
+
+    const removeFranja = (index: number) => {
+        setFranjasSemana(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const updateFranja = (index: number, field: 'hora_desde' | 'hora_hasta', value: string) => {
+        setFranjasSemana(prev => prev.map((f, i) => i === index ? { ...f, [field]: value } : f));
+    };
+
+    const admiteAgenda = categoriaAdmiteAgendaF1(selectedCatSlug);
 
     if (!isOpen) return null;
 
@@ -574,6 +807,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         </div>
                                     </div>
 
+                                    {/* F1 agenda: el editor legacy (7 dias × 1 franja
+                                        JSONB text) se oculta cuando el modo agenda
+                                        real esta ON. Al opt-out vuelve a aparecer. */}
+                                    {!usaAgendaReal && (
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">Disponibilidad</label>
                                         <div className="space-y-1.5">
@@ -629,8 +866,183 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             })}
                                         </div>
                                     </div>
+                                    )}
                                 </div>
                             </div>
+
+                            {/* ── SECCIÓN: Agenda con disponibilidad real (F1) ──
+                                Toggle opt-in por servicio. Solo aparece para
+                                categorias de bloque horario (paseos, peluqueria,
+                                adiestramiento, veterinario, traslado). Cuidado y
+                                guarderia quedan para F2/F3.
+
+                                Cuando el toggle esta ON:
+                                  - Se oculta el editor legacy (7 dias x 1 franja
+                                    JSONB text) — fuente de verdad pasa a las tablas
+                                    disponibilidad_semanal + excepciones_disponibilidad.
+                                  - El tutor ve un picker rigido de slots libres
+                                    en vez de pedir fecha a ciegas (Incremento 4). */}
+                            {admiteAgenda && (
+                                <div className="border-t border-slate-100 py-6">
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda con disponibilidad real</p>
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <div className="relative shrink-0 mt-0.5">
+                                            <input
+                                                type="checkbox"
+                                                checked={usaAgendaReal}
+                                                onChange={e => setUsaAgendaReal(e.target.checked)}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
+                                            <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <span className="text-sm text-slate-700 block">Usar agenda con disponibilidad real</span>
+                                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                                Los tutores verán solo los horarios libres y tomarán hora directo — la solicitud queda confirmada sin que tengas que responder cada una. Se reemplaza el bloque de disponibilidad de arriba.
+                                            </p>
+                                        </div>
+                                    </label>
+
+                                    {usaAgendaReal && (
+                                        <div className="mt-5 space-y-6">
+
+                                            {/* Config del slot */}
+                                            <div>
+                                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">Configuración del slot</p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label htmlFor="agenda-duracion" className="block text-sm font-medium text-slate-700 mb-1.5">Duración del servicio</label>
+                                                        <select
+                                                            id="agenda-duracion"
+                                                            value={duracionSlotMin}
+                                                            onChange={e => setDuracionSlotMin(parseInt(e.target.value, 10))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        >
+                                                            {DURACION_SLOT_OPCIONES.map(min => (
+                                                                <option key={min} value={min}>
+                                                                    {min < 60
+                                                                        ? `${min} minutos`
+                                                                        : min === 60
+                                                                            ? '1 hora'
+                                                                            : min % 60 === 0
+                                                                                ? `${min / 60} horas`
+                                                                                : `${Math.floor(min / 60)}h ${min % 60}min`}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <p className="text-xs text-slate-400 mt-1">Cada slot dura esto — se corta de tus franjas.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="agenda-capacidad" className="block text-sm font-medium text-slate-700 mb-1.5">Capacidad por slot</label>
+                                                        <input
+                                                            id="agenda-capacidad"
+                                                            type="number"
+                                                            min={1}
+                                                            max={20}
+                                                            value={capacidadSlot}
+                                                            onChange={e => setCapacidadSlot(Math.max(1, Math.min(20, parseInt(e.target.value || '1', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">1 = individual. Mayor = grupal (paseo colectivo).</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="agenda-antic-min" className="block text-sm font-medium text-slate-700 mb-1.5">Anticipación mínima (horas)</label>
+                                                        <input
+                                                            id="agenda-antic-min"
+                                                            type="number"
+                                                            min={0}
+                                                            max={168}
+                                                            value={anticipacionMinHoras}
+                                                            onChange={e => setAnticipacionMinHoras(Math.max(0, Math.min(168, parseInt(e.target.value || '0', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Los tutores no pueden reservar con menos anticipación.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="agenda-antic-max" className="block text-sm font-medium text-slate-700 mb-1.5">Ventana máxima (días)</label>
+                                                        <input
+                                                            id="agenda-antic-max"
+                                                            type="number"
+                                                            min={1}
+                                                            max={365}
+                                                            value={anticipacionMaxDias}
+                                                            onChange={e => setAnticipacionMaxDias(Math.max(1, Math.min(365, parseInt(e.target.value || '1', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Cuántos días hacia adelante se pueden reservar.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Semana tipo — recurrencia multi-franja */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Semana tipo</p>
+                                                    <span className="text-xs text-slate-400">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {DIAS_SEMANA.map(dia => {
+                                                        const franjasDia = franjasSemana
+                                                            .map((f, i) => ({ f, i }))
+                                                            .filter(({ f }) => f.dia_semana === dia.iso)
+                                                            .sort((a, b) => a.f.hora_desde.localeCompare(b.f.hora_desde));
+                                                        return (
+                                                            <div key={dia.iso} className="flex flex-wrap items-start gap-2 py-2 border-b border-slate-100 last:border-b-0">
+                                                                <div className="w-16 shrink-0 pt-1.5">
+                                                                    <span className={`text-xs font-semibold ${franjasDia.length > 0 ? 'text-slate-700' : 'text-slate-400'}`}>{dia.corto}</span>
+                                                                </div>
+                                                                <div className="flex-1 min-w-0 space-y-1.5">
+                                                                    {franjasDia.length === 0 ? (
+                                                                        <p className="text-xs text-slate-300 italic pt-1.5">Sin franjas</p>
+                                                                    ) : (
+                                                                        franjasDia.map(({ f, i }) => (
+                                                                            <div key={i} className="flex items-center gap-1.5">
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={f.hora_desde}
+                                                                                    onChange={e => updateFranja(i, 'hora_desde', e.target.value)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={f.hora_hasta}
+                                                                                    onChange={e => updateFranja(i, 'hora_hasta', e.target.value)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => removeFranja(i)}
+                                                                                    className="text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                                    aria-label="Eliminar franja"
+                                                                                    title="Eliminar franja"
+                                                                                >
+                                                                                    <X size={14} />
+                                                                                </button>
+                                                                            </div>
+                                                                        ))
+                                                                    )}
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => addFranja(dia.iso)}
+                                                                    className="text-xs font-medium text-accent-700 hover:text-accent-800 hover:bg-accent-50 px-2 py-1 rounded-lg transition-colors shrink-0"
+                                                                >
+                                                                    + Franja
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                                                    Definí las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* ── SECCIÓN: Agendamiento ──
                                 Sprint 1 (UI only). Toggle per-servicio. La
