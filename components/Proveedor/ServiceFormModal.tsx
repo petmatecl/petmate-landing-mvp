@@ -351,6 +351,20 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             return;
         }
 
+        // El bucket `servicios-fotos` tiene politica INSERT que valida
+        // `(storage.foldername(name))[1] = auth.uid()::text`. El path
+        // arrancaba con `proveedorId` (id de proveedores) y NO auth.uid,
+        // asi que fallaba con RLS violation para toda cuenta donde ambos
+        // ids difieren (que son basicamente todas — proveedores es tabla
+        // aparte con id propio). Bug historico desde el commit inicial del
+        // panel (332ccf3). Alineado ahora al primer folder = auth.uid.
+        const { data: { session } } = await supabase.auth.getSession();
+        const authUid = session?.user?.id;
+        if (!authUid) {
+            toast.error('Tu sesion expiró. Recarga la página e inicia sesión de nuevo.');
+            return;
+        }
+
         setUploadingFotos(true);
         const newUrls: string[] = [];
 
@@ -362,7 +376,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
             const ext = file.name.split('.').pop();
             const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-            const filePath = `${proveedorId}/${fileName}`;
+            const filePath = `${authUid}/${fileName}`;
 
             const { data, error } = await supabase.storage.from('servicios-fotos').upload(filePath, file);
 
