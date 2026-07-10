@@ -5,7 +5,7 @@ import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } f
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { useUser } from '../../contexts/UserContext';
-import { categoriaAdmiteAgendaF1 } from '../../lib/categoriaTemporal';
+import { categoriaAdmiteAgendaF1, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
 
 // Fase 1 agenda con disponibilidad real — Incremento 2A.
 // Constantes del editor semanal. Duracion en minutos: opciones canonicas
@@ -419,10 +419,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         // la categoria no admite F1, asi que no re-validamos categoria aca.
         if (usaAgendaReal) {
             if (!DURACION_SLOT_OPCIONES.includes(duracionSlotMin as any)) {
-                return toast.error('Selecciona una duracion de slot valida.');
+                return toast.error(`Selecciona una duración ${sustantivo.del} válida.`);
             }
             if (!Number.isInteger(capacidadSlot) || capacidadSlot < 1 || capacidadSlot > 20) {
-                return toast.error('La capacidad por slot debe estar entre 1 y 20.');
+                return toast.error(`La capacidad por ${sustantivo.singular} debe estar entre 1 y 20.`);
             }
             if (!Number.isInteger(anticipacionMinHoras) || anticipacionMinHoras < 0 || anticipacionMinHoras > 168) {
                 return toast.error('La anticipacion minima debe estar entre 0 y 168 horas.');
@@ -859,6 +859,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     })();
 
     const admiteAgenda = categoriaAdmiteAgendaF1(selectedCatSlug);
+    const sustantivo = sustantivoAgendaPorCategoria(selectedCatSlug);
 
     if (!isOpen) return null;
 
@@ -1153,10 +1154,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                                             {/* Config del slot */}
                                             <div>
-                                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">Configuración del slot</p>
+                                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">Configuración {sustantivo.del}</p>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     <div>
-                                                        <label htmlFor="agenda-duracion" className="block text-sm font-medium text-slate-700 mb-1.5">Duración del servicio</label>
+                                                        <label htmlFor="agenda-duracion" className="block text-sm font-medium text-slate-700 mb-1.5">Duración {sustantivo.del}</label>
                                                         <select
                                                             id="agenda-duracion"
                                                             value={duracionSlotMin}
@@ -1175,10 +1176,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 </option>
                                                             ))}
                                                         </select>
-                                                        <p className="text-xs text-slate-400 mt-1">Cada slot dura esto — se corta de tus franjas.</p>
+                                                        <p className="text-xs text-slate-400 mt-1">Cada {sustantivo.singular} dura esto — se agenda dentro de tus franjas.</p>
                                                     </div>
                                                     <div>
-                                                        <label htmlFor="agenda-capacidad" className="block text-sm font-medium text-slate-700 mb-1.5">Capacidad por slot</label>
+                                                        <label htmlFor="agenda-capacidad" className="block text-sm font-medium text-slate-700 mb-1.5">Capacidad por {sustantivo.singular}</label>
                                                         <input
                                                             id="agenda-capacidad"
                                                             type="number"
@@ -1188,7 +1189,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             onChange={e => setCapacidadSlot(Math.max(1, Math.min(20, parseInt(e.target.value || '1', 10))))}
                                                             className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                                         />
-                                                        <p className="text-xs text-slate-400 mt-1">1 = individual. Mayor = grupal (paseo colectivo).</p>
+                                                        <p className="text-xs text-slate-400 mt-1">1 = individual. Mayor = grupal (varias mascotas por {sustantivo.singular}).</p>
                                                     </div>
                                                     <div>
                                                         <label htmlFor="agenda-antic-min" className="block text-sm font-medium text-slate-700 mb-1.5">Anticipación mínima (horas)</label>

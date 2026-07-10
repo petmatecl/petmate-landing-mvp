@@ -44,6 +44,34 @@ export function categoriaAdmiteAgendaF1(slug: string | null | undefined): boolea
     return CATEGORIAS_BLOQUE_HORARIO_F1.has(slug);
 }
 
+// Copy consciente de categoria para el editor de agenda. "slot" es jerga
+// tecnica — el proveedor piensa en paseos, sesiones, consultas. Este mapa
+// traduce por categoria; el `del` respeta genero (m/f) para armar frases
+// tipo "Configuración del paseo" vs "Configuración de la sesión".
+// El termino "slot" sigue viviendo en codigo/comments/columnas BD.
+export type SustantivoAgenda = {
+    singular: string;   // 'paseo'   | 'sesión' | 'consulta' | 'viaje' | 'servicio'
+    del: string;        // 'del paseo' | 'de la sesión' | ...
+};
+
+const SUSTANTIVO_POR_SLUG: Record<string, SustantivoAgenda> = {
+    paseos:         { singular: 'paseo',    del: 'del paseo'    },
+    peluqueria:     { singular: 'sesión',   del: 'de la sesión' },
+    adiestramiento: { singular: 'sesión',   del: 'de la sesión' },
+    veterinario:    { singular: 'consulta', del: 'de la consulta' },
+    traslado:       { singular: 'viaje',    del: 'del viaje'    },
+};
+
+const SUSTANTIVO_FALLBACK: SustantivoAgenda = {
+    singular: 'servicio',
+    del: 'del servicio',
+};
+
+export function sustantivoAgendaPorCategoria(slug: string | null | undefined): SustantivoAgenda {
+    if (!slug) return SUSTANTIVO_FALLBACK;
+    return SUSTANTIVO_POR_SLUG[slug] ?? SUSTANTIVO_FALLBACK;
+}
+
 // Labels canonicos para mostrar al tutor en el chip selector + al proveedor
 // en /mis-solicitudes / panel / emails. Espejan los labels neutros de
 // lib/camposPorCategoria.ts (cuidado.modalidad opciones). Mantener en sync
