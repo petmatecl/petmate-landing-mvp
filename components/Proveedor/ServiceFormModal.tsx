@@ -31,6 +31,32 @@ type FranjaSemanal = {
     hora_hasta: string;
 };
 
+// Excepcion de disponibilidad — bloqueo ad-hoc (vacaciones, dia libre, franja
+// tapada). Sin horas = dia completo bloqueado. Con horas = franja bloqueada
+// (ambas populadas o ambas null; el CHECK de BD lo protege). Motivo opcional.
+type Excepcion = {
+    id?: string;
+    fecha: string;                  // YYYY-MM-DD (input type=date)
+    hora_desde: string | null;      // HH:MM o null
+    hora_hasta: string | null;      // HH:MM o null
+    motivo: string | null;          // <=200 chars
+};
+
+const EXCEPCION_MOTIVO_MAX = 200;
+
+// Mapeo de la clave castellano del JSONB legacy a ISO dia_semana. Usado por
+// el import "traer mi horario actual". Los dias con tilde matchean lo que
+// el editor legacy escribe.
+const LEGACY_KEY_TO_ISO: Record<string, number> = {
+    'Lunes': 1,
+    'Martes': 2,
+    'Miércoles': 3,
+    'Jueves': 4,
+    'Viernes': 5,
+    'Sábado': 6,
+    'Domingo': 7,
+};
+
 interface ServiceFormModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -101,6 +127,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     // que traiamos de BD llevan id — las nuevas no tienen, y las eliminadas
     // desaparecen de `franjasSemana` pero siguen en el snapshot inicial.
     const [franjasSemanaInicial, setFranjasSemanaInicial] = useState<FranjaSemanal[]>([]);
+
+    // Excepciones futuras (fecha >= hoy). Historicas NO se traen ni se tocan
+    // — el diff al save solo opera sobre las que trajimos aca.
+    const [excepciones, setExcepciones] = useState<Excepcion[]>([]);
+    const [excepcionesInicial, setExcepcionesInicial] = useState<Excepcion[]>([]);
 
     // Category-specific fields (stored as JSONB)
     const [detalles, setDetalles] = useState<Record<string, any>>({});
@@ -173,6 +204,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setAnticipacionMaxDias(60);
         setFranjasSemana([]);
         setFranjasSemanaInicial([]);
+        setExcepciones([]);
+        setExcepcionesInicial([]);
     };
 
     const fetchCategorias = useCallback(async () => {
@@ -266,6 +299,32 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     }));
                     setFranjasSemana(parsed);
                     setFranjasSemanaInicial(parsed);
+                }
+
+                // Excepciones futuras (fecha >= hoy). Solo las futuras se
+                // traen y se muestran — el editor no gestiona las historicas
+                // (bloqueos ya cumplidos). El diff al save opera solo sobre
+                // este subset asi que las historicas quedan intactas en BD.
+                const todayIso = new Date().toISOString().slice(0, 10);
+                const { data: excs, error: excsErr } = await supabase
+                    .from('excepciones_disponibilidad')
+                    .select('id, fecha, hora_desde, hora_hasta, motivo')
+                    .eq('servicio_id', id)
+                    .gte('fecha', todayIso)
+                    .order('fecha', { ascending: true })
+                    .order('hora_desde', { ascending: true, nullsFirst: true });
+                if (excsErr) {
+                    console.warn('[ServiceFormModal] fetch excepciones fallo:', excsErr);
+                } else {
+                    const parsedExcs: Excepcion[] = (excs || []).map(e => ({
+                        id: e.id,
+                        fecha: e.fecha,
+                        hora_desde: e.hora_desde ? (e.hora_desde as string).slice(0, 5) : null,
+                        hora_hasta: e.hora_hasta ? (e.hora_hasta as string).slice(0, 5) : null,
+                        motivo: e.motivo ?? null,
+                    }));
+                    setExcepciones(parsedExcs);
+                    setExcepcionesInicial(parsedExcs);
                 }
             }
         } catch (err: any) {
@@ -394,6 +453,41 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                         return toast.error(`${dia.label}: hay franjas que se solapan.`);
                     }
                 }
+            }
+
+            // Validaciones de excepciones. El editor solo muestra futuras,
+            // asi que la BD-side date check por "no pasado" es redundante,
+            // pero cubre el caso de que el usuario edite la fecha manualmente.
+            const todayIso = new Date().toISOString().slice(0, 10);
+            for (const e of excepciones) {
+                if (!e.fecha) {
+                    return toast.error('Todas las excepciones necesitan una fecha.');
+                }
+                if (e.fecha < todayIso) {
+                    return toast.error(`Excepción del ${e.fecha}: la fecha debe ser desde hoy.`);
+                }
+                const desdeOn = !!e.hora_desde;
+                const hastaOn = !!e.hora_hasta;
+                if (desdeOn !== hastaOn) {
+                    return toast.error(`Excepción del ${e.fecha}: si indicas una hora, indica ambas (inicio y fin).`);
+                }
+                if (desdeOn && hastaOn && (e.hora_hasta as string) <= (e.hora_desde as string)) {
+                    return toast.error(`Excepción del ${e.fecha}: la hora de fin debe ser posterior a la de inicio.`);
+                }
+                if (e.motivo && e.motivo.length > EXCEPCION_MOTIVO_MAX) {
+                    return toast.error(`Excepción del ${e.fecha}: el motivo supera ${EXCEPCION_MOTIVO_MAX} caracteres.`);
+                }
+            }
+            // Duplicados (fecha + hora_desde) — el UNIQUE del schema lo
+            // protege, pero avisamos amable client-side. NULL en hora_desde
+            // se maneja como bucket propio ('__DIA_COMPLETO__').
+            const seen = new Set<string>();
+            for (const e of excepciones) {
+                const key = `${e.fecha}::${e.hora_desde ?? '__DIA_COMPLETO__'}`;
+                if (seen.has(key)) {
+                    return toast.error(`Excepción duplicada el ${e.fecha}${e.hora_desde ? ' a las ' + e.hora_desde : ''}.`);
+                }
+                seen.add(key);
             }
         }
 
@@ -545,6 +639,68 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 setLoading(false);
                 return;
             }
+
+            // Diff quirurgico de excepciones — mismo patron que franjas.
+            // Comparamos vs snapshot inicial (solo futuras). Historicas quedan
+            // intactas en BD porque nunca las trajimos ni las tocamos.
+            const idsExcActuales = new Set(excepciones.filter(e => e.id).map(e => e.id!));
+            const excToDelete = excepcionesInicial.filter(e => e.id && !idsExcActuales.has(e.id));
+            const excToInsert = excepciones.filter(e => !e.id);
+            const excToUpdate: Excepcion[] = [];
+            for (const e of excepciones) {
+                if (!e.id) continue;
+                const inicial = excepcionesInicial.find(i => i.id === e.id);
+                if (!inicial) continue;
+                if (
+                    inicial.fecha !== e.fecha ||
+                    inicial.hora_desde !== e.hora_desde ||
+                    inicial.hora_hasta !== e.hora_hasta ||
+                    (inicial.motivo ?? null) !== (e.motivo ?? null)
+                ) {
+                    excToUpdate.push(e);
+                }
+            }
+
+            let excErr: string | null = null;
+            if (excToDelete.length > 0) {
+                const { error } = await supabase
+                    .from('excepciones_disponibilidad')
+                    .delete()
+                    .in('id', excToDelete.map(e => e.id!));
+                if (error) excErr = error.message;
+            }
+            if (!excErr && excToInsert.length > 0) {
+                const { error } = await supabase
+                    .from('excepciones_disponibilidad')
+                    .insert(excToInsert.map(e => ({
+                        servicio_id: savedServicioId,
+                        fecha: e.fecha,
+                        hora_desde: e.hora_desde,
+                        hora_hasta: e.hora_hasta,
+                        motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
+                    })));
+                if (error) excErr = error.message;
+            }
+            if (!excErr) {
+                for (const e of excToUpdate) {
+                    const { error } = await supabase
+                        .from('excepciones_disponibilidad')
+                        .update({
+                            fecha: e.fecha,
+                            hora_desde: e.hora_desde,
+                            hora_hasta: e.hora_hasta,
+                            motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
+                        })
+                        .eq('id', e.id!);
+                    if (error) { excErr = error.message; break; }
+                }
+            }
+
+            if (excErr) {
+                toast.error('Servicio guardado, pero hubo un problema con las excepciones: ' + excErr);
+                setLoading(false);
+                return;
+            }
         }
 
         toast.success(existingServiceId ? 'Servicio actualizado correctamente' : 'Servicio publicado correctamente');
@@ -613,6 +769,94 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const updateFranja = (index: number, field: 'hora_desde' | 'hora_hasta', value: string) => {
         setFranjasSemana(prev => prev.map((f, i) => i === index ? { ...f, [field]: value } : f));
     };
+
+    // Excepciones: la nueva fila arranca con fecha = mañana (evita quedar en
+    // el pasado si el user demora tocandola) y modo dia-completo (mas comun
+    // que "franja tapada"). El toggle "dia completo / franja horaria" es un
+    // radio pair que trae hora_desde/hora_hasta a null o a defaults.
+    const addExcepcion = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const fecha = tomorrow.toISOString().slice(0, 10);
+        setExcepciones(prev => [...prev, { fecha, hora_desde: null, hora_hasta: null, motivo: null }]);
+    };
+
+    const removeExcepcion = (index: number) => {
+        setExcepciones(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const updateExcepcion = <K extends keyof Excepcion>(index: number, field: K, value: Excepcion[K]) => {
+        setExcepciones(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
+    };
+
+    const toggleExcepcionModo = (index: number, esDiaCompleto: boolean) => {
+        // Dia completo → ambas null. Franja → defaults 09:00-13:00. Cambio
+        // entre modos preserva el resto de la fila (fecha, motivo).
+        setExcepciones(prev => prev.map((e, i) => {
+            if (i !== index) return e;
+            return esDiaCompleto
+                ? { ...e, hora_desde: null, hora_hasta: null }
+                : { ...e, hora_desde: e.hora_desde ?? '09:00', hora_hasta: e.hora_hasta ?? '13:00' };
+        }));
+    };
+
+    // Import del horario legacy: parsea el JSONB text del campo `disponibilidad`
+    // y mapea cada dia activo → 1 franja en la semana tipo. Ejecucion EXPLICITA
+    // (botón). Si ya hay franjas cargadas, confirma antes de sobrescribir —
+    // sino silencioso reemplaza. Franjas legacy nacen sin id → INSERT al save.
+    const importarHorarioLegacy = () => {
+        let parsed: Record<string, any> = {};
+        try {
+            const raw = JSON.parse(disponibilidad || '{}');
+            if (raw && typeof raw === 'object' && !Array.isArray(raw)) parsed = raw;
+        } catch {
+            toast.error('No hay horario legacy válido para importar.');
+            return;
+        }
+
+        const nuevasFranjas: FranjaSemanal[] = [];
+        for (const [key, val] of Object.entries(parsed)) {
+            const iso = LEGACY_KEY_TO_ISO[key];
+            if (!iso) continue;
+            if (!val || typeof val !== 'object') continue;
+            if (val.activo !== true) continue;
+            const desde = typeof val.desde === 'string' ? val.desde.slice(0, 5) : null;
+            const hasta = typeof val.hasta === 'string' ? val.hasta.slice(0, 5) : null;
+            if (!desde || !hasta || hasta <= desde) continue;
+            nuevasFranjas.push({ dia_semana: iso, hora_desde: desde, hora_hasta: hasta });
+        }
+
+        if (nuevasFranjas.length === 0) {
+            toast.error('No encontramos dias activos en tu horario legacy.');
+            return;
+        }
+
+        if (franjasSemana.length > 0) {
+            const ok = window.confirm(
+                `Ya tienes ${franjasSemana.length} franja${franjasSemana.length === 1 ? '' : 's'} cargada${franjasSemana.length === 1 ? '' : 's'}. ` +
+                `Al importar se reemplazan por ${nuevasFranjas.length} franja${nuevasFranjas.length === 1 ? '' : 's'} del horario legacy. ` +
+                `¿Continuar?`
+            );
+            if (!ok) return;
+        }
+
+        setFranjasSemana(nuevasFranjas);
+        toast.success(`Se importaron ${nuevasFranjas.length} franjas del horario legacy.`);
+    };
+
+    // Es importable solo si hay algo parseable con al menos un dia activo.
+    // Cached simple — se recomputa en cada render, es barato.
+    const puedeImportarLegacy = (() => {
+        try {
+            const parsed = JSON.parse(disponibilidad || '{}');
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+            return Object.entries(parsed).some(([k, v]: [string, any]) =>
+                LEGACY_KEY_TO_ISO[k] && v?.activo === true
+            );
+        } catch {
+            return false;
+        }
+    })();
 
     const admiteAgenda = categoriaAdmiteAgendaF1(selectedCatSlug);
 
@@ -977,9 +1221,20 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                                             {/* Semana tipo — recurrencia multi-franja */}
                                             <div>
-                                                <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                                                     <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Semana tipo</p>
-                                                    <span className="text-xs text-slate-400">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
+                                                    <div className="flex items-center gap-3">
+                                                        {puedeImportarLegacy && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={importarHorarioLegacy}
+                                                                className="text-xs font-medium text-accent-700 hover:text-accent-800 hover:bg-accent-50 px-2 py-1 rounded-lg transition-colors"
+                                                            >
+                                                                Importar mi horario actual
+                                                            </button>
+                                                        )}
+                                                        <span className="text-xs text-slate-400">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
+                                                    </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     {DIAS_SEMANA.map(dia => {
@@ -1037,6 +1292,104 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 </div>
                                                 <p className="text-xs text-slate-400 mt-3 leading-relaxed">
                                                     Definí las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado.
+                                                </p>
+                                            </div>
+
+                                            {/* Excepciones — bloqueos ad-hoc futuros. Solo se
+                                                muestran/gestionan las futuras (fecha >= hoy);
+                                                las historicas quedan en BD sin tocar. */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Excepciones</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={addExcepcion}
+                                                        className="text-xs font-medium text-accent-700 hover:text-accent-800 hover:bg-accent-50 px-2 py-1 rounded-lg transition-colors"
+                                                    >
+                                                        + Agregar excepción
+                                                    </button>
+                                                </div>
+                                                {excepciones.length === 0 ? (
+                                                    <p className="text-xs text-slate-300 italic py-2">Sin excepciones futuras. Agrega una si tienes vacaciones o días bloqueados puntuales.</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {excepciones.map((e, i) => {
+                                                            const esDiaCompleto = e.hora_desde === null && e.hora_hasta === null;
+                                                            return (
+                                                                <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        <input
+                                                                            type="date"
+                                                                            value={e.fecha}
+                                                                            onChange={ev => updateExcepcion(i, 'fecha', ev.target.value)}
+                                                                            className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                        />
+                                                                        <div className="flex items-center gap-1 text-xs">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => toggleExcepcionModo(i, true)}
+                                                                                className={`px-2 py-1 rounded-lg border transition-colors ${
+                                                                                    esDiaCompleto
+                                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                                                                }`}
+                                                                            >
+                                                                                Día completo
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => toggleExcepcionModo(i, false)}
+                                                                                className={`px-2 py-1 rounded-lg border transition-colors ${
+                                                                                    !esDiaCompleto
+                                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                                                                }`}
+                                                                            >
+                                                                                Franja
+                                                                            </button>
+                                                                        </div>
+                                                                        {!esDiaCompleto && (
+                                                                            <div className="flex items-center gap-1.5">
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={e.hora_desde ?? ''}
+                                                                                    onChange={ev => updateExcepcion(i, 'hora_desde', ev.target.value || null)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={e.hora_hasta ?? ''}
+                                                                                    onChange={ev => updateExcepcion(i, 'hora_hasta', ev.target.value || null)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => removeExcepcion(i)}
+                                                                            className="ml-auto text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                            aria-label="Eliminar excepción"
+                                                                            title="Eliminar excepción"
+                                                                        >
+                                                                            <X size={14} />
+                                                                        </button>
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={e.motivo ?? ''}
+                                                                        onChange={ev => updateExcepcion(i, 'motivo', ev.target.value || null)}
+                                                                        maxLength={EXCEPCION_MOTIVO_MAX}
+                                                                        placeholder="Motivo (opcional) — ej. vacaciones, feriado, veterinario"
+                                                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                                                    Bloqueos puntuales para días o franjas específicas — cuando no cabe en la semana tipo. Solo se muestran las excepciones futuras.
                                                 </p>
                                             </div>
                                         </div>
