@@ -34,6 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!parsed.success) return res.status(400).json({ error: 'Invalid input' });
     const { agendamientoId } = parsed.data;
 
+    // Diagnostico Bug F1 smoke: log de entrada + salida al servidor. Sin
+    // exponer PII (userId truncado). Aldo revisa Vercel logs para trazar
+    // por que un fire-and-forget del picker no se completa.
+    console.log('[notify-proveedor] recibido', {
+        agendamientoId,
+        callerId: userId.slice(0, 8) + '…',
+    });
+
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -142,6 +150,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }) as React.ReactElement,
         });
 
+        console.log('[notify-proveedor] enviado', {
+            messageId: response.data?.id,
+            esConfirmadaAuto,
+            proveedorTo: authUser.user.email,
+        });
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
         console.error('[notify-proveedor] catch error:', error);

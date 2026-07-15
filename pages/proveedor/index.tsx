@@ -428,9 +428,44 @@ export default function ProveedorDashboard() {
         setSolicitudes([...pendientes, ...otras]);
     }, []);
 
+    // F1 agenda — badge del sidebar de Solicitudes. Con la reserva auto-
+    // confirmada, ya no basta contar pendientes (una reserva del picker no
+    // requiere accion pero el proveedor necesita enterarse). El count
+    // incluye:
+    //   - Pendientes: siempre (requieren respuesta).
+    //   - Confirmadas cuyo created_at > lastSeenAt (nueva reserva no vista).
+    // El lastSeenAt se persiste por proveedor en localStorage y se refresca
+    // al abrir el tab Solicitudes. Sin BD nueva — la "noción de visto" es
+    // local al browser del proveedor. Trade-off: si el proveedor entra desde
+    // otro browser, el badge se muestra hasta que abra el tab ahi. Aceptable
+    // — no vale la deuda de una tabla `visto` server-side para F1.
+    const [solicitudesLastSeenAt, setSolicitudesLastSeenAt] = useState<number>(0);
+
+    useEffect(() => {
+        if (!proveedor?.id || typeof window === 'undefined') return;
+        const raw = localStorage.getItem(`pawnecta.proveedor.solicitudes.lastSeenAt.${proveedor.id}`);
+        setSolicitudesLastSeenAt(raw ? parseInt(raw, 10) : 0);
+    }, [proveedor?.id]);
+
+    useEffect(() => {
+        if (activeTab !== 'solicitudes' || !proveedor?.id || typeof window === 'undefined') return;
+        const now = Date.now();
+        localStorage.setItem(`pawnecta.proveedor.solicitudes.lastSeenAt.${proveedor.id}`, String(now));
+        setSolicitudesLastSeenAt(now);
+    }, [activeTab, proveedor?.id]);
+
     const solicitudesPendientesCount = useMemo(
-        () => solicitudes.filter(s => s.estado === 'pendiente').length,
-        [solicitudes]
+        () => solicitudes.filter(s => {
+            if (s.estado === 'pendiente') return true;
+            if (s.estado === 'confirmada' && solicitudesLastSeenAt > 0) {
+                return new Date(s.created_at).getTime() > solicitudesLastSeenAt;
+            }
+            // Antes de leer localStorage (lastSeenAt = 0), solo pendientes
+            // aportan al badge — evita spike de "todas las confirmadas
+            // historicas son nuevas" al bootstrap.
+            return false;
+        }).length,
+        [solicitudes, solicitudesLastSeenAt]
     );
 
     const handleResponderSolicitud = useCallback(
