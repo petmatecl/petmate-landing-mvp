@@ -81,6 +81,7 @@ export default function MisSolicitudesPage() {
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
+                duracion_min, capacidad_snapshot, tutor_nombre,
                 respondido_at, created_at, updated_at,
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)
@@ -257,14 +258,33 @@ export default function MisSolicitudesPage() {
                     ? state.agendamientos.find(a => a.id === cancelDialogId)
                     : null;
                 const eraConfirmada = sol?.estado === 'confirmada';
+                // F1 agenda: reserva del picker (nacio confirmada, no la
+                // resolvio el proveedor). El copy cambia — el horario se
+                // libera al instante para otros tutores y al proveedor le
+                // llega un aviso.
+                const esReservaAgenda = sol?.duracion_min != null;
+                const esConfirmadaAuto = eraConfirmada && esReservaAgenda;
+                const title = esConfirmadaAuto
+                    ? 'Cancelar reserva'
+                    : eraConfirmada
+                        ? 'Cancelar cita confirmada'
+                        : '¿Cancelar esta solicitud?';
+                const message = esConfirmadaAuto
+                    ? 'Vas a liberar tu horario y avisaremos al proveedor por email. Si podés, contactalo antes para coordinar.'
+                    : eraConfirmada
+                        ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
+                        : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.';
+                const confirmLabel = esConfirmadaAuto
+                    ? 'Cancelar reserva'
+                    : eraConfirmada
+                        ? 'Cancelar cita'
+                        : 'Cancelar solicitud';
                 return (
                     <ConfirmDialog
                         open={cancelDialogId !== null}
-                        title={eraConfirmada ? 'Cancelar cita confirmada' : '¿Cancelar esta solicitud?'}
-                        message={eraConfirmada
-                            ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
-                            : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.'}
-                        confirmLabel={eraConfirmada ? 'Cancelar cita' : 'Cancelar solicitud'}
+                        title={title}
+                        message={message}
+                        confirmLabel={confirmLabel}
                         cancelLabel="Volver"
                         variant="danger"
                         loading={cancelLoading}
@@ -292,6 +312,12 @@ function SolicitudCard({
     const isRechazada = solicitud.estado === 'rechazada';
     const isCancelada = solicitud.estado === 'cancelada';
     const isCanceladaProveedor = solicitud.estado === 'cancelada_proveedor';
+    // F1 agenda — la reserva viene del picker rigido cuando duracion_min esta
+    // poblada (INSERT lo popula desde el servicio.duracion_slot_min). Sirve
+    // para diferenciar reservas auto-confirmadas del picker vs confirmadas
+    // resueltas por el proveedor (pendiente→confirmada del flujo viejo).
+    const esReservaAgenda = solicitud.duracion_min != null;
+    const esConfirmadaAuto = isConfirmada && esReservaAgenda;
 
     // Branching de formato segun variante: la combinacion de modo_tarifa +
     // fecha_fin encoda cual de V1/V2/V4a/V4b. No consultamos la categoria
@@ -422,12 +448,26 @@ function SolicitudCard({
                     : <p className="text-sm text-slate-500 italic">Sin mensaje adicional.</p>}
             </div>
 
-            {/* Respuesta del proveedor — confirmada / rechazada / cancelada_proveedor.
-                Tokens semanticos: success = confirmada (positivo), danger = rechazada
-                / cancelada_proveedor (negativo terminal). En cancelada_proveedor el
-                label cambia a "Motivo de la cancelación" — el tutor entiende que la
-                nota explica por que no va a suceder. */}
-            {(isConfirmada || isRechazada || isCanceladaProveedor) && (
+            {/* Bloque post-estado: 3 casos.
+                (a) Reserva auto-confirmada F1: el proveedor NO respondio (nacio
+                    confirmada del picker). Copy propio "Confirmada al instante".
+                (b) Confirmada/rechazada con respuesta del proveedor (flujo viejo
+                    pendiente→resuelta): "Respuesta del proveedor" + nota.
+                (c) Cancelada_proveedor: "Motivo de la cancelación" + nota
+                    obligatoria (danger). */}
+            {esConfirmadaAuto ? (
+                <div className="bg-success-50/50 rounded-xl p-3 border border-success-100 mb-3">
+                    <p className="text-[11px] uppercase tracking-widest font-medium mb-1 text-success-700">
+                        Reserva confirmada al instante
+                    </p>
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                        Elegiste un horario disponible — no hace falta esperar respuesta del proveedor.
+                        {solicitud.nota_proveedor && (
+                            <> {' '}Su nota: <span className="italic">&quot;{solicitud.nota_proveedor}&quot;</span></>
+                        )}
+                    </p>
+                </div>
+            ) : (isConfirmada || isRechazada || isCanceladaProveedor) && (
                 <div className={`rounded-xl p-3 border mb-3 ${isConfirmada ? 'bg-success-50/50 border-success-100' : 'bg-danger-50/40 border-danger-100'}`}>
                     <p className={`text-[11px] uppercase tracking-widest font-medium mb-1 ${isConfirmada ? 'text-success-700' : 'text-danger-700'}`}>
                         {isCanceladaProveedor
@@ -473,6 +513,15 @@ function SolicitudCard({
                         className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors"
                     >
                         Cancelar solicitud
+                    </button>
+                )}
+                {isConfirmada && (
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors"
+                    >
+                        Cancelar reserva
                     </button>
                 )}
                 {isConfirmada && servicio?.id && (
