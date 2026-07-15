@@ -49,7 +49,24 @@ interface SolicitarAgendamientoModalProps {
     // Viene de detalles.modalidad del servicio (JSONB array). Si el shape
     // legacy es invalido, ServiceDetailView pasa [] como defensa.
     modalidades?: string[];
+    // F1 agenda con disponibilidad real. Si duracionSlotMin es un numero,
+    // el modal cambia al PICKER RIGIDO — reemplaza el datetime-local V1
+    // por un strip de dias + grid de slots derivados del endpoint
+    // /api/servicios/[id]/slots. Solicitud nace estado='confirmada'.
+    // Si es null/undefined, sigue el flujo V1/V2/V4 existente.
+    duracionSlotMin?: number | null;
+    capacidadSlot?: number;
+    anticipacionMaxDias?: number;
 }
+
+// Tipo del response del endpoint de slots (espeja lib/slotsAgenda.ts).
+type SlotDelPicker = {
+    fecha: string;         // YYYY-MM-DD (Chile)
+    hora_inicio: string;   // HH:MM
+    hora_fin: string;      // HH:MM
+    disponible: boolean;
+    restantes: number;
+};
 
 // Devuelve YYYY-MM-DDTHH:mm en horario local — formato esperado por
 // <input type="datetime-local"/> para el atributo `min`.
@@ -69,6 +86,50 @@ function minDateLocal(): string {
     return local.toISOString().slice(0, 10);
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// F1 picker helpers (fecha en TZ Chile como YYYY-MM-DD).
+// ────────────────────────────────────────────────────────────────────────────
+const CHILE_TZ = 'America/Santiago';
+
+function localTodayIso(): string {
+    return new Intl.DateTimeFormat('sv-SE', {
+        timeZone: CHILE_TZ,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+}
+
+function shiftDate(iso: string, deltaDias: number): string {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + deltaDias));
+    const yy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getUTCDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+}
+
+function diasEntreIso(desde: string, hasta: string): number {
+    const [y1, m1, d1] = desde.split('-').map(Number);
+    const [y2, m2, d2] = hasta.split('-').map(Number);
+    return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86_400_000);
+}
+
+const DIAS_ES_CORTO = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MESES_ES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+function nombreDiaCorto(iso: string): string {
+    const [y, m, d] = iso.split('-').map(Number);
+    return DIAS_ES_CORTO[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+}
+
+function nombreMesCorto(iso: string): string {
+    const m = parseInt(iso.split('-')[1], 10);
+    return MESES_ES_CORTO[m - 1];
+}
+
+function diaNumero(iso: string): number {
+    return parseInt(iso.split('-')[2], 10);
+}
+
 // Ola 1: limites de los campos estructurados (matchean los CHECK de BD).
 const CALLE_MIN_CHARS = 2;
 const CALLE_MAX_CHARS = 200;
@@ -86,7 +147,17 @@ export default function SolicitarAgendamientoModal({
     serviceTitle,
     categoriaSlug,
     modalidades = [],
+    duracionSlotMin,
+    capacidadSlot,
+    anticipacionMaxDias,
 }: SolicitarAgendamientoModalProps) {
+    // F1 agenda con disponibilidad real: activa el picker rigido si el
+    // servicio tiene duracionSlotMin. Tiene precedencia sobre las variantes
+    // V1/V2/V4 (aunque F1 solo aplica a categorias de bloque horario que
+    // caen en V1 — este check es defensivo por si en el futuro F1 se
+    // extiende a otras categorias).
+    const usaPicker = typeof duracionSlotMin === 'number' && duracionSlotMin > 0;
+
     const isCuidado = esCategoriaMultiDia(categoriaSlug);
     const modalidadesValidas: ModalidadCuidado[] = isCuidado
         ? modalidades.filter(esModalidadValida)
@@ -114,6 +185,17 @@ export default function SolicitarAgendamientoModal({
     const [mensaje, setMensaje] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+
+    // F1 picker state — solo relevante cuando usaPicker.
+    // desdeVisible = fecha del primer dia del strip (7 dias). Se navega con
+    // botones "semana anterior/siguiente". slotElegido queda como null hasta
+    // que el tutor clickea uno disponible.
+    const [pickerDesde, setPickerDesde] = useState<string>(() => localTodayIso());
+    const [pickerSlots, setPickerSlots] = useState<SlotDelPicker[]>([]);
+    const [pickerLoading, setPickerLoading] = useState(false);
+    const [pickerError, setPickerError] = useState<string | null>(null);
+    const [pickerDiaElegido, setPickerDiaElegido] = useState<string>(() => localTodayIso());
+    const [slotElegido, setSlotElegido] = useState<SlotDelPicker | null>(null);
 
     // Feature "fichas de mascotas → solicitud":
     // Cargamos las mascotas del tutor logueado al abrir el modal. El selector
@@ -158,6 +240,54 @@ export default function SolicitarAgendamientoModal({
         setDuracionHoras('');
     }, [modalidadElegida, modoTarifa]);
 
+    // F1 picker — fetch de slots cada vez que cambia el rango visible o el
+    // modal se abre. Ventana de 7 dias, capada por anticipacion_max_dias.
+    // Al open, reset al hoy y limpiar seleccion previa.
+    useEffect(() => {
+        if (!isOpen || !usaPicker) return;
+        setPickerDesde(localTodayIso());
+        setPickerDiaElegido(localTodayIso());
+        setSlotElegido(null);
+    }, [isOpen, usaPicker, servicioId]);
+
+    useEffect(() => {
+        if (!isOpen || !usaPicker) return;
+        const controller = new AbortController();
+        (async () => {
+            setPickerLoading(true);
+            setPickerError(null);
+            try {
+                // Ventana de 7 dias desde pickerDesde. Si excede
+                // anticipacion_max_dias, cortamos.
+                const hoy = localTodayIso();
+                const topeMax = anticipacionMaxDias
+                    ? shiftDate(hoy, anticipacionMaxDias)
+                    : shiftDate(hoy, 90);
+                let hasta = shiftDate(pickerDesde, 6);
+                if (hasta > topeMax) hasta = topeMax;
+                if (hasta < pickerDesde) hasta = pickerDesde;
+
+                const r = await fetch(
+                    `/api/servicios/${servicioId}/slots?desde=${pickerDesde}&hasta=${hasta}`,
+                    { signal: controller.signal }
+                );
+                if (!r.ok) {
+                    throw new Error(`HTTP ${r.status}`);
+                }
+                const data = (await r.json()) as SlotDelPicker[];
+                setPickerSlots(data);
+            } catch (err: any) {
+                if (err?.name === 'AbortError') return;
+                console.error('[picker] fetch slots error:', err);
+                setPickerError('No pudimos cargar los horarios. Intentá de nuevo.');
+                setPickerSlots([]);
+            } finally {
+                setPickerLoading(false);
+            }
+        })();
+        return () => controller.abort();
+    }, [isOpen, usaPicker, servicioId, pickerDesde, anticipacionMaxDias]);
+
     if (!isOpen) return null;
 
     const variante = getVarianteFormulario(categoriaSlug, modalidadElegida, modoTarifa);
@@ -197,6 +327,159 @@ export default function SolicitarAgendamientoModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
+
+        // F1 PICKER — camino paralelo al de las variantes V1/V2/V4. La
+        // solicitud nace estado='confirmada' + duracion_min + capacidad_snapshot
+        // poblados desde el servicio. El EXCLUDE constraint en BD protege
+        // contra doble-booking en capacidad=1; grupales (>1) tienen race
+        // window pequena que F1.5 va a cubrir con endpoint POST + advisory
+        // lock. Este camino NO usa las validaciones de fecha/direccion/modo
+        // — no aplican.
+        if (usaPicker) {
+            if (!slotElegido) {
+                setErrorMsg('Elegí un horario disponible.');
+                return;
+            }
+
+            setSubmitting(true);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    setErrorMsg('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
+                    return;
+                }
+                const { data: buscador, error: buscadorErr } = await supabase
+                    .from('usuarios_buscadores')
+                    .select('id')
+                    .eq('auth_user_id', session.user.id)
+                    .maybeSingle();
+                if (buscadorErr) throw buscadorErr;
+                if (!buscador) {
+                    setErrorMsg('Necesitas completar tu perfil de tutor antes de reservar. Regístrate como tutor para continuar.');
+                    return;
+                }
+
+                if (mensaje.length > 500) {
+                    setErrorMsg('El mensaje supera el máximo de 500 caracteres.');
+                    return;
+                }
+
+                // Convertir wall-clock chileno del slot → ISO UTC absoluto.
+                // Uso la misma tecnica que lib/slotsAgenda.ts: crear como UTC,
+                // medir la wall clock chilena, diferencia = offset, corregir.
+                const [y, m, d] = slotElegido.fecha.split('-').map(Number);
+                const [hh, mm] = slotElegido.hora_inicio.split(':').map(Number);
+                const guessUtcMs = Date.UTC(y, m - 1, d, hh, mm);
+                const parts = new Intl.DateTimeFormat('sv-SE', {
+                    timeZone: CHILE_TZ,
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: false,
+                }).formatToParts(new Date(guessUtcMs));
+                const get = (t: string) => parseInt(parts.find(p => p.type === t)?.value ?? '0', 10);
+                const chileWallMs = Date.UTC(
+                    get('year'), get('month') - 1, get('day'),
+                    get('hour'), get('minute'), get('second')
+                );
+                const fechaPreferidaIso = new Date(guessUtcMs - (chileWallMs - guessUtcMs)).toISOString();
+
+                const { data: inserted, error: insertErr } = await supabase
+                    .from('agendamientos')
+                    .insert({
+                        servicio_id: servicioId,
+                        proveedor_id: proveedorId,
+                        tutor_id: buscador.id,
+                        fecha_preferida: fechaPreferidaIso,
+                        estado: 'confirmada',
+                        duracion_min: duracionSlotMin,
+                        capacidad_snapshot: capacidadSlot ?? 1,
+                        mensaje: mensaje.trim() || null,
+                        mascota_id: mascotaId,
+                        tipo_mascota_texto: !mascotaId && tipoMascotaTexto.trim()
+                            ? tipoMascotaTexto.trim()
+                            : null,
+                    })
+                    .select('id')
+                    .single();
+
+                if (insertErr) {
+                    // Rebote del EXCLUDE constraint: alguien tomo el slot
+                    // entre nuestro fetch y el INSERT. Postgres devuelve
+                    // 23P01 (exclusion_violation). Codigo constraint es
+                    // 'agendamientos_no_solape_confirmadas'.
+                    const isRebote = insertErr.code === '23P01'
+                        || (insertErr.message || '').includes('agendamientos_no_solape_confirmadas');
+                    if (isRebote) {
+                        setErrorMsg('Ese horario acaba de ocuparse. Elegí otro.');
+                        setSlotElegido(null);
+                        // Refetch de slots — trigger via bump del pickerDesde
+                        // a si mismo forzando re-run del useEffect. Truco:
+                        // shiftear 0 dias produce el mismo string, no re-run.
+                        // Uso una key ficticia mediante set-same-value que
+                        // React igual dispara si el ref cambia. La forma
+                        // limpia: refetch inline.
+                        try {
+                            const hoy = localTodayIso();
+                            const topeMax = anticipacionMaxDias
+                                ? shiftDate(hoy, anticipacionMaxDias)
+                                : shiftDate(hoy, 90);
+                            let hasta = shiftDate(pickerDesde, 6);
+                            if (hasta > topeMax) hasta = topeMax;
+                            if (hasta < pickerDesde) hasta = pickerDesde;
+                            const r = await fetch(
+                                `/api/servicios/${servicioId}/slots?desde=${pickerDesde}&hasta=${hasta}`
+                            );
+                            if (r.ok) setPickerSlots(await r.json());
+                        } catch { /* silencioso — el toast ya explico */ }
+                        return;
+                    }
+                    if (insertErr.code === '23505') {
+                        setErrorMsg('Ya tienes una solicitud pendiente para este servicio.');
+                        return;
+                    }
+                    throw insertErr;
+                }
+
+                if (inserted?.id) {
+                    // Email al proveedor — mismo endpoint, el copy se ajusta
+                    // server-side segun estado='confirmada' vs 'pendiente'.
+                    fetch('/api/agendamientos/notify-proveedor', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ agendamientoId: inserted.id }),
+                    }).catch(err => console.warn('[picker] notify-proveedor fallo:', err));
+
+                    // Vinculo conversation → agendamiento (idem V1/V2/V4).
+                    supabase
+                        .from('conversations')
+                        .update({ agendamiento_id: inserted.id })
+                        .eq('client_id', session.user.id)
+                        .eq('servicio_id', servicioId)
+                        .then(({ error }) => {
+                            if (error) console.warn('[picker] vinculo conv fallo:', error);
+                        });
+                }
+
+                toast.success('Reserva confirmada. El proveedor recibirá el aviso por email.', {
+                    action: {
+                        label: 'Ver mis reservas',
+                        onClick: () => { window.location.href = '/mis-solicitudes'; },
+                    },
+                    duration: 8000,
+                });
+                reset();
+                onClose();
+            } catch (err: any) {
+                console.error('[picker] insert error:', err);
+                setErrorMsg(err?.message || 'Hubo un error al reservar. Intentá de nuevo.');
+            } finally {
+                setSubmitting(false);
+            }
+            return;
+        }
 
         if (necesitaElegirModalidad) {
             setErrorMsg('Selecciona cómo quieres el cuidado.');
@@ -488,7 +771,7 @@ export default function SolicitarAgendamientoModal({
                     <div className="min-w-0">
                         <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                             <Calendar size={20} className="text-accent-600 shrink-0" />
-                            Solicitar agendamiento
+                            {usaPicker ? 'Reservar horario' : 'Solicitar agendamiento'}
                         </h2>
                         <p className="text-sm text-slate-500 truncate mt-0.5">{serviceTitle}</p>
                     </div>
@@ -506,8 +789,154 @@ export default function SolicitarAgendamientoModal({
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
 
+                    {/* F1 PICKER — strip de dias + grid de slots del dia elegido.
+                        Reemplaza el datetime-local V1 cuando el servicio tiene
+                        duracion_slot_min NOT NULL. Los otros bloques del form
+                        (mascota, mensaje) quedan iguales debajo. */}
+                    {usaPicker && (() => {
+                        const strip = Array.from({ length: 7 }, (_, i) => shiftDate(pickerDesde, i));
+                        const hoy = localTodayIso();
+                        const topeMax = anticipacionMaxDias ? shiftDate(hoy, anticipacionMaxDias) : shiftDate(hoy, 90);
+                        const puedeIrAtras = pickerDesde > hoy;
+                        const proximoDesde = shiftDate(pickerDesde, 7);
+                        const puedeIrAdelante = proximoDesde <= topeMax;
+
+                        const slotsDelDia = pickerSlots.filter(s => s.fecha === pickerDiaElegido);
+                        const slotsPorDia = new Map<string, SlotDelPicker[]>();
+                        for (const s of pickerSlots) {
+                            const list = slotsPorDia.get(s.fecha) ?? [];
+                            list.push(s);
+                            slotsPorDia.set(s.fecha, list);
+                        }
+                        const cuentaDisponibles = (fecha: string) =>
+                            (slotsPorDia.get(fecha) ?? []).filter(s => s.disponible).length;
+
+                        return (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-3">
+                                    Elegí un horario <span className="text-red-500">*</span>
+                                </label>
+
+                                {/* Navegacion semana */}
+                                <div className="flex items-center justify-between mb-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const nuevo = shiftDate(pickerDesde, -7);
+                                            const clamp = nuevo < hoy ? hoy : nuevo;
+                                            setPickerDesde(clamp);
+                                            setPickerDiaElegido(clamp);
+                                            setSlotElegido(null);
+                                        }}
+                                        disabled={!puedeIrAtras || pickerLoading || submitting}
+                                        className="text-xs font-medium text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed px-2 py-1"
+                                    >
+                                        ← Semana anterior
+                                    </button>
+                                    <span className="text-xs text-slate-500">
+                                        {nombreMesCorto(pickerDesde)} {diaNumero(pickerDesde)} – {nombreMesCorto(shiftDate(pickerDesde, 6))} {diaNumero(shiftDate(pickerDesde, 6))}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setPickerDesde(proximoDesde);
+                                            setPickerDiaElegido(proximoDesde);
+                                            setSlotElegido(null);
+                                        }}
+                                        disabled={!puedeIrAdelante || pickerLoading || submitting}
+                                        className="text-xs font-medium text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed px-2 py-1"
+                                    >
+                                        Semana siguiente →
+                                    </button>
+                                </div>
+
+                                {/* Strip dias */}
+                                <div className="grid grid-cols-7 gap-1.5 mb-4">
+                                    {strip.map(fecha => {
+                                        const count = cuentaDisponibles(fecha);
+                                        const isSel = fecha === pickerDiaElegido;
+                                        return (
+                                            <button
+                                                key={fecha}
+                                                type="button"
+                                                onClick={() => {
+                                                    setPickerDiaElegido(fecha);
+                                                    setSlotElegido(null);
+                                                }}
+                                                disabled={submitting}
+                                                className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-center transition-colors ${
+                                                    isSel
+                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                        : count > 0
+                                                            ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                                            : 'bg-slate-50 text-slate-400 border-slate-100'
+                                                }`}
+                                            >
+                                                <span className={`text-[10px] uppercase tracking-wider ${isSel ? 'text-white/80' : 'text-slate-400'}`}>
+                                                    {nombreDiaCorto(fecha)}
+                                                </span>
+                                                <span className="text-base font-semibold">{diaNumero(fecha)}</span>
+                                                <span className={`text-[10px] mt-0.5 ${isSel ? 'text-white/80' : count > 0 ? 'text-accent-700' : 'text-slate-400'}`}>
+                                                    {count > 0 ? `${count} libre${count === 1 ? '' : 's'}` : '—'}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Grid slots del dia elegido */}
+                                {pickerLoading ? (
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[1, 2, 3, 4, 5, 6].map(i => (
+                                            <div key={i} className="h-11 bg-slate-100 rounded-xl animate-pulse" />
+                                        ))}
+                                    </div>
+                                ) : pickerError ? (
+                                    <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
+                                        {pickerError}
+                                    </div>
+                                ) : slotsDelDia.length === 0 ? (
+                                    <p className="text-sm text-slate-500 py-4 text-center">
+                                        Este día no tiene horarios disponibles.
+                                    </p>
+                                ) : slotsDelDia.every(s => !s.disponible) ? (
+                                    <p className="text-sm text-slate-500 py-4 text-center">
+                                        Todos los horarios de este día están ocupados o fuera del plazo de reserva.
+                                    </p>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {slotsDelDia.map(s => {
+                                            const isSel = slotElegido?.fecha === s.fecha && slotElegido?.hora_inicio === s.hora_inicio;
+                                            return (
+                                                <button
+                                                    key={`${s.fecha}-${s.hora_inicio}`}
+                                                    type="button"
+                                                    disabled={!s.disponible || submitting}
+                                                    onClick={() => setSlotElegido(s)}
+                                                    className={`h-11 rounded-xl border text-sm font-medium transition-colors ${
+                                                        isSel
+                                                            ? 'bg-accent-600 text-white border-accent-600'
+                                                            : s.disponible
+                                                                ? 'bg-white text-slate-700 border-slate-200 hover:border-accent-600 hover:bg-accent-50'
+                                                                : 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed line-through'
+                                                    }`}
+                                                    title={s.disponible ? '' : 'No disponible'}
+                                                >
+                                                    {s.hora_inicio}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                <p className="text-xs text-slate-400 mt-2">
+                                    La reserva queda confirmada al instante en el horario que elijas.
+                                </p>
+                            </div>
+                        );
+                    })()}
+
                     {/* Chip selector — solo cuidado con multiples modalidades */}
-                    {requiereChipSelector && (
+                    {!usaPicker && requiereChipSelector && (
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 ¿Cómo quieres el cuidado? <span className="text-red-500">*</span>
@@ -519,7 +948,7 @@ export default function SolicitarAgendamientoModal({
                     )}
 
                     {/* Toggle noches/horas — solo casa_tutor */}
-                    {isCuidado && modalidadElegida === 'casa_tutor' && (
+                    {!usaPicker && isCuidado && modalidadElegida === 'casa_tutor' && (
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 ¿Cuánto dura el servicio? <span className="text-red-500">*</span>
@@ -532,7 +961,7 @@ export default function SolicitarAgendamientoModal({
                     )}
 
                     {/* Form de fechas — varia segun variante */}
-                    {formVisible && (variante === 'V2' || variante === 'V4a') && (
+                    {!usaPicker && formVisible && (variante === 'V2' || variante === 'V4a') && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label htmlFor="agend-fecha-inicio" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -570,7 +999,7 @@ export default function SolicitarAgendamientoModal({
                         </div>
                     )}
 
-                    {formVisible && variante === 'V4b' && (
+                    {!usaPicker && formVisible && variante === 'V4b' && (
                         <>
                             <div>
                                 <label htmlFor="agend-fecha-hora" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -610,7 +1039,7 @@ export default function SolicitarAgendamientoModal({
                         </>
                     )}
 
-                    {formVisible && variante === 'V1' && (
+                    {!usaPicker && formVisible && variante === 'V1' && (
                         <div>
                             <label htmlFor="agend-fecha" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Fecha y hora preferida <span className="text-red-500">*</span>
@@ -634,7 +1063,7 @@ export default function SolicitarAgendamientoModal({
                     {/* Direccion estructurada — solo V4a/V4b (modalidad
                         casa_tutor). Ola 1: region+comuna via picker
                         encadenado, calle/numero/info en inputs. */}
-                    {formVisible && (variante === 'V4a' || variante === 'V4b') && (
+                    {!usaPicker && formVisible && (variante === 'V4a' || variante === 'V4b') && (
                         <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-700 inline-flex items-center gap-1.5">
                                 <Home size={14} className="text-slate-500" />
@@ -857,11 +1286,14 @@ export default function SolicitarAgendamientoModal({
                         </button>
                         <button
                             type="submit"
-                            disabled={submitting || necesitaElegirModalidad || necesitaElegirModo}
+                            disabled={
+                                submitting
+                                || (usaPicker ? !slotElegido : (necesitaElegirModalidad || necesitaElegirModo))
+                            }
                             className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {submitting && <Loader2 size={16} className="animate-spin" />}
-                            Enviar solicitud
+                            {usaPicker ? 'Confirmar reserva' : 'Enviar solicitud'}
                         </button>
                     </div>
                 </form>

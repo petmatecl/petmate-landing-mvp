@@ -1694,6 +1694,9 @@ export default function ServiceDetailView({
                 modalidades={Array.isArray((service as any).detalles?.modalidad)
                     ? (service as any).detalles.modalidad as string[]
                     : []}
+                duracionSlotMin={(service as any).duracion_slot_min ?? null}
+                capacidadSlot={(service as any).capacidad_slot ?? 1}
+                anticipacionMaxDias={(service as any).anticipacion_max_dias ?? 60}
             />
             <ExampleCTAModal
                 isOpen={exampleModalAction !== null}

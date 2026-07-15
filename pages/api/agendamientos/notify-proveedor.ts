@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 id, fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
-                mensaje, tutor_id, proveedor_id, servicio_id,
+                estado, mensaje, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
@@ -116,10 +116,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         const direccionInfo = agend.direccion_info || null;
 
+        // F1 agenda: si la agendamiento nacio confirmada (picker rigido del
+        // tutor), el copy es de "reserva confirmada" en vez de "solicitud
+        // que necesita respuesta". El estado se lee de BD, no del cliente.
+        const esConfirmadaAuto = agend.estado === 'confirmada';
+        const subject = esConfirmadaAuto
+            ? 'Nueva reserva confirmada en Pawnecta'
+            : 'Nueva solicitud de agendamiento en Pawnecta';
+
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: authUser.user.email,
-            subject: 'Nueva solicitud de agendamiento en Pawnecta',
+            subject,
             react: AgendamientoProveedorEmail({
                 nombreProveedor: proveedor.nombre || 'Proveedor',
                 nombreTutor: tutor?.nombre || 'Un tutor',
@@ -130,6 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 direccionServicio,
                 direccionInfo,
                 duracionLabel,
+                esConfirmadaAuto,
             }) as React.ReactElement,
         });
 

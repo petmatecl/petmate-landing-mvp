@@ -15,6 +15,11 @@ interface AgendamientoProveedorEmailProps {
     // interior/instrucciones). Se renderiza como linea italica debajo
     // de direccionServicio cuando esta presente.
     direccionInfo?: string | null;
+    // F1 agenda con disponibilidad real: cuando true, el copy cambia de
+    // "solicitud que necesita respuesta" a "reserva confirmada al
+    // instante" (el tutor tomo hora desde el picker rigido). Default false
+    // preserva el flujo viejo.
+    esConfirmadaAuto?: boolean;
 }
 
 export const AgendamientoProveedorEmail = ({
@@ -27,11 +32,15 @@ export const AgendamientoProveedorEmail = ({
     direccionServicio,
     duracionLabel,
     direccionInfo,
+    esConfirmadaAuto,
 }: AgendamientoProveedorEmailProps) => {
     return (
         <Html>
             <Head />
-            <Preview>{`Nueva solicitud de agendamiento de ${nombreTutor} para tu servicio en Pawnecta.`}</Preview>
+            <Preview>{esConfirmadaAuto
+                ? `${nombreTutor} reservó ${servicioTitulo} en Pawnecta.`
+                : `Nueva solicitud de agendamiento de ${nombreTutor} para tu servicio en Pawnecta.`}
+            </Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
@@ -41,11 +50,15 @@ export const AgendamientoProveedorEmail = ({
                     <Section style={content}>
                         <Text style={h1}>Hola {nombreProveedor},</Text>
                         <Text style={text}>
-                            <strong>{nombreTutor}</strong> te solicitó un agendamiento para tu servicio <strong>{servicioTitulo}</strong>.
+                            {esConfirmadaAuto ? (
+                                <><strong>{nombreTutor}</strong> reservó tu servicio <strong>{servicioTitulo}</strong>. La reserva ya está <strong>confirmada</strong> — no necesitás responder.</>
+                            ) : (
+                                <><strong>{nombreTutor}</strong> te solicitó un agendamiento para tu servicio <strong>{servicioTitulo}</strong>.</>
+                            )}
                         </Text>
 
                         <Section style={infoBox}>
-                            <Text style={infoLabel}>Fecha preferida</Text>
+                            <Text style={infoLabel}>{esConfirmadaAuto ? 'Fecha reservada' : 'Fecha preferida'}</Text>
                             <Text style={infoValue}>{fechaFormateada}</Text>
 
                             {modalidadLabel && (
@@ -83,12 +96,14 @@ export const AgendamientoProveedorEmail = ({
                         </Section>
 
                         <Text style={text}>
-                            Confirma o rechaza la solicitud desde tu panel:
+                            {esConfirmadaAuto
+                                ? 'Podés ver el detalle desde tu panel. Si por algún motivo no podés atender esta reserva, tenés opción de cancelarla con una nota para el tutor.'
+                                : 'Confirma o rechaza la solicitud desde tu panel:'}
                         </Text>
 
                         <Section style={buttonContainer}>
                             <Button style={button} href="https://www.pawnecta.com/proveedor?tab=solicitudes">
-                                Ver solicitud
+                                {esConfirmadaAuto ? 'Ver reserva' : 'Ver solicitud'}
                             </Button>
                         </Section>
 
