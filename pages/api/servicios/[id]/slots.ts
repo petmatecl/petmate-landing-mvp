@@ -165,9 +165,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             confirmadas,
         });
 
-        // Cache-Control corto — los slots cambian con cada nueva confirmada.
-        // 60s en CDN es suficiente para dar un respiro sin quedar stale largo.
-        res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=30');
+        // Cache-Control: no-store. Los slots cambian con cada nueva confirmada
+        // (o cancelacion, o excepcion nueva). Un s-maxage aunque sea corto
+        // provoca que Edge sirva la respuesta cacheada y la resta de una
+        // confirmada recien insertada no se refleje al instante. Sacrificar
+        // la resta en tiempo real por 60s de CDN no vale — cada slot mal-
+        // marcado como disponible es una potencial doble reserva (el EXCLUDE
+        // constraint la para al INSERT, pero desde el picker seria mal UX).
+        // Regresion del smoke Aldo caso 5 (2026-07-11).
+        res.setHeader('Cache-Control', 'no-store, must-revalidate');
         return res.status(200).json(slots);
     } catch (err: any) {
         console.error('[slots] excepcion:', err);
