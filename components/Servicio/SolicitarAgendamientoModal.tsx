@@ -350,7 +350,7 @@ export default function SolicitarAgendamientoModal({
                 }
                 const { data: buscador, error: buscadorErr } = await supabase
                     .from('usuarios_buscadores')
-                    .select('id')
+                    .select('id, nombre')
                     .eq('auth_user_id', session.user.id)
                     .maybeSingle();
                 if (buscadorErr) throw buscadorErr;
@@ -398,6 +398,13 @@ export default function SolicitarAgendamientoModal({
                         tipo_mascota_texto: !mascotaId && tipoMascotaTexto.trim()
                             ? tipoMascotaTexto.trim()
                             : null,
+                        // F1 agenda: denormalizacion del nombre del tutor.
+                        // RLS de usuarios_buscadores es owner-only — el proveedor
+                        // no puede leer via join. Guardamos aca el nombre al
+                        // momento del INSERT (patron espejo de
+                        // evaluaciones.nombre_autor). Ver migration
+                        // 20260714_agendamientos_tutor_nombre.sql.
+                        tutor_nombre: buscador.nombre || null,
                     })
                     .select('id')
                     .single();
@@ -611,7 +618,7 @@ export default function SolicitarAgendamientoModal({
 
             const { data: buscador, error: buscadorErr } = await supabase
                 .from('usuarios_buscadores')
-                .select('id')
+                .select('id, nombre')
                 .eq('auth_user_id', session.user.id)
                 .maybeSingle();
 
@@ -660,6 +667,12 @@ export default function SolicitarAgendamientoModal({
                     tipo_mascota_texto: !mascotaId && tipoMascotaTexto.trim()
                         ? tipoMascotaTexto.trim()
                         : null,
+                    // F1 agenda — denormalizacion del nombre del tutor
+                    // (patron espejo de evaluaciones.nombre_autor). RLS de
+                    // usuarios_buscadores es owner-only; el proveedor no
+                    // puede leer via join. Ver migration
+                    // 20260714_agendamientos_tutor_nombre.sql.
+                    tutor_nombre: buscador.nombre || null,
                 })
                 .select('id')
                 .single();

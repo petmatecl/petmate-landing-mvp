@@ -408,7 +408,7 @@ export default function ProveedorDashboard() {
                 fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
-                mensaje, estado, nota_proveedor,
+                mensaje, estado, nota_proveedor, tutor_nombre,
                 respondido_at, created_at, updated_at,
                 mascota_id, tipo_mascota_texto,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre),
@@ -2342,11 +2342,17 @@ export default function ProveedorDashboard() {
                                             }
                                         })();
 
-                                        // usuarios_buscadores.nombre trae el full name en un solo
-                                        // campo (no hay apellido_p separado). Iniciales = primera
-                                        // letra de los primeros dos tokens.
+                                        // Nombre del tutor: preferir la denormalizacion en la
+                                        // fila del agendamiento (F1 patron espejo de
+                                        // evaluaciones.nombre_autor). Fallback al join solo
+                                        // por si algun dia se aplica una policy cross-role
+                                        // — hoy el join devuelve null (RLS owner-only en
+                                        // usuarios_buscadores). Ultimo fallback "Tutor" para
+                                        // filas historicas sin backfill.
+                                        const tutorNombre = sol.tutor_nombre || tutor?.nombre || 'Tutor';
+                                        // Iniciales = primeros dos tokens del nombre.
                                         const tutorIniciales = (() => {
-                                            const tokens = (tutor?.nombre || '?').trim().split(/\s+/).filter(Boolean);
+                                            const tokens = tutorNombre.trim().split(/\s+/).filter(Boolean);
                                             if (tokens.length === 0) return '?';
                                             if (tokens.length === 1) return tokens[0][0].toUpperCase();
                                             return (tokens[0][0] + tokens[1][0]).toUpperCase();
@@ -2362,7 +2368,7 @@ export default function ProveedorDashboard() {
                                                         </div>
                                                         <div className="min-w-0">
                                                             <p className="text-sm font-semibold text-slate-900 truncate">
-                                                                {tutor?.nombre || 'Tutor desconocido'}
+                                                                {tutorNombre}
                                                             </p>
                                                             <p className="text-xs text-slate-500 truncate">
                                                                 {servicio?.titulo || 'Servicio eliminado'}
