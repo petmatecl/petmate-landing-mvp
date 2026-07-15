@@ -78,8 +78,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Solo notificamos en transiciones a estados resueltos. El estado se
         // lee de la BD, no del cliente — payload manipulado no puede mandar
-        // el email "wrong".
-        if (agend.estado !== 'confirmada' && agend.estado !== 'rechazada') {
+        // el email "wrong". F1 agenda agrega cancelada_proveedor (proveedor
+        // cancela una reserva confirmada-automatica; nota obligatoria a
+        // nivel BD garantiza motivo).
+        if (
+            agend.estado !== 'confirmada'
+            && agend.estado !== 'rechazada'
+            && agend.estado !== 'cancelada_proveedor'
+        ) {
             return res.status(200).json({
                 skipped: true,
                 reason: 'estado_no_terminal',
@@ -137,14 +143,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const subject = agend.estado === 'confirmada'
             ? 'Tu solicitud de agendamiento fue confirmada'
-            : 'Actualización sobre tu solicitud de agendamiento';
+            : agend.estado === 'cancelada_proveedor'
+                ? 'El proveedor canceló tu reserva'
+                : 'Actualización sobre tu solicitud de agendamiento';
 
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: authUser.user.email,
             subject,
             react: AgendamientoTutorEmail({
-                estado: agend.estado as 'confirmada' | 'rechazada',
+                estado: agend.estado as 'confirmada' | 'rechazada' | 'cancelada_proveedor',
                 nombreTutor: tutor.nombre || 'Tutor',
                 nombreProveedor: proveedor.nombre || 'El proveedor',
                 servicioTitulo: servicio?.titulo || 'tu servicio',

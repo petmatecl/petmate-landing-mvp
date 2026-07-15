@@ -291,6 +291,7 @@ function SolicitudCard({
     const isConfirmada = solicitud.estado === 'confirmada';
     const isRechazada = solicitud.estado === 'rechazada';
     const isCancelada = solicitud.estado === 'cancelada';
+    const isCanceladaProveedor = solicitud.estado === 'cancelada_proveedor';
 
     // Branching de formato segun variante: la combinacion de modo_tarifa +
     // fecha_fin encoda cual de V1/V2/V4a/V4b. No consultamos la categoria
@@ -329,10 +330,13 @@ function SolicitudCard({
     const direccionInfo = solicitud.direccion_info;
 
     // Badge de estado de solicitud con tokens semanticos:
-    //   success = confirmada    (positivo, la solicitud fue aceptada)
-    //   danger  = rechazada     (negativo terminal)
-    //   slate   = cancelada     (tutor cancelo, sin color activo)
-    //   warning = pendiente     (default del switch, espera de decision)
+    //   success = confirmada             (positivo, la solicitud fue aceptada)
+    //   danger  = rechazada              (negativo terminal)
+    //   slate   = cancelada              (tutor cancelo, sin color activo)
+    //   slate + XCircle = cancelada_proveedor (F1 agenda: proveedor cancelo
+    //                    una reserva confirmada; motivo obligatorio esta en
+    //                    nota_proveedor)
+    //   warning = pendiente              (default del switch, espera de decision)
     const estadoBadge = (() => {
         switch (solicitud.estado) {
             case 'confirmada':
@@ -340,7 +344,9 @@ function SolicitudCard({
             case 'rechazada':
                 return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
             case 'cancelada':
-                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada</span>;
+                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada por vos</span>;
+            case 'cancelada_proveedor':
+                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Cancelada por el proveedor</span>;
             default:
                 return <span className="inline-flex items-center gap-1 bg-warning-50 text-warning-700 border border-warning-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
         }
@@ -416,16 +422,17 @@ function SolicitudCard({
                     : <p className="text-sm text-slate-500 italic">Sin mensaje adicional.</p>}
             </div>
 
-            {/* Respuesta del proveedor — solo si ya respondio (no cancelada) */}
-            {/* Par bidireccional respuesta del proveedor con tokens semanticos:
-                success = confirmada, danger = rechazada. Bg + border + text cambian en el
-                mismo bloque JSX segun isConfirmada. Cuando la lista tiene solicitudes en
-                distintos estados, ambos colores coexisten en la pantalla — cierre del
-                par visual con el badge de estado de arriba. */}
-            {(isConfirmada || isRechazada) && (
+            {/* Respuesta del proveedor — confirmada / rechazada / cancelada_proveedor.
+                Tokens semanticos: success = confirmada (positivo), danger = rechazada
+                / cancelada_proveedor (negativo terminal). En cancelada_proveedor el
+                label cambia a "Motivo de la cancelación" — el tutor entiende que la
+                nota explica por que no va a suceder. */}
+            {(isConfirmada || isRechazada || isCanceladaProveedor) && (
                 <div className={`rounded-xl p-3 border mb-3 ${isConfirmada ? 'bg-success-50/50 border-success-100' : 'bg-danger-50/40 border-danger-100'}`}>
                     <p className={`text-[11px] uppercase tracking-widest font-medium mb-1 ${isConfirmada ? 'text-success-700' : 'text-danger-700'}`}>
-                        Respuesta del proveedor{respondidoAt ? ` · ${respondidoAt}` : ''}
+                        {isCanceladaProveedor
+                            ? `Motivo de la cancelación${respondidoAt ? ` · ${respondidoAt}` : ''}`
+                            : `Respuesta del proveedor${respondidoAt ? ` · ${respondidoAt}` : ''}`}
                     </p>
                     {solicitud.nota_proveedor
                         ? <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{solicitud.nota_proveedor}</p>

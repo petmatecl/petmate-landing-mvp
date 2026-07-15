@@ -8,7 +8,7 @@
 // / proveedores / servicios_publicados via FK.
 // ----------------------------------------------------------------------------
 
-export type EstadoAgendamiento = 'pendiente' | 'confirmada' | 'rechazada' | 'cancelada';
+export type EstadoAgendamiento = 'pendiente' | 'confirmada' | 'rechazada' | 'cancelada' | 'cancelada_proveedor';
 
 export interface AgendamientoRow {
     id: string;

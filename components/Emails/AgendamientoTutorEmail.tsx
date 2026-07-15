@@ -2,7 +2,10 @@ import * as React from 'react';
 import { Html, Head, Preview, Body, Container, Section, Text, Button, Hr, Img } from '@react-email/components';
 
 interface AgendamientoTutorEmailProps {
-    estado: 'confirmada' | 'rechazada';
+    // F1 agenda con disponibilidad real agrega `cancelada_proveedor`: el
+    // proveedor cancela una reserva confirmada-automatica desde su panel
+    // (con nota obligatoria a nivel BD).
+    estado: 'confirmada' | 'rechazada' | 'cancelada_proveedor';
     nombreTutor: string;
     nombreProveedor: string;
     servicioTitulo: string;
@@ -39,9 +42,12 @@ export const AgendamientoTutorEmail = ({
     direccionInfo,
 }: AgendamientoTutorEmailProps) => {
     const isConfirmada = estado === 'confirmada';
+    const isCanceladaProveedor = estado === 'cancelada_proveedor';
     const preview = isConfirmada
         ? `${nombreProveedor} confirmó tu solicitud para ${servicioTitulo}.`
-        : `${nombreProveedor} no pudo confirmar tu solicitud para ${servicioTitulo}.`;
+        : isCanceladaProveedor
+            ? `${nombreProveedor} canceló tu reserva de ${servicioTitulo}.`
+            : `${nombreProveedor} no pudo confirmar tu solicitud para ${servicioTitulo}.`;
 
     return (
         <Html>
@@ -59,6 +65,10 @@ export const AgendamientoTutorEmail = ({
                         {isConfirmada ? (
                             <Text style={text}>
                                 <strong>{nombreProveedor}</strong> confirmó tu solicitud para <strong>{servicioTitulo}</strong>.
+                            </Text>
+                        ) : isCanceladaProveedor ? (
+                            <Text style={text}>
+                                <strong>{nombreProveedor}</strong> canceló tu reserva de <strong>{servicioTitulo}</strong>. El horario quedó liberado.
                             </Text>
                         ) : (
                             <Text style={text}>
@@ -98,7 +108,9 @@ export const AgendamientoTutorEmail = ({
                             )}
 
                             <Hr style={hrLight} />
-                            <Text style={infoLabel}>Nota del proveedor</Text>
+                            <Text style={infoLabel}>
+                                {isCanceladaProveedor ? 'Motivo de la cancelación' : 'Nota del proveedor'}
+                            </Text>
                             <Text style={infoValueItalic}>
                                 {notaProveedor ? `"${notaProveedor}"` : 'Sin nota adicional.'}
                             </Text>
