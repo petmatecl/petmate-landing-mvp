@@ -2336,7 +2336,7 @@ export default function ProveedorDashboard() {
                                                 case 'cancelada':
                                                     return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada por el tutor</span>;
                                                 case 'cancelada_proveedor':
-                                                    return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Cancelada por vos</span>;
+                                                    return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Cancelada por ti</span>;
                                                 default:
                                                     return <span className="inline-flex items-center gap-1 bg-warning-50 text-warning-700 border border-warning-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
                                             }
@@ -2527,7 +2527,7 @@ export default function ProveedorDashboard() {
                                                         <textarea
                                                             value={nota}
                                                             onChange={e => setSolicitudNotas(prev => ({ ...prev, [sol.id]: e.target.value }))}
-                                                            placeholder="Agregá una nota para el tutor, ej: instrucciones específicas, requisitos, etc."
+                                                            placeholder="Agrega una nota para el tutor, ej: instrucciones específicas, requisitos, etc."
                                                             rows={2}
                                                             maxLength={500}
                                                             disabled={isLoading}

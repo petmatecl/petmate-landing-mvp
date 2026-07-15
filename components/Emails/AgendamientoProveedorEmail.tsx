@@ -51,7 +51,7 @@ export const AgendamientoProveedorEmail = ({
                         <Text style={h1}>Hola {nombreProveedor},</Text>
                         <Text style={text}>
                             {esConfirmadaAuto ? (
-                                <><strong>{nombreTutor}</strong> reservó tu servicio <strong>{servicioTitulo}</strong>. La reserva ya está <strong>confirmada</strong> — no necesitás responder.</>
+                                <><strong>{nombreTutor}</strong> reservó tu servicio <strong>{servicioTitulo}</strong>. La reserva ya está <strong>confirmada</strong> — no necesitas responder.</>
                             ) : (
                                 <><strong>{nombreTutor}</strong> te solicitó un agendamiento para tu servicio <strong>{servicioTitulo}</strong>.</>
                             )}
@@ -97,7 +97,7 @@ export const AgendamientoProveedorEmail = ({
 
                         <Text style={text}>
                             {esConfirmadaAuto
-                                ? 'Podés ver el detalle desde tu panel. Si por algún motivo no podés atender esta reserva, tenés opción de cancelarla con una nota para el tutor.'
+                                ? 'Puedes ver el detalle desde tu panel. Si por algún motivo no puedes atender esta reserva, tienes opción de cancelarla con una nota para el tutor.'
                                 : 'Confirma o rechaza la solicitud desde tu panel:'}
                         </Text>
 

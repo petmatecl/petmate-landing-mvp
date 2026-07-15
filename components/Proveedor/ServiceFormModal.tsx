@@ -753,7 +753,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             }
         } catch (err: any) {
             if (err?.message === 'save-timeout') {
-                toast.error('El guardado tardó demasiado (15s). Verificá tu conexión y volvé a intentar.');
+                toast.error('El guardado tardó demasiado (15s). Verifica tu conexión y vuelve a intentar.');
             } else {
                 console.error('[ServiceFormModal] save error inesperado:', err);
                 toast.error('Ocurrió un error inesperado al guardar. Intentá nuevamente.');
@@ -1382,7 +1382,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     })}
                                                 </div>
                                                 <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-                                                    Definí las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado.
+                                                    Define las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado.
                                                 </p>
                                             </div>
 

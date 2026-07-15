@@ -72,6 +72,7 @@ lib/
 ## Convenciones de código
 
 - NO emojis en la UI — solo iconos Lucide monocromaticos
+- **Español chileno en todo el copy visible al usuario** (UI, emails, toasts, dialogs, placeholders, hints, error messages): **tú (nunca vos ni voseo)**. Imperativos en tú: `elige` (no `elegí`), `describe` (no `describí`), `agrega` (no `agregá`), `contáctalo` (no `contactalo`), `puedes` (no `podés`), `tienes` (no `tenés`), `necesitas` (no `necesitás`), `crea` (no `creá`), `verifica` (no `verificá`), `recarga` (no `recargá`), `vuelve` (no `volvé`), `explora` (no `explorá`), `solicita` (no `solicitá`). Etiquetas: "Cancelada por ti" (no "por vos"). Chilenismos suaves OK, argentinismos NO. Solo aplica a strings visibles al usuario — código/variables/comentarios pueden usar cualquier registro.
 - NO `type="url"` en inputs — usar `type="text"` (acepta www. sin https://)
 - Precios siempre con separador de miles (toLocaleString('es-CL'))
 - Precios siempre dicen "Desde" antes del monto

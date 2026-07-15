@@ -374,7 +374,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     </div>
                 ) : (
                     <p className="text-xs text-slate-400 leading-relaxed">
-                        Elegí una categoría para filtrar por qué incluye el servicio.
+                        Elige una categoría para filtrar por qué incluye el servicio.
                     </p>
                 )}
             </div>

@@ -224,7 +224,7 @@ export default function MisSolicitudesPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no agendaste ningún servicio</h3>
                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                            Explorá los servicios disponibles y solicitá un agendamiento desde la ficha del que te interese.
+                            Explora los servicios disponibles y solicita un agendamiento desde la ficha del que te interese.
                         </p>
                         <Link
                             href="/explorar"
@@ -270,7 +270,7 @@ export default function MisSolicitudesPage() {
                         ? 'Cancelar cita confirmada'
                         : '¿Cancelar esta solicitud?';
                 const message = esConfirmadaAuto
-                    ? 'Vas a liberar tu horario y avisaremos al proveedor por email. Si podés, contactalo antes para coordinar.'
+                    ? 'Vas a liberar tu horario y avisaremos al proveedor por email. Si puedes, contáctalo antes para coordinar.'
                     : eraConfirmada
                         ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
                         : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.';
@@ -370,7 +370,7 @@ function SolicitudCard({
             case 'rechazada':
                 return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
             case 'cancelada':
-                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada por vos</span>;
+                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada por ti</span>;
             case 'cancelada_proveedor':
                 return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Cancelada por el proveedor</span>;
             default:
@@ -483,7 +483,7 @@ function SolicitudCard({
             {/* Datos de contacto — solo confirmada AND opt-in del proveedor */}
             {isConfirmada && (showTelefono || showWhatsapp) && (
                 <div className="bg-accent-50/30 rounded-xl p-3 border border-accent-100 mb-3 space-y-1.5">
-                    <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium">Contactá al proveedor</p>
+                    <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium">Contacta al proveedor</p>
                     {showTelefono && (
                         <a href={`tel:${proveedor!.telefono}`} className="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-accent-600 transition-colors">
                             <Phone size={14} className="shrink-0" />

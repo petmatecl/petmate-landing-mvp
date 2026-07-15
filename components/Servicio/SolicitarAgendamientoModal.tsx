@@ -337,7 +337,7 @@ export default function SolicitarAgendamientoModal({
         // — no aplican.
         if (usaPicker) {
             if (!slotElegido) {
-                setErrorMsg('Elegí un horario disponible.');
+                setErrorMsg('Elige un horario disponible.');
                 return;
             }
 
@@ -417,7 +417,7 @@ export default function SolicitarAgendamientoModal({
                     const isRebote = insertErr.code === '23P01'
                         || (insertErr.message || '').includes('agendamientos_no_solape_confirmadas');
                     if (isRebote) {
-                        setErrorMsg('Ese horario acaba de ocuparse. Elegí otro.');
+                        setErrorMsg('Ese horario acaba de ocuparse. Elige otro.');
                         setSlotElegido(null);
                         // Refetch de slots — trigger via bump del pickerDesde
                         // a si mismo forzando re-run del useEffect. Truco:
@@ -827,7 +827,7 @@ export default function SolicitarAgendamientoModal({
                         return (
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-3">
-                                    Elegí un horario <span className="text-red-500">*</span>
+                                    Elige un horario <span className="text-red-500">*</span>
                                 </label>
 
                                 {/* Navegacion semana */}
@@ -1236,7 +1236,7 @@ export default function SolicitarAgendamientoModal({
                                         value={tipoMascotaTexto}
                                         onChange={e => setTipoMascotaTexto(e.target.value.slice(0, 140))}
                                         maxLength={140}
-                                        placeholder="Describí brevemente tu mascota (ej. Perro Beagle 3 años)"
+                                        placeholder="Describe brevemente tu mascota (ej. Perro Beagle 3 años)"
                                         className="mt-2 w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                     />
                                 )}
@@ -1249,7 +1249,7 @@ export default function SolicitarAgendamientoModal({
                                     value={tipoMascotaTexto}
                                     onChange={e => setTipoMascotaTexto(e.target.value.slice(0, 140))}
                                     maxLength={140}
-                                    placeholder="Describí brevemente tu mascota (ej. Perro Beagle 3 años)"
+                                    placeholder="Describe brevemente tu mascota (ej. Perro Beagle 3 años)"
                                     className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
                                 <a
