@@ -55,6 +55,18 @@ Orden por prioridad estimada; cada una entra por el mismo camino (`camposPorCate
   - Ficha: "Zona de cobertura", "Disponibilidad", "Fotos del espacio" son genéricas, sin condicional por categoría (el fix interino solo oculta cuando la data está vacía, no cuando la categoría no aplica).
 - **Alternativa considerada** (descartada por deuda a mediano plazo): Set explícito `CATEGORIAS_ASINCRONICAS` paralelo a `CATEGORIAS_MULTI_DIA`. Simple pero no modela categorías mixtas. Bien como stepping stone si urge — migrar Set → record es mecánico.
 
+### Modo request-to-book en la agenda (F1.5+ candidato, condicional)
+- **Solo implementar si proveedores reales lo piden — no especulativo.** Hoy los servicios F1 tienen dos modos: (a) sin agenda (`duracion_slot_min` NULL, flujo viejo pedir-fecha-a-ciegas), (b) instant-book (agenda activa, la reserva nace `confirmada` desde el picker). Faltaría un tercer modo intermedio estilo Airbnb: el tutor VE los slots reales de la agenda pero la reserva nace `pendiente` y requiere aprobación del proveedor. Da control total al proveedor sin perder visibilidad de horarios reales.
+- **Requeriría**:
+  - Tercer valor del toggle en el editor: `off / agenda-con-aprobación / agenda-automática`. Nueva columna `modo_reserva text` en `servicios_publicados` (o boolean `requiere_aprobacion`) — el toggle actual es solo `duracion_slot_min IS NULL/NOT NULL`.
+  - Picker del tutor: mismo strip días + grid slots, pero al elegir slot el INSERT nace `estado='pendiente'` con `duracion_min` y `capacidad_snapshot` poblados. Copy: "Solicitar reserva" en vez de "Confirmar reserva". Toast: "Solicitud enviada. El proveedor responde en X horas".
+  - **Decisión de producto pendiente — ¿hold del slot?** Dos alternativas:
+    - **Hold optimista** (más simple): el slot NO se retiene mientras espera; otros tutores pueden solicitarlo o reservarlo mientras la primera está `pendiente`. Si el proveedor confirma dos simultáneas, hay conflicto — el EXCLUDE constraint las rechaza al confirmar (una gana). Rechazo natural, pero UX rota para la que pierde.
+    - **Hold pesimista** (más complejo): el slot se retiene mientras la solicitud está `pendiente` (durante N horas), otros tutores lo ven ocupado. Necesita ampliar el `WHERE` del EXCLUDE constraint (o segundo EXCLUDE con `estado='pendiente'`) y una expiración automática del hold via cron si el proveedor no responde. Más justo para el tutor pero agrega complejidad de expiración.
+- **Coexistencia con instant-book**: el mismo proveedor podría tener servicios con distinto modo (paseo grupal instant-book, sesión de peluquería con aprobación). Un servicio se compromete a un solo modo — no mezclar en la misma reserva.
+- **Notificaciones**: reusar `notify-proveedor` con nuevo branching (subject "Nueva solicitud con horario elegido"), y `notify-tutor` al confirmar/rechazar. Emails ya diferencian estado — extensión menor.
+- **Trigger para implementar**: dos o más proveedores lo piden explícitamente (no una impresión general), o Aldo detecta que la fricción del instant-book está frenando adopción del sistema de agenda.
+
 ### Roadmap producto (Doctoralia-style)
 Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia sugerida por dependencias:
 1. **Reseñas automáticas post-servicio** — email + push al tutor N horas/días después del agendamiento marcado como completado. Boost del social proof + señal para el ranking.
