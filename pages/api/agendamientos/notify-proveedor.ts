@@ -34,6 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!parsed.success) return res.status(400).json({ error: 'Invalid input' });
     const { agendamientoId } = parsed.data;
 
+    // Diagnostico Bug F1 smoke: log de entrada + salida al servidor. Sin
+    // exponer PII (userId truncado). Aldo revisa Vercel logs para trazar
+    // por que un fire-and-forget del picker no se completa.
+    console.log('[notify-proveedor] recibido', {
+        agendamientoId,
+        callerId: userId.slice(0, 8) + '…',
+    });
+
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -48,8 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 id, fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
-                mensaje, tutor_id, proveedor_id, servicio_id,
-                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre, apellido_p),
+                estado, mensaje, tutor_id, proveedor_id, servicio_id,
+                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)
@@ -116,15 +124,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         const direccionInfo = agend.direccion_info || null;
 
+        // F1 agenda: si la agendamiento nacio confirmada (picker rigido del
+        // tutor), el copy es de "reserva confirmada" en vez de "solicitud
+        // que necesita respuesta". El estado se lee de BD, no del cliente.
+        const esConfirmadaAuto = agend.estado === 'confirmada';
+        const subject = esConfirmadaAuto
+            ? 'Nueva reserva confirmada en Pawnecta'
+            : 'Nueva solicitud de agendamiento en Pawnecta';
+
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: authUser.user.email,
-            subject: 'Nueva solicitud de agendamiento en Pawnecta',
+            subject,
             react: AgendamientoProveedorEmail({
                 nombreProveedor: proveedor.nombre || 'Proveedor',
-                nombreTutor: tutor
-                    ? `${tutor.nombre || ''} ${tutor.apellido_p || ''}`.trim() || 'Un tutor'
-                    : 'Un tutor',
+                nombreTutor: tutor?.nombre || 'Un tutor',
                 servicioTitulo: servicio?.titulo || 'tu servicio',
                 fechaFormateada,
                 mensaje: agend.mensaje || null,
@@ -132,9 +146,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 direccionServicio,
                 direccionInfo,
                 duracionLabel,
+                esConfirmadaAuto,
             }) as React.ReactElement,
         });
 
+        console.log('[notify-proveedor] enviado', {
+            messageId: response.data?.id,
+            esConfirmadaAuto,
+            proveedorTo: authUser.user.email,
+        });
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
         console.error('[notify-proveedor] catch error:', error);

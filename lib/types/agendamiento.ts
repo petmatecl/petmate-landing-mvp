@@ -8,7 +8,7 @@
 // / proveedores / servicios_publicados via FK.
 // ----------------------------------------------------------------------------
 
-export type EstadoAgendamiento = 'pendiente' | 'confirmada' | 'rechazada' | 'cancelada';
+export type EstadoAgendamiento = 'pendiente' | 'confirmada' | 'rechazada' | 'cancelada' | 'cancelada_proveedor';
 
 export interface AgendamientoRow {
     id: string;
@@ -49,6 +49,16 @@ export interface AgendamientoRow {
     respondido_at: string | null;
     created_at: string;
     updated_at: string;
+    // F1 agenda — poblados cuando la solicitud viene del picker rigido
+    // (estado='confirmada' al nacer). Sirven como bandera "es reserva de
+    // agenda" (duracion_min IS NOT NULL). Para flujo viejo (V1/V2/V4)
+    // ambos quedan null.
+    duracion_min: number | null;
+    capacidad_snapshot: number | null;
+    // F1 agenda — nombre del tutor denormalizado al INSERT. Motivo: RLS
+    // owner-only en usuarios_buscadores. Ver migration
+    // 20260714_agendamientos_tutor_nombre.sql.
+    tutor_nombre: string | null;
 }
 
 /**

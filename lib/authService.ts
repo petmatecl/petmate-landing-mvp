@@ -7,7 +7,9 @@ export interface UserProfile {
     id?: string;
     auth_user_id?: string;
     nombre: string;
-    apellido_p: string;
+    // Para proveedores viene poblado desde `proveedores`; para tutores queda
+    // undefined (usuarios_buscadores no tiene esta columna — solo `nombre`).
+    apellido_p?: string;
     apellido_m?: string;
     roles?: string[];
     // rol deleted
@@ -62,9 +64,12 @@ export const AuthService = {
                 };
             }
 
+            // usuarios_buscadores solo tiene: id, auth_user_id, nombre, email,
+            // rut, created_at, proveedor_id, codigo_referido. NO tiene
+            // apellido_p / apellido_m / foto_perfil — pedirlas devuelve 42703.
             const { data: buscadorData } = await supabase
                 .from('usuarios_buscadores')
-                .select('id, auth_user_id, nombre, apellido_p, apellido_m, foto_perfil')
+                .select('id, auth_user_id, nombre')
                 .eq('auth_user_id', userId)
                 .maybeSingle();
 
@@ -73,10 +78,7 @@ export const AuthService = {
                     id: buscadorData.id,
                     auth_user_id: buscadorData.auth_user_id,
                     nombre: buscadorData.nombre,
-                    apellido_p: buscadorData.apellido_p,
-                    apellido_m: buscadorData.apellido_m,
                     roles: ['usuario'],
-                    foto_perfil: buscadorData.foto_perfil,
                 };
             }
 

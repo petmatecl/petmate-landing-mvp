@@ -81,6 +81,7 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 
 ## Deuda técnica / pulido
 
+- **Errores de formulario fuera de viewport (UX)**: en `/register`, los errores de validación (ej. "La contraseña debe tener al menos 8 caracteres") se renderizan en un banner ARRIBA del formulario. En un form largo, el usuario está scrolleado abajo (cerca del botón "Crear Cuenta") cuando lo submitea — el banner de error queda fuera del viewport y el form parece no responder. Fix: mostrar el error inline junto al campo que falla, y/o scrollear automáticamente al banner al fallar el submit (`banner.scrollIntoView({ behavior: 'smooth', block: 'center' })`). Detectado en `/register` registrando cuenta de prueba. Auditar el mismo patrón en otros forms largos: registro proveedor (wizard multi-paso), wizard de publicación de servicio (`ServiceFormModal`).
 - **ProveedorCard**: paridad de layout con ServiceCard (title `min-h`, aspect ratio, rating overlay).
 - **Typography del blog**: las clases `prose-*` son no-op (falta `@tailwindcss/typography`). Decidir: instalar plugin (blog gana tipografía) o borrar el config muerto de `blog/[slug].tsx`.
 - **Styleguide rewrite**: `pages/styleguide.tsx` documenta el sistema viejo (emerald). Reescribir para el sistema visual v3: capa marca (accent/deep) + capa estado (success/danger/warning/info).

@@ -147,6 +147,13 @@ export default function ProveedorDashboard() {
     const [solicitudes, setSolicitudes] = useState<any[]>([]);
     const [solicitudActionId, setSolicitudActionId] = useState<string | null>(null);
     const [solicitudNotas, setSolicitudNotas] = useState<Record<string, string>>({});
+    // F1 agenda — cancelacion de confirmadas por el proveedor. cancelandoId
+    // marca cual reserva tiene el mini-form de "motivo de cancelacion" abierto
+    // (uno a la vez). motivoCancelacion holds el texto por reserva mientras
+    // se tipea. Nota obligatoria — el CHECK de BD la exige y el submit
+    // client-side la valida antes de mandar.
+    const [cancelandoId, setCancelandoId] = useState<string | null>(null);
+    const [motivoCancelacion, setMotivoCancelacion] = useState<Record<string, string>>({});
 
     // Stats via shared hook — uses proveedor.id once loaded
     const { stats, refetch: fetchStats } = useProveedorStats(
@@ -401,10 +408,10 @@ export default function ProveedorDashboard() {
                 fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
-                mensaje, estado, nota_proveedor,
+                mensaje, estado, nota_proveedor, tutor_nombre,
                 respondido_at, created_at, updated_at,
                 mascota_id, tipo_mascota_texto,
-                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, apellido_p, foto_perfil),
+                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo),
                 mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, raza, sexo, fecha_nacimiento, tamano, descripcion, enfermedades, trato_especial, trato_especial_desc, foto_mascota, fotos_galeria)
             `)
@@ -421,9 +428,44 @@ export default function ProveedorDashboard() {
         setSolicitudes([...pendientes, ...otras]);
     }, []);
 
+    // F1 agenda — badge del sidebar de Solicitudes. Con la reserva auto-
+    // confirmada, ya no basta contar pendientes (una reserva del picker no
+    // requiere accion pero el proveedor necesita enterarse). El count
+    // incluye:
+    //   - Pendientes: siempre (requieren respuesta).
+    //   - Confirmadas cuyo created_at > lastSeenAt (nueva reserva no vista).
+    // El lastSeenAt se persiste por proveedor en localStorage y se refresca
+    // al abrir el tab Solicitudes. Sin BD nueva — la "noción de visto" es
+    // local al browser del proveedor. Trade-off: si el proveedor entra desde
+    // otro browser, el badge se muestra hasta que abra el tab ahi. Aceptable
+    // — no vale la deuda de una tabla `visto` server-side para F1.
+    const [solicitudesLastSeenAt, setSolicitudesLastSeenAt] = useState<number>(0);
+
+    useEffect(() => {
+        if (!proveedor?.id || typeof window === 'undefined') return;
+        const raw = localStorage.getItem(`pawnecta.proveedor.solicitudes.lastSeenAt.${proveedor.id}`);
+        setSolicitudesLastSeenAt(raw ? parseInt(raw, 10) : 0);
+    }, [proveedor?.id]);
+
+    useEffect(() => {
+        if (activeTab !== 'solicitudes' || !proveedor?.id || typeof window === 'undefined') return;
+        const now = Date.now();
+        localStorage.setItem(`pawnecta.proveedor.solicitudes.lastSeenAt.${proveedor.id}`, String(now));
+        setSolicitudesLastSeenAt(now);
+    }, [activeTab, proveedor?.id]);
+
     const solicitudesPendientesCount = useMemo(
-        () => solicitudes.filter(s => s.estado === 'pendiente').length,
-        [solicitudes]
+        () => solicitudes.filter(s => {
+            if (s.estado === 'pendiente') return true;
+            if (s.estado === 'confirmada' && solicitudesLastSeenAt > 0) {
+                return new Date(s.created_at).getTime() > solicitudesLastSeenAt;
+            }
+            // Antes de leer localStorage (lastSeenAt = 0), solo pendientes
+            // aportan al badge — evita spike de "todas las confirmadas
+            // historicas son nuevas" al bootstrap.
+            return false;
+        }).length,
+        [solicitudes, solicitudesLastSeenAt]
     );
 
     const handleResponderSolicitud = useCallback(
@@ -488,6 +530,66 @@ export default function ProveedorDashboard() {
             }
         },
         [proveedor?.id, solicitudes, solicitudNotas, fetchSolicitudes]
+    );
+
+    // F1 agenda — cancelacion de una reserva confirmada por el proveedor.
+    // Transiciona estado 'confirmada' → 'cancelada_proveedor'. Requiere
+    // motivo (validado client-side + CHECK a nivel BD garantiza no vacio).
+    // El EXCLUDE constraint deja de aplicar (WHERE incluye estado=confirmada),
+    // asi el slot queda liberado al instante para otros tutores.
+    const handleCancelarProveedor = useCallback(
+        async (solicitudId: string) => {
+            const sol = solicitudes.find(s => s.id === solicitudId);
+            if (!sol) return;
+            if (sol.estado !== 'confirmada') {
+                toast.error('Solo se pueden cancelar reservas confirmadas.');
+                return;
+            }
+            const motivo = (motivoCancelacion[solicitudId] ?? '').trim();
+            if (!motivo) {
+                toast.error('Escribí el motivo de la cancelación — el tutor lo va a ver.');
+                return;
+            }
+
+            setSolicitudActionId(solicitudId);
+            try {
+                const { error } = await supabase
+                    .from('agendamientos')
+                    .update({
+                        estado: 'cancelada_proveedor',
+                        nota_proveedor: motivo,
+                    })
+                    .eq('id', solicitudId);
+                if (error) throw error;
+
+                toast.success('Reserva cancelada. El tutor recibirá el aviso por email.');
+                if (proveedor?.id) await fetchSolicitudes(proveedor.id);
+                setCancelandoId(null);
+                setMotivoCancelacion(prev => {
+                    const next = { ...prev };
+                    delete next[solicitudId];
+                    return next;
+                });
+
+                // Email al tutor — endpoint reutilizado (notify-tutor
+                // aceptaba solo confirmada/rechazada, ahora tambien
+                // cancelada_proveedor con motivo).
+                fetch('/api/agendamientos/notify-tutor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ''}`,
+                    },
+                    body: JSON.stringify({ agendamientoId: solicitudId }),
+                }).catch(err => console.warn('[Cancelar] notify-tutor fallo:', err));
+            } catch (err: any) {
+                console.error('[Cancelar] update error:', err);
+                toast.error(`No pudimos cancelar la reserva: ${err?.message || 'error desconocido'}`);
+            } finally {
+                setSolicitudActionId(null);
+            }
+        },
+        [proveedor?.id, solicitudes, motivoCancelacion, fetchSolicitudes]
     );
 
     const handleTabChange = (tab: TabType) => {
@@ -2182,9 +2284,13 @@ export default function ProveedorDashboard() {
                                         // vive ahora en components/Mascota/FichaMascota — usado tambien
                                         // en el modal read-only del tutor en /usuario/mascotas.
                                         const isPendiente = sol.estado === 'pendiente';
+                                        const isConfirmada = sol.estado === 'confirmada';
                                         const isCancelada = sol.estado === 'cancelada';
+                                        const isCanceladaProveedor = sol.estado === 'cancelada_proveedor';
                                         const isLoading = solicitudActionId === sol.id;
                                         const nota = solicitudNotas[sol.id] ?? '';
+                                        const motivoCancel = motivoCancelacion[sol.id] ?? '';
+                                        const cancelFormAbierto = cancelandoId === sol.id;
 
                                         // Branching de formato segun variante.
                                         //   V4b (cuidado a domicilio horas):  modo_tarifa='horas' + duracion
@@ -2228,15 +2334,29 @@ export default function ProveedorDashboard() {
                                                 case 'rechazada':
                                                     return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
                                                 case 'cancelada':
-                                                    return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada</span>;
+                                                    return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada por el tutor</span>;
+                                                case 'cancelada_proveedor':
+                                                    return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Cancelada por ti</span>;
                                                 default:
                                                     return <span className="inline-flex items-center gap-1 bg-warning-50 text-warning-700 border border-warning-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
                                             }
                                         })();
 
-                                        const tutorIniciales = tutor
-                                            ? ((tutor.nombre || '?')[0] + (tutor.apellido_p || '')[0] || '').toUpperCase()
-                                            : '?';
+                                        // Nombre del tutor: preferir la denormalizacion en la
+                                        // fila del agendamiento (F1 patron espejo de
+                                        // evaluaciones.nombre_autor). Fallback al join solo
+                                        // por si algun dia se aplica una policy cross-role
+                                        // — hoy el join devuelve null (RLS owner-only en
+                                        // usuarios_buscadores). Ultimo fallback "Tutor" para
+                                        // filas historicas sin backfill.
+                                        const tutorNombre = sol.tutor_nombre || tutor?.nombre || 'Tutor';
+                                        // Iniciales = primeros dos tokens del nombre.
+                                        const tutorIniciales = (() => {
+                                            const tokens = tutorNombre.trim().split(/\s+/).filter(Boolean);
+                                            if (tokens.length === 0) return '?';
+                                            if (tokens.length === 1) return tokens[0][0].toUpperCase();
+                                            return (tokens[0][0] + tokens[1][0]).toUpperCase();
+                                        })();
 
                                         return (
                                             <div key={sol.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
@@ -2248,7 +2368,7 @@ export default function ProveedorDashboard() {
                                                         </div>
                                                         <div className="min-w-0">
                                                             <p className="text-sm font-semibold text-slate-900 truncate">
-                                                                {tutor ? `${tutor.nombre} ${tutor.apellido_p || ''}`.trim() : 'Tutor desconocido'}
+                                                                {tutorNombre}
                                                             </p>
                                                             <p className="text-xs text-slate-500 truncate">
                                                                 {servicio?.titulo || 'Servicio eliminado'}
@@ -2314,13 +2434,90 @@ export default function ProveedorDashboard() {
 
                                                 {/* Respuesta del proveedor (estados ya resueltos) */}
                                                 {!isPendiente && !isCancelada && (sol.nota_proveedor || respondidoAt) && (
-                                                    <div className="bg-accent-50/50 rounded-xl p-3 border border-accent-100 mb-3">
-                                                        <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium mb-1">
-                                                            Tu respuesta{respondidoAt ? ` · ${respondidoAt}` : ''}
+                                                    <div className={`rounded-xl p-3 border mb-3 ${
+                                                        isCanceladaProveedor
+                                                            ? 'bg-slate-50 border-slate-200'
+                                                            : 'bg-accent-50/50 border-accent-100'
+                                                    }`}>
+                                                        <p className={`text-[11px] uppercase tracking-widest font-medium mb-1 ${
+                                                            isCanceladaProveedor ? 'text-slate-500' : 'text-accent-700'
+                                                        }`}>
+                                                            {isCanceladaProveedor
+                                                                ? `Motivo de la cancelación${respondidoAt ? ` · ${respondidoAt}` : ''}`
+                                                                : `Tu respuesta${respondidoAt ? ` · ${respondidoAt}` : ''}`}
                                                         </p>
                                                         {sol.nota_proveedor
                                                             ? <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{sol.nota_proveedor}</p>
                                                             : <p className="text-sm text-slate-500 italic">Sin nota adicional</p>}
+                                                    </div>
+                                                )}
+
+                                                {/* Acciones para reservas confirmadas — cancelar con nota
+                                                    obligatoria. Aparece para toda confirmada (F1 auto o
+                                                    resolucion pendiente→confirmada del flujo viejo).
+                                                    El motivo es obligatorio a nivel BD (CHECK
+                                                    agendamientos_cancelada_proveedor_nota_check). */}
+                                                {isConfirmada && (
+                                                    <div className="border-t border-slate-100 pt-4 mt-4">
+                                                        {!cancelFormAbierto ? (
+                                                            <div className="flex justify-end">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setCancelandoId(sol.id)}
+                                                                    disabled={isLoading}
+                                                                    className="text-xs font-medium text-danger-600 hover:text-danger-700 hover:bg-danger-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                                                >
+                                                                    Cancelar reserva
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="space-y-3 bg-danger-50/40 rounded-xl p-3 border border-danger-100">
+                                                                <div>
+                                                                    <label htmlFor={`cancel-motivo-${sol.id}`} className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                                                        Motivo de la cancelación <span className="text-danger-600">*</span>
+                                                                    </label>
+                                                                    <textarea
+                                                                        id={`cancel-motivo-${sol.id}`}
+                                                                        value={motivoCancel}
+                                                                        onChange={e => setMotivoCancelacion(prev => ({ ...prev, [sol.id]: e.target.value }))}
+                                                                        placeholder="Ej: tuve un imprevisto y no puedo atender esa hora. Disculpas."
+                                                                        rows={2}
+                                                                        maxLength={500}
+                                                                        disabled={isLoading}
+                                                                        className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-danger-500 focus:border-danger-500 transition-colors resize-none disabled:opacity-60"
+                                                                    />
+                                                                    <p className="text-[11px] text-slate-500 mt-1">
+                                                                        El tutor va a recibir este mensaje por email — sé claro y cortés.
+                                                                    </p>
+                                                                </div>
+                                                                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setCancelandoId(null);
+                                                                            setMotivoCancelacion(prev => {
+                                                                                const next = { ...prev };
+                                                                                delete next[sol.id];
+                                                                                return next;
+                                                                            });
+                                                                        }}
+                                                                        disabled={isLoading}
+                                                                        className="px-3 py-1.5 text-sm font-medium text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
+                                                                    >
+                                                                        Volver
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleCancelarProveedor(sol.id)}
+                                                                        disabled={isLoading || !motivoCancel.trim()}
+                                                                        className="bg-danger-600 hover:bg-danger-700 text-white font-medium py-1.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                                                                    >
+                                                                        {isLoading && <Loader2 size={14} className="animate-spin" />}
+                                                                        Confirmar cancelación
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 
@@ -2330,7 +2527,7 @@ export default function ProveedorDashboard() {
                                                         <textarea
                                                             value={nota}
                                                             onChange={e => setSolicitudNotas(prev => ({ ...prev, [sol.id]: e.target.value }))}
-                                                            placeholder="Agregá una nota para el tutor, ej: instrucciones específicas, requisitos, etc."
+                                                            placeholder="Agrega una nota para el tutor, ej: instrucciones específicas, requisitos, etc."
                                                             rows={2}
                                                             maxLength={500}
                                                             disabled={isLoading}

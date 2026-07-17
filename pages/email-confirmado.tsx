@@ -103,12 +103,14 @@ export default function EmailConfirmadoPage() {
                         const firstName = user.user_metadata?.given_name || fullName.split(' ')[0] || "Usuario";
                         const lastName = user.user_metadata?.family_name || fullName.split(' ').slice(1).join(' ') || "";
 
+                        // usuarios_buscadores NO tiene apellido_p — el nombre
+                        // va concatenado en una sola columna. Mismo shape que
+                        // /api/auth/signup.ts para consistencia.
                         const { error: insertError } = await supabase
                             .from('usuarios_buscadores')
                             .insert([{
                                 auth_user_id: user.id,
-                                nombre: firstName,
-                                apellido_p: lastName,
+                                nombre: lastName ? `${firstName} ${lastName}` : firstName,
                             }]);
 
                         if (insertError && insertError.code === '23505') {

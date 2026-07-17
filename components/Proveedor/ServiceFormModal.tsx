@@ -5,6 +5,57 @@ import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } f
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { useUser } from '../../contexts/UserContext';
+import { categoriaAdmiteAgendaF1, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
+
+// Fase 1 agenda con disponibilidad real — Incremento 2A.
+// Constantes del editor semanal. Duracion en minutos: opciones canonicas
+// que cubren el rango 5-480 (schema CHECK). ISO dia_semana 1=lunes, 7=domingo.
+const DURACION_SLOT_OPCIONES = [15, 30, 45, 60, 90, 120, 180, 240] as const;
+const DIAS_SEMANA: { iso: number; label: string; corto: string }[] = [
+    { iso: 1, label: 'Lunes', corto: 'Lun' },
+    { iso: 2, label: 'Martes', corto: 'Mar' },
+    { iso: 3, label: 'Miércoles', corto: 'Mié' },
+    { iso: 4, label: 'Jueves', corto: 'Jue' },
+    { iso: 5, label: 'Viernes', corto: 'Vie' },
+    { iso: 6, label: 'Sábado', corto: 'Sáb' },
+    { iso: 7, label: 'Domingo', corto: 'Dom' },
+];
+
+// Franja semanal — id undefined para nuevas (aun no persistidas). El diff
+// quirurgico al guardar compara vs snapshot inicial para decidir INSERT/
+// UPDATE/DELETE por id. hora_desde/hora_hasta en formato HH:MM (input type=time).
+type FranjaSemanal = {
+    id?: string;
+    dia_semana: number;
+    hora_desde: string;
+    hora_hasta: string;
+};
+
+// Excepcion de disponibilidad — bloqueo ad-hoc (vacaciones, dia libre, franja
+// tapada). Sin horas = dia completo bloqueado. Con horas = franja bloqueada
+// (ambas populadas o ambas null; el CHECK de BD lo protege). Motivo opcional.
+type Excepcion = {
+    id?: string;
+    fecha: string;                  // YYYY-MM-DD (input type=date)
+    hora_desde: string | null;      // HH:MM o null
+    hora_hasta: string | null;      // HH:MM o null
+    motivo: string | null;          // <=200 chars
+};
+
+const EXCEPCION_MOTIVO_MAX = 200;
+
+// Mapeo de la clave castellano del JSONB legacy a ISO dia_semana. Usado por
+// el import "traer mi horario actual". Los dias con tilde matchean lo que
+// el editor legacy escribe.
+const LEGACY_KEY_TO_ISO: Record<string, number> = {
+    'Lunes': 1,
+    'Martes': 2,
+    'Miércoles': 3,
+    'Jueves': 4,
+    'Viernes': 5,
+    'Sábado': 6,
+    'Domingo': 7,
+};
 
 interface ServiceFormModalProps {
     isOpen: boolean;
@@ -60,6 +111,27 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     // Sprint 1 agendamiento (UI). Toggle por servicio. La columna en BD
     // tiene default false; este state respeta ese default para nuevos.
     const [agendamientoHabilitado, setAgendamientoHabilitado] = useState(false);
+
+    // F1 agenda con disponibilidad real (Incremento 2A). Opt-in por servicio.
+    // usaAgendaReal se mapea a `duracion_slot_min IS NOT NULL` al load/save —
+    // no persiste como columna propia; es puro state UI. Los defaults matchean
+    // los defaults del schema (capacidad=1, antic 24h/60d, duracion 60min como
+    // arranque comun).
+    const [usaAgendaReal, setUsaAgendaReal] = useState(false);
+    const [duracionSlotMin, setDuracionSlotMin] = useState<number>(60);
+    const [capacidadSlot, setCapacidadSlot] = useState<number>(1);
+    const [anticipacionMinHoras, setAnticipacionMinHoras] = useState<number>(24);
+    const [anticipacionMaxDias, setAnticipacionMaxDias] = useState<number>(60);
+    const [franjasSemana, setFranjasSemana] = useState<FranjaSemanal[]>([]);
+    // Snapshot inicial para el diff quirurgico al guardar. Solo las franjas
+    // que traiamos de BD llevan id — las nuevas no tienen, y las eliminadas
+    // desaparecen de `franjasSemana` pero siguen en el snapshot inicial.
+    const [franjasSemanaInicial, setFranjasSemanaInicial] = useState<FranjaSemanal[]>([]);
+
+    // Excepciones futuras (fecha >= hoy). Historicas NO se traen ni se tocan
+    // — el diff al save solo opera sobre las que trajimos aca.
+    const [excepciones, setExcepciones] = useState<Excepcion[]>([]);
+    const [excepcionesInicial, setExcepcionesInicial] = useState<Excepcion[]>([]);
 
     // Category-specific fields (stored as JSONB)
     const [detalles, setDetalles] = useState<Record<string, any>>({});
@@ -125,6 +197,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setComunasCobertura([]);
         setComunaSearch('');
         setAgendamientoHabilitado(false);
+        setUsaAgendaReal(false);
+        setDuracionSlotMin(60);
+        setCapacidadSlot(1);
+        setAnticipacionMinHoras(24);
+        setAnticipacionMaxDias(60);
+        setFranjasSemana([]);
+        setFranjasSemanaInicial([]);
+        setExcepciones([]);
+        setExcepcionesInicial([]);
     };
 
     const fetchCategorias = useCallback(async () => {
@@ -181,6 +262,70 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 setDetalles(data.detalles || {});
                 setComunasCobertura(data.comunas_cobertura || []);
                 setAgendamientoHabilitado(!!data.agendamiento_habilitado);
+
+                // F1 agenda: usaAgendaReal se deriva de que duracion_slot_min
+                // este poblada. Si NULL el servicio esta opt-out del sistema
+                // nuevo — sigue el flujo viejo aunque las otras columnas
+                // (capacidad, anticipaciones) tengan defaults.
+                const hasAgenda = data.duracion_slot_min !== null && data.duracion_slot_min !== undefined;
+                setUsaAgendaReal(hasAgenda);
+                if (hasAgenda) {
+                    setDuracionSlotMin(data.duracion_slot_min);
+                }
+                setCapacidadSlot(data.capacidad_slot ?? 1);
+                setAnticipacionMinHoras(data.anticipacion_min_horas ?? 24);
+                setAnticipacionMaxDias(data.anticipacion_max_dias ?? 60);
+
+                // Fetch franjas semanales del servicio. Sin importar si esta
+                // opt-in ahora — si toggleamos opt-in mid-sesion queremos
+                // mostrar lo ultimo que habia. RLS gatea acceso a lo del
+                // proveedor logueado.
+                const { data: franjas, error: franjasErr } = await supabase
+                    .from('disponibilidad_semanal')
+                    .select('id, dia_semana, hora_desde, hora_hasta')
+                    .eq('servicio_id', id)
+                    .order('dia_semana', { ascending: true })
+                    .order('hora_desde', { ascending: true });
+                if (franjasErr) {
+                    console.warn('[ServiceFormModal] fetch franjas fallo:', franjasErr);
+                } else {
+                    // Postgres time viene como 'HH:MM:SS'; el input type=time
+                    // espera 'HH:MM'. Truncamos aca para render consistente.
+                    const parsed: FranjaSemanal[] = (franjas || []).map(f => ({
+                        id: f.id,
+                        dia_semana: f.dia_semana,
+                        hora_desde: (f.hora_desde as string).slice(0, 5),
+                        hora_hasta: (f.hora_hasta as string).slice(0, 5),
+                    }));
+                    setFranjasSemana(parsed);
+                    setFranjasSemanaInicial(parsed);
+                }
+
+                // Excepciones futuras (fecha >= hoy). Solo las futuras se
+                // traen y se muestran — el editor no gestiona las historicas
+                // (bloqueos ya cumplidos). El diff al save opera solo sobre
+                // este subset asi que las historicas quedan intactas en BD.
+                const todayIso = new Date().toISOString().slice(0, 10);
+                const { data: excs, error: excsErr } = await supabase
+                    .from('excepciones_disponibilidad')
+                    .select('id, fecha, hora_desde, hora_hasta, motivo')
+                    .eq('servicio_id', id)
+                    .gte('fecha', todayIso)
+                    .order('fecha', { ascending: true })
+                    .order('hora_desde', { ascending: true, nullsFirst: true });
+                if (excsErr) {
+                    console.warn('[ServiceFormModal] fetch excepciones fallo:', excsErr);
+                } else {
+                    const parsedExcs: Excepcion[] = (excs || []).map(e => ({
+                        id: e.id,
+                        fecha: e.fecha,
+                        hora_desde: e.hora_desde ? (e.hora_desde as string).slice(0, 5) : null,
+                        hora_hasta: e.hora_hasta ? (e.hora_hasta as string).slice(0, 5) : null,
+                        motivo: e.motivo ?? null,
+                    }));
+                    setExcepciones(parsedExcs);
+                    setExcepcionesInicial(parsedExcs);
+                }
             }
         } catch (err: any) {
             if (err?.message === 'fetch-timeout') {
@@ -206,6 +351,20 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             return;
         }
 
+        // El bucket `servicios-fotos` tiene politica INSERT que valida
+        // `(storage.foldername(name))[1] = auth.uid()::text`. El path
+        // arrancaba con `proveedorId` (id de proveedores) y NO auth.uid,
+        // asi que fallaba con RLS violation para toda cuenta donde ambos
+        // ids difieren (que son basicamente todas — proveedores es tabla
+        // aparte con id propio). Bug historico desde el commit inicial del
+        // panel (332ccf3). Alineado ahora al primer folder = auth.uid.
+        const { data: { session } } = await supabase.auth.getSession();
+        const authUid = session?.user?.id;
+        if (!authUid) {
+            toast.error('Tu sesion expiró. Recarga la página e inicia sesión de nuevo.');
+            return;
+        }
+
         setUploadingFotos(true);
         const newUrls: string[] = [];
 
@@ -217,7 +376,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
             const ext = file.name.split('.').pop();
             const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-            const filePath = `${proveedorId}/${fileName}`;
+            const filePath = `${authUid}/${fileName}`;
 
             const { data, error } = await supabase.storage.from('servicios-fotos').upload(filePath, file);
 
@@ -270,7 +429,97 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         if (comunasCobertura.length === 0) return toast.error("Selecciona al menos una comuna de cobertura.");
         if (fotos.length === 0) return toast.error("Agrega al menos una foto — los servicios con fotos reciben muchas más consultas.");
 
+        // F1 agenda — validaciones (solo si opt-in). El toggle no aparece si
+        // la categoria no admite F1, asi que no re-validamos categoria aca.
+        if (usaAgendaReal) {
+            if (!DURACION_SLOT_OPCIONES.includes(duracionSlotMin as any)) {
+                return toast.error(`Selecciona una duración ${sustantivo.del} válida.`);
+            }
+            if (!Number.isInteger(capacidadSlot) || capacidadSlot < 1 || capacidadSlot > 20) {
+                return toast.error(`La capacidad por ${sustantivo.singular} debe estar entre 1 y 20.`);
+            }
+            if (!Number.isInteger(anticipacionMinHoras) || anticipacionMinHoras < 0 || anticipacionMinHoras > 168) {
+                return toast.error('La anticipacion minima debe estar entre 0 y 168 horas.');
+            }
+            if (!Number.isInteger(anticipacionMaxDias) || anticipacionMaxDias < 1 || anticipacionMaxDias > 365) {
+                return toast.error('La ventana maxima debe estar entre 1 y 365 dias.');
+            }
+            if (franjasSemana.length === 0) {
+                return toast.error('Agrega al menos una franja horaria en tu semana tipo.');
+            }
+            // Validaciones por franja: hasta > desde + no solape dentro del
+            // mismo dia. hh:mm en string compara lexicograficamente igual que
+            // como time — evita parseo a Date.
+            for (const f of franjasSemana) {
+                if (f.hora_hasta <= f.hora_desde) {
+                    const nombre = DIAS_SEMANA.find(d => d.iso === f.dia_semana)?.label ?? '';
+                    return toast.error(`${nombre}: la hora de fin debe ser posterior a la de inicio.`);
+                }
+            }
+            // Solape: para cada dia, ordenar por hora_desde y verificar que
+            // la siguiente empieza >= la actual.hora_hasta.
+            for (const dia of DIAS_SEMANA) {
+                const franjasDia = franjasSemana
+                    .filter(f => f.dia_semana === dia.iso)
+                    .sort((a, b) => a.hora_desde.localeCompare(b.hora_desde));
+                for (let i = 1; i < franjasDia.length; i++) {
+                    if (franjasDia[i].hora_desde < franjasDia[i - 1].hora_hasta) {
+                        return toast.error(`${dia.label}: hay franjas que se solapan.`);
+                    }
+                }
+            }
+
+            // Validaciones de excepciones. El editor solo muestra futuras,
+            // asi que la BD-side date check por "no pasado" es redundante,
+            // pero cubre el caso de que el usuario edite la fecha manualmente.
+            const todayIso = new Date().toISOString().slice(0, 10);
+            for (const e of excepciones) {
+                if (!e.fecha) {
+                    return toast.error('Todas las excepciones necesitan una fecha.');
+                }
+                if (e.fecha < todayIso) {
+                    return toast.error(`Excepción del ${e.fecha}: la fecha debe ser desde hoy.`);
+                }
+                const desdeOn = !!e.hora_desde;
+                const hastaOn = !!e.hora_hasta;
+                if (desdeOn !== hastaOn) {
+                    return toast.error(`Excepción del ${e.fecha}: si indicas una hora, indica ambas (inicio y fin).`);
+                }
+                if (desdeOn && hastaOn && (e.hora_hasta as string) <= (e.hora_desde as string)) {
+                    return toast.error(`Excepción del ${e.fecha}: la hora de fin debe ser posterior a la de inicio.`);
+                }
+                if (e.motivo && e.motivo.length > EXCEPCION_MOTIVO_MAX) {
+                    return toast.error(`Excepción del ${e.fecha}: el motivo supera ${EXCEPCION_MOTIVO_MAX} caracteres.`);
+                }
+            }
+            // Duplicados (fecha + hora_desde) — el UNIQUE del schema lo
+            // protege, pero avisamos amable client-side. NULL en hora_desde
+            // se maneja como bucket propio ('__DIA_COMPLETO__').
+            const seen = new Set<string>();
+            for (const e of excepciones) {
+                const key = `${e.fecha}::${e.hora_desde ?? '__DIA_COMPLETO__'}`;
+                if (seen.has(key)) {
+                    return toast.error(`Excepción duplicada el ${e.fecha}${e.hora_desde ? ' a las ' + e.hora_desde : ''}.`);
+                }
+                seen.add(key);
+            }
+        }
+
         setLoading(true);
+
+        // Endurecimiento del save (post-smoke de Aldo — cuelgue reportado con
+        // spinner eterno):
+        //   1. Wrap try/catch/finally garantiza que setLoading(false) se
+        //      dispare pase lo que pase (throw de Supabase por sesion expirada,
+        //      TypeError inesperado, etc.). Antes cada branch de error hacia
+        //      setLoading(false) manual — cualquier throw silencioso escapaba.
+        //   2. Timeout watchdog de 15s (patron del bug C10 en fetchService).
+        //      El save toca 3 tablas (servicios_publicados + disponibilidad_
+        //      semanal + excepciones_disponibilidad) y puede colgarse por
+        //      contencion del lock de auth o network hiccup. Sin cap, el
+        //      spinner queda para siempre.
+        //   3. Toast visible en TODO fallo (bd, timeout o excepcion) —
+        //      antes el catch mudo dejaba al proveedor sin feedback.
 
         const sizes = [];
         if (perros) {
@@ -322,28 +571,198 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             detalles: detallesParaGuardar,
             comunas_cobertura: comunasCobertura,
             agendamiento_habilitado: agendamientoHabilitado,
+            // F1 agenda: duracion_slot_min NULL = opt-out. Las otras 3
+            // columnas siempre se envian con valor (default o custom); son
+            // inertes cuando duracion_slot_min es NULL, pero mantener el
+            // valor evita reset silencioso al re-activar. Si la categoria
+            // no admite F1 (guarderia/cuidado), duracion siempre NULL —
+            // defensivo aunque el toggle no aparezca en UI.
+            duracion_slot_min: (usaAgendaReal && categoriaAdmiteAgendaF1(selectedCatSlug)) ? duracionSlotMin : null,
+            capacidad_slot: capacidadSlot,
+            anticipacion_min_horas: anticipacionMinHoras,
+            anticipacion_max_dias: anticipacionMaxDias,
         };
 
-        if (existingServiceId) {
-            const { error } = await supabase.from('servicios_publicados').update(payload).eq('id', existingServiceId);
-            if (error) {
-                toast.error('Error al actualizar: ' + error.message);
+        // Toda la logica de guardado — envuelta en promise para poder
+        // race-la contra el timeout. Retorna true si el guardado se
+        // completo sin errores propios (BD ok, diff ok); false si hubo
+        // un error propio ya reportado con toast (asi el catch external
+        // no lo re-reporta). Los throws inesperados escapan al catch
+        // external.
+        const savePromise = (async (): Promise<boolean> => {
+            let savedServicioId: string | null = existingServiceId ?? null;
+            if (existingServiceId) {
+                const { error } = await supabase.from('servicios_publicados').update(payload).eq('id', existingServiceId);
+                if (error) {
+                    toast.error('Error al actualizar: ' + error.message);
+                    return false;
+                }
             } else {
-                toast.success('Servicio actualizado correctamente');
+                const { data: inserted, error } = await supabase
+                    .from('servicios_publicados')
+                    .insert({ ...payload, activo: true })
+                    .select('id')
+                    .single();
+                if (error) {
+                    toast.error('Error al publicar: ' + error.message);
+                    return false;
+                }
+                savedServicioId = inserted?.id ?? null;
+            }
+
+            // F1 agenda: diff quirurgico de franjas semanales. Aplicamos
+            // INSERT/UPDATE/DELETE por id contra el snapshot inicial. Si
+            // opt-out (usaAgendaReal=false) preservamos las franjas
+            // existentes — el proveedor puede re-activar sin re-armar la
+            // semana. Los servicios nuevos no tienen snapshot, asi que
+            // todo cae a INSERT. Best-effort: si algo falla, avisamos pero
+            // el UPDATE del servicio ya paso.
+            if (savedServicioId && usaAgendaReal) {
+                const idsActuales = new Set(franjasSemana.filter(f => f.id).map(f => f.id!));
+                const toDelete = franjasSemanaInicial.filter(f => f.id && !idsActuales.has(f.id));
+                const toInsert = franjasSemana.filter(f => !f.id);
+                const toUpdate: FranjaSemanal[] = [];
+                for (const f of franjasSemana) {
+                    if (!f.id) continue;
+                    const inicial = franjasSemanaInicial.find(i => i.id === f.id);
+                    if (!inicial) continue;
+                    if (
+                        inicial.dia_semana !== f.dia_semana ||
+                        inicial.hora_desde !== f.hora_desde ||
+                        inicial.hora_hasta !== f.hora_hasta
+                    ) {
+                        toUpdate.push(f);
+                    }
+                }
+
+                let franjasErr: string | null = null;
+                if (toDelete.length > 0) {
+                    const { error } = await supabase
+                        .from('disponibilidad_semanal')
+                        .delete()
+                        .in('id', toDelete.map(f => f.id!));
+                    if (error) franjasErr = error.message;
+                }
+                if (!franjasErr && toInsert.length > 0) {
+                    const { error } = await supabase
+                        .from('disponibilidad_semanal')
+                        .insert(toInsert.map(f => ({
+                            servicio_id: savedServicioId,
+                            dia_semana: f.dia_semana,
+                            hora_desde: f.hora_desde,
+                            hora_hasta: f.hora_hasta,
+                        })));
+                    if (error) franjasErr = error.message;
+                }
+                if (!franjasErr) {
+                    for (const f of toUpdate) {
+                        const { error } = await supabase
+                            .from('disponibilidad_semanal')
+                            .update({
+                                dia_semana: f.dia_semana,
+                                hora_desde: f.hora_desde,
+                                hora_hasta: f.hora_hasta,
+                            })
+                            .eq('id', f.id!);
+                        if (error) { franjasErr = error.message; break; }
+                    }
+                }
+
+                if (franjasErr) {
+                    toast.error('Servicio guardado, pero hubo un problema con la agenda: ' + franjasErr);
+                    return false;
+                }
+
+                // Diff quirurgico de excepciones — mismo patron que franjas.
+                // Comparamos vs snapshot inicial (solo futuras). Historicas
+                // quedan intactas en BD porque nunca las trajimos ni las
+                // tocamos.
+                const idsExcActuales = new Set(excepciones.filter(e => e.id).map(e => e.id!));
+                const excToDelete = excepcionesInicial.filter(e => e.id && !idsExcActuales.has(e.id));
+                const excToInsert = excepciones.filter(e => !e.id);
+                const excToUpdate: Excepcion[] = [];
+                for (const e of excepciones) {
+                    if (!e.id) continue;
+                    const inicial = excepcionesInicial.find(i => i.id === e.id);
+                    if (!inicial) continue;
+                    if (
+                        inicial.fecha !== e.fecha ||
+                        inicial.hora_desde !== e.hora_desde ||
+                        inicial.hora_hasta !== e.hora_hasta ||
+                        (inicial.motivo ?? null) !== (e.motivo ?? null)
+                    ) {
+                        excToUpdate.push(e);
+                    }
+                }
+
+                let excErr: string | null = null;
+                if (excToDelete.length > 0) {
+                    const { error } = await supabase
+                        .from('excepciones_disponibilidad')
+                        .delete()
+                        .in('id', excToDelete.map(e => e.id!));
+                    if (error) excErr = error.message;
+                }
+                if (!excErr && excToInsert.length > 0) {
+                    const { error } = await supabase
+                        .from('excepciones_disponibilidad')
+                        .insert(excToInsert.map(e => ({
+                            servicio_id: savedServicioId,
+                            fecha: e.fecha,
+                            hora_desde: e.hora_desde,
+                            hora_hasta: e.hora_hasta,
+                            motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
+                        })));
+                    if (error) excErr = error.message;
+                }
+                if (!excErr) {
+                    for (const e of excToUpdate) {
+                        const { error } = await supabase
+                            .from('excepciones_disponibilidad')
+                            .update({
+                                fecha: e.fecha,
+                                hora_desde: e.hora_desde,
+                                hora_hasta: e.hora_hasta,
+                                motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
+                            })
+                            .eq('id', e.id!);
+                        if (error) { excErr = error.message; break; }
+                    }
+                }
+
+                if (excErr) {
+                    toast.error('Servicio guardado, pero hubo un problema con las excepciones: ' + excErr);
+                    return false;
+                }
+            }
+
+            return true;
+        })();
+
+        const SAVE_TIMEOUT_MS = 15_000;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('save-timeout')), SAVE_TIMEOUT_MS);
+        });
+
+        try {
+            const ok = await Promise.race([savePromise, timeoutPromise]);
+            if (ok) {
+                toast.success(existingServiceId ? 'Servicio actualizado correctamente' : 'Servicio publicado correctamente');
                 onSuccess();
                 onClose();
             }
-        } else {
-            const { error } = await supabase.from('servicios_publicados').insert({ ...payload, activo: true });
-            if (error) {
-                toast.error('Error al publicar: ' + error.message);
+        } catch (err: any) {
+            if (err?.message === 'save-timeout') {
+                toast.error('El guardado tardó demasiado (15s). Verifica tu conexión y vuelve a intentar.');
             } else {
-                toast.success('Servicio publicado correctamente');
-                onSuccess();
-                onClose();
+                console.error('[ServiceFormModal] save error inesperado:', err);
+                toast.error('Ocurrió un error inesperado al guardar. Intentá nuevamente.');
             }
+        } finally {
+            // Garantiza que el spinner siempre baje. Ante ok=true, ok=false y
+            // ante cualquier throw (BD, timeout, TypeError, sesion expirada).
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     // Derivaciones que alimentan hooks o handleSubmit (closure). Suben arriba
@@ -382,6 +801,121 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         Object.assign(merged, detalles || {});
         return merged;
     }, [camposCategoria, detalles]);
+
+    // F1 agenda: handlers para el editor de semana tipo. Todos operan sobre
+    // el state franjasSemana; el diff quirurgico al save compara vs snapshot
+    // inicial para decidir INSERT/UPDATE/DELETE. Franjas nuevas nacen sin id.
+    const addFranja = (diaIso: number) => {
+        // Default sensato: si el dia ya tiene franjas, la nueva empieza en
+        // la hora_hasta de la ultima (continuar), sino 09:00-13:00.
+        const delDia = franjasSemana.filter(f => f.dia_semana === diaIso);
+        const ultima = delDia.length > 0 ? delDia.sort((a, b) => a.hora_desde.localeCompare(b.hora_desde))[delDia.length - 1] : null;
+        const desde = ultima ? ultima.hora_hasta : '09:00';
+        // Sumar 4h como default. Si "hora + 4" pasa de 23:59, capamos a 23:59.
+        const [h, m] = desde.split(':').map(n => parseInt(n, 10));
+        const finMin = Math.min(23 * 60 + 59, h * 60 + m + 240);
+        const hasta = `${String(Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;
+        setFranjasSemana(prev => [...prev, { dia_semana: diaIso, hora_desde: desde, hora_hasta: hasta }]);
+    };
+
+    const removeFranja = (index: number) => {
+        setFranjasSemana(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const updateFranja = (index: number, field: 'hora_desde' | 'hora_hasta', value: string) => {
+        setFranjasSemana(prev => prev.map((f, i) => i === index ? { ...f, [field]: value } : f));
+    };
+
+    // Excepciones: la nueva fila arranca con fecha = mañana (evita quedar en
+    // el pasado si el user demora tocandola) y modo dia-completo (mas comun
+    // que "franja tapada"). El toggle "dia completo / franja horaria" es un
+    // radio pair que trae hora_desde/hora_hasta a null o a defaults.
+    const addExcepcion = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const fecha = tomorrow.toISOString().slice(0, 10);
+        setExcepciones(prev => [...prev, { fecha, hora_desde: null, hora_hasta: null, motivo: null }]);
+    };
+
+    const removeExcepcion = (index: number) => {
+        setExcepciones(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const updateExcepcion = <K extends keyof Excepcion>(index: number, field: K, value: Excepcion[K]) => {
+        setExcepciones(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
+    };
+
+    const toggleExcepcionModo = (index: number, esDiaCompleto: boolean) => {
+        // Dia completo → ambas null. Franja → defaults 09:00-13:00. Cambio
+        // entre modos preserva el resto de la fila (fecha, motivo).
+        setExcepciones(prev => prev.map((e, i) => {
+            if (i !== index) return e;
+            return esDiaCompleto
+                ? { ...e, hora_desde: null, hora_hasta: null }
+                : { ...e, hora_desde: e.hora_desde ?? '09:00', hora_hasta: e.hora_hasta ?? '13:00' };
+        }));
+    };
+
+    // Import del horario legacy: parsea el JSONB text del campo `disponibilidad`
+    // y mapea cada dia activo → 1 franja en la semana tipo. Ejecucion EXPLICITA
+    // (botón). Si ya hay franjas cargadas, confirma antes de sobrescribir —
+    // sino silencioso reemplaza. Franjas legacy nacen sin id → INSERT al save.
+    const importarHorarioLegacy = () => {
+        let parsed: Record<string, any> = {};
+        try {
+            const raw = JSON.parse(disponibilidad || '{}');
+            if (raw && typeof raw === 'object' && !Array.isArray(raw)) parsed = raw;
+        } catch {
+            toast.error('No hay horario legacy válido para importar.');
+            return;
+        }
+
+        const nuevasFranjas: FranjaSemanal[] = [];
+        for (const [key, val] of Object.entries(parsed)) {
+            const iso = LEGACY_KEY_TO_ISO[key];
+            if (!iso) continue;
+            if (!val || typeof val !== 'object') continue;
+            if (val.activo !== true) continue;
+            const desde = typeof val.desde === 'string' ? val.desde.slice(0, 5) : null;
+            const hasta = typeof val.hasta === 'string' ? val.hasta.slice(0, 5) : null;
+            if (!desde || !hasta || hasta <= desde) continue;
+            nuevasFranjas.push({ dia_semana: iso, hora_desde: desde, hora_hasta: hasta });
+        }
+
+        if (nuevasFranjas.length === 0) {
+            toast.error('No encontramos dias activos en tu horario legacy.');
+            return;
+        }
+
+        if (franjasSemana.length > 0) {
+            const ok = window.confirm(
+                `Ya tienes ${franjasSemana.length} franja${franjasSemana.length === 1 ? '' : 's'} cargada${franjasSemana.length === 1 ? '' : 's'}. ` +
+                `Al importar se reemplazan por ${nuevasFranjas.length} franja${nuevasFranjas.length === 1 ? '' : 's'} del horario legacy. ` +
+                `¿Continuar?`
+            );
+            if (!ok) return;
+        }
+
+        setFranjasSemana(nuevasFranjas);
+        toast.success(`Se importaron ${nuevasFranjas.length} franjas del horario legacy.`);
+    };
+
+    // Es importable solo si hay algo parseable con al menos un dia activo.
+    // Cached simple — se recomputa en cada render, es barato.
+    const puedeImportarLegacy = (() => {
+        try {
+            const parsed = JSON.parse(disponibilidad || '{}');
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+            return Object.entries(parsed).some(([k, v]: [string, any]) =>
+                LEGACY_KEY_TO_ISO[k] && v?.activo === true
+            );
+        } catch {
+            return false;
+        }
+    })();
+
+    const admiteAgenda = categoriaAdmiteAgendaF1(selectedCatSlug);
+    const sustantivo = sustantivoAgendaPorCategoria(selectedCatSlug);
 
     if (!isOpen) return null;
 
@@ -574,6 +1108,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         </div>
                                     </div>
 
+                                    {/* F1 agenda: el editor legacy (7 dias × 1 franja
+                                        JSONB text) se oculta cuando el modo agenda
+                                        real esta ON. Al opt-out vuelve a aparecer. */}
+                                    {!usaAgendaReal && (
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">Disponibilidad</label>
                                         <div className="space-y-1.5">
@@ -629,15 +1167,17 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             })}
                                         </div>
                                     </div>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* ── SECCIÓN: Agendamiento ──
-                                Sprint 1 (UI only). Toggle per-servicio. La
-                                ficha publica del servicio mostrara el CTA
-                                "Solicitar agendamiento" cuando este flag sea
-                                true (Sprint 2). El panel de solicitudes del
-                                proveedor es Sprint 3. */}
+                            {/* ── SECCIÓN: Agendamiento (toggle maestro) ──
+                                Interruptor per-servicio. Cuando esta OFF, el
+                                CTA "Solicitar agendamiento" no aparece en la
+                                ficha publica — el servicio no acepta agenda
+                                de ningun tipo (ni flujo viejo ni agenda real).
+                                Va PRIMERO porque es el gate del que depende la
+                                seccion de agenda real (F1) que sigue abajo. */}
                             <div className="border-t border-slate-100 py-6">
                                 <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agendamiento</p>
                                 <label className="flex items-start gap-3 cursor-pointer">
@@ -659,6 +1199,294 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     </div>
                                 </label>
                             </div>
+
+                            {/* ── SECCIÓN: Agenda con disponibilidad real (F1) ──
+                                Toggle opt-in por servicio, subordinado al toggle
+                                maestro de arriba. Solo aparece para categorias
+                                de bloque horario (paseos, peluqueria, adiestramiento,
+                                veterinario, traslado) Y con agendamiento maestro
+                                habilitado. Cuidado y guarderia quedan para F2/F3.
+
+                                Cuando esta ON:
+                                  - Se oculta el editor legacy (7 dias x 1 franja
+                                    JSONB text) — fuente de verdad pasa a las tablas
+                                    disponibilidad_semanal + excepciones_disponibilidad.
+                                  - El tutor ve un picker rigido de slots libres
+                                    en vez de pedir fecha a ciegas (Incremento 4).
+
+                                Nota: cuando el maestro se apaga, la config de agenda
+                                (usaAgendaReal + franjas + excepciones) se preserva
+                                en state y en BD — undo natural al reactivar. */}
+                            {admiteAgenda && agendamientoHabilitado && (
+                                <div className="border-t border-slate-100 py-6">
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda con disponibilidad real</p>
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <div className="relative shrink-0 mt-0.5">
+                                            <input
+                                                type="checkbox"
+                                                checked={usaAgendaReal}
+                                                onChange={e => setUsaAgendaReal(e.target.checked)}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
+                                            <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <span className="text-sm text-slate-700 block">Usar agenda con disponibilidad real</span>
+                                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                                Los tutores verán solo los horarios libres y tomarán hora directo — la solicitud queda confirmada sin que tengas que responder cada una. Se reemplaza el bloque de disponibilidad de arriba.
+                                            </p>
+                                        </div>
+                                    </label>
+
+                                    {usaAgendaReal && (
+                                        <div className="mt-5 space-y-6">
+
+                                            {/* Config del slot */}
+                                            <div>
+                                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">Configuración {sustantivo.del}</p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label htmlFor="agenda-duracion" className="block text-sm font-medium text-slate-700 mb-1.5">Duración {sustantivo.del}</label>
+                                                        <select
+                                                            id="agenda-duracion"
+                                                            value={duracionSlotMin}
+                                                            onChange={e => setDuracionSlotMin(parseInt(e.target.value, 10))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        >
+                                                            {DURACION_SLOT_OPCIONES.map(min => (
+                                                                <option key={min} value={min}>
+                                                                    {min < 60
+                                                                        ? `${min} minutos`
+                                                                        : min === 60
+                                                                            ? '1 hora'
+                                                                            : min % 60 === 0
+                                                                                ? `${min / 60} horas`
+                                                                                : `${Math.floor(min / 60)}h ${min % 60}min`}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <p className="text-xs text-slate-400 mt-1">Cada {sustantivo.singular} dura esto — se agenda dentro de tus franjas.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="agenda-capacidad" className="block text-sm font-medium text-slate-700 mb-1.5">Capacidad por {sustantivo.singular}</label>
+                                                        <input
+                                                            id="agenda-capacidad"
+                                                            type="number"
+                                                            min={1}
+                                                            max={20}
+                                                            value={capacidadSlot}
+                                                            onChange={e => setCapacidadSlot(Math.max(1, Math.min(20, parseInt(e.target.value || '1', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">1 = individual. Mayor = grupal (varias mascotas por {sustantivo.singular}).</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="agenda-antic-min" className="block text-sm font-medium text-slate-700 mb-1.5">Anticipación mínima (horas)</label>
+                                                        <input
+                                                            id="agenda-antic-min"
+                                                            type="number"
+                                                            min={0}
+                                                            max={168}
+                                                            value={anticipacionMinHoras}
+                                                            onChange={e => setAnticipacionMinHoras(Math.max(0, Math.min(168, parseInt(e.target.value || '0', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Los tutores no pueden reservar con menos anticipación.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="agenda-antic-max" className="block text-sm font-medium text-slate-700 mb-1.5">Ventana máxima (días)</label>
+                                                        <input
+                                                            id="agenda-antic-max"
+                                                            type="number"
+                                                            min={1}
+                                                            max={365}
+                                                            value={anticipacionMaxDias}
+                                                            onChange={e => setAnticipacionMaxDias(Math.max(1, Math.min(365, parseInt(e.target.value || '1', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Cuántos días hacia adelante se pueden reservar.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Semana tipo — recurrencia multi-franja */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Semana tipo</p>
+                                                    <div className="flex items-center gap-3">
+                                                        {puedeImportarLegacy && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={importarHorarioLegacy}
+                                                                className="text-xs font-medium text-accent-700 hover:text-accent-800 hover:bg-accent-50 px-2 py-1 rounded-lg transition-colors"
+                                                            >
+                                                                Importar mi horario actual
+                                                            </button>
+                                                        )}
+                                                        <span className="text-xs text-slate-400">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {DIAS_SEMANA.map(dia => {
+                                                        const franjasDia = franjasSemana
+                                                            .map((f, i) => ({ f, i }))
+                                                            .filter(({ f }) => f.dia_semana === dia.iso)
+                                                            .sort((a, b) => a.f.hora_desde.localeCompare(b.f.hora_desde));
+                                                        return (
+                                                            <div key={dia.iso} className="flex flex-wrap items-start gap-2 py-2 border-b border-slate-100 last:border-b-0">
+                                                                <div className="w-16 shrink-0 pt-1.5">
+                                                                    <span className={`text-xs font-semibold ${franjasDia.length > 0 ? 'text-slate-700' : 'text-slate-400'}`}>{dia.corto}</span>
+                                                                </div>
+                                                                <div className="flex-1 min-w-0 space-y-1.5">
+                                                                    {franjasDia.length === 0 ? (
+                                                                        <p className="text-xs text-slate-300 italic pt-1.5">Sin franjas</p>
+                                                                    ) : (
+                                                                        franjasDia.map(({ f, i }) => (
+                                                                            <div key={i} className="flex items-center gap-1.5">
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={f.hora_desde}
+                                                                                    onChange={e => updateFranja(i, 'hora_desde', e.target.value)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={f.hora_hasta}
+                                                                                    onChange={e => updateFranja(i, 'hora_hasta', e.target.value)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => removeFranja(i)}
+                                                                                    className="text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                                    aria-label="Eliminar franja"
+                                                                                    title="Eliminar franja"
+                                                                                >
+                                                                                    <X size={14} />
+                                                                                </button>
+                                                                            </div>
+                                                                        ))
+                                                                    )}
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => addFranja(dia.iso)}
+                                                                    className="text-xs font-medium text-accent-700 hover:text-accent-800 hover:bg-accent-50 px-2 py-1 rounded-lg transition-colors shrink-0"
+                                                                >
+                                                                    + Franja
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                                                    Define las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado.
+                                                </p>
+                                            </div>
+
+                                            {/* Excepciones — bloqueos ad-hoc futuros. Solo se
+                                                muestran/gestionan las futuras (fecha >= hoy);
+                                                las historicas quedan en BD sin tocar. */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Excepciones</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={addExcepcion}
+                                                        className="text-xs font-medium text-accent-700 hover:text-accent-800 hover:bg-accent-50 px-2 py-1 rounded-lg transition-colors"
+                                                    >
+                                                        + Agregar excepción
+                                                    </button>
+                                                </div>
+                                                {excepciones.length === 0 ? (
+                                                    <p className="text-xs text-slate-300 italic py-2">Sin excepciones futuras. Agrega una si tienes vacaciones o días bloqueados puntuales.</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {excepciones.map((e, i) => {
+                                                            const esDiaCompleto = e.hora_desde === null && e.hora_hasta === null;
+                                                            return (
+                                                                <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        <input
+                                                                            type="date"
+                                                                            value={e.fecha}
+                                                                            onChange={ev => updateExcepcion(i, 'fecha', ev.target.value)}
+                                                                            className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                        />
+                                                                        <div className="flex items-center gap-1 text-xs">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => toggleExcepcionModo(i, true)}
+                                                                                className={`px-2 py-1 rounded-lg border transition-colors ${
+                                                                                    esDiaCompleto
+                                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                                                                }`}
+                                                                            >
+                                                                                Día completo
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => toggleExcepcionModo(i, false)}
+                                                                                className={`px-2 py-1 rounded-lg border transition-colors ${
+                                                                                    !esDiaCompleto
+                                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                                                                }`}
+                                                                            >
+                                                                                Franja
+                                                                            </button>
+                                                                        </div>
+                                                                        {!esDiaCompleto && (
+                                                                            <div className="flex items-center gap-1.5">
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={e.hora_desde ?? ''}
+                                                                                    onChange={ev => updateExcepcion(i, 'hora_desde', ev.target.value || null)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={e.hora_hasta ?? ''}
+                                                                                    onChange={ev => updateExcepcion(i, 'hora_hasta', ev.target.value || null)}
+                                                                                    className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => removeExcepcion(i)}
+                                                                            className="ml-auto text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                            aria-label="Eliminar excepción"
+                                                                            title="Eliminar excepción"
+                                                                        >
+                                                                            <X size={14} />
+                                                                        </button>
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={e.motivo ?? ''}
+                                                                        onChange={ev => updateExcepcion(i, 'motivo', ev.target.value || null)}
+                                                                        maxLength={EXCEPCION_MOTIVO_MAX}
+                                                                        placeholder="Motivo (opcional) — ej. vacaciones, feriado, veterinario"
+                                                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                                                    Bloqueos puntuales para días o franjas específicas — cuando no cabe en la semana tipo. Solo se muestran las excepciones futuras.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* ── SECCIÓN 3: Mascotas ── */}
                             <div className="border-t border-slate-100 py-6">

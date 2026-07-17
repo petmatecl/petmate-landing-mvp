@@ -95,10 +95,17 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                 .eq('auth_user_id', userId)
                 .maybeSingle();
 
-            const tabla = esBuscador ? 'usuarios_buscadores' : 'proveedores';
+            // usuarios_buscadores no tiene columna foto_perfil (solo proveedores
+            // la tiene). El UPDATE viejo intentaba escribir en la tabla del
+            // rol activo y para tutores tiraba 42703. Feature de foto de perfil
+            // para tutores queda pendiente (requiere agregar la columna).
+            if (esBuscador) {
+                showAlert('No disponible aún', 'La foto de perfil todavía no está habilitada para tutores.', 'info');
+                return;
+            }
 
             const { error: updateError } = await supabase
-                .from(tabla)
+                .from('proveedores')
                 .update({ foto_perfil: publicUrl })
                 .eq('auth_user_id', userId);
 

@@ -107,7 +107,7 @@ async function subirFotoAStorage(file: File, userId: string): Promise<{ url?: st
 
         const timeoutPromise = new Promise<never>((_, reject) => {
             timeoutId = setTimeout(
-                () => reject(new Error('La subida tardó más de 30 segundos. Verificá tu conexión.')),
+                () => reject(new Error('La subida tardó más de 30 segundos. Verifica tu conexión.')),
                 UPLOAD_TIMEOUT_MS
             );
         });
@@ -221,7 +221,7 @@ function MascotasPageContent() {
             .order('created_at', { ascending: true });
         if (error) {
             console.error('[Mascotas] fetch error:', error);
-            toast.error('No pudimos cargar tus mascotas. Recargá la página.');
+            toast.error('No pudimos cargar tus mascotas. Recarga la página.');
             setLoading(false);
             return;
         }
@@ -283,7 +283,7 @@ function MascotasPageContent() {
                             Mis mascotas
                         </h1>
                         <p className="text-sm text-slate-500 mt-1">
-                            Estas fichas se muestran al proveedor cuando solicitás un servicio, para que tenga contexto sin preguntar.
+                            Estas fichas se muestran al proveedor cuando solicitas un servicio, para que tenga contexto sin preguntar.
                         </p>
                     </div>
                     {mascotas.length > 0 && (
@@ -306,9 +306,9 @@ function MascotasPageContent() {
                         <div className="w-16 h-16 bg-accent-50 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <PawPrint size={32} />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no tenés fichas creadas</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no tienes fichas creadas</h3>
                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                            Creá la ficha de tu mascota para que el proveedor tenga toda la info importante al recibir tu solicitud.
+                            Crea la ficha de tu mascota para que el proveedor tenga toda la info importante al recibir tu solicitud.
                         </p>
                         <button
                             onClick={() => setEditing('new')}
@@ -496,7 +496,7 @@ function MascotaViewModal({ mascota, onClose, onEdit }: {
                         misma vista que ve el proveedor al recibir la solicitud. */}
                     <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-start gap-2">
                         <Eye size={14} className="text-slate-400 shrink-0 mt-0.5" />
-                        <span>Esta es la ficha que ve el proveedor cuando solicitás un servicio.</span>
+                        <span>Esta es la ficha que ve el proveedor cuando solicitas un servicio.</span>
                     </div>
 
                     <FichaMascota mascota={mascota} showHeader={false} />
@@ -606,7 +606,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         e.target.value = '';
         if (files.length === 0) return;
         if (galeria.length + files.length > MAX_GALERIA_MASCOTA) {
-            toast.error(`Podés tener máximo ${MAX_GALERIA_MASCOTA} fotos en la galería.`);
+            toast.error(`Puedes tener máximo ${MAX_GALERIA_MASCOTA} fotos en la galería.`);
             return;
         }
         setUploadingGaleria(true);
@@ -651,7 +651,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
             return;
         }
         if (tratoEspecial && !tratoEspecialDesc.trim()) {
-            setErrorMsg('Contános en qué consiste el trato especial.');
+            setErrorMsg('Cuéntanos en qué consiste el trato especial.');
             return;
         }
 

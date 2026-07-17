@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
                 estado, tutor_id, proveedor_id, servicio_id,
-                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre, apellido_p),
+                tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)
@@ -126,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             react: AgendamientoCancelacionTutorEmail({
                 nombreProveedor: proveedor.nombre || 'Proveedor',
                 nombreTutor: tutor
-                    ? `${tutor.nombre || ''} ${tutor.apellido_p || ''}`.trim() || 'El tutor'
+                    ? tutor.nombre || 'El tutor'
                     : 'El tutor',
                 servicioTitulo: servicio?.titulo || 'tu servicio',
                 fechaFormateada,

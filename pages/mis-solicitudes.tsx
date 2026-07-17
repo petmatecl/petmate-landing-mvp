@@ -81,6 +81,7 @@ export default function MisSolicitudesPage() {
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
+                duracion_min, capacidad_snapshot, tutor_nombre,
                 respondido_at, created_at, updated_at,
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
             `)
@@ -223,7 +224,7 @@ export default function MisSolicitudesPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no agendaste ningún servicio</h3>
                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                            Explorá los servicios disponibles y solicitá un agendamiento desde la ficha del que te interese.
+                            Explora los servicios disponibles y solicita un agendamiento desde la ficha del que te interese.
                         </p>
                         <Link
                             href="/explorar"
@@ -257,14 +258,33 @@ export default function MisSolicitudesPage() {
                     ? state.agendamientos.find(a => a.id === cancelDialogId)
                     : null;
                 const eraConfirmada = sol?.estado === 'confirmada';
+                // F1 agenda: reserva del picker (nacio confirmada, no la
+                // resolvio el proveedor). El copy cambia — el horario se
+                // libera al instante para otros tutores y al proveedor le
+                // llega un aviso.
+                const esReservaAgenda = sol?.duracion_min != null;
+                const esConfirmadaAuto = eraConfirmada && esReservaAgenda;
+                const title = esConfirmadaAuto
+                    ? 'Cancelar reserva'
+                    : eraConfirmada
+                        ? 'Cancelar cita confirmada'
+                        : '¿Cancelar esta solicitud?';
+                const message = esConfirmadaAuto
+                    ? 'Vas a liberar tu horario y avisaremos al proveedor por email. Si puedes, contáctalo antes para coordinar.'
+                    : eraConfirmada
+                        ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
+                        : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.';
+                const confirmLabel = esConfirmadaAuto
+                    ? 'Cancelar reserva'
+                    : eraConfirmada
+                        ? 'Cancelar cita'
+                        : 'Cancelar solicitud';
                 return (
                     <ConfirmDialog
                         open={cancelDialogId !== null}
-                        title={eraConfirmada ? 'Cancelar cita confirmada' : '¿Cancelar esta solicitud?'}
-                        message={eraConfirmada
-                            ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
-                            : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.'}
-                        confirmLabel={eraConfirmada ? 'Cancelar cita' : 'Cancelar solicitud'}
+                        title={title}
+                        message={message}
+                        confirmLabel={confirmLabel}
                         cancelLabel="Volver"
                         variant="danger"
                         loading={cancelLoading}
@@ -291,6 +311,13 @@ function SolicitudCard({
     const isConfirmada = solicitud.estado === 'confirmada';
     const isRechazada = solicitud.estado === 'rechazada';
     const isCancelada = solicitud.estado === 'cancelada';
+    const isCanceladaProveedor = solicitud.estado === 'cancelada_proveedor';
+    // F1 agenda — la reserva viene del picker rigido cuando duracion_min esta
+    // poblada (INSERT lo popula desde el servicio.duracion_slot_min). Sirve
+    // para diferenciar reservas auto-confirmadas del picker vs confirmadas
+    // resueltas por el proveedor (pendiente→confirmada del flujo viejo).
+    const esReservaAgenda = solicitud.duracion_min != null;
+    const esConfirmadaAuto = isConfirmada && esReservaAgenda;
 
     // Branching de formato segun variante: la combinacion de modo_tarifa +
     // fecha_fin encoda cual de V1/V2/V4a/V4b. No consultamos la categoria
@@ -329,10 +356,13 @@ function SolicitudCard({
     const direccionInfo = solicitud.direccion_info;
 
     // Badge de estado de solicitud con tokens semanticos:
-    //   success = confirmada    (positivo, la solicitud fue aceptada)
-    //   danger  = rechazada     (negativo terminal)
-    //   slate   = cancelada     (tutor cancelo, sin color activo)
-    //   warning = pendiente     (default del switch, espera de decision)
+    //   success = confirmada             (positivo, la solicitud fue aceptada)
+    //   danger  = rechazada              (negativo terminal)
+    //   slate   = cancelada              (tutor cancelo, sin color activo)
+    //   slate + XCircle = cancelada_proveedor (F1 agenda: proveedor cancelo
+    //                    una reserva confirmada; motivo obligatorio esta en
+    //                    nota_proveedor)
+    //   warning = pendiente              (default del switch, espera de decision)
     const estadoBadge = (() => {
         switch (solicitud.estado) {
             case 'confirmada':
@@ -340,7 +370,9 @@ function SolicitudCard({
             case 'rechazada':
                 return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
             case 'cancelada':
-                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada</span>;
+                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest">Cancelada por ti</span>;
+            case 'cancelada_proveedor':
+                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Cancelada por el proveedor</span>;
             default:
                 return <span className="inline-flex items-center gap-1 bg-warning-50 text-warning-700 border border-warning-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><Clock size={12} /> Pendiente</span>;
         }
@@ -416,16 +448,31 @@ function SolicitudCard({
                     : <p className="text-sm text-slate-500 italic">Sin mensaje adicional.</p>}
             </div>
 
-            {/* Respuesta del proveedor — solo si ya respondio (no cancelada) */}
-            {/* Par bidireccional respuesta del proveedor con tokens semanticos:
-                success = confirmada, danger = rechazada. Bg + border + text cambian en el
-                mismo bloque JSX segun isConfirmada. Cuando la lista tiene solicitudes en
-                distintos estados, ambos colores coexisten en la pantalla — cierre del
-                par visual con el badge de estado de arriba. */}
-            {(isConfirmada || isRechazada) && (
+            {/* Bloque post-estado: 3 casos.
+                (a) Reserva auto-confirmada F1: el proveedor NO respondio (nacio
+                    confirmada del picker). Copy propio "Confirmada al instante".
+                (b) Confirmada/rechazada con respuesta del proveedor (flujo viejo
+                    pendiente→resuelta): "Respuesta del proveedor" + nota.
+                (c) Cancelada_proveedor: "Motivo de la cancelación" + nota
+                    obligatoria (danger). */}
+            {esConfirmadaAuto ? (
+                <div className="bg-success-50/50 rounded-xl p-3 border border-success-100 mb-3">
+                    <p className="text-[11px] uppercase tracking-widest font-medium mb-1 text-success-700">
+                        Reserva confirmada al instante
+                    </p>
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                        Elegiste un horario disponible — no hace falta esperar respuesta del proveedor.
+                        {solicitud.nota_proveedor && (
+                            <> {' '}Su nota: <span className="italic">&quot;{solicitud.nota_proveedor}&quot;</span></>
+                        )}
+                    </p>
+                </div>
+            ) : (isConfirmada || isRechazada || isCanceladaProveedor) && (
                 <div className={`rounded-xl p-3 border mb-3 ${isConfirmada ? 'bg-success-50/50 border-success-100' : 'bg-danger-50/40 border-danger-100'}`}>
                     <p className={`text-[11px] uppercase tracking-widest font-medium mb-1 ${isConfirmada ? 'text-success-700' : 'text-danger-700'}`}>
-                        Respuesta del proveedor{respondidoAt ? ` · ${respondidoAt}` : ''}
+                        {isCanceladaProveedor
+                            ? `Motivo de la cancelación${respondidoAt ? ` · ${respondidoAt}` : ''}`
+                            : `Respuesta del proveedor${respondidoAt ? ` · ${respondidoAt}` : ''}`}
                     </p>
                     {solicitud.nota_proveedor
                         ? <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{solicitud.nota_proveedor}</p>
@@ -436,7 +483,7 @@ function SolicitudCard({
             {/* Datos de contacto — solo confirmada AND opt-in del proveedor */}
             {isConfirmada && (showTelefono || showWhatsapp) && (
                 <div className="bg-accent-50/30 rounded-xl p-3 border border-accent-100 mb-3 space-y-1.5">
-                    <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium">Contactá al proveedor</p>
+                    <p className="text-[11px] uppercase tracking-widest text-accent-700 font-medium">Contacta al proveedor</p>
                     {showTelefono && (
                         <a href={`tel:${proveedor!.telefono}`} className="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-accent-600 transition-colors">
                             <Phone size={14} className="shrink-0" />
@@ -466,6 +513,15 @@ function SolicitudCard({
                         className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors"
                     >
                         Cancelar solicitud
+                    </button>
+                )}
+                {isConfirmada && (
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors"
+                    >
+                        Cancelar reserva
                     </button>
                 )}
                 {isConfirmada && servicio?.id && (
