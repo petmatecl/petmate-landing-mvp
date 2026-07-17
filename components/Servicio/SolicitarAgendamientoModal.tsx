@@ -459,6 +459,18 @@ export default function SolicitarAgendamientoModal({
                         body: JSON.stringify({ agendamientoId: inserted.id }),
                     }).catch(err => console.warn('[picker] notify-proveedor fallo:', err));
 
+                    // F1.5 — email de comprobante al tutor. Solo para el
+                    // picker (endpoint gated por duracion_min IS NOT NULL).
+                    // Fire-and-forget en paralelo al del proveedor.
+                    fetch('/api/agendamientos/notify-tutor-reserva-confirmada', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ agendamientoId: inserted.id }),
+                    }).catch(err => console.warn('[picker] notify-tutor-reserva-confirmada fallo:', err));
+
                     // Vinculo conversation → agendamiento (idem V1/V2/V4).
                     supabase
                         .from('conversations')
