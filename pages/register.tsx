@@ -63,6 +63,10 @@ export default function RegisterWizard() {
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const [passwordConfirmError, setPasswordConfirmError] = useState('');
+  // Error inline del password separado del banner global — el usuario ve
+  // la validacion "minimo 8 caracteres" pegada al campo al hacer blur, sin
+  // depender del scroll al banner de arriba.
+  const [passwordError, setPasswordError] = useState('');
 
   // Step 3: Provider Info
   const [comunaQuery, setComunaQuery] = useState('');
@@ -78,12 +82,20 @@ export default function RegisterWizard() {
   const comunaRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to error when it appears
-  useEffect(() => {
-    if (error && errorRef.current) {
-      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [error]);
+  // Setter imperativo del banner + scroll. Reemplaza al useEffect anterior
+  // que solo disparaba cuando `error` CAMBIABA de string — si el usuario
+  // submiteaba dos veces con el mismo error, el useEffect no re-corria y
+  // el scroll no volvia a ocurrir (bug reportado por Aldo: banner arriba
+  // invisible con el usuario abajo en Crear Cuenta). requestAnimationFrame
+  // espera al paint para que el banner exista en el DOM antes del scroll.
+  // Uso imperativo → todo setError se reemplaza por showError.
+  const showError = (msg: string) => {
+    setError(msg);
+    if (!msg) return;
+    requestAnimationFrame(() => {
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
 
   // Ola 1 feat direcciones: match por "palabra empieza con" (no substring
   // "contiene") + normalizacion de tildes. Antes con 65 comunas no se
@@ -125,7 +137,7 @@ export default function RegisterWizard() {
 
   const proceedToStep2 = () => {
     if (!rol) {
-      setError("Por favor, selecciona el tipo de cuenta que quieres crear.");
+      showError("Por favor, selecciona el tipo de cuenta que quieres crear.");
       return;
     }
     setError("");
@@ -135,25 +147,27 @@ export default function RegisterWizard() {
   const proceedToNextStep = () => {
     setError("");
     if (!nombre || !apellidoP || !apellidoM || !email || !password || !passwordConfirm) {
-      setError("Por favor completa los campos obligatorios.");
+      showError("Por favor completa los campos obligatorios.");
       return;
     }
     if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres.");
+      setPasswordError("Mínimo 8 caracteres.");
+      showError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
     if (password !== passwordConfirm) {
-      setError("Las contraseñas no coinciden.");
+      setPasswordConfirmError("Las contraseñas no coinciden.");
+      showError("Las contraseñas no coinciden.");
       return;
     }
 
     if (rol === "proveedor" && tipoEntidad === "empresa") {
       if (!razonSocial || !rutEmpresa) {
-        setError("Por favor completa los campos obligatorios de tu empresa.");
+        showError("Por favor completa los campos obligatorios de tu empresa.");
         return;
       }
       if (!validateRut(rutEmpresa)) {
-        setError("El RUT de la empresa no es válido.");
+        showError("El RUT de la empresa no es válido.");
         return;
       }
     }
@@ -170,20 +184,20 @@ export default function RegisterWizard() {
 
     if (rol === 'proveedor') {
       if (!categoria) {
-        setError('Por favor selecciona tu categoría principal de servicio.');
+        showError('Por favor selecciona tu categoría principal de servicio.');
         return;
       }
     }
 
     if (rol === 'proveedor') {
       if (!comunaQuery.trim()) {
-        setError('Por favor completa los campos obligatorios (Comuna).');
+        showError('Por favor completa los campos obligatorios (Comuna).');
         return;
       }
       // Datos dinamicos por categoria ya no se validan en registro — se
       // llenaran cuando el proveedor cree su primer servicio (Sprint 4 Fase 1).
       if (!aceptaPolitica) {
-        setError('Debes aceptar las políticas de publicación para continuar.');
+        showError('Debes aceptar las políticas de publicación para continuar.');
         return;
       }
     }
@@ -193,7 +207,7 @@ export default function RegisterWizard() {
     // Timeout de seguridad: si el proceso tarda más de 30 segundos, resetea
     const safetyTimer = setTimeout(() => {
       setLoading(false);
-      setError("La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.");
+      showError("La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.");
     }, 30000);
 
     try {
@@ -238,7 +252,7 @@ export default function RegisterWizard() {
     } catch (err: any) {
       clearTimeout(safetyTimer);
       console.error('Registration error:', err);
-      setError(err.message || 'Error al completar el registro. Intenta nuevamente.');
+      showError(err.message || 'Error al completar el registro. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -415,10 +429,17 @@ export default function RegisterWizard() {
                         autoComplete="new-password"
                         type={showPassword ? "text" : "password"}
                         value={password}
-                        onChange={e => setPassword(e.target.value)}
+                        onChange={e => { setPassword(e.target.value); if (passwordError) setPasswordError(''); }}
+                        onBlur={() => {
+                          if (password && password.length < 8) {
+                            setPasswordError('Mínimo 8 caracteres.');
+                          } else {
+                            setPasswordError('');
+                          }
+                        }}
                         required
                         minLength={8}
-                        className={`${inputClass} pr-12`}
+                        className={`${inputClass} pr-12 ${passwordError ? 'border-danger-400 focus:ring-danger-400 focus:border-danger-400' : ''}`}
                       />
                       <button
                         type="button"
@@ -429,7 +450,11 @@ export default function RegisterWizard() {
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
-                    <span className="text-xs text-slate-500 mt-1 block">Mínimo 8 caracteres</span>
+                    {passwordError ? (
+                      <p className="text-xs text-danger-600 mt-1 font-medium">{passwordError}</p>
+                    ) : (
+                      <span className="text-xs text-slate-500 mt-1 block">Mínimo 8 caracteres</span>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="password-confirm" className="block text-sm font-medium text-slate-700 mb-1">Confirmar Contraseña *</label>
