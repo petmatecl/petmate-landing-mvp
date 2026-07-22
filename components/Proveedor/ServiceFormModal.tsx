@@ -5,7 +5,7 @@ import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } f
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { useUser } from '../../contexts/UserContext';
-import { categoriaAdmiteAgendaF1, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
+import { categoriaAdmiteAgendaF1, esCategoriaMultiDia, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
 
 // Fase 1 agenda con disponibilidad real — Incremento 2A.
 // Constantes del editor semanal. Duracion en minutos: opciones canonicas
@@ -133,6 +133,30 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [excepciones, setExcepciones] = useState<Excepcion[]>([]);
     const [excepcionesInicial, setExcepcionesInicial] = useState<Excepcion[]>([]);
 
+    // F2 agenda por rango de noches (Incremento 2A). Opt-in para categoria
+    // cuidado (mundo estadias). Semantica INVERTIDA respecto a F1: al
+    // activarla, todas las fechas futuras estan disponibles por default y el
+    // proveedor declara bloqueos (blackouts) en vez de definir semana tipo.
+    // Los blackouts multi-dia (fecha_fin NOT NULL) los edita F2-2B — F2-2A
+    // solo cubre el toggle + config de los 8 campos.
+    //
+    // usaAgendaEstadia se mapea a `capacidad_estadia IS NOT NULL` al load/
+    // save — no persiste como columna propia. Los defaults matchean los
+    // defaults del schema F2-1 (capacidad 1, antic 3/180 dias, min 1 noche,
+    // sin max, cancel 48h antes, sin horas de check-in/out).
+    const [usaAgendaEstadia, setUsaAgendaEstadia] = useState(false);
+    const [capacidadEstadia, setCapacidadEstadia] = useState<number>(1);
+    const [anticipacionMinDias, setAnticipacionMinDias] = useState<number>(3);
+    const [anticipacionMaxDiasEstadia, setAnticipacionMaxDiasEstadia] = useState<number>(180);
+    const [minNoches, setMinNoches] = useState<number>(1);
+    // maxNoches null = sin tope. Input vacio = null; numero valido 1-365.
+    const [maxNoches, setMaxNoches] = useState<number | null>(null);
+    const [cancelacionMinHorasAntes, setCancelacionMinHorasAntes] = useState<number>(48);
+    // check_in_hora / check_out_hora en formato HH:MM (input type=time).
+    // Vacio '' = null en BD → "coordinar por chat" en la UI publica.
+    const [checkInHora, setCheckInHora] = useState<string>('');
+    const [checkOutHora, setCheckOutHora] = useState<string>('');
+
     // Category-specific fields (stored as JSONB)
     const [detalles, setDetalles] = useState<Record<string, any>>({});
 
@@ -206,6 +230,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setFranjasSemanaInicial([]);
         setExcepciones([]);
         setExcepcionesInicial([]);
+        setUsaAgendaEstadia(false);
+        setCapacidadEstadia(1);
+        setAnticipacionMinDias(3);
+        setAnticipacionMaxDiasEstadia(180);
+        setMinNoches(1);
+        setMaxNoches(null);
+        setCancelacionMinHorasAntes(48);
+        setCheckInHora('');
+        setCheckOutHora('');
     };
 
     const fetchCategorias = useCallback(async () => {
@@ -275,6 +308,24 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 setCapacidadSlot(data.capacidad_slot ?? 1);
                 setAnticipacionMinHoras(data.anticipacion_min_horas ?? 24);
                 setAnticipacionMaxDias(data.anticipacion_max_dias ?? 60);
+
+                // F2 agenda estadia: usaAgendaEstadia se deriva de que
+                // capacidad_estadia este poblada. Si NULL, opt-out (sigue el
+                // flujo actual sin picker calendario ni EXCLUDE). Las otras
+                // 7 columnas se cargan con sus defaults del schema si vienen
+                // NULL (registros pre-F2-1) o con el valor persistido.
+                const hasEstadia = data.capacidad_estadia !== null && data.capacidad_estadia !== undefined;
+                setUsaAgendaEstadia(hasEstadia);
+                if (hasEstadia) {
+                    setCapacidadEstadia(data.capacidad_estadia);
+                }
+                setAnticipacionMinDias(data.anticipacion_min_dias ?? 3);
+                setAnticipacionMaxDiasEstadia(data.anticipacion_max_dias_estadia ?? 180);
+                setMinNoches(data.min_noches ?? 1);
+                setMaxNoches(data.max_noches ?? null);
+                setCancelacionMinHorasAntes(data.cancelacion_min_horas_antes ?? 48);
+                setCheckInHora(data.check_in_hora ? (data.check_in_hora as string).slice(0, 5) : '');
+                setCheckOutHora(data.check_out_hora ? (data.check_out_hora as string).slice(0, 5) : '');
 
                 // Fetch franjas semanales del servicio. Sin importar si esta
                 // opt-in ahora — si toggleamos opt-in mid-sesion queremos
@@ -505,6 +556,46 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             }
         }
 
+        // F2 agenda estadia — validaciones (solo si opt-in). El toggle no
+        // aparece si la categoria no es cuidado, asi que no re-validamos
+        // categoria aca. Todos los rangos matchean los CHECK constraints
+        // del schema F2-1 para evitar rebotes SQL crudos al usuario.
+        if (usaAgendaEstadia) {
+            if (!Number.isInteger(capacidadEstadia) || capacidadEstadia < 1 || capacidadEstadia > 20) {
+                return toast.error('La capacidad de estadías simultáneas debe estar entre 1 y 20.');
+            }
+            if (!Number.isInteger(anticipacionMinDias) || anticipacionMinDias < 0 || anticipacionMinDias > 30) {
+                return toast.error('La anticipación mínima debe estar entre 0 y 30 días.');
+            }
+            if (!Number.isInteger(anticipacionMaxDiasEstadia) || anticipacionMaxDiasEstadia < 1 || anticipacionMaxDiasEstadia > 730) {
+                return toast.error('La ventana máxima debe estar entre 1 y 730 días.');
+            }
+            if (!Number.isInteger(minNoches) || minNoches < 1 || minNoches > 90) {
+                return toast.error('El mínimo de noches debe estar entre 1 y 90.');
+            }
+            if (maxNoches !== null) {
+                if (!Number.isInteger(maxNoches) || maxNoches < 1 || maxNoches > 365) {
+                    return toast.error('El máximo de noches debe estar entre 1 y 365, o vacío para sin tope.');
+                }
+                if (maxNoches < minNoches) {
+                    return toast.error('El máximo de noches no puede ser menor al mínimo.');
+                }
+            }
+            if (!Number.isInteger(cancelacionMinHorasAntes) || cancelacionMinHorasAntes < 0 || cancelacionMinHorasAntes > 168) {
+                return toast.error('La ventana de cancelación debe estar entre 0 y 168 horas.');
+            }
+            // check_in/out son opcionales, pero si populadas deben tener
+            // formato HH:MM valido (el input type=time ya lo garantiza; esto
+            // es defensa contra manipulacion via devtools).
+            const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+            if (checkInHora && !timeRegex.test(checkInHora)) {
+                return toast.error('La hora de check-in no es válida.');
+            }
+            if (checkOutHora && !timeRegex.test(checkOutHora)) {
+                return toast.error('La hora de check-out no es válida.');
+            }
+        }
+
         setLoading(true);
 
         // Endurecimiento del save (post-smoke de Aldo — cuelgue reportado con
@@ -581,6 +672,19 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             capacidad_slot: capacidadSlot,
             anticipacion_min_horas: anticipacionMinHoras,
             anticipacion_max_dias: anticipacionMaxDias,
+            // F2 agenda estadia: capacidad_estadia NULL = opt-out (mismo
+            // patron que duracion_slot_min). Las otras 7 columnas siempre
+            // se envian para preservar defaults del proveedor al re-activar.
+            // Si la categoria no admite F2 (no-cuidado), capacidad siempre
+            // NULL — defensivo aunque el toggle no aparezca en UI.
+            capacidad_estadia: (usaAgendaEstadia && esCategoriaMultiDia(selectedCatSlug)) ? capacidadEstadia : null,
+            anticipacion_min_dias: anticipacionMinDias,
+            anticipacion_max_dias_estadia: anticipacionMaxDiasEstadia,
+            min_noches: minNoches,
+            max_noches: maxNoches,
+            cancelacion_min_horas_antes: cancelacionMinHorasAntes,
+            check_in_hora: checkInHora || null,
+            check_out_hora: checkOutHora || null,
         };
 
         // Toda la logica de guardado — envuelta en promise para poder
@@ -915,6 +1019,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     })();
 
     const admiteAgenda = categoriaAdmiteAgendaF1(selectedCatSlug);
+    const admiteEstadia = esCategoriaMultiDia(selectedCatSlug);
     const sustantivo = sustantivoAgendaPorCategoria(selectedCatSlug);
 
     if (!isOpen) return null;
@@ -1482,6 +1587,159 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 <p className="text-xs text-slate-400 mt-3 leading-relaxed">
                                                     Bloqueos puntuales para días o franjas específicas — cuando no cabe en la semana tipo. Solo se muestran las excepciones futuras.
                                                 </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ── SECCIÓN: Agenda por rango de noches (F2) ──
+                                Toggle opt-in para categoria cuidado. Semantica
+                                INVERTIDA respecto a F1: al activarla, todas las
+                                fechas futuras estan disponibles por default y
+                                el proveedor declara bloqueos (F2-2B agrega el
+                                editor). Subordinado al toggle maestro y mutuo-
+                                excluyente con F1 por categoria (cuidado no
+                                admite F1 y solo cuidado admite F2). */}
+                            {admiteEstadia && agendamientoHabilitado && (
+                                <div className="border-t border-slate-100 py-6">
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda por rango de noches</p>
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <div className="relative shrink-0 mt-0.5">
+                                            <input
+                                                type="checkbox"
+                                                checked={usaAgendaEstadia}
+                                                onChange={e => setUsaAgendaEstadia(e.target.checked)}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
+                                            <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <span className="text-sm text-slate-700 block">Aceptar reservas por rango de noches</span>
+                                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                                Al activarla, todas las fechas futuras quedan disponibles para reservar, salvo los bloqueos que definas.
+                                            </p>
+                                            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                                                La agenda por noches aplica a estadías (en casa del cuidador, recinto o casa del tutor). Los servicios por horas siguen coordinándose como hasta ahora.
+                                            </p>
+                                        </div>
+                                    </label>
+
+                                    {usaAgendaEstadia && (
+                                        <div className="mt-5 space-y-6">
+                                            {/* Config de la estadia — 8 campos */}
+                                            <div>
+                                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">Configuración de la estadía</p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label htmlFor="estadia-capacidad" className="block text-sm font-medium text-slate-700 mb-1.5">Estadías simultáneas</label>
+                                                        <input
+                                                            id="estadia-capacidad"
+                                                            type="number"
+                                                            min={1}
+                                                            max={20}
+                                                            value={capacidadEstadia}
+                                                            onChange={e => setCapacidadEstadia(Math.max(1, Math.min(20, parseInt(e.target.value || '1', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Cuántas estadías puedes atender al mismo tiempo. 1 = individual; mayor = varias mascotas alojadas a la vez.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="estadia-cancel" className="block text-sm font-medium text-slate-700 mb-1.5">Cancelación (horas antes)</label>
+                                                        <input
+                                                            id="estadia-cancel"
+                                                            type="number"
+                                                            min={0}
+                                                            max={168}
+                                                            value={cancelacionMinHorasAntes}
+                                                            onChange={e => setCancelacionMinHorasAntes(Math.max(0, Math.min(168, parseInt(e.target.value || '0', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Ventana antes del check-in en la que el tutor ya no puede cancelar.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="estadia-antic-min" className="block text-sm font-medium text-slate-700 mb-1.5">Anticipación mínima (días)</label>
+                                                        <input
+                                                            id="estadia-antic-min"
+                                                            type="number"
+                                                            min={0}
+                                                            max={30}
+                                                            value={anticipacionMinDias}
+                                                            onChange={e => setAnticipacionMinDias(Math.max(0, Math.min(30, parseInt(e.target.value || '0', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Los tutores no pueden reservar con menos anticipación.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="estadia-antic-max" className="block text-sm font-medium text-slate-700 mb-1.5">Ventana máxima (días)</label>
+                                                        <input
+                                                            id="estadia-antic-max"
+                                                            type="number"
+                                                            min={1}
+                                                            max={730}
+                                                            value={anticipacionMaxDiasEstadia}
+                                                            onChange={e => setAnticipacionMaxDiasEstadia(Math.max(1, Math.min(730, parseInt(e.target.value || '1', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Cuántos días hacia adelante se puede reservar.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="estadia-min-noches" className="block text-sm font-medium text-slate-700 mb-1.5">Mínimo de noches</label>
+                                                        <input
+                                                            id="estadia-min-noches"
+                                                            type="number"
+                                                            min={1}
+                                                            max={90}
+                                                            value={minNoches}
+                                                            onChange={e => setMinNoches(Math.max(1, Math.min(90, parseInt(e.target.value || '1', 10))))}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Estadía más corta que aceptas.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="estadia-max-noches" className="block text-sm font-medium text-slate-700 mb-1.5">Máximo de noches</label>
+                                                        <input
+                                                            id="estadia-max-noches"
+                                                            type="number"
+                                                            min={1}
+                                                            max={365}
+                                                            value={maxNoches ?? ''}
+                                                            placeholder="Sin límite"
+                                                            onChange={e => {
+                                                                const raw = e.target.value.trim();
+                                                                if (raw === '') { setMaxNoches(null); return; }
+                                                                const n = parseInt(raw, 10);
+                                                                if (Number.isNaN(n)) { setMaxNoches(null); return; }
+                                                                setMaxNoches(Math.max(1, Math.min(365, n)));
+                                                            }}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Estadía más larga que aceptas. Déjalo vacío si no tienes tope.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="estadia-checkin" className="block text-sm font-medium text-slate-700 mb-1.5">Hora de check-in (opcional)</label>
+                                                        <input
+                                                            id="estadia-checkin"
+                                                            type="time"
+                                                            value={checkInHora}
+                                                            onChange={e => setCheckInHora(e.target.value)}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Si la dejas vacía, la coordinas por chat.</p>
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="estadia-checkout" className="block text-sm font-medium text-slate-700 mb-1.5">Hora de check-out (opcional)</label>
+                                                        <input
+                                                            id="estadia-checkout"
+                                                            type="time"
+                                                            value={checkOutHora}
+                                                            onChange={e => setCheckOutHora(e.target.value)}
+                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1">Si la dejas vacía, la coordinas por chat.</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}

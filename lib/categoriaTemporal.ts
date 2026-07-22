@@ -60,6 +60,7 @@ const SUSTANTIVO_POR_SLUG: Record<string, SustantivoAgenda> = {
     adiestramiento: { singular: 'sesión',   del: 'de la sesión' },
     veterinario:    { singular: 'consulta', del: 'de la consulta' },
     traslado:       { singular: 'viaje',    del: 'del viaje'    },
+    cuidado:        { singular: 'estadía',  del: 'de la estadía' },
 };
 
 const SUSTANTIVO_FALLBACK: SustantivoAgenda = {
