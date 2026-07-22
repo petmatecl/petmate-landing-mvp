@@ -21,7 +21,7 @@ export const NewEvaluationEmail = ({
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
-                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-trans.png" width="180" alt="Pawnecta" style={logo} />
+                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-white-trans.png" width="180" alt="Pawnecta" style={logo} />
                     </Section>
 
                     <Section style={content}>
@@ -80,7 +80,7 @@ const container = {
 };
 
 const header = {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#134E4A',
     padding: '32px',
     textAlign: 'center' as const,
 };

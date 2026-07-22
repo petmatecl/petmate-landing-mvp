@@ -36,7 +36,7 @@ export const AgendamientoCancelacionTutorEmail = ({
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
-                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-trans.png" width="180" alt="Pawnecta" style={logo} />
+                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-white-trans.png" width="180" alt="Pawnecta" style={logo} />
                     </Section>
 
                     <Section style={content}>
@@ -108,7 +108,7 @@ const container = {
     overflow: 'hidden',
     maxWidth: '600px',
 };
-const header = { backgroundColor: '#0f172a', padding: '32px', textAlign: 'center' as const };
+const header = { backgroundColor: '#134E4A', padding: '32px', textAlign: 'center' as const };
 const logo = { margin: '0 auto' };
 const content = { padding: '40px' };
 const h1 = { color: '#0f172a', fontSize: '22px', fontWeight: 'bold' as const, margin: '0 0 16px' };
