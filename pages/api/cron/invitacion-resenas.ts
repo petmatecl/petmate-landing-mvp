@@ -212,8 +212,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     type: 'info',
                     title: `¿Cómo te fue con ${e.proveedorNombre}?`,
                     message: e.mascotaNombre
-                        ? `Contanos tu experiencia con el servicio para ${e.mascotaNombre}.`
-                        : `Contanos tu experiencia con "${e.servicioTitulo}".`,
+                        ? `Cuéntanos tu experiencia con el servicio para ${e.mascotaNombre}.`
+                        : `Cuéntanos tu experiencia con "${e.servicioTitulo}".`,
                     link: `/servicio/${e.servicioId}?resenar=${e.agendamientoId}`,
                     metadata: { agendamiento_id: e.agendamientoId, servicio_id: e.servicioId },
                     read: false,

@@ -142,7 +142,7 @@ export default function LoginPage() {
           {/* Banner cuando OAuth registro falló y se hizo rollback de la sesión */}
           {registroFallido && (
             <div className="mb-5 px-4 py-3 bg-danger-50 border border-danger-200 rounded-xl text-sm text-danger-800">
-              Hubo un problema al completar tu registro. Por favor intentá de nuevo.
+              Hubo un problema al completar tu registro. Por favor intenta de nuevo.
             </div>
           )}
 

@@ -380,7 +380,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             }
         } catch (err: any) {
             if (err?.message === 'fetch-timeout') {
-                toast.error('La carga tardó demasiado, probá de nuevo');
+                toast.error('La carga tardó demasiado, inténtalo de nuevo');
                 onClose();
             } else {
                 // Otros errores inesperados — no silenciar.
@@ -860,7 +860,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 toast.error('El guardado tardó demasiado (15s). Verifica tu conexión y vuelve a intentar.');
             } else {
                 console.error('[ServiceFormModal] save error inesperado:', err);
-                toast.error('Ocurrió un error inesperado al guardar. Intentá nuevamente.');
+                toast.error('Ocurrió un error inesperado al guardar. Intenta nuevamente.');
             }
         } finally {
             // Garantiza que el spinner siempre baje. Ante ok=true, ok=false y
@@ -1299,7 +1299,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     <div className="min-w-0">
                                         <span className="text-sm text-slate-700 block">Habilitar solicitudes de agendamiento</span>
                                         <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                            Si está habilitado, los tutores podrán solicitar agendamientos para este servicio desde la ficha pública. Vos confirmas o rechazas cada solicitud desde tu panel.
+                                            Si está habilitado, los tutores podrán solicitar agendamientos para este servicio desde la ficha pública. Confirmas o rechazas cada solicitud desde tu panel.
                                         </p>
                                     </div>
                                 </label>

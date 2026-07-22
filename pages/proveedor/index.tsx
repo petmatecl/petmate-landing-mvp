@@ -547,7 +547,7 @@ export default function ProveedorDashboard() {
             }
             const motivo = (motivoCancelacion[solicitudId] ?? '').trim();
             if (!motivo) {
-                toast.error('Escribí el motivo de la cancelación — el tutor lo va a ver.');
+                toast.error('Escribe el motivo de la cancelación — el tutor lo va a ver.');
                 return;
             }
 

@@ -91,7 +91,7 @@ async function subirFotoAStorage(file: File, userId: string): Promise<{ url?: st
                 // subir el original sin comprimir — si no podemos procesarla,
                 // no la subimos.
                 throw new Error(
-                    `No pudimos procesar la imagen. Probá con un JPG o PNG. (${compErr?.message ?? 'error desconocido'})`
+                    `No pudimos procesar la imagen. Prueba con un JPG o PNG. (${compErr?.message ?? 'error desconocido'})`
                 );
             }
             // Extension fija .jpg porque normalizamos a image/jpeg via
@@ -247,7 +247,7 @@ function MascotasPageContent() {
             setDeletingId(null);
         } catch (err) {
             console.error('[Mascotas] delete error:', err);
-            toast.error('No pudimos eliminar la ficha. Intentá de nuevo.');
+            toast.error('No pudimos eliminar la ficha. Intenta de nuevo.');
         } finally {
             setDeletingLoading(false);
         }
@@ -572,7 +572,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
         e.target.value = '';
         if (!file) return;
         if (file.size > MAX_INPUT_SIZE_MB * 1024 * 1024) {
-            toast.error(`La imagen supera ${MAX_INPUT_SIZE_MB} MB. Es un archivo inusualmente grande — probá con una versión mas chica.`);
+            toast.error(`La imagen supera ${MAX_INPUT_SIZE_MB} MB. Es un archivo inusualmente grande — prueba con una versión más chica.`);
             return;
         }
         setUploadingPrincipal(true);
@@ -721,7 +721,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
             }
         } catch (err: any) {
             console.error('[Mascotas] save error:', err);
-            setErrorMsg(err.message || 'No pudimos guardar la ficha. Intentá de nuevo.');
+            setErrorMsg(err.message || 'No pudimos guardar la ficha. Intenta de nuevo.');
         } finally {
             setSubmitting(false);
         }
@@ -818,7 +818,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                             )}
                             <div className="flex-1 min-w-0 pt-1">
                                 <p className="text-xs text-slate-500">
-                                    {fotoMascota ? 'Tocá la imagen para reemplazarla, o la X para quitarla.' : 'Tocá el recuadro para subir una foto.'}
+                                    {fotoMascota ? 'Toca la imagen para reemplazarla, o la X para quitarla.' : 'Toca el recuadro para subir una foto.'}
                                 </p>
                                 <p className="text-xs text-slate-400 mt-1">JPG o PNG. Se comprime automáticamente al subir.</p>
                             </div>

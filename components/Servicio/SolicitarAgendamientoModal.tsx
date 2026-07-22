@@ -279,7 +279,7 @@ export default function SolicitarAgendamientoModal({
             } catch (err: any) {
                 if (err?.name === 'AbortError') return;
                 console.error('[picker] fetch slots error:', err);
-                setPickerError('No pudimos cargar los horarios. Intentá de nuevo.');
+                setPickerError('No pudimos cargar los horarios. Intenta de nuevo.');
                 setPickerSlots([]);
             } finally {
                 setPickerLoading(false);
@@ -493,7 +493,7 @@ export default function SolicitarAgendamientoModal({
                 onClose();
             } catch (err: any) {
                 console.error('[picker] insert error:', err);
-                setErrorMsg(err?.message || 'Hubo un error al reservar. Intentá de nuevo.');
+                setErrorMsg(err?.message || 'Hubo un error al reservar. Intenta de nuevo.');
             } finally {
                 setSubmitting(false);
             }

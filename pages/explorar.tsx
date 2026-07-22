@@ -236,7 +236,7 @@ export default function ExplorarPage() {
                         // porque router.replace dispara este efecto de nuevo con
                         // hasQueryParams=true y no se vuelve a entrar al bloque.
                         toast.info('Retomando tu última búsqueda', {
-                            description: 'Tocá cualquier filtro para empezar de cero.',
+                            description: 'Toca cualquier filtro para empezar de cero.',
                             duration: 4000,
                         });
                         // router.replace disparará este mismo efecto con los nuevos params
