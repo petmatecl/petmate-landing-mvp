@@ -127,6 +127,42 @@ export function formatRangoNoches(
 }
 
 /**
+ * Frase compacta "del ..." para insertar dentro de una oracion. Ejemplos:
+ *   V1 puntual:  "del lunes 27 de julio a las 16:48"
+ *   V2/V4a mismo mes: "del sábado 25 al martes 28 de julio"
+ *   V2/V4a cruza mes: "del jueves 30 de julio al domingo 2 de agosto"
+ *
+ * Sin capitalizar (se lee como prefijo dentro del texto). Usado en el email
+ * de invitacion a reseñas para identificar la reserva sin agregar un bloque
+ * info-box formal.
+ */
+export function formatFechaServicioInline(
+    inicio: Date | string | null | undefined,
+    fin: Date | string | null | undefined = null
+): string {
+    if (!inicio) return '';
+    const di = inicio instanceof Date ? inicio : new Date(inicio);
+    if (Number.isNaN(di.getTime())) return '';
+    const pi = partsChile(di);
+
+    if (!fin) {
+        // V1 puntual con hora
+        return `del ${pi.weekday} ${pi.day} de ${pi.month} a las ${pi.hour}:${pi.minute}`;
+    }
+
+    const df = fin instanceof Date ? fin : new Date(fin);
+    if (Number.isNaN(df.getTime())) {
+        return `del ${pi.weekday} ${pi.day} de ${pi.month}`;
+    }
+    const pf = partsChile(df);
+    // Optimizar: si el mes coincide, mencionarlo una sola vez al final.
+    if (pi.month === pf.month) {
+        return `del ${pi.weekday} ${pi.day} al ${pf.weekday} ${pf.day} de ${pi.month}`;
+    }
+    return `del ${pi.weekday} ${pi.day} de ${pi.month} al ${pf.weekday} ${pf.day} de ${pf.month}`;
+}
+
+/**
  * "Jueves 4 de julio, 14:00 · 3 horas" — para V4b (cuidado domicilio por horas).
  */
 export function formatPuntualConDuracion(

@@ -37,6 +37,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { skipIfNonProd } from '../../../lib/cronGuard';
 import { InvitacionResenaEmail } from '../../../components/Emails/InvitacionResenaEmail';
+import { formatFechaServicioInline } from '../../../lib/formatFecha';
 import type React from 'react';
 
 const BUFFER_HORAS = 24;
@@ -107,6 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             proveedorNombre: string;
             servicioTitulo: string;
             mascotaNombre: string | null;
+            fechaServicioFormato: string;
         }> = [];
 
         for (const c of (candidatos || []) as any[]) {
@@ -144,6 +146,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 proveedorNombre: proveedor?.nombre || 'tu proveedor',
                 servicioTitulo: servicio.titulo || 'tu servicio',
                 mascotaNombre: mascota?.nombre || null,
+                // Frase compacta "del ..." pre-armada en TZ Chile. Branch
+                // por fecha_fin: V1 puntual (con hora) vs V2/V4a rango
+                // (sin hora). Insertada en negrita dentro de la pregunta
+                // del template para identificar la reserva.
+                fechaServicioFormato: formatFechaServicioInline(c.fecha_preferida, c.fecha_fin),
             });
 
             if (elegibles.length >= BATCH_LIMIT) break;
@@ -185,13 +192,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await resend.emails.send({
                     from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
                     to: authUser.user.email,
-                    subject: `¿Cómo te fue con ${e.proveedorNombre}? Contanos tu experiencia`,
+                    subject: `¿Cómo te fue con ${e.proveedorNombre}? Cuéntanos tu experiencia`,
                     react: InvitacionResenaEmail({
                         tutorNombre: e.tutorNombre,
                         proveedorNombre: e.proveedorNombre,
                         servicioTitulo: e.servicioTitulo,
                         mascotaNombre: e.mascotaNombre,
                         reviewUrl,
+                        fechaServicioFormato: e.fechaServicioFormato,
                     }) as React.ReactElement,
                 });
 

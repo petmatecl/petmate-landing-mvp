@@ -19,6 +19,12 @@ interface InvitacionResenaEmailProps {
     servicioTitulo: string;
     mascotaNombre?: string | null;
     reviewUrl: string;
+    // Frase compacta de fecha para insertar dentro de la pregunta, tipo
+    // "del lunes 27 de julio a las 16:00" (V1 puntual con hora) o "del
+    // sábado 25 al martes 28 de julio" (V2/V4a rango sin hora). El
+    // endpoint del cron la arma en TZ Chile y la pasa lista. Si es null
+    // (defensa), el template omite la fecha y usa el copy anterior.
+    fechaServicioFormato?: string | null;
 }
 
 export const InvitacionResenaEmail = ({
@@ -27,9 +33,10 @@ export const InvitacionResenaEmail = ({
     servicioTitulo,
     mascotaNombre,
     reviewUrl,
+    fechaServicioFormato,
 }: InvitacionResenaEmailProps) => {
     const forMascota = mascotaNombre ? ` para ${mascotaNombre}` : '';
-    const previewText = `¿Cómo te fue con ${proveedorNombre}${forMascota}? Contanos tu experiencia.`;
+    const previewText = `¿Cómo te fue con ${proveedorNombre}${forMascota}? Cuéntanos tu experiencia.`;
 
     return (
         <Html>
@@ -45,13 +52,13 @@ export const InvitacionResenaEmail = ({
                         <Text style={h1}>Hola {tutorNombre},</Text>
 
                         <Text style={text}>
-                            ¿Se realizó tu servicio con <strong>{proveedorNombre}</strong>{forMascota}?
+                            ¿Se realizó tu servicio{fechaServicioFormato && <> <strong>{fechaServicioFormato}</strong></>} con <strong>{proveedorNombre}</strong>{forMascota}?
                         </Text>
 
                         <Text style={text}>
                             Si lo tuviste, tu opinión ayuda a otros tutores a elegir con más
                             confianza y también le sirve a {proveedorNombre} para seguir
-                            mejorando. Contanos brevemente cómo fue tu experiencia con
+                            mejorando. Cuéntanos brevemente cómo fue tu experiencia con
                             <strong> {servicioTitulo}</strong>.
                         </Text>
 

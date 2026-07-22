@@ -15,6 +15,7 @@ import {
     formatFechaCorta,
     formatRangoNoches,
     formatPuntualConDuracion,
+    formatFechaServicioInline,
 } from './formatFecha';
 
 let passed = 0;
@@ -122,6 +123,39 @@ assertEq(
     formatPuntualConDuracion('2026-07-04T13:00:00+00:00', 1),
     'Sábado 4 de julio, 09:00 · 1 hora'
 );
+
+console.log('\n─── formatFechaServicioInline (frase compacta para invitacion resenas) ───');
+
+// V1 puntual con hora — bug prod
+assertEq(
+    'inline V1 puntual (bug prod)',
+    formatFechaServicioInline('2026-07-27T20:48:00+00:00'),
+    'del lunes 27 de julio a las 16:48'
+);
+
+// V2/V4a mismo mes: mes mencionado una sola vez al final
+assertEq(
+    'inline V2 mismo mes (25 al 28 julio)',
+    formatFechaServicioInline('2026-07-25T04:00:00+00:00', '2026-07-28T04:00:00+00:00'),
+    'del sábado 25 al martes 28 de julio'
+);
+
+// V2/V4a cruza mes: cada extremo con su mes
+assertEq(
+    'inline V2 cruza mes (30 julio → 2 agosto)',
+    formatFechaServicioInline('2026-07-30T04:00:00+00:00', '2026-08-02T04:00:00+00:00'),
+    'del jueves 30 de julio al domingo 2 de agosto'
+);
+
+// fecha_fin explicitamente null (V1) — mismo comportamiento
+assertEq(
+    'inline V1 con fin=null explicito',
+    formatFechaServicioInline('2026-07-27T20:48:00+00:00', null),
+    'del lunes 27 de julio a las 16:48'
+);
+
+// input invalido
+assertEq('inline null', formatFechaServicioInline(null), '');
 
 console.log('\n─── null / undefined ───');
 assertEq('fecha null', formatFechaPreferida(null), 'sin fecha');
