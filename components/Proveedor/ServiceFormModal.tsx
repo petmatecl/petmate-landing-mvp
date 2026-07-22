@@ -259,6 +259,34 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         }
     }, [existingServiceId, categorias, categoriaId]);
 
+    // Reset simetrico de los toggles opt-in de agenda cuando cambia la
+    // categoria del servicio. Cierra el vector de bug donde `usaAgendaReal`
+    // (F1) o `usaAgendaEstadia` (F2) quedaban en true por un click previo
+    // en otra categoria, y luego contaminaban las validaciones del
+    // handleSubmit para una categoria que no admite ese dominio.
+    //
+    // Asimetria intencional: solo BAJAMOS a false cuando la nueva categoria
+    // NO admite ese dominio. Nunca subimos a true. Esto garantiza que el
+    // load inicial (fetchService setea `usaAgendaEstadia=true` para un
+    // servicio de cuidado con F2 activo, luego este effect ve slug='cuidado',
+    // `esCategoriaMultiDia=true`, y NO toca el state — el toggle queda ON).
+    //
+    // Deps por (categoriaId, categorias) en vez de `selectedCatSlug` porque
+    // esa constante se deriva mas abajo en el body; usar los state raiz
+    // evita issues de orden de declaracion. La resolucion inline via find()
+    // es identica al calculo de `selectedCatSlug`.
+    //
+    // Los otros state (franjas, excepciones, 8 campos config F2) se
+    // preservan intencionalmente — si el usuario vuelve al dominio original
+    // en la misma sesion del modal, ve lo ultimo que edito. Solo el toggle
+    // opt-in se resetea.
+    useEffect(() => {
+        const slug = categorias.find(c => c.id === categoriaId)?.slug || '';
+        if (!slug) return;
+        if (!categoriaAdmiteAgendaF1(slug)) setUsaAgendaReal(false);
+        if (!esCategoriaMultiDia(slug)) setUsaAgendaEstadia(false);
+    }, [categoriaId, categorias]);
+
     const fetchService = async (id: string) => {
         setFetching(true);
         try {
@@ -480,9 +508,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         if (comunasCobertura.length === 0) return toast.error("Selecciona al menos una comuna de cobertura.");
         if (fotos.length === 0) return toast.error("Agrega al menos una foto — los servicios con fotos reciben muchas más consultas.");
 
-        // F1 agenda — validaciones (solo si opt-in). El toggle no aparece si
-        // la categoria no admite F1, asi que no re-validamos categoria aca.
-        if (usaAgendaReal) {
+        // F1 agenda — validaciones (solo si opt-in Y la categoria admite F1).
+        // El gate por categoria es defensivo: si el toggle F1 quedo en true
+        // por click del usuario en una categoria F1-admisible y luego se
+        // cambio a una que no lo es (ej. cuidado), la seccion desaparece del
+        // render pero el state sobrevive. Sin el gate por slug, la validacion
+        // dispararia sobre un dominio inaplicable y bloquearia el guardado
+        // con un toast de "falta franja" imposible de resolver desde la UI.
+        if (usaAgendaReal && categoriaAdmiteAgendaF1(selectedCatSlug)) {
             if (!DURACION_SLOT_OPCIONES.includes(duracionSlotMin as any)) {
                 return toast.error(`Selecciona una duración ${sustantivo.del} válida.`);
             }
@@ -556,11 +589,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             }
         }
 
-        // F2 agenda estadia — validaciones (solo si opt-in). El toggle no
-        // aparece si la categoria no es cuidado, asi que no re-validamos
-        // categoria aca. Todos los rangos matchean los CHECK constraints
+        // F2 agenda estadia — validaciones (solo si opt-in Y la categoria
+        // admite F2). El gate por categoria es simetrico al de F1: si el
+        // toggle F2 quedo en true por click en cuidado y luego se cambio a
+        // paseos, la validacion no debe correr sobre un dominio que la UI
+        // ya no gestiona. Todos los rangos matchean los CHECK constraints
         // del schema F2-1 para evitar rebotes SQL crudos al usuario.
-        if (usaAgendaEstadia) {
+        if (usaAgendaEstadia && esCategoriaMultiDia(selectedCatSlug)) {
             if (!Number.isInteger(capacidadEstadia) || capacidadEstadia < 1 || capacidadEstadia > 20) {
                 return toast.error('La capacidad de estadías simultáneas debe estar entre 1 y 20.');
             }
@@ -721,7 +756,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             // semana. Los servicios nuevos no tienen snapshot, asi que
             // todo cae a INSERT. Best-effort: si algo falla, avisamos pero
             // el UPDATE del servicio ya paso.
-            if (savedServicioId && usaAgendaReal) {
+            //
+            // Gate por categoria (igual que en validaciones): si el toggle
+            // quedo stale en una categoria no-F1, no hacemos diff — el
+            // payload defensivo ya guardo duracion_slot_min=NULL y no queremos
+            // materializar franjas de un dominio inaplicable.
+            if (savedServicioId && usaAgendaReal && categoriaAdmiteAgendaF1(selectedCatSlug)) {
                 const idsActuales = new Set(franjasSemana.filter(f => f.id).map(f => f.id!));
                 const toDelete = franjasSemanaInicial.filter(f => f.id && !idsActuales.has(f.id));
                 const toInsert = franjasSemana.filter(f => !f.id);
