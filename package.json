@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:slots": "npx tsx lib/slotsAgenda.test.ts"
+    "test:slots": "npx tsx lib/slotsAgenda.test.ts",
+    "test:formatFecha": "npx tsx lib/formatFecha.test.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
