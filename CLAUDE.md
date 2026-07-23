@@ -178,6 +178,38 @@ Vulnerabilities reportadas por `npm audit` se filtran por exploitability en nues
 - `npm install postcss@^8.5.10` override + bump root — cierra moderate XSS via `</style>` (next 14.2.35 sigue trayendo postcss 8.4.31, así que el bump de next NO cerró postcss colateralmente). Build-time, no recibe user input → riesgo real ≈ 0.
 - `npm install supabase@latest` (dev CLI) — cierra tar path traversal.
 
+## MCPs con acceso a servicios (staging + Vercel)
+
+### Supabase MCP — staging read-only
+
+MCP configurado en `.mcp.json` local (no committeado) con `--read-only` +
+`--project-ref=jmtadvdkicyylcwjcmcl`. Doble candado anti-prod: el MCP no
+puede escribir (rechaza INSERT/UPDATE/DELETE/DDL con SQLSTATE `25006` a
+nivel de sesión Postgres), y solo ve staging.
+
+**Puedo**: `SELECT`s de verificación en staging — citar query + resultado
+en reportes, nunca verificación invisible.
+
+**NO puedo**: INSERT/UPDATE/DELETE/DDL, migraciones, cambios de schema,
+cambios de RLS/policies. Siguen siendo bloques SQL que Aldo ejecuta
+manualmente — sin excepciones. Tampoco `apply_migration` del MCP (mismo
+criterio: cualquier mutación requiere ejecución manual de Aldo tras
+revisar el bloque).
+
+Si el proyecto conectado dejara de ser staging o si `--read-only` no
+estuviera activo, dejo de usar el MCP y reporto.
+
+### Vercel MCP — hospedado, solo lectura
+
+MCP hospedado en `https://mcp.vercel.com` (OAuth) agregado a `.mcp.json`
+local. Solo para lectura: consultar deployments, estados, runtime logs
+(retención Hobby ~1h).
+
+**NO puedo** hacer acciones mutantes: redeploy, cambios de env vars,
+cambios de dominios, cancelación de builds, cambios de deployment
+protection. Todo eso requiere instrucción explícita en el turno vigente.
+Cada consulta se cita en reportes igual que Supabase.
+
 ## Workflow
 
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático
