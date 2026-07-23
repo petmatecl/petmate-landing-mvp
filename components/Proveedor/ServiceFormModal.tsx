@@ -177,6 +177,17 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [blackouts, setBlackouts] = useState<Blackout[]>([]);
     const [blackoutsInicial, setBlackoutsInicial] = useState<Blackout[]>([]);
 
+    // F2 inline errors (Incremento 2B). Complementan el toast — mismo patron
+    // que pages/register.tsx:showError. El toast queda arriba (lejos del
+    // campo en mobile) y el mensaje inline aparece bajo el input mismo, con
+    // scroll al primer error. Aplicado a los campos donde el smoke S5
+    // detecto la fricción: min/max noches y blackouts.
+    const [minNochesError, setMinNochesError] = useState<string | null>(null);
+    const [maxNochesError, setMaxNochesError] = useState<string | null>(null);
+    // blackoutErrors indexado por indice de la fila. Map en vez de array
+    // para poder .delete(i) sin gastar en un array del tamaño de blackouts.
+    const [blackoutErrors, setBlackoutErrors] = useState<Record<number, string>>({});
+
     // Category-specific fields (stored as JSONB)
     const [detalles, setDetalles] = useState<Record<string, any>>({});
 
@@ -261,6 +272,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setCheckOutHora('');
         setBlackouts([]);
         setBlackoutsInicial([]);
+        setMinNochesError(null);
+        setMaxNochesError(null);
+        setBlackoutErrors({});
     };
 
     const fetchCategorias = useCallback(async () => {
@@ -551,6 +565,25 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // F2 inline errors: limpiar los del intento anterior antes de
+        // validar de nuevo. Sin esto, un mensaje viejo persiste bajo un
+        // campo cuyo valor ya se corrigio, confundiendo la lectura.
+        setMinNochesError(null);
+        setMaxNochesError(null);
+        setBlackoutErrors({});
+
+        // Helper local: scroll al primer campo con error tras el paint. El
+        // requestAnimationFrame garantiza que el DOM ya refleje el mensaje
+        // inline (importante en mobile — sin scroll, el error queda fuera
+        // de viewport y el usuario lee solo el toast arriba). Patron identico
+        // al showError de pages/register.tsx.
+        const scrollToField = (id: string) => {
+            requestAnimationFrame(() => {
+                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        };
+
         if (!categoriaId) return toast.error("Selecciona una categoría.");
         if (!titulo.trim()) return toast.error("El título es obligatorio.");
         if (titulo.length > 80) return toast.error("El título es muy largo (máx. 80 caracteres).");
@@ -659,14 +692,23 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 return toast.error('La ventana máxima debe estar entre 1 y 730 días.');
             }
             if (!Number.isInteger(minNoches) || minNoches < 1 || minNoches > 90) {
-                return toast.error('El mínimo de noches debe estar entre 1 y 90.');
+                const msg = 'El mínimo de noches debe estar entre 1 y 90.';
+                setMinNochesError(msg);
+                scrollToField('estadia-min-noches');
+                return toast.error(msg);
             }
             if (maxNoches !== null) {
                 if (!Number.isInteger(maxNoches) || maxNoches < 1 || maxNoches > 365) {
-                    return toast.error('El máximo de noches debe estar entre 1 y 365, o vacío para sin tope.');
+                    const msg = 'El máximo de noches debe estar entre 1 y 365, o vacío para sin tope.';
+                    setMaxNochesError(msg);
+                    scrollToField('estadia-max-noches');
+                    return toast.error(msg);
                 }
                 if (maxNoches < minNoches) {
-                    return toast.error('El máximo de noches no puede ser menor al mínimo.');
+                    const msg = 'El máximo de noches no puede ser menor al mínimo.';
+                    setMaxNochesError(msg);
+                    scrollToField('estadia-max-noches');
+                    return toast.error(msg);
                 }
             }
             if (!Number.isInteger(cancelacionMinHorasAntes) || cancelacionMinHorasAntes < 0 || cancelacionMinHorasAntes > 168) {
@@ -688,32 +730,55 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             // revalidamos "desde hoy". El CHECK del schema garantiza
             // fecha_fin > fecha (al menos 1 noche); revalidamos client-side
             // para evitar rebote SQL crudo.
+            //
+            // Errores inline por indice + scroll al primer bloqueo con error.
+            // Recolectamos todos los errores en un pass (no return al primer
+            // fallo) para que el usuario vea el estado completo tras el
+            // submit, no uno-a-uno. El id del scroll target usa el pattern
+            // blackout-row-{i} definido en el render.
             const todayIsoF2 = new Date().toISOString().slice(0, 10);
-            for (const b of blackouts) {
+            const nuevosBlackoutErrors: Record<number, string> = {};
+            for (let i = 0; i < blackouts.length; i++) {
+                const b = blackouts[i];
                 if (!b.fecha || !b.fecha_fin) {
-                    return toast.error('Todos los bloqueos necesitan fecha de inicio y fecha de fin.');
+                    nuevosBlackoutErrors[i] = 'Necesita fecha de inicio y fecha de fin.';
+                    continue;
                 }
                 if (b.fecha < todayIsoF2) {
-                    return toast.error(`Bloqueo del ${b.fecha}: la fecha de inicio debe ser desde hoy.`);
+                    nuevosBlackoutErrors[i] = 'La fecha de inicio debe ser desde hoy.';
+                    continue;
                 }
                 if (b.fecha_fin <= b.fecha) {
-                    return toast.error(`Bloqueo del ${b.fecha}: la fecha de fin debe ser posterior a la de inicio (mínimo 1 noche).`);
+                    nuevosBlackoutErrors[i] = 'La fecha de fin debe ser posterior a la de inicio (mínimo 1 noche).';
+                    continue;
                 }
                 if (b.motivo && b.motivo.length > EXCEPCION_MOTIVO_MAX) {
-                    return toast.error(`Bloqueo del ${b.fecha}: el motivo supera ${EXCEPCION_MOTIVO_MAX} caracteres.`);
+                    nuevosBlackoutErrors[i] = `El motivo supera ${EXCEPCION_MOTIVO_MAX} caracteres.`;
+                    continue;
                 }
             }
             // Duplicados exactos (mismo (fecha, fecha_fin)). Solapes NO se
             // validan — dos rangos que se pisen son legitimos (ej. actualizar
             // un rango mientras se agrega otro adyacente); el render publico
-            // los une visualmente.
-            const seenBlk = new Set<string>();
-            for (const b of blackouts) {
+            // los une visualmente. El error se pinta en el SEGUNDO duplicado
+            // (el primero se mantiene "limpio" — coincidencia natural con
+            // la lectura de la lista de arriba a abajo).
+            const seenBlk = new Map<string, number>();
+            for (let i = 0; i < blackouts.length; i++) {
+                const b = blackouts[i];
+                if (!b.fecha || !b.fecha_fin) continue;
                 const key = `${b.fecha}::${b.fecha_fin}`;
-                if (seenBlk.has(key)) {
-                    return toast.error(`Bloqueo duplicado del ${b.fecha} al ${b.fecha_fin}.`);
+                if (seenBlk.has(key) && !nuevosBlackoutErrors[i]) {
+                    nuevosBlackoutErrors[i] = `Duplicado del bloqueo #${(seenBlk.get(key) ?? -1) + 1}.`;
+                } else if (!seenBlk.has(key)) {
+                    seenBlk.set(key, i);
                 }
-                seenBlk.add(key);
+            }
+            if (Object.keys(nuevosBlackoutErrors).length > 0) {
+                setBlackoutErrors(nuevosBlackoutErrors);
+                const primerIdx = Math.min(...Object.keys(nuevosBlackoutErrors).map(Number));
+                scrollToField(`blackout-row-${primerIdx}`);
+                return toast.error('Revisa los bloqueos marcados en rojo antes de guardar.');
             }
         }
 
@@ -1910,10 +1975,18 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             min={1}
                                                             max={90}
                                                             value={minNoches}
-                                                            onChange={e => setMinNoches(Math.max(1, Math.min(90, parseInt(e.target.value || '1', 10))))}
-                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                            onChange={e => {
+                                                                setMinNoches(Math.max(1, Math.min(90, parseInt(e.target.value || '1', 10))));
+                                                                if (minNochesError) setMinNochesError(null);
+                                                                if (maxNochesError) setMaxNochesError(null);
+                                                            }}
+                                                            className={`w-full h-11 px-3 border rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:border-accent-600 focus:bg-white transition-colors ${minNochesError ? 'border-danger-400 focus:ring-danger-400' : 'border-slate-200 focus:ring-accent-600'}`}
                                                         />
-                                                        <p className="text-xs text-slate-400 mt-1">Estadía más corta que aceptas.</p>
+                                                        {minNochesError ? (
+                                                            <p className="text-xs text-danger-600 mt-1 font-medium">{minNochesError}</p>
+                                                        ) : (
+                                                            <p className="text-xs text-slate-400 mt-1">Estadía más corta que aceptas.</p>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label htmlFor="estadia-max-noches" className="block text-sm font-medium text-slate-700 mb-1.5">Máximo de noches</label>
@@ -1926,14 +1999,21 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             placeholder="Sin límite"
                                                             onChange={e => {
                                                                 const raw = e.target.value.trim();
-                                                                if (raw === '') { setMaxNoches(null); return; }
-                                                                const n = parseInt(raw, 10);
-                                                                if (Number.isNaN(n)) { setMaxNoches(null); return; }
-                                                                setMaxNoches(Math.max(1, Math.min(365, n)));
+                                                                if (raw === '') { setMaxNoches(null); }
+                                                                else {
+                                                                    const n = parseInt(raw, 10);
+                                                                    if (Number.isNaN(n)) setMaxNoches(null);
+                                                                    else setMaxNoches(Math.max(1, Math.min(365, n)));
+                                                                }
+                                                                if (maxNochesError) setMaxNochesError(null);
                                                             }}
-                                                            className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                            className={`w-full h-11 px-3 border rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:border-accent-600 focus:bg-white transition-colors ${maxNochesError ? 'border-danger-400 focus:ring-danger-400' : 'border-slate-200 focus:ring-accent-600'}`}
                                                         />
-                                                        <p className="text-xs text-slate-400 mt-1">Estadía más larga que aceptas. Déjalo vacío si no tienes tope.</p>
+                                                        {maxNochesError ? (
+                                                            <p className="text-xs text-danger-600 mt-1 font-medium">{maxNochesError}</p>
+                                                        ) : (
+                                                            <p className="text-xs text-slate-400 mt-1">Estadía más larga que aceptas. Déjalo vacío si no tienes tope.</p>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label htmlFor="estadia-checkin" className="block text-sm font-medium text-slate-700 mb-1.5">Hora de check-in (opcional)</label>
@@ -1989,23 +2069,39 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             // y esos casos rebotan en validacion al
                                                             // guardar.
                                                             const noches = b.fecha && b.fecha_fin ? nochesEntre(b.fecha, b.fecha_fin) : 0;
+                                                            const rowError = blackoutErrors[i];
+                                                            // Clear del error de esta fila cuando el
+                                                            // usuario tipea en cualquiera de sus campos.
+                                                            const clearRowError = () => {
+                                                                if (rowError) {
+                                                                    setBlackoutErrors(prev => {
+                                                                        const next = { ...prev };
+                                                                        delete next[i];
+                                                                        return next;
+                                                                    });
+                                                                }
+                                                            };
                                                             return (
-                                                                <div key={b.id ?? `nuevo-${i}`} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                                                <div
+                                                                    key={b.id ?? `nuevo-${i}`}
+                                                                    id={`blackout-row-${i}`}
+                                                                    className={`border rounded-xl p-3 space-y-2 ${rowError ? 'bg-danger-50 border-danger-300' : 'bg-slate-50 border-slate-200'}`}
+                                                                >
                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                         <span className="text-xs text-slate-500">Del</span>
                                                                         <input
                                                                             type="date"
                                                                             value={b.fecha}
-                                                                            onChange={ev => updateBlackout(i, 'fecha', ev.target.value)}
-                                                                            className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                            onChange={ev => { updateBlackout(i, 'fecha', ev.target.value); clearRowError(); }}
+                                                                            className={`h-8 px-2 border rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 ${rowError ? 'border-danger-400 focus:ring-danger-400' : 'border-slate-200 focus:ring-accent-600'}`}
                                                                             aria-label="Fecha de inicio del bloqueo"
                                                                         />
                                                                         <span className="text-xs text-slate-500">al</span>
                                                                         <input
                                                                             type="date"
                                                                             value={b.fecha_fin}
-                                                                            onChange={ev => updateBlackout(i, 'fecha_fin', ev.target.value)}
-                                                                            className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                            onChange={ev => { updateBlackout(i, 'fecha_fin', ev.target.value); clearRowError(); }}
+                                                                            className={`h-8 px-2 border rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 ${rowError ? 'border-danger-400 focus:ring-danger-400' : 'border-slate-200 focus:ring-accent-600'}`}
                                                                             aria-label="Fecha de fin del bloqueo"
                                                                         />
                                                                         {noches > 0 && (
@@ -2024,11 +2120,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                     <input
                                                                         type="text"
                                                                         value={b.motivo ?? ''}
-                                                                        onChange={ev => updateBlackout(i, 'motivo', ev.target.value || null)}
+                                                                        onChange={ev => { updateBlackout(i, 'motivo', ev.target.value || null); clearRowError(); }}
                                                                         maxLength={EXCEPCION_MOTIVO_MAX}
                                                                         placeholder="Motivo (opcional) — ej. vacaciones en Pucón, feriado largo"
                                                                         className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
                                                                     />
+                                                                    {rowError && (
+                                                                        <p className="text-xs text-danger-700 font-medium">{rowError}</p>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         })}
