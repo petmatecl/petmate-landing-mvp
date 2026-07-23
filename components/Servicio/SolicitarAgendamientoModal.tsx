@@ -35,6 +35,10 @@ import {
     type ModalidadCuidado,
     type ModoTarifa,
 } from '../../lib/categoriaTemporal';
+import { formatRangoNoches, nochesEntre } from '../../lib/formatFecha';
+import { DayPicker, type DateRange } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
+import { es } from 'date-fns/locale';
 import RegionComunaPicker from '../Shared/RegionComunaPicker';
 
 interface SolicitarAgendamientoModalProps {
@@ -57,6 +61,14 @@ interface SolicitarAgendamientoModalProps {
     duracionSlotMin?: number | null;
     capacidadSlot?: number;
     anticipacionMaxDias?: number;
+    // F2 agenda por rango de noches. Si capacidadEstadia es un numero,
+    // el modal cambia al PICKER DE CALENDARIO (react-day-picker range mode)
+    // — reemplaza los datepickers V2/V4a con un calendario que muestra
+    // disponibilidad diaria del endpoint /api/servicios/[id]/disponibilidad-
+    // noches. Solicitud nace estado='confirmada' + fecha_fin +
+    // capacidad_snapshot_estadia. Precedencia sobre el flow V2/V4a existente
+    // cuando la categoria es cuidado. Null/undefined → flow V2/V4a intacto.
+    capacidadEstadia?: number | null;
 }
 
 // Tipo del response del endpoint de slots (espeja lib/slotsAgenda.ts).
@@ -66,6 +78,30 @@ type SlotDelPicker = {
     hora_fin: string;      // HH:MM
     disponible: boolean;
     restantes: number;
+};
+
+// F2 — tipo del response del endpoint de disponibilidad de noches
+// (espeja lib/nochesAgenda.ts). Cada dia trae la razon por la que esta
+// (o no) disponible como check-in de una estadia.
+type DiaCalendarioEstadia = {
+    fecha: string;              // YYYY-MM-DD (Chile)
+    disponible: boolean;
+    restantes: number;
+    razon: 'ok' | 'pasado' | 'anticipacion_min' | 'anticipacion_max' | 'blackout' | 'lleno';
+};
+
+type ConfigEstadia = {
+    capacidad_estadia: number;
+    min_noches: number;
+    max_noches: number | null;
+    cancelacion_min_horas_antes: number;
+    check_in_hora: string | null;   // 'HH:MM:SS' o null (Postgres time)
+    check_out_hora: string | null;
+};
+
+type DisponibilidadNochesResponse = {
+    dias: DiaCalendarioEstadia[];
+    config: ConfigEstadia;
 };
 
 // Devuelve YYYY-MM-DDTHH:mm en horario local — formato esperado por
@@ -113,6 +149,50 @@ function diasEntreIso(desde: string, hasta: string): number {
     return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86_400_000);
 }
 
+// Convierte una fecha civil chilena ('YYYY-MM-DD') a un Date en el
+// momento absoluto que corresponde a la medianoche chilena de ese dia
+// (invierno: 04:00 UTC, verano: 03:00 UTC). Usado para F2 al INSERT:
+// fecha_preferida = medianoche Chile check-in, fecha_fin = medianoche Chile
+// check-out. Respeta DST via Intl (mismo patron que el F1 picker en el
+// bloque V1 puntual).
+function chileMidnightUtc(fecha: string): Date {
+    const [y, m, d] = fecha.split('-').map(Number);
+    const guessUtcMs = Date.UTC(y, m - 1, d, 0, 0);
+    const parts = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: CHILE_TZ,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false,
+    }).formatToParts(new Date(guessUtcMs));
+    const get = (t: string) => parseInt(parts.find(p => p.type === t)?.value ?? '0', 10);
+    const chileWallMs = Date.UTC(
+        get('year'), get('month') - 1, get('day'),
+        get('hour'), get('minute'), get('second')
+    );
+    return new Date(guessUtcMs - (chileWallMs - guessUtcMs));
+}
+
+// Formato local 'YYYY-MM-DD' de un Date del browser. react-day-picker
+// devuelve Date objects (createos en TZ del sistema); esta funcion los
+// baja a componente civil para matchear los keys del map de disponibilidad.
+function ymdFromDate(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+}
+
+// Primer y ultimo dia del mes de una fecha 'YYYY-MM-DD' (para el fetch
+// mensual del picker F2). Ambos como 'YYYY-MM-DD'.
+function primerDiaDelMes(iso: string): string {
+    return iso.slice(0, 7) + '-01';
+}
+function ultimoDiaDelMes(iso: string): string {
+    const [y, m] = iso.split('-').map(Number);
+    const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    return `${iso.slice(0, 7)}-${String(last).padStart(2, '0')}`;
+}
+
 const DIAS_ES_CORTO = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MESES_ES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
@@ -150,6 +230,7 @@ export default function SolicitarAgendamientoModal({
     duracionSlotMin,
     capacidadSlot,
     anticipacionMaxDias,
+    capacidadEstadia,
 }: SolicitarAgendamientoModalProps) {
     // F1 agenda con disponibilidad real: activa el picker rigido si el
     // servicio tiene duracionSlotMin. Tiene precedencia sobre las variantes
@@ -157,6 +238,12 @@ export default function SolicitarAgendamientoModal({
     // caen en V1 — este check es defensivo por si en el futuro F1 se
     // extiende a otras categorias).
     const usaPicker = typeof duracionSlotMin === 'number' && duracionSlotMin > 0;
+    // F2 agenda por rango de noches: activa el picker de calendario si el
+    // servicio tiene capacidadEstadia populada. Tiene precedencia sobre
+    // V2/V4a (rango legacy sin picker) cuando la categoria es cuidado.
+    // F1 y F2 son mutuamente excluyentes por categoria: F1 solo aplica a
+    // categorias de bloque horario, F2 solo a cuidado; no se pisan.
+    const usaPickerEstadia = typeof capacidadEstadia === 'number' && capacidadEstadia > 0;
 
     const isCuidado = esCategoriaMultiDia(categoriaSlug);
     const modalidadesValidas: ModalidadCuidado[] = isCuidado
@@ -196,6 +283,26 @@ export default function SolicitarAgendamientoModal({
     const [pickerError, setPickerError] = useState<string | null>(null);
     const [pickerDiaElegido, setPickerDiaElegido] = useState<string>(() => localTodayIso());
     const [slotElegido, setSlotElegido] = useState<SlotDelPicker | null>(null);
+
+    // F2 picker state — solo relevante cuando usaPickerEstadia.
+    //
+    // pickerEstMesActual = primer dia del mes visible en el DayPicker (YYYY-MM-01).
+    // pickerEstDias = map de disponibilidad diaria del mes actual + siguiente
+    //     (fetch de 2 meses para que el DayPicker con numberOfMonths=2 tenga
+    //     ambos poblados).
+    // pickerEstConfig = min/max noches + horas + capacidad del servicio.
+    // rangoEst = DateRange seleccionado por el tutor (from + to). Ambos undefined
+    //     al inicio; onSelect actualiza incrementalmente.
+    // rangoEstError = mensaje inline debajo del picker cuando la seleccion no
+    //     cumple validacion (incluye disabled, min/max noches, etc). Se limpia
+    //     al reset de la seleccion.
+    const [pickerEstMesActual, setPickerEstMesActual] = useState<string>(() => primerDiaDelMes(localTodayIso()));
+    const [pickerEstDiasMap, setPickerEstDiasMap] = useState<Map<string, DiaCalendarioEstadia>>(new Map());
+    const [pickerEstConfig, setPickerEstConfig] = useState<ConfigEstadia | null>(null);
+    const [pickerEstLoading, setPickerEstLoading] = useState(false);
+    const [pickerEstError, setPickerEstError] = useState<string | null>(null);
+    const [rangoEst, setRangoEst] = useState<DateRange | undefined>(undefined);
+    const [rangoEstError, setRangoEstError] = useState<string | null>(null);
 
     // Feature "fichas de mascotas → solicitud":
     // Cargamos las mascotas del tutor logueado al abrir el modal. El selector
@@ -288,6 +395,58 @@ export default function SolicitarAgendamientoModal({
         return () => controller.abort();
     }, [isOpen, usaPicker, servicioId, pickerDesde, anticipacionMaxDias]);
 
+    // F2 picker — reset al abrir el modal / cambiar de servicio. El mes
+    // arranca en el mes actual chileno; la seleccion queda vacia hasta que
+    // el tutor arma un rango.
+    useEffect(() => {
+        if (!isOpen || !usaPickerEstadia) return;
+        setPickerEstMesActual(primerDiaDelMes(localTodayIso()));
+        setRangoEst(undefined);
+        setRangoEstError(null);
+    }, [isOpen, usaPickerEstadia, servicioId]);
+
+    // F2 picker — fetch de disponibilidad al abrir el modal / cambiar mes.
+    // Rango del fetch: primer dia del mes visible → ultimo dia del mes
+    // SIGUIENTE, para que un DayPicker con numberOfMonths=2 tenga ambos
+    // meses poblados sin refetch por scroll. Al cambiar mes, refetch trae
+    // el nuevo par de meses.
+    useEffect(() => {
+        if (!isOpen || !usaPickerEstadia) return;
+        const controller = new AbortController();
+        (async () => {
+            setPickerEstLoading(true);
+            setPickerEstError(null);
+            try {
+                const desde = primerDiaDelMes(pickerEstMesActual);
+                // Mes siguiente: sumar 1 al mes del pickerEstMesActual.
+                const [y, m] = pickerEstMesActual.split('-').map(Number);
+                const proxMesFirst = m === 12
+                    ? `${y + 1}-01-01`
+                    : `${y}-${String(m + 1).padStart(2, '0')}-01`;
+                const hasta = ultimoDiaDelMes(proxMesFirst);
+
+                const r = await fetch(
+                    `/api/servicios/${servicioId}/disponibilidad-noches?desde=${desde}&hasta=${hasta}`,
+                    { signal: controller.signal }
+                );
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const data = (await r.json()) as DisponibilidadNochesResponse;
+                const map = new Map<string, DiaCalendarioEstadia>();
+                for (const d of data.dias) map.set(d.fecha, d);
+                setPickerEstDiasMap(map);
+                setPickerEstConfig(data.config);
+            } catch (err: any) {
+                if (err?.name === 'AbortError') return;
+                console.error('[picker-estadia] fetch disponibilidad error:', err);
+                setPickerEstError('No pudimos cargar la disponibilidad. Intenta de nuevo.');
+                setPickerEstDiasMap(new Map());
+            } finally {
+                setPickerEstLoading(false);
+            }
+        })();
+        return () => controller.abort();
+    }, [isOpen, usaPickerEstadia, servicioId, pickerEstMesActual]);
+
     if (!isOpen) return null;
 
     const variante = getVarianteFormulario(categoriaSlug, modalidadElegida, modoTarifa);
@@ -316,6 +475,125 @@ export default function SolicitarAgendamientoModal({
         setTipoMascotaTexto('');
         setOtraSeleccionada(false);
         setErrorMsg('');
+        // F2 picker — dejamos mes+config+dias intactos (siguen siendo utiles
+        // si el modal se reabre para el mismo servicio). Solo limpiamos la
+        // seleccion + error inline.
+        setRangoEst(undefined);
+        setRangoEstError(null);
+    };
+
+    // F2 picker — handler de seleccion. Implementa manualmente lo que en
+    // v9 haria excludeDisabled + resetOnSelect (no disponibles en v8.10.1):
+    //
+    //   1. resetOnSelect manual: si el rango YA esta completo (from + to
+    //      distintos) y el usuario clickea otro dia, arranca rango nuevo
+    //      desde ese click. react-day-picker v8 sin resetOnSelect
+    //      extenderia el rango existente, comportamiento raro.
+    //
+    //   2. excludeDisabled manual: si el rango final incluye algun dia
+    //      disabled (blackout/lleno/anticipacion/pasado), limpia con
+    //      mensaje amable "elige otras noches". Sin esto, el rango
+    //      podria abarcar dias no reservables.
+    //
+    //   3. Validacion min/max noches: si el rango cae fuera del rango
+    //      valido del servicio, mostramos error inline con la cifra.
+    const isDiaDisabledEst = (date: Date): boolean => {
+        const ymd = ymdFromDate(date);
+        const dia = pickerEstDiasMap.get(ymd);
+        // Sin data (fuera del fetch actual) → no bloqueamos aca (el fetch
+        // se dispara al cambiar mes; los dias del mes visible siempre
+        // deberian estar en el map).
+        if (!dia) return false;
+        return !dia.disponible;
+    };
+
+    const handleRangeSelectEst = (
+        nuevoRango: DateRange | undefined,
+        triggerDate: Date
+    ) => {
+        setRangoEstError(null);
+
+        // Caso 1: seleccion vacia (el usuario clickeo un dia disabled o
+        // limpio el rango). react-day-picker en v8 devuelve undefined en
+        // esos casos.
+        if (!nuevoRango || !nuevoRango.from) {
+            setRangoEst(undefined);
+            return;
+        }
+
+        // Caso 2 (resetOnSelect manual — cubre TODOS los casos donde el
+        // usuario tenia un rango completo y hace un click nuevo, incluyendo
+        // el forward-extend que v8 acepta silenciosamente):
+        //
+        // Sin resetOnSelect (prop v9.14+), react-day-picker v8 con rango
+        // completo trata cualquier click como extension: click ANTES del
+        // from → cambia from; click DESPUES del to → extiende to. Ambos
+        // son sorpresa para el usuario que espera "click nuevo = rango
+        // nuevo". Usamos triggerDate (el dia realmente clickeado) para
+        // detectar: si venia un rango completo, TODO click nuevo dispara
+        // reset a {from: triggerDate, to: undefined} — sin importar si
+        // v8 lo interpreto como forward-extend, backward-extend o restart.
+        if (rangoEst?.from && rangoEst?.to) {
+            const triggerIso = ymdFromDate(triggerDate);
+            const diaTrigger = pickerEstDiasMap.get(triggerIso);
+            if (diaTrigger && !diaTrigger.disponible) {
+                // El click cayo en un dia disabled — no permitimos ni
+                // arrancar rango ahi. Mantenemos el rango previo intacto.
+                return;
+            }
+            setRangoEst({ from: triggerDate, to: undefined });
+            return;
+        }
+
+        // Caso 3: rango completo (from + to). Validar excludeDisabled +
+        // min/max noches antes de aceptarlo.
+        if (nuevoRango.from && nuevoRango.to) {
+            const desdeIso = ymdFromDate(nuevoRango.from);
+            const hastaIso = ymdFromDate(nuevoRango.to);
+
+            // 3a. excludeDisabled manual: iterar todos los dias de check-in
+            //    en [desde, hasta) — hasta es el check-out, no cuenta. Si
+            //    alguno tiene disponible=false, rebotar.
+            let tieneDisabled = false;
+            for (let cursor = desdeIso; cursor < hastaIso; cursor = shiftDate(cursor, 1)) {
+                const dia = pickerEstDiasMap.get(cursor);
+                if (dia && !dia.disponible) {
+                    tieneDisabled = true;
+                    break;
+                }
+            }
+            if (tieneDisabled) {
+                setRangoEst(undefined);
+                setRangoEstError('El rango elegido incluye fechas no disponibles — elige otras noches.');
+                return;
+            }
+
+            // 3b. min/max noches — validar contra config del servicio.
+            const noches = nochesEntre(desdeIso, hastaIso);
+            const min = pickerEstConfig?.min_noches ?? 1;
+            const max = pickerEstConfig?.max_noches ?? null;
+            if (noches < min) {
+                setRangoEst(nuevoRango);
+                setRangoEstError(
+                    min === 1
+                        ? 'La estadía mínima es de 1 noche.'
+                        : `La estadía mínima es de ${min} noches.`
+                );
+                return;
+            }
+            if (max !== null && noches > max) {
+                setRangoEst(nuevoRango);
+                setRangoEstError(
+                    max === 1
+                        ? 'La estadía máxima es de 1 noche.'
+                        : `La estadía máxima es de ${max} noches.`
+                );
+                return;
+            }
+        }
+
+        // Caso 4: rango parcial (solo from) o completo y valido.
+        setRangoEst(nuevoRango);
     };
 
     const handleClose = () => {
@@ -327,6 +605,160 @@ export default function SolicitarAgendamientoModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
+
+        // F2 PICKER (rango de noches) — camino paralelo al F1 picker y a
+        // V1/V2/V4. La reserva nace estado='confirmada' + fecha_fin +
+        // capacidad_snapshot_estadia (bandera F2). El EXCLUDE
+        // agendamientos_no_solape_estadias protege contra doble-booking
+        // cuando capacidad_snapshot_estadia=1; grupales (>1) tienen la
+        // misma race window documentada como deuda en e2e/README.md.
+        // Rebote 23P01 mapea al mismo copy "Esas noches acaban de
+        // ocuparse. Elige otras." + refetch del mes visible.
+        if (usaPickerEstadia) {
+            if (!rangoEst || !rangoEst.from || !rangoEst.to) {
+                setErrorMsg('Elige las fechas de tu estadía.');
+                return;
+            }
+            if (rangoEstError) {
+                // Ya hay un mensaje inline visible; no repetimos en el toast
+                // general para no ser redundantes.
+                return;
+            }
+
+            setSubmitting(true);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    setErrorMsg('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
+                    return;
+                }
+                const { data: buscador, error: buscadorErr } = await supabase
+                    .from('usuarios_buscadores')
+                    .select('id, nombre')
+                    .eq('auth_user_id', session.user.id)
+                    .maybeSingle();
+                if (buscadorErr) throw buscadorErr;
+                if (!buscador) {
+                    setErrorMsg('Necesitas completar tu perfil de tutor antes de reservar. Regístrate como tutor para continuar.');
+                    return;
+                }
+                if (mensaje.length > 500) {
+                    setErrorMsg('El mensaje supera el máximo de 500 caracteres.');
+                    return;
+                }
+
+                const desdeIso = ymdFromDate(rangoEst.from);
+                const hastaIso = ymdFromDate(rangoEst.to);
+                const fechaPreferidaIso = chileMidnightUtc(desdeIso).toISOString();
+                const fechaFinIso = chileMidnightUtc(hastaIso).toISOString();
+
+                const { data: inserted, error: insertErr } = await supabase
+                    .from('agendamientos')
+                    .insert({
+                        servicio_id: servicioId,
+                        proveedor_id: proveedorId,
+                        tutor_id: buscador.id,
+                        fecha_preferida: fechaPreferidaIso,
+                        fecha_fin: fechaFinIso,
+                        estado: 'confirmada',
+                        capacidad_snapshot_estadia: pickerEstConfig?.capacidad_estadia ?? capacidadEstadia ?? 1,
+                        mensaje: mensaje.trim() || null,
+                        mascota_id: mascotaId,
+                        tipo_mascota_texto: !mascotaId && tipoMascotaTexto.trim()
+                            ? tipoMascotaTexto.trim()
+                            : null,
+                        tutor_nombre: buscador.nombre || null,
+                    })
+                    .select('id')
+                    .single();
+
+                if (insertErr) {
+                    // 23P01 = exclusion_violation. En F2 el constraint es
+                    // agendamientos_no_solape_estadias (schema F2-1).
+                    const isRebote = insertErr.code === '23P01'
+                        || (insertErr.message || '').includes('agendamientos_no_solape_estadias');
+                    if (isRebote) {
+                        setErrorMsg('Esas noches acaban de ocuparse. Elige otras.');
+                        setRangoEst(undefined);
+                        setRangoEstError(null);
+                        // Refetch inline del mes visible para reflejar la
+                        // reserva ajena que se acaba de crear.
+                        try {
+                            const desde = primerDiaDelMes(pickerEstMesActual);
+                            const [y, m] = pickerEstMesActual.split('-').map(Number);
+                            const proxMesFirst = m === 12
+                                ? `${y + 1}-01-01`
+                                : `${y}-${String(m + 1).padStart(2, '0')}-01`;
+                            const hastaFetch = ultimoDiaDelMes(proxMesFirst);
+                            const r = await fetch(
+                                `/api/servicios/${servicioId}/disponibilidad-noches?desde=${desde}&hasta=${hastaFetch}`
+                            );
+                            if (r.ok) {
+                                const data = (await r.json()) as DisponibilidadNochesResponse;
+                                const map = new Map<string, DiaCalendarioEstadia>();
+                                for (const d of data.dias) map.set(d.fecha, d);
+                                setPickerEstDiasMap(map);
+                                setPickerEstConfig(data.config);
+                            }
+                        } catch { /* silencioso — el toast ya explico */ }
+                        return;
+                    }
+                    if (insertErr.code === '23505') {
+                        setErrorMsg('Ya tienes una reserva para estas fechas.');
+                        return;
+                    }
+                    throw insertErr;
+                }
+
+                if (inserted?.id) {
+                    // Mismo par de notify que F1 picker. El endpoint
+                    // notify-tutor-reserva-confirmada acepta F2 por el
+                    // guard capacidad_snapshot_estadia != null (F2-3-B).
+                    fetch('/api/agendamientos/notify-proveedor', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ agendamientoId: inserted.id }),
+                    }).catch(err => console.warn('[picker-estadia] notify-proveedor fallo:', err));
+
+                    fetch('/api/agendamientos/notify-tutor-reserva-confirmada', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ agendamientoId: inserted.id }),
+                    }).catch(err => console.warn('[picker-estadia] notify-tutor-reserva-confirmada fallo:', err));
+
+                    supabase
+                        .from('conversations')
+                        .update({ agendamiento_id: inserted.id })
+                        .eq('client_id', session.user.id)
+                        .eq('servicio_id', servicioId)
+                        .then(({ error }) => {
+                            if (error) console.warn('[picker-estadia] vinculo conv fallo:', error);
+                        });
+                }
+
+                toast.success('Reserva confirmada. El proveedor recibirá el aviso por email.', {
+                    action: {
+                        label: 'Ver mis reservas',
+                        onClick: () => { window.location.href = '/mis-solicitudes'; },
+                    },
+                    duration: 8000,
+                });
+                reset();
+                onClose();
+            } catch (err: any) {
+                console.error('[picker-estadia] insert error:', err);
+                setErrorMsg(err?.message || 'Hubo un error al reservar. Intenta de nuevo.');
+            } finally {
+                setSubmitting(false);
+            }
+            return;
+        }
 
         // F1 PICKER — camino paralelo al de las variantes V1/V2/V4. La
         // solicitud nace estado='confirmada' + duracion_min + capacidad_snapshot
@@ -796,7 +1228,11 @@ export default function SolicitarAgendamientoModal({
                     <div className="min-w-0">
                         <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                             <Calendar size={20} className="text-accent-600 shrink-0" />
-                            {usaPicker ? 'Reservar horario' : 'Solicitar agendamiento'}
+                            {usaPicker
+                                ? 'Reservar horario'
+                                : usaPickerEstadia
+                                    ? 'Reservar estadía'
+                                    : 'Solicitar agendamiento'}
                         </h2>
                         <p className="text-sm text-slate-500 truncate mt-0.5">{serviceTitle}</p>
                     </div>
@@ -813,6 +1249,102 @@ export default function SolicitarAgendamientoModal({
 
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
+
+                    {/* F2 PICKER — calendario range (react-day-picker) para
+                        cuidado con capacidad_estadia populada. Reemplaza los
+                        datepickers V2/V4a. Los otros bloques del form
+                        (mascota, mensaje) quedan iguales debajo. */}
+                    {usaPickerEstadia && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-3">
+                                Elige las noches de tu estadía <span className="text-red-500">*</span>
+                            </label>
+
+                            {/* Hints de config del servicio (min/max noches + check-in/out).
+                                Se pintan una vez que el fetch devolvio la config. */}
+                            {pickerEstConfig && (
+                                <div className="text-xs text-slate-500 mb-3 space-y-0.5">
+                                    <p>
+                                        {pickerEstConfig.max_noches
+                                            ? (pickerEstConfig.min_noches === pickerEstConfig.max_noches
+                                                ? `Estadía de exactamente ${pickerEstConfig.min_noches} ${pickerEstConfig.min_noches === 1 ? 'noche' : 'noches'}.`
+                                                : `Estadía entre ${pickerEstConfig.min_noches} y ${pickerEstConfig.max_noches} noches.`)
+                                            : (pickerEstConfig.min_noches === 1
+                                                ? 'Mínimo 1 noche.'
+                                                : `Mínimo ${pickerEstConfig.min_noches} noches.`)}
+                                    </p>
+                                    {(pickerEstConfig.check_in_hora || pickerEstConfig.check_out_hora) ? (
+                                        <p>
+                                            {pickerEstConfig.check_in_hora && (
+                                                <>Check-in: <strong>{pickerEstConfig.check_in_hora.slice(0, 5)}</strong></>
+                                            )}
+                                            {pickerEstConfig.check_in_hora && pickerEstConfig.check_out_hora && ' · '}
+                                            {pickerEstConfig.check_out_hora && (
+                                                <>Check-out: <strong>{pickerEstConfig.check_out_hora.slice(0, 5)}</strong></>
+                                            )}
+                                        </p>
+                                    ) : (
+                                        <p>Check-in y check-out se coordinan por chat.</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {pickerEstLoading && pickerEstDiasMap.size === 0 ? (
+                                <div className="h-64 bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
+                                    <Loader2 size={20} className="text-slate-400 animate-spin" />
+                                </div>
+                            ) : pickerEstError ? (
+                                <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
+                                    {pickerEstError}
+                                </div>
+                            ) : (
+                                <div className="border border-slate-200 rounded-xl p-2 sm:p-3 bg-white">
+                                    <DayPicker
+                                        mode="range"
+                                        numberOfMonths={1}
+                                        selected={rangoEst}
+                                        onSelect={handleRangeSelectEst}
+                                        disabled={isDiaDisabledEst}
+                                        month={new Date(`${pickerEstMesActual}T00:00:00`)}
+                                        onMonthChange={(date) => {
+                                            const y = date.getFullYear();
+                                            const m = String(date.getMonth() + 1).padStart(2, '0');
+                                            setPickerEstMesActual(`${y}-${m}-01`);
+                                            // Al cambiar mes no reseteamos la seleccion —
+                                            // el rango puede cruzar meses.
+                                        }}
+                                        locale={es}
+                                        weekStartsOn={1}
+                                        fromDate={new Date()}
+                                        showOutsideDays={false}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Preview del rango seleccionado (solo cuando completo). */}
+                            {rangoEst?.from && rangoEst?.to && !rangoEstError && (
+                                <div className="mt-3 p-3 bg-accent-50 border border-accent-100 rounded-lg">
+                                    <p className="text-sm text-accent-900 font-medium">
+                                        {formatRangoNoches(
+                                            chileMidnightUtc(ymdFromDate(rangoEst.from)).toISOString(),
+                                            chileMidnightUtc(ymdFromDate(rangoEst.to)).toISOString()
+                                        )}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Error inline (rango con dias disabled / fuera de min-max). */}
+                            {rangoEstError && (
+                                <p className="mt-3 text-sm text-danger-700 font-medium">
+                                    {rangoEstError}
+                                </p>
+                            )}
+
+                            <p className="text-xs text-slate-400 mt-3">
+                                La reserva queda confirmada al instante en las noches que elijas.
+                            </p>
+                        </div>
+                    )}
 
                     {/* F1 PICKER — strip de dias + grid de slots del dia elegido.
                         Reemplaza el datetime-local V1 cuando el servicio tiene
@@ -961,7 +1493,7 @@ export default function SolicitarAgendamientoModal({
                     })()}
 
                     {/* Chip selector — solo cuidado con multiples modalidades */}
-                    {!usaPicker && requiereChipSelector && (
+                    {!usaPicker && !usaPickerEstadia && requiereChipSelector && (
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 ¿Cómo quieres el cuidado? <span className="text-red-500">*</span>
@@ -973,7 +1505,7 @@ export default function SolicitarAgendamientoModal({
                     )}
 
                     {/* Toggle noches/horas — solo casa_tutor */}
-                    {!usaPicker && isCuidado && modalidadElegida === 'casa_tutor' && (
+                    {!usaPicker && !usaPickerEstadia && isCuidado && modalidadElegida === 'casa_tutor' && (
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 ¿Cuánto dura el servicio? <span className="text-red-500">*</span>
@@ -986,7 +1518,7 @@ export default function SolicitarAgendamientoModal({
                     )}
 
                     {/* Form de fechas — varia segun variante */}
-                    {!usaPicker && formVisible && (variante === 'V2' || variante === 'V4a') && (
+                    {!usaPicker && !usaPickerEstadia && formVisible && (variante === 'V2' || variante === 'V4a') && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label htmlFor="agend-fecha-inicio" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -1024,7 +1556,7 @@ export default function SolicitarAgendamientoModal({
                         </div>
                     )}
 
-                    {!usaPicker && formVisible && variante === 'V4b' && (
+                    {!usaPicker && !usaPickerEstadia && formVisible && variante === 'V4b' && (
                         <>
                             <div>
                                 <label htmlFor="agend-fecha-hora" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -1064,7 +1596,7 @@ export default function SolicitarAgendamientoModal({
                         </>
                     )}
 
-                    {!usaPicker && formVisible && variante === 'V1' && (
+                    {!usaPicker && !usaPickerEstadia && formVisible && variante === 'V1' && (
                         <div>
                             <label htmlFor="agend-fecha" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Fecha y hora preferida <span className="text-red-500">*</span>
@@ -1088,7 +1620,7 @@ export default function SolicitarAgendamientoModal({
                     {/* Direccion estructurada — solo V4a/V4b (modalidad
                         casa_tutor). Ola 1: region+comuna via picker
                         encadenado, calle/numero/info en inputs. */}
-                    {!usaPicker && formVisible && (variante === 'V4a' || variante === 'V4b') && (
+                    {!usaPicker && !usaPickerEstadia && formVisible && (variante === 'V4a' || variante === 'V4b') && (
                         <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-700 inline-flex items-center gap-1.5">
                                 <Home size={14} className="text-slate-500" />
@@ -1313,12 +1845,20 @@ export default function SolicitarAgendamientoModal({
                             type="submit"
                             disabled={
                                 submitting
-                                || (usaPicker ? !slotElegido : (necesitaElegirModalidad || necesitaElegirModo))
+                                || (usaPicker
+                                    ? !slotElegido
+                                    : usaPickerEstadia
+                                        ? (!rangoEst?.from || !rangoEst?.to || !!rangoEstError)
+                                        : (necesitaElegirModalidad || necesitaElegirModo))
                             }
                             className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {submitting && <Loader2 size={16} className="animate-spin" />}
-                            {usaPicker ? 'Confirmar reserva' : 'Enviar solicitud'}
+                            {usaPicker
+                                ? 'Confirmar reserva'
+                                : usaPickerEstadia
+                                    ? 'Confirmar reserva'
+                                    : 'Enviar solicitud'}
                         </button>
                     </div>
                 </form>

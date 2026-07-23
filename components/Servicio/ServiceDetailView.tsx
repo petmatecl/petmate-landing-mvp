@@ -1697,6 +1697,7 @@ export default function ServiceDetailView({
                 duracionSlotMin={(service as any).duracion_slot_min ?? null}
                 capacidadSlot={(service as any).capacidad_slot ?? 1}
                 anticipacionMaxDias={(service as any).anticipacion_max_dias ?? 60}
+                capacidadEstadia={(service as any).capacidad_estadia ?? null}
             />
             <ExampleCTAModal
                 isOpen={exampleModalAction !== null}
