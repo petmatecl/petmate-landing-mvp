@@ -106,6 +106,29 @@ SELECT * FROM excepciones_disponibilidad
 - **Data-testid**: preferido para selectors sobre CSS classes o texto (más resiliente a cambios de copy). Cuando no existan, usar `getByRole` + accessible name.
 - **Timeouts**: el default de 60s por test cubre cold starts de Vercel. Assertions individuales tienen 10s.
 
+## Deudas conscientes (backlog)
+
+Riesgos aceptados a nivel de diseño, no cubiertos por la suite. Se reportan
+acá para que no se pierdan en un commit message.
+
+### Advisory lock para reserva de estadías con `capacidad_estadia > 1` (F2-3)
+
+**Estado**: Diferido a F2.5 (mismo criterio que F1 aplicó y también difirió).
+
+**Contexto**: F2-3-A/C hace el INSERT de la reserva client-side (`supabase.from('agendamientos').insert(...)` con la sesión del tutor), respetando RLS. El EXCLUDE constraint `agendamientos_no_solape_estadias` en Postgres protege contra doble-booking sólo cuando `capacidad_snapshot_estadia = 1` (por diseño del schema F2-1, ver `migrations/20260718_agenda_estadia_schema.sql`).
+
+**Gap**: para servicios con `capacidad_estadia > 1` (grupales — hotel canino con jardín, cuidador con espacio para 2-3 mascotas simultáneas), dos tutores que hagan INSERT concurrente pueden pasar ambos aunque el cupo real sea 1. La ventana de race es del orden de decenas de ms entre el fetch de disponibilidad y el INSERT.
+
+**Mitigación actual**:
+- El endpoint `/api/servicios/[id]/disponibilidad-noches` logea `console.warn` cuando el servicio tiene `capacidad_estadia > 1`. Esto permite dimensionar el uso real en staging/prod.
+- En la práctica, la mayoría de cuidadores usan `capacidad_estadia = 1` (default). Grupales son minoría.
+
+**Cierre completo**: F2.5 va a agregar `POST /api/agendamientos/reservar-noches` server-side con `pg_advisory_xact_lock(hashtext('servicio:' || id))` alrededor del check de cupo + INSERT. Cuando se implemente, la reserva client-side de F2-3-C debe reemplazarse por un fetch al nuevo endpoint. Prioridad: activar cuando aparezca el primer caso real de sobre-booking, no antes (evitar over-engineering).
+
+### F1 grupales sin advisory lock (histórico)
+
+Mismo gap idéntico al de F2 pero en el flujo F1 (paseos, sesiones, etc.). Documentado en el schema F1 al momento de diseñarlo y aún no cerrado. F2.5 podría cerrarlos juntos si el patrón del endpoint es reusable.
+
 ## CI (pendiente — post F2-2B smoke)
 
 La suite corre local por ahora. Integración a GitHub Actions queda para después de validar en Fase 2 que los tests son estables (baja flakiness). Cuando se integre, `E2E_STAGING_EMAIL` / `E2E_STAGING_PASSWORD` / `PLAYWRIGHT_BYPASS` van como GitHub Secrets del entorno staging.

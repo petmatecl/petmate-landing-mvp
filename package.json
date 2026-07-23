@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test:slots": "npx tsx lib/slotsAgenda.test.ts",
     "test:formatFecha": "npx tsx lib/formatFecha.test.ts",
+    "test:noches": "npx tsx lib/nochesAgenda.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report e2e/.report"
