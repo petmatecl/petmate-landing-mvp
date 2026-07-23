@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 id, fecha_preferida, fecha_fin, modalidad_elegida, modo_tarifa,
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
-                estado, nota_proveedor, tutor_id, proveedor_id, servicio_id,
+                estado, nota_proveedor, capacidad_snapshot_estadia, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre, telefono, whatsapp, mostrar_telefono, mostrar_whatsapp),
                 servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora)
@@ -141,10 +141,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? `https://wa.me/${whatsappRaw.replace(/[^\d]/g, '')}`
             : null;
 
-        // F2 agenda (2-3-B): rango de noches → etiqueta "Estadía" + bloque
-        // check-in/check-out. Postgres time viene como 'HH:MM:SS'; el
-        // template espera 'HH:MM'.
-        const esRango = !!agend.fecha_fin;
+        // F2 agenda (2-3-B): estadia por rango de noches SOLO cuando
+        // capacidad_snapshot_estadia esta populada (columna del schema
+        // F2-1, NULL en toda fila legacy V1/V2/V4a/V4b). Usar `fecha_fin`
+        // como semaforo seria regresion: V2/V4a legacy tambien lo tienen
+        // populado y su render debe mantenerse identico. Postgres time
+        // viene como 'HH:MM:SS'; el template espera 'HH:MM'.
+        const esRango = agend.capacidad_snapshot_estadia != null;
         const checkInHora = esRango && servicio?.check_in_hora
             ? (servicio.check_in_hora as string).slice(0, 5)
             : null;
