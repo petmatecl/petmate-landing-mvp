@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
-import { verifySession } from '../../../lib/apiAuth';
+import { verifySession, maskUid } from '../../../lib/apiAuth';
 import AgendamientoTutorEmail from '../../../components/Emails/AgendamientoTutorEmail';
 import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
 import { MODALIDAD_LABELS, esModalidadValida } from '../../../lib/categoriaTemporal';
@@ -70,8 +70,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Authz: el caller debe ser el proveedor del agendamiento.
         if (!proveedor || proveedor.auth_user_id !== userId) {
             console.warn('[notify-tutor] caller no es el proveedor del agendamiento', {
-                callerUserId: userId,
-                proveedorAuthUserId: proveedor?.auth_user_id,
+                callerUserId: maskUid(userId),
+                proveedorAuthUserId: maskUid(proveedor?.auth_user_id),
             });
             return res.status(403).json({ error: 'Forbidden' });
         }
@@ -187,11 +187,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
+        // Sweep #1 finding [70]: sin `details` en el response — el error queda
+        // en logs server, el cliente ve solo `skipped: true, reason`.
         console.error('[notify-tutor] catch error:', error);
         return res.status(200).json({
             skipped: true,
             reason: 'send_failed',
-            details: error instanceof Error ? error.message : String(error),
         });
     }
 }

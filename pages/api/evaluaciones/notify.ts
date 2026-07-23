@@ -4,7 +4,7 @@ import { resend } from '../../../lib/resend';
 import NewEvaluationEmail from '../../../components/Emails/NewEvaluationEmail';
 import { emailLimiter } from '../../../lib/rateLimit';
 import { evaluacionNotifySchema } from '../../../lib/validations';
-import { verifySession, isAdmin } from '../../../lib/apiAuth';
+import { verifySession, isAdmin, maskUid } from '../../../lib/apiAuth';
 
 /**
  * Notifica al proveedor de una evaluacion recibida. Dos paths semanticos
@@ -66,8 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const isAdminCaller = isCreator ? false : await isAdmin(userId);
         if (!isCreator && !isAdminCaller) {
             console.warn('[evaluaciones/notify] caller no autorizado', {
-                callerUserId: userId,
-                evaluacionUsuarioId: ev.usuario_id,
+                callerUserId: maskUid(userId),
+                evaluacionUsuarioId: maskUid(ev.usuario_id),
             });
             return res.status(403).json({ error: 'Forbidden' });
         }
@@ -120,11 +120,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
+        // Sweep #1 finding [70]: sin `details` en el response.
         console.error('[evaluaciones/notify] catch error:', error);
         return res.status(200).json({
             skipped: true,
             reason: 'send_failed',
-            details: error instanceof Error ? error.message : String(error),
         });
     }
 }

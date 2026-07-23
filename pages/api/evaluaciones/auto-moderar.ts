@@ -40,9 +40,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!parsed.success) return res.status(400).json({ error: 'Invalid input' });
     const { evaluacionId } = parsed.data;
 
+    // Sweep #1 finding [76]: sin fallback a anon key. Antes el `??` a
+    // NEXT_PUBLIC_SUPABASE_ANON_KEY producía falso-positivo silencioso —
+    // el endpoint corría con anon, RLS bloqueaba el UPDATE, y el usuario
+    // veía "auto-aprobada" cuando realmente no persistía. Falla-cerrada.
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        return res.status(500).json({ error: 'Server misconfigured' });
+    }
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
     try {

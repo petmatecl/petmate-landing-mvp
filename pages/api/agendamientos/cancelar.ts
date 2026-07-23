@@ -46,7 +46,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
-import { verifySession } from '../../../lib/apiAuth';
+import { verifySession, maskUid } from '../../../lib/apiAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -94,8 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //    los intentos por id ajeno para observabilidad.
         if (!tutor || tutor.auth_user_id !== userId) {
             console.warn('[cancelar] caller no es el tutor', {
-                callerUserId: userId,
-                tutorAuthUserId: tutor?.auth_user_id,
+                callerUserId: maskUid(userId),
+                tutorAuthUserId: maskUid(tutor?.auth_user_id),
                 agendamientoId,
             });
             return res.status(403).json({ error: 'No autorizado.' });
@@ -167,15 +167,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         console.log('[cancelar] reserva cancelada', {
             agendamientoId,
-            callerUserId: userId.slice(0, 8) + '…',
+            callerUserId: maskUid(userId),
         });
 
         return res.status(200).json({ success: true });
     } catch (error) {
+        // Sweep #1 finding [70]: sin `details` en el response. El copy humano
+        // del rechazo por ventana (línea 147 arriba) sí se conserva porque es
+        // texto construido server-side con parámetros del schema (nunca
+        // contiene error.message crudo de Supabase).
         console.error('[cancelar] catch error:', error);
         return res.status(500).json({
             error: 'Error interno al cancelar. Intenta de nuevo.',
-            details: error instanceof Error ? error.message : String(error),
         });
     }
 }

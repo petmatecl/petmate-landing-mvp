@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
-import { verifySession } from '../../../lib/apiAuth';
+import { verifySession, maskUid } from '../../../lib/apiAuth';
 import AgendamientoCancelacionTutorEmail from '../../../components/Emails/AgendamientoCancelacionTutorEmail';
 import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
 import { MODALIDAD_LABELS, esModalidadValida } from '../../../lib/categoriaTemporal';
@@ -69,8 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Authz: caller debe ser el tutor del agendamiento.
         if (!tutor || tutor.auth_user_id !== userId) {
             console.warn('[notify-proveedor-cancel] caller no es el tutor del agendamiento', {
-                callerUserId: userId,
-                tutorAuthUserId: tutor?.auth_user_id,
+                callerUserId: maskUid(userId),
+                tutorAuthUserId: maskUid(tutor?.auth_user_id),
             });
             return res.status(403).json({ error: 'Forbidden' });
         }
@@ -154,11 +154,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
+        // Sweep #1 finding [70]: sin `details` en el response.
         console.error('[notify-proveedor-cancel] catch error:', error);
         return res.status(200).json({
             skipped: true,
             reason: 'send_failed',
-            details: error instanceof Error ? error.message : String(error),
         });
     }
 }

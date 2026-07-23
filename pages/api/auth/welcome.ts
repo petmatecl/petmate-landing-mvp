@@ -118,10 +118,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({ success: true, response });
     } catch (error) {
+        // Sweep #1 finding [70]: sin `details` en el response.
         console.error('Welcome API Error:', error);
         return res.status(500).json({
             error: 'Failed to send welcome email',
-            details: error instanceof Error ? error.message : String(error)
         });
     }
 }

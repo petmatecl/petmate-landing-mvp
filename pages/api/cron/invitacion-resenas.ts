@@ -243,7 +243,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             failures,
         });
     } catch (err) {
+        // Sweep #1 finding [70]: sin `details` en el response.
         console.error('Error en cron invitacion-resenas:', err);
-        return res.status(500).json({ error: 'Internal error', details: err instanceof Error ? err.message : err });
+        return res.status(500).json({ error: 'Internal error' });
     }
 }

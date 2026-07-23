@@ -17,7 +17,10 @@ export interface UserProfile {
     aprobado?: boolean;
     // Add other fields as needed for specific logic (e.g. telefono for onboarding check)
     telefono?: string;
-    rut?: string;
+    // Sweep #1 finding [80]: `rut` removido del perfil client-side. Antes se
+    // pedía en fetchProfile y quedaba en memoria SPA (visible en extensiones
+    // React DevTools) sin uso real en UI. Si algún flujo futuro lo necesita,
+    // pedirlo puntualmente donde se consuma.
 }
 
 export interface UserCapabilities {
@@ -46,7 +49,7 @@ export const AuthService = {
         try {
             const { data: proveedorData } = await supabase
                 .from('proveedores')
-                .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, estado, rut')
+                .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, estado')
                 .eq('auth_user_id', userId)
                 .maybeSingle();
 
@@ -60,7 +63,6 @@ export const AuthService = {
                     roles: proveedorData.roles || ['proveedor'],
                     foto_perfil: proveedorData.foto_perfil,
                     aprobado: proveedorData.estado === 'aprobado',
-                    rut: proveedorData.rut,
                 };
             }
 

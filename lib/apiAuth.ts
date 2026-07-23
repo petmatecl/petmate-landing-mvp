@@ -34,6 +34,32 @@ export async function verifySession(req: NextApiRequest): Promise<string | null>
 }
 
 /**
+ * Enmascara un email para logs: primeros 3 chars del local + '***@' + dominio.
+ * Ejemplo: `canocortes@gmail.com` → `can***@gmail.com`. Preserva el dominio
+ * para diagnóstico de deliverability (spam por provider, quotas), oculta la
+ * identidad. Fallback silencioso si el input no matchea el formato email.
+ */
+export function maskEmail(email: string | null | undefined): string {
+    if (!email) return '<none>';
+    const at = email.indexOf('@');
+    if (at < 1) return '<invalid>';
+    const local = email.slice(0, at);
+    const domain = email.slice(at + 1);
+    const prefix = local.length <= 3 ? local : local.slice(0, 3);
+    return `${prefix}***@${domain}`;
+}
+
+/**
+ * Trunca un auth uid (UUID) a los primeros 8 chars + '…' para logs. Los 8
+ * chars alcanzan para correlacionar eventos del mismo user en Vercel logs
+ * sin exponer el uid completo (que es reidentificable via BD).
+ */
+export function maskUid(uid: string | null | undefined): string {
+    if (!uid) return '<none>';
+    return uid.slice(0, 8) + '…';
+}
+
+/**
  * Check if user is admin (has 'admin' role in proveedores table).
  */
 export async function isAdmin(userId: string): Promise<boolean> {

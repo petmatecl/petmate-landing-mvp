@@ -27,11 +27,27 @@ function getRedirectMessage(redirect: string): string {
   return 'Ingresa para continuar donde estabas.';
 }
 
+// Sweep #1 finding [78]: valida redirect estricto contra el origen actual
+// vía `new URL()` — cierra open-redirect en variantes que el guard viejo
+// dejaba pasar: `/\evil.com`, `/%2F%2Fevil.com`, y cualquier otro path que
+// se resuelva a otro origen. Devuelve solo path+search+hash relativos.
+function safeRedirectFromQuery(raw: string | null): string | null {
+  if (!raw) return null;
+  if (typeof window === "undefined") return null;   // SSR: se re-evalúa al hidratar
+  try {
+    const target = new URL(raw, window.location.origin);
+    if (target.origin !== window.location.origin) return null;
+    if (!target.pathname.startsWith("/") || target.pathname.startsWith("//")) return null;
+    return target.pathname + target.search + target.hash;
+  } catch {
+    return null;
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  // Validate redirect is a safe relative path (prevent open redirect)
   const rawRedirect = typeof router.query.redirect === "string" ? router.query.redirect : null;
-  const redirect = rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : null;
+  const redirect = safeRedirectFromQuery(rawRedirect);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

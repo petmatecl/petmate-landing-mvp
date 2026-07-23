@@ -27,7 +27,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
-import { verifySession } from '../../../lib/apiAuth';
+import { verifySession, maskEmail } from '../../../lib/apiAuth';
 import ReservaConfirmadaTutorEmail from '../../../components/Emails/ReservaConfirmadaTutorEmail';
 import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
 
@@ -161,15 +161,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         console.log('[notify-tutor-reserva-confirmada] enviado', {
             messageId: response.data?.id,
-            tutorTo: authUser.user.email,
+            tutorTo: maskEmail(authUser.user.email),
         });
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
+        // Sweep #1 finding [70]: sin `details` en el response.
         console.error('[notify-tutor-reserva-confirmada] catch error:', error);
         return res.status(200).json({
             skipped: true,
             reason: 'send_failed',
-            details: error instanceof Error ? error.message : String(error),
         });
     }
 }

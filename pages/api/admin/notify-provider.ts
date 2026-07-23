@@ -117,11 +117,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
+        // Sweep #1 finding [70]: sin `details` en el response.
         console.error('[notify-provider] catch error:', error);
         return res.status(200).json({
             skipped: true,
             reason: 'send_failed',
-            details: error instanceof Error ? error.message : String(error),
         });
     }
 }

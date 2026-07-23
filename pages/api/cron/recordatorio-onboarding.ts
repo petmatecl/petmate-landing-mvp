@@ -129,7 +129,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ success: true, sent });
   } catch (err) {
+    // Sweep #1 finding [70]: sin `details` en el response.
     console.error('Error en cron onboarding:', err);
-    return res.status(500).json({ error: 'Internal error', details: err instanceof Error ? err.message : err });
+    return res.status(500).json({ error: 'Internal error' });
   }
 }

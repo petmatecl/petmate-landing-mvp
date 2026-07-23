@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { notificationCreateSchema } from '../../../lib/validations';
-import { verifySession, isAdmin } from '../../../lib/apiAuth';
+import { verifySession, isAdmin, maskUid } from '../../../lib/apiAuth';
 
 // Use Service Role to insert notifications (bypass RLS which might block users inserting for others)
 const supabaseAdmin = createClient(
@@ -116,8 +116,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const allowed = await hasLegitimateRelationship(supabaseAdmin, callerId, userId);
     if (!allowed) {
         console.warn('[notifications/create] caller sin relacion con recipient', {
-            callerId,
-            recipientId: userId,
+            callerId: maskUid(callerId),
+            recipientId: maskUid(userId),
         });
         return res.status(403).json({ message: 'No relationship with recipient' });
     }

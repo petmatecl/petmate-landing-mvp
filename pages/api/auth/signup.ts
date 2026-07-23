@@ -135,11 +135,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw profileErr;
     }
 
-    // 3. Trigger welcome email server-side (non-blocking)
+    // 3. Trigger welcome email server-side (non-blocking).
+    //    Sweep #1 finding [88]: fijamos el host con NEXT_PUBLIC_SITE_URL para
+    //    evitar host header injection. Antes leíamos `req.headers.host` para
+    //    armar la URL del self-call; un atacante que llegara al edge antes
+    //    del bind podía redirigir el fetch a su host llevándose el
+    //    x-internal-secret. Falla-cerrada si SITE_URL no está seteada.
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     try {
-      const host = req.headers.host || 'localhost:3000';
-      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-      await fetch(`${protocol}://${host}/api/auth/welcome`, {
+      await fetch(`${siteUrl}/api/auth/welcome`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -84,8 +84,12 @@ export const evaluacionNotifySchema = z.object({
   evaluacionId: uuid,
 });
 
+// Sweep #1 finding [78]: `documentVersion` restringido a la lista real de
+// documentos válidos (antes `z.string().min(1).max(50)` — cualquier string
+// pasaba y quedaba como junk en `consent_logs`). La lista debe mantenerse
+// sincronizada con VALID_DOCUMENTS en pages/api/log-consent.ts.
 export const logConsentSchema = z.object({
-  documentVersion: z.string().min(1).max(50),
+  documentVersion: z.enum(['tos_v1', 'privacy_v1', 'data_processing_v1']),
 });
 
 // Sprint 3 agendamiento — payloads de los dos endpoints de notificacion.
