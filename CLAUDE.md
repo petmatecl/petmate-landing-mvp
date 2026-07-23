@@ -99,17 +99,45 @@ lib/
 
 La app usa `next-pwa` (config en `next.config.js`). Resumen de la estrategia de cacheo y cache-busting — relevante porque sin entenderlo, "deploys que parecen no haber landed" se vuelven recurrentes.
 
-**Activación del SW nuevo**: `skipWaiting: true` + `clientsClaim: true` (default de next-pwa). Cuando el browser detecta un `/sw.js` nuevo, se instala y activa al instante, sin esperar a que se cierren las tabs.
+**SW activo SOLO en prod real.** El gate en `next.config.js` es `IS_PROD = NEXT_PUBLIC_APP_ENV === 'production' || VERCEL_ENV === 'production'` (mismo patrón que `lib/cronGuard.ts` y `lib/resend.ts`). Consecuencias por entorno:
 
-**Runtime caching** (defaults de next-pwa 5.6, sin override en config):
-- **NetworkFirst** para HTML/navigations y `/api/*` no-auth (10s timeout). El SW intenta network primero; si falla cae al cache. Asegura HTML siempre fresh.
-- **StaleWhileRevalidate** para JS chunks, CSS, imágenes, `_next/data/*.json`, `_next/image`. Sirve cache al instante y refresca en background — la próxima visita ya tiene la versión nueva.
-- **CacheFirst** para fonts (`gstatic`, audio, video). Cambian rara vez.
-- `cleanupOutdatedCaches()` se ejecuta al activar — purga revisions viejas.
+| Entorno | `VERCEL_ENV` | SW en el bundle | `sw.js` que se sirve |
+|---|---|---|---|
+| Dev local (`npm run dev`) | — | disabled | no existe |
+| Vercel preview / staging | `preview` | disabled | **demoledor** (ver abajo) |
+| Vercel prod (branch `main`) | `production` | enabled | workbox real |
+| Build local sin `VERCEL_ENV` | — | disabled | demoledor |
 
-**Cache-busting del SW**: `/sw.js` y `/workbox-:hash` se sirven con `Cache-Control: public, max-age=0, must-revalidate` (header explícito en `next.config.js`). Sin esto, Vercel CDN puede cachear el SW largo y el browser nunca re-fetchearía aunque deployemos. Los chunks JS/CSS/imágenes mantienen el caching agresivo default (sus URLs son content-hashed, así que un deploy nuevo = URL nueva = miss natural).
+Motivo del gate: en staging Aldo tenía que hard-refresh para ver cada deploy (el SW cacheado servía la versión anterior aunque `/sw.js` estuviera Cache-Control:no-cache — porque el browser NO re-chequea `/sw.js` en navegaciones SPA). Para prod real el trade-off vale (users con push notifications, offline fallback), en staging es solo fricción.
 
-**Limitación conocida (no resuelta)**: el browser re-revisa `sw.js` en navigation events (~24h o cuando vuelve a foco). Con SPA Next.js + client-side routing, las navegaciones internas (Link, router.push) NO disparan re-check. Un user con tab abierta puede tardar en detectar el SW nuevo. Para validar deploys: hard refresh / tab nueva / incógnito.
+**Testear PWA localmente**: `NEXT_PUBLIC_APP_ENV=production npm run build && npm run start` — fuerza `IS_PROD=true`, next-pwa genera workbox real, se puede probar push flow y demás sin merge a prod.
+
+### Demoledor de SW residuales (staging/preview)
+
+Cuando `IS_PROD` es false, `next-pwa` no emite `sw.js` — pero cualquier browser que YA tenía el SW registrado de un deploy anterior sigue con él vivo, sirviendo precache stale. Sin intervención, algunos browsers retienen el SW indefinidamente.
+
+Solución: `scripts/write-sw-demolisher.js` corre como hook `prebuild` (`package.json > scripts.prebuild`). En builds no-prod escribe un `public/sw.js` mínimo auto-destructivo:
+- `install`: `skipWaiting()`.
+- `activate`: purga TODOS los caches, `self.registration.unregister()`, y navega cada tab abierta (`client.navigate(client.url)`) — refresca la tab una vez, luego bootea sin SW ni cache runtime.
+- `fetch`: no-op, todo va a network.
+
+Idempotente. En prod build, el script hace early-return sin tocar nada — `next-pwa` genera el sw.js real durante `next build`, que sobreescribe cualquier archivo previo. También purga `workbox-*.js` / `worker-*.js` / `fallback-*.js` residuales del `public/` en el mismo script.
+
+**Fenómeno de desregistración**: el `/sw.js` sigue con `Cache-Control: max-age=0, must-revalidate`, así que el browser re-fetchea rápido cuando hay chance. Al recibir el demoledor lo instala, `activate` corre, purga, unregister, navega tab → limpio para siempre. Aldo debería sentirlo en el primer deploy post-fix: al abrir staging tras el deploy, la tab se refresca sola, y de ahí en más cada push a staging se ve al instante via router.push sin hard-refresh.
+
+### Configuración de PWA en prod (referencia)
+
+**Activación del SW nuevo**: `skipWaiting: true` + `clientsClaim: true` (default de next-pwa).
+
+**Runtime caching** (defaults de next-pwa 5.6):
+- **NetworkFirst** para HTML/navigations y `/api/*` no-auth (10s timeout).
+- **StaleWhileRevalidate** para JS chunks, CSS, imágenes, `_next/data/*.json`, `_next/image`.
+- **CacheFirst** para fonts (`gstatic`, audio, video).
+- `cleanupOutdatedCaches()` al activar.
+
+**Cache-busting del SW en prod**: `/sw.js` y `/workbox-:hash` con `Cache-Control: public, max-age=0, must-revalidate` (header explícito en `next.config.js:headers`). Sin esto, Vercel CDN puede cachear el SW largo y el browser nunca re-fetchearía aunque deployemos.
+
+**Limitación conocida (prod)**: el browser re-revisa `sw.js` en navigation events (~24h o cuando vuelve a foco). SPA client-side routing (Link, router.push) NO dispara re-check. Un user con tab abierta puede tardar en detectar el SW nuevo. Aceptado — bajo impacto en prod (users cierran tabs). En staging antes era fricción diaria, ahora resuelto por el demoledor.
 
 ## Auth flow (arquitectura)
 

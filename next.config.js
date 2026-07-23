@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
+// PWA activo SOLO en prod real. En preview/staging Vercel y build local
+// sin VERCEL_ENV, el SW se desactiva y `scripts/write-sw-demolisher.js`
+// (hook prebuild en package.json) escribe un sw.js auto-destructivo que
+// reemplaza a cualquier SW previo en el próximo update-check del browser.
+// Ver CLAUDE.md > PWA / Service Worker para detalles.
+const IS_PROD = process.env.NEXT_PUBLIC_APP_ENV === 'production'
+             || process.env.VERCEL_ENV === 'production';
 const withPWA = require('next-pwa')({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+  disable: process.env.NODE_ENV === 'development' || !IS_PROD,
   register: true,
   skipWaiting: true,
   fallbacks: {
