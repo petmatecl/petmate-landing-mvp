@@ -64,11 +64,45 @@ function assertBypass(): string {
             `y agregalo a e2e/.env.test como PLAYWRIGHT_BYPASS=<token>.`
         );
     }
+    if (bypass === 'cambiame') {
+        throw new Error(
+            `[playwright.config] PLAYWRIGHT_BYPASS todavía tiene el valor placeholder ("cambiame") ` +
+            `del template. Copiá el template a e2e/.env.test y reemplazá los valores por los reales.`
+        );
+    }
     return bypass;
+}
+
+// Guarda 3: credenciales de auth deben estar seteadas y NO ser placeholders.
+// El chequeo aquí ahorra un timeout de 60s del setup si Aldo olvidó rellenar.
+function assertCredencialesReales(): void {
+    const email = process.env.E2E_STAGING_EMAIL;
+    const password = process.env.E2E_STAGING_PASSWORD;
+    if (!email || !password) {
+        throw new Error(
+            `[playwright.config] E2E_STAGING_EMAIL o E2E_STAGING_PASSWORD no seteados en e2e/.env.test.`
+        );
+    }
+    if (email === 'usuario@ejemplo.cl' || password === 'cambiame') {
+        throw new Error(
+            `[playwright.config] E2E_STAGING_EMAIL / E2E_STAGING_PASSWORD tienen los valores placeholder ` +
+            `del template. Reemplazalos por las credenciales reales del usuario staging antes de correr la suite.`
+        );
+    }
+    const anonKey = process.env.E2E_SUPABASE_ANON_KEY;
+    if (!anonKey || anonKey === 'cambiame') {
+        throw new Error(
+            `[playwright.config] E2E_SUPABASE_ANON_KEY no está seteado (o sigue con placeholder "cambiame"). ` +
+            `Copiá el anon key del proyecto Supabase staging desde Vercel dashboard → project → ` +
+            `Settings → Environment Variables → NEXT_PUBLIC_SUPABASE_ANON_KEY (o Supabase dashboard → ` +
+            `Project Settings → API → Project API keys → anon public).`
+        );
+    }
 }
 
 assertBaseUrlIsStaging(baseURL);
 const vercelBypass = assertBypass();
+assertCredencialesReales();
 
 export default defineConfig({
     testDir: './e2e',
@@ -97,10 +131,16 @@ export default defineConfig({
     ],
     use: {
         baseURL,
-        // Bypass del protection de Vercel. Todos los requests HTTP/nav
-        // llevan este header automaticamente.
+        // Bypass del Vercel Deployment Protection. El header por si solo
+        // funciona para el primer request, pero Vercel puede redirect y
+        // en el redirect el header se pierde — cae de vuelta al SSO login
+        // (bug reportado en primer intento del setup). Setando tambien
+        // `x-vercel-set-bypass-cookie: 'true'`, Vercel emite una cookie
+        // `_vercel_jwt` que persiste la sesion bypass sin depender del
+        // header en cada request subsiguiente.
         extraHTTPHeaders: {
             'x-vercel-protection-bypass': vercelBypass,
+            'x-vercel-set-bypass-cookie': 'true',
         },
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
@@ -123,7 +163,7 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                storageState: 'e2e/.auth/admin.json',
+                storageState: 'e2e/.auth/proveedor.json',
             },
             dependencies: ['setup'],
         },
