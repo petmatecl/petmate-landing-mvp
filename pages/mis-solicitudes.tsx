@@ -150,7 +150,8 @@ export default function MisSolicitudesPage() {
                 // cerrada) viene del server con las horas exactas y el
                 // nombre del proveedor.
                 if (!session) {
-                    toast.error('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
+                    toast.error('Tu sesión expiró. Te llevamos al login.');
+                    router.push(`/login?reason=expired&redirect=${encodeURIComponent(router.asPath)}`);
                     return;
                 }
                 const res = await fetch('/api/agendamientos/cancelar', {

@@ -507,7 +507,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         const { data: { session } } = await supabase.auth.getSession();
         const authUid = session?.user?.id;
         if (!authUid) {
-            toast.error('Tu sesion expiró. Recarga la página e inicia sesión de nuevo.');
+            toast.error('Tu sesión expiró. Te llevamos al login.');
+            window.location.assign(`/login?reason=expired&redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
             return;
         }
 

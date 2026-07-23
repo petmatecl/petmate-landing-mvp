@@ -629,7 +629,11 @@ export default function SolicitarAgendamientoModal({
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
-                    setErrorMsg('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
+                    setErrorMsg('Tu sesión expiró. Te llevamos al login.');
+                    // Hard redirect al login con el path actual como retorno.
+                    // Hard reload (no router.push) para limpiar el estado del
+                    // modal y evitar submit-en-espera al volver.
+                    window.location.assign(`/login?reason=expired&redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
                     return;
                 }
                 const { data: buscador, error: buscadorErr } = await supabase
@@ -777,7 +781,11 @@ export default function SolicitarAgendamientoModal({
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
-                    setErrorMsg('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
+                    setErrorMsg('Tu sesión expiró. Te llevamos al login.');
+                    // Hard redirect al login con el path actual como retorno.
+                    // Hard reload (no router.push) para limpiar el estado del
+                    // modal y evitar submit-en-espera al volver.
+                    window.location.assign(`/login?reason=expired&redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
                     return;
                 }
                 const { data: buscador, error: buscadorErr } = await supabase

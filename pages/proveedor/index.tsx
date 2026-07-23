@@ -764,7 +764,8 @@ export default function ProveedorDashboard() {
     const saveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user?.id) {
-            toast.error('Tu sesión expiró. Recarga la página e intenta nuevamente.');
+            toast.error('Tu sesión expiró. Te llevamos al login.');
+            router.push(`/login?reason=expired&redirect=${encodeURIComponent(router.asPath)}`);
             return;
         }
 

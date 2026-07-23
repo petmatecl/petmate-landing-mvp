@@ -1,6 +1,24 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
+
+// Rutas que requieren sesion activa. Cuando SIGNED_OUT no-voluntario llega
+// (token expiro, otra tab cambio de usuario), redirigimos al login solo si
+// el usuario esta en una de estas — evita el redirect brusco cuando esta
+// navegando en /explorar u otra pagina publica.
+//
+// Match exacto para /proveedor (dashboard) para no capturar /proveedor/[id]
+// (ficha publica). Mismo criterio que getRedirectMessage() en login.tsx.
+function isProtectedPath(path: string): boolean {
+    const [pathNoQuery] = path.split('?');
+    if (pathNoQuery === '/proveedor' || pathNoQuery === '/proveedor/') return true;
+    if (pathNoQuery.startsWith('/mis-solicitudes')) return true;
+    if (pathNoQuery.startsWith('/usuario')) return true;
+    if (pathNoQuery.startsWith('/admin')) return true;
+    if (pathNoQuery.startsWith('/mensajes')) return true;
+    if (pathNoQuery.startsWith('/favoritos')) return true;
+    return false;
+}
 
 // Types
 type Role = 'usuario' | 'proveedor' | 'admin';
@@ -84,6 +102,12 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    // Bandera para distinguir el SIGNED_OUT que dispara `logout()`/`softReset()`
+    // (voluntario — el caller ya redirige) del que llega por token expiry o por
+    // otra tab que cambio de usuario (no-voluntario — nosotros redirigimos si
+    // la ruta actual es protegida). Ref y no state para evitar re-renders y
+    // para leer el valor mas fresco dentro del handler de auth.
+    const isVoluntaryLogoutRef = useRef(false);
 
     const roles = profile?.roles || ['usuario']; // Default to usuario
 
@@ -255,9 +279,25 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     case 'TOKEN_REFRESHED':
                         // No re-hidratar perfil (overhead innecesario).
                         break;
-                    case 'SIGNED_OUT':
+                    case 'SIGNED_OUT': {
                         await hydrateFromSession(null);
+                        // Voluntary logout: logout()/softReset() prendio la bandera
+                        // y ya se encarga del redirect. Reset y salir.
+                        if (isVoluntaryLogoutRef.current) {
+                            isVoluntaryLogoutRef.current = false;
+                            break;
+                        }
+                        // No-voluntary: token expiro o otra tab cambio de sesion
+                        // (cross-fire dual-cuenta — ver CLAUDE.md > Testing con
+                        // multiples cuentas). Redirigimos solo si el usuario esta
+                        // en una ruta protegida — evitamos el redirect brusco en
+                        // paginas publicas donde el guest puede seguir navegando.
+                        const currentPath = router.asPath;
+                        if (isProtectedPath(currentPath)) {
+                            router.push(`/login?reason=expired&redirect=${encodeURIComponent(currentPath)}`);
+                        }
                         break;
+                    }
                     // INITIAL_SESSION: NO handler. Ya cubierto por getSession() arriba.
                 }
             }
@@ -308,6 +348,9 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     // en /proveedor que va a /login con redirect=...). Logout completo seguia
     // con window.location.href = '/' y comia el destino del caller.
     const softReset = async () => {
+        // Prende bandera ANTES del signOut para que el handler de SIGNED_OUT
+        // lo lea como voluntario y no dispare el redirect a /login?reason=expired.
+        isVoluntaryLogoutRef.current = true;
         setUser(null);
         setProfile(null);
         setProveedorRow(null);

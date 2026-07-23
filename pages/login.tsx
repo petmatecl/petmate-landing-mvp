@@ -41,6 +41,13 @@ export default function LoginPage() {
   // rollback de auth.users si el insert del perfil OAuth falla).
   const registroFallido = router.query.error === 'registro_fallido';
 
+  // Detecta el flag ?reason=expired — viene del UserContext cuando la sesion
+  // se cerro sin que el usuario haya hecho logout (token expiro o otra tab
+  // cambio de cuenta), o de los 5 sitios de submit que capturan el 401 al
+  // vuelo. Copy amable en tuteo, sin jerga. La ruta origen viaja en
+  // `?redirect=` y el submit del login la retoma post-login.
+  const sesionExpirada = router.query.reason === 'expired';
+
   React.useEffect(() => {
     if (router.query.timeout === "true") {
       setError("Por seguridad, tu sesión se cerró tras 10 minutos de inactividad.");
@@ -132,8 +139,18 @@ export default function LoginPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
 
-          {/* Context banner when coming from protected action */}
-          {redirect && (
+          {/* Banner cuando la sesion caduco — priorizado sobre el context
+              banner de `redirect` porque comunica AQUE paso, no adonde vas. */}
+          {sesionExpirada && (
+            <div className="mb-5 px-4 py-3 bg-warning-50 border border-warning-200 rounded-xl text-sm text-warning-800">
+              Tu sesión expiró. Vuelve a ingresar y te llevamos de nuevo a donde estabas.
+            </div>
+          )}
+
+          {/* Context banner when coming from protected action.
+              Ocultamos este cuando ya mostramos el de sesion expirada — el
+              redirect_message quedaria redundante. */}
+          {redirect && !sesionExpirada && (
             <div className="mb-5 px-4 py-3 bg-accent-50 border border-accent-200 rounded-xl text-sm text-accent-800">
               {getRedirectMessage(redirect)}
             </div>
