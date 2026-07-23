@@ -6,6 +6,7 @@ import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { useUser } from '../../contexts/UserContext';
 import { categoriaAdmiteAgendaF1, esCategoriaMultiDia, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
+import { nochesEntre } from '../../lib/formatFecha';
 
 // Fase 1 agenda con disponibilidad real — Incremento 2A.
 // Constantes del editor semanal. Duracion en minutos: opciones canonicas
@@ -40,6 +41,18 @@ type Excepcion = {
     hora_desde: string | null;      // HH:MM o null
     hora_hasta: string | null;      // HH:MM o null
     motivo: string | null;          // <=200 chars
+};
+
+// F2 blackout — bloqueo multi-dia para servicios de cuidado (estadias).
+// Vive en la misma tabla excepciones_disponibilidad pero con `fecha_fin`
+// NOT NULL (discriminador implicito). Semi-abierto [fecha, fecha_fin) —
+// mismo dia X puede ser check-out de un blackout y check-in de otro. El
+// CHECK del schema garantiza fecha_fin > fecha (al menos 1 noche).
+type Blackout = {
+    id?: string;
+    fecha: string;      // check-in YYYY-MM-DD (input type=date)
+    fecha_fin: string;  // check-out YYYY-MM-DD (> fecha)
+    motivo: string | null;
 };
 
 const EXCEPCION_MOTIVO_MAX = 200;
@@ -157,6 +170,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [checkInHora, setCheckInHora] = useState<string>('');
     const [checkOutHora, setCheckOutHora] = useState<string>('');
 
+    // F2 blackouts (Incremento 2B). Bloqueos multi-dia futuros. Semantica
+    // opuesta a las franjas F1: aca el proveedor declara AUSENCIAS sobre un
+    // fondo por-default disponible. Los blackouts historicos NO se traen ni
+    // se tocan — mismo criterio que las excepciones F1.
+    const [blackouts, setBlackouts] = useState<Blackout[]>([]);
+    const [blackoutsInicial, setBlackoutsInicial] = useState<Blackout[]>([]);
+
     // Category-specific fields (stored as JSONB)
     const [detalles, setDetalles] = useState<Record<string, any>>({});
 
@@ -239,6 +259,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setCancelacionMinHorasAntes(48);
         setCheckInHora('');
         setCheckOutHora('');
+        setBlackouts([]);
+        setBlackoutsInicial([]);
     };
 
     const fetchCategorias = useCallback(async () => {
@@ -380,15 +402,22 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     setFranjasSemanaInicial(parsed);
                 }
 
-                // Excepciones futuras (fecha >= hoy). Solo las futuras se
-                // traen y se muestran — el editor no gestiona las historicas
-                // (bloqueos ya cumplidos). El diff al save opera solo sobre
-                // este subset asi que las historicas quedan intactas en BD.
+                // Excepciones futuras F1 (fecha >= hoy, fecha_fin IS NULL).
+                // Solo las futuras se traen — el editor no gestiona las
+                // historicas (bloqueos ya cumplidos). El diff al save opera
+                // solo sobre este subset asi que las historicas quedan
+                // intactas en BD.
+                //
+                // Filtro `fecha_fin IS NULL` = dominio F1 (dia completo o
+                // franja horaria). Los blackouts F2 (fecha_fin NOT NULL)
+                // los trae un fetch separado abajo. Ambos dominios son
+                // disjuntos por el CHECK del schema — no hay filas ambiguas.
                 const todayIso = new Date().toISOString().slice(0, 10);
                 const { data: excs, error: excsErr } = await supabase
                     .from('excepciones_disponibilidad')
                     .select('id, fecha, hora_desde, hora_hasta, motivo')
                     .eq('servicio_id', id)
+                    .is('fecha_fin', null)
                     .gte('fecha', todayIso)
                     .order('fecha', { ascending: true })
                     .order('hora_desde', { ascending: true, nullsFirst: true });
@@ -404,6 +433,30 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     }));
                     setExcepciones(parsedExcs);
                     setExcepcionesInicial(parsedExcs);
+                }
+
+                // Blackouts futuros F2 (fecha_fin NOT NULL, fecha >= hoy).
+                // Filtro simetrico al de F1. Un blackout historico (fecha_fin
+                // < hoy) NO se trae; el diff al save no lo toca — queda
+                // intacto en BD como registro pasado.
+                const { data: blks, error: blksErr } = await supabase
+                    .from('excepciones_disponibilidad')
+                    .select('id, fecha, fecha_fin, motivo')
+                    .eq('servicio_id', id)
+                    .not('fecha_fin', 'is', null)
+                    .gte('fecha', todayIso)
+                    .order('fecha', { ascending: true });
+                if (blksErr) {
+                    console.warn('[ServiceFormModal] fetch blackouts fallo:', blksErr);
+                } else {
+                    const parsedBlks: Blackout[] = (blks || []).map(b => ({
+                        id: b.id,
+                        fecha: b.fecha,
+                        fecha_fin: b.fecha_fin as string,
+                        motivo: b.motivo ?? null,
+                    }));
+                    setBlackouts(parsedBlks);
+                    setBlackoutsInicial(parsedBlks);
                 }
             }
         } catch (err: any) {
@@ -628,6 +681,39 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             }
             if (checkOutHora && !timeRegex.test(checkOutHora)) {
                 return toast.error('La hora de check-out no es válida.');
+            }
+
+            // Validaciones de blackouts F2. El editor solo muestra futuros,
+            // pero como el usuario puede editar la fecha manualmente,
+            // revalidamos "desde hoy". El CHECK del schema garantiza
+            // fecha_fin > fecha (al menos 1 noche); revalidamos client-side
+            // para evitar rebote SQL crudo.
+            const todayIsoF2 = new Date().toISOString().slice(0, 10);
+            for (const b of blackouts) {
+                if (!b.fecha || !b.fecha_fin) {
+                    return toast.error('Todos los bloqueos necesitan fecha de inicio y fecha de fin.');
+                }
+                if (b.fecha < todayIsoF2) {
+                    return toast.error(`Bloqueo del ${b.fecha}: la fecha de inicio debe ser desde hoy.`);
+                }
+                if (b.fecha_fin <= b.fecha) {
+                    return toast.error(`Bloqueo del ${b.fecha}: la fecha de fin debe ser posterior a la de inicio (mínimo 1 noche).`);
+                }
+                if (b.motivo && b.motivo.length > EXCEPCION_MOTIVO_MAX) {
+                    return toast.error(`Bloqueo del ${b.fecha}: el motivo supera ${EXCEPCION_MOTIVO_MAX} caracteres.`);
+                }
+            }
+            // Duplicados exactos (mismo (fecha, fecha_fin)). Solapes NO se
+            // validan — dos rangos que se pisen son legitimos (ej. actualizar
+            // un rango mientras se agrega otro adyacente); el render publico
+            // los une visualmente.
+            const seenBlk = new Set<string>();
+            for (const b of blackouts) {
+                const key = `${b.fecha}::${b.fecha_fin}`;
+                if (seenBlk.has(key)) {
+                    return toast.error(`Bloqueo duplicado del ${b.fecha} al ${b.fecha_fin}.`);
+                }
+                seenBlk.add(key);
             }
         }
 
@@ -880,6 +966,75 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 }
             }
 
+            // F2 blackouts: diff quirurgico paralelo al de excepciones F1.
+            // Mismo patron: comparamos vs snapshot inicial de blackouts
+            // futuros. Historicos quedan intactos (nunca los trajimos).
+            // Gate simetrico al de F1 — no operamos sobre categorias que
+            // no admiten F2 (defensivo: el UI ya no muestra el editor
+            // fuera de cuidado, pero el reset del useEffect y el gate del
+            // handleSubmit no pueden dar por sentado que el state sea
+            // consistente si algun path futuro cambia esto).
+            if (savedServicioId && usaAgendaEstadia && esCategoriaMultiDia(selectedCatSlug)) {
+                const idsBlkActuales = new Set(blackouts.filter(b => b.id).map(b => b.id!));
+                const blkToDelete = blackoutsInicial.filter(b => b.id && !idsBlkActuales.has(b.id));
+                const blkToInsert = blackouts.filter(b => !b.id);
+                const blkToUpdate: Blackout[] = [];
+                for (const b of blackouts) {
+                    if (!b.id) continue;
+                    const inicial = blackoutsInicial.find(i => i.id === b.id);
+                    if (!inicial) continue;
+                    if (
+                        inicial.fecha !== b.fecha ||
+                        inicial.fecha_fin !== b.fecha_fin ||
+                        (inicial.motivo ?? null) !== (b.motivo ?? null)
+                    ) {
+                        blkToUpdate.push(b);
+                    }
+                }
+
+                let blkErr: string | null = null;
+                if (blkToDelete.length > 0) {
+                    const { error } = await supabase
+                        .from('excepciones_disponibilidad')
+                        .delete()
+                        .in('id', blkToDelete.map(b => b.id!));
+                    if (error) blkErr = error.message;
+                }
+                if (!blkErr && blkToInsert.length > 0) {
+                    // hora_desde/hora_hasta = null explicitos (dominio F2 por
+                    // el CHECK shape). motivo se trimea igual que F1.
+                    const { error } = await supabase
+                        .from('excepciones_disponibilidad')
+                        .insert(blkToInsert.map(b => ({
+                            servicio_id: savedServicioId,
+                            fecha: b.fecha,
+                            fecha_fin: b.fecha_fin,
+                            hora_desde: null,
+                            hora_hasta: null,
+                            motivo: b.motivo && b.motivo.trim() ? b.motivo.trim() : null,
+                        })));
+                    if (error) blkErr = error.message;
+                }
+                if (!blkErr) {
+                    for (const b of blkToUpdate) {
+                        const { error } = await supabase
+                            .from('excepciones_disponibilidad')
+                            .update({
+                                fecha: b.fecha,
+                                fecha_fin: b.fecha_fin,
+                                motivo: b.motivo && b.motivo.trim() ? b.motivo.trim() : null,
+                            })
+                            .eq('id', b.id!);
+                        if (error) { blkErr = error.message; break; }
+                    }
+                }
+
+                if (blkErr) {
+                    toast.error('Servicio guardado, pero hubo un problema con los bloqueos: ' + blkErr);
+                    return false;
+                }
+            }
+
             return true;
         })();
 
@@ -998,6 +1153,29 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                 ? { ...e, hora_desde: null, hora_hasta: null }
                 : { ...e, hora_desde: e.hora_desde ?? '09:00', hora_hasta: e.hora_hasta ?? '13:00' };
         }));
+    };
+
+    // F2 blackouts — handlers analogos a los de excepciones F1. Cada blackout
+    // nuevo arranca en mañana → pasado mañana (1 noche minima). El diff al
+    // save compara por id contra el snapshot inicial.
+    const addBlackout = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dayAfter = new Date();
+        dayAfter.setDate(dayAfter.getDate() + 2);
+        setBlackouts(prev => [...prev, {
+            fecha: tomorrow.toISOString().slice(0, 10),
+            fecha_fin: dayAfter.toISOString().slice(0, 10),
+            motivo: null,
+        }]);
+    };
+
+    const removeBlackout = (index: number) => {
+        setBlackouts(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const updateBlackout = <K extends keyof Blackout>(index: number, field: K, value: Blackout[K]) => {
+        setBlackouts(prev => prev.map((b, i) => i === index ? { ...b, [field]: value } : b));
     };
 
     // Import del horario legacy: parsea el JSONB text del campo `disponibilidad`
@@ -1780,6 +1958,85 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         <p className="text-xs text-slate-400 mt-1">Si la dejas vacía, la coordinas por chat.</p>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            {/* Bloqueos multi-dia — el editor F2 por
+                                                excelencia. En este dominio no hay
+                                                "semana tipo": el proveedor esta
+                                                disponible por default y aca declara
+                                                sus AUSENCIAS. Solo se listan/gestionan
+                                                los futuros; los historicos quedan
+                                                intactos en BD. */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Bloqueos</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={addBlackout}
+                                                        className="text-xs font-medium text-accent-700 hover:text-accent-800 hover:bg-accent-50 px-2 py-1 rounded-lg transition-colors"
+                                                    >
+                                                        + Agregar bloqueo
+                                                    </button>
+                                                </div>
+                                                {blackouts.length === 0 ? (
+                                                    <p className="text-xs text-slate-300 italic py-2">Sin bloqueos. Agrega uno si tienes vacaciones en Pucón, un feriado largo o cualquier fecha en la que no puedes recibir estadías.</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {blackouts.map((b, i) => {
+                                                            // Preview noches inline. nochesEntre acepta
+                                                            // strings YMD directo — devuelve 0 si el
+                                                            // rango es invalido (fecha_fin <= fecha),
+                                                            // y esos casos rebotan en validacion al
+                                                            // guardar.
+                                                            const noches = b.fecha && b.fecha_fin ? nochesEntre(b.fecha, b.fecha_fin) : 0;
+                                                            return (
+                                                                <div key={b.id ?? `nuevo-${i}`} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        <span className="text-xs text-slate-500">Del</span>
+                                                                        <input
+                                                                            type="date"
+                                                                            value={b.fecha}
+                                                                            onChange={ev => updateBlackout(i, 'fecha', ev.target.value)}
+                                                                            className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                            aria-label="Fecha de inicio del bloqueo"
+                                                                        />
+                                                                        <span className="text-xs text-slate-500">al</span>
+                                                                        <input
+                                                                            type="date"
+                                                                            value={b.fecha_fin}
+                                                                            onChange={ev => updateBlackout(i, 'fecha_fin', ev.target.value)}
+                                                                            className="h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                            aria-label="Fecha de fin del bloqueo"
+                                                                        />
+                                                                        {noches > 0 && (
+                                                                            <span className="text-xs text-slate-500">({noches === 1 ? '1 noche' : `${noches} noches`})</span>
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => removeBlackout(i)}
+                                                                            className="ml-auto text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                            aria-label="Eliminar bloqueo"
+                                                                            title="Eliminar bloqueo"
+                                                                        >
+                                                                            <X size={14} />
+                                                                        </button>
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={b.motivo ?? ''}
+                                                                        onChange={ev => updateBlackout(i, 'motivo', ev.target.value || null)}
+                                                                        maxLength={EXCEPCION_MOTIVO_MAX}
+                                                                        placeholder="Motivo (opcional) — ej. vacaciones en Pucón, feriado largo"
+                                                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                                                    Estas fechas quedan bloqueadas para nuevas reservas. Las estadías ya confirmadas en esas fechas se mantienen — te sugerimos coordinar con el tutor por chat.
+                                                </p>
                                             </div>
                                         </div>
                                     )}

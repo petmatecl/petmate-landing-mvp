@@ -67,9 +67,17 @@ function ymdChile(d: Date): string {
 }
 
 // Dias de calendario Chile entre dos fechas (0 si mismo dia).
-function nochesEntre(desde: Date, hasta: Date): number {
-    const ymdA = ymdChile(desde);
-    const ymdB = ymdChile(hasta);
+//
+// Overload: acepta Date (timestamp — se normaliza a fecha civil Chile via
+// ymdChile) o string YYYY-MM-DD directo (asume que ya representa una fecha
+// civil, como los inputs type=date del browser). El calculo final es puro
+// Date.UTC — sin TZ drift, sin dependencia del runtime.
+//
+// Exportado para reuso en el editor de blackouts F2 y (futuro) el picker
+// del tutor F2-4.
+export function nochesEntre(desde: Date | string, hasta: Date | string): number {
+    const ymdA = typeof desde === 'string' ? desde : ymdChile(desde);
+    const ymdB = typeof hasta === 'string' ? hasta : ymdChile(hasta);
     const [y1, m1, d1] = ymdA.split('-').map(Number);
     const [y2, m2, d2] = ymdB.split('-').map(Number);
     return Math.round(
