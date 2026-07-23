@@ -19,7 +19,9 @@ export type ServicioEfimero = {
 
 const cachedCategoriaIds = new Map<string, string>();
 
-async function resolverCategoriaIdPorSlug(
+// Exportado para reuse en fixtures hermanos (servicio-cuidado-listo.ts de
+// F2-3-E). Cache es process-wide — cero re-query entre specs paralelos.
+export async function resolverCategoriaIdPorSlug(
     supabase: SupabaseClient,
     slug: string,
 ): Promise<string> {

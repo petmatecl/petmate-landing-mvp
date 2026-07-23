@@ -98,6 +98,18 @@ function assertCredencialesReales(): void {
             `Project Settings → API → Project API keys → anon public).`
         );
     }
+    // Credenciales del tutor (F2-3-E): opcionales — si no están seteadas, la
+    // suite del tutor se skipea con mensaje claro. Solo verificamos que no
+    // queden en el placeholder cuando la env var existe.
+    const tutorEmail = process.env.E2E_STAGING_TUTOR_EMAIL;
+    const tutorPassword = process.env.E2E_STAGING_TUTOR_PASSWORD;
+    if (tutorEmail && (tutorEmail === 'camila@ejemplo.cl' || tutorPassword === 'cambiame')) {
+        throw new Error(
+            `[playwright.config] E2E_STAGING_TUTOR_EMAIL / E2E_STAGING_TUTOR_PASSWORD tienen valores ` +
+            `placeholder del template. Rellenalos con las credenciales reales de Camila (tutora pura staging) ` +
+            `o borralos si no vas a correr los specs de F2-3.`
+        );
+    }
 }
 
 assertBaseUrlIsStaging(baseURL);
@@ -151,13 +163,25 @@ export default defineConfig({
         timezoneId: 'America/Santiago',
         locale: 'es-CL',
     },
-    // Setup project corre primero y genera storageState. El resto de projects
-    // dependen de setup — si login falla, la suite entera aborta con un solo
-    // error claro en vez de cascadas de "unauthorized".
+    // Setup projects corren primero y generan storageStates. Cada rol
+    // (proveedor, tutor) tiene su propio setup + project chromium con su
+    // storageState. Los specs que necesitan un rol especifico declaran su
+    // project via testMatch en la definicion abajo.
+    //
+    // Convencion de project name:
+    //   * "setup"          → auth como proveedor (E2E_STAGING_EMAIL/PASSWORD).
+    //   * "chromium"       → specs por default (F2-2B: editor de servicio).
+    //   * "setup-tutor"    → auth como tutor puro (E2E_STAGING_TUTOR_*).
+    //   * "chromium-tutor" → specs que corren como tutor (F2-3: reserva +
+    //                        cancelacion desde /mis-solicitudes).
     projects: [
         {
             name: 'setup',
-            testMatch: /auth\.setup\.ts$/,
+            testMatch: /setup[\\/]auth\.setup\.ts$/,
+        },
+        {
+            name: 'setup-tutor',
+            testMatch: /setup[\\/]auth-tutor\.setup\.ts$/,
         },
         {
             name: 'chromium',
@@ -166,6 +190,21 @@ export default defineConfig({
                 storageState: 'e2e/.auth/proveedor.json',
             },
             dependencies: ['setup'],
+            // Todos los specs default corren como proveedor, EXCEPTO los de
+            // f2-3 que arman su propio project con storageState del tutor.
+            testIgnore: /specs[\\/]f2-3[\\/]/,
+        },
+        {
+            name: 'chromium-tutor',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'e2e/.auth/tutor.json',
+            },
+            dependencies: ['setup-tutor'],
+            // Solo specs del tutor: F2-3 (reserva + cancelacion). El auth-tutor
+            // dispara si el spec matchea; sin specs matcheados, el setup-tutor
+            // sigue corriendo pero es no-op eficaz.
+            testMatch: /specs[\\/]f2-3[\\/].*\.spec\.ts$/,
         },
     ],
 });

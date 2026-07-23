@@ -31,7 +31,14 @@ Tres capas de protección — la suite es imposible de correr contra prod por ac
 
 ## Auth
 
-El project `setup` en `playwright.config.ts` corre primero, autentica con `E2E_STAGING_EMAIL` + `E2E_STAGING_PASSWORD`, y persiste sesión en `e2e/.auth/admin.json`. El resto de tests reusa ese storage state. El usuario staging debe tener roles `admin` + `proveedor` (los tests operan sobre el panel proveedor pero necesitan permisos para crear/borrar servicios efímeros).
+Dos proyectos de setup independientes, uno por rol. Cada uno autentica una vez y persiste su storageState:
+
+| Setup project     | Env vars                                        | storageState                | Rol         |
+| ---               | ---                                             | ---                         | ---         |
+| `setup`           | `E2E_STAGING_EMAIL` + `E2E_STAGING_PASSWORD`    | `e2e/.auth/proveedor.json`  | Proveedor + admin (F2-2B: editor de servicios). |
+| `setup-tutor`     | `E2E_STAGING_TUTOR_EMAIL` + `E2E_STAGING_TUTOR_PASSWORD` | `e2e/.auth/tutor.json` | Tutor puro — Camila Figueroa Mendoza (F2-3: reserva + cancelación). |
+
+Los projects `chromium` y `chromium-tutor` en `playwright.config.ts` consumen esos storageStates. Los specs se ruta al project correcto por `testMatch` (`f2-3` → tutor, resto → proveedor).
 
 ## Estructura
 
@@ -43,9 +50,18 @@ e2e/
 ├── .report/           ← reporte HTML de última corrida (gitignored)
 ├── README.md          ← este archivo
 ├── setup/
-│   └── auth.setup.ts  ← login + guardar storageState
+│   ├── authenticate.ts        ← helper reusable login + persist storageState
+│   ├── auth.setup.ts          ← login proveedor
+│   └── auth-tutor.setup.ts    ← login tutor (Camila)
+├── fixtures/
+│   ├── supabase.ts               ← clientes Supabase por rol (extrae JWT de storageState)
+│   ├── servicio-efimero.ts       ← crea/borra servicios F1 (F2-2B)
+│   ├── servicio-cuidado-listo.ts ← crea/borra servicios F2 (F2-3)
+│   ├── panel-proveedor.ts        ← helpers UI proveedor
+│   └── panel-tutor.ts            ← helpers UI tutor
 └── specs/
-    └── f2-2b/         ← suite F2-2B (por venir en Fase 2)
+    ├── f2-2b/         ← suite F2-2B (editor de servicios — proveedor)
+    └── f2-3/          ← suite F2-3 (reserva + cancelación — tutor)
 ```
 
 ## Qué cubre — Suite F2-2B
@@ -64,7 +80,27 @@ Specs planeados (Fase 2):
 | `s8-mobile-380.spec.ts` | Viewport 380×800, filas en 1 columna, usable. |
 | `s9-legacy-oculto.spec.ts` | Bloque legacy oculto con F2 ON; reaparece con F2 OFF; sin regresión F1. |
 
+## Qué cubre — Suite F2-3 (tutor)
+
+Ver `e2e/specs/f2-3/`. Los tests crean un servicio de cuidado con F2 activo (`e2e-f2-3-{timestamp}`), abren el picker desde la ficha `/servicio/[id]` como Camila (tutora pura), reservan y/o cancelan, y borran todo en `afterAll`. Nada acoplado a IDs específicos de staging.
+
+| Spec | Cobertura |
+|---|---|
+| `s1-picker-render.spec.ts` | Modal abre con título "Reservar estadía", hint `Estadía entre M y N noches`, check-in/out, DayPicker visible, submit "Confirmar reserva". |
+| `s2-dias-pintados.spec.ts` | Blackout `[X, Y)` pinta `X..Y-1` disabled y deja `Y` LIBRE (semi-abierto — día del check-out no bloquea nueva estadía). |
+| `s3-reserva-feliz.spec.ts` | Rango válido → toast "Reserva confirmada" + card en `/mis-solicitudes`. Verificación BD: `estado=confirmada`, `fecha_fin NOT NULL`, `capacidad_snapshot_estadia`, `duracion_min NULL`, `tutor_nombre`. |
+| `s4a-race.spec.ts` | Fixture pre-inserta reserva confirmada en el rango. Camila intenta el mismo → dos caminos válidos: (A) cliente detectó disabled → error inline; (B) submit y server rebota `23P01` → toast "Esas noches acaban de ocuparse". |
+| `s5-validaciones-min-max.spec.ts` | Fixture `min=3 max=5`. Rango 2 noches → inline "estadía mínima es de 3 noches". Rango 6 → "estadía máxima es de 5 noches". |
+| `s6-cancelacion-dentro-ventana.spec.ts` | Reserva a +10 días con `cancelacion_min_horas_antes=48`. Camila cancela desde `/mis-solicitudes` → toast "Cancelación enviada" + BD `estado=cancelada`. |
+| `s7-cancelacion-fuera-ventana.spec.ts` | Fixture con `cancelacion_min_horas_antes=999` + reserva a +2 días. Botón "Cancelar reserva" disabled. Endpoint directo → `403 reason=ventana_cerrada`. |
+| `s8-bypass-rls-cerrado.spec.ts` | Camila hace `UPDATE agendamientos SET estado='cancelada' WHERE id=<F2-confirmada>` con anon key → 0 filas afectadas. Verifica migration `20260723_agendamientos_cancel_rls_f2.sql`. |
+| `s9-regresion-F1.spec.ts` | Reserva F1 (`duracion_min NOT NULL`, `capacidad_snapshot_estadia NULL`). UPDATE client de cancelación sigue OK → 1 fila. Fix RLS F2-3-D no regresionó F1. |
+
 ## Qué queda como check manual (requiere SQL — Aldo lo corre aparte)
+
+### F2-3 pendientes (manuales)
+
+**S4b — Race real multi-tab**. Abrir la misma ficha en dos tabs distintos, seleccionar y confirmar en ambos casi simultáneamente. Verificar que uno queda en `estado=confirmada` y el otro ve toast rojo "Esas noches acaban de ocuparse". No simulable con Playwright sin fuego innecesario.
 
 **S4 — diff quirúrgico contra BD**. Verifica que edit/delete/insert de blackouts se refleja como UPDATE/DELETE/INSERT en `excepciones_disponibilidad`. La suite valida round-trip por UI (S3), pero no puede afirmar sobre el shape SQL sin ejecutar queries.
 
