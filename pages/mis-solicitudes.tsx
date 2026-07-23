@@ -73,6 +73,13 @@ export default function MisSolicitudesPage() {
         //    via vista publica (post-RLS fix junio 2026 — anon/tutor no-owner no
         //    puede leer la tabla base). El embed servicio:servicios_publicados
         //    funciona sin cambios (esa tabla no fue tocada por el fix).
+        //
+        //    F2-3-D: agregamos capacidad_snapshot_estadia (bandera F2) al
+        //    SELECT del agendamiento + cancelacion_min_horas_antes al SELECT
+        //    del servicio. Sirve para: (a) decidir si el boton "Cancelar
+        //    reserva" pasa por el endpoint POST /api/agendamientos/cancelar
+        //    o por UPDATE client (F1/legacy); (b) computar puedeCancelar
+        //    client-side y disabled+tooltip cuando la ventana cerro.
         const { data, error } = await supabase
             .from('agendamientos')
             .select(`
@@ -81,9 +88,9 @@ export default function MisSolicitudesPage() {
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
-                duracion_min, capacidad_snapshot, tutor_nombre,
+                duracion_min, capacidad_snapshot, capacidad_snapshot_estadia, tutor_nombre,
                 respondido_at, created_at, updated_at,
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes)
             `)
             .eq('tutor_id', buscador.id)
             .order('created_at', { ascending: false });
@@ -127,30 +134,62 @@ export default function MisSolicitudesPage() {
             ? state.agendamientos.find(a => a.id === cancelDialogId)
             : null;
         const eraConfirmada = sol?.estado === 'confirmada';
+        // F2-3-D: reservas F2 confirmadas van por el endpoint server
+        // (autoritativo para la ventana anti-cancelacion). Semaforo F2 =
+        // capacidad_snapshot_estadia NOT NULL — mismo que F2-3-B para
+        // no regresionar V2/V4a legacy.
+        const esF2 = sol?.capacidad_snapshot_estadia != null;
+        const usarEndpointCancel = eraConfirmada && esF2;
 
         setCancelLoading(true);
         try {
-            const { error } = await supabase
-                .from('agendamientos')
-                .update({
-                    estado: 'cancelada' as EstadoAgendamiento,
-                    respondido_at: new Date().toISOString(),
-                })
-                .eq('id', cancelDialogId);
-            if (error) throw error;
-
-            if (eraConfirmada) {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    fetch('/api/agendamientos/notify-proveedor-cancel', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${session.access_token}`,
-                        },
-                        body: JSON.stringify({ agendamientoId: cancelDialogId }),
-                    }).catch(err => console.warn('[mis-solicitudes] notify-cancel falló:', err));
+            const { data: { session } } = await supabase.auth.getSession();
+            if (usarEndpointCancel) {
+                // F2 confirmada — endpoint hace ownership check + ventana
+                // + UPDATE via service_role. Copy del rechazo (ventana
+                // cerrada) viene del server con las horas exactas y el
+                // nombre del proveedor.
+                if (!session) {
+                    toast.error('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
+                    return;
                 }
+                const res = await fetch('/api/agendamientos/cancelar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ agendamientoId: cancelDialogId }),
+                });
+                if (!res.ok) {
+                    const body = await res.json().catch(() => ({ error: 'Error desconocido.' }));
+                    toast.error(body?.error || 'No pudimos cancelar la reserva.');
+                    // Cerrar dialog aunque falle, para que el usuario vea el
+                    // toast completo y no quede el modal encimado.
+                    setCancelDialogId(null);
+                    return;
+                }
+            } else {
+                // F1 / legacy / pendiente — UPDATE client como antes.
+                const { error } = await supabase
+                    .from('agendamientos')
+                    .update({
+                        estado: 'cancelada' as EstadoAgendamiento,
+                        respondido_at: new Date().toISOString(),
+                    })
+                    .eq('id', cancelDialogId);
+                if (error) throw error;
+            }
+
+            if (eraConfirmada && session) {
+                fetch('/api/agendamientos/notify-proveedor-cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ agendamientoId: cancelDialogId }),
+                }).catch(err => console.warn('[mis-solicitudes] notify-cancel falló:', err));
             }
 
             toast.success(eraConfirmada
@@ -258,27 +297,36 @@ export default function MisSolicitudesPage() {
                     ? state.agendamientos.find(a => a.id === cancelDialogId)
                     : null;
                 const eraConfirmada = sol?.estado === 'confirmada';
-                // F1 agenda: reserva del picker (nacio confirmada, no la
-                // resolvio el proveedor). El copy cambia — el horario se
-                // libera al instante para otros tutores y al proveedor le
-                // llega un aviso.
-                const esReservaAgenda = sol?.duracion_min != null;
-                const esConfirmadaAuto = eraConfirmada && esReservaAgenda;
-                const title = esConfirmadaAuto
-                    ? 'Cancelar reserva'
-                    : eraConfirmada
-                        ? 'Cancelar cita confirmada'
-                        : '¿Cancelar esta solicitud?';
-                const message = esConfirmadaAuto
-                    ? 'Vas a liberar tu horario y avisaremos al proveedor por email. Si puedes, contáctalo antes para coordinar.'
-                    : eraConfirmada
-                        ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
-                        : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.';
-                const confirmLabel = esConfirmadaAuto
-                    ? 'Cancelar reserva'
-                    : eraConfirmada
-                        ? 'Cancelar cita'
-                        : 'Cancelar solicitud';
+                // Reserva del picker (nacio confirmada, no la resolvio el
+                // proveedor). Cubre F1 (duracion_min NOT NULL) y F2
+                // (capacidad_snapshot_estadia NOT NULL). El copy cambia —
+                // la reserva se libera al instante y al proveedor le llega
+                // un aviso. Para F2 ademas mencionamos las noches en
+                // singular; el copy generico "horario" se mantiene para F1.
+                const esReservaAgendaF1 = sol?.duracion_min != null;
+                const esReservaAgendaF2 = sol?.capacidad_snapshot_estadia != null;
+                const esConfirmadaAuto = eraConfirmada && (esReservaAgendaF1 || esReservaAgendaF2);
+                const title = esReservaAgendaF2 && eraConfirmada
+                    ? 'Cancelar estadía'
+                    : esConfirmadaAuto
+                        ? 'Cancelar reserva'
+                        : eraConfirmada
+                            ? 'Cancelar cita confirmada'
+                            : '¿Cancelar esta solicitud?';
+                const message = esReservaAgendaF2 && eraConfirmada
+                    ? 'Vas a liberar tus noches y avisaremos al proveedor por email. Si puedes, contáctalo antes para coordinar.'
+                    : esConfirmadaAuto
+                        ? 'Vas a liberar tu horario y avisaremos al proveedor por email. Si puedes, contáctalo antes para coordinar.'
+                        : eraConfirmada
+                            ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
+                            : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.';
+                const confirmLabel = esReservaAgendaF2 && eraConfirmada
+                    ? 'Cancelar estadía'
+                    : esConfirmadaAuto
+                        ? 'Cancelar reserva'
+                        : eraConfirmada
+                            ? 'Cancelar cita'
+                            : 'Cancelar solicitud';
                 return (
                     <ConfirmDialog
                         open={cancelDialogId !== null}
@@ -317,7 +365,27 @@ function SolicitudCard({
     // para diferenciar reservas auto-confirmadas del picker vs confirmadas
     // resueltas por el proveedor (pendiente→confirmada del flujo viejo).
     const esReservaAgenda = solicitud.duracion_min != null;
-    const esConfirmadaAuto = isConfirmada && esReservaAgenda;
+    // F2 agenda — la reserva viene del picker de rango de noches cuando
+    // capacidad_snapshot_estadia esta poblada. Sirve para: (a) el copy
+    // del dialog (F1 vs F2 → distinto texto), y (b) el gate de la
+    // ventana anti-cancelacion (solo F2, según el diseño F2-3-D).
+    const esReservaAgendaF2 = solicitud.capacidad_snapshot_estadia != null;
+    const esConfirmadaAuto = isConfirmada && (esReservaAgenda || esReservaAgendaF2);
+
+    // F2-3-D: la ventana de cancelacion aplica solo a reservas F2
+    // confirmadas. F1 y legacy siguen sin ventana. Cuando la ventana
+    // cerro, el boton "Cancelar reserva" queda disabled + tooltip con
+    // el copy amable — mismo enforcement autoritativo se hace en el
+    // endpoint, esto es solo feedback UX.
+    const cancelacionMinHoras = solicitud.servicio?.cancelacion_min_horas_antes ?? 48;
+    const puedeCancelarPorVentana = (() => {
+        if (!esReservaAgendaF2 || !isConfirmada) return true;
+        const checkInMs = new Date(solicitud.fecha_preferida ?? 0).getTime();
+        if (!Number.isFinite(checkInMs)) return true;   // defensivo
+        const horasHastaCheckIn = (checkInMs - Date.now()) / 3_600_000;
+        return horasHastaCheckIn >= cancelacionMinHoras;
+    })();
+    const tooltipVentanaCerrada = `Faltan menos de ${cancelacionMinHoras === 1 ? '1 hora' : `${cancelacionMinHoras} horas`} para el check-in. Contacta al proveedor por chat para coordinar.`;
 
     // Branching de formato segun variante: la combinacion de modo_tarifa +
     // fecha_fin encoda cual de V1/V2/V4a/V4b. No consultamos la categoria
@@ -519,7 +587,9 @@ function SolicitudCard({
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors"
+                        disabled={!puedeCancelarPorVentana}
+                        title={puedeCancelarPorVentana ? undefined : tooltipVentanaCerrada}
+                        className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
                         Cancelar reserva
                     </button>

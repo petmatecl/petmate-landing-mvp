@@ -55,6 +55,11 @@ export interface AgendamientoRow {
     // ambos quedan null.
     duracion_min: number | null;
     capacidad_snapshot: number | null;
+    // F2 agenda — bandera "es reserva de estadia F2" (poblada por el picker
+    // F2 al INSERT desde servicio.capacidad_estadia). Distingue F2 (con
+    // ventana de cancelacion) de V2/V4a legacy (sin ventana). Ver
+    // migration 20260718_agenda_estadia_schema.sql + F2-3-B/D.
+    capacidad_snapshot_estadia: number | null;
     // F1 agenda — nombre del tutor denormalizado al INSERT. Motivo: RLS
     // owner-only en usuarios_buscadores. Ver migration
     // 20260714_agendamientos_tutor_nombre.sql.
@@ -87,5 +92,10 @@ export interface AgendamientoConRelaciones extends AgendamientoRow {
     servicio?: {
         id: string;
         titulo: string | null;
+        // F2 — poblada solo cuando el fetch del cliente pide el campo
+        // (mis-solicitudes.tsx SELECT lo incluye). El endpoint
+        // /api/agendamientos/cancelar la lee del servicio para validar
+        // ventana; el client la usa para el disabled+tooltip del boton.
+        cancelacion_min_horas_antes?: number | null;
     } | null;
 }
