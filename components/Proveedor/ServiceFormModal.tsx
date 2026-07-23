@@ -1496,10 +1496,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         </div>
                                     </div>
 
-                                    {/* F1 agenda: el editor legacy (7 dias × 1 franja
-                                        JSONB text) se oculta cuando el modo agenda
-                                        real esta ON. Al opt-out vuelve a aparecer. */}
-                                    {!usaAgendaReal && (
+                                    {/* F1 + F2 agenda: el editor legacy (7 dias × 1
+                                        franja JSONB text) se oculta cuando cualquier
+                                        modo de agenda real esta ON — F1 (bloque
+                                        horario) o F2 (estadia por noches). Al opt-out
+                                        de ambos vuelve a aparecer con lo que habia.
+                                        Contrato identico entre dominios. */}
+                                    {!usaAgendaReal && !usaAgendaEstadia && (
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">Disponibilidad</label>
                                         <div className="space-y-1.5">
@@ -1901,7 +1904,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         <div className="min-w-0">
                                             <span className="text-sm text-slate-700 block">Aceptar reservas por rango de noches</span>
                                             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                                Al activarla, todas las fechas futuras quedan disponibles para reservar, salvo los bloqueos que definas.
+                                                Al activarla, todas las fechas futuras quedan disponibles para reservar, salvo los bloqueos que definas. Se reemplaza el bloque de disponibilidad de arriba.
                                             </p>
                                             <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
                                                 La agenda por noches aplica a estadías (en casa del cuidador, recinto o casa del tutor). Los servicios por horas siguen coordinándose como hasta ahora.
