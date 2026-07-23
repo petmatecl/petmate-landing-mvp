@@ -91,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const rangoDias = diasEntreFechas(desde, hasta) + 1;
     if (rangoDias > MAX_RANGO_DIAS) {
-        return res.status(400).json({ error: `rango excede ${MAX_RANGO_DIAS} dias` });
+        return res.status(400).json({ error: `rango excede ${MAX_RANGO_DIAS} días` });
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -121,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!servicio) return res.status(404).json({ error: 'servicio no encontrado' });
         if (!servicio.activo) return res.status(404).json({ error: 'servicio no disponible' });
         if (!servicio.agendamiento_habilitado) return res.status(404).json({ error: 'servicio no acepta agendamientos' });
-        if (servicio.capacidad_estadia === null) return res.status(404).json({ error: 'servicio sin agenda de estadias configurada' });
+        if (servicio.capacidad_estadia === null) return res.status(404).json({ error: 'servicio sin agenda de estadías configurada' });
 
         // Observabilidad: cap > 1 tiene race window sin advisory lock. Logeamos
         // el uso para dimensionar el impacto real y priorizar F2.5 si aparece

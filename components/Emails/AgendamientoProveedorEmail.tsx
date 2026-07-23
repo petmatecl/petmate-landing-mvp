@@ -20,6 +20,16 @@ interface AgendamientoProveedorEmailProps {
     // instante" (el tutor tomo hora desde el picker rigido). Default false
     // preserva el flujo viejo.
     esConfirmadaAuto?: boolean;
+    // F2 agenda por rango de noches (Incremento 2-3-B): cuando true, la
+    // etiqueta del bloque de fecha cambia de "Fecha (reservada|preferida)"
+    // a "Estadía", y aparece un bloque adicional con check-in/check-out.
+    // Default false preserva el render V1/V2/V4 sin cambios.
+    esRango?: boolean;
+    // F2 — horas sugeridas de check-in/out del servicio ('HH:MM' o null).
+    // Solo se renderizan cuando esRango es true. Si ambos null y esRango
+    // true, se muestra fallback "Check-in y check-out se coordinan por chat."
+    checkInHora?: string | null;
+    checkOutHora?: string | null;
 }
 
 export const AgendamientoProveedorEmail = ({
@@ -33,7 +43,15 @@ export const AgendamientoProveedorEmail = ({
     duracionLabel,
     direccionInfo,
     esConfirmadaAuto,
+    esRango,
+    checkInHora,
+    checkOutHora,
 }: AgendamientoProveedorEmailProps) => {
+    // Etiqueta del bloque de fecha. F2 (esRango) siempre dice "Estadía";
+    // sino respeta el branching viejo por esConfirmadaAuto.
+    const fechaLabel = esRango
+        ? 'Estadía'
+        : esConfirmadaAuto ? 'Fecha reservada' : 'Fecha preferida';
     return (
         <Html>
             <Head />
@@ -58,8 +76,24 @@ export const AgendamientoProveedorEmail = ({
                         </Text>
 
                         <Section style={infoBox}>
-                            <Text style={infoLabel}>{esConfirmadaAuto ? 'Fecha reservada' : 'Fecha preferida'}</Text>
+                            <Text style={infoLabel}>{fechaLabel}</Text>
                             <Text style={infoValue}>{fechaFormateada}</Text>
+
+                            {esRango && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Check-in / Check-out</Text>
+                                    {checkInHora || checkOutHora ? (
+                                        <Text style={infoValue}>
+                                            {checkInHora && <>Check-in: <strong>{checkInHora}</strong></>}
+                                            {checkInHora && checkOutHora && ' · '}
+                                            {checkOutHora && <>Check-out: <strong>{checkOutHora}</strong></>}
+                                        </Text>
+                                    ) : (
+                                        <Text style={infoValueItalic}>Check-in y check-out se coordinan por chat.</Text>
+                                    )}
+                                </>
+                            )}
 
                             {modalidadLabel && (
                                 <>

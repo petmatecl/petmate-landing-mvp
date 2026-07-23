@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 estado, mensaje, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora)
             `)
             .eq('id', agendamientoId)
             .maybeSingle();
@@ -128,6 +128,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // tutor), el copy es de "reserva confirmada" en vez de "solicitud
         // que necesita respuesta". El estado se lee de BD, no del cliente.
         const esConfirmadaAuto = agend.estado === 'confirmada';
+
+        // F2 agenda (2-3-B): la reserva es un rango de noches cuando hay
+        // fecha_fin. En ese caso el template cambia la etiqueta de fecha
+        // a "Estadía" y renderiza el bloque check-in/check-out. Horas
+        // sugeridas: Postgres time viene como 'HH:MM:SS'; el template
+        // espera 'HH:MM'.
+        const esRango = !!agend.fecha_fin;
+        const checkInHora = esRango && servicio?.check_in_hora
+            ? (servicio.check_in_hora as string).slice(0, 5)
+            : null;
+        const checkOutHora = esRango && servicio?.check_out_hora
+            ? (servicio.check_out_hora as string).slice(0, 5)
+            : null;
         const subject = esConfirmadaAuto
             ? 'Nueva reserva confirmada en Pawnecta'
             : 'Nueva solicitud de agendamiento en Pawnecta';
@@ -147,6 +160,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 direccionInfo,
                 duracionLabel,
                 esConfirmadaAuto,
+                esRango,
+                checkInHora,
+                checkOutHora,
             }) as React.ReactElement,
         });
 

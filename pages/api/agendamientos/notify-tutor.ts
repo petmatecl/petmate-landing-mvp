@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 estado, nota_proveedor, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre, telefono, whatsapp, mostrar_telefono, mostrar_whatsapp),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora)
             `)
             .eq('id', agendamientoId)
             .maybeSingle();
@@ -141,6 +141,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? `https://wa.me/${whatsappRaw.replace(/[^\d]/g, '')}`
             : null;
 
+        // F2 agenda (2-3-B): rango de noches → etiqueta "Estadía" + bloque
+        // check-in/check-out. Postgres time viene como 'HH:MM:SS'; el
+        // template espera 'HH:MM'.
+        const esRango = !!agend.fecha_fin;
+        const checkInHora = esRango && servicio?.check_in_hora
+            ? (servicio.check_in_hora as string).slice(0, 5)
+            : null;
+        const checkOutHora = esRango && servicio?.check_out_hora
+            ? (servicio.check_out_hora as string).slice(0, 5)
+            : null;
+
         const subject = agend.estado === 'confirmada'
             ? 'Tu solicitud de agendamiento fue confirmada'
             : agend.estado === 'cancelada_proveedor'
@@ -165,6 +176,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 direccionServicio,
                 direccionInfo,
                 duracionLabel,
+                esRango,
+                checkInHora,
+                checkOutHora,
             }) as React.ReactElement,
         });
 

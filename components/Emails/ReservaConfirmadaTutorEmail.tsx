@@ -17,7 +17,14 @@ interface ReservaConfirmadaTutorEmailProps {
     mensajeTutor: string | null;
     // Duracion del slot para reforzar el bloque temporal reservado
     // (ej. "60 minutos"). Se popula desde duracion_min de la reserva.
+    // Null cuando es reserva F2 (rango de noches — no aplica duracion).
     duracionLabel: string | null;
+    // F2 agenda por rango de noches (Incremento 2-3-B): cuando true, la
+    // etiqueta cambia a "Estadía" y aparece bloque de check-in/check-out.
+    // Default false → render F1 (picker puntual) sin cambios.
+    esRango?: boolean;
+    checkInHora?: string | null;
+    checkOutHora?: string | null;
 }
 
 export const ReservaConfirmadaTutorEmail = ({
@@ -27,7 +34,11 @@ export const ReservaConfirmadaTutorEmail = ({
     fechaFormateada,
     mensajeTutor,
     duracionLabel,
+    esRango,
+    checkInHora,
+    checkOutHora,
 }: ReservaConfirmadaTutorEmailProps) => {
+    const fechaLabel = esRango ? 'Estadía' : 'Fecha reservada';
     return (
         <Html>
             <Head />
@@ -45,8 +56,24 @@ export const ReservaConfirmadaTutorEmail = ({
                         </Text>
 
                         <Section style={infoBox}>
-                            <Text style={infoLabel}>Fecha reservada</Text>
+                            <Text style={infoLabel}>{fechaLabel}</Text>
                             <Text style={infoValue}>{fechaFormateada}</Text>
+
+                            {esRango && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Check-in / Check-out</Text>
+                                    {checkInHora || checkOutHora ? (
+                                        <Text style={infoValue}>
+                                            {checkInHora && <>Check-in: <strong>{checkInHora}</strong></>}
+                                            {checkInHora && checkOutHora && ' · '}
+                                            {checkOutHora && <>Check-out: <strong>{checkOutHora}</strong></>}
+                                        </Text>
+                                    ) : (
+                                        <Text style={infoValueItalic}>Check-in y check-out se coordinan por chat.</Text>
+                                    )}
+                                </>
+                            )}
 
                             {duracionLabel && (
                                 <>

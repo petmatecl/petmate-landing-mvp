@@ -24,6 +24,16 @@ interface AgendamientoTutorEmailProps {
     // Ola 1 feat direcciones — info adicional opcional (italica debajo
     // de direccionServicio cuando esta presente).
     direccionInfo?: string | null;
+    // F2 agenda por rango de noches (Incremento 2-3-B): cuando true, la
+    // etiqueta del bloque de fecha cambia de "Fecha" a "Estadía", y
+    // aparece un bloque adicional con check-in/check-out. Default false
+    // preserva el render V1/V2/V4 sin cambios.
+    esRango?: boolean;
+    // F2 — horas sugeridas de check-in/out del servicio ('HH:MM' o null).
+    // Solo se renderizan cuando esRango es true. Ambos null y esRango true
+    // → fallback "Check-in y check-out se coordinan por chat."
+    checkInHora?: string | null;
+    checkOutHora?: string | null;
 }
 
 export const AgendamientoTutorEmail = ({
@@ -40,9 +50,13 @@ export const AgendamientoTutorEmail = ({
     direccionServicio,
     duracionLabel,
     direccionInfo,
+    esRango,
+    checkInHora,
+    checkOutHora,
 }: AgendamientoTutorEmailProps) => {
     const isConfirmada = estado === 'confirmada';
     const isCanceladaProveedor = estado === 'cancelada_proveedor';
+    const fechaLabel = esRango ? 'Estadía' : 'Fecha';
     const preview = isConfirmada
         ? `${nombreProveedor} confirmó tu solicitud para ${servicioTitulo}.`
         : isCanceladaProveedor
@@ -77,8 +91,24 @@ export const AgendamientoTutorEmail = ({
                         )}
 
                         <Section style={infoBox}>
-                            <Text style={infoLabel}>Fecha</Text>
+                            <Text style={infoLabel}>{fechaLabel}</Text>
                             <Text style={infoValue}>{fechaFormateada}</Text>
+
+                            {esRango && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Check-in / Check-out</Text>
+                                    {checkInHora || checkOutHora ? (
+                                        <Text style={infoValue}>
+                                            {checkInHora && <>Check-in: <strong>{checkInHora}</strong></>}
+                                            {checkInHora && checkOutHora && ' · '}
+                                            {checkOutHora && <>Check-out: <strong>{checkOutHora}</strong></>}
+                                        </Text>
+                                    ) : (
+                                        <Text style={infoValueItalic}>Check-in y check-out se coordinan por chat.</Text>
+                                    )}
+                                </>
+                            )}
 
                             {modalidadLabel && (
                                 <>

@@ -29,7 +29,7 @@ import { emailLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
 import ReservaConfirmadaTutorEmail from '../../../components/Emails/ReservaConfirmadaTutorEmail';
-import { formatFechaPreferida } from '../../../lib/formatFecha';
+import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -57,11 +57,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { data: agend, error: agendErr } = await supabaseAdmin
             .from('agendamientos')
             .select(`
-                id, fecha_preferida, estado, mensaje, duracion_min,
+                id, fecha_preferida, fecha_fin, estado, mensaje, duracion_min, capacidad_snapshot_estadia,
                 tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, nombre),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora)
             `)
             .eq('id', agendamientoId)
             .maybeSingle();
@@ -84,15 +84,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(403).json({ error: 'Forbidden' });
         }
 
-        // Guard: solo reservas de agenda (nacieron confirmada + duracion_min).
-        // Si duracion_min es null, es una solicitud del flujo viejo — ya tiene
-        // notify-tutor cuando el proveedor responde; no duplicar.
-        if (agend.estado !== 'confirmada' || agend.duracion_min == null) {
+        // Guard: solo reservas de agenda que nacen confirmadas. Dos banderas
+        // aceptables:
+        //   - F1 picker (bloque horario): duracion_min IS NOT NULL.
+        //   - F2 picker (rango de noches): capacidad_snapshot_estadia IS NOT NULL.
+        // Si ninguna esta populada, es una solicitud del flujo viejo — ya
+        // tiene notify-tutor cuando el proveedor responde; no duplicar.
+        const esReservaAgendaF1 = agend.duracion_min != null;
+        const esReservaAgendaF2 = agend.capacidad_snapshot_estadia != null;
+        if (agend.estado !== 'confirmada' || (!esReservaAgendaF1 && !esReservaAgendaF2)) {
             return res.status(200).json({
                 skipped: true,
                 reason: agend.estado !== 'confirmada' ? 'no_confirmada' : 'no_es_reserva_agenda',
                 estado: agend.estado,
                 duracion_min: agend.duracion_min,
+                capacidad_snapshot_estadia: agend.capacidad_snapshot_estadia,
             });
         }
 
@@ -103,15 +109,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(200).json({ skipped: true, reason: 'no_email' });
         }
 
-        const fechaFormateada = formatFechaPreferida(agend.fecha_preferida);
-        const duracionMin = agend.duracion_min as number;
-        const duracionLabel = duracionMin < 60
-            ? `${duracionMin} minutos`
-            : duracionMin === 60
-                ? '1 hora'
-                : duracionMin % 60 === 0
-                    ? `${duracionMin / 60} horas`
-                    : `${Math.floor(duracionMin / 60)}h ${duracionMin % 60}min`;
+        // F2 (2-3-B) — branching por fecha_fin. F1 puntual: formato con
+        // hora ("Sábado 15 de junio, 14:00"). F2 rango: formato de rango
+        // ("Del viernes 4 al lunes 7 de julio (3 noches)").
+        const esRango = esReservaAgendaF2 && !!agend.fecha_fin;
+        const fechaFormateada = esRango
+            ? formatRangoNoches(agend.fecha_preferida, agend.fecha_fin)
+            : formatFechaPreferida(agend.fecha_preferida);
+
+        // duracionLabel solo aplica a F1 (bloque horario). F2 lo deja null
+        // — el bloque de "Duración" del template no se renderiza. La
+        // información temporal de F2 vive en fechaFormateada (rango+noches)
+        // + check-in/check-out.
+        let duracionLabel: string | null = null;
+        if (esReservaAgendaF1) {
+            const duracionMin = agend.duracion_min as number;
+            duracionLabel = duracionMin < 60
+                ? `${duracionMin} minutos`
+                : duracionMin === 60
+                    ? '1 hora'
+                    : duracionMin % 60 === 0
+                        ? `${duracionMin / 60} horas`
+                        : `${Math.floor(duracionMin / 60)}h ${duracionMin % 60}min`;
+        }
+
+        // Horas sugeridas de check-in/out del servicio (solo F2). Postgres
+        // time viene como 'HH:MM:SS'; el template espera 'HH:MM'.
+        const checkInHora = esRango && servicio?.check_in_hora
+            ? (servicio.check_in_hora as string).slice(0, 5)
+            : null;
+        const checkOutHora = esRango && servicio?.check_out_hora
+            ? (servicio.check_out_hora as string).slice(0, 5)
+            : null;
 
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
@@ -124,6 +153,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 fechaFormateada,
                 mensajeTutor: agend.mensaje || null,
                 duracionLabel,
+                esRango,
+                checkInHora,
+                checkOutHora,
             }) as React.ReactElement,
         });
 

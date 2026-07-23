@@ -13,6 +13,12 @@ interface AgendamientoCancelacionTutorEmailProps {
     // Ola 1 feat direcciones — info adicional opcional (italica debajo
     // de direccionServicio cuando esta presente).
     direccionInfo?: string | null;
+    // F2 agenda por rango de noches (Incremento 2-3-B): cuando true, la
+    // etiqueta cambia a "Estadía que tenían acordada" y aparece bloque
+    // de check-in/check-out. Default false → render V1/V2/V4 sin cambios.
+    esRango?: boolean;
+    checkInHora?: string | null;
+    checkOutHora?: string | null;
 }
 
 // Sprint cierre agendamiento — email al proveedor cuando un tutor cancela
@@ -28,7 +34,11 @@ export const AgendamientoCancelacionTutorEmail = ({
     direccionServicio,
     duracionLabel,
     direccionInfo,
+    esRango,
+    checkInHora,
+    checkOutHora,
 }: AgendamientoCancelacionTutorEmailProps) => {
+    const fechaLabel = esRango ? 'Estadía que tenían acordada' : 'Fecha que tenían acordada';
     return (
         <Html>
             <Head />
@@ -46,8 +56,24 @@ export const AgendamientoCancelacionTutorEmail = ({
                         </Text>
 
                         <Section style={infoBox}>
-                            <Text style={infoLabel}>Fecha que tenían acordada</Text>
+                            <Text style={infoLabel}>{fechaLabel}</Text>
                             <Text style={infoValue}>{fechaFormateada}</Text>
+
+                            {esRango && (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>Check-in / Check-out</Text>
+                                    {checkInHora || checkOutHora ? (
+                                        <Text style={infoValue}>
+                                            {checkInHora && <>Check-in: <strong>{checkInHora}</strong></>}
+                                            {checkInHora && checkOutHora && ' · '}
+                                            {checkOutHora && <>Check-out: <strong>{checkOutHora}</strong></>}
+                                        </Text>
+                                    ) : (
+                                        <Text style={infoValueItalic}>Check-in y check-out se coordinan por chat.</Text>
+                                    )}
+                                </>
+                            )}
 
                             {modalidadLabel && (
                                 <>
