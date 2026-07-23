@@ -42,7 +42,9 @@ export const AgendamientoCancelacionTutorEmail = ({
     return (
         <Html>
             <Head />
-            <Preview>{`${nombreTutor} cancelo la cita confirmada en Pawnecta.`}</Preview>
+            <Preview>{esRango
+                ? `${nombreTutor} cancelo la estadia confirmada en Pawnecta.`
+                : `${nombreTutor} cancelo la cita confirmada en Pawnecta.`}</Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
@@ -52,7 +54,7 @@ export const AgendamientoCancelacionTutorEmail = ({
                     <Section style={content}>
                         <Text style={h1}>Hola {nombreProveedor},</Text>
                         <Text style={text}>
-                            <strong>{nombreTutor}</strong> canceló la cita que tenían confirmada para tu servicio <strong>{servicioTitulo}</strong>.
+                            <strong>{nombreTutor}</strong> canceló {esRango ? 'la estadía' : 'la cita'} que tenían confirmada para tu servicio <strong>{servicioTitulo}</strong>.
                         </Text>
 
                         <Section style={infoBox}>
@@ -104,7 +106,9 @@ export const AgendamientoCancelacionTutorEmail = ({
                         </Section>
 
                         <Text style={text}>
-                            Te avisamos para que puedas reorganizar tu agenda. El horario quedó libre.
+                            Te avisamos para que puedas reorganizar tu agenda. {esRango
+                                ? 'Las noches quedaron libres.'
+                                : 'El horario quedó libre.'}
                         </Text>
 
                         <Hr style={hr} />

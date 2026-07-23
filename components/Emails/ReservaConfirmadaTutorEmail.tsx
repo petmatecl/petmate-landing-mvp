@@ -52,7 +52,9 @@ export const ReservaConfirmadaTutorEmail = ({
                     <Section style={content}>
                         <Text style={h1}>Hola {nombreTutor},</Text>
                         <Text style={text}>
-                            Tu reserva con <strong>{nombreProveedor}</strong> para <strong>{servicioTitulo}</strong> está <strong>confirmada</strong>. Elegiste un horario disponible en su agenda — no hace falta esperar respuesta.
+                            Tu reserva con <strong>{nombreProveedor}</strong> para <strong>{servicioTitulo}</strong> está <strong>confirmada</strong>. {esRango
+                                ? 'Elegiste las noches disponibles en su agenda — no hace falta esperar respuesta.'
+                                : 'Elegiste un horario disponible en su agenda — no hace falta esperar respuesta.'}
                         </Text>
 
                         <Section style={infoBox}>
@@ -93,7 +95,9 @@ export const ReservaConfirmadaTutorEmail = ({
                         </Section>
 
                         <Text style={text}>
-                            Si necesitas cancelar, puedes hacerlo desde <strong>Mis solicitudes</strong> — el horario se libera para otros tutores.
+                            Si necesitas cancelar, puedes hacerlo desde <strong>Mis solicitudes</strong> — {esRango
+                                ? 'las noches se liberan para otros tutores.'
+                                : 'el horario se libera para otros tutores.'}
                         </Text>
 
                         <Section style={buttonContainer}>

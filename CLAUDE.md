@@ -149,6 +149,19 @@ Endpoints server que SÍ participan del flujo de auth:
 
 **Caveat del rate limit**: `lib/rateLimit.ts > authLimiter` es in-memory. En Vercel serverless cada invocación arranca con memoria fresca → el contador NO persiste entre invocaciones → el limit es efectivo solo en dev (single process). Documentado como deuda P1 en `staging-setup/MASTER_AUDIT_REPORT.md` (#15). Fix real requiere store distribuido (Upstash Redis u equivalente) — sprint propio post-launch.
 
+### Testing con múltiples cuentas — cross-fire dual-cuenta
+
+Supabase Auth persiste la sesión **por proyecto** en `localStorage` (key `sb-{ref}-auth-token`), **no** por tab. Consecuencia práctica: si en el mismo perfil de navegador alternas entre cuentas de prueba (ej. Aldo en tab A + Camila en tab B), el `signInWithPassword` de la segunda cuenta sobreescribe el token de la primera → gotrue-js dispara `SIGNED_OUT` en TODAS las tabs del proyecto (via `storage` event), y las páginas privadas del UserContext redirigen al login como si "la sesión hubiera expirado".
+
+**No es un bug — es `persistSession: true` funcionando como está diseñado.** Un solo usuario con sesión activa por proyecto es el modelo correcto para usuarios finales; el efecto molesto sale a la luz solo en escenarios de prueba con dos identidades simultáneas.
+
+**Mitigación operativa (para smokes manuales y desarrollo)**:
+- **Perfiles de navegador separados por identidad de prueba**. En Chrome/Edge: `Menú → Perfiles → Añadir perfil`; en Firefox: `about:profiles`. Un perfil para admin/proveedor de staging (Aldo), otro para tutor puro (Camila). Cada perfil tiene su propio `localStorage` → cero contaminación cruzada.
+- **Alternativa liviana**: ventanas incógnito distintas — cada ventana incógnito es un contexto aislado en algunos navegadores (no todos: Chrome comparte storage entre pestañas incógnito de la misma ventana pero no entre ventanas incógnito distintas).
+- La suite e2e de Playwright evita el problema por diseño: cada `browser context` es aislado (dual-project `chromium` + `chromium-tutor` con storageStates separados en `e2e/.auth/proveedor.json` y `e2e/.auth/tutor.json`).
+
+Cuando aparezca el síntoma "me deslogueó solo" en staging, primer checkeo: ¿tenía otra cuenta logueada en otro tab del mismo perfil? Si sí, es el fenómeno cross-fire y no requiere fix — cambiá al patrón de perfiles separados.
+
 ## Auth para endpoints internos
 
 Dos patrones de autenticación en `pages/api/`. Elegir según QUIÉN llama:
