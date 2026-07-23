@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test:slots": "npx tsx lib/slotsAgenda.test.ts",
-    "test:formatFecha": "npx tsx lib/formatFecha.test.ts"
+    "test:formatFecha": "npx tsx lib/formatFecha.test.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report e2e/.report"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -34,6 +37,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^24.6.2",
     "@types/react": "^19.2.0",
@@ -41,6 +45,7 @@
     "@types/react-leaflet": "^2.8.3",
     "agent-browser": "^0.27.1",
     "autoprefixer": "10.4.20",
+    "dotenv": "^17.4.2",
     "eslint": "8.57.0",
     "eslint-config-next": "14.2.3",
     "next-sitemap": "^4.2.3",
