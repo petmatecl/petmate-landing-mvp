@@ -456,6 +456,16 @@ export default function ServiceDetailView({
     // el flag real, no `true || isExample` — para que la ficha demo se
     // comporte distinto solo si el servicio demo explicitamente la habilito.
     const agendamientoOn = service?.agendamiento_habilitado === true;
+    // Sweep #3 taxonomía: distingue el flujo del CTA. F1 (duracion_slot_min)
+    // y F2 (capacidad_estadia) son instant-book — copy "Reservar". Legacy
+    // request (sin picker rígido) — copy "Enviar solicitud". La distinción
+    // solo importa para strings visibles; el handler es el mismo.
+    const usaPickerRigido = (service as any)?.duracion_slot_min != null || (service as any)?.capacidad_estadia != null;
+    const ctaLabel = usaPickerRigido ? 'Reservar' : 'Enviar solicitud';
+    const ctaLabelMobile = usaPickerRigido ? 'Reservar' : 'Enviar solicitud';
+    const ctaAriaLabel = usaPickerRigido
+        ? `Reservar con ${proveedor.nombre_publico || proveedor.nombre}`
+        : `Enviar solicitud a ${proveedor.nombre_publico || proveedor.nombre}`;
 
     // S3 backlog UX: sticky bidireccional para la columna derecha (patron
     // Airbnb). useStickyBox aplica position:sticky con offset top + bottom
@@ -1463,11 +1473,11 @@ export default function ServiceDetailView({
                                 {agendamientoOn && (
                                     <button
                                         onClick={handleSolicitarAgendamiento}
-                                        aria-label={`Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`}
+                                        aria-label={ctaAriaLabel}
                                         className="w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base"
                                     >
                                         <Calendar size={20} strokeWidth={2} aria-hidden="true" />
-                                        Solicitar agendamiento
+                                        {ctaLabel}
                                     </button>
                                 )}
 
@@ -1571,7 +1581,7 @@ export default function ServiceDetailView({
                     <button
                         onClick={() => setContactSheetOpen(true)}
                         aria-label={agendamientoOn
-                            ? `Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`
+                            ? ctaAriaLabel
                             : `Contactar a ${proveedor.nombre_publico || proveedor.nombre}`}
                         aria-expanded={contactSheetOpen}
                         aria-controls="mobile-action-sheet-title"
@@ -1580,7 +1590,7 @@ export default function ServiceDetailView({
                         {agendamientoOn ? (
                             <>
                                 <Calendar size={18} strokeWidth={2} aria-hidden="true" />
-                                Agendar
+                                {ctaLabelMobile}
                             </>
                         ) : (
                             <>
@@ -1618,11 +1628,11 @@ export default function ServiceDetailView({
                                 setContactSheetOpen(false);
                                 handleSolicitarAgendamiento();
                             }}
-                            aria-label={`Solicitar agendamiento con ${proveedor.nombre_publico || proveedor.nombre}`}
+                            aria-label={ctaAriaLabel}
                             className="w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm text-base"
                         >
                             <Calendar size={20} strokeWidth={2} aria-hidden="true" />
-                            Solicitar agendamiento
+                            {ctaLabel}
                         </button>
                     )}
 

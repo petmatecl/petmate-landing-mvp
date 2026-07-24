@@ -218,23 +218,23 @@ export default function MisSolicitudesPage() {
     return (
         <>
             <Head>
-                <title>Mis solicitudes | Pawnecta</title>
+                <title>Mis reservas | Pawnecta</title>
                 <meta name="robots" content="noindex" />
             </Head>
 
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                 <header className="mb-8">
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">
-                        Mis solicitudes de agendamiento
+                        Mis reservas
                     </h1>
                     <p className="text-sm text-slate-500 leading-relaxed">
-                        Aquí ves todas tus solicitudes y su estado. El proveedor responde por email; también puedes verlo aquí.
+                        Aquí ves todas tus reservas y su estado. El proveedor responde por email; también puedes verlo aquí.
                     </p>
                 </header>
 
                 {state.kind === 'loading' && (
                     <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                        <p className="text-sm text-slate-400">Cargando tus solicitudes...</p>
+                        <p className="text-sm text-slate-400">Cargando tus reservas...</p>
                     </div>
                 )}
 
@@ -245,7 +245,7 @@ export default function MisSolicitudesPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 mb-2">Completa tu perfil de tutor</h3>
                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                            Necesitas completar tu perfil de tutor antes de ver tus solicitudes.
+                            Necesitas completar tu perfil de tutor antes de ver tus reservas.
                         </p>
                         <Link
                             href="/register?rol=usuario"
@@ -262,9 +262,9 @@ export default function MisSolicitudesPage() {
                         <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Calendar size={32} />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no agendaste ningún servicio</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no tienes reservas</h3>
                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-                            Explora los servicios disponibles y solicita un agendamiento desde la ficha del que te interese.
+                            Explora los servicios disponibles y reserva desde la ficha del que te interese.
                         </p>
                         <Link
                             href="/explorar"
@@ -289,45 +289,33 @@ export default function MisSolicitudesPage() {
                 )}
             </div>
 
-            {/* Mejora B: el copy del dialog depende del estado actual de la
-                solicitud que se cancela. Cancelar una CONFIRMADA es mas
-                serio (cita acordada, proveedor reservo el horario) — texto
-                explicito + aviso de que se le manda email. */}
+            {/* Sweep #3 taxonomía: colapsados los 4 títulos de cancelación
+                a 2 casos según convención PO — "Cancelar reserva" para toda
+                confirmada (F2/F1/legacy) y "Cancelar solicitud" para pendiente.
+                Los detalles diferenciales (noches vs horario, ventana, aviso
+                al proveedor) viven en el MESSAGE — donde "estadía" y "noches"
+                sí son bienvenidos como tipo. */}
             {(() => {
                 const sol = state.kind === 'ready'
                     ? state.agendamientos.find(a => a.id === cancelDialogId)
                     : null;
                 const eraConfirmada = sol?.estado === 'confirmada';
-                // Reserva del picker (nacio confirmada, no la resolvio el
-                // proveedor). Cubre F1 (duracion_min NOT NULL) y F2
-                // (capacidad_snapshot_estadia NOT NULL). El copy cambia —
-                // la reserva se libera al instante y al proveedor le llega
-                // un aviso. Para F2 ademas mencionamos las noches en
-                // singular; el copy generico "horario" se mantiene para F1.
                 const esReservaAgendaF1 = sol?.duracion_min != null;
                 const esReservaAgendaF2 = sol?.capacidad_snapshot_estadia != null;
                 const esConfirmadaAuto = eraConfirmada && (esReservaAgendaF1 || esReservaAgendaF2);
-                const title = esReservaAgendaF2 && eraConfirmada
-                    ? 'Cancelar estadía'
-                    : esConfirmadaAuto
-                        ? 'Cancelar reserva'
-                        : eraConfirmada
-                            ? 'Cancelar cita confirmada'
-                            : '¿Cancelar esta solicitud?';
+                const title = eraConfirmada
+                    ? 'Cancelar reserva'
+                    : '¿Cancelar esta solicitud?';
                 const message = esReservaAgendaF2 && eraConfirmada
                     ? 'Vas a liberar tus noches y avisaremos al proveedor por email. Si puedes, contáctalo antes para coordinar.'
                     : esConfirmadaAuto
                         ? 'Vas a liberar tu horario y avisaremos al proveedor por email. Si puedes, contáctalo antes para coordinar.'
                         : eraConfirmada
-                            ? 'Esta cita ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
+                            ? 'Esta reserva ya fue confirmada por el proveedor. Si la cancelas ahora, le enviaremos un aviso por email. Si puedes, contáctalo directamente para coordinar.'
                             : 'Esta acción no se puede revertir. El proveedor verá que cancelaste.';
-                const confirmLabel = esReservaAgendaF2 && eraConfirmada
-                    ? 'Cancelar estadía'
-                    : esConfirmadaAuto
-                        ? 'Cancelar reserva'
-                        : eraConfirmada
-                            ? 'Cancelar cita'
-                            : 'Cancelar solicitud';
+                const confirmLabel = eraConfirmada
+                    ? 'Cancelar reserva'
+                    : 'Cancelar solicitud';
                 return (
                     <ConfirmDialog
                         open={cancelDialogId !== null}

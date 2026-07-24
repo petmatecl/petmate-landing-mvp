@@ -88,11 +88,12 @@ test.describe.serial('S6 — Cancelación dentro de ventana vía endpoint', () =
         // Click "Cancelar reserva".
         await card.getByRole('button', { name: /Cancelar reserva/i }).click();
 
-        // Dialog abre con copy F2 "Cancelar estadía" (F2-3-D).
-        await expect(page.getByRole('heading', { name: /Cancelar estadía/i })).toBeVisible({ timeout: 5_000 });
+        // Dialog abre con copy "Cancelar reserva" (sweep #3 taxonomía —
+        // toda confirmada F1/F2/legacy usa el mismo título).
+        await expect(page.getByRole('heading', { name: /Cancelar reserva/i })).toBeVisible({ timeout: 5_000 });
 
         // Confirmar en el dialog.
-        await page.getByRole('button', { name: /^Cancelar estadía$/i }).click();
+        await page.getByRole('button', { name: /^Cancelar reserva$/i }).click();
 
         // Toast success.
         await expect(page.locator('li[data-sonner-toast]').getByText(/Cancelación enviada/i).first())

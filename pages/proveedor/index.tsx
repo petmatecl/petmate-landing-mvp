@@ -2258,9 +2258,9 @@ export default function ProveedorDashboard() {
                         restringe a las del proveedor logueado. */}
                     {activeTab === 'solicitudes' && (
                         <div className="animate-in fade-in duration-300 max-w-3xl">
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Solicitudes de agendamiento</h1>
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Reservas y solicitudes</h1>
                             <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                                Confirma o rechaza las solicitudes que recibes para tus servicios con agendamiento habilitado.
+                                Aquí ves las reservas confirmadas al instante y las solicitudes que necesitan tu respuesta.
                             </p>
 
                             {solicitudes.length === 0 ? (
@@ -2268,9 +2268,9 @@ export default function ProveedorDashboard() {
                                     <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Calendar size={32} />
                                     </div>
-                                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no recibes solicitudes de agendamiento</h3>
+                                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Todavía no tienes reservas ni solicitudes</h3>
                                     <p className="text-sm text-slate-500 max-w-md mx-auto">
-                                        Las solicitudes aparecen aquí cuando algún tutor agenda en uno de tus servicios. Asegúrate de tener el toggle de agendamiento habilitado en al menos un servicio.
+                                        Aparecerán aquí cuando algún tutor reserve en uno de tus servicios. Asegúrate de tener las reservas activas en al menos un servicio.
                                     </p>
                                 </div>
                             ) : (

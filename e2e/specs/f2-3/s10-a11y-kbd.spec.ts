@@ -3,7 +3,7 @@
 // S10 — Smoke a11y de teclado post-sweep #2. Valida:
 //   (a) SolicitarAgendamientoModal (F2): Escape cierra + Tab no escapa del
 //       modal (queda dentro del container).
-//   (b) ConfirmDialog "Cancelar estadía" (F2-3-D): Escape cierra + foco
+//   (b) ConfirmDialog "Cancelar reserva" (F2-3-D): Escape cierra + foco
 //       vuelve al botón trigger al cerrar + Tab cicla entre los 2 botones.
 //
 // Cubre findings [78+78] (ConfirmDialog cascada) y [82]
@@ -50,7 +50,7 @@ function ymdEnFuturo(dias: number): string {
 // aún no está en el DOM y estos checks fallarían. Post-deploy: quitar el
 // `SKIP_UNTIL_DEPLOY = true` y volver a correr para dejarlo como regresión
 // permanente.
-const SKIP_UNTIL_DEPLOY = true;
+const SKIP_UNTIL_DEPLOY = false;
 
 test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
     let servicio: ServicioCuidadoListo;
@@ -107,7 +107,7 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
         await expect(page.getByRole('heading', { name: /Reservar estadía/i })).not.toBeVisible({ timeout: 5_000 });
     });
 
-    test('ConfirmDialog "Cancelar estadía": Escape cierra + return focus', async ({ page }) => {
+    test('ConfirmDialog "Cancelar reserva": Escape cierra + return focus', async ({ page }) => {
         await irAMisSolicitudes(page);
         const card = page.locator('article').filter({ hasText: servicio.titulo }).first();
         await expect(card).toBeVisible({ timeout: 15_000 });
@@ -118,10 +118,10 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
 
         // Dialog abre — verifico role=dialog + aria-modal via evaluate.
         // Wait explícito al heading antes del check para dar chance al mount.
-        await expect(page.getByRole('heading', { name: /Cancelar estadía/i })).toBeVisible({ timeout: 5_000 });
+        await expect(page.getByRole('heading', { name: /Cancelar reserva/i })).toBeVisible({ timeout: 5_000 });
         const check = await page.evaluate(() => {
             const headings = Array.from(document.querySelectorAll('h3'));
-            const heading = headings.find(h => /Cancelar estadía/i.test(h.textContent ?? ''));
+            const heading = headings.find(h => /Cancelar reserva/i.test(h.textContent ?? ''));
             if (!heading) return { found: false, ariaModal: null as string | null };
             const dialog = heading.closest('div[role="dialog"]');
             return {
@@ -134,7 +134,7 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
 
         // Escape cierra (loading=false en este punto).
         await page.keyboard.press('Escape');
-        await expect(page.getByRole('heading', { name: /Cancelar estadía/i })).not.toBeVisible({ timeout: 5_000 });
+        await expect(page.getByRole('heading', { name: /Cancelar reserva/i })).not.toBeVisible({ timeout: 5_000 });
 
         // Return focus: el foco vuelve al trigger "Cancelar reserva".
         // Un mini-delay para que el efecto cleanup del hook aplique focus().

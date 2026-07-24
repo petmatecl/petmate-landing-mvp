@@ -17,7 +17,7 @@ const ACTION_TEXT: Record<ExampleAction, string> = {
     evaluar: 'dejar una reseña',
     pregunta: 'hacer una pregunta',
     favorito: 'guardar en favoritos',
-    agendamiento: 'solicitar un agendamiento',
+    agendamiento: 'reservar el servicio',
 };
 
 export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAModalProps) {

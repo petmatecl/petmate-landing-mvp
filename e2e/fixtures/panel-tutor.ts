@@ -68,14 +68,17 @@ export async function abrirModalReservaEstadia(page: Page, servicioId: string): 
 
     // Botón principal del CTA de reserva en la ficha. El texto varía según
     // el estado del servicio (agenda activa vs no) y el modo (V1/V2/F2) —
-    // regex cubre "Reservar", "Solicitar agendamiento", "Reservar servicio".
-    const cta = page.getByRole('button', { name: /Reservar|Solicitar/i }).first();
+    // regex cubre "Reservar" (F1/F2 instant-book) y "Enviar solicitud"
+    // (legacy request). Sweep #3 taxonomía: el CTA "Solicitar agendamiento"
+    // fue renombrado — F1/F2 muestran "Reservar" y legacy muestra "Enviar
+    // solicitud". El heading del modal es "Reservar horario|estadía" para
+    // F1/F2 y "Solicitar servicio" para legacy.
+    const cta = page.getByRole('button', { name: /Reservar|Enviar solicitud/i }).first();
     await expect(cta).toBeVisible({ timeout: 20_000 });
     await cta.click();
 
     // Modal abierto — anchor único del modal de reserva del tutor.
-    // El título fue actualizado en F2-3-C para F2: "Reservar estadía".
-    await expect(page.getByRole('heading', { name: /Reservar (estadía|horario)|Solicitar agendamiento/i })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: /Reservar (estadía|horario)|Solicitar servicio/i })).toBeVisible({ timeout: 10_000 });
 }
 
 /**
@@ -127,7 +130,8 @@ export async function clickConfirmarReserva(page: Page): Promise<void> {
 export async function irAMisSolicitudes(page: Page) {
     await page.goto('/mis-solicitudes');
     await page.waitForLoadState('domcontentloaded');
-    // La página muestra un heading H1 "Mis solicitudes de agendamiento".
-    await expect(page.getByRole('heading', { name: /Mis solicitudes/i })).toBeVisible({ timeout: 10_000 });
+    // La página muestra un heading H1 "Mis reservas" (sweep #3). La ruta
+    // sigue siendo /mis-solicitudes (rename de ruta con redirect va a backlog).
+    await expect(page.getByRole('heading', { name: /Mis reservas/i })).toBeVisible({ timeout: 10_000 });
     return page.locator('article'); // cada card es <article>
 }

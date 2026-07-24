@@ -1595,7 +1595,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 Va PRIMERO porque es el gate del que depende la
                                 seccion de agenda real (F1) que sigue abajo. */}
                             <div className="border-t border-slate-100 py-6">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agendamiento</p>
+                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Reservas</p>
                                 <label className="flex items-start gap-3 cursor-pointer">
                                     <div className="relative shrink-0 mt-0.5">
                                         <input
@@ -1608,9 +1608,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
                                     </div>
                                     <div className="min-w-0">
-                                        <span className="text-sm text-slate-700 block">Habilitar solicitudes de agendamiento</span>
+                                        <span className="text-sm text-slate-700 block">Habilitar reservas</span>
                                         <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                            Si está habilitado, los tutores podrán solicitar agendamientos para este servicio desde la ficha pública. Confirmas o rechazas cada solicitud desde tu panel.
+                                            Si está habilitado, los tutores podrán reservar este servicio desde la ficha pública. Confirmas o rechazas cada solicitud desde tu panel.
                                         </p>
                                     </div>
                                 </label>

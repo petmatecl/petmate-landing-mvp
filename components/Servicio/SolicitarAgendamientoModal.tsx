@@ -1088,7 +1088,7 @@ export default function SolicitarAgendamientoModal({
 
             if (buscadorErr) throw buscadorErr;
             if (!buscador) {
-                setErrorMsg('Necesitas completar tu perfil de tutor antes de agendar. Regístrate como tutor para continuar.');
+                setErrorMsg('Necesitas completar tu perfil de tutor antes de reservar. Regístrate como tutor para continuar.');
                 return;
             }
 
@@ -1174,7 +1174,7 @@ export default function SolicitarAgendamientoModal({
 
             toast.success('Solicitud enviada. El proveedor te responderá pronto.', {
                 action: {
-                    label: 'Ver mis solicitudes',
+                    label: 'Ver mis reservas',
                     onClick: () => { window.location.href = '/mis-solicitudes'; },
                 },
                 duration: 8000,
@@ -1186,7 +1186,7 @@ export default function SolicitarAgendamientoModal({
             if (err?.code === '23505') {
                 setErrorMsg(
                     'Ya tienes una solicitud pendiente para este servicio. ' +
-                    'Espera a que el proveedor responda, o revisa tus solicitudes desde "Mis solicitudes".'
+                    'Espera a que el proveedor responda, o revísala desde "Mis reservas".'
                 );
                 return;
             }
@@ -1258,7 +1258,7 @@ export default function SolicitarAgendamientoModal({
                                 ? 'Reservar horario'
                                 : usaPickerEstadia
                                     ? 'Reservar estadía'
-                                    : 'Solicitar agendamiento'}
+                                    : 'Solicitar servicio'}
                         </h2>
                         <p className="text-sm text-slate-500 truncate mt-0.5">{serviceTitle}</p>
                     </div>
