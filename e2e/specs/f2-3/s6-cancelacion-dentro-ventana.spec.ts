@@ -89,11 +89,15 @@ test.describe.serial('S6 — Cancelación dentro de ventana vía endpoint', () =
         await card.getByRole('button', { name: /Cancelar reserva/i }).click();
 
         // Dialog abre con copy "Cancelar reserva" (sweep #3 taxonomía —
-        // toda confirmada F1/F2/legacy usa el mismo título).
-        await expect(page.getByRole('heading', { name: /Cancelar reserva/i })).toBeVisible({ timeout: 5_000 });
+        // toda confirmada F1/F2/legacy usa el mismo título). Post-sweep #3
+        // "Cancelar reserva" aparece también en cada card de la lista —
+        // hay que scopear al dialog para no romper con strict-mode.
+        const dialog = page.getByRole('dialog').filter({ hasText: /Cancelar reserva/i });
+        await expect(dialog).toBeVisible({ timeout: 5_000 });
 
-        // Confirmar en el dialog.
-        await page.getByRole('button', { name: /^Cancelar reserva$/i }).click();
+        // Confirmar dentro del dialog (evita colisión con los N botones
+        // "Cancelar reserva" que ahora existen en las cards).
+        await dialog.getByRole('button', { name: /^Cancelar reserva$/i }).click();
 
         // Toast success.
         await expect(page.locator('li[data-sonner-toast]').getByText(/Cancelación enviada/i).first())
