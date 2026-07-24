@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useId, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { toast, Toaster } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
@@ -7,6 +7,7 @@ import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { useUser } from '../../contexts/UserContext';
 import { categoriaAdmiteAgendaF1, esCategoriaMultiDia, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
 import { nochesEntre } from '../../lib/formatFecha';
+import { useModalDialog } from '../../lib/useModalDialog';
 
 // Fase 1 agenda con disponibilidad real — Incremento 2A.
 // Constantes del editor semanal. Duracion en minutos: opciones canonicas
@@ -1306,6 +1307,19 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const admiteEstadia = esCategoriaMultiDia(selectedCatSlug);
     const sustantivo = sustantivoAgendaPorCategoria(selectedCatSlug);
 
+    // Sweep #2 finding [82]: modal como dialog accesible. id para
+    // aria-labelledby, ref al container para focus trap del hook.
+    // El hook se llama incondicionalmente (Rules of Hooks) — internamente
+    // no hace nada si isOpen es false.
+    const titleId = useId();
+    const dialogContainerRef = useRef<HTMLDivElement>(null);
+    useModalDialog({
+        isOpen,
+        onClose,
+        blockClose: loading || fetching,
+        containerRef: dialogContainerRef,
+    });
+
     if (!isOpen) return null;
 
     const coverPreview = fotos[0] || null;
@@ -1371,13 +1385,23 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl relative my-auto">
+            <div
+                ref={dialogContainerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl relative my-auto"
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
-                    <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
+                    <h2 id={titleId} className="text-xl font-semibold text-slate-900 tracking-tight">
                         {existingServiceId ? 'Editar Servicio' : 'Publicar Nuevo Servicio'}
                     </h2>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+                    <button
+                        onClick={onClose}
+                        aria-label="Cerrar"
+                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                    >
                         <X size={20} />
                     </button>
                 </div>
@@ -1793,7 +1817,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     </button>
                                                 </div>
                                                 {excepciones.length === 0 ? (
-                                                    <p className="text-xs text-slate-300 italic py-2">Sin excepciones futuras. Agrega una si tienes vacaciones o días bloqueados puntuales.</p>
+                                                    <p className="text-xs text-slate-500 italic py-2">Sin excepciones futuras. Agrega una si tienes vacaciones o días bloqueados puntuales.</p>
                                                 ) : (
                                                     <div className="space-y-3">
                                                         {excepciones.map((e, i) => {
@@ -2063,7 +2087,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                     </button>
                                                 </div>
                                                 {blackouts.length === 0 ? (
-                                                    <p className="text-xs text-slate-300 italic py-2">Sin bloqueos. Agrega uno si tienes vacaciones en Pucón, un feriado largo o cualquier fecha en la que no puedes recibir estadías.</p>
+                                                    <p className="text-xs text-slate-500 italic py-2">Sin bloqueos. Agrega uno si tienes vacaciones en Pucón, un feriado largo o cualquier fecha en la que no puedes recibir estadías.</p>
                                                 ) : (
                                                     <div className="space-y-3">
                                                         {blackouts.map((b, i) => {

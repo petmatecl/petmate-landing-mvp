@@ -23,10 +23,11 @@
 //   - fechas se resetean (el shape cambia: date vs datetime, etc.). Lo
 //     hacemos via useEffect deps modalidadElegida + modoTarifa.
 // ----------------------------------------------------------------------------
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Calendar, X, Loader2, MapPin, Home, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
+import { useModalDialog } from '../../lib/useModalDialog';
 import {
     esCategoriaMultiDia,
     esModalidadValida,
@@ -601,6 +602,17 @@ export default function SolicitarAgendamientoModal({
         reset();
         onClose();
     };
+
+    // Sweep #2 finding [82]: accesibilidad del modal como dialog — id para
+    // aria-labelledby, ref al container para el focus trap del hook.
+    const titleId = useId();
+    const dialogContainerRef = useRef<HTMLDivElement>(null);
+    useModalDialog({
+        isOpen,
+        onClose: handleClose,
+        blockClose: submitting,
+        containerRef: dialogContainerRef,
+    });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1229,12 +1241,18 @@ export default function SolicitarAgendamientoModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden relative max-h-[95vh] flex flex-col">
+            <div
+                ref={dialogContainerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden relative max-h-[95vh] flex flex-col"
+            >
 
                 {/* Header */}
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-start gap-3 shrink-0">
                     <div className="min-w-0">
-                        <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <h2 id={titleId} className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                             <Calendar size={20} className="text-accent-600 shrink-0" />
                             {usaPicker
                                 ? 'Reservar horario'

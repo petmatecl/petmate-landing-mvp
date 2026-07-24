@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Resolver evaluacion completa desde BD.
         const { data: ev, error: evErr } = await supabase
             .from('evaluaciones')
-            .select('id, usuario_id, servicio_id, rating, comentario, estado')
+            .select('id, usuario_id, servicio_id, proveedor_id, rating, comentario, estado')
             .eq('id', evaluacionId)
             .maybeSingle();
 
@@ -72,6 +72,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 evaluacionUsuarioId: ev.usuario_id,
             });
             return res.status(403).json({ error: 'Forbidden' });
+        }
+
+        // Sweep #2 mini-fix [72]: cross-check servicio.proveedor_id ↔
+        // evaluacion.proveedor_id. Si el par es incoherente (evaluación
+        // apunta a un proveedor distinto del dueño del servicio), rechazo
+        // antes de auto-moderar. Complementa el fix de contactos/track:
+        // aunque ahí ya validamos el par al insertar el contacto, este es
+        // el gate autoritativo del auto-moderador.
+        const { data: servicio } = await supabase
+            .from('servicios_publicados')
+            .select('proveedor_id')
+            .eq('id', ev.servicio_id)
+            .maybeSingle();
+        if (!servicio || servicio.proveedor_id !== ev.proveedor_id) {
+            console.warn('[auto-moderar] par incoherente servicio↔proveedor', {
+                evaluacionId,
+                servicioId: ev.servicio_id,
+            });
+            return res.status(200).json({ autoApproved: false, reason: 'par_incoherente' });
         }
 
         // No re-moderar — si ya esta aprobada / rechazada, skip silencioso.

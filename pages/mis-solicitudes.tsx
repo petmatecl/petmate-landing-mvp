@@ -243,7 +243,7 @@ export default function MisSolicitudesPage() {
                         <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Calendar size={32} />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Completá tu perfil de tutor</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Completa tu perfil de tutor</h3>
                         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
                             Necesitas completar tu perfil de tutor antes de ver tus solicitudes.
                         </p>

@@ -73,6 +73,20 @@ lib/
 
 - NO emojis en la UI — solo iconos Lucide monocromaticos
 - **Español chileno en todo el copy visible al usuario** (UI, emails, toasts, dialogs, placeholders, hints, error messages): **tú (nunca vos ni voseo)**. Imperativos en tú: `elige` (no `elegí`), `describe` (no `describí`), `agrega` (no `agregá`), `contáctalo` (no `contactalo`), `puedes` (no `podés`), `tienes` (no `tenés`), `necesitas` (no `necesitás`), `crea` (no `creá`), `verifica` (no `verificá`), `recarga` (no `recargá`), `vuelve` (no `volvé`), `explora` (no `explorá`), `solicita` (no `solicitá`). Etiquetas: "Cancelada por ti" (no "por vos"). Chilenismos suaves OK, argentinismos NO. Solo aplica a strings visibles al usuario — código/variables/comentarios pueden usar cualquier registro.
+
+  **Verificación anti-voseo (pasada de sanity)**: dos capas complementarias:
+  1. **Blacklist específica** (rápida, cero falsos positivos):
+     ```
+     Grep pattern: \b(agregá|cambiá|elegí|verificá|recargá|activá|publicá|hablá|contá|revisá|escribí|enviá|mostrá|guardá|querés|tenés|podés|sos|hacé|dale|vení|comé|entrá|ingresá|marcá|cargá)\b
+     Glob: **/*.{ts,tsx}
+     ```
+     Cualquier match es voseo real. Correr después de cambios grandes de copy o durante audits.
+  2. **Regex genérica** (exhaustiva, requiere filtrado manual):
+     ```
+     Grep pattern: \b[A-Za-záéíóúñÁÉÍÓÚÑ]+(á|é|í)\b
+     Glob: **/*.tsx (limitado a components/ y pages/ — donde vive el copy)
+     ```
+     Barrido con lista blanca a descartar mentalmente: adverbios tildados (`aquí`, `ahí`, `allá`, `así`, `además`, `jamás`, `quizá`, `aún`), nombres propios (`José`, `María`, `René`, `Andrés`), verbos 3sg/futuro/pretérito 1sg válidos en tuteo (`está`, `será`, `verá`, `podrá`, `recibirá`, `enviará`, `notificaremos`, `agradecí`), imperativo `sé` del verbo ser (`sé el primero`), interrogativas (`qué`, `cuál`), sustantivos tildados (`café`, `día`, `país`, `Miércoles`, `Sábado`, `sí`, `té`). Si algo queda tras filtrar, es candidato — verificar contexto antes de fixear.
 - NO `type="url"` en inputs — usar `type="text"` (acepta www. sin https://)
 - Precios siempre con separador de miles (toLocaleString('es-CL'))
 - Precios siempre dicen "Desde" antes del monto
@@ -216,8 +230,10 @@ Vulnerabilities reportadas por `npm audit` se filtran por exploitability en nues
 **Backlog ordinario post-launch** (defer aceptado):
 - Reemplazar `next-pwa@5.6.0` por `@ducanh2912/next-pwa` (fork activo) — cierra cadena de 7 highs build-time (workbox-build, workbox-webpack-plugin, serialize-javascript, rollup-plugin-terser, lodash, picomatch, @babel/plugin-transform-modules-systemjs).
 - `npm install ws@^8.21.0` con override — cierra moderate de uninitialized memory disclosure (advisory cubre hasta 8.20.0; fix en 8.21). Marginal (memory leak hacia Supabase Realtime, mitigado por TLS), pero un override es no-op a nivel app code — sólo upgrade del binario ws.
-- `npm install postcss@^8.5.10` override + bump root — cierra moderate XSS via `</style>` (next 14.2.35 sigue trayendo postcss 8.4.31, así que el bump de next NO cerró postcss colateralmente). Build-time, no recibe user input → riesgo real ≈ 0.
+- `npm install postcss@^8.5.10` override + bump root — cierra moderate XSS via `</style>` (next 14.2.31 sigue trayendo postcss 8.4.31, así que el bump de next NO cerró postcss colateralmente). Build-time, no recibe user input → riesgo real ≈ 0.
 - `npm install supabase@latest` (dev CLI) — cierra tar path traversal.
+- **Migrar `/api/push/send` al patrón id-only** al activar `NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS`. Hoy el endpoint usa `verifyInternalSecret` (server-to-server) pero el único caller que existía (MessageThread.tsx) llamaba desde el browser — siempre 403. El fetch fue removido en el sweep #2 (finding [86]). Al reactivar push notifications: reescribir push/send con `verifySession` + resolver recipient via relación `conversations`/`agendamientos` + validar ownership (mismo patrón que notify-* de Sprint 3). Sin ese refactor, el endpoint es unusable desde client.
+- **Rediseño del gate anti-review-spam** (referencia auditoría 20260723 finding [72]): hoy `ReviewModal.tsx` gatea el submit por count de filas en `contactos` matcheando `auth_user_id + servicio_id`. El sweep #2 cerró el vector `contactos/track` con par `servicio ↔ proveedor` incoherente, pero el vector real "atacante autenticado abre chat trivial con proveedor → dispara `conversations` row → auto-moderar cuenta contacto real" sigue abierto. Auto-moderar deja el review en pendiente pero eventualmente puede aprobar sin evidencia sólida de servicio. Fix real: mover el gate a evidencia fuerte de servicio consumado (`agendamientos.estado = 'confirmada' AND fecha_pasada`), y en su ausencia, moderación humana estricta antes de publicar. Sprint dedicado post-launch.
 
 ## MCPs con acceso a servicios (staging + Vercel)
 

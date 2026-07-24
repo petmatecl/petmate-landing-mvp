@@ -271,18 +271,14 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     link: `/mensajes?id=${conversationId}`,
                 }).catch(console.error);
 
-                if (!isRecipientOnline) {
-                    fetch('/api/push/send', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            userId: otherUser.auth_user_id,
-                            title: 'Nuevo mensaje en Pawnecta',
-                            message: `${myUser?.nombre || 'Un usuario'} te ha escrito: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
-                            url: `/mensajes?id=${conversationId}`
-                        })
-                    }).catch(console.error);
-                }
+                // Sweep #2 finding [86]: el fetch a /api/push/send fue
+                // removido. El endpoint valida verifyInternalSecret (S2S) y
+                // siempre respondia 403 desde browser — feature muerta que
+                // solo ensuciaba Vercel logs con 403s. La activacion real de
+                // push notifications requiere migrar push/send al patron
+                // id-only (bearer + resolver recipient via relacion). Ver
+                // CLAUDE.md > backlog > "Migrar /api/push/send al patron
+                // id-only al activar NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS".
             }
 
             // Replace optimistic message with real one
