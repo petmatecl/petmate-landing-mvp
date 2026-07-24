@@ -275,6 +275,8 @@ Claude Code (VS Code) → commit + push a main → Vercel deploy automático
 Rama principal: main
 Supabase Management API con PAT para migraciones directas
 
+**Criterio de cierre de commit — REGLA PERMANENTE**: `npm run build` local debe salir con **exit 0** antes de cualquier `git commit` que toque `.ts` / `.tsx`. `tsc --noEmit` por sí solo NO alcanza: `next build` corre además ESLint con reglas duras (`react-hooks/rules-of-hooks`, `react/*`) que rompen el build en Vercel pero **no aparecen en `tsc`**. Incidente que originó esta regla: dos sweeps consecutivos (`d218b70`, `275cf2e` — 24-07-26) fallaron el build silente por hooks tras un `if (!isOpen) return null`; los tsc locales dieron verde, las suites e2e también (porque corrían contra el deploy anterior aparentando verde), y staging quedó ~3h atrás del código. `npm run build` local hubiera atrapado el error en el primer commit.
+
 ## Database migrations
 
 Las migrations SQL viven en `migrations/*.sql`. Se aplican manualmente al proyecto Supabase vía Management API o PSQL ad-hoc — NO hay supabase CLI con migrations versionadas integrado.

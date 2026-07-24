@@ -448,6 +448,28 @@ export default function SolicitarAgendamientoModal({
         return () => controller.abort();
     }, [isOpen, usaPickerEstadia, servicioId, pickerEstMesActual]);
 
+    // Sweep #2 finding [82]: accesibilidad del modal como dialog — id para
+    // aria-labelledby, ref al container para el focus trap del hook.
+    // Los hooks van ANTES del early return `if (!isOpen)` para respetar
+    // Rules of Hooks (fix del build fail en Vercel — ambos hooks debajo
+    // del return violaban la regla y ESLint mataba el build). Mismo patrón
+    // que ServiceFormModal.tsx.
+    //
+    // Para el onClose usamos una lambda con captura tardía: `handleClose`
+    // se define más abajo (usa `reset` que también vive debajo por
+    // cantidad de state). El lambda no evalúa `handleClose` en render —
+    // solo cuando el usuario presiona Escape (dentro del useEffect del
+    // hook, corrido después del render), en cuyo punto `handleClose` ya
+    // está definida en scope.
+    const titleId = useId();
+    const dialogContainerRef = useRef<HTMLDivElement>(null);
+    useModalDialog({
+        isOpen,
+        onClose: () => handleClose(),
+        blockClose: submitting,
+        containerRef: dialogContainerRef,
+    });
+
     if (!isOpen) return null;
 
     const variante = getVarianteFormulario(categoriaSlug, modalidadElegida, modoTarifa);
@@ -602,17 +624,9 @@ export default function SolicitarAgendamientoModal({
         reset();
         onClose();
     };
-
-    // Sweep #2 finding [82]: accesibilidad del modal como dialog — id para
-    // aria-labelledby, ref al container para el focus trap del hook.
-    const titleId = useId();
-    const dialogContainerRef = useRef<HTMLDivElement>(null);
-    useModalDialog({
-        isOpen,
-        onClose: handleClose,
-        blockClose: submitting,
-        containerRef: dialogContainerRef,
-    });
+    // Los hooks de accesibilidad del modal (useId + useRef + useModalDialog)
+    // están arriba del early return `if (!isOpen)` — ver bloque comentado
+    // en el header del componente.
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
