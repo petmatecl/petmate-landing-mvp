@@ -189,6 +189,50 @@ export function formatPuntualConDuracion(
 }
 
 /**
+ * "Viernes 31 de julio" — solo fecha, sin hora ni duración. Para el layout
+ * de listado del recordatorio (fila "Fecha" separada de "Hora").
+ */
+export function formatFechaSinHora(input: Date | string | null | undefined): string {
+    if (!input) return 'sin fecha';
+    const d = input instanceof Date ? input : new Date(input);
+    if (Number.isNaN(d.getTime())) return 'sin fecha';
+    const p = partsChile(d);
+    return `${capitalizarPrimera(p.weekday)} ${p.day} de ${p.month}`;
+}
+
+/**
+ * "14:00" — solo hora corta HH:MM en TZ Chile. Para reservas legacy V1
+ * puntuales que solo tienen hora de inicio sin duración.
+ */
+export function formatHoraCorta(input: Date | string | null | undefined): string {
+    if (!input) return '';
+    const d = input instanceof Date ? input : new Date(input);
+    if (Number.isNaN(d.getTime())) return '';
+    const p = partsChile(d);
+    return `${p.hour}:${p.minute}`;
+}
+
+/**
+ * "de 14:00 a 15:00 · 1 hora" — solo la parte de hora + duración de una
+ * reserva F1/V4b. Sin fecha ni día de la semana (esa va en fila separada
+ * del listado). El cruce de día local se pinta "23:30 a 00:30" (igual
+ * criterio que formatBloqueHorario).
+ */
+export function formatBloqueHorarioSinFecha(
+    fechaInicio: Date | string | null | undefined,
+    duracionMin: number | null | undefined
+): string {
+    if (!fechaInicio || duracionMin == null || duracionMin < 1) return '';
+    const inicio = fechaInicio instanceof Date ? fechaInicio : new Date(fechaInicio);
+    if (Number.isNaN(inicio.getTime())) return '';
+    const fin = new Date(inicio.getTime() + Math.floor(duracionMin) * 60_000);
+    const pi = partsChile(inicio);
+    const pf = partsChile(fin);
+    const duracionFmt = formatDuracionMinutos(duracionMin);
+    return `de ${pi.hour}:${pi.minute} a ${pf.hour}:${pf.minute} · ${duracionFmt}`;
+}
+
+/**
  * Formatea una duración en minutos como legible en español chileno tuteo.
  * Ejemplos:
  *   30 → "30 minutos"

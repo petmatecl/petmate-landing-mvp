@@ -18,6 +18,9 @@ import {
     formatFechaServicioInline,
     formatBloqueHorario,
     formatDuracionMinutos,
+    formatFechaSinHora,
+    formatHoraCorta,
+    formatBloqueHorarioSinFecha,
 } from './formatFecha';
 
 let passed = 0;
@@ -249,6 +252,80 @@ assertEq('bloque null fecha', formatBloqueHorario(null, 60), 'sin fecha');
 assertEq('bloque null duracion', formatBloqueHorario('2026-07-04T18:00:00+00:00', null), 'sin fecha');
 assertEq('bloque duracion 0', formatBloqueHorario('2026-07-04T18:00:00+00:00', 0), 'sin fecha');
 assertEq('bloque fecha invalida', formatBloqueHorario('not-a-date', 60), 'sin fecha');
+
+console.log('\n─── formatFechaSinHora (solo fecha, listado del recordatorio) ───');
+
+// Invierno CLT UTC-4.
+assertEq(
+    'invierno (2026-07-04T18Z = sabado)',
+    formatFechaSinHora('2026-07-04T18:00:00+00:00'),
+    'Sábado 4 de julio'
+);
+// Verano CLST UTC-3.
+assertEq(
+    'verano (2026-12-15T15Z = martes)',
+    formatFechaSinHora('2026-12-15T15:00:00+00:00'),
+    'Martes 15 de diciembre'
+);
+// Cruce UTC→Chile: lunes 22:00 Chile.
+assertEq(
+    'cruce UTC→Chile (lunes 27)',
+    formatFechaSinHora('2026-07-28T02:00:00+00:00'),
+    'Lunes 27 de julio'
+);
+assertEq('null', formatFechaSinHora(null), 'sin fecha');
+assertEq('invalida', formatFechaSinHora('not-a-date'), 'sin fecha');
+
+console.log('\n─── formatHoraCorta (solo HH:MM Chile) ───');
+
+assertEq(
+    'invierno CLT (18Z = 14:00 Chile)',
+    formatHoraCorta('2026-07-04T18:00:00+00:00'),
+    '14:00'
+);
+assertEq(
+    'verano CLST (15Z = 12:00 Chile)',
+    formatHoraCorta('2026-12-15T15:00:00+00:00'),
+    '12:00'
+);
+assertEq(
+    'cruce UTC→Chile (2026-07-28T02Z = 22:00 Chile)',
+    formatHoraCorta('2026-07-28T02:00:00+00:00'),
+    '22:00'
+);
+assertEq('null', formatHoraCorta(null), '');
+assertEq('invalida', formatHoraCorta('not-a-date'), '');
+
+console.log('\n─── formatBloqueHorarioSinFecha (hora + duración, sin fecha) ───');
+
+assertEq(
+    '1h invierno (14:00-15:00)',
+    formatBloqueHorarioSinFecha('2026-07-04T18:00:00+00:00', 60),
+    'de 14:00 a 15:00 · 1 hora'
+);
+assertEq(
+    '30 min',
+    formatBloqueHorarioSinFecha('2026-07-04T18:00:00+00:00', 30),
+    'de 14:00 a 14:30 · 30 minutos'
+);
+assertEq(
+    '90 min (1h 30min)',
+    formatBloqueHorarioSinFecha('2026-07-04T18:00:00+00:00', 90),
+    'de 14:00 a 15:30 · 1 hora 30 minutos'
+);
+assertEq(
+    'cruce día local (23:30 + 60 = 00:30)',
+    formatBloqueHorarioSinFecha('2026-07-05T03:30:00+00:00', 60),
+    'de 23:30 a 00:30 · 1 hora'
+);
+assertEq(
+    'verano 3h (12:00 → 15:00)',
+    formatBloqueHorarioSinFecha('2026-12-15T15:00:00+00:00', 180),
+    'de 12:00 a 15:00 · 3 horas'
+);
+assertEq('null fecha', formatBloqueHorarioSinFecha(null, 60), '');
+assertEq('null duracion', formatBloqueHorarioSinFecha('2026-07-04T18:00:00+00:00', null), '');
+assertEq('duracion 0', formatBloqueHorarioSinFecha('2026-07-04T18:00:00+00:00', 0), '');
 
 console.log(`\n${passed} pass, ${failed} fail`);
 process.exit(failed > 0 ? 1 : 0);

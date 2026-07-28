@@ -288,6 +288,7 @@ const setsCancelacion: Set[] = [
 // ────────────────────────────────────────────────────────────────────────────
 const setsRecordatorio: Set[] = [
     // -- Tutor × 3 familias --
+    // tutor F1: paseo, sin dirección estructurada (típico F1) → fallback comuna del servicio.
     {
         name: 'recordatorio-tutor-F1',
         element: React.createElement(RecordatorioReservaEmail as any, {
@@ -296,13 +297,16 @@ const setsRecordatorio: Set[] = [
             nombreDestinatario: 'Camila',
             nombreOtro: 'Aldo',
             servicioTitulo: 'Paseo dinámico 60 min',
-            fechaLegible: 'Viernes 31 de julio, de 14:00 a 15:00 · 1 hora',
+            fechaLinea: 'Viernes 31 de julio',
+            horaLinea: 'de 14:00 a 15:00 · 1 hora',
             checkInHora: null,
             checkOutHora: null,
+            donde: 'En Providencia',
             copyCancelacion: 'Si necesitas cancelar, hazlo desde Mis reservas.',
             panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
         }),
     },
+    // tutor F2 dentro ventana + casa_tutor (dirección estructurada del tutor).
     {
         name: 'recordatorio-tutor-F2-dentro-ventana',
         element: React.createElement(RecordatorioReservaEmail as any, {
@@ -310,14 +314,17 @@ const setsRecordatorio: Set[] = [
             familia: 'F2',
             nombreDestinatario: 'Camila',
             nombreOtro: 'Eduardo',
-            servicioTitulo: 'Cuidado por noches',
-            fechaLegible: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            servicioTitulo: 'Cuidado a domicilio del tutor',
+            fechaLinea: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            horaLinea: null,
             checkInHora: '15:00',
             checkOutHora: '11:00',
+            donde: 'Los Leones 123, Providencia, Metropolitana',
             copyCancelacion: 'Si necesitas cancelar, hazlo desde Mis reservas.',
             panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
         }),
     },
+    // tutor F2 fuera ventana + casa_cuidador (fallback comuna).
     {
         name: 'recordatorio-tutor-F2-fuera-ventana',
         element: React.createElement(RecordatorioReservaEmail as any, {
@@ -325,14 +332,17 @@ const setsRecordatorio: Set[] = [
             familia: 'F2',
             nombreDestinatario: 'Camila',
             nombreOtro: 'Eduardo',
-            servicioTitulo: 'Cuidado por noches',
-            fechaLegible: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            servicioTitulo: 'Cuidado en casa del cuidador',
+            fechaLinea: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            horaLinea: null,
             checkInHora: '15:00',
             checkOutHora: '11:00',
+            donde: 'En Ñuñoa',
             copyCancelacion: 'Contacta a Eduardo por chat para coordinar cambios (ya no puedes cancelar desde Mis reservas).',
             panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
         }),
     },
+    // tutor legacy V1: puntual con hora, sin dirección ni comuna → fallback chat.
     {
         name: 'recordatorio-tutor-legacy-V1puntual',
         element: React.createElement(RecordatorioReservaEmail as any, {
@@ -341,14 +351,17 @@ const setsRecordatorio: Set[] = [
             nombreDestinatario: 'Camila',
             nombreOtro: 'Aldo',
             servicioTitulo: 'Consulta veterinaria a domicilio',
-            fechaLegible: 'Viernes 31 de julio, 15:00',
+            fechaLinea: 'Viernes 31 de julio',
+            horaLinea: '15:00',
             checkInHora: null,
             checkOutHora: null,
+            donde: 'Se coordina por chat con Aldo',
             copyCancelacion: 'Si necesitas cancelar, hazlo desde Mis reservas.',
             panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
         }),
     },
     // -- Proveedor × 3 familias (sin copyCancelacion) --
+    // proveedor F1: paseo, comuna del servicio.
     {
         name: 'recordatorio-proveedor-F1',
         element: React.createElement(RecordatorioReservaEmail as any, {
@@ -357,13 +370,17 @@ const setsRecordatorio: Set[] = [
             nombreDestinatario: 'Aldo',
             nombreOtro: 'Camila Figueroa',
             servicioTitulo: 'Paseo dinámico 60 min',
-            fechaLegible: 'Viernes 31 de julio, de 14:00 a 15:00 · 1 hora',
+            fechaLinea: 'Viernes 31 de julio',
+            horaLinea: 'de 14:00 a 15:00 · 1 hora',
             checkInHora: null,
             checkOutHora: null,
+            donde: 'En Providencia',
             copyCancelacion: null,
             panelUrl: 'https://www.pawnecta.com/proveedor?tab=solicitudes',
         }),
     },
+    // proveedor F2 casa_tutor: dirección estructurada del tutor — CRÍTICA
+    // (el proveedor la necesita para llegar).
     {
         name: 'recordatorio-proveedor-F2',
         element: React.createElement(RecordatorioReservaEmail as any, {
@@ -371,14 +388,17 @@ const setsRecordatorio: Set[] = [
             familia: 'F2',
             nombreDestinatario: 'Eduardo',
             nombreOtro: 'Camila Figueroa',
-            servicioTitulo: 'Cuidado por noches',
-            fechaLegible: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            servicioTitulo: 'Cuidado a domicilio del tutor',
+            fechaLinea: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            horaLinea: null,
             checkInHora: '15:00',
             checkOutHora: '11:00',
+            donde: 'Los Leones 123, Providencia, Metropolitana',
             copyCancelacion: null,
             panelUrl: 'https://www.pawnecta.com/proveedor?tab=solicitudes',
         }),
     },
+    // proveedor legacy V1: sin dirección → fallback chat.
     {
         name: 'recordatorio-proveedor-legacy-V1puntual',
         element: React.createElement(RecordatorioReservaEmail as any, {
@@ -387,9 +407,11 @@ const setsRecordatorio: Set[] = [
             nombreDestinatario: 'Aldo',
             nombreOtro: 'Camila Figueroa',
             servicioTitulo: 'Consulta veterinaria a domicilio',
-            fechaLegible: 'Viernes 31 de julio, 15:00',
+            fechaLinea: 'Viernes 31 de julio',
+            horaLinea: '15:00',
             checkInHora: null,
             checkOutHora: null,
+            donde: 'Se coordina por chat con Camila Figueroa',
             copyCancelacion: null,
             panelUrl: 'https://www.pawnecta.com/proveedor?tab=solicitudes',
         }),

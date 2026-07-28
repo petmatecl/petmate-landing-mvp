@@ -53,7 +53,11 @@ import type React from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { skipIfNonProd } from '../../../lib/cronGuard';
-import { formatBloqueHorario, formatRangoNoches, formatFechaPreferida, ymdChile } from '../../../lib/formatFecha';
+import {
+    formatRangoNoches, ymdChile,
+    formatFechaSinHora, formatHoraCorta, formatBloqueHorarioSinFecha,
+} from '../../../lib/formatFecha';
+import { formatDireccionLinea } from '../../../lib/formatDireccion';
 import { RecordatorioReservaEmail } from '../../../components/Emails/RecordatorioReservaEmail';
 
 const BATCH_LIMIT = 30;
@@ -72,15 +76,18 @@ type Elegible = {
     servicioTitulo: string;
     familia: Familia;
     fechaInicioIso: string;
-    fechaLegible: string;
+    // R4.1 — layout de listado del template. El endpoint arma los strings
+    // finales según familia; el template solo pinta.
+    fechaLinea: string;              // "Viernes 31 de julio" / "Del ... al ... (N noches)"
+    horaLinea: string | null;        // "de 14:00 a 15:00 · 1 hora" / "15:00" / null (F2 o legacy sin hora)
+    donde: string;                   // dirección estructurada / "En {comuna}" / fallback chat
     tutor: Persona;
     proveedor: Persona;
     dentroVentana: boolean;
     cancelacionMinHoras: number;
     necesitaTutor: boolean;
     necesitaProveedor: boolean;
-    // R4 — pasados al template. F2 los renderiza como bloque check-in/out;
-    // F1/legacy quedan sin usar (esRango=false en el template).
+    // F2 renderiza check-in/out en el listado; F1/legacy los ignora.
     checkInHora: string | null;
     checkOutHora: string | null;
 };
@@ -126,10 +133,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .select(`
                 id, servicio_id, fecha_preferida, fecha_fin, duracion_min,
                 duracion_horas, capacidad_snapshot_estadia,
+                modalidad_elegida,
+                direccion_servicio, region, comuna, calle, numero, direccion_info,
                 recordatorio_tutor_enviado_at, recordatorio_proveedor_enviado_at,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, auth_user_id),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, nombre, auth_user_id),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes, check_in_hora, check_out_hora)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes, check_in_hora, check_out_hora, comunas_cobertura)
             `)
             .eq('estado', 'confirmada')
             .gte('fecha_preferida', ventanaMinIso)
@@ -187,21 +196,61 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const inicioYmdChile = ymdChile(new Date(c.fecha_preferida));
             if (inicioYmdChile !== tomorrowYmdChile) continue;
 
-            // Copy de fecha según familia. F2 usa rango de noches; F1/V4b
-            // usan bloque horario nuevo (formatBloqueHorario del R2); V2/V4a
-            // legacy multi-día usa rango de noches; V1 puntual usa formato
-            // largo con hora.
-            let fechaLegible: string;
+            // Layout de listado R4.1 — el endpoint arma fechaLinea (siempre)
+            // y horaLinea (opcional, según familia). El template pinta cada
+            // fila separada. F2 usa el bloque check-in/out en vez de horaLinea.
+            let fechaLinea: string;
+            let horaLinea: string | null;
             if (familia === 'F2') {
-                fechaLegible = formatRangoNoches(c.fecha_preferida, c.fecha_fin);
+                fechaLinea = formatRangoNoches(c.fecha_preferida, c.fecha_fin);
+                horaLinea = null;   // F2 usa bloque check-in/out en el template
             } else if (familia === 'F1') {
-                fechaLegible = formatBloqueHorario(c.fecha_preferida, c.duracion_min);
+                fechaLinea = formatFechaSinHora(c.fecha_preferida);
+                horaLinea = formatBloqueHorarioSinFecha(c.fecha_preferida, c.duracion_min);
             } else if (c.duracion_horas) {
-                fechaLegible = formatBloqueHorario(c.fecha_preferida, c.duracion_horas * 60);
+                // legacy V4b: por horas
+                fechaLinea = formatFechaSinHora(c.fecha_preferida);
+                horaLinea = formatBloqueHorarioSinFecha(c.fecha_preferida, c.duracion_horas * 60);
             } else if (c.fecha_fin) {
-                fechaLegible = formatRangoNoches(c.fecha_preferida, c.fecha_fin);
+                // legacy V2/V4a: rango de noches sin picker F2
+                fechaLinea = formatRangoNoches(c.fecha_preferida, c.fecha_fin);
+                horaLinea = null;
             } else {
-                fechaLegible = formatFechaPreferida(c.fecha_preferida);
+                // legacy V1: puntual con hora, sin duración
+                fechaLinea = formatFechaSinHora(c.fecha_preferida);
+                horaLinea = formatHoraCorta(c.fecha_preferida);
+            }
+
+            // Cascada del bloque "Dónde":
+            //   1. formatDireccionLinea (estructurada Ola 1 o direccion_servicio
+            //      legacy) — solo se puebla cuando modalidad_elegida='casa_tutor',
+            //      pero el helper hace fallback graceful. Crítico para
+            //      variante proveedor con servicio a domicilio.
+            //   2. Primera comuna de servicio.comunas_cobertura → "En {comuna}"
+            //      (F1/F2 sin dirección: paseos/hospedaje en recinto del proveedor).
+            //   3. Fallback: "Se coordina por chat con {nombre}" (el otro se
+            //      resuelve por destinatario — al enviar).
+            // El "nombreOtro" del fallback se resuelve en enviarRecordatorio()
+            // porque depende del destinatario. Acá emitimos un placeholder
+            // `__CHAT_CON_OTRO__` que enviarRecordatorio reemplaza.
+            const direccion = formatDireccionLinea({
+                region: c.region,
+                comuna: c.comuna,
+                calle: c.calle,
+                numero: c.numero,
+                direccion_info: c.direccion_info,
+                direccion_servicio: c.direccion_servicio,
+            });
+            const comunasCobertura: string[] = Array.isArray(servicio.comunas_cobertura)
+                ? servicio.comunas_cobertura
+                : [];
+            let donde: string;
+            if (direccion) {
+                donde = direccion;
+            } else if (comunasCobertura.length > 0) {
+                donde = `En ${comunasCobertura[0]}`;
+            } else {
+                donde = '__CHAT_CON_OTRO__';
             }
 
             // Ventana de cancelación server-side. F2 tiene enforcement (RLS
@@ -235,7 +284,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 servicioTitulo: servicio.titulo || 'tu servicio',
                 familia,
                 fechaInicioIso: c.fecha_preferida,
-                fechaLegible,
+                fechaLinea,
+                horaLinea,
+                donde,
                 tutor: {
                     authId: tutor.auth_user_id,
                     nombre: tutor.nombre || 'Hola',
@@ -268,7 +319,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 sample: elegibles.slice(0, 10).map(e => ({
                     agendamientoId: e.agendamientoId,
                     familia: e.familia,
-                    fechaLegible: e.fechaLegible,
+                    fechaLinea: e.fechaLinea,
+                    horaLinea: e.horaLinea,
+                    donde: e.donde,       // '__CHAT_CON_OTRO__' si fallback (se reemplaza al enviar)
                     dentroVentana: e.dentroVentana,
                     envios: {
                         tutor: { necesita: e.necesitaTutor, tieneEmail: !!e.tutor.email },
@@ -380,6 +433,12 @@ async function enviarRecordatorio(
             : `Si necesitas cancelar, hazlo desde Mis reservas.`)
         : null;
 
+    // Resolver el placeholder del fallback "Dónde" con el nombre del OTRO
+    // (depende del destinatario del email; se resuelve acá, no en el refino).
+    const donde = e.donde === '__CHAT_CON_OTRO__'
+        ? `Se coordina por chat con ${nombreOtro}`
+        : e.donde;
+
     await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to,
@@ -390,9 +449,11 @@ async function enviarRecordatorio(
             nombreDestinatario,
             nombreOtro,
             servicioTitulo: e.servicioTitulo,
-            fechaLegible: e.fechaLegible,
+            fechaLinea: e.fechaLinea,
+            horaLinea: e.horaLinea,
             checkInHora: e.checkInHora,
             checkOutHora: e.checkOutHora,
+            donde,
             copyCancelacion,
             panelUrl,
         }) as React.ReactElement,
@@ -405,7 +466,10 @@ async function enviarRecordatorio(
         user_id: esTutor ? e.tutor.authId : e.proveedor.authId,
         type: 'info',
         title: subject,
-        message: `${e.servicioTitulo} — ${e.fechaLegible}`,
+        // Notif in-app compacta: "Servicio — Fecha [· Hora si aplica]".
+        message: e.horaLinea
+            ? `${e.servicioTitulo} — ${e.fechaLinea} · ${e.horaLinea}`
+            : `${e.servicioTitulo} — ${e.fechaLinea}`,
         link: panelPath,
         metadata: {
             agendamiento_id: e.agendamientoId,

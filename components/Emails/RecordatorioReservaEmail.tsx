@@ -1,23 +1,25 @@
 import * as React from 'react';
 import { Html, Head, Preview, Body, Container, Section, Text, Button, Hr, Img } from '@react-email/components';
 
-// TREN RECORDATORIOS DE CITA — R4: template único con branching por props.
+// TREN RECORDATORIOS DE CITA — R4.1: template único con branching por props
+// y LAYOUT DE LISTADO etiqueta/valor escaneable (feedback PO revisión visual).
 //
 // UN componente cubre las 6 combinaciones (2 destinatarios × 3 familias):
 //   destinatario ∈ { tutor, proveedor }
 //   familia      ∈ { F1, F2, legacy }
 //
-// El endpoint (R3, pages/api/cron/recordatorio-reserva.ts) resuelve la
-// familia por semáforos canónicos F2-3-B (capacidad_snapshot_estadia
-// para F2, duracion_min para F1, else legacy), formatea `fechaLegible`
-// con el helper apropiado (formatBloqueHorario / formatRangoNoches /
-// formatFechaPreferida) y arma el `copyCancelacion` server-side según
-// ventana. Este template solo pinta.
+// El endpoint (R3) resuelve la familia por semáforos canónicos F2-3-B y
+// arma los props del listado server-side. Este template solo pinta.
 //
-// Copy chileno tuteo (regla CLAUDE.md). Sin argentinismos. No emojis.
-// Estilos alineados con ReservaConfirmadaTutorEmail y
-// AgendamientoProveedorEmail para consistencia visual con el resto del
-// pipeline transaccional.
+// LAYOUT DEL INFO BOX (R4.1):
+//   Proveedor (tutor) / Cliente (proveedor)   → nombreOtro
+//   Servicio                                   → servicioTitulo
+//   Fecha                                      → fechaLinea (formatFechaSinHora F1/V1/V4b; formatRangoNoches F2/V2/V4a)
+//   Hora / Horario                             → horaLinea (opcional) O bloque check-in/out (F2)
+//   Dónde                                      → donde (cascada dirección → comuna → fallback chat)
+//
+// Copy chileno tuteo, sin emojis. Estilos alineados con
+// ReservaConfirmadaTutorEmail.
 
 export type RecordatorioDestinatario = 'tutor' | 'proveedor';
 export type RecordatorioFamilia = 'F1' | 'F2' | 'legacy';
@@ -25,28 +27,36 @@ export type RecordatorioFamilia = 'F1' | 'F2' | 'legacy';
 interface RecordatorioReservaEmailProps {
     destinatario: RecordatorioDestinatario;
     familia: RecordatorioFamilia;
-    // Nombre del receptor del email (Camila si tutor; Aldo si proveedor).
+    // Saludo (Camila si tutor; Aldo si proveedor).
     nombreDestinatario: string;
-    // Nombre del otro rol de la reserva.
+    // El otro rol de la reserva.
     nombreOtro: string;
     servicioTitulo: string;
-    // Fecha ya formateada por familia — F1/V4b usan
-    // "Jueves 4 de julio, de 14:00 a 15:00 · 1 hora" (formatBloqueHorario);
-    // F2/V2/V4a usan "Del viernes 4 al lunes 7 de julio (3 noches)"
-    // (formatRangoNoches); V1 puntual usa "Sábado 15 de junio, 14:00"
-    // (formatFechaPreferida).
-    fechaLegible: string;
-    // Solo relevante para F2 — bloque check-in/out del servicio. Si ambos
-    // NULL, fallback "Check-in y check-out se coordinan por chat.".
+    // Fila "Fecha" del listado — SIEMPRE presente. Contenido según familia:
+    //   F1 / legacy V1 / legacy V4b: formatFechaSinHora → "Viernes 31 de julio"
+    //   F2 / legacy V2/V4a:          formatRangoNoches → "Del ... al ... (N noches)"
+    fechaLinea: string;
+    // Fila "Hora" del listado — OPCIONAL, null cuando F2 (F2 usa el bloque
+    // check-in/out abajo). Contenido:
+    //   F1:            formatBloqueHorarioSinFecha → "de 14:00 a 15:00 · 1 hora"
+    //   legacy V4b:    idem F1
+    //   legacy V1:     formatHoraCorta → "15:00"
+    //   F2, V2, V4a:   null
+    horaLinea?: string | null;
+    // Solo relevante para F2 — bloque check-in/out del servicio en el
+    // listado. Si ambos null, fallback italica "Check-in y check-out se
+    // coordinan por chat.".
     checkInHora?: string | null;
     checkOutHora?: string | null;
+    // Fila "Dónde" — SIEMPRE presente. Cascada resuelta server-side:
+    //   1. formatDireccionLinea (estructurada o legacy) → "Calle N, Comuna, Región"
+    //   2. Primera comuna de servicio.comunas_cobertura → "En {comuna}"
+    //   3. Fallback → "Se coordina por chat con {nombreOtro}"
+    donde: string;
     // Solo destinatario='tutor' — copy server-side según ventana de
-    // cancelación (F2 fuera de ventana → dirige a chat; F2 dentro +
-    // F1/legacy → copy universal a Mis reservas). NULL/undefined en
-    // destinatario='proveedor' (el proveedor no cancela desde el email).
+    // cancelación. null/undefined en variante proveedor.
     copyCancelacion?: string | null;
-    // URL absoluta del panel destino (tutor → /mis-solicitudes; proveedor
-    // → /proveedor?tab=solicitudes). El endpoint la arma con siteUrl.
+    // URL absoluta del panel destino.
     panelUrl: string;
 }
 
@@ -56,34 +66,33 @@ export const RecordatorioReservaEmail = ({
     nombreDestinatario,
     nombreOtro,
     servicioTitulo,
-    fechaLegible,
+    fechaLinea,
+    horaLinea,
     checkInHora,
     checkOutHora,
+    donde,
     copyCancelacion,
     panelUrl,
 }: RecordatorioReservaEmailProps) => {
     const esTutor = destinatario === 'tutor';
     const esRango = familia === 'F2';
 
-    // Preview corto que aparece en la inbox al costado del subject.
     const preview = esTutor
         ? `Mañana tienes una reserva con ${nombreOtro}.`
         : `Mañana tienes una reserva de ${nombreOtro}.`;
 
-    // Etiqueta del bloque de fecha en el info box. F2 dice "Estadía" para
-    // matchear el vocabulario del picker; F1/legacy dice "Cuándo" como
-    // término neutro (evita "Fecha reservada" que suena a form).
-    const fechaLabel = esRango ? 'Estadía' : 'Cuándo';
+    // Etiqueta del contraparte (fila 1 del listado).
+    const otroLabel = esTutor ? 'Proveedor' : 'Cliente';
 
-    // Cuerpo principal según destinatario. El "para tu servicio" del
-    // proveedor le recuerda que es SU inventario; el tutor no lo necesita.
+    // Etiqueta de la fila hora — "Hora" para bloques puntuales, "Horario"
+    // para F2 (más neutro con check-in/out).
+    const horaLabel = esRango ? 'Horario' : 'Hora';
+
+    // Cuerpo (prosa se mantiene según el brief).
     const cuerpoIntro = esTutor
         ? (<>Te recordamos que <strong>mañana</strong> tienes una reserva con <strong>{nombreOtro}</strong> para <strong>{servicioTitulo}</strong>.</>)
         : (<>Te recordamos que <strong>mañana</strong> tienes una reserva de <strong>{nombreOtro}</strong> para tu servicio <strong>{servicioTitulo}</strong>.</>);
 
-    // Label del botón CTA. Tutor va a "sus reservas" (singular/plural del
-    // panel /mis-solicitudes); proveedor va al tab agregado de reservas
-    // recibidas.
     const ctaLabel = esTutor ? 'Ver mis reservas' : 'Ver reservas';
 
     return (
@@ -100,14 +109,29 @@ export const RecordatorioReservaEmail = ({
                         <Text style={h1}>Hola {nombreDestinatario},</Text>
                         <Text style={text}>{cuerpoIntro}</Text>
 
+                        {/* Info box — layout de listado etiqueta/valor
+                            escaneable. Orden fijo: contraparte, servicio,
+                            fecha, hora/horario, dónde. */}
                         <Section style={infoBox}>
-                            <Text style={infoLabel}>{fechaLabel}</Text>
-                            <Text style={infoValue}>{fechaLegible}</Text>
+                            <Text style={infoLabel}>{otroLabel}</Text>
+                            <Text style={infoValue}>{nombreOtro}</Text>
 
-                            {esRango && (
+                            <Hr style={hrLight} />
+                            <Text style={infoLabel}>Servicio</Text>
+                            <Text style={infoValue}>{servicioTitulo}</Text>
+
+                            <Hr style={hrLight} />
+                            <Text style={infoLabel}>Fecha</Text>
+                            <Text style={infoValue}>{fechaLinea}</Text>
+
+                            {/* F2 muestra bloque check-in/out en la fila
+                                "Horario"; F1/legacy con hora puntual muestra
+                                horaLinea; legacy sin hora (V2/V4a rango sin
+                                bloque F2) omite la fila entera. */}
+                            {esRango ? (
                                 <>
                                     <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Check-in / Check-out</Text>
+                                    <Text style={infoLabel}>{horaLabel}</Text>
                                     {checkInHora || checkOutHora ? (
                                         <Text style={infoValue}>
                                             {checkInHora && <>Check-in: <strong>{checkInHora}</strong></>}
@@ -118,7 +142,17 @@ export const RecordatorioReservaEmail = ({
                                         <Text style={infoValueItalic}>Check-in y check-out se coordinan por chat.</Text>
                                     )}
                                 </>
-                            )}
+                            ) : horaLinea ? (
+                                <>
+                                    <Hr style={hrLight} />
+                                    <Text style={infoLabel}>{horaLabel}</Text>
+                                    <Text style={infoValue}>{horaLinea}</Text>
+                                </>
+                            ) : null}
+
+                            <Hr style={hrLight} />
+                            <Text style={infoLabel}>Dónde</Text>
+                            <Text style={infoValue}>{donde}</Text>
                         </Section>
 
                         {esTutor && copyCancelacion && (
@@ -145,8 +179,7 @@ export const RecordatorioReservaEmail = ({
 
 export default RecordatorioReservaEmail;
 
-// ── styles (idénticos a ReservaConfirmadaTutorEmail para consistencia
-//    visual con el resto del pipeline transaccional del proyecto) ──
+// ── styles (idénticos a ReservaConfirmadaTutorEmail) ──
 const main = {
     backgroundColor: '#f8fafc',
     fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
