@@ -184,3 +184,55 @@ export function formatPuntualConDuracion(
     const duracionFmt = horas === 1 ? '1 hora' : `${horas} horas`;
     return `${capitalizarPrimera(p.weekday)} ${p.day} de ${p.month}, ${p.hour}:${p.minute} · ${duracionFmt}`;
 }
+
+/**
+ * Formatea una duración en minutos como legible en español chileno tuteo.
+ * Ejemplos:
+ *   30 → "30 minutos"
+ *   60 → "1 hora"
+ *   90 → "1 hora 30 minutos"
+ *   120 → "2 horas"
+ *   150 → "2 horas 30 minutos"
+ *   150.5 → "2 horas 30 minutos" (redondea abajo)
+ * Retorna string vacío para input inválido — los callers deciden fallback.
+ */
+export function formatDuracionMinutos(minutos: number | null | undefined): string {
+    if (minutos == null || !Number.isFinite(minutos) || minutos < 1) return '';
+    const total = Math.floor(minutos);
+    const horas = Math.floor(total / 60);
+    const mins = total % 60;
+    if (horas === 0) return `${mins} minutos`;
+    const horasFmt = horas === 1 ? '1 hora' : `${horas} horas`;
+    if (mins === 0) return horasFmt;
+    return `${horasFmt} ${mins} minutos`;
+}
+
+/**
+ * "Jueves 4 de julio, de 14:00 a 15:00 · 1 hora" — bloque horario con
+ * inicio + fin + duración legible, para reservas F1 (`fecha_preferida
+ * timestamptz` + `duracion_min integer`) y V4b legacy (`fecha_preferida`
+ * + `duracion_horas × 60`).
+ *
+ * TZ Chile hardcodeada (Intl con timeZone constante = IMMUTABLE, DST-safe).
+ * El fin se calcula sumando minutos al timestamp; si cruza medianoche
+ * local, el rango se pinta "23:30 a 00:30" — el contexto del recordatorio
+ * ("Mañana...") indica el día del inicio; el 00:30 se lee como del día
+ * siguiente por continuidad natural. No se marca el cambio de día en el
+ * rango para no ensuciar el copy.
+ *
+ * Fallback: 'sin fecha' si input inválido, para paridad con los otros
+ * helpers de este módulo.
+ */
+export function formatBloqueHorario(
+    fechaInicio: Date | string | null | undefined,
+    duracionMin: number | null | undefined
+): string {
+    if (!fechaInicio || duracionMin == null || duracionMin < 1) return 'sin fecha';
+    const inicio = fechaInicio instanceof Date ? fechaInicio : new Date(fechaInicio);
+    if (Number.isNaN(inicio.getTime())) return 'sin fecha';
+    const fin = new Date(inicio.getTime() + Math.floor(duracionMin) * 60_000);
+    const pi = partsChile(inicio);
+    const pf = partsChile(fin);
+    const duracionFmt = formatDuracionMinutos(duracionMin);
+    return `${capitalizarPrimera(pi.weekday)} ${pi.day} de ${pi.month}, de ${pi.hour}:${pi.minute} a ${pf.hour}:${pf.minute} · ${duracionFmt}`;
+}

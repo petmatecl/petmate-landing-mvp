@@ -16,6 +16,8 @@ import {
     formatRangoNoches,
     formatPuntualConDuracion,
     formatFechaServicioInline,
+    formatBloqueHorario,
+    formatDuracionMinutos,
 } from './formatFecha';
 
 let passed = 0;
@@ -162,6 +164,91 @@ assertEq('fecha null', formatFechaPreferida(null), 'sin fecha');
 assertEq('fecha undefined', formatFechaPreferida(undefined), 'sin fecha');
 assertEq('rango con NULL', formatRangoNoches(null, '2026-07-05T04:00:00+00:00'), 'sin fecha');
 assertEq('puntual con horas 0', formatPuntualConDuracion('2026-07-04T13:00:00+00:00', 0), 'sin fecha');
+
+console.log('\n─── formatDuracionMinutos (legible en español) ───');
+
+assertEq('30 min', formatDuracionMinutos(30), '30 minutos');
+assertEq('60 min = 1 hora', formatDuracionMinutos(60), '1 hora');
+assertEq('90 min = 1 hora 30 minutos', formatDuracionMinutos(90), '1 hora 30 minutos');
+assertEq('120 min = 2 horas', formatDuracionMinutos(120), '2 horas');
+assertEq('150 min = 2 horas 30 minutos', formatDuracionMinutos(150), '2 horas 30 minutos');
+assertEq('45 min (< 1h)', formatDuracionMinutos(45), '45 minutos');
+assertEq('duracion null', formatDuracionMinutos(null), '');
+assertEq('duracion 0', formatDuracionMinutos(0), '');
+assertEq('duracion negativa', formatDuracionMinutos(-10), '');
+assertEq('duracion NaN', formatDuracionMinutos(NaN), '');
+
+console.log('\n─── formatBloqueHorario (F1 picker + V4b: inicio → fin · duración) ───');
+
+// Caso base: 1h en punto, invierno CLT UTC-4.
+// 2026-07-04T18:00Z = 14:00 Chile invierno; 14:00 + 60min = 15:00.
+assertEq(
+    '1h en punto invierno (2026-07-04T18Z = sabado 14-15h)',
+    formatBloqueHorario('2026-07-04T18:00:00+00:00', 60),
+    'Sábado 4 de julio, de 14:00 a 15:00 · 1 hora'
+);
+
+// Fracción: 30 min.
+// 2026-07-04T18:00Z = 14:00 Chile; +30min = 14:30.
+assertEq(
+    '30 min invierno',
+    formatBloqueHorario('2026-07-04T18:00:00+00:00', 30),
+    'Sábado 4 de julio, de 14:00 a 14:30 · 30 minutos'
+);
+
+// 1h 30 min.
+assertEq(
+    '90 min invierno (1h 30min)',
+    formatBloqueHorario('2026-07-04T18:00:00+00:00', 90),
+    'Sábado 4 de julio, de 14:00 a 15:30 · 1 hora 30 minutos'
+);
+
+// 2h en punto.
+assertEq(
+    '120 min invierno (2h)',
+    formatBloqueHorario('2026-07-04T18:00:00+00:00', 120),
+    'Sábado 4 de julio, de 14:00 a 16:00 · 2 horas'
+);
+
+// Cruce de día local: inicio 23:30 Chile + 60min = 00:30 día siguiente.
+// 2026-07-05T03:30Z = 23:30 sabado 4 Chile (invierno UTC-4); +60min → 00:30 domingo.
+// El rango pinta "23:30 a 00:30" sin marcar el cambio de día — el contexto
+// del recordatorio ("Mañana...") indica el día del inicio; 00:30 se lee
+// como del día siguiente por continuidad natural.
+assertEq(
+    'cruce de dia local invierno (23:30 + 60 = 00:30)',
+    formatBloqueHorario('2026-07-05T03:30:00+00:00', 60),
+    'Sábado 4 de julio, de 23:30 a 00:30 · 1 hora'
+);
+
+// Verano austral CLST UTC-3.
+// 2026-12-15T15:00Z = 12:00 Chile verano; +60min = 13:00.
+assertEq(
+    'verano CLST UTC-3 (2026-12-15T15Z = martes 12-13h)',
+    formatBloqueHorario('2026-12-15T15:00:00+00:00', 60),
+    'Martes 15 de diciembre, de 12:00 a 13:00 · 1 hora'
+);
+
+// Verano: bloque más largo (3 horas).
+assertEq(
+    'verano 3h (2026-12-15T15Z = martes 12-15h)',
+    formatBloqueHorario('2026-12-15T15:00:00+00:00', 180),
+    'Martes 15 de diciembre, de 12:00 a 15:00 · 3 horas'
+);
+
+// Cruce UTC→Chile: 2026-07-28T02:00Z = lunes 22:00 Chile.
+// +60min = 23:00, mismo día Chile.
+assertEq(
+    'cruce UTC→Chile con hora tarde (lunes 22:00 Chile → 23:00)',
+    formatBloqueHorario('2026-07-28T02:00:00+00:00', 60),
+    'Lunes 27 de julio, de 22:00 a 23:00 · 1 hora'
+);
+
+// Inputs inválidos.
+assertEq('bloque null fecha', formatBloqueHorario(null, 60), 'sin fecha');
+assertEq('bloque null duracion', formatBloqueHorario('2026-07-04T18:00:00+00:00', null), 'sin fecha');
+assertEq('bloque duracion 0', formatBloqueHorario('2026-07-04T18:00:00+00:00', 0), 'sin fecha');
+assertEq('bloque fecha invalida', formatBloqueHorario('not-a-date', 60), 'sin fecha');
 
 console.log(`\n${passed} pass, ${failed} fail`);
 process.exit(failed > 0 ? 1 : 0);
