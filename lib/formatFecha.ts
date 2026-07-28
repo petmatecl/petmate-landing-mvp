@@ -59,7 +59,10 @@ function partsChile(d: Date, includeYear: boolean = false): FechaParts {
 
 // Extrae "YYYY-MM-DD" en Chile TZ. Usado para contar noches sin drift de
 // TZ (differenceInCalendarDays de date-fns usa el TZ local del runtime).
-function ymdChile(d: Date): string {
+// Exportado para reuso en pages/api/cron/recordatorio-reserva.ts —
+// necesita comparar el día calendario Chile del inicio de la reserva vs
+// el "mañana" de hoy sin drift de TZ del runtime Vercel (UTC).
+export function ymdChile(d: Date): string {
     return new Intl.DateTimeFormat('sv-SE', {
         timeZone: CHILE_TZ,
         year: 'numeric', month: '2-digit', day: '2-digit',
