@@ -285,6 +285,13 @@ Supabase Management API con PAT para migraciones directas
 
 **Ejecución de checklists contra prod — REGLA PERMANENTE (P2)**: toda ejecución manual de un checklist (merge a prod, hotfix con migration, rollback) se reporta **por fase**, con los outputs pegados de cada verificación de esa fase. **Nunca como confirmación agregada** ("hice todo, pasó"). Cada fase del checklist tiene su ítem de verificación (SELECT que retorna N, response HTTP, snapshot de policy, output de `git rev-parse origin/main`); ese output es el evidence del cierre de la fase — sin él, la fase no está cerrada. Incidente que originó esta regla: el 24-07-26 se reportó "MERGE F2 COMPLETADO" y al preparar el acta se descubrió con `git ls-remote origin` que `origin/main` seguía en `91d72b4` (pre-F2, 22-07) y ninguna migration se había aplicado en prod — el reporte agregado había ocultado que las Fases 1-3 nunca se ejecutaron contra prod. Detectable en 1 comando (`git ls-remote`); prevenible con reporte por fase (Fase 1.1 → SELECT retorna 1 fila, Fase 2 → `git ls-remote origin main` = <sha>, etc.). Ver `ACTA_CIERRE_F2.md > Incidente #2`.
 
+**Cambios de env vars en Vercel — REGLA OPERATIVA (P4)**: tras editar cualquier env var en Vercel Dashboard → Settings → Environment Variables (rotación, agregado, cambio de scope), verificar:
+1. **Timestamp "Updated"** en la fila del env var — debe reflejar la edición reciente. Si dice fecha vieja, el Save no persistió (bug UI de Vercel observado; recargar página y re-guardar).
+2. **Redeploy explícito** del último commit del branch afectado. Los env vars nuevos NO se aplican al deploy actual hasta redeploy — el bundle se sirve con el snapshot de env que tenía al momento del build.
+3. **Smoke inmediato**: hit al endpoint que consume el env con el valor nuevo. Si sigue fallando auth/config, el fix no aterrizó.
+
+Incidente que originó esta regla: rotación de `CRON_SECRET` (Preview) el 2026-07-28 para el dryRun R3 del tren Recordatorios. La fila mostraba "Updated Jul 9" pese al Save aparente en UI. Post re-guardado con timestamp actualizado + redeploy, ambos endpoints (`invitacion-resenas` viejo + `recordatorio-reserva` nuevo) autenticaron limpio.
+
 **Branch destino en commits con instrucción explícita — REGLA PERMANENTE (P3)**: si la instrucción especifica branch destino (ej. "commit + push a staging", "hotfix directo a main"), verificar `git branch --show-current` **ANTES** del `git commit` y abortar si no coincide. Comando defensivo canónico:
 ```bash
 git branch --show-current | grep -qx <branch-esperada> || (echo "ABORT: no en <branch-esperada>" && exit 1)
