@@ -1,5 +1,10 @@
 # Pawnecta — Claude Code Context
 
+## Estado del roadmap
+
+- **F2 (agenda de estadías por rango de noches) — EN PROD desde 2026-07-28** (tag `f2-prod-20260728` sobre `d2bee23`). Ver [ACTA_CIERRE_F2.md](ACTA_CIERRE_F2.md).
+- **Siguiente del tren Doctoralia-style**: **recordatorios** (24h y 1h antes del servicio, tutor + proveedor, push + email + SMS opcional). Reduce no-shows y refuerza el ciclo post-servicio → reseña. Detalles en `BACKLOG.md > Roadmap producto (Doctoralia-style)` punto 3.
+
 ## Qué es este proyecto
 
 Pawnecta es un directorio/catálogo de servicios para mascotas en Chile. Conecta tutores con proveedores de servicios. NO gestiona pagos, reservas ni calendarización — el contacto es directo (chat interno, WhatsApp, teléfono).
@@ -276,7 +281,9 @@ Claude Code (VS Code) → commit + push a main → Vercel deploy automático
 Rama principal: main
 Supabase Management API con PAT para migraciones directas
 
-**Criterio de cierre de commit — REGLA PERMANENTE**: `npm run build` local debe salir con **exit 0** antes de cualquier `git commit` que toque `.ts` / `.tsx`. `tsc --noEmit` por sí solo NO alcanza: `next build` corre además ESLint con reglas duras (`react-hooks/rules-of-hooks`, `react/*`) que rompen el build en Vercel pero **no aparecen en `tsc`**. Incidente que originó esta regla: dos sweeps consecutivos (`d218b70`, `275cf2e` — 24-07-26) fallaron el build silente por hooks tras un `if (!isOpen) return null`; los tsc locales dieron verde, las suites e2e también (porque corrían contra el deploy anterior aparentando verde), y staging quedó ~3h atrás del código. `npm run build` local hubiera atrapado el error en el primer commit.
+**Criterio de cierre de commit — REGLA PERMANENTE (P1)**: `npm run build` local debe salir con **exit 0** antes de cualquier `git commit` que toque `.ts` / `.tsx`. `tsc --noEmit` por sí solo NO alcanza: `next build` corre además ESLint con reglas duras (`react-hooks/rules-of-hooks`, `react/*`) que rompen el build en Vercel pero **no aparecen en `tsc`**. Incidente que originó esta regla: dos sweeps consecutivos (`d218b70`, `275cf2e` — 24-07-26) fallaron el build silente por hooks tras un `if (!isOpen) return null`; los tsc locales dieron verde, las suites e2e también (porque corrían contra el deploy anterior aparentando verde), y staging quedó ~3h atrás del código. `npm run build` local hubiera atrapado el error en el primer commit.
+
+**Ejecución de checklists contra prod — REGLA PERMANENTE (P2)**: toda ejecución manual de un checklist (merge a prod, hotfix con migration, rollback) se reporta **por fase**, con los outputs pegados de cada verificación de esa fase. **Nunca como confirmación agregada** ("hice todo, pasó"). Cada fase del checklist tiene su ítem de verificación (SELECT que retorna N, response HTTP, snapshot de policy, output de `git rev-parse origin/main`); ese output es el evidence del cierre de la fase — sin él, la fase no está cerrada. Incidente que originó esta regla: el 24-07-26 se reportó "MERGE F2 COMPLETADO" y al preparar el acta se descubrió con `git ls-remote origin` que `origin/main` seguía en `91d72b4` (pre-F2, 22-07) y ninguna migration se había aplicado en prod — el reporte agregado había ocultado que las Fases 1-3 nunca se ejecutaron contra prod. Detectable en 1 comando (`git ls-remote`); prevenible con reporte por fase (Fase 1.1 → SELECT retorna 1 fila, Fase 2 → `git ls-remote origin main` = <sha>, etc.). Ver `ACTA_CIERRE_F2.md > Incidente #2`.
 
 ## Database migrations
 

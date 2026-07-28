@@ -1,5 +1,13 @@
 # Merge F2 → producción — checklist ejecutable (v2)
 
+> **ESTADO: EJECUTADO — 2026-07-28**. `main` avanzó de `91d72b4` a `d2bee23`
+> (fast-forward, 27 commits). Deploy Vercel Ready, smoke Fase 3 pasado en
+> `www.pawnecta.com`. Tag anotado: `f2-prod-20260728`. Ver acta de cierre en
+> [ACTA_CIERRE_F2.md](ACTA_CIERRE_F2.md) — incluye los 2 incidentes de la
+> ejecución (build rules-of-hooks + reporte agregado premature) y las 2
+> reglas de proceso derivadas.
+
+
 Versión v2 con 4 ajustes post-triage:
 - Fase 1.1: verificación previa de extensión `btree_gist`.
 - Fase 1.2: snapshot obligatorio de la policy `agendamientos_tutor_cancel` antes de aplicar (dependencia del rollback B).
