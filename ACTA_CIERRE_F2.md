@@ -106,12 +106,7 @@ Decisión PO: RESERVA universal / ESTADÍA solo como tipo / SOLICITUD solo para 
 
 ## Snapshot de la policy pre-migration (Fase 1.2)
 
-`SELECT qual, with_check FROM pg_policies WHERE tablename='agendamientos' AND policyname='agendamientos_tutor_cancel'` — output antes de aplicar `migrations/20260723_agendamientos_cancel_rls_f2.sql`:
-
-<!-- Pegar aquí el output exacto obtenido de la SQL Editor prod pre-migration.
-     Es el input del Escenario B de rollback si algún día hay que revertir.
-     Si Aldo no lo pega, se puede reconstruir del baseline
-     `20260625_agendamientos_baseline.sql:143` (era la version pre-F2-3-D). -->
+`SELECT qual, with_check FROM pg_policies WHERE tablename='agendamientos' AND policyname='agendamientos_tutor_cancel'` — output verificado antes de aplicar `migrations/20260723_agendamientos_cancel_rls_f2.sql`:
 
 ```
 qual:       (tutor_id IN ( SELECT usuarios_buscadores.id
@@ -122,7 +117,7 @@ with_check: ((tutor_id IN ( SELECT usuarios_buscadores.id
               WHERE (usuarios_buscadores.auth_user_id = auth.uid()))) AND (estado = 'cancelada'::text))
 ```
 
-Si el snapshot real difiere, Aldo lo actualiza en este archivo con un commit chico separado.
+Este es el input del Escenario B de rollback si algún día hay que revertir la migration.
 
 ---
 
@@ -175,4 +170,4 @@ Monitor 24h a cargo de Aldo, cierre esperado 2026-07-29:
 
 ## Siguiente del tren Doctoralia-style
 
-Próximo incremento planificado: **Recordatorios** (24h y 1h antes del servicio, tutor + proveedor, push + email + SMS opcional). Reduce no-shows y refuerza el ciclo post-servicio → reseña. Ver `BACKLOG.md > Roadmap producto (Doctoralia-style)` punto 3.
+Próximo incremento planificado: **Recordatorios de cita** (diseño en curso). Los tiempos exactos, canales y trigger dependen del diseño en exploración — pendiente de definir. Reduce no-shows y refuerza el ciclo post-servicio → reseña. Ver `BACKLOG.md > Roadmap producto (Doctoralia-style)` punto 3.
