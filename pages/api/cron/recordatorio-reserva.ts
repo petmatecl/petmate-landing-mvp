@@ -43,16 +43,18 @@
 //   4. Marca por destinatario UPDATE solo tras éxito de SU envío.
 //   5. failures[] en response.
 //
-// R4 (template `RecordatorioReservaEmail`) todavía no está — el envío usa
-// un HTML inline placeholder claramente marcado. Cuando R4 se entregue,
-// se reemplaza el `resend.emails.send({ html })` por `{ react: ... }`.
-// El resto de la orquestación queda intacta.
+// R4 (template `RecordatorioReservaEmail`) integrado — el envío usa
+// `resend.emails.send({ react: RecordatorioReservaEmail({...}) })` con
+// branching por props (destinatario × familia = 6 combinaciones desde
+// UN template).
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import type React from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { skipIfNonProd } from '../../../lib/cronGuard';
 import { formatBloqueHorario, formatRangoNoches, formatFechaPreferida, ymdChile } from '../../../lib/formatFecha';
+import { RecordatorioReservaEmail } from '../../../components/Emails/RecordatorioReservaEmail';
 
 const BATCH_LIMIT = 30;
 const SUB_BATCH = 5;
@@ -77,6 +79,10 @@ type Elegible = {
     cancelacionMinHoras: number;
     necesitaTutor: boolean;
     necesitaProveedor: boolean;
+    // R4 — pasados al template. F2 los renderiza como bloque check-in/out;
+    // F1/legacy quedan sin usar (esRango=false en el template).
+    checkInHora: string | null;
+    checkOutHora: string | null;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -123,7 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 recordatorio_tutor_enviado_at, recordatorio_proveedor_enviado_at,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, nombre, auth_user_id),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, nombre, auth_user_id),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes, check_in_hora, check_out_hora)
             `)
             .eq('estado', 'confirmada')
             .gte('fecha_preferida', ventanaMinIso)
@@ -213,6 +219,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 supabaseAdmin.auth.admin.getUserById(proveedor.auth_user_id),
             ]);
 
+            // check_in_hora/check_out_hora vienen del servicio como 'HH:MM:SS'
+            // (Postgres time). El template los quiere en 'HH:MM' — el .slice(0,5)
+            // es el patrón espejo de notify-proveedor.ts:141-145 en F2-3-B.
+            const checkInHora = servicio.check_in_hora
+                ? String(servicio.check_in_hora).slice(0, 5)
+                : null;
+            const checkOutHora = servicio.check_out_hora
+                ? String(servicio.check_out_hora).slice(0, 5)
+                : null;
+
             elegibles.push({
                 agendamientoId: c.id,
                 servicioId: servicio.id,
@@ -234,6 +250,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 cancelacionMinHoras,
                 necesitaTutor: c.recordatorio_tutor_enviado_at == null,
                 necesitaProveedor: c.recordatorio_proveedor_enviado_at == null,
+                checkInHora,
+                checkOutHora,
             });
 
             if (elegibles.length >= BATCH_LIMIT) break;
@@ -275,7 +293,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (e.necesitaTutor && e.tutor.email) {
                     tasks.push((async () => {
                         try {
-                            await enviarRecordatorio(e, 'tutor', supabaseAdmin);
+                            await enviarRecordatorio(e, 'tutor', supabaseAdmin, siteUrl);
                             await supabaseAdmin
                                 .from('agendamientos')
                                 .update({ recordatorio_tutor_enviado_at: new Date().toISOString() })
@@ -293,7 +311,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (e.necesitaProveedor && e.proveedor.email) {
                     tasks.push((async () => {
                         try {
-                            await enviarRecordatorio(e, 'proveedor', supabaseAdmin);
+                            await enviarRecordatorio(e, 'proveedor', supabaseAdmin, siteUrl);
                             await supabaseAdmin
                                 .from('agendamientos')
                                 .update({ recordatorio_proveedor_enviado_at: new Date().toISOString() })
@@ -330,56 +348,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 // ----------------------------------------------------------------------------
-// enviarRecordatorio — envía email (via Resend, redirect a AUDIT_INBOX en
-// staging por wrapper de lib/resend.ts) + INSERT notification in-app.
-//
-// R4 va a reemplazar el `html:` placeholder con `react: RecordatorioReservaEmail(...)`.
-// El resto del handler queda intacto.
+// enviarRecordatorio — envía email (via Resend con RecordatorioReservaEmail
+// R4 — redirect a AUDIT_INBOX en staging por wrapper de lib/resend.ts) +
+// INSERT notification in-app.
 // ----------------------------------------------------------------------------
 async function enviarRecordatorio(
     e: Elegible,
     destinatario: Destinatario,
     supabaseAdmin: SupabaseClient,
+    siteUrl: string,
 ): Promise<void> {
     const esTutor = destinatario === 'tutor';
     const to = esTutor ? e.tutor.email : e.proveedor.email;
-    const nombre = esTutor ? e.tutor.nombre : e.proveedor.nombre;
-    const otro = esTutor ? e.proveedor.nombre : e.tutor.nombre;
-    const link = esTutor ? '/mis-solicitudes' : '/proveedor?tab=solicitudes';
+    const nombreDestinatario = esTutor ? e.tutor.nombre : e.proveedor.nombre;
+    const nombreOtro = esTutor ? e.proveedor.nombre : e.tutor.nombre;
+    const panelPath = esTutor ? '/mis-solicitudes' : '/proveedor?tab=solicitudes';
+    const panelUrl = `${siteUrl}${panelPath}`;
     const subject = esTutor
-        ? `Mañana: tu reserva con ${otro}`
-        : `Mañana: reserva de ${otro}`;
+        ? `Mañana: tu reserva con ${nombreOtro}`
+        : `Mañana: reserva de ${nombreOtro}`;
 
     // Copy de cancelación server-side según familia + ventana.
     //   F2 fuera de ventana: mensaje que dirige al chat.
     //   F2 dentro de ventana + F1/legacy: copy universal a "Mis reservas".
     // Solo aplica al tutor (el proveedor no cancela desde el email — tiene
-    // su panel).
+    // su panel). El template solo lo renderea si destinatario==='tutor' Y
+    // el string no es vacío/null.
     const copyCancelacion = esTutor
         ? (e.familia === 'F2' && !e.dentroVentana
             ? `Contacta a ${e.proveedor.nombre} por chat para coordinar cambios (ya no puedes cancelar desde Mis reservas).`
             : `Si necesitas cancelar, hazlo desde Mis reservas.`)
-        : '';
-
-    // R4 hook: reemplazar `html:` por `react: RecordatorioReservaEmail({...})`.
-    // Placeholder inline para R3 — cubre el flujo end-to-end (email real
-    // sale) mientras el template React está pendiente.
-    const htmlPlaceholder = `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:40px auto;padding:0 20px;color:#0f172a;">
-<p>Hola ${escapeHtml(nombre)},</p>
-<p>Te recordamos que <strong>mañana</strong> tienes una reserva:</p>
-<p><strong>${escapeHtml(e.servicioTitulo)}</strong></p>
-<p>${escapeHtml(e.fechaLegible)}</p>
-${copyCancelacion ? `<p style="color:#334155;">${escapeHtml(copyCancelacion)}</p>` : ''}
-<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;" />
-<p style="color:#64748b;font-size:13px;">Pawnecta · El lugar seguro para el cuidado de mascotas.</p>
-<p style="color:#94a3b8;font-size:11px;">[R3 placeholder — R4 va a reemplazar este HTML con el template React].</p>
-</body></html>`;
+        : null;
 
     await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to,
         subject,
-        html: htmlPlaceholder,
+        react: RecordatorioReservaEmail({
+            destinatario,
+            familia: e.familia,
+            nombreDestinatario,
+            nombreOtro,
+            servicioTitulo: e.servicioTitulo,
+            fechaLegible: e.fechaLegible,
+            checkInHora: e.checkInHora,
+            checkOutHora: e.checkOutHora,
+            copyCancelacion,
+            panelUrl,
+        }) as React.ReactElement,
     });
 
     // Notificación in-app (INSERT directo con service_role — mismo patrón
@@ -390,7 +406,7 @@ ${copyCancelacion ? `<p style="color:#334155;">${escapeHtml(copyCancelacion)}</p
         type: 'info',
         title: subject,
         message: `${e.servicioTitulo} — ${e.fechaLegible}`,
-        link,
+        link: panelPath,
         metadata: {
             agendamiento_id: e.agendamientoId,
             servicio_id: e.servicioId,
@@ -401,16 +417,4 @@ ${copyCancelacion ? `<p style="color:#334155;">${escapeHtml(copyCancelacion)}</p
         read: false,
         created_at: new Date().toISOString(),
     });
-}
-
-// Escape HTML mínimo para interpolación segura en el placeholder. R4 con
-// React auto-escapa y esta función queda para uso local en este archivo
-// hasta que el placeholder desaparezca.
-function escapeHtml(s: string): string {
-    return s
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
 }

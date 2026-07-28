@@ -29,6 +29,7 @@ import AgendamientoProveedorEmail from '../components/Emails/AgendamientoProveed
 import AgendamientoTutorEmail from '../components/Emails/AgendamientoTutorEmail';
 import ReservaConfirmadaTutorEmail from '../components/Emails/ReservaConfirmadaTutorEmail';
 import AgendamientoCancelacionTutorEmail from '../components/Emails/AgendamientoCancelacionTutorEmail';
+import RecordatorioReservaEmail from '../components/Emails/RecordatorioReservaEmail';
 
 const outDir = process.argv[2];
 if (!outDir) {
@@ -279,6 +280,122 @@ const setsCancelacion: Set[] = [
     },
 ];
 
+// ────────────────────────────────────────────────────────────────────────────
+// RecordatorioReservaEmail (R4) — 6 combinaciones (2 destinatarios × 3 familias).
+// Evidencia visual del render de las 6 variantes para adjuntar al acta R4.
+// Fecha "mañana" simulada: viernes 31 de julio de 2026 (F1: 14:00-15:00
+// invierno CLT; F2: rango 31/07 → 02/08 = 2 noches; legacy: 15:00 puntual).
+// ────────────────────────────────────────────────────────────────────────────
+const setsRecordatorio: Set[] = [
+    // -- Tutor × 3 familias --
+    {
+        name: 'recordatorio-tutor-F1',
+        element: React.createElement(RecordatorioReservaEmail as any, {
+            destinatario: 'tutor',
+            familia: 'F1',
+            nombreDestinatario: 'Camila',
+            nombreOtro: 'Aldo',
+            servicioTitulo: 'Paseo dinámico 60 min',
+            fechaLegible: 'Viernes 31 de julio, de 14:00 a 15:00 · 1 hora',
+            checkInHora: null,
+            checkOutHora: null,
+            copyCancelacion: 'Si necesitas cancelar, hazlo desde Mis reservas.',
+            panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
+        }),
+    },
+    {
+        name: 'recordatorio-tutor-F2-dentro-ventana',
+        element: React.createElement(RecordatorioReservaEmail as any, {
+            destinatario: 'tutor',
+            familia: 'F2',
+            nombreDestinatario: 'Camila',
+            nombreOtro: 'Eduardo',
+            servicioTitulo: 'Cuidado por noches',
+            fechaLegible: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            checkInHora: '15:00',
+            checkOutHora: '11:00',
+            copyCancelacion: 'Si necesitas cancelar, hazlo desde Mis reservas.',
+            panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
+        }),
+    },
+    {
+        name: 'recordatorio-tutor-F2-fuera-ventana',
+        element: React.createElement(RecordatorioReservaEmail as any, {
+            destinatario: 'tutor',
+            familia: 'F2',
+            nombreDestinatario: 'Camila',
+            nombreOtro: 'Eduardo',
+            servicioTitulo: 'Cuidado por noches',
+            fechaLegible: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            checkInHora: '15:00',
+            checkOutHora: '11:00',
+            copyCancelacion: 'Contacta a Eduardo por chat para coordinar cambios (ya no puedes cancelar desde Mis reservas).',
+            panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
+        }),
+    },
+    {
+        name: 'recordatorio-tutor-legacy-V1puntual',
+        element: React.createElement(RecordatorioReservaEmail as any, {
+            destinatario: 'tutor',
+            familia: 'legacy',
+            nombreDestinatario: 'Camila',
+            nombreOtro: 'Aldo',
+            servicioTitulo: 'Consulta veterinaria a domicilio',
+            fechaLegible: 'Viernes 31 de julio, 15:00',
+            checkInHora: null,
+            checkOutHora: null,
+            copyCancelacion: 'Si necesitas cancelar, hazlo desde Mis reservas.',
+            panelUrl: 'https://www.pawnecta.com/mis-solicitudes',
+        }),
+    },
+    // -- Proveedor × 3 familias (sin copyCancelacion) --
+    {
+        name: 'recordatorio-proveedor-F1',
+        element: React.createElement(RecordatorioReservaEmail as any, {
+            destinatario: 'proveedor',
+            familia: 'F1',
+            nombreDestinatario: 'Aldo',
+            nombreOtro: 'Camila Figueroa',
+            servicioTitulo: 'Paseo dinámico 60 min',
+            fechaLegible: 'Viernes 31 de julio, de 14:00 a 15:00 · 1 hora',
+            checkInHora: null,
+            checkOutHora: null,
+            copyCancelacion: null,
+            panelUrl: 'https://www.pawnecta.com/proveedor?tab=solicitudes',
+        }),
+    },
+    {
+        name: 'recordatorio-proveedor-F2',
+        element: React.createElement(RecordatorioReservaEmail as any, {
+            destinatario: 'proveedor',
+            familia: 'F2',
+            nombreDestinatario: 'Eduardo',
+            nombreOtro: 'Camila Figueroa',
+            servicioTitulo: 'Cuidado por noches',
+            fechaLegible: 'Del viernes 31 de julio al domingo 2 de agosto (2 noches)',
+            checkInHora: '15:00',
+            checkOutHora: '11:00',
+            copyCancelacion: null,
+            panelUrl: 'https://www.pawnecta.com/proveedor?tab=solicitudes',
+        }),
+    },
+    {
+        name: 'recordatorio-proveedor-legacy-V1puntual',
+        element: React.createElement(RecordatorioReservaEmail as any, {
+            destinatario: 'proveedor',
+            familia: 'legacy',
+            nombreDestinatario: 'Aldo',
+            nombreOtro: 'Camila Figueroa',
+            servicioTitulo: 'Consulta veterinaria a domicilio',
+            fechaLegible: 'Viernes 31 de julio, 15:00',
+            checkInHora: null,
+            checkOutHora: null,
+            copyCancelacion: null,
+            panelUrl: 'https://www.pawnecta.com/proveedor?tab=solicitudes',
+        }),
+    },
+];
+
 async function renderSets(sets: Set[]): Promise<void> {
     for (const s of sets) {
         const html = await render(s.element, { pretty: true });
@@ -292,6 +409,7 @@ async function main() {
     await renderSets(setsTutor);
     await renderSets(setsReserva);
     await renderSets(setsCancelacion);
+    await renderSets(setsRecordatorio);
     const files = fs.readdirSync(outDir).sort();
     console.log(`Rendered ${files.length} snapshots to ${outDir}:`);
     for (const f of files) {
