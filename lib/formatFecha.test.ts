@@ -21,6 +21,7 @@ import {
     formatFechaSinHora,
     formatHoraCorta,
     formatBloqueHorarioSinFecha,
+    formatRangoNochesPartes,
 } from './formatFecha';
 
 let passed = 0;
@@ -326,6 +327,52 @@ assertEq(
 assertEq('null fecha', formatBloqueHorarioSinFecha(null, 60), '');
 assertEq('null duracion', formatBloqueHorarioSinFecha('2026-07-04T18:00:00+00:00', null), '');
 assertEq('duracion 0', formatBloqueHorarioSinFecha('2026-07-04T18:00:00+00:00', 0), '');
+
+console.log('\n─── formatRangoNochesPartes (rango + sub separados para banda protag) ───');
+
+function assertPartes(name: string, actual: { principal: string; sub: string }, expected: { principal: string; sub: string }) {
+    if (actual.principal === expected.principal && actual.sub === expected.sub) {
+        console.log(`  ok  ${name}`);
+        passed++;
+    } else {
+        console.log(`  FAIL ${name}`);
+        console.log(`    expected: ${JSON.stringify(expected)}`);
+        console.log(`    actual:   ${JSON.stringify(actual)}`);
+        failed++;
+    }
+}
+
+// 2 noches (viernes → domingo).
+assertPartes(
+    '2 noches julio (viernes → domingo)',
+    formatRangoNochesPartes('2026-07-31T04:00:00+00:00', '2026-08-02T04:00:00+00:00'),
+    { principal: 'Del viernes 31 de julio al domingo 2 de agosto', sub: '2 noches' }
+);
+// 1 noche singular.
+assertPartes(
+    '1 noche singular',
+    formatRangoNochesPartes('2026-07-04T04:00:00+00:00', '2026-07-05T04:00:00+00:00'),
+    { principal: 'Del sábado 4 de julio al domingo 5 de julio', sub: '1 noche' }
+);
+// 3 noches, mismo mes.
+assertPartes(
+    '3 noches mismo mes',
+    formatRangoNochesPartes('2026-07-04T04:00:00+00:00', '2026-07-07T04:00:00+00:00'),
+    { principal: 'Del sábado 4 de julio al martes 7 de julio', sub: '3 noches' }
+);
+// Verano CLST — 2 noches.
+assertPartes(
+    '2 noches verano',
+    formatRangoNochesPartes('2026-12-15T03:00:00+00:00', '2026-12-17T03:00:00+00:00'),
+    { principal: 'Del martes 15 de diciembre al jueves 17 de diciembre', sub: '2 noches' }
+);
+// Inputs inválidos.
+assertPartes('null', formatRangoNochesPartes(null, null), { principal: 'sin fecha', sub: '' });
+assertPartes(
+    'fin ≤ inicio (0 noches)',
+    formatRangoNochesPartes('2026-07-04T04:00:00+00:00', '2026-07-04T04:00:00+00:00'),
+    { principal: 'sin fecha', sub: '' }
+);
 
 console.log(`\n${passed} pass, ${failed} fail`);
 process.exit(failed > 0 ? 1 : 0);

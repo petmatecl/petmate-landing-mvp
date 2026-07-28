@@ -138,6 +138,38 @@ export function formatRangoNoches(
 }
 
 /**
+ * Versión partida de `formatRangoNoches` para layouts que necesitan pintar
+ * el rango de fechas y el conteo de noches por separado (ej. banda de
+ * fecha protagonista del recordatorio, donde el `(N noches)` va debajo
+ * en fuente más chica).
+ *
+ * Retorna `{ principal, sub }`:
+ *   principal: "Del viernes 4 de julio al lunes 7 de julio" (sin paréntesis)
+ *   sub:       "3 noches"
+ *
+ * Si input inválido → `{ principal: 'sin fecha', sub: '' }`.
+ * Si noches < 1 (fin ≤ inicio) → idem.
+ */
+export function formatRangoNochesPartes(
+    inicio: Date | string | null | undefined,
+    fin: Date | string | null | undefined
+): { principal: string; sub: string } {
+    if (!inicio || !fin) return { principal: 'sin fecha', sub: '' };
+    const di = inicio instanceof Date ? inicio : new Date(inicio);
+    const df = fin instanceof Date ? fin : new Date(fin);
+    if (Number.isNaN(di.getTime()) || Number.isNaN(df.getTime())) return { principal: 'sin fecha', sub: '' };
+    const noches = nochesEntre(di, df);
+    if (noches < 1) return { principal: 'sin fecha', sub: '' };
+    const pi = partsChile(di);
+    const pf = partsChile(df);
+    const sub = noches === 1 ? '1 noche' : `${noches} noches`;
+    return {
+        principal: `Del ${pi.weekday} ${pi.day} de ${pi.month} al ${pf.weekday} ${pf.day} de ${pf.month}`,
+        sub,
+    };
+}
+
+/**
  * Frase compacta "del ..." para insertar dentro de una oracion. Ejemplos:
  *   V1 puntual:  "del lunes 27 de julio a las 16:48"
  *   V2/V4a mismo mes: "del sábado 25 al martes 28 de julio"

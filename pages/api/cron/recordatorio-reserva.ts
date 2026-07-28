@@ -54,7 +54,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { skipIfNonProd } from '../../../lib/cronGuard';
 import {
-    formatRangoNoches, ymdChile,
+    formatRangoNoches, formatRangoNochesPartes, ymdChile,
     formatFechaSinHora, formatHoraCorta, formatBloqueHorarioSinFecha,
 } from '../../../lib/formatFecha';
 import { formatDireccionLinea } from '../../../lib/formatDireccion';
@@ -76,10 +76,12 @@ type Elegible = {
     servicioTitulo: string;
     familia: Familia;
     fechaInicioIso: string;
-    // R4.1 — layout de listado del template. El endpoint arma los strings
-    // finales según familia; el template solo pinta.
-    fechaLinea: string;              // "Viernes 31 de julio" / "Del ... al ... (N noches)"
-    horaLinea: string | null;        // "de 14:00 a 15:00 · 1 hora" / "15:00" / null (F2 o legacy sin hora)
+    // R4.1/R4.2 — layout de listado + banda de fecha protagonista. El
+    // endpoint arma los strings finales según familia; el template solo
+    // pinta.
+    fechaLinea: string;              // "Viernes 31 de julio" (F1/V1/V4b) / "Del ... al ..." (F2/V2/V4a — sin '(N noches)')
+    fechaSub: string | null;         // "2 noches" (F2/V2/V4a) / null (F1/V1/V4b)
+    horaLinea: string | null;        // "de 14:00 a 15:00 · 1 hora" (F1/V4b) / "15:00" (V1) / null (F2/V2/V4a)
     donde: string;                   // dirección estructurada / "En {comuna}" / fallback chat
     tutor: Persona;
     proveedor: Persona;
@@ -196,28 +198,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const inicioYmdChile = ymdChile(new Date(c.fecha_preferida));
             if (inicioYmdChile !== tomorrowYmdChile) continue;
 
-            // Layout de listado R4.1 — el endpoint arma fechaLinea (siempre)
-            // y horaLinea (opcional, según familia). El template pinta cada
-            // fila separada. F2 usa el bloque check-in/out en vez de horaLinea.
+            // Layout R4.1/R4.2 — banda de fecha protagonista + listado.
+            // Para rango de noches (F2/V2/V4a) partimos fechaLinea en
+            // principal + sub para que la banda muestre "Del ... al ..."
+            // grande y "(N noches)" chico debajo. Para puntuales
+            // (F1/V1/V4b) sub es null.
             let fechaLinea: string;
+            let fechaSub: string | null;
             let horaLinea: string | null;
             if (familia === 'F2') {
-                fechaLinea = formatRangoNoches(c.fecha_preferida, c.fecha_fin);
+                const partes = formatRangoNochesPartes(c.fecha_preferida, c.fecha_fin);
+                fechaLinea = partes.principal;
+                fechaSub = partes.sub || null;
                 horaLinea = null;   // F2 usa bloque check-in/out en el template
             } else if (familia === 'F1') {
                 fechaLinea = formatFechaSinHora(c.fecha_preferida);
+                fechaSub = null;
                 horaLinea = formatBloqueHorarioSinFecha(c.fecha_preferida, c.duracion_min);
             } else if (c.duracion_horas) {
-                // legacy V4b: por horas
+                // legacy V4b: por horas puntual
                 fechaLinea = formatFechaSinHora(c.fecha_preferida);
+                fechaSub = null;
                 horaLinea = formatBloqueHorarioSinFecha(c.fecha_preferida, c.duracion_horas * 60);
             } else if (c.fecha_fin) {
                 // legacy V2/V4a: rango de noches sin picker F2
-                fechaLinea = formatRangoNoches(c.fecha_preferida, c.fecha_fin);
+                const partes = formatRangoNochesPartes(c.fecha_preferida, c.fecha_fin);
+                fechaLinea = partes.principal;
+                fechaSub = partes.sub || null;
                 horaLinea = null;
             } else {
                 // legacy V1: puntual con hora, sin duración
                 fechaLinea = formatFechaSinHora(c.fecha_preferida);
+                fechaSub = null;
                 horaLinea = formatHoraCorta(c.fecha_preferida);
             }
 
@@ -285,6 +297,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 familia,
                 fechaInicioIso: c.fecha_preferida,
                 fechaLinea,
+                fechaSub,
                 horaLinea,
                 donde,
                 tutor: {
@@ -320,6 +333,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     agendamientoId: e.agendamientoId,
                     familia: e.familia,
                     fechaLinea: e.fechaLinea,
+                    fechaSub: e.fechaSub,
                     horaLinea: e.horaLinea,
                     donde: e.donde,       // '__CHAT_CON_OTRO__' si fallback (se reemplaza al enviar)
                     dentroVentana: e.dentroVentana,
@@ -450,6 +464,7 @@ async function enviarRecordatorio(
             nombreOtro,
             servicioTitulo: e.servicioTitulo,
             fechaLinea: e.fechaLinea,
+            fechaSub: e.fechaSub,
             horaLinea: e.horaLinea,
             checkInHora: e.checkInHora,
             checkOutHora: e.checkOutHora,
