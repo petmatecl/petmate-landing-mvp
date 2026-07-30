@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Html, Head, Preview, Body, Container, Section, Text, Button, Hr, Img } from '@react-email/components';
+import { bandaStyles, listadoStyles, layoutStyles } from './_shared/tokens';
 
 interface AgendamientoTutorEmailProps {
     // F1 agenda con disponibilidad real agrega `cancelada_proveedor`: el
@@ -34,6 +35,11 @@ interface AgendamientoTutorEmailProps {
     // → fallback "Check-in y check-out se coordinan por chat."
     checkInHora?: string | null;
     checkOutHora?: string | null;
+    // R7 — sub-línea 13px opcional (típicamente "N noches" en F2/V2/V4a).
+    fechaSub?: string | null;
+    // R7 — cascada Dónde resuelta server-side. Si viene, reemplaza el par
+    // modalidad+dirección vieja como bloque unificado.
+    donde?: string | null;
 }
 
 export const AgendamientoTutorEmail = ({
@@ -53,10 +59,14 @@ export const AgendamientoTutorEmail = ({
     esRango,
     checkInHora,
     checkOutHora,
+    fechaSub,
+    donde,
 }: AgendamientoTutorEmailProps) => {
     const isConfirmada = estado === 'confirmada';
     const isCanceladaProveedor = estado === 'cancelada_proveedor';
-    const fechaLabel = esRango ? 'Estadía' : 'Fecha';
+    // Mapa PO 2026-07-28: confirmada → banda accent (celebración);
+    // rechazada / cancelada_proveedor → banda slate neutra (dato histórico).
+    const banda = bandaStyles(isConfirmada ? 'confirmacion' : 'cancelacion');
     const preview = isConfirmada
         ? `${nombreProveedor} confirmó tu solicitud para ${servicioTitulo}.`
         : isCanceladaProveedor
@@ -67,107 +77,108 @@ export const AgendamientoTutorEmail = ({
         <Html>
             <Head />
             <Preview>{preview}</Preview>
-            <Body style={main}>
-                <Container style={container}>
-                    <Section style={header}>
-                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-white-trans.png" width="180" alt="Pawnecta" style={logo} />
+            <Body style={layoutStyles.main}>
+                <Container style={layoutStyles.container}>
+                    <Section style={layoutStyles.header}>
+                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-white-trans.png" width="180" alt="Pawnecta" style={layoutStyles.logo} />
                     </Section>
 
-                    <Section style={content}>
-                        <Text style={h1}>Hola {nombreTutor},</Text>
+                    <Section style={layoutStyles.content}>
+                        <Text style={layoutStyles.h1}>Hola {nombreTutor},</Text>
 
                         {isConfirmada ? (
-                            <Text style={text}>
+                            <Text style={layoutStyles.text}>
                                 <strong>{nombreProveedor}</strong> confirmó tu solicitud para <strong>{servicioTitulo}</strong>.
                             </Text>
                         ) : isCanceladaProveedor ? (
-                            <Text style={text}>
+                            <Text style={layoutStyles.text}>
                                 <strong>{nombreProveedor}</strong> canceló tu reserva de <strong>{servicioTitulo}</strong>. El horario quedó liberado.
                             </Text>
                         ) : (
-                            <Text style={text}>
+                            <Text style={layoutStyles.text}>
                                 <strong>{nombreProveedor}</strong> no pudo confirmar tu solicitud para <strong>{servicioTitulo}</strong>.
                             </Text>
                         )}
 
-                        <Section style={infoBox}>
-                            <Text style={infoLabel}>{fechaLabel}</Text>
-                            <Text style={infoValue}>{fechaFormateada}</Text>
+                        <Section style={banda.card}>
+                            <Section style={banda.banda}>
+                                <Text style={banda.bandaFecha}>{fechaFormateada}</Text>
+                                {fechaSub && <Text style={banda.bandaSub}>{fechaSub}</Text>}
+                            </Section>
 
-                            {esRango && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Check-in / Check-out</Text>
-                                    {checkInHora || checkOutHora ? (
-                                        <Text style={infoValue}>
-                                            {checkInHora && <>Check-in: <strong>{checkInHora}</strong></>}
-                                            {checkInHora && checkOutHora && ' · '}
-                                            {checkOutHora && <>Check-out: <strong>{checkOutHora}</strong></>}
-                                        </Text>
-                                    ) : (
-                                        <Text style={infoValueItalic}>Check-in y check-out se coordinan por chat.</Text>
-                                    )}
-                                </>
-                            )}
+                            <Section style={listadoStyles.contenedor}>
+                                <Row label="Proveedor" value={nombreProveedor} />
+                                <Row label="Servicio" value={servicioTitulo} />
 
-                            {modalidadLabel && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Modalidad</Text>
-                                    <Text style={infoValue}>{modalidadLabel}</Text>
-                                </>
-                            )}
+                                {esRango ? (
+                                    <Row
+                                        label="Horario"
+                                        value={
+                                            checkInHora || checkOutHora
+                                                ? [
+                                                    checkInHora ? `Check-in: ${checkInHora}` : null,
+                                                    checkOutHora ? `Check-out: ${checkOutHora}` : null,
+                                                ].filter(Boolean).join(' · ')
+                                                : 'Check-in y check-out se coordinan por chat.'
+                                        }
+                                        italic={!(checkInHora || checkOutHora)}
+                                        fuerte={!!(checkInHora || checkOutHora)}
+                                    />
+                                ) : duracionLabel ? (
+                                    <Row label="Duración" value={duracionLabel} fuerte />
+                                ) : null}
 
-                            {direccionServicio && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Dirección</Text>
-                                    <Text style={infoValue}>{direccionServicio}</Text>
-                                    {direccionInfo && (
-                                        <Text style={infoValueItalic}>{direccionInfo}</Text>
-                                    )}
-                                </>
-                            )}
+                                {/*
+                                    Bloque "Dónde": prop `donde` (R7 cascada) reemplaza el
+                                    par modalidad+dirección viejo si viene. Sino, mantiene
+                                    la retrocompat con modalidadLabel + direccionServicio.
+                                */}
+                                {donde ? (
+                                    <Row label="Dónde" value={donde} fuerte />
+                                ) : (
+                                    <>
+                                        {modalidadLabel && <Row label="Modalidad" value={modalidadLabel} fuerte />}
+                                        {direccionServicio && (
+                                            <Row
+                                                label="Dirección"
+                                                value={direccionInfo ? `${direccionServicio} · ${direccionInfo}` : direccionServicio}
+                                                fuerte
+                                            />
+                                        )}
+                                    </>
+                                )}
 
-                            {duracionLabel && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Duración</Text>
-                                    <Text style={infoValue}>{duracionLabel}</Text>
-                                </>
-                            )}
-
-                            <Hr style={hrLight} />
-                            <Text style={infoLabel}>
-                                {isCanceladaProveedor ? 'Motivo de la cancelación' : 'Nota del proveedor'}
-                            </Text>
-                            <Text style={infoValueItalic}>
-                                {notaProveedor ? `"${notaProveedor}"` : 'Sin nota adicional.'}
-                            </Text>
+                                <Row
+                                    label={isCanceladaProveedor ? 'Motivo de la cancelación' : 'Nota del proveedor'}
+                                    value={notaProveedor ? `"${notaProveedor}"` : 'Sin nota adicional.'}
+                                    italic
+                                    ultima
+                                />
+                            </Section>
                         </Section>
 
                         {isConfirmada && (telefonoVisible || whatsappLink) && (
-                            <Text style={text}>
+                            <Text style={layoutStyles.text}>
                                 Puedes contactarlo directamente:
                                 {telefonoVisible && <><br />Teléfono: <strong>{telefonoVisible}</strong></>}
-                                {whatsappLink && <><br /><a href={whatsappLink} style={inlineLink}>Abrir WhatsApp</a></>}
+                                {whatsappLink && <><br /><a href={whatsappLink} style={layoutStyles.inlineLink}>Abrir WhatsApp</a></>}
                             </Text>
                         )}
 
-                        <Section style={buttonContainer}>
+                        <Section style={layoutStyles.buttonContainer}>
                             {isConfirmada ? (
-                                <Button style={button} href={`https://www.pawnecta.com/servicio/${servicioId}`}>
+                                <Button style={layoutStyles.button} href={`https://www.pawnecta.com/servicio/${servicioId}`}>
                                     Ver detalle
                                 </Button>
                             ) : (
-                                <Button style={button} href="https://www.pawnecta.com/explorar">
+                                <Button style={layoutStyles.button} href="https://www.pawnecta.com/explorar">
                                     Buscar otros proveedores
                                 </Button>
                             )}
                         </Section>
 
-                        <Hr style={hr} />
-                        <Text style={footer}>
+                        <Hr style={layoutStyles.hr} />
+                        <Text style={layoutStyles.footer}>
                             Pawnecta · El lugar seguro para el cuidado de mascotas.<br />
                             Si tienes dudas, contáctanos a soporte@pawnecta.com
                         </Text>
@@ -180,67 +191,19 @@ export const AgendamientoTutorEmail = ({
 
 export default AgendamientoTutorEmail;
 
-// ── styles (mismo lenguaje que AgendamientoProveedorEmail) ──
-const main = {
-    backgroundColor: '#f8fafc',
-    fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+type RowProps = {
+    label: string;
+    value: string;
+    italic?: boolean;
+    fuerte?: boolean;
+    ultima?: boolean;
 };
-const container = {
-    backgroundColor: '#ffffff',
-    margin: '40px auto',
-    borderRadius: '16px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    overflow: 'hidden',
-    maxWidth: '600px',
-};
-const header = { backgroundColor: '#134E4A', padding: '32px', textAlign: 'center' as const };
-const logo = { margin: '0 auto' };
-const content = { padding: '40px' };
-const h1 = { color: '#0f172a', fontSize: '22px', fontWeight: 'bold' as const, margin: '0 0 16px' };
-const text = { color: '#334155', fontSize: '16px', lineHeight: '24px', margin: '0 0 16px' };
-const infoBox = {
-    backgroundColor: '#f8fafc',
-    borderRadius: '12px',
-    padding: '20px',
-    margin: '24px 0',
-    border: '1px solid #e2e8f0',
-};
-const infoLabel = {
-    color: '#64748b',
-    fontSize: '11px',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const,
-    fontWeight: 600 as const,
-    margin: '0 0 4px',
-};
-const infoValue = {
-    color: '#0f172a',
-    fontSize: '16px',
-    lineHeight: '22px',
-    margin: '0 0 12px',
-    // Sin text-transform — el helper de formato ya devuelve casing correcto
-    // del espanol (primera letra mayuscula, resto minuscula).
-};
-const infoValueItalic = {
-    color: '#334155',
-    fontSize: '15px',
-    lineHeight: '22px',
-    margin: '0',
-    fontStyle: 'italic' as const,
-};
-const hrLight = { borderColor: '#f1f5f9', margin: '16px 0' };
-const buttonContainer = { textAlign: 'center' as const, margin: '32px 0' };
-const button = {
-    backgroundColor: '#1A6B4A',
-    borderRadius: '8px',
-    color: '#fff',
-    fontSize: '16px',
-    fontWeight: 'bold' as const,
-    textDecoration: 'none',
-    textAlign: 'center' as const,
-    display: 'inline-block',
-    padding: '14px 28px',
-};
-const inlineLink = { color: '#1A6B4A', fontWeight: 600 as const };
-const hr = { borderColor: '#e2e8f0', margin: '32px 0 24px' };
-const footer = { color: '#64748b', fontSize: '13px', lineHeight: '20px', textAlign: 'center' as const };
+
+const Row = ({ label, value, italic, fuerte, ultima }: RowProps) => (
+    <Section style={ultima ? listadoStyles.filaUltima : listadoStyles.fila}>
+        <Text style={listadoStyles.etiqueta}>{label}</Text>
+        <Text style={italic ? listadoStyles.valorItalica : fuerte ? listadoStyles.valorFuerte : listadoStyles.valor}>
+            {value}
+        </Text>
+    </Section>
+);

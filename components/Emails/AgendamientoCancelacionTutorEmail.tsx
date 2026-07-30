@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Html, Head, Preview, Body, Container, Section, Text, Hr, Img } from '@react-email/components';
+import { bandaStyles, listadoStyles, layoutStyles } from './_shared/tokens';
 
 interface AgendamientoCancelacionTutorEmailProps {
     nombreProveedor: string;
@@ -19,7 +20,15 @@ interface AgendamientoCancelacionTutorEmailProps {
     esRango?: boolean;
     checkInHora?: string | null;
     checkOutHora?: string | null;
+    // R7 — sub-línea 13px opcional bajo la banda ("N noches" en F2/V2/V4a).
+    fechaSub?: string | null;
+    // R7 — cascada Dónde resuelta server-side.
+    donde?: string | null;
 }
+
+// CANCELACIÓN: banda slate-100 neutra + border-left slate-300 (mapa PO 2026-
+// 07-28). Fecha como dato histórico; sin peso emocional positivo.
+const banda = bandaStyles('cancelacion');
 
 // Sprint cierre agendamiento — email al proveedor cuando un tutor cancela
 // una solicitud que ya estaba CONFIRMADA. NO se envia para cancelacion de
@@ -37,82 +46,94 @@ export const AgendamientoCancelacionTutorEmail = ({
     esRango,
     checkInHora,
     checkOutHora,
+    fechaSub,
+    donde,
 }: AgendamientoCancelacionTutorEmailProps) => {
-    const fechaLabel = esRango ? 'Estadía que tenían acordada' : 'Fecha que tenían acordada';
     return (
         <Html>
             <Head />
             <Preview>{esRango
-                ? `${nombreTutor} cancelo la estadia confirmada en Pawnecta.`
-                : `${nombreTutor} cancelo la cita confirmada en Pawnecta.`}</Preview>
-            <Body style={main}>
-                <Container style={container}>
-                    <Section style={header}>
-                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-white-trans.png" width="180" alt="Pawnecta" style={logo} />
+                ? `${nombreTutor} canceló la estadía confirmada en Pawnecta.`
+                : `${nombreTutor} canceló la cita confirmada en Pawnecta.`}</Preview>
+            <Body style={layoutStyles.main}>
+                <Container style={layoutStyles.container}>
+                    <Section style={layoutStyles.header}>
+                        <Img src="https://www.pawnecta.com/pawnecta_logo_final-white-trans.png" width="180" alt="Pawnecta" style={layoutStyles.logo} />
                     </Section>
 
-                    <Section style={content}>
-                        <Text style={h1}>Hola {nombreProveedor},</Text>
-                        <Text style={text}>
+                    <Section style={layoutStyles.content}>
+                        <Text style={layoutStyles.h1}>Hola {nombreProveedor},</Text>
+                        <Text style={layoutStyles.text}>
                             <strong>{nombreTutor}</strong> canceló {esRango ? 'la estadía' : 'la cita'} que tenían confirmada para tu servicio <strong>{servicioTitulo}</strong>.
                         </Text>
 
-                        <Section style={infoBox}>
-                            <Text style={infoLabel}>{fechaLabel}</Text>
-                            <Text style={infoValue}>{fechaFormateada}</Text>
+                        <Section style={banda.card}>
+                            <Section style={banda.banda}>
+                                <Text style={banda.bandaFecha}>{fechaFormateada}</Text>
+                                {fechaSub && <Text style={banda.bandaSub}>{fechaSub}</Text>}
+                            </Section>
 
-                            {esRango && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Check-in / Check-out</Text>
-                                    {checkInHora || checkOutHora ? (
-                                        <Text style={infoValue}>
-                                            {checkInHora && <>Check-in: <strong>{checkInHora}</strong></>}
-                                            {checkInHora && checkOutHora && ' · '}
-                                            {checkOutHora && <>Check-out: <strong>{checkOutHora}</strong></>}
-                                        </Text>
-                                    ) : (
-                                        <Text style={infoValueItalic}>Check-in y check-out se coordinan por chat.</Text>
-                                    )}
-                                </>
-                            )}
+                            <Section style={listadoStyles.contenedor}>
+                                <Row label="Cliente" value={nombreTutor} />
+                                <Row label="Servicio" value={servicioTitulo} />
 
-                            {modalidadLabel && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Modalidad</Text>
-                                    <Text style={infoValue}>{modalidadLabel}</Text>
-                                </>
-                            )}
+                                {esRango ? (
+                                    <Row
+                                        label="Horario"
+                                        value={
+                                            checkInHora || checkOutHora
+                                                ? [
+                                                    checkInHora ? `Check-in: ${checkInHora}` : null,
+                                                    checkOutHora ? `Check-out: ${checkOutHora}` : null,
+                                                ].filter(Boolean).join(' · ')
+                                                : 'Check-in y check-out se coordinan por chat.'
+                                        }
+                                        italic={!(checkInHora || checkOutHora)}
+                                        fuerte={!!(checkInHora || checkOutHora)}
+                                        ultima={!donde && !modalidadLabel && !direccionServicio && !duracionLabel}
+                                    />
+                                ) : duracionLabel ? (
+                                    <Row
+                                        label="Duración"
+                                        value={duracionLabel}
+                                        fuerte
+                                        ultima={!donde && !modalidadLabel && !direccionServicio}
+                                    />
+                                ) : null}
 
-                            {direccionServicio && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Dirección</Text>
-                                    <Text style={infoValue}>{direccionServicio}</Text>
-                                    {direccionInfo && (
-                                        <Text style={infoValueItalic}>{direccionInfo}</Text>
-                                    )}
-                                </>
-                            )}
-
-                            {duracionLabel && (
-                                <>
-                                    <Hr style={hrLight} />
-                                    <Text style={infoLabel}>Duración</Text>
-                                    <Text style={infoValue}>{duracionLabel}</Text>
-                                </>
-                            )}
+                                {donde ? (
+                                    <Row label="Dónde" value={donde} fuerte ultima />
+                                ) : (
+                                    <>
+                                        {modalidadLabel && (
+                                            <Row
+                                                label="Modalidad"
+                                                value={modalidadLabel}
+                                                fuerte
+                                                ultima={!direccionServicio}
+                                            />
+                                        )}
+                                        {direccionServicio && (
+                                            <Row
+                                                label="Dirección"
+                                                value={direccionInfo ? `${direccionServicio} · ${direccionInfo}` : direccionServicio}
+                                                fuerte
+                                                ultima
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </Section>
                         </Section>
 
-                        <Text style={text}>
+                        <Text style={layoutStyles.text}>
                             Te avisamos para que puedas reorganizar tu agenda. {esRango
                                 ? 'Las noches quedaron libres.'
                                 : 'El horario quedó libre.'}
                         </Text>
 
-                        <Hr style={hr} />
-                        <Text style={footer}>
+                        <Hr style={layoutStyles.hr} />
+                        <Text style={layoutStyles.footer}>
                             Pawnecta · El lugar seguro para el cuidado de mascotas.<br />
                             Si tienes dudas, contáctanos a soporte@pawnecta.com
                         </Text>
@@ -125,54 +146,19 @@ export const AgendamientoCancelacionTutorEmail = ({
 
 export default AgendamientoCancelacionTutorEmail;
 
-// Estilos compartidos con AgendamientoProveedorEmail / AgendamientoTutorEmail.
-const main = {
-    backgroundColor: '#f8fafc',
-    fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+type RowProps = {
+    label: string;
+    value: string;
+    italic?: boolean;
+    fuerte?: boolean;
+    ultima?: boolean;
 };
-const container = {
-    backgroundColor: '#ffffff',
-    margin: '40px auto',
-    borderRadius: '16px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    overflow: 'hidden',
-    maxWidth: '600px',
-};
-const header = { backgroundColor: '#134E4A', padding: '32px', textAlign: 'center' as const };
-const logo = { margin: '0 auto' };
-const content = { padding: '40px' };
-const h1 = { color: '#0f172a', fontSize: '22px', fontWeight: 'bold' as const, margin: '0 0 16px' };
-const text = { color: '#334155', fontSize: '16px', lineHeight: '24px', margin: '0 0 16px' };
-const infoBox = {
-    backgroundColor: '#f8fafc',
-    borderRadius: '12px',
-    padding: '20px',
-    margin: '24px 0',
-    border: '1px solid #e2e8f0',
-};
-const infoLabel = {
-    color: '#64748b',
-    fontSize: '11px',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const,
-    fontWeight: 600 as const,
-    margin: '0 0 4px',
-};
-const infoValue = {
-    color: '#0f172a',
-    fontSize: '16px',
-    lineHeight: '22px',
-    margin: '0 0 12px',
-    // Sin text-transform — el helper de formato ya devuelve casing correcto
-    // del espanol (primera letra mayuscula, resto minuscula).
-};
-const infoValueItalic = {
-    color: '#334155',
-    fontSize: '15px',
-    lineHeight: '22px',
-    margin: '0 0 12px',
-    fontStyle: 'italic' as const,
-};
-const hr = { borderColor: '#e2e8f0', margin: '32px 0 24px' };
-const hrLight = { borderColor: '#f1f5f9', margin: '16px 0' };
-const footer = { color: '#64748b', fontSize: '13px', lineHeight: '20px', textAlign: 'center' as const };
+
+const Row = ({ label, value, italic, fuerte, ultima }: RowProps) => (
+    <Section style={ultima ? listadoStyles.filaUltima : listadoStyles.fila}>
+        <Text style={listadoStyles.etiqueta}>{label}</Text>
+        <Text style={italic ? listadoStyles.valorItalica : fuerte ? listadoStyles.valorFuerte : listadoStyles.valor}>
+            {value}
+        </Text>
+    </Section>
+);
