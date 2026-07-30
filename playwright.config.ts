@@ -119,7 +119,10 @@ function assertCredencialesReales(): void {
 }
 
 assertBaseUrlIsStaging(baseURL);
-const vercelBypass = assertBypass();
+// El token se valida acá y se lee en authenticate.ts + endpointUrl() como
+// query param en la URL. Ya no se pasa como header persistente (ver comentario
+// del bloque `use` abajo).
+assertBypass();
 assertCredencialesReales();
 
 export default defineConfig({
@@ -149,17 +152,32 @@ export default defineConfig({
     ],
     use: {
         baseURL,
-        // Bypass del Vercel Deployment Protection. El header por si solo
-        // funciona para el primer request, pero Vercel puede redirect y
-        // en el redirect el header se pierde — cae de vuelta al SSO login
-        // (bug reportado en primer intento del setup). Setando tambien
-        // `x-vercel-set-bypass-cookie: 'true'`, Vercel emite una cookie
-        // `_vercel_jwt` que persiste la sesion bypass sin depender del
-        // header en cada request subsiguiente.
-        extraHTTPHeaders: {
-            'x-vercel-protection-bypass': vercelBypass,
-            'x-vercel-set-bypass-cookie': 'true',
-        },
+        // Bypass del Vercel Deployment Protection — patrón query en URL.
+        //
+        // HISTÓRICO (removido 2026-07-30): antes usábamos `extraHTTPHeaders`
+        // global con `x-vercel-protection-bypass` + `x-vercel-set-bypass-cookie:
+        // 'true'` para que Vercel emitiera la cookie `_vercel_jwt` y la sesión
+        // persistiera sin depender del header. Ese patrón dejó de funcionar en
+        // las últimas horas del 2026-07-30: Vercel hace ahora un strict
+        // handshake — si el header está presente en la request, siempre
+        // responde 307 al mismo URL esperando que la próxima venga solo con
+        // la cookie. Como Playwright reenvía `extraHTTPHeaders` en cada
+        // redirect, entra en loop infinito (ERR_TOO_MANY_REDIRECTS).
+        // Verificado empíricamente con curl -L en preview next15 y en staging
+        // (mismo síntoma en ambos).
+        //
+        // ACTUAL: cero header persistente. El bypass se pasa como query param
+        // en la URL del PRIMER navigate:
+        //   - Setups (`authenticate.ts:33-37`): construye
+        //     `/login?x-vercel-protection-bypass=<token>&x-vercel-set-bypass-cookie=samesitenone`
+        //     — Vercel valida, emite Set-Cookie: _vercel_jwt=..., y redirige
+        //     a la URL limpia. El browser context de Playwright persiste la
+        //     cookie; el resto del setup + specs navegan sin query.
+        //   - API tests (specs/f2-recordatorios-cron/all.spec.ts): usan el
+        //     helper `endpointUrl()` de e2e/fixtures/cron-recordatorio.ts que
+        //     agrega el query bypass a cada URL de endpoint. Vercel hace el
+        //     handshake once, la cookie se aplica dentro del `request.newContext`,
+        //     y el segundo hop llega al endpoint sin header ni query.
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',

@@ -197,6 +197,15 @@ export async function getMarcasAgendamiento(
 /**
  * Construye la URL absoluta del endpoint cron contra staging.
  * `dryRun`, `bypassEnv` son opcionales — cada spec pasa lo que necesita.
+ *
+ * BYPASS Vercel Deployment Protection en query (2026-07-30): Vercel dejó de
+ * aceptar el bypass como header persistente — hace strict handshake y
+ * redirige 307 al mismo URL esperando cookie sola, generando loop cuando
+ * el header se reenvía en cada redirect. Solución canónica ahora: query
+ * `x-vercel-protection-bypass=<token>&x-vercel-set-bypass-cookie=samesitenone`
+ * en la URL del PRIMER request. Vercel emite `Set-Cookie: _vercel_jwt=…` +
+ * redirige a la URL limpia; el `request.newContext()` de Playwright respeta
+ * la cookie en el segundo hop, que sí llega al endpoint sin loop.
  */
 export function endpointUrl(
     baseURL: string,
@@ -205,6 +214,11 @@ export function endpointUrl(
     const url = new URL('/api/cron/recordatorio-reserva', baseURL);
     if (opts?.dryRun) url.searchParams.set('dryRun', '1');
     if (opts?.bypassEnv ?? true) url.searchParams.set('bypassEnv', '1');
+    const bypass = process.env.PLAYWRIGHT_BYPASS;
+    if (bypass) {
+        url.searchParams.set('x-vercel-protection-bypass', bypass);
+        url.searchParams.set('x-vercel-set-bypass-cookie', 'samesitenone');
+    }
     return url.toString();
 }
 

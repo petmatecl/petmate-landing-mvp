@@ -47,15 +47,17 @@ import {
 test.describe.configure({ mode: 'serial' });
 
 const secret = requireCronSecret();
+
+// El bypass de Vercel Deployment Protection va como QUERY en la URL (via
+// `endpointUrl()` del fixture), no como header — ver comentario en
+// `fixtures/cron-recordatorio.ts:endpointUrl` para el motivo (Vercel cambió
+// comportamiento del bypass header persistente el 2026-07-30 → loop 307).
+// Estos helpers solo mandan el `x-cron-secret` cuando aplica; el `bypass`
+// viaja dentro de la URL.
 const bypassHeaders = () => ({
     'x-cron-secret': secret,
-    'x-vercel-protection-bypass': process.env.PLAYWRIGHT_BYPASS ?? '',
-    'x-vercel-set-bypass-cookie': 'true',
 });
-const bypassHeadersNoSecret = () => ({
-    'x-vercel-protection-bypass': process.env.PLAYWRIGHT_BYPASS ?? '',
-    'x-vercel-set-bypass-cookie': 'true',
-});
+const bypassHeadersNoSecret = () => ({});
 
 // ---------------------------------------------------------------------------
 // S1 — dryRun elegibles por familia (F1/F2/legacy) — cero envíos reales.
