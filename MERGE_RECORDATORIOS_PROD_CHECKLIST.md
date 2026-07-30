@@ -27,8 +27,8 @@ al mergear `vercel.json` con la entry nueva a `main`; hasta que eso pase, el
 endpoint está deployado en preview branches pero **no ejecuta** (Vercel Cron
 Jobs corre solo desde el deploy de la Production Branch).
 
-Commits en `staging` desde la última promoción a `main` (10 commits, del más
-viejo al más nuevo):
+Commits en `staging` desde la última promoción a `main` (**12 commits**, del
+más viejo al más nuevo):
 
 ```
 a68aa6a docs(acta): fixes post-revisión + regla branch-guard
@@ -41,22 +41,26 @@ be590bc feat(recordatorios): R4.1 layout de listado + bloque Dónde (feedback PO
 c11746e feat(recordatorios): R5 registro cron diario 22:00 + mapa semantico banda
 3b96bf3 test(recordatorios): R6 suite e2e cron + fix DST del acta R5
 42c151e feat(recordatorios): R7 retrofit templates confirmacion/cancelacion + diagnostico drift
+09392a8 docs(recordatorios): borrador checklist de merge del tren (v1) — pendiente PO
+c7f6255 docs(checklist): merge Recordatorios v2 — ajustes post-revisión
 ```
 
-Mezcla de docs (`a68aa6a`, `3d338b4`) + tren completo (R1-R7). Nada externo al
-tren se filtró en la ventana `staging..main` — verificar antes de arrancar.
+Mezcla de docs (`a68aa6a`, `3d338b4`, `09392a8`, `c7f6255`) + tren completo
+(R1-R7). Los 2 últimos (`09392a8`, `c7f6255`) son este mismo checklist en sus
+2 iteraciones — **docs, no gatillan PARAR**. Nada más externo al tren se
+filtró en la ventana `staging..main`.
 
 ---
 
 ## Fase 0 — Preflight (en staging, antes de tocar `main`)
 
-- [ ] **Cierre formal de la Fase 4 del merge F2 (monitor 24h)**. El plazo ya
-  venció (F2 EN PROD desde 2026-07-28). Aldo reporta: sin spike de 500/403 en
-  `/api/agendamientos/*`, sin rebotes `23P01` inexplicados, Resend con delivery
-  ok, cero tickets soporte "no puedo reservar" o "no puedo cancelar". **Marcar
-  Fase 4 F2 cerrada en el acta antes de arrancar este merge** — si aparece
-  algún incidente F2 sin cerrar, resolverlo ANTES de mezclar más cambios en
-  prod.
+- [x] **Cierre formal de la Fase 4 del merge F2 (monitor 24h) — CUMPLIDO
+  2026-07-30**. Aldo reportó con evidencia: Vercel ventana 1h sin errores;
+  BD prod con actividad sana (5 confirmadas, 1 últimos 3 días, 1 pendiente,
+  cero estados anómalos); Resend 100% Delivered (los `[STAGING]` de horas
+  previas son la suite R7, gate de `lib/resend.ts` funcionando); soporte 0
+  tickets. F2 estable. Ver `ACTA_CIERRE_F2.md > Fase 4 — CERRADA 2026-07-30`
+  para el detalle.
 
 - [ ] **Verificar en Vercel Dashboard que el ÚLTIMO commit de `staging` tiene
   deployment READY** (regla P1). Ir a Vercel Dashboard → project → Deployments

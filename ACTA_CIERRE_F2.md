@@ -158,13 +158,24 @@ d2bee23 docs(claude): observable known-flaky de e2e s1-editor-visible
 - `main` = `staging` = `d2bee23` en el momento del merge y del deploy Ready.
 - Este commit del acta queda solo en `staging` — la promoción a `main` es post-Fase 4 (monitor 24h) o cuando corresponda; el acta no es código productivo. **Esperado y correcto** que staging vaya 1 commit adelante de main post-cierre.
 
-## Fase 4 en curso
+## Fase 4 — CERRADA 2026-07-30
 
-Monitor 24h a cargo de Aldo, cierre esperado 2026-07-29:
-- Vercel Logs sin spikes de 500/403 en `/api/agendamientos/*`.
-- Supabase Logs sin rebotes `23P01` inexplicados.
-- Resend Dashboard: emails de reserva confirmada + notify-proveedor con delivery ok.
-- Bandeja de soporte: sin tickets de "no puedo reservar" o "no puedo cancelar".
+Monitor a cargo de Aldo, cierre reportado con evidencia real (marco extendido
+más allá del plazo original 2026-07-29; F2 lleva ~48h en prod al momento del
+cierre — estable):
+
+- **Vercel Logs**: ventana 1h revisada, sin errores en `/api/agendamientos/*`.
+- **Supabase prod**: actividad sana en `agendamientos` — 5 confirmadas, 1
+  registrada últimos 3 días, 1 pendiente, cero estados anómalos.
+- **Resend Dashboard**: 100% Delivered. Los emails con prefijo `[STAGING]`
+  aparecen por la suite R7 corriendo en horas previas — gate de
+  `lib/resend.ts` funcionando correcto (staging → AUDIT_INBOX prefijado,
+  prod → destinatario real sin prefijo).
+- **Soporte**: 0 tickets de "no puedo reservar" o "no puedo cancelar".
+
+**Conclusión F2 estable**. Habilita el arranque del checklist de merge del
+tren Recordatorios de cita (siguiente entregable Doctoralia-style —
+[MERGE_RECORDATORIOS_PROD_CHECKLIST.md](MERGE_RECORDATORIOS_PROD_CHECKLIST.md)).
 
 ---
 
