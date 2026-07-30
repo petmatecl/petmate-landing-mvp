@@ -1,6 +1,15 @@
-# Merge tren RECORDATORIOS → producción — checklist ejecutable (v1 borrador)
+# Merge tren RECORDATORIOS → producción — checklist ejecutable (v2)
 
-> **ESTADO: BORRADOR — pendiente revisión PO**. No ejecutar hasta aprobación.
+> **ESTADO: APROBADO CON AJUSTES — v2 2026-07-30**. Listo para ejecutar cuando
+> Aldo dé GO. Cambios v1 → v2:
+>   1. Fase 4.1: eliminado `bypassEnv=1` del dryRun (queremos ejercitar el gate
+>      `skipIfNonProd` real como lo hace la corrida programada); nota crítica
+>      agregada si retorna `skipped`.
+>   2. Fase 4.1: typo `staging global` → `prod`.
+>   3. Escenario A rollback: reescrito con cita textual de la doc oficial de
+>      Vercel — Instant Rollback NO toca crons, se necesita paso manual extra
+>      para desregistrar el cron nuevo tras un rollback.
+>
 > Patrón heredado de `MERGE_F2_PROD_CHECKLIST.md` v2 (F2 EN PROD desde 2026-07-28
 > con tag `f2-prod-20260728`). Reglas de proceso P1-P4 aplicables.
 
@@ -294,6 +303,11 @@ Prod (`www.pawnecta.com`) NO tiene Vercel Deployment Protection → **sin
 bypass header** (a diferencia de staging donde sí se necesita el
 `x-vercel-protection-bypass`).
 
+**Sin `bypassEnv=1`** — a diferencia del smoke de staging, acá queremos que
+`skipIfNonProd` pase por sí solo con `VERCEL_ENV=production`. Es el mismo
+path que ejecutará la corrida programada de las 22:00 UTC; ejercitarlo
+verifica el gate de entorno en vivo.
+
 **Comando PowerShell exacto** (llenar `$env:CRON_SECRET_PROD` con el valor
 de Vercel prod — NUNCA hardcodearlo en el checklist ni en un commit):
 
@@ -303,8 +317,9 @@ de Vercel prod — NUNCA hardcodearlo en el checklist ni en un commit):
 $env:CRON_SECRET_PROD = "<pegar-aca>"
 
 # DryRun contra prod — cero envíos, cero UPDATE de marcas.
+# Sin bypassEnv=1: el endpoint debe pasar skipIfNonProd por sí solo (VERCEL_ENV=production).
 Invoke-RestMethod `
-    -Uri "https://www.pawnecta.com/api/cron/recordatorio-reserva?dryRun=1&bypassEnv=1" `
+    -Uri "https://www.pawnecta.com/api/cron/recordatorio-reserva?dryRun=1" `
     -Headers @{ "x-cron-secret" = $env:CRON_SECRET_PROD } `
     -Method Get | ConvertTo-Json -Depth 5
 
@@ -319,7 +334,7 @@ Response esperada (shape):
   "dryRun": true,
   "now": "<ISO UTC del momento>",
   "tomorrowChile": "<YYYY-MM-DD del día siguiente en TZ Chile>",
-  "candidates": <N — rows del staging global en la ventana>,
+  "candidates": <N — rows de prod en la ventana>,
   "elegibles": <M — post-refino, <= candidates>,
   "sample": [
     { "agendamientoId": "...", "familia": "F1|F2|legacy", ... }
@@ -332,10 +347,21 @@ Response esperada (shape):
   500 → capturar el error, revisar Vercel Logs, reportar antes de
   continuar.
 
+- [ ] **Si retorna `{ skipped: true, env: ... }` → HALLAZGO CRÍTICO**. Es el
+  gate `skipIfNonProd` bloqueando el request. Significa que
+  `VERCEL_ENV=production` **no está seteada correctamente en el runtime del
+  deploy** (o alguna otra variable de `lib/cronGuard.ts` está mal). El mismo
+  gate bloquearía la corrida programada de las 22:00 → **el cron nunca
+  ejecutaría en prod**. PARAR y diagnosticar antes de esperar la corrida:
+  revisar Vercel Dashboard → Settings → Environment Variables → Production
+  scope, confirmar `NEXT_PUBLIC_APP_ENV=production` (Vercel setea
+  `VERCEL_ENV=production` automáticamente en Production deployments; si
+  falla, escalar a Vercel Support).
+
 - [ ] **`candidates` y `elegibles` son numéricos** (pueden ser 0 si no hay
-  reservas F2 confirmadas de prod cayendo en "mañana Chile" — perfectamente
-  válido en un merge que ocurre en un día sin reservas confirmadas para el
-  día siguiente).
+  reservas F2/F1/legacy confirmadas de prod cayendo en "mañana Chile" —
+  perfectamente válido en un merge que ocurre en un día sin reservas
+  confirmadas para el día siguiente).
 
 - [ ] **`sample[]` tiene shape correcto** si hay elegibles: cada entry con
   `agendamientoId`, `familia ∈ {F1, F2, legacy}`, `fechaLinea`, `fechaSub`,
@@ -423,12 +449,47 @@ comportamiento inesperado.
 
 ### Escenario A — Deploy Vercel roto (build fail o runtime crash inmediato)
 
-Vercel Dashboard → Deployments → el deploy anterior (previo a `42c151e`) →
-**Promote to Production**. 1 click. La migration R1 queda aplicada (columnas
-aditivas + NULL, no interfieren con el código viejo que las ignora
-completo). Cron nuevo queda registrado pero el endpoint sirve la versión
-anterior del bundle (que no incluye el handler nuevo — retorna 404). Cero
-data loss.
+**Comportamiento del rollback + crons según doc oficial Vercel**
+(https://vercel.com/docs/cron-jobs/manage-cron-jobs, sección "Rollbacks
+with cron jobs", verificado 2026-07-30):
+
+> "If you Instant Rollback to a previous deployment, active cron jobs will
+> not be updated. They will continue to run as scheduled until they are
+> manually disabled or updated."
+
+Es decir: **Instant Rollback / Promote to Production de un deployment
+anterior NO desregistra el cron nuevo**. Los crons siguen activos como
+estaban antes del rollback. Este comportamiento es contraintuitivo — no
+sigue el `vercel.json` del deployment "activo" post-rollback — así que se
+necesita paso manual adicional para removerlo si el bug es del cron.
+
+**Paso 1 — Revertir el código de prod** (opcional, solo si el crash es del
+bundle, no del cron): Vercel Dashboard → Deployments → el deploy anterior
+(previo a `42c151e`) → **Promote to Production**. 1 click. El tráfico HTTP
+público (www.pawnecta.com) vuelve a servirse del bundle viejo.
+
+**Paso 2 OBLIGATORIO — Desregistrar el cron nuevo** (los crons no siguen
+automáticamente al rollback):
+
+- **Opción A rápida (Dashboard)**: Vercel Dashboard → Project → Settings →
+  Cron Jobs → botón **Disable Cron Jobs** en la fila
+  `/api/cron/recordatorio-reserva`. Cero commit necesario; el cron queda
+  listado como disabled pero no ejecuta.
+- **Opción B durable (git)**: editar `vercel.json` en `main` removiendo la
+  entry del cron nuevo + commit + push. El próximo deploy lo desregistra
+  y queda reflejado en el repo. Preferir esta si el rollback es
+  permanente.
+
+Consecuencias funcionales del rollback + Paso 2:
+- Bundle prod: vuelve al deployment anterior (sin `RecordatorioReservaEmail`,
+  sin retrofit R7 de templates).
+- Cron nuevo: desregistrado por Paso 2. La primera corrida 22:00 UTC post-
+  rollback NO se dispara.
+- Migration R1 (columnas marca): **queda aplicada** — aditivas + NULL, no
+  interfieren con el código viejo que las ignora completo. Cero data loss.
+- Recordatorios ya enviados por corridas previas al rollback (si las hubo):
+  quedan enviados; sus marcas quedan populadas en BD (inofensivas para el
+  código viejo).
 
 ### Escenario B — Cron ejecuta y envía emails erróneos / spam
 
