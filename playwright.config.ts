@@ -190,9 +190,9 @@ export default defineConfig({
                 storageState: 'e2e/.auth/proveedor.json',
             },
             dependencies: ['setup'],
-            // Todos los specs default corren como proveedor, EXCEPTO los de
-            // f2-3 que arman su propio project con storageState del tutor.
-            testIgnore: /specs[\\/]f2-3[\\/]/,
+            // Specs default corren como proveedor, EXCEPTO los de f2-3 (tutor)
+            // y los de f2-recordatorios-cron (API tests, project propio abajo).
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron)[\\/]/,
         },
         {
             name: 'chromium-tutor',
@@ -205,6 +205,20 @@ export default defineConfig({
             // dispara si el spec matchea; sin specs matcheados, el setup-tutor
             // sigue corriendo pero es no-op eficaz.
             testMatch: /specs[\\/]f2-3[\\/].*\.spec\.ts$/,
+        },
+        {
+            // Suite API del tren Recordatorios (R6). No usa browser — todos
+            // los tests golpean el endpoint con `request.newContext`. Depende
+            // de AMBOS setups porque los helpers necesitan getProveedorId +
+            // getTutorId. La storageState del proveedor va acá por default
+            // (los tests igual usan `request`, no `page`).
+            name: 'chromium-cron',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'e2e/.auth/proveedor.json',
+            },
+            dependencies: ['setup', 'setup-tutor'],
+            testMatch: /specs[\\/]f2-recordatorios-cron[\\/].*\.spec\.ts$/,
         },
     ],
 });

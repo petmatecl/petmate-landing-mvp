@@ -38,7 +38,11 @@ Dos proyectos de setup independientes, uno por rol. Cada uno autentica una vez y
 | `setup`           | `E2E_STAGING_EMAIL` + `E2E_STAGING_PASSWORD`    | `e2e/.auth/proveedor.json`  | Proveedor + admin (F2-2B: editor de servicios). |
 | `setup-tutor`     | `E2E_STAGING_TUTOR_EMAIL` + `E2E_STAGING_TUTOR_PASSWORD` | `e2e/.auth/tutor.json` | Tutor puro — Camila Figueroa Mendoza (F2-3: reserva + cancelación). |
 
-Los projects `chromium` y `chromium-tutor` en `playwright.config.ts` consumen esos storageStates. Los specs se ruta al project correcto por `testMatch` (`f2-3` → tutor, resto → proveedor).
+Los projects `chromium`, `chromium-tutor` y `chromium-cron` en `playwright.config.ts` consumen esos storageStates. Los specs se rutean al project correcto por `testMatch`:
+
+- `f2-3` → `chromium-tutor` (tutor).
+- `f2-recordatorios-cron` → `chromium-cron` (API-only, depende de ambos setups).
+- Resto → `chromium` (proveedor).
 
 ## Estructura
 
@@ -95,6 +99,28 @@ Ver `e2e/specs/f2-3/`. Los tests crean un servicio de cuidado con F2 activo (`e2
 | `s7-cancelacion-fuera-ventana.spec.ts` | Fixture con `cancelacion_min_horas_antes=999` + reserva a +2 días. Botón "Cancelar reserva" disabled. Endpoint directo → `403 reason=ventana_cerrada`. |
 | `s8-bypass-rls-cerrado.spec.ts` | Camila hace `UPDATE agendamientos SET estado='cancelada' WHERE id=<F2-confirmada>` con anon key → 0 filas afectadas. Verifica migration `20260723_agendamientos_cancel_rls_f2.sql`. |
 | `s9-regresion-F1.spec.ts` | Reserva F1 (`duracion_min NOT NULL`, `capacidad_snapshot_estadia NULL`). UPDATE client de cancelación sigue OK → 1 fila. Fix RLS F2-3-D no regresionó F1. |
+
+## Qué cubre — Suite Recordatorios Cron (R6)
+
+Ver `e2e/specs/f2-recordatorios-cron/`. Suite **API-only** (sin browser) que golpea `/api/cron/recordatorio-reserva` en staging con `?bypassEnv=1` + `x-cron-secret`. Cada bloque `describe.serial` crea un servicio + N agendamientos con `tutor_nombre = '[TEST-cron-*]'` (matcheable por el check Fase 0 del checklist de merge), corre el endpoint, verifica response + BD, y limpia todo en `afterAll`.
+
+Requiere env var extra: `E2E_STAGING_CRON_SECRET` (Vercel Preview scope). Sin ella, la suite falla temprano con mensaje claro.
+
+**Serialización cross-describe (crítica)**: la suite vive en UN solo file `all.spec.ts` con `test.describe.configure({ mode: 'serial' })` al top-level. Motivo: el endpoint es global — su SELECT trae toda fila elegible del staging (no solo las del test que invocó); si dos bloques corrieran en paralelo, cada uno procesaría las filas del otro y updateraría marcas cross-spec, produciendo flakes. Consolidar + serial mode fuerza single-worker sin tocar la config global. Trade-off aceptable: los otros projects (chromium, chromium-tutor) siguen paralelos con este file.
+
+| Bloque en `all.spec.ts` | Cobertura |
+|---|---|
+| S1 dryRun elegibles | dryRun devuelve `familia` correcta (F1/F2/legacy) para 3 agendamientos test en "mañana Chile". `fechaSub`/`horaLinea` matchean el shape esperado por familia. |
+| S2 corrida real + idempotencia | 1ª corrida: 6 marcas populadas + `sent >= 3` c/u. 2ª corrida: 0 envíos para nuestros ids + marcas anteriores a `preRun2Ms` (no re-escritas por la 2ª). |
+| S3 marcas independientes | Agendamiento con marca tutor pre-poblada (ISO 3d viejo) y proveedor NULL. Corrida real: envío solo al proveedor, tutor mark exacta intacta (epoch), proveedor mark ≥ startIso. |
+| S4 no elegibles | 4 filas que NO deben salir: confirmada+now+6h, confirmada+now+48h, pendiente+now+24h, rechazada+now+24h. Ninguna en sample; corrida real no toca marcas. |
+| S5 auth | Sin secret → 401. `x-cron-secret` erróneo → 401. `Authorization: Bearer` erróneo → 401. Secret válido + dryRun → 200. |
+
+**Emails reales generados por corrida completa de la suite** (a AUDIT_INBOX via wrapper `lib/resend`):
+- S2: ~6 (2 destinatarios × 3 familias, 1ª corrida sends, 2ª es no-op).
+- S3: ~1 (solo proveedor pendiente).
+- S1/S4/S5: 0 (dryRun o 401).
+- **Total: ~7 emails/corrida**, todos con subject prefijo `[STAGING] (orig: ...)`. Nota: si otras reservas del staging entran en la ventana "mañana Chile", el endpoint también las procesa — el `sent` reportado puede ser >= 7. Los emails "extra" corresponden a reservas legítimas del staging, no a fixtures del test.
 
 ## Qué queda como check manual (requiere SQL — Aldo lo corre aparte)
 
