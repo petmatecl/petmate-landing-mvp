@@ -19,7 +19,17 @@ const withPWA = require('next-pwa')({
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["ui-avatars.com", "vubmjguwzpesxcgenkxo.supabase.co", "pwhplhjkmmbgnphcoibh.supabase.co", "images.pexels.com", "images.unsplash.com"],
+    // N2 tren N15 (2026-07-30): migrado de `images.domains` (deprecado en
+    // Next 15) a `images.remotePatterns`. Doc: https://nextjs.org/docs/app/api-reference/components/image#remotepatterns
+    // Cada entry acota host + protocolo; `pathname: '/**'` mantiene la
+    // permisividad del array `domains` viejo (cualquier ruta dentro del host).
+    remotePatterns: [
+      { protocol: 'https', hostname: 'ui-avatars.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'vubmjguwzpesxcgenkxo.supabase.co', pathname: '/**' },
+      { protocol: 'https', hostname: 'pwhplhjkmmbgnphcoibh.supabase.co', pathname: '/**' },
+      { protocol: 'https', hostname: 'images.pexels.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
+    ],
   },
   async headers() {
     return [

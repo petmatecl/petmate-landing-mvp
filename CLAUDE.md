@@ -228,10 +228,25 @@ Vulnerabilities reportadas por `npm audit` se filtran por exploitability en nues
 
 **Patrón operacional**: `npm install <package>@<version>` explícito > `npm audit fix` para tener control sobre qué se mueve. `--force` solo si está documentada la cascada de breaking changes que implica.
 
-**Estado actual** (post-bump `next 14.2.3 → 14.2.35`): critical cerrado. Quedan ~14 advisories high en `next` 14.2.x que NO tienen fix backport en la rama 14 (sólo cerradas en 15+). De esos, ~11 no aplican al stack (RSC/App Router/middleware/i18n/beforeInteractive), ~3 aplican parcialmente (rewrites HTTP smuggling, image optimizer DoS). Cierre completo requiere bump a Next 15 mayor — fuera de scope pre-launch.
+**Estado actual** (post-bump `next 14.2.35 → 15.5.22`, tren N15 en curso desde 2026-07-30). Antes del tren N15 la sección de deuda crítica listaba 3 advisories high que se creían VIVOS en nuestro stack; **verificación exhaustiva 2026-07-30 mostró que los 4 items del CLAUDE.md previo estaban MITIGADOS** por combinación de patch backport a 14.2.35 + Vercel-hosting (que maneja rewrites e image opt en su propia infra). Matriz verificada:
 
-**Deuda crítica con timer** (no ordinaria — hacer ASAP post-launch):
-- **Bump Next 14 → 15**. Cierra 3 advisories high que SÍ aplican al stack en 14.2.x y no tienen backport: (a) HTTP request smuggling en rewrites — tenemos `/supabase-proxy/:path*`, vector real; (b) `next/image` Optimization API DoS — uso extensivo en explorar/servicio/proveedor; (c) `next/image` disk cache growth unbounded — agotamiento storage en Vercel. Migración mayor: ~1-2 días con testing exhaustivo (verificar Pages Router compat, build, hidratación, SW). Bumpea también `eslint-config-next` al mismo major, cerrando la cadena eslint de regalo.
+| # | Item | Advisory | Estado en 14.2.35 + Vercel |
+|---|---|---|---|
+| 1 | HTTP smuggling `/supabase-proxy/*` | [GHSA-ggv3-7p47-pfv8](https://github.com/vercel/next.js/security/advisories/GHSA-ggv3-7p47-pfv8) | ✅ Parchado en 14.2.35 + rewrites Vercel a nivel CDN (doble cinturón) |
+| 2 | `next/image` DoS memory loader | [GHSA-h64f-5h5j-jqjh / CVE-2026-44577](https://github.com/vercel/next.js/security/advisories/GHSA-h64f-5h5j-jqjh) | ✅ "If you are using Vercel, you are NOT impacted" — requiere self-hosting |
+| 3 | `next/image` DoS SVGs | [GHSA-q8wf-6r8g-63ch / CVE-2026-64644](https://github.com/vercel/next.js/security/advisories/GHSA-q8wf-6r8g-63ch) | ✅ "Users on Vercel are not impacted" |
+| 4 | `next/image` cache disk growth | [GHSA-3x4c-7xq6-9pq8 / CVE-2026-27980](https://github.com/vercel/next.js/security/advisories/GHSA-3x4c-7xq6-9pq8) | ✅ "Note that this does not impact platforms that have their own image optimization capabilities, such as Vercel" |
+
+**Fecha de verificación**: 2026-07-30 vía WebFetch a GitHub Security Advisories oficiales.
+
+**Timer real que sí justificó el tren N15**: Next 14 alcanzó **End of Life el 2025-10-26** (9 meses y 4 días atrás al momento del arranque N15 — ver [HeroDevs EOL Timeline](https://www.herodevs.com/blog-posts/nextjs-eol-dates-version-support-timeline)). La línea 14.2.x quedó congelada en `14.2.35` (Sept 2025 fue la última publicación 14.2.x). Ya no recibe parches garantizados; futuras CVEs no necesariamente serán backporteadas o mitigables por Vercel-hosting. El tren N15 se ejecutó como mantenimiento preventivo pre-viaje del PO (ausencia sept–oct), con soak de ~2 meses en prod antes de esa ventana.
+
+**Tren N15 en curso** (rama `next15` desde staging, 2026-07-30):
+- N1 ✅ bump `next 14.2.35 → 15.5.22` + `eslint-config-next 14.2.3 → 15.5.22` (React 18.3.1 pinned por decisión PO — pages router soporta React 18 nativamente en Next 15).
+- N2 ✅ migración `images.domains` → `images.remotePatterns` en `next.config.js` (5 hosts, `pathname: '/**'` mantiene permisividad equivalente).
+- N3 pendiente: swap `next-pwa@5.6.0` → `@ducanh2912/next-pwa@10.2.9` (drop-in, decisión PO — `@serwist/next` queda backlog).
+- N4 pendiente: audit `fetch()` en `getServerSideProps` + API routes para el flip de cache-default en Next 15.
+- N5-N7 pendientes.
 
 **Backlog ordinario post-launch** (defer aceptado):
 - Reemplazar `next-pwa@5.6.0` por `@ducanh2912/next-pwa` (fork activo) — cierra cadena de 7 highs build-time (workbox-build, workbox-webpack-plugin, serialize-javascript, rollup-plugin-terser, lodash, picomatch, @babel/plugin-transform-modules-systemjs).
