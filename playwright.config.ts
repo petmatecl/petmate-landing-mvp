@@ -42,10 +42,16 @@ function assertBaseUrlIsStaging(url: string): void {
             `Ajusta PLAYWRIGHT_BASE_URL a la URL del branch staging de Vercel.`
         );
     }
-    if (!host.includes('git-staging') && !host.includes('staging')) {
+    // TEMPORAL tren N15 (2026-07-30) — remover al mergear (ver N7 Fase 0
+    // "remover whitelist git-next15 de assertBaseUrlIsStaging"). Permite
+    // apuntar la suite al preview de rama next15
+    // (pawnecta-landing-mvp-git-next15-*.vercel.app) durante N5. La opción B
+    // canónica (deny-list de hosts prod únicamente) queda anotada en BACKLOG
+    // como refactor futuro de la guarda — no se mezcla con este tren.
+    if (!host.includes('git-staging') && !host.includes('staging') && !host.includes('git-next15')) {
         throw new Error(
             `[playwright.config] baseURL "${host}" no parece ser staging. ` +
-            `Los tests deben apuntar a una URL con "git-staging" o "staging" en el host. ` +
+            `Los tests deben apuntar a una URL con "git-staging", "staging" o "git-next15" en el host. ` +
             `Ajusta PLAYWRIGHT_BASE_URL para confirmar el destino.`
         );
     }
