@@ -4,13 +4,22 @@
 // (hook prebuild en package.json) escribe un sw.js auto-destructivo que
 // reemplaza a cualquier SW previo en el próximo update-check del browser.
 // Ver CLAUDE.md > PWA / Service Worker para detalles.
+//
+// N3 tren N15 (2026-07-30): swap `next-pwa@5.6.0` → `@ducanh2912/next-pwa@10.2.9`
+// (fork mantenido, drop-in). Ajustes de API entre 5.x y 10.x:
+//   - Import cambia: `require('next-pwa')` → `require('@ducanh2912/next-pwa').default`.
+//   - `skipWaiting` no es top-level en v10.x — se mueve a `workboxOptions.skipWaiting`.
+//   - `dest`, `disable`, `register`, `fallbacks` sin cambio (misma semántica).
+// Doc: https://ducanh-next-pwa.vercel.app/docs/next-pwa/getting-started
 const IS_PROD = process.env.NEXT_PUBLIC_APP_ENV === 'production'
              || process.env.VERCEL_ENV === 'production';
-const withPWA = require('next-pwa')({
+const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development' || !IS_PROD,
   register: true,
-  skipWaiting: true,
+  workboxOptions: {
+    skipWaiting: true,
+  },
   fallbacks: {
     document: '/_offline',
   },
