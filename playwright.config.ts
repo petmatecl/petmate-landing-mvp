@@ -1,12 +1,20 @@
 // playwright.config.ts
 // ---------------------------------------------------------------------------
-// Configuracion de e2e para Pawnecta — apunta EXCLUSIVAMENTE a staging.
+// Configuracion de e2e para Pawnecta — apunta EXCLUSIVAMENTE a staging o
+// previews del team Vercel.
 //
-// Guardas anti-prod: los helpers assertBaseUrlIsStaging() y assertBypass()
-// throwean al arranque si algo huele mal (baseURL con "pawnecta.com" sin
-// prefijo staging, PLAYWRIGHT_BYPASS vacio, etc). Ejecucion contra prod
-// requeriria comentar/borrar estas guardas explicitamente — imposible por
-// accidente.
+// Guardas anti-prod: los helpers assertBaseUrlIsNotProd() y assertBypass()
+// throwean al arranque si algo huele mal (baseURL con host de prod, o
+// PLAYWRIGHT_BYPASS vacio). Ejecucion contra prod requeriria comentar/
+// borrar estas guardas explicitamente — imposible por accidente.
+//
+// PR0 sprint PRODUCTO-1 (2026-07-31): el guard vive en e2e/setup/guard.ts
+// con test unitario (npx tsx e2e/setup/guard.test.ts). Antes era una
+// función local acá que usaba whitelist de substrings ("git-staging",
+// "staging", temporalmente "git-next15"). El patrón nuevo es deny-list:
+// rechaza hosts prod explícitos + acepta cualquier `*-petmatecls-projects
+// .vercel.app` (staging + cualquier preview de rama). Cero mantenimiento
+// por-rama; misma protección estricta contra correr contra prod.
 //
 // Auth: setup project autentica una vez, guarda storageState en
 // e2e/.auth/admin.json, y el resto de tests lo reusan. .auth/ y .env.test
@@ -17,6 +25,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { config as loadEnv } from 'dotenv';
 import path from 'path';
+import { assertBaseUrlIsNotProd } from './e2e/setup/guard';
 
 // Carga .env.test desde e2e/. NO usa .env de la app — separacion explicita.
 loadEnv({ path: path.resolve(__dirname, 'e2e/.env.test') });
@@ -25,31 +34,6 @@ loadEnv({ path: path.resolve(__dirname, 'e2e/.env.test') });
 // las guardas debajo bloquean cualquier apunte a prod.
 const STAGING_URL = 'https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app';
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || STAGING_URL;
-
-// Guarda 1: baseURL NUNCA puede apuntar a prod. Chequea host explicito por
-// substring "pawnecta.com" sin el prefijo git-staging.
-function assertBaseUrlIsStaging(url: string): void {
-    let host: string;
-    try {
-        host = new URL(url).hostname;
-    } catch {
-        throw new Error(`[playwright.config] baseURL invalida: "${url}"`);
-    }
-    if (host === 'pawnecta.com' || host === 'www.pawnecta.com') {
-        throw new Error(
-            `[playwright.config] baseURL apunta a producción (${host}). ` +
-            `Los tests e2e SOLO corren contra staging. ` +
-            `Ajusta PLAYWRIGHT_BASE_URL a la URL del branch staging de Vercel.`
-        );
-    }
-    if (!host.includes('git-staging') && !host.includes('staging')) {
-        throw new Error(
-            `[playwright.config] baseURL "${host}" no parece ser staging. ` +
-            `Los tests deben apuntar a una URL con "git-staging" o "staging" en el host. ` +
-            `Ajusta PLAYWRIGHT_BASE_URL para confirmar el destino.`
-        );
-    }
-}
 
 // Guarda 2: PLAYWRIGHT_BYPASS (bypass de Vercel protection) requerido.
 // Sin esto, Vercel bloquea el request con auth prompt y los tests fallan
@@ -112,7 +96,7 @@ function assertCredencialesReales(): void {
     }
 }
 
-assertBaseUrlIsStaging(baseURL);
+assertBaseUrlIsNotProd(baseURL);
 // El token se valida acá y se lee en authenticate.ts + endpointUrl() como
 // query param en la URL. Ya no se pasa como header persistente (ver comentario
 // del bloque `use` abajo).
