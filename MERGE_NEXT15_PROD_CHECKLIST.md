@@ -279,7 +279,7 @@ git push origin staging
 
 ## Fase 5 — Suite completa contra `staging` (guarda natural post-cleanup)
 
-- [ ] **Suite completa 41/41 verde contra staging**. Sin override de
+- [x] **Suite completa 41/41 verde contra staging**. Sin override de
   `PLAYWRIGHT_BASE_URL` — el default de `playwright.config.ts` apunta al
   staging Vercel URL con hostname `git-staging`. La guarda restaurada en
   Fase 3 acepta este hostname naturalmente.
@@ -287,17 +287,78 @@ git push origin staging
   npm run test:e2e
   ```
 
-- [ ] Distribución esperada idéntica a Fase 2: 41/41, cero flaky.
+- [x] Distribución esperada idéntica a Fase 2: 41/41, cero flaky.
 
-- [ ] **Check `[TEST-%` post-suite = 0** (via MCP staging).
+- [x] **Check `[TEST-%` post-suite = 0** (via MCP staging).
 
-- [ ] **Los 4 smokes de N6 contra `staging`** (`https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app`):
+- [x] **Los 4 smokes de N6 contra `staging`** (`https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app`):
   - S1 Proxy `/supabase-proxy/*` — JSON idéntico al directo.
-  - S2 `next/image` en 3 páginas visuales — imágenes cargan (`···` en Info
-    del servicio es PRE-EXISTENTE de PO, no bloquear).
+  - [ ] S2 `next/image` en 3 páginas visuales — imágenes cargan (`···` en Info
+    del servicio es PRE-EXISTENTE de PO, no bloquear). *Pendiente de Aldo
+    (browser visual).*
   - S3 ISR `/cuidado/providencia` — 200 con HTML.
   - S4 `/sw.js` — **DEMOLISHER en staging** (staging es `VERCEL_ENV=preview`;
     ~1656 bytes, head `// AUTO-GENERADO...`).
+
+**Ejecución 2026-07-31**:
+
+**5.a Suite 41/41 contra staging (SHA `ea1bf5a`, guarda natural)**:
+- Wall: 38.2s. Cero flaky. `41 passed` línea final.
+- Fixtures creados: `e2e-f2-2b-1785510961590` (4c6a809a-…), `e2e-f2-3-1785510961613` (8433a256-…).
+- Auth flows OK con guarda restaurada (`assertBaseUrlIsStaging` pasa con
+  hostname `git-staging`).
+
+**5.b `[TEST-%` residuos post-suite (MCP staging)**:
+```json
+[{"residuos_test_cron_post_fase5":0}]
+```
+✅ Cleanup 100%.
+
+**5.c Smokes automatizables — todos verdes**:
+
+*S1 — Proxy `/supabase-proxy/*` idéntico al directo*:
+```
+Via proxy (HTTP 200):  [{"slug":"paseos"},{"slug":"peluqueria"},{"slug":"veterinario"}]
+Directo Supabase (HTTP 200): [{"slug":"paseos"},{"slug":"peluqueria"},{"slug":"veterinario"}]
+diff → IDÉNTICOS ✓
+```
+
+*S3 — ISR `/cuidado/providencia`*:
+```
+HTTP=200
+size=37826 bytes (~37 KB, > umbral 10 KB)
+<title> presente (grep count = 1)
+```
+Vercel Logs sin error de `getStaticProps` en la ventana de la corrida.
+
+*S4 — `/sw.js` DEMOLISHER (criterio staging)*:
+```
+HTTP=200
+size=1656 bytes (matches exact — demolisher)
+head: "// AUTO-GENERADO por scripts/write-sw-demolisher.js — NO EDITAR."
+```
+✅ Comportamiento correcto para `VERCEL_ENV=preview`: el `sw-demolisher`
+prebuild escribe el SW auto-destructivo; `next-pwa` disabled por gate
+`IS_PROD=false`.
+
+**5.d S2 visual — comandos preparados para Aldo**:
+
+*Setup PowerShell* (pegar UNA vez):
+```powershell
+$env:BASE = "https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app"
+$env:BYPASS = "<PLAYWRIGHT_BYPASS de e2e/.env.test>"
+```
+
+*URLs a abrir en browser* (bypass viaja como query, patrón nuevo post-Vercel-change):
+```powershell
+Write-Output "$env:BASE/explorar?x-vercel-protection-bypass=$env:BYPASS&x-vercel-set-bypass-cookie=samesitenone"
+Write-Output "$env:BASE/servicio/385063f9-8fd0-4322-aa33-a866fa7cd2b4?x-vercel-protection-bypass=$env:BYPASS&x-vercel-set-bypass-cookie=samesitenone"
+Write-Output "$env:BASE/proveedor/ad258d35-9081-4dbd-8dd0-9a13b9ee7e89?x-vercel-protection-bypass=$env:BYPASS&x-vercel-set-bypass-cookie=samesitenone"
+```
+
+Verificar en cada una: DevTools → Network → filtrar `_next/image` → todos
+200. Cero broken image icons. Cero `Invalid src prop` en Console. (`···`
+en Info del servicio es PRE-EXISTENTE — S2 cierra limpio con eso.)
 
 **FIN de la autorización adelantada del PO**. Antes de Fase 6, esperar
 cierre explícito de casilla 0.1 (Fase 5 tren Recordatorios).
