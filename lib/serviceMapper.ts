@@ -109,6 +109,10 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         proveedor_primera_ayuda: item.proveedor_primera_ayuda ?? false,
         proveedor_perfil_completo: item.proveedor_perfil_completo ?? false,
         proveedor_es_ejemplo: item.proveedor_es_ejemplo ?? false,
+        // PR1 sprint PRODUCTO-1 — flag "reserva online" viene calculado
+        // server-side por el RPC (columna nueva del RETURNS TABLE). Default
+        // false si el RPC no lo trae (pre-migration, callers viejos).
+        tiene_agenda_activa: item.tiene_agenda_activa ?? false,
         visitas_total: Number(item.visitas_total ?? 0),
         visitas_mes: Number(item.visitas_mes ?? 0),
         favoritos_total: Number(item.favoritos_total ?? 0),
@@ -119,9 +123,24 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
  * Maps a raw row from the servicios_publicados join query (index.tsx) to ServiceResult.
  * Join shape: item.proveedor.{nombre, apellido_p, foto_perfil, comuna}
  *             item.categoria.{nombre, icono, slug}
+ *
+ * PR1 sprint PRODUCTO-1: si el caller incluye los campos F1/F2 en el select
+ * (`agendamiento_habilitado`, `duracion_min`, `capacidad_estadia`,
+ * `min_noches`), el mapper calcula `tiene_agenda_activa` con los mismos
+ * semáforos que el RPC (paridad garantizada). Si el caller no los incluye
+ * → default false y el badge no se renderiza (retrocompat).
  */
 export function mapJoinToServiceResult(item: any): ServiceResult {
     const slug = item.categoria?.slug ?? item.categoria_slug ?? '';
+    // Semáforo agenda activa (paridad exacta con el RPC en migrations/
+    // 20260731_buscar_servicios_agenda_activa.sql).
+    const tieneAgendaActiva = Boolean(
+        item.agendamiento_habilitado === true
+        && (
+            item.duracion_min != null
+            || (item.capacidad_estadia != null && item.min_noches != null)
+        )
+    );
     return {
         servicio_id: item.id,
         titulo: item.titulo,
@@ -145,6 +164,7 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         acepta_otras: item.acepta_otras ?? false,
         proveedor_perfil_completo: item.proveedor?.perfil_completo ?? false,
         proveedor_es_ejemplo: item.proveedor?.es_ejemplo ?? false,
+        tiene_agenda_activa: tieneAgendaActiva,
         visitas_total: Number(item.visitas_total ?? 0),
         visitas_mes: Number(item.visitas_mes ?? 0),
         favoritos_total: Number(item.favoritos_total ?? 0),
