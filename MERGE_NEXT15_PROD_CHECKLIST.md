@@ -62,8 +62,8 @@ dadfae2 test(next15): N5 fix bypass Vercel — migrar header persistente → que
 
 ### 0.2 Estado del código
 
-- [ ] **`git rev-parse HEAD`** en `next15` local — reportar SHA.
-- [ ] **Sync check `staging..next15`** — verifica los 7 commits del tren
+- [x] **`git rev-parse HEAD`** en `next15` local — reportar SHA.
+- [x] **Sync check `staging..next15`** — verifica los 7 commits del tren
   (listados arriba):
   ```bash
   git log --oneline staging..next15
@@ -71,42 +71,65 @@ dadfae2 test(next15): N5 fix bypass Vercel — migrar header persistente → que
   Esperado: los 7 SHAs del tren N15, en orden inverso (más nuevo primero).
   Si aparece algún commit no relacionado → PARAR y triage.
 
-- [ ] **FF-only staging vs next15**:
+- [x] **FF-only staging vs next15**:
   ```bash
   git log --oneline next15..staging
   ```
   Esperado: **vacío**. Si trae commits → `staging` divergió, requiere merge
   no-FF y análisis manual.
 
-- [ ] **Ready del SHA v2 del checklist** (el `<SHA v2>` de arriba) en Vercel
+- [x] **Ready del SHA v2 del checklist** (el `<SHA v2>` de arriba) en Vercel
   Dashboard, filtro branch=`next15`. Confirmado por Aldo (Ready inicial —
   bundle es doc-only, resolución rápida esperada).
 
+**Ejecución 2026-07-31**:
+- `git rev-parse HEAD` local: `79dd1c8` (SHA v2 del checklist).
+- `git log --oneline staging..next15` → 7 commits del tren:
+  ```
+  79dd1c8 docs(next15): N7 v2 checklist con orden corregido de Fase 0
+  72250a0 docs(next15): N7 borrador checklist merge next15→staging→main + BACKLOG UX
+  dadfae2 test(next15): N5 fix bypass Vercel — migrar header persistente → query en URL
+  27ab079 test(next15): N5 pre — whitelist temporal git-next15 en guarda anti-prod
+  8cc7b56 docs(next15): N4 audit fetch() — cero edits necesarios (Pages Router)
+  5d91e40 chore(next15): N3 swap next-pwa@5.6.0 → @ducanh2912/next-pwa@10.2.9
+  0727a65 chore(next15): N1+N2 bump 14.2.35 → 15.5.22 + images.remotePatterns
+  ```
+- `git log --oneline next15..staging` → vacío (FF-only OK).
+- Ready `79dd1c8` en Vercel Dashboard preview branch `next15`: confirmado por Aldo.
+
 ### 0.3 Check `[TEST-%` residuos en staging
 
-- [ ] Via Supabase MCP staging (read-only) o SQL Editor:
+- [x] Via Supabase MCP staging (read-only) o SQL Editor:
   ```sql
   SELECT count(*) FROM agendamientos WHERE tutor_nombre LIKE '[TEST-%';
   ```
   Esperado: **0**. Si aparece, limpiar antes de la Fase 2 (rows heredados
   de otros trenes).
 
+**Ejecución 2026-07-31**: MCP staging retornó `[{"residuos_test_cron":0}]` ✅.
+
 ### 0.4 Env vars Vercel prod (verificación, sin cambios)
 
-- [ ] `NEXT_PUBLIC_APP_ENV=production` scope Production seteada. **Crítico**:
+- [x] `NEXT_PUBLIC_APP_ENV=production` scope Production seteada. **Crítico**:
   es lo que activa `IS_PROD=true` → `@ducanh2912/next-pwa` emite workbox
   real, no demolisher. Si no está, el S4 prod del smoke Fase 7 va a
   encontrar demolisher (bug).
-- [ ] `VERCEL_ENV=production` automático (no requiere set manual).
-- [ ] Sin cambios a `CRON_SECRET`, `RESEND_API_KEY`,
+- [x] `VERCEL_ENV=production` automático (no requiere set manual).
+- [x] Sin cambios a `CRON_SECRET`, `RESEND_API_KEY`,
   `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`, `EMAIL_FROM`,
   `PLAYWRIGHT_BYPASS` — todos siguen igual que antes del tren.
+
+**Ejecución 2026-07-31**: confirmación del PO (env vars sin cambios; smoke
+prod F2 previo verificó empíricamente el gate `IS_PROD` para envío real de
+emails).
 
 ### 0.5 Backup Supabase — N/A explícito
 
 El tren N15 no toca schema, RLS, ni tablas. **Cero PITR/backup requeridos**.
 Ítem incluido explícito para que la ausencia sea intencional, no un olvido
 del checklist.
+
+- [x] N/A confirmado.
 
 ### 0.6 Casillas especiales — DECLARADAS acá, EJECUTADAS en Fase 3
 
@@ -127,34 +150,48 @@ acá. Se declaran en Preflight para captura mental y trazabilidad.
 **Cero migrations en este tren**. Fase presente como skeleton del patrón
 heredado para claridad.
 
+- [x] N/A confirmado.
+
 ## Fase 2 — Suite FINAL contra preview `next15` (whitelist git-next15 aún presente)
 
 Última verificación del código de la rama antes del cleanup. Ejecutar con
 la guarda actual (permite `git-next15` en el hostname del preview).
 
-- [ ] **`PLAYWRIGHT_BASE_URL`** override apuntando al preview `next15`:
+- [x] **`PLAYWRIGHT_BASE_URL`** override apuntando al preview `next15`:
   ```powershell
   $env:PLAYWRIGHT_BASE_URL = "https://pawnecta-landing-mvp-git-next15-petmatecls-projects.vercel.app"
   npm run test:e2e
   Remove-Item Env:\PLAYWRIGHT_BASE_URL
   ```
 
-- [ ] **Suite 41/41 verde**, cero flaky. Distribución esperada:
+- [x] **Suite 41/41 verde**, cero flaky. Distribución esperada:
   - `setup` + `setup-tutor` = 2
   - `chromium` (F2-2B) = 8
   - `chromium-tutor` (F2-3) = 22
   - `chromium-cron` (Recordatorios) = 9
   - **Total = 41**.
 
-- [ ] **Check `[TEST-%` post-suite = 0** (via MCP staging read-only o
+- [x] **Check `[TEST-%` post-suite = 0** (via MCP staging read-only o
   SQL Editor).
+
+**Ejecución 2026-07-31**:
+- SHA testeado: `79dd1c8` (pre-Fase 3, con whitelist activa).
+- Corridas: primera 45.0s wall (agente local), re-acreditación PO 33.9s
+  wall. Ambas 41/41 verde, cero flaky.
+- Última línea Playwright: `41 passed (45.0s)`.
+- Fixtures creados durante la corrida:
+  ```
+  [S1 beforeAll] Servicio creado: e2e-f2-2b-1785506748072 (05c19bf3-…)
+  [S1 beforeAll] Servicio F2 creado: e2e-f2-3-1785506748350 (946b4b6a-…)
+  ```
+- `[TEST-%` post-suite (MCP staging): `[{"residuos_test_cron_post_fase2":0}]` ✅.
 
 ## Fase 3 — Ejecución CASILLA A: remover whitelist + commit + push
 
 Edit + commit + push. **Solo remoción de la whitelist**. NO tocar los 3
 archivos de CASILLA B (fix bypass query).
 
-- [ ] Edit en [playwright.config.ts](playwright.config.ts):
+- [x] Edit en [playwright.config.ts](playwright.config.ts):
   - Remover línea `!host.includes('git-next15')` de la condición del `if`.
   - Remover comentario "TEMPORAL tren N15 — remover al mergear..." que
     precede.
@@ -163,7 +200,7 @@ archivos de CASILLA B (fix bypass query).
     if (!host.includes('git-staging') && !host.includes('staging')) {
     ```
 
-- [ ] Verificación pre-commit:
+- [x] Verificación pre-commit:
   ```bash
   git diff playwright.config.ts
   ```
@@ -171,7 +208,7 @@ archivos de CASILLA B (fix bypass query).
   comentario TEMPORAL. **Cero otros cambios**. Si `git diff` muestra algo
   más → revisar antes de commitear.
 
-- [ ] Commit + push:
+- [x] Commit + push:
   ```bash
   git add playwright.config.ts
   git commit -m "chore(next15): guard: restaurar assertBaseUrlIsStaging post-tren N15"
@@ -181,6 +218,20 @@ archivos de CASILLA B (fix bypass query).
 - [ ] **Ready A crítico**: Aldo confirma en Vercel Dashboard que el nuevo
   SHA (post-Fase 3) queda **Ready** en preview branch `next15`. Sin ese
   Ready, PARAR — no proceder a Fase 4.
+
+**Ejecución 2026-07-31**:
+- Commit: `7ee912b` (`chore(next15): guard: restaurar assertBaseUrlIsStaging post-tren N15`).
+- Diff quirúrgico: 7 líneas removidas del bloque TEMPORAL + comentario.
+  Sin otros cambios. Verificado con `git diff playwright.config.ts` pre-commit.
+- CASILLA B intacta:
+  - `playwright.config.ts` bloque `use`: cero `extraHTTPHeaders: {...}` activo.
+    Los 2 matches de "extraHTTPHeaders" (líneas 151, 158) son solo
+    menciones textuales dentro del comentario histórico de `dadfae2`.
+  - `e2e/fixtures/cron-recordatorio.ts` y `e2e/specs/f2-recordatorios-cron/all.spec.ts`:
+    `git status` vacío — cero modificaciones.
+- Push a `origin/next15` OK: `79dd1c8..7ee912b next15 -> next15`.
+- **Ready A pendiente**: esperando confirmación de PO del SHA `7ee912b` en
+  Dashboard.
 
 ## Fase 4 — Merge `next15 → staging` + deploy staging
 
