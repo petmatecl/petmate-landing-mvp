@@ -418,9 +418,33 @@ Como el cron es diario a las 22:00 UTC, en 48h ocurren exactamente 2
 ejecuciones. Verificar ambas pasan limpias y detectar cualquier
 comportamiento inesperado.
 
-- [ ] **Corrida N+0** (día del merge o siguiente): registrar `sent.tutor`
+- [x] **Corrida N+0** (día del merge o siguiente): registrar `sent.tutor`
   + `sent.proveedor` + `failures.length` desde Vercel Logs. Snapshot
   guardado en el acta.
+
+  **Ejecución 2026-07-31 (parcial — evidencia P5, corrida obs-1 del monitor)**:
+  captura de Vercel Logs por Aldo:
+
+  ```
+  JUL 31 18:45:23.09  GET  200  /api/cron/recordatorio-reserva
+  host = <URL deployment prod>
+  ```
+
+  Observaciones:
+  - Timestamp local: **18:45:23 CLT** (jueves 31-jul, CLT invierno = UTC−4).
+    UTC equivalente: **22:45:23 UTC** — dentro de la ventana flexible de
+    Vercel Hobby crons (schedule declarado `0 22 * * *`, tolerancia ~1h;
+    minuto 45 aceptable).
+  - HTTP 200, sin líneas 401 / 500 adyacentes en logs.
+  - Esperado `sent.tutor:0 + sent.proveedor:0 + failures:0`: no había
+    reservas confirmadas con `fecha_preferida = 2026-08-01` (viernes)
+    en BD prod al momento del corte.
+  - Body de la respuesta no capturado (retención logs Hobby ~1h; captura
+    manual llegó dentro de ventana pero solo status line).
+
+  **Falta observación #2**: viernes 2026-08-01 misma ventana 18:00-19:30
+  CLT. Con esa: acta final Fase 5 + tag `recordatorios-prod-20260801` +
+  casilla 0.1 del checklist N15 puede marcarse GO Fase 6.
 
 - [ ] **Corrida N+1** (24h después): mismos métricos. Verificar que las
   marcas de la corrida N+0 NO se re-escribieron en N+1 (idempotencia
