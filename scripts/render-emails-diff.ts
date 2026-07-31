@@ -421,6 +421,137 @@ const setsRecordatorio: Set[] = [
     },
 ];
 
+// ────────────────────────────────────────────────────────────────────────────
+// ZB3 sprint ZONAB-1 — variantes que fuerzan los 3 caminos de `donde` en
+// los 4 templates R7 tras aterrizar los props canónicos:
+//   * Camino 1: dirección estructurada (formatDireccionLinea) → renderea "Dónde".
+//   * Camino 2: fallback "En {comuna}" del servicio.
+//   * Camino 3: fallback chat + donde=null.
+// Cada template tiene 1 variante con `donde` poblado y 1 con `donde=null`.
+// Post-render se cuenta la aparición del label "Dónde" para probar el
+// contrato: presente cuando donde!=null, ausente cuando null.
+// ────────────────────────────────────────────────────────────────────────────
+const setsZB3: Set[] = [
+    // AgendamientoProveedorEmail
+    {
+        name: 'zb3-proveedor-CON-donde',
+        element: React.createElement(AgendamientoProveedorEmail as any, {
+            nombreProveedor: 'Aldo',
+            nombreTutor: 'Camila Figueroa',
+            servicioTitulo: 'Cuidado a domicilio del tutor',
+            fechaFormateada: 'Del lunes 3 al miércoles 5 de agosto (2 noches)',
+            mensaje: null,
+            esConfirmadaAuto: true,
+            donde: 'Los Leones 123, Providencia, Metropolitana',
+            fechaSub: '2 noches',
+        }),
+    },
+    {
+        name: 'zb3-proveedor-SIN-donde-null',
+        element: React.createElement(AgendamientoProveedorEmail as any, {
+            nombreProveedor: 'Aldo',
+            nombreTutor: 'Camila Figueroa',
+            servicioTitulo: 'Paseo dinámico',
+            fechaFormateada: 'Sábado 26 de julio, 14:00',
+            mensaje: null,
+            esConfirmadaAuto: true,
+            donde: null,
+            fechaSub: null,
+        }),
+    },
+    // AgendamientoTutorEmail
+    {
+        name: 'zb3-tutor-CON-donde-comuna',
+        element: React.createElement(AgendamientoTutorEmail as any, {
+            estado: 'confirmada',
+            nombreTutor: 'Camila',
+            nombreProveedor: 'Aldo',
+            servicioTitulo: 'Guardería diurna',
+            servicioId: '99999999-9999-9999-9999-999999999999',
+            fechaFormateada: 'Jueves 30 de julio, 09:00',
+            notaProveedor: null,
+            telefonoVisible: null,
+            whatsappLink: null,
+            donde: 'En Providencia',
+            fechaSub: null,
+        }),
+    },
+    {
+        name: 'zb3-tutor-SIN-donde-null',
+        element: React.createElement(AgendamientoTutorEmail as any, {
+            estado: 'confirmada',
+            nombreTutor: 'Camila',
+            nombreProveedor: 'Aldo',
+            servicioTitulo: 'Servicio digital',
+            servicioId: '88888888-8888-8888-8888-888888888888',
+            fechaFormateada: 'Jueves 30 de julio, 09:00',
+            notaProveedor: null,
+            telefonoVisible: null,
+            whatsappLink: null,
+            donde: null,
+            fechaSub: null,
+        }),
+    },
+    // ReservaConfirmadaTutorEmail
+    {
+        name: 'zb3-reserva-CON-donde-fallback-chat',
+        element: React.createElement(ReservaConfirmadaTutorEmail as any, {
+            nombreTutor: 'Camila',
+            nombreProveedor: 'Aldo',
+            servicioTitulo: 'Cuidado por noches',
+            fechaFormateada: 'Del sábado 25 al martes 28 de julio (3 noches)',
+            mensajeTutor: null,
+            duracionLabel: null,
+            esRango: true,
+            checkInHora: '15:00',
+            checkOutHora: '11:00',
+            donde: 'Se coordina por chat con Aldo',
+            fechaSub: '3 noches',
+        }),
+    },
+    {
+        name: 'zb3-reserva-SIN-donde-null',
+        element: React.createElement(ReservaConfirmadaTutorEmail as any, {
+            nombreTutor: 'Camila',
+            nombreProveedor: 'Aldo',
+            servicioTitulo: 'Aseo rápido',
+            fechaFormateada: 'Viernes 1 de agosto, 09:30',
+            mensajeTutor: null,
+            duracionLabel: '15 minutos',
+            donde: null,
+            fechaSub: null,
+        }),
+    },
+    // AgendamientoCancelacionTutorEmail
+    {
+        name: 'zb3-cancelacion-CON-donde-direccion',
+        element: React.createElement(AgendamientoCancelacionTutorEmail as any, {
+            nombreProveedor: 'Aldo',
+            nombreTutor: 'Camila',
+            servicioTitulo: 'Cuidado a domicilio',
+            fechaFormateada: 'Del lunes 3 al miércoles 5 de agosto (2 noches)',
+            duracionLabel: null,
+            esRango: true,
+            checkInHora: '15:00',
+            checkOutHora: '11:00',
+            donde: 'Los Leones 123, Providencia, Metropolitana',
+            fechaSub: '2 noches',
+        }),
+    },
+    {
+        name: 'zb3-cancelacion-SIN-donde-null',
+        element: React.createElement(AgendamientoCancelacionTutorEmail as any, {
+            nombreProveedor: 'Aldo',
+            nombreTutor: 'Camila',
+            servicioTitulo: 'Paseo dinámico',
+            fechaFormateada: 'Sábado 26 de julio, 14:00',
+            duracionLabel: '1 hora',
+            donde: null,
+            fechaSub: null,
+        }),
+    },
+];
+
 async function renderSets(sets: Set[]): Promise<void> {
     for (const s of sets) {
         const html = await render(s.element, { pretty: true });
@@ -435,6 +566,7 @@ async function main() {
     await renderSets(setsReserva);
     await renderSets(setsCancelacion);
     await renderSets(setsRecordatorio);
+    await renderSets(setsZB3);
     const files = fs.readdirSync(outDir).sort();
     console.log(`Rendered ${files.length} snapshots to ${outDir}:`);
     for (const f of files) {
