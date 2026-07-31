@@ -13,9 +13,17 @@
 // Filtro por texto del título único (timestamp) para cero ambigüedad en el
 // listado del explorador.
 //
-// REQUIERE aplicada la migration `migrations/20260731_buscar_servicios_agenda_activa.sql`.
-// Sin ella, el RPC no retorna `tiene_agenda_activa` → el mapper defaultea a
-// false → el spec falla en el assert (a). Documentado en el commit del PR1.
+// REQUIERE aplicada la migration `migrations/20260731_buscar_servicios_agenda_activa_fix.sql`
+// en staging DB. Sin ella, el RPC no retorna `tiene_agenda_activa` → el
+// mapper defaultea a false → el spec falla en el assert (a).
+//
+// KNOWN-FLAKY (observado 2026-07-31 en la corrida de cierre PR1): primer
+// intento falló con "locator not found" buscando la card por id en el
+// listado del explorador (probable paginación / servicios nuevos empujados
+// fuera de la 1ª página del RPC), retry #1 verde en 1.3s. Sin bloqueo
+// pre-merge. Mejora conocida: agregar filtro `?categoria=cuidado&comuna=Providencia`
+// al goto de /explorar para reducir el set y garantizar que la card esté
+// en la 1ª página. Deuda registrada en el commit del cierre PR1.
 // ---------------------------------------------------------------------------
 import { test, expect } from '@playwright/test';
 import { getSupabaseAsProveedor, getProveedorId } from '../../fixtures/supabase';
