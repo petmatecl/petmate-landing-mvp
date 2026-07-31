@@ -30,6 +30,7 @@ import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession, maskEmail } from '../../../lib/apiAuth';
 import ReservaConfirmadaTutorEmail from '../../../components/Emails/ReservaConfirmadaTutorEmail';
 import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
+import { resolverDonde, resolverFechaSub } from '../../../lib/emails/resolvers';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -57,11 +58,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { data: agend, error: agendErr } = await supabaseAdmin
             .from('agendamientos')
             .select(`
-                id, fecha_preferida, fecha_fin, estado, mensaje, duracion_min, capacidad_snapshot_estadia,
+                id, fecha_preferida, fecha_fin, estado, mensaje, duracion_min, duracion_horas,
+                capacidad_snapshot_estadia,
+                region, comuna, calle, numero, direccion_info, direccion_servicio,
                 tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, nombre),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora, comunas_cobertura)
             `)
             .eq('id', agendamientoId)
             .maybeSingle();
@@ -142,6 +145,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? (servicio.check_out_hora as string).slice(0, 5)
             : null;
 
+        // ZB3 sprint ZONAB-1: props canónicas donde/fechaSub via helpers.
+        // Fallback donde: chat con el proveedor (recipient del email = tutor).
+        const fechaSub = resolverFechaSub({
+            fecha_preferida: agend.fecha_preferida,
+            fecha_fin: agend.fecha_fin,
+            duracion_horas: agend.duracion_horas,
+            capacidad_snapshot_estadia: agend.capacidad_snapshot_estadia,
+        });
+        const dondeResuelto = resolverDonde({
+            agend,
+            servicio: servicio || {},
+        });
+        const donde = dondeResuelto ?? `Se coordina por chat con ${proveedor?.nombre || 'el proveedor'}`;
+
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: authUser.user.email,
@@ -156,6 +173,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 esRango,
                 checkInHora,
                 checkOutHora,
+                fechaSub,
+                donde,
             }) as React.ReactElement,
         });
 
