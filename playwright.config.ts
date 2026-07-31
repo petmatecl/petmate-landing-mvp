@@ -210,6 +210,7 @@ export default defineConfig({
             dependencies: ['setup'],
             // Specs default corren como proveedor, EXCEPTO los de f2-3 (tutor)
             // y los de f2-recordatorios-cron (API tests, project propio abajo).
+            // Nota: zonab-1 corre bajo este project (proveedor con rol admin).
             testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron)[\\/]/,
         },
         {

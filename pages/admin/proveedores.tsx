@@ -412,17 +412,25 @@ function GestionProveedores() {
                 </div>
             </div>
 
-            {/* MODALES OVERLAYS */}
+            {/* MODALES OVERLAYS — ZB1 sprint ZONAB-1: role/aria mínimos por
+                accesibilidad. Escape + focus-trap queda como deuda light
+                (refactor requiere extraer los modales inline a componentes
+                propios; hoy conviven dos types en un solo bloque). */}
             {modalConfig.type && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
 
                     {/* Modal Aprobar */}
                     {modalConfig.type === 'aprobar' && (
-                        <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center">
+                        <div
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="admin-proveedores-aprobar-title"
+                            className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center"
+                        >
                             <div className="w-16 h-16 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle2 size={32} />
                             </div>
-                            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Aprobar Proveedor</h3>
+                            <h3 id="admin-proveedores-aprobar-title" className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Aprobar Proveedor</h3>
                             <p className="text-slate-600 text-sm mb-6">
                                 ¿Estás seguro de aprobar a <strong className="text-slate-900">{modalConfig.prov.nombre}</strong> como proveedor verificado en plataforma?
                             </p>
@@ -439,8 +447,13 @@ function GestionProveedores() {
 
                     {/* Modal Rechazar */}
                     {modalConfig.type === 'rechazar' && (
-                        <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl">
-                            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
+                        <div
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="admin-proveedores-rechazar-title"
+                            className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl"
+                        >
+                            <h3 id="admin-proveedores-rechazar-title" className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
                                 <XCircle className="text-danger-500" /> Rechazar Solicitud
                             </h3>
                             <p className="text-slate-600 text-sm mb-4">

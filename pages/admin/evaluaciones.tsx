@@ -395,11 +395,17 @@ function GestionEvaluaciones() {
                 </div>
             </div>
 
-            {/* Modal Rechazar Evaluación */}
+            {/* Modal Rechazar Evaluación — ZB1 sprint ZONAB-1: role/aria
+                mínimos. Escape+focus-trap queda como deuda light. */}
             {rechazoModal.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl">
-                        <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="admin-evaluaciones-rechazar-title"
+                        className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl"
+                    >
+                        <h3 id="admin-evaluaciones-rechazar-title" className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
                             <XCircle className="text-danger-500" /> Rechazar Evaluación
                         </h3>
                         <p className="text-slate-600 text-sm mb-6">

@@ -1,4 +1,5 @@
-import React, { Fragment } from 'react';
+import React, { useId, useRef } from 'react';
+import { useModalDialog } from '../lib/useModalDialog';
 
 type Props = {
     isOpen: boolean;
@@ -8,12 +9,28 @@ type Props = {
     type?: 'error' | 'warning' | 'success' | 'info';
 };
 
+// ZB1 sprint ZONAB-1 (2026-07-31): migrado al patrón canónico —
+// useModalDialog + role="dialog" + aria-modal + aria-labelledby/describedby.
+// Antes no tenía nada de accesibilidad de dialog.
 export default function ModalAlert({ isOpen, onClose, title, message, type = 'warning' }: Props) {
+    const titleId = useId();
+    const messageId = useId();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useModalDialog({ isOpen, onClose, containerRef });
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all scale-100 p-6 text-center animate-in fade-in zoom-in duration-200">
+            <div
+                ref={containerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={messageId}
+                className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all scale-100 p-6 text-center animate-in fade-in zoom-in duration-200"
+            >
                 {/* Tokens semanticos alineados con el sistema:
                     error   → danger  (mismo hex que red, cero cambio visual)
                     warning → warning (amber; antes orange, cambio visual chico: naranja → ambar)
@@ -32,10 +49,10 @@ export default function ModalAlert({ isOpen, onClose, title, message, type = 'wa
                     {type === 'info' && <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12v-.008z" /></svg>}
                 </div>
 
-                <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-2">
+                <h3 id={titleId} className="text-lg font-semibold text-slate-900 tracking-tight mb-2">
                     {title}
                 </h3>
-                <p className="text-sm text-slate-500 mb-6">
+                <p id={messageId} className="text-sm text-slate-500 mb-6">
                     {message}
                 </p>
 

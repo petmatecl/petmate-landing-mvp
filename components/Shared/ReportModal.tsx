@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { X, Flag, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { useModalDialog } from '../../lib/useModalDialog';
 
 interface Props {
     isOpen: boolean;
@@ -16,6 +17,12 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
     const [detalle, setDetalle] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const titleId = useId();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // ZB1 sprint ZONAB-1: migrado al patrón canónico. Antes no tenía nada
+    // de accesibilidad de dialog.
+    useModalDialog({ isOpen, onClose, blockClose: loading, containerRef });
 
     if (!isOpen) return null;
 
@@ -50,7 +57,13 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+            <div
+                ref={containerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative"
+            >
                 <button
                     onClick={handleClose}
                     className="absolute top-2 right-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
@@ -64,7 +77,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                         <div className="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Flag size={20} className="text-accent-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-2">Reporte enviado</h3>
+                        <h3 id={titleId} className="text-lg font-semibold text-slate-900 tracking-tight mb-2">Reporte enviado</h3>
                         <p className="text-slate-500 text-sm">Tu reporte fue enviado. Lo revisaremos pronto.</p>
                         <button
                             onClick={handleClose}
@@ -79,7 +92,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                             <div className="w-10 h-10 bg-danger-50 rounded-xl flex items-center justify-center">
                                 <Flag size={18} className="text-danger-500" />
                             </div>
-                            <h3 className="text-lg font-semibold text-slate-900 tracking-tight">Reportar contenido</h3>
+                            <h3 id={titleId} className="text-lg font-semibold text-slate-900 tracking-tight">Reportar contenido</h3>
                         </div>
 
                         <div className="space-y-4">
