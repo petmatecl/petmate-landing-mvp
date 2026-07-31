@@ -113,7 +113,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                     aria-label="Seleccionar categoría de servicio"
                     className="flex-1 flex items-center justify-between bg-transparent text-sm font-medium focus:outline-none cursor-pointer min-w-0"
                 >
-                    <span className={`truncate whitespace-nowrap ${selectedCatLabel ? 'text-slate-900' : 'text-slate-400 transition-opacity duration-500'}`}>
+                    <span className={`truncate whitespace-nowrap ${selectedCatLabel ? 'text-slate-900' : 'text-slate-500 transition-opacity duration-500'}`}>
                         {selectedCatLabel || ROTATING_HINTS[hintIndex]}
                     </span>
                     <ChevronDown size={16} className={`text-slate-400 transition-transform shrink-0 ml-1 ${catOpen ? 'rotate-180' : ''}`} />

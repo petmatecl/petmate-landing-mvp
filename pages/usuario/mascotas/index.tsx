@@ -820,7 +820,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                                 <p className="text-xs text-slate-500">
                                     {fotoMascota ? 'Toca la imagen para reemplazarla, o la X para quitarla.' : 'Toca el recuadro para subir una foto.'}
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1">JPG o PNG. Se comprime automáticamente al subir.</p>
+                                <p className="text-xs text-slate-500 mt-1">JPG o PNG. Se comprime automáticamente al subir.</p>
                             </div>
                         </div>
                     </div>
@@ -828,7 +828,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
                             <label className="block text-sm font-medium text-slate-700">Galería (opcional)</label>
-                            <span className="text-xs text-slate-400">{galeria.length}/{MAX_GALERIA_MASCOTA}</span>
+                            <span className="text-xs text-slate-500">{galeria.length}/{MAX_GALERIA_MASCOTA}</span>
                         </div>
                         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                             {galeria.map((url, i) => (
@@ -859,7 +859,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                                 </label>
                             )}
                         </div>
-                        <p className="text-xs text-slate-400 mt-1.5">Fotos extra para que el proveedor conozca a tu mascota. Se comprimen automáticamente al subir.</p>
+                        <p className="text-xs text-slate-500 mt-1.5">Fotos extra para que el proveedor conozca a tu mascota. Se comprimen automáticamente al subir.</p>
                     </div>
                     <div className="border-t border-slate-100 pt-4" />
 
@@ -963,7 +963,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                             placeholder="Personalidad, gustos, cómo se comporta con extraños."
                             className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors resize-none"
                         />
-                        <p className="text-xs text-slate-400 mt-1 text-right">{descripcion.length} / 300</p>
+                        <p className="text-xs text-slate-500 mt-1 text-right">{descripcion.length} / 300</p>
                     </div>
 
                     {/* Salud: chip + vacunas */}
@@ -1015,7 +1015,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                             placeholder="Alergias, medicación, condiciones crónicas."
                             className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors resize-none"
                         />
-                        <p className="text-xs text-slate-400 mt-1 text-right">{enfermedades.length} / 300</p>
+                        <p className="text-xs text-slate-500 mt-1 text-right">{enfermedades.length} / 300</p>
                     </div>
 
                     {/* Trato especial */}
@@ -1042,7 +1042,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                     </div>
 
                     {errorMsg && (
-                        <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
+                        <div role="alert" aria-live="polite" className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
                             {errorMsg}
                         </div>
                     )}

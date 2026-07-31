@@ -132,7 +132,7 @@ function ExplorarPrelaunch() {
                 </form>
             )}
 
-            <p className="text-xs text-slate-400 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores en tu zona.</p>
+            <p className="text-xs text-slate-500 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores en tu zona.</p>
 
             <div className="mt-8 pt-6 border-t border-slate-100">
                 <Link href="/register?rol=proveedor" className="text-sm text-accent-700 font-semibold hover:underline">
@@ -796,8 +796,10 @@ export default function ExplorarPage() {
                                     </p>
                                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto">
                                         {/* Toggle Lista / Mapa */}
-                                        <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
+                                        <div role="radiogroup" aria-label="Vista de resultados" className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
                                             <button
+                                                role="radio"
+                                                aria-checked={vista === 'lista'}
                                                 onClick={() => setVista('lista')}
                                                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${vista === 'lista'
                                                     ? 'bg-slate-900 text-white'
@@ -809,6 +811,8 @@ export default function ExplorarPage() {
                                                 <span className="hidden sm:inline">Lista</span>
                                             </button>
                                             <button
+                                                role="radio"
+                                                aria-checked={vista === 'mapa'}
                                                 onClick={() => setVista('mapa')}
                                                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${vista === 'mapa'
                                                     ? 'bg-slate-900 text-white'
@@ -821,10 +825,11 @@ export default function ExplorarPage() {
                                             </button>
                                         </div>
                                         {vista === 'lista' && (
-                                            <label className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
+                                            <label htmlFor="explorar-orden" className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
                                         )}
                                         {vista === 'lista' && (
                                             <select
+                                                id="explorar-orden"
                                                 value={filters.orden}
                                                 onChange={(e) => updateQueryParams({ orden: e.target.value as any })}
                                                 className="w-full sm:w-auto border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 transition-colors cursor-pointer appearance-none"

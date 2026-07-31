@@ -274,10 +274,12 @@ function GestionServicios() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 justify-between">
                         {/* Tabs */}
-                        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+                        <div role="radiogroup" aria-label="Filtro por estado" className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
                             {(['todos', 'activos', 'inactivos'] as FiltroEstadoType[]).map(estado => (
                                 <button
                                     key={estado}
+                                    role="radio"
+                                    aria-checked={filtroEstado === estado}
                                     onClick={() => setFiltroEstado(estado)}
                                     className={`px-4 py-2 rounded-xl text-sm font-medium capitalize whitespace-nowrap transition-colors ${filtroEstado === estado ? 'bg-slate-900 text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                                 >

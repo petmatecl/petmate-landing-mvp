@@ -392,7 +392,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               Encuentra a alguien de confianza para tu mascota, en tu barrio.
             </p>
             <SearchBar variant="hero" />
-            <p className="text-sm text-slate-400 mt-4">
+            <p className="text-sm text-slate-500 mt-4">
               ¿Ofreces servicios para mascotas?{" "}
               <Link href="/register?rol=proveedor"
                 className="text-accent-700 font-semibold hover:underline">
@@ -641,7 +641,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               className="inline-flex items-center justify-center h-14 rounded-2xl border-2 border-white px-8 text-base font-semibold text-white hover:bg-white/10 transition-colors shadow-lg shadow-black/20">
               Publicar mi servicio
             </Link>
-            <p className="mt-4 text-slate-400 text-sm">Sin costo de registro</p>
+            <p className="mt-4 text-slate-500 text-sm">Sin costo de registro</p>
           </div>
         </div>
       </section>
@@ -678,7 +678,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
               <div className="max-w-2xl mx-auto border-t border-slate-200 pt-16 text-center">
                 <p className="text-sm font-medium text-slate-700 mb-2">Pawnecta en cifras</p>
                 <p className="text-sm text-slate-500">{parts.join(' · ')}</p>
-                <p className="text-xs text-slate-400 mt-2">Estamos en crecimiento — regístrate como tutor o publica tu servicio.</p>
+                <p className="text-xs text-slate-500 mt-2">Estamos en crecimiento — regístrate como tutor o publica tu servicio.</p>
               </div>
             );
           })()}

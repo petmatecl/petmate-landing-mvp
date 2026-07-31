@@ -301,8 +301,9 @@ export default function ProveedorManagementList() {
 
                         <form onSubmit={handleSuspend}>
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo de la suspensión (Interno)</label>
+                                <label htmlFor="mgmt-suspension-motivo" className="block text-sm font-semibold text-slate-700 mb-2">Motivo de la suspensión (Interno)</label>
                                 <textarea
+                                    id="mgmt-suspension-motivo"
                                     value={suspensionReason}
                                     onChange={(e) => setSuspensionReason(e.target.value)}
                                     placeholder="Detalla las razones por las que este proveedor ha sido suspendido..."
