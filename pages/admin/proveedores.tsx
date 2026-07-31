@@ -501,11 +501,16 @@ function GestionProveedores() {
                         cambia de color segun type. Reactivar = success (transiciona a aprobado);
                         suspender = warning (pausa reversible, no danger porque no es terminal). */}
                     {(modalConfig.type === 'suspender' || modalConfig.type === 'reactivar') && (
-                        <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center">
+                        <div
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="admin-proveedores-estado-title"
+                            className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl text-center"
+                        >
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${modalConfig.type === 'suspender' ? 'bg-warning-100 text-warning-600' : 'bg-success-100 text-success-600'}`}>
                                 {modalConfig.type === 'suspender' ? <AlertTriangle size={32} /> : <CheckCircle2 size={32} />}
                             </div>
-                            <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 capitalize">{modalConfig.type} Cuenta</h3>
+                            <h3 id="admin-proveedores-estado-title" className="text-xl font-semibold text-slate-900 tracking-tight mb-2 capitalize">{modalConfig.type} Cuenta</h3>
                             <p className="text-slate-600 text-sm mb-6">
                                 ¿Deseas {modalConfig.type} el perfil de <strong className="text-slate-900">{modalConfig.prov.nombre}</strong>?
                             </p>
@@ -524,9 +529,14 @@ function GestionProveedores() {
 
                     {/* Modal Detalle */}
                     {modalConfig.type === 'detalle' && (
-                        <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl overflow-hidden">
+                        <div
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="admin-proveedores-detalle-title"
+                            className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl overflow-hidden"
+                        >
                             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                                <h3 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                                <h3 id="admin-proveedores-detalle-title" className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                                     <UserIcon className="text-slate-400" /> Ficha del Proveedor
                                 </h3>
                                 <button onClick={closeModal} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors">
