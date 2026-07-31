@@ -215,12 +215,12 @@ archivos de CASILLA B (fix bypass query).
   git push origin next15
   ```
 
-- [ ] **Ready A crítico**: Aldo confirma en Vercel Dashboard que el nuevo
+- [x] **Ready A crítico**: Aldo confirma en Vercel Dashboard que el nuevo
   SHA (post-Fase 3) queda **Ready** en preview branch `next15`. Sin ese
   Ready, PARAR — no proceder a Fase 4.
 
 **Ejecución 2026-07-31**:
-- Commit: `7ee912b` (`chore(next15): guard: restaurar assertBaseUrlIsStaging post-tren N15`).
+- Commit inicial de cleanup: `7ee912b` (`chore(next15): guard: restaurar assertBaseUrlIsStaging post-tren N15`).
 - Diff quirúrgico: 7 líneas removidas del bloque TEMPORAL + comentario.
   Sin otros cambios. Verificado con `git diff playwright.config.ts` pre-commit.
 - CASILLA B intacta:
@@ -230,8 +230,11 @@ archivos de CASILLA B (fix bypass query).
   - `e2e/fixtures/cron-recordatorio.ts` y `e2e/specs/f2-recordatorios-cron/all.spec.ts`:
     `git status` vacío — cero modificaciones.
 - Push a `origin/next15` OK: `79dd1c8..7ee912b next15 -> next15`.
-- **Ready A pendiente**: esperando confirmación de PO del SHA `7ee912b` en
-  Dashboard.
+- **Meta-commit P5** aplicado inmediatamente después: `cf69f58` (`docs(next15): P5 evidencia por fase en repo + evidencia Fases 0-3 aplicada`).
+  Bump del "último SHA" de la rama de `7ee912b` → `cf69f58`.
+- **Ready A confirmado por PO 2026-07-31**: opción A elegida — Ready `cf69f58`
+  (SHA real que se mergea, docs no-runtime-impact que Vercel builda con cache
+  reuse). Autoriza Fase 4.
 
 ## Fase 4 — Merge `next15 → staging` + deploy staging
 
@@ -242,7 +245,7 @@ git merge next15    # fast-forward esperado (Fase 0.2 lo confirmó); si NO es FF
 git push origin staging
 ```
 
-- [ ] **Fast-forward esperado**. Output debe decir `Fast-forward`. Si dice
+- [x] **Fast-forward esperado**. Output debe decir `Fast-forward`. Si dice
   `Merge made by the 'ort' strategy` → PARAR: `staging` divergió entre
   Fase 0.2 y ahora. Investigar antes de continuar.
 
@@ -252,9 +255,27 @@ git push origin staging
   SHA de `staging` (= último de `next15` post-Fase 3) queda **Ready**. Sin
   ese Ready, PARAR — no correr Fase 5.
 
-- [ ] Verificar SHA post-deploy: `git ls-remote origin staging` debe
+- [x] Verificar SHA post-deploy: `git ls-remote origin staging` debe
   coincidir con el HEAD local de `next15` post-Fase 3. Pegar output en el
   acta.
+
+**Ejecución 2026-07-31**:
+- Branch guard OK antes del checkout: `git branch --show-current` = `staging`
+  post-checkout, confirmado con `grep -qx staging`.
+- SHA staging pre-merge: `6274d50` (último commit tren Recordatorios previo).
+- `git pull origin staging` → `Already up to date`.
+- `git merge next15` output: cambios en 10 archivos (+2686/-1837), incluye
+  `MERGE_NEXT15_PROD_CHECKLIST.md` y `next15-notas/N4-audit-fetch.md` como
+  create mode 100644. **Ausencia de "Merge made by..." + presencia solo de
+  stats confirman FF** (verificado por `git log --oneline -5` — los últimos
+  5 commits son los del tren N15 tal cual estaban en `next15`, sin commit
+  de merge intermedio).
+- SHA staging post-merge: `cf69f58` (== HEAD `next15`, prueba FF puro).
+- `git push origin staging` → `6274d50..cf69f58 staging -> staging` ✅.
+- `git ls-remote origin staging` = `cf69f58f21e0f0668ab8c5c9d87ee7e3c1ed2933`
+  ✅ coincide con local.
+- **Ready B pendiente**: esperando confirmación PO de `cf69f58` deploy Ready
+  en branch `staging`.
 
 ## Fase 5 — Suite completa contra `staging` (guarda natural post-cleanup)
 
