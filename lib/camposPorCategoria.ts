@@ -311,6 +311,78 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         ] },
         { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Problemas conductuales que trabajas, edad recomendada, enfoque pedagógico...' },
     ],
+    // PR2 sprint PRODUCTO-1 (2026-07-31): Etología y Conducta. Servicio
+    // distinto de Adiestramiento — foco en DIAGNÓSTICO y modificación de
+    // problemas conductuales (agresividad, ansiedad, miedos, conductas
+    // compulsivas), no en enseñar obediencia y hábitos. Los cross-links en
+    // /explorar redirigen entre ambas categorías según el síntoma que el
+    // tutor busca (chip discreto, no banner).
+    //
+    // Campos propuestos (fundamento):
+    //  - `especialidades_conductuales` multiselect requerido: el motivo real
+    //    de la consulta según la clasificación clínica de etología. Filtro
+    //    principal para el tutor: "busco alguien que atienda X".
+    //  - `modalidad` multiselect requerido (mismo shape que adiestramiento):
+    //    dónde se presta el servicio. `domicilio` es crítico para ansiedad
+    //    de separación (hay que evaluar el ambiente real).
+    //  - `enfoque_metodologico` select: corriente teórica del profesional.
+    //    Señal de rigor formativo — distingue de "adiestrador auto-titulado".
+    //  - `trabaja_con_veterinario` boolean: coordina con derivación
+    //    veterinaria. Los problemas conductuales pueden tener causa médica;
+    //    saber descartar/derivar es señal de profesionalismo (indispensable
+    //    en etología clínica).
+    //  - `duracion_sesion` number (min): típicamente 60-90 min para
+    //    evaluación inicial (más largo que adiestramiento).
+    //  - `especies_atendidas` multiselect: muchos etólogos son especialistas
+    //    en perros o gatos — no es universal.
+    //  - `formacion`, `anios_experiencia`, `radio_cobertura_km`,
+    //    `inclusiones`, `notas`: análogos a otras categorías profesionales.
+    etologia: [
+        { key: 'especialidades_conductuales', label: '¿Qué problemas conductuales atiendes?', tipo: 'multiselect', opciones: [
+            { value: 'agresividad',             label: 'Agresividad' },
+            { value: 'ansiedad_separacion',     label: 'Ansiedad por separación' },
+            { value: 'miedos_fobias',           label: 'Miedos y fobias (ruidos, personas, otros animales)' },
+            { value: 'estres_hiperactividad',   label: 'Estrés / hiperactividad' },
+            { value: 'conductas_compulsivas',   label: 'Conductas compulsivas (lameteo, pica, giros)' },
+            { value: 'problemas_convivencia',   label: 'Problemas de convivencia con otras mascotas o personas' },
+            { value: 'conductas_indeseadas',    label: 'Conductas indeseadas (marcaje, destructividad)' },
+            { value: 'adopcion_reciente',       label: 'Evaluación de adopción reciente' },
+            { value: 'senior_conductual',       label: 'Cambios en mascotas adultas mayores' },
+        ], requerido: true },
+        { key: 'modalidad', label: 'Modalidad', tipo: 'multiselect', opciones: [
+            { value: 'domicilio', label: 'A domicilio' },
+            { value: 'online',    label: 'Online / videoconsulta' },
+            { value: 'centro',    label: 'En centro o consulta del profesional' },
+        ], requerido: true },
+        { key: 'enfoque_metodologico', label: 'Enfoque metodológico', tipo: 'select', opciones: [
+            { value: 'cognitivo_conductual', label: 'Cognitivo-conductual' },
+            { value: 'positivista_moderno',  label: 'Positivista moderno' },
+            { value: 'sistemico_familiar',   label: 'Sistémico familiar' },
+            { value: 'integrador',           label: 'Integrador' },
+            { value: 'otro',                 label: 'Otro' },
+        ] },
+        { key: 'anios_experiencia', label: 'Años de experiencia', tipo: 'number', placeholder: 'Ej: 5' },
+        { key: 'formacion', label: 'Formación profesional', tipo: 'text', placeholder: 'Ej: Postgrado en etología clínica UDLA, certificación IAABC' },
+        { key: 'duracion_sesion', label: 'Duración de la sesión de evaluación (minutos)', tipo: 'number', placeholder: 'Ej: 90' },
+        { key: 'trabaja_con_veterinario', label: 'Coordino con derivación veterinaria cuando corresponde', tipo: 'boolean' },
+        { key: 'especies_atendidas', label: 'Especies que atiendes', tipo: 'multiselect', opciones: [
+            { value: 'perros', label: 'Perros' },
+            { value: 'gatos',  label: 'Gatos' },
+            { value: 'otras',  label: 'Otras especies' },
+        ] },
+        { key: 'radio_cobertura_km', label: 'Radio de cobertura a domicilio (km)', tipo: 'number', condicionalDe: 'modalidad', condicionalValor: 'domicilio' },
+        { key: 'inclusiones', label: '¿Qué incluye el servicio?', tipo: 'multiselect', opciones: [
+            { value: 'evaluacion_inicial',      label: 'Evaluación inicial' },
+            { value: 'plan_tratamiento',        label: 'Plan de tratamiento personalizado' },
+            { value: 'sesiones_seguimiento',    label: 'Sesiones de seguimiento' },
+            { value: 'manual_pautas_escrito',   label: 'Manual de pautas escrito' },
+            { value: 'videollamadas_intermedias', label: 'Videollamadas intermedias entre sesiones' },
+            { value: 'reporte_veterinario',     label: 'Reporte para el veterinario tratante' },
+            { value: 'evaluacion_ambiental',    label: 'Evaluación del ambiente del hogar' },
+            { value: 'sesiones_para_familia',   label: 'Sesiones con toda la familia' },
+        ] },
+        { key: 'notas', label: 'Detalles adicionales (opcional)', tipo: 'textarea', placeholder: 'Ej: Casos que trabajas con más éxito, coordinación con veterinarios de referencia, tarifas especiales de seguimiento...' },
+    ],
     guarderia: [
         { key: 'capacidad', label: 'Capacidad máxima de mascotas simultáneas', tipo: 'number', placeholder: 'Ej: 5', requerido: true },
         { key: 'horario', label: 'Horario de atención', tipo: 'text', placeholder: 'Ej: Lunes a viernes 8:00-18:00', requerido: true },
@@ -463,6 +535,7 @@ export const TOP_CAMPOS_POR_CATEGORIA: Record<string, string[] | Record<string, 
     peluqueria:    ['anios_experiencia', 'duracion_estimada', 'mesa_hidraulica', 'radio_cobertura_km', 'razas_especiales'],
     veterinario:   ['radio_cobertura_km', 'especialidades', 'anio_titulacion', 'emite_boleta'],
     adiestramiento:['metodo', 'anios_experiencia', 'duracion_sesion', 'radio_cobertura_km'],
+    etologia:      ['enfoque_metodologico', 'anios_experiencia', 'duracion_sesion', 'trabaja_con_veterinario'],
     traslado:      ['tipo_vehiculo', 'capacidad_mascotas', 'radio_cobertura_km'],
     fotografia:    ['anios_experiencia', 'duracion_sesion', 'fotos_entregadas'],
     retratos:      ['anios_experiencia', 'plazo_entrega', 'formatos'],
