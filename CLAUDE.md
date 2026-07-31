@@ -315,6 +315,18 @@ Incidente que originó esta regla: 28-07-26, commit del acta de cierre F2 pedido
 
 **Evidencia por fase de un checklist en ejecución — REGLA PERMANENTE (P5)**: cuando un checklist de merge está en curso (`MERGE_*_PROD_CHECKLIST.md`), la evidencia de cada fase completada se **commitea al archivo del checklist en el repo** en el momento de completarla — casilla `[x]` marcada + bloque `**Ejecución <fecha>**:` con los outputs esenciales pegados (SHA, wall time, conteos, verificaciones, MCP queries). El acta vive en git como fuente de verdad; el chat es solo coordinación (efímero, se pierde). Sin este anclaje, un reset del contexto o una falla de red puede dejar la ejecución sin trazabilidad reconstruible. Incidente que originó esta regla: durante N7 Fase 2 del tren N15 (2026-07-31), el output de la suite 41/41 contra preview `next15` con whitelist activa fue reportado solo en el chat; el PO tuvo que pedir re-acreditación en el turno siguiente porque no encontraba la evidencia atada al checklist. Aplica a cualquier `MERGE_*_PROD_CHECKLIST.md` en ejecución activa, no solo el tren de turno.
 
+**Verificación de nombres de columna contra `information_schema` antes de entregar SQL — REGLA PERMANENTE (P6)**: cualquier migration/SQL que referencie columnas de tablas existentes debe validar los nombres contra `information_schema.columns` vía MCP staging (o SQL Editor manual) **ANTES de entregar el archivo para ejecución**. Cero confianza en memoria, en grep de otros archivos, o en asunciones de nomenclatura patrón. Los nombres de columna difieren entre tablas semánticamente relacionadas (`agendamientos.duracion_min` snapshot de reserva vs `servicios_publicados.duracion_slot_min` config del slot); grepear el nombre en un archivo puede llevar a la tabla equivocada. Además, el tipo (nullable/NOT NULL) importa para los semáforos — un `NOT NULL` colado en un `IS NOT NULL` es siempre-true (redundancia lógica que enmascara bugs).
+
+Comando canónico vía MCP:
+```sql
+SELECT column_name, data_type, is_nullable
+  FROM information_schema.columns
+ WHERE table_schema='public' AND table_name='<tabla>'
+   AND column_name IN ('<col1>', '<col2>', ...);
+```
+
+Incidente que originó esta regla: PR1 sprint PRODUCTO-1 (2026-07-31). La migration `20260731_buscar_servicios_agenda_activa.sql` referenció `s.duracion_min` en el RPC `buscar_servicios` — nombre inexistente en `servicios_publicados` (real: `duracion_slot_min`). PL/pgSQL NO valida columnas al CREATE — el DROP+CREATE aplicó ok (V1 pasó), pero cualquier ejecución del RPC reventó con `ERROR 42703 column s.duracion_min does not exist`. Explorer de staging/previews caído en su path RPC hasta el fix (`20260731_buscar_servicios_agenda_activa_fix.sql`). Bug secundario detectado en el mismo diagnóstico: `min_noches` es NOT NULL en el schema, así que `IS NOT NULL` era siempre-true — semáforo redundante. Los dos bugs se hubieran evitado con una query de 5 segundos contra `information_schema` antes de escribir el SQL.
+
 ## Database migrations
 
 Las migrations SQL viven en `migrations/*.sql`. Se aplican manualmente al proyecto Supabase vía Management API o PSQL ad-hoc — NO hay supabase CLI con migrations versionadas integrado.
