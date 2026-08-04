@@ -27,7 +27,14 @@
 - `/explorar?categoria=cuidado` tiene 4 servicios reales + **8 tarjetas duplicadas "¿Tienes un servicio para mascotas? Publica gratis"** insertadas en el grid como filler. Todas apuntan al MISMO link `/register?rol=proveedor&categoria=cuidado`.
 - Sumado a: banner top "Estamos en lanzamiento — Regístrate como proveedor" + link header "Soy proveedor" + CTA lateral "¿Ofreces servicios para mascotas?" + link footer "Publicar mi servicio" = **~12 apariciones del mismo destino** en una sola vista.
 - Efecto: parece spam intrusivo; el user siente que la página está vacía y Pawnecta está desesperado por proveedores. Antipatrón vs. transmitir "17 servicios disponibles" (stats del home).
-- **Fix propuesto**: reducir filler cards a **máximo 1** después de los resultados reales, con copy más orgánico ("¿No encontraste? Publica tu servicio para completar la categoría"). Alternativa: no rellenar el grid — dejar 4 cards en 2×2 y punto.
+- **Aclaración clave (pre-triage)**: los filler cards **NO son servicios Ejemplo** (esos son filas reales en BD con badge "EJEMPLO Verificado" — Carolina M., Sebastián C., etc., que se retiran con el phase-out gradual de producto). Los filler son un **componente que renderiza N placeholders en el `map` del grid** cuando hay pocos resultados. Ortogonales al phase-out de ejemplos, aunque interactúan: cuando el phase-out madure una categoría, los filler se vuelven aún más ruidosos porque el grid queda mixto (reales + 8 filler).
+- **Pre-clasificación PO 2026-08-04 (triage jueves)**:
+  - Severidad Alta ratificada (8 CTAs duplicadas junto a 4 reales hace ver el explorador vacío/spammy — daño directo a la vitrina pre-lanzamiento).
+  - Owner: **código** frontend `/explorar` (no producto/data).
+  - Esfuerzo estimado: **~30 min**.
+  - Fix direccional aprobado: **cap de filler a máximo 1 por grid** + **condicional de retiro cuando la categoría tenga ≥N servicios reales** (N a definir en el fix, sugerido **3**). Copy más orgánico ("¿No encontraste? Publica tu servicio para completar la categoría").
+  - Slot: sweep post-Auditoría #2 junto a los demás fixes del triage.
+  - Interacción con phase-out de Ejemplos: registrada como **agravante futuro, NO como dependencia**.
 - Evidencia: `walkthrough-2-explorar-cuidado-fillers.png` (fullPage).
 
 **[UX-2] Duplicación excesiva CTA "Registro proveedor"** — severidad **MEDIA** (70)
