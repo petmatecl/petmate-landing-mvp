@@ -167,6 +167,14 @@ Modificados:
 
 **Suite full post-PD5-fix contra preview producto-2 SHA `22798ab`**: **58 passed** (57 direct + 1 flaky S2 cron histórico verde en retry — patrón conocido, no regresión). Los 3 asserts extra de a11y pasaron dentro del test s2 Default sin problema.
 
+**Contabilidad de conteo — predicción vs realidad**:
+
+- **Corrida verde confirmada sobre SHA `22798ab`** (post-fix), disparada tras Ready manual del PO. Preview URL: `https://pawnecta-landing-mvp-git-producto-2-petmatecls-projects.vercel.app`. Wall time 66s. Los 3 asserts nuevos de a11y (`toHaveAttribute('id', 'tab-*')` × 3 + `panel toHaveAttribute('aria-labelledby', 'tab-proximas')` × 1) **ejecutaron** dentro del test s2 `Default = Próximas + los 3 tabs presentes con role=tab` — verificado por Playwright registrando el test como passed sin marcar `did not run` los asserts.
+
+- **Conteo final 58, no 59**: mi predicción previa de "59/59 esperado con +asserts" fue **errónea**. Los 3 asserts extra viven **DENTRO** del test existente `Default = Próximas + los 3 tabs presentes con role=tab` (s2, línea 124), no son tests nuevos. Playwright cuenta **tests**, no **asserts** — un test con 5 `expect()` cuenta 1 en el summary igual que un test con 8 `expect()`. La corrida anterior (sobre `1f5c05a`) era 58 tests / 58 pass, y post-PD5-fix sigue siendo 58 tests / 58 pass (con más asserts internos en 1 de ellos). El asserts extra pasa como refuerzo del test existente, no como test nuevo. Corrección de mi predicción registrada.
+
+- **Evidencia del assert nuevo pasando** (indirecta pero concreta): si los `toHaveAttribute('id', 'tab-*')` hubieran fallado, el test entero contaría como failed (los `expect().toHaveAttribute` throwean en fail). El test `Default = Próximas + los 3 tabs presentes con role=tab` aparece en el summary de la corrida como **passed** — implica que TODOS sus asserts (los previos + los 3 nuevos + el aria-labelledby matching) pasaron.
+
 **3 hallazgos "de pasada" del canónico** registrados en `BACKLOG.md` como deuda P3:
 1. Unificar `pages/api/cron/recordatorio-reserva.ts:207-266` con `lib/emails/resolvers.ts` (duplicación byte-idéntica desde ZB3).
 2. Falsy-zero en `lib/estadoDerivado.ts:96` `if(r.duracion_horas)` — code smell menor.
