@@ -234,14 +234,46 @@ Composición (baseline de staging `c342b74` + 1 nuevo spec PL1):
 
 ## 11. Cola de merges actualizada
 
-Sugerencia para `MINI_CHECKLIST_COLA_MERGES.md`:
+Sprint entra a la cola en **posición 4**: `producto-1 → zonab-1 → producto-2 → prelaunch-1` (o fusión en sweeps del jueves si el mini-checklist absorbe mejor). Cero colisión de superficies verificada en sección 2 — merge trivial esperado en las 5 superficies del sprint.
 
-- **Posición 4 del desfile** (post-producto-2, antes de promociones a main), o
-- **Fusión en sweeps del jueves** si el mini-checklist absorbe mejor.
+**Nota histórica del guard**: la ampliación del whitelist en `playwright.config.ts` (tokens `staging` / `git-staging` / `prelaunch`) que hice acá se **descarta** al mergear si la deny-list de PR0 llega antes (ver Cabo #1 abajo).
 
-Ambas opciones operativamente equivalentes — cero colisión con producto-1 / zonab-1 / producto-2 (verificado en sección 2). Merge trivial esperado.
+## 12. Cabos obligatorios pre-merge (PO 2026-08-04)
 
-**Nota para el checklist**: la ampliación del guard whitelist en `playwright.config.ts` (tokens `staging` / `git-staging` / `prelaunch`) puede o no querer preservarse post-desfile — si `e2e/setup/guard.ts` que llega en producto-2 reemplaza el whitelist con la deny-list mencionada por PO, el token `prelaunch` deja de ser necesario. El PO decide en el merge si retira "prelaunch" del array o lo deja como reserva para futuros ensayos análogos.
+Dos cabos que el PO anticipó explícitamente antes de standby. Ambos se agregan al `MINI_CHECKLIST_COLA_MERGES.md` como criterio adicional de la fase que meta prelaunch-1 a la cola.
+
+### Cabo #1 — Conflicto de guarda pre-declarado en `playwright.config.ts`
+
+**Situación**: `prelaunch-1` amplió la whitelist vieja (fork de staging pre-desfile) mientras la cola trae la deny-list `assertBaseUrlIsNotProd` de PR0. Al mergear prelaunch-1 en posición 4, `playwright.config.ts` **CHOCARÁ**.
+
+**Resolución prescrita por PO (aplicar en el momento del merge, sin re-consulta)**: **GANA LA DENY-LIST DE PR0** (es el estado final de la guarda; la whitelist ampliada de esta rama muere en el merge).
+
+**Justificación operativa (por qué el conflicto es trivial)**: la deny-list acepta cualquier preview `*-petmatecls`, incluido `git-prelaunch-1-*`, sin whitelist específica — por eso la fusión no requiere preservar el token `prelaunch` acá.
+
+**Verificación post-resolución**: correr suite completa contra el preview de staging tras el merge de prelaunch-1 → esperar verde. Si la deny-list opera correctamente, la suite corre igual sin whitelist de "prelaunch".
+
+**Sorpresa desactivada**: no re-consultar; aplicar directo.
+
+### Cabo #2 — Gate PL2 condicionado a verificación de env var `NEXT_PUBLIC_APP_ENV`
+
+**Situación**: el gate de PL2 asume que `NEXT_PUBLIC_APP_ENV=production` existe en el scope **Production** de Vercel. En el repaso del 30-jul quedó como 'no visible'. Si NO existe (o vale distinto de `'production'`) → `IS_PROD_CLIENT === false` en prod → `GA_TRACKING_ID === null` → **GA muere silencioso en prod al mergear** (modo de falla inverso al bug que arreglamos: en vez de contaminar staging, apaga tracking real).
+
+**Acción requerida ANTES del merge**: Aldo verifica en Vercel Dashboard → Project Settings → Environment Variables → filtro scope Production, buscar `NEXT_PUBLIC_APP_ENV`.
+
+**Ramas de decisión según resultado**:
+
+- **(a)** existe con valor exacto `'production'` → **cabo cerrado**. Anotar evidencia (screenshot del dashboard o `Updated` timestamp) al mini-checklist antes del merge. Merge desbloqueado.
+
+- **(b)** NO existe, o valor distinto → **dos opciones** que evaluar y proponer al PO ANTES del merge (no ejecutar unilateral):
+  - **B1**: **crear en scope Production con ritual P4 completo** (`NEXT_PUBLIC_APP_ENV=production`, verificar timestamp Updated de la fila, redeploy explícito del deploy vigente de prod para que la env aterrice al bundle, smoke inmediato al HTML de prod para confirmar `googletagmanager.com/gtag/js` aparece cuando `hasAnalytics=true`).
+  - **B2**: **cambiar el gate a una señal que sí exista en el bundle client** — documentar cuál con evidencia del bundle. Candidatos con trade-offs conocidos:
+    - `window.location.hostname === 'www.pawnecta.com' || window.location.hostname === 'pawnecta.com'` — client-side puro, cero env var, cero configuración. **Contra**: hardcodea el dominio de prod (si algún día cambia, el gate se rompe silente — mismo modo de falla que hoy).
+    - `process.env.NODE_ENV === 'production'` — inyectado automáticamente por Next.js. **Contra**: vale `'production'` en TODOS los builds de producción de Next, incluidos preview + staging (que también son builds `production` mode) → **NO diferencia prod-real vs preview** → **NO sirve** para el objetivo.
+    - Exponer `NEXT_PUBLIC_VERCEL_ENV` mapeando `VERCEL_ENV` en `next.config.js` — mismo esfuerzo operativo que B1, misma exposición al bug de env no seteada. **No hay ventaja neta vs B1**.
+
+  Recomendación por defecto para B2 si va por ahí: **hostname check** por su simplicidad + cero dependencia de configuración Vercel.
+
+**MERGE DE PRELAUNCH-1 BLOQUEADO hasta cerrar este cabo** — criterio adicional del checklist.
 
 
 ## 9. Estado del sprint
