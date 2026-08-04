@@ -477,6 +477,14 @@ $sw.Content.Substring(0, [Math]::Min(200, $sw.Content.Length))
 **Arrancó 2026-08-04 ~15:00 CLT tras deploy Ready. Cierre esperado
 jueves 06-ago ~15:00 CLT.**
 
+**Evidencia parcial 2026-08-04 tarde (ventana aún abierta, ~44h restantes)** — reporte PO al final del martes:
+
+- **ITEM 1 LIMPIO Y MEJOR** (primeras ~5h post-merge): captura de Vercel Logs prod con timeline Last-3-days (Aug 01-04): 22 errores en 3 días, **100% patrón conocido "307 fantasmas"** (ver `REPORTE_DIAGNOSTICO_ERRORS_PROD.md` — servicios inactivos + crawlers), **cero 500**, y el evento más reciente (2026-08-04 13:42 CLT) es **ANTERIOR al merge N15** (~15:00 CLT). Consecuencia: **cero errores registrados bajo Next 15 hasta el corte del reporte**. Baseline pre-N15 (60 errores/2sem del reporte) queda como techo; el ritmo actual está en o por debajo.
+- **ITEM 2 EN CURSO**: la primera corrida bajo Vercel Pro del cron `/api/cron/recordatorio-reserva` es esta noche (martes 4-ago 22:00 UTC = 18:00 CLT). PO captura timestamp exacto → resuelve la pregunta operativa clave: "¿18:00 exacto (spec Pro per-minute) vs 18:45 (offset ritual histórico Hobby)?". Dato para acta del cambio de plan.
+- **ITEMS 2-completo / 3 / 4**: re-verificación jueves ~15:00 CLT sobre ventana completa 48h — momento del cierre formal del monitor y GO/no-GO del desfile.
+
+**Regla operativa nueva P7 registrada tras incidente de fecha** (ver `CLAUDE.md > Workflow`): reporté un turno del martes 4-ago noche asumiendo "hoy jueves" — la ventana de 48h aún estaba a ~44h de cerrar. PO corrigió con captura de Logs con timeline visible que fija la fecha. Regla P7 aterrizada para no repetir el patrón.
+
 - [ ] **Vercel Logs prod**: sin **500 nuevos** por encima de la línea
   base pre-existente (60 errores acumulados en 2 semanas — no todos
   regresión, mix de bots + noise). Alerta si el ritmo de nuevos 500
