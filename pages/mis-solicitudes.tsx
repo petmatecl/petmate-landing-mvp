@@ -37,6 +37,11 @@ export default function MisSolicitudesPage() {
     const [state, setState] = useState<LoadState>({ kind: 'loading' });
     const [cancelDialogId, setCancelDialogId] = useState<string | null>(null);
     const [cancelLoading, setCancelLoading] = useState(false);
+    // PD2 sprint PRODUCTO-2 — pestañas de organización. Default 'proximas'
+    // (confirmadas futuras, orden fecha asc — lo que el tutor necesita
+    // "próximamente"). El particionado es 100% client-side sobre la lista
+    // ya cargada — cero queries nuevas.
+    const [activeTab, setActiveTab] = useState<'proximas' | 'pendientes' | 'historial'>('proximas');
 
     // Auth gate — mismo patron que /favoritos.
     useEffect(() => {
@@ -277,17 +282,113 @@ export default function MisSolicitudesPage() {
                     </div>
                 )}
 
-                {state.kind === 'ready' && state.agendamientos.length > 0 && (
-                    <div className="space-y-4">
-                        {state.agendamientos.map(sol => (
-                            <SolicitudCard
-                                key={sol.id}
-                                solicitud={sol}
-                                onCancel={() => setCancelDialogId(sol.id)}
-                            />
-                        ))}
-                    </div>
-                )}
+                {state.kind === 'ready' && state.agendamientos.length > 0 && (() => {
+                    // PD2 — particionado por estadoDerivado.
+                    //   proximas:   confirmadas futuras            (orden fecha asc)
+                    //   pendientes: pendientes vigentes            (orden fecha asc)
+                    //   historial:  realizadas + vencidas +
+                    //               canceladas + rechazadas +
+                    //               cancelada_proveedor            (orden fecha desc)
+                    const withEstado = state.agendamientos.map(sol => ({
+                        sol,
+                        estadoUI: estadoDerivado(sol),
+                    }));
+                    const proximas = withEstado
+                        .filter(x => x.estadoUI === 'confirmada')
+                        .sort((a, b) => {
+                            const av = new Date(a.sol.fecha_preferida || 0).getTime();
+                            const bv = new Date(b.sol.fecha_preferida || 0).getTime();
+                            return av - bv;
+                        });
+                    const pendientes = withEstado
+                        .filter(x => x.estadoUI === 'pendiente')
+                        .sort((a, b) => {
+                            const av = new Date(a.sol.fecha_preferida || 0).getTime();
+                            const bv = new Date(b.sol.fecha_preferida || 0).getTime();
+                            return av - bv;
+                        });
+                    const historial = withEstado
+                        .filter(x => ['realizada', 'vencida', 'cancelada', 'rechazada', 'cancelada_proveedor']
+                            .includes(x.estadoUI))
+                        .sort((a, b) => {
+                            const av = new Date(a.sol.fecha_preferida || 0).getTime();
+                            const bv = new Date(b.sol.fecha_preferida || 0).getTime();
+                            return bv - av;
+                        });
+                    const grupos = { proximas, pendientes, historial };
+                    const activas = grupos[activeTab];
+
+                    const tabs = [
+                        { id: 'proximas' as const, label: 'Próximas', count: proximas.length },
+                        { id: 'pendientes' as const, label: 'Pendientes', count: pendientes.length },
+                        { id: 'historial' as const, label: 'Historial', count: historial.length },
+                    ];
+
+                    return (
+                        <>
+                            {/* Tablist — patrón coherente con admin (radiogroup no aplica:
+                                cambia el contenido, no un filtro con estado semántico) */}
+                            <div
+                                role="tablist"
+                                aria-label="Filtro de reservas por etapa"
+                                className="flex gap-2 overflow-x-auto pb-2 mb-4 hide-scrollbar border-b border-slate-100"
+                            >
+                                {tabs.map(tab => {
+                                    const isActive = activeTab === tab.id;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            role="tab"
+                                            aria-selected={isActive}
+                                            aria-controls={`mis-reservas-panel-${tab.id}`}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-[1px] ${
+                                                isActive
+                                                    ? 'text-accent-700 border-accent-600'
+                                                    : 'text-slate-600 border-transparent hover:text-slate-900 hover:border-slate-300'
+                                            }`}
+                                        >
+                                            {tab.label}
+                                            <span className={`inline-flex items-center justify-center min-w-[1.5rem] h-5 text-xs font-semibold rounded-full px-1.5 ${
+                                                isActive
+                                                    ? 'bg-accent-100 text-accent-700'
+                                                    : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                                {tab.count}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Panel activo */}
+                            <div
+                                id={`mis-reservas-panel-${activeTab}`}
+                                role="tabpanel"
+                                aria-labelledby={`tab-${activeTab}`}
+                                className="space-y-4"
+                            >
+                                {activas.length === 0 ? (
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+                                        <p className="text-sm text-slate-500">
+                                            {activeTab === 'proximas' && 'No tienes reservas confirmadas próximamente.'}
+                                            {activeTab === 'pendientes' && 'No tienes solicitudes esperando respuesta.'}
+                                            {activeTab === 'historial' && 'Todavía no hay reservas en tu historial.'}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    activas.map(({ sol }) => (
+                                        <SolicitudCard
+                                            key={sol.id}
+                                            solicitud={sol}
+                                            onCancel={() => setCancelDialogId(sol.id)}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        </>
+                    );
+                })()}
             </div>
 
             {/* Sweep #3 taxonomía: colapsados los 4 títulos de cancelación
