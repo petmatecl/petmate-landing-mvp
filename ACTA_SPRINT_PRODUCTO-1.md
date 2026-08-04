@@ -1,10 +1,16 @@
 # Acta consolidada — Sprint PRODUCTO-1
 
-> **ESTADO: TÉCNICAMENTE COMPLETO — 2026-07-31**. Suite 45/45 verde en preview
-> `producto-1`. **Merge a `staging` BLOQUEADO** hasta que tren N15 complete
-> Fase 6-8 (monitor 48h post-merge a `main`); el sprint queda esperando esa
-> ventana. Este acta vive en `producto-1`; se mergeará a `staging` como parte
-> del merge del sprint cuando corresponda.
+> **ESTADO: 100% CERRADO — 2026-08-04**. Suite 45/45 verde + **revisión visual
+> del PO APROBADA** (badge Reserva online + categoría Etología + cross-links
+> + wizard con los 12 campos propuestos). Sprint queda en **posición 1 de la
+> cola de merges** (producto-1 → zonab-1 → producto-2). Esperando ventana
+> post-N15 monitor.
+>
+> **Historial de estados**:
+> - 2026-07-31: Técnicamente completo (suite 45/45 verde en preview).
+> - 2026-08-04: PO firma revisión visual → sprint 100% cerrado, posición 1
+>   cola de merges. Este acta vive en `producto-1`; se mergeará a `staging`
+>   como parte del merge del sprint cuando la cola avance.
 
 **Rama**: `producto-1` desde `staging @ 55489fe` (staging incluye N15
 mergeado post-Fase 5 tren N15).
