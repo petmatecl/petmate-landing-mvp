@@ -290,6 +290,97 @@ cambios de dominios, cancelación de builds, cambios de deployment
 protection. Todo eso requiere instrucción explícita en el turno vigente.
 Cada consulta se cita en reportes igual que Supabase.
 
+### Vercel plugin (oficial) — instalado 2026-08-04
+
+Plugin oficial de Vercel instalado vía `/plugin` (autenticado con la cuenta
+petmatecl de Aldo). Convive con el Vercel MCP hospedado — el plugin
+expone superficie más rica de deployments/builds/crons + operaciones que
+el MCP no tiene, sin exigir OAuth manual por sesión.
+
+**Motivación operacional**: reemplazar el cuello de botella histórico del
+"Ready confirmado" (~30 rondas en semana del 2026-08-04) por verificación
+directa desde la CLI. El plugin son los ojos de Aldo sobre Vercel, no su
+autoridad.
+
+**REGLAS DE USO** (mismo espíritu que Supabase MCP + Vercel MCP):
+
+- **VERIFICACIÓN de estado / lectura de logs / consulta de config**: libre.
+  Ejemplos ok:
+  - Consultar `deployment_status` de un SHA para verificar Ready antes de suite.
+  - Leer runtime logs prod para diagnóstico.
+  - Listar crons + `Last Run` en Fase 8 de checklists.
+  - Ver env vars sin cambiarlas.
+  Cada consulta se cita en reportes igual que Supabase/MCP.
+
+- **ACCIONES MUTANTES**: **SIEMPRE con GO explícito del coordinador** en
+  el turno vigente. Cero excepciones. La lista de mutantes incluye:
+  - Redeploy / promote de un preview a prod.
+  - Cambios de env vars (add/rm/update).
+  - Cambios de dominios (add/rm).
+  - Cancelar builds en curso.
+  - Cambios de deployment protection / rotación de bypass token.
+  - Cualquier flag `--force`, `--yes`, `--prod` de write.
+  - Borrado de deployments / logs.
+
+  "GO explícito" significa: el PO nombra la acción concreta con SHA o
+  parámetros específicos en el turno actual. Autorizaciones anteriores
+  ("cuando sea Ready, redeploy") **no cuentan** — el patrón sigue siendo
+  el mismo que rige commit+push: acción reversible sin ask, acción
+  irreversible con confirmación del turno.
+
+- **Auth**: OAuth via `/plugin` (petmatecl). Sesión persistente local —
+  no requiere re-auth por operación.
+
+### Plugins Security Guidance + Code Review — instalados 2026-08-04
+
+Ambos Anthropic-verified. **Rol operativo**: segundos revisores en la
+Auditoría Integral #2 (jueves post-desfile). Mi pasada de code review
+canónica + su barrido → las 3 fuentes van al triage único con score
+comparable al formato audit del 2026-07-23. Si alguno resulta redundante
+o ruidoso durante la evaluación previa, se descarta sin drama.
+
+**Superficie a evaluar antes del jueves** (reportar cuando corran):
+- Hooks activos (¿pre-commit? ¿pre-push? ¿on-review?).
+- Agentes que exponen (¿new subagent_types en el listado?).
+- Formato de output (¿markdown estructurado? ¿integra con `ReportFindings`?).
+- Cobertura vs mi code-review actual (`.claude/skills/code-review`
+  ya vigente).
+
+### Plugins Playwright + Chrome DevTools — instalados 2026-08-04
+
+Habilitan el **módulo "UX WALKTHROUGH NAVEGADO"** de la Auditoría #2 (jueves
+post-desfile, sobre staging consolidado).
+
+**REGLA CRÍTICA DE CREDENCIALES** (aplica a todo uso de estos plugins):
+**PROHIBIDO navegar producción (`www.pawnecta.com`) con cuentas reales**.
+Solo staging con las cuentas del setup e2e:
+- Tutora: `acanocts+tutor@gmail.com` (Camila).
+- Proveedor: `acanocts@gmail.com` (Aldo, cuenta de dev con rol admin).
+
+Prod se navega **solo con browsing anónimo** (sin login) para smokes
+públicos. Cualquier walkthrough logueado corre contra la URL de staging
+del branch relevante. Misma disciplina que la suite Playwright (guard
+deny-list en `e2e/setup/guard.ts` bloquea prod hosts).
+
+**Diseño del módulo UX Walkthrough** (para el jueves):
+- **Recorridos golden path**:
+  - **Proveedor**: registro → perfil → publicar servicio → configurar
+    agenda F1 y F2 → wizard etología con sus 12 campos.
+  - **Tutora**: búsqueda → ficha → reserva F1 → reserva F2 → cancelación
+    → reseña → página Mis reservas completa (pestañas + filtros + CTA
+    vencida — los 3 aterrizados en PRODUCTO-2).
+  - **Admin**: aprobación de proveedor + moderación.
+- **Cosecha por recorrido**: errores de consola, requests fallidos
+  (4xx/5xx en Network), estados visualmente rotos (screenshot), fricciones
+  UX (heurísticas + a11y).
+- **Entregable**: findings con score comparable al formato audit del
+  2026-07-23 → entran al MISMO triage único del jueves junto al code
+  review + los 2 plugins revisores → backlog priorizado.
+
+**Evaluación pre-jueves**: verificar que ambos plugins operan (login de
+prueba en staging + captura de un error de consola inducido como smoke).
+Reportar superficie + resultado antes del monitor N15 cerrando.
+
 ## Workflow
 
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático

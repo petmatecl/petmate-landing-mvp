@@ -91,6 +91,68 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
   - **Migración de datos**: las conversaciones existentes en prod → ¿quedan huérfanas (`agendamiento_id = null`), se migran por heurística (el agendamiento más reciente del mismo par tutor+servicio), o se archivan?
 - Es un proyecto con schema + migración de datos + refactor del flujo de creación de conversation en `ServiceDetailView`, NO un ajuste menor.
 
+### Sprint ANALYTICS-1 — taxonomía GA aprobada (launch-readiness, post-desfile)
+
+**Estado**: brief cerrado por PO 2026-08-04 en sesión de diseño. **Listo para ejecutar** cuando llegue su slot en la cola post-desfile — se prioriza junto al bundle SEO del triage de la Auditoría Integral #2 (ver `REPORTE_DIAGNOSTICO_ERRORS_PROD.md`).
+
+**Alcance**: ~medio día de implementación.
+
+**PREREQUISITO EXPLÍCITO — orden en el sprint**:
+1. **Primero**: aterrizar el **gate GA por entorno** (ítem E del ADDENDUM del reporte diagnóstico — 15 min). Sin ese gate, instrumentar eventos sobre data contaminada (previews + suites Playwright disparando al ID prod) no sirve — inflaría métricas antes de siquiera empezar.
+2. **Después**: helper único de tracking + llamadas a los eventos + guía a Aldo para marcar los 4 key events en el dashboard GA4.
+
+**Taxonomía aprobada** (snake_case español, decisión PO):
+
+**Funnel Oferta (proveedor)**:
+| Evento | Trigger |
+|---|---|
+| `registro_proveedor_iniciado` | Click en "Publica gratis" / "Soy proveedor" (CTAs del hero + cards) |
+| `registro_proveedor_completado` | ✅ **KEY EVENT** — Success del POST `/api/auth/signup` con rol=proveedor |
+| `verificacion_enviada` | Upload de foto carnet frontal+dorso + submit |
+| `servicio_publicado` | ✅ **KEY EVENT** — INSERT success sobre `servicios_publicados` |
+| `agenda_activada` | Toggle F1 (`duracion_slot_min IS NOT NULL`) o F2 (`capacidad_estadia IS NOT NULL`) guardado |
+
+**Funnel Demanda (tutor)**:
+| Evento | Params |
+|---|---|
+| `busqueda_realizada` | `{categoria, comuna}` |
+| `ficha_vista` | `{servicio_id, categoria}` |
+| `contacto_iniciado` | ✅ **KEY EVENT** — `{canal: 'chat' \| 'whatsapp' \| 'telefono'}` |
+| `reserva_confirmada` | ✅ **KEY EVENT** — `{familia: 'F1' \| 'F2' \| 'legacy'}` |
+| `solicitud_enviada` | (flujo viejo pendiente-pending) |
+| `resena_publicada` | (post-servicio, evaluaciones.estado='aprobado') |
+
+**4 Key Events (conversiones GA4 — Aldo los marca en dashboard)**:
+1. `registro_proveedor_completado`
+2. `servicio_publicado`
+3. `contacto_iniciado`
+4. `reserva_confirmada`
+
+**Métrica norte**: **"conexiones semanales" = `contacto_iniciado` + `reserva_confirmada`** — indicador combinado del valor de mercado que Pawnecta genera. Los 2 lados del funnel demanda que efectivamente concretan interacción.
+
+**Implementación esperada**:
+- **Helper único de tracking** en `lib/gtag.ts` (extender el `event()` existente): wrappers tipados por evento del funnel, gate por entorno IS_PROD ya integrado desde el fix del prerequisito, cero-op en preview/staging.
+- **Llamadas en puntos de UI/flujo correspondientes**:
+  - `registro_proveedor_iniciado`: click handlers de CTAs hero + cards del home.
+  - `registro_proveedor_completado`: post-success del POST `/api/auth/signup` (con `rol=proveedor`).
+  - `verificacion_enviada`: submit del wizard de verificación en `pages/proveedor/index.tsx`.
+  - `servicio_publicado`: post-INSERT de `ServiceFormModal` (nuevo, no edición).
+  - `agenda_activada`: toggle F1/F2 guardado en `ServiceFormModal` (semáforos canónicos).
+  - `busqueda_realizada`: submit de `SearchBar` (hero) + apply de `SidebarFiltros`.
+  - `ficha_vista`: gSSp exitoso de `/servicio/[id]` (via `useEffect` en la page).
+  - `contacto_iniciado`: hooks al POST `/api/contactos/track` (ya existe el endpoint — se agrega evento en cada canal).
+  - `reserva_confirmada`: post-INSERT de `SolicitarAgendamientoModal` cuando `estado=confirmada` (F1/F2 picker).
+  - `solicitud_enviada`: post-INSERT cuando `estado=pendiente` (flujo viejo).
+  - `resena_publicada`: post-approval en `pages/admin/evaluaciones.tsx`, o post-INSERT si simplificamos.
+- **Marcado de key events en GA4**: guía escrita a Aldo (5 pasos en el dashboard, sin código): GA4 → Admin → Events → seleccionar evento → Mark as key event.
+- **Convención de naming**: `snake_case` en español (ya arriba). Consistencia con la convención declarada por PO.
+
+**Estimación**: helper + gate + 11 llamadas + guía = ~medio día.
+
+**Trigger de ejecución**: post-desfile (`producto-1 → zonab-1 → producto-2` mergeadas + Fase 8 monitor N15 cerrada) y priorizado en el triage de la Auditoría #2 junto al bundle SEO (307/410).
+
+**Pre-condición no-negociable**: fix del gate GA (ítem E del reporte diagnóstico) va PRIMERO en el mismo sprint. Nada de instrumentar eventos antes.
+
 ## Deuda técnica / pulido
 
 - **Copy de emails de confirmación de reserva por horas — retrofit visual COMPLETO** (pedido de PO, 2026-07-28; ampliación R4.1 layout de listado 2026-07-28; ampliación R4.2 dirección de arte 2026-07-28). Los emails de confirmación (F1/F2/legacy) adoptan el mismo lenguaje visual que `RecordatorioReservaEmail` en 3 capas:
@@ -176,10 +238,27 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 
 Herramientas que agregan valor real cuando llegue su gatillo. Instalar antes es distracción. Todos comparten la convención: cero instalación hasta que dispare la condición.
 
+### Instalaciones aprobadas 2026-08-04 (batch de plugins de claude.com/plugins)
+
+Reglas de uso documentadas en `CLAUDE.md` sección "MCPs con acceso a servicios (staging + Vercel)". Trigger: PO+coordinador después de detectar cuello de botella "Ready confirmado" (~30 rondas semanales) + necesidad de segundos revisores para Auditoría Integral #2.
+
+1. **Plugin Vercel (oficial)** — resuelve el cuello de botella "Ready confirmado". Verificación de estado libre; acciones mutantes (redeploy, env vars, dominios, protection, bypass token) SIEMPRE con GO explícito del coordinador por-turno.
+2. **Plugin Security Guidance (Anthropic-verified)** — segundo revisor en Auditoría #2 (jueves).
+3. **Plugin Code Review (Anthropic-verified)** — segundo revisor en Auditoría #2 (jueves).
+4. **Plugin Playwright (oficial)** — habilita módulo "UX Walkthrough Navegado" de Auditoría #2. Credenciales solo staging (Camila / Aldo), PROHIBIDO navegar prod loggeado.
+5. **Plugin Chrome DevTools (oficial)** — complemento del walkthrough (cosecha errores consola + Network 4xx/5xx + screenshots de estados rotos).
+
+### No instalados 2026-08-04 (razones registradas)
+
+- **Supabase MCP oficial** — el MCP hospedado actual con disciplina read-only (documentado en CLAUDE.md) funciona. Trigger para reconsiderar: post-lanzamiento, si la superficie del oficial agrega operaciones que el actual no cubre y valen la migración. Hasta entonces, mantener el actual = menos rotación de tooling en periodo pre-lanzamiento.
+- **SearchFit SEO (comunitario)** — comunitario, requiere auditoría de procedencia (autor, permisos, historial de contribuciones) antes de considerarlo. Cero urgencia dado que el bundle SEO del triage Auditoría #2 (307→410/404 + sitemap.estado + log info) se resuelve con edits directos al código, sin dependencia externa. Reconsiderar solo si el bundle se prolonga y aparecen tareas SEO recurrentes que un plugin podría automatizar.
+- **Sentry** — candidato de observabilidad post-launch. Alternativa vigente: Vercel Logs (retención extendida bajo Pro) + Supabase logs siguen alcanzando. Trigger: decisión explícita post-launch cuando volumen de tráfico real requiera error tracking estructurado + alerting proactivo que Vercel/Supabase no dan.
+
+### Plugins con gatillo (sin instalar aún)
+
 - **Plugin `Design`** (crítica UX + accesibilidad + UX writing) — **GATILLO**: cierre de F2-3-E. Broche de F2 ANTES del merge a prod. Auditoría objetivo: (a) accesibilidad — contraste WCAG, foco de teclado navegable en el picker de rango, labels/aria en inputs de blackouts, tab order en el modal del tutor. (b) UX crítica del flujo completo — reserva de estadía por Camila desde ficha → picker → confirmación → email → cancelación con ventana; editor de blackouts F2-2B; formularios que expusimos en F2-3-D (dialog de cancelación con copy diferenciado F1/F2). Output esperado: hallazgos priorizables, mismo formato que el code-review (score + descartes justificados).
 - **Plugin `Frontend Design`** (generación de UI) — **GATILLO**: cuando se ataque alguno de los ítems visuales del backlog (`Styleguide rewrite`, bottom nav móvil si aparece, `Hero rotativo del home`). Condición de uso: domado con los tokens visuales existentes de Pawnecta (`accent` #22C55E / `deep` #134E4A + estados `success/danger/warning/info`) — no rediseña identidad, construye dentro de ella. Instrucción explícita: pasar el snapshot de `pages/styleguide.tsx` como input inicial cada vez que se lo use.
 - **Stripe** — GATILLO: la pasarela elegida en el proyecto "Pagos" del roadmap Doctoralia-style resulta ser Stripe (no Transbank Webpay). Instalar recién con esa decisión.
-- **Sentry** — GATILLO: decisión explícita de observabilidad post-F2. Alternativa considerada: Vercel Analytics + Supabase logs siguen alcanzando por ahora.
 
 ## Sistema visual (referencia — YA COMPLETADO)
 
