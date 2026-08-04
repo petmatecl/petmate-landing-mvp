@@ -155,6 +155,25 @@ Modificados:
 - **`REPORTE_DIAGNOSTICO_ERRORS_PROD.md`** — diagnóstico read-only de los 61 errores 307 en logs prod + ADDENDUM del hallazgo GA (GA disparando desde previews/staging). 2 bundles propuestos para triage Auditoría #2: SEO (307→410/404 + sitemap.estado + log info) y GA (gate por entorno + limpiar consent storageState + filtro tráfico interno GA4).
 - **`BACKLOG.md` sub-sección "Sprint ANALYTICS-1"** — brief cerrado por PO con taxonomía aprobada de 11 eventos (5 oferta + 6 demanda), 4 key events, métrica norte "conexiones semanales", prerequisito explícito del gate GA.
 
+## Enmienda P5 — PD5-fix aterrizado 2026-08-04 tarde (SHA `22798ab`)
+
+**Origen**: smoke pre-jueves del plugin `code-review` produjo 2 findings ≥80 sobre este sprint. Aunque el veredicto del plugin fue REDUNDANTE vs el canónico xhigh (descartado para Auditoría #2), los 2 findings eran bugs REALES de PD2/PD3. Decisión PO: fix pre-desfile ("más barato aterrizar hoy que re-triagear el jueves").
+
+**Bugs cerrados**:
+
+- **[85] a11y `aria-labelledby` dangling** (`pages/mis-solicitudes.tsx:526`): el tabpanel referencia `aria-labelledby={` `tab-${activeTab}` `}`, pero los `<button role="tab">` NO tenían `id={` `tab-${tab.id}` `}`. Screen readers no encontraban nombre accesible del panel. **Fix**: agregar `id={` `tab-${tab.id}` `}` a cada botón. **Test**: spec s2 amplía `Default = Próximas + los 3 tabs presentes con role=tab` con 3 asserts `toHaveAttribute('id', 'tab-*')` + `panel toHaveAttribute('aria-labelledby', 'tab-proximas')`.
+
+- **[82] Filtros huérfanos post-refresh** (`pages/mis-solicitudes.tsx:485-520`): si `filtroProveedor='X'` o `filtroMascota='Y'` está activo y `fetchSolicitudes()` (post-cancelación) deja las opciones del panel ≤1, el dropdown desaparece por el gate `>1` pero el valor persiste → cards filtradas a cero, empty state sin control para limpiar. **Fix**: nuevo `useEffect` que consume `state.agendamientos + activeTab + filtros`; verifica si el valor activo existe en las opciones actuales del panel; si no, reset a `null`. Cierra la carrera. **Test**: NO extendido en s3 — requiere fixtures multi-proveedor para reproducir determinísticamente (fuera del budget del PD5-fix). Cubierto por el `useEffect` determinístico y validación manual del PO en preview post-merge (queda anotado explícito en el walkthrough UX del jueves).
+
+**Suite full post-PD5-fix contra preview producto-2 SHA `22798ab`**: **58 passed** (57 direct + 1 flaky S2 cron histórico verde en retry — patrón conocido, no regresión). Los 3 asserts extra de a11y pasaron dentro del test s2 Default sin problema.
+
+**3 hallazgos "de pasada" del canónico** registrados en `BACKLOG.md` como deuda P3:
+1. Unificar `pages/api/cron/recordatorio-reserva.ts:207-266` con `lib/emails/resolvers.ts` (duplicación byte-idéntica desde ZB3).
+2. Falsy-zero en `lib/estadoDerivado.ts:96` `if(r.duracion_horas)` — code smell menor.
+3. Fallback "Se coordina por chat con {tutor}" en `notify-proveedor-cancel.ts:147` — copy inconsistente (futuro en email de cancelación).
+
+**Cadena PRODUCTO-2 con PD5-fix**: `bfa553c → 22798ab`.
+
 ## Siguiente
 
 **Standby a Fase 8 monitor N15** (cierre esperado jueves 06-ago ~15:00 CLT). Post-monitor cerrado → cola de merges arranca según `MINI_CHECKLIST_COLA_MERGES.md`.
