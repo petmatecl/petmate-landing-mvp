@@ -13,7 +13,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Calendar, ArrowRight, Clock, CheckCircle, CheckCircle2, XCircle, AlertTriangle, Phone, MapPin, Home } from 'lucide-react';
+import { Calendar, ArrowRight, Clock, CheckCircle, CheckCircle2, XCircle, AlertTriangle, Phone, MapPin, Home, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
@@ -46,6 +46,12 @@ export default function MisSolicitudesPage() {
     // solicitar" está en curso de cancel-then-navigate. Alimenta el
     // disabled del botón mientras corre el UPDATE + navigate.
     const [volverASolicitarLoadingId, setVolverASolicitarLoadingId] = useState<string | null>(null);
+    // PD3 sprint PRODUCTO-2 — filtros dentro de pestañas. Client-side,
+    // sin queries nuevas. Alimentados dinámicamente por la data del
+    // panel activo (dropdowns visibles solo si hay >1 opción).
+    // Valor `null` = sin filtro; string = filtrar por ese id/label.
+    const [filtroProveedor, setFiltroProveedor] = useState<string | null>(null);
+    const [filtroMascota, setFiltroMascota] = useState<string | null>(null);
 
     // Auth gate — mismo patron que /favoritos.
     useEffect(() => {
@@ -99,8 +105,10 @@ export default function MisSolicitudesPage() {
                 region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
                 duracion_min, capacidad_snapshot, capacidad_snapshot_estadia, tutor_nombre,
+                mascota_id, tipo_mascota_texto,
                 respondido_at, created_at, updated_at,
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes),
+                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, foto_mascota)
             `)
             .eq('tutor_id', buscador.id)
             .order('created_at', { ascending: false });
@@ -120,6 +128,12 @@ export default function MisSolicitudesPage() {
         const hydrated = (data || []).map((a: any) => ({
             ...a,
             proveedor: provMap.get(a.proveedor_id) ?? null,
+            // PD3: normalizar embed mascota (PostgREST puede devolver
+            // array u object según cache/permisos; N:1 aquí = 1 fila max).
+            // RLS de mascotas restringe a user_id=auth.uid() del tutor —
+            // el join solo trae mascotas del propio tutor, alineado con
+            // el filtro tutor_id de la query.
+            mascota: Array.isArray(a.mascota) ? (a.mascota[0] ?? null) : (a.mascota ?? null),
         }));
 
         // Sort pendientes primero. PG no soporta CASE en order via supabase-js;
@@ -371,7 +385,50 @@ export default function MisSolicitudesPage() {
                             return bv - av;
                         });
                     const grupos = { proximas, pendientes, historial };
-                    const activas = grupos[activeTab];
+                    const cardsPestana = grupos[activeTab];
+
+                    // PD3 — opciones de filtro dinámicas por pestaña. Solo
+                    // proveedores presentes en la pestaña activa; solo
+                    // mascotas presentes (con etiqueta "Sin mascota" si hay
+                    // filas sin ficha ni texto). Dropdowns visibles solo si
+                    // hay >1 opción (regla del brief).
+                    const proveedoresPresentes = Array.from(
+                        new Map(
+                            cardsPestana
+                                .filter(x => x.sol.proveedor?.id)
+                                .map(x => [x.sol.proveedor!.id, {
+                                    id: x.sol.proveedor!.id,
+                                    label: (x.sol.proveedor!.nombre ?? 'Proveedor').trim(),
+                                }])
+                        ).values()
+                    );
+                    // Mascota "key": id de ficha si viaja, sino 'texto:'+trim, sino 'sin'.
+                    // Alimenta filtro + reconstrucción del label del dropdown.
+                    const mascotaKey = (sol: AgendamientoConRelaciones): string => {
+                        if (sol.mascota?.id) return `id:${sol.mascota.id}`;
+                        if (sol.tipo_mascota_texto) return `texto:${sol.tipo_mascota_texto.trim().toLowerCase()}`;
+                        return 'sin';
+                    };
+                    const mascotaLabel = (sol: AgendamientoConRelaciones): string => {
+                        if (sol.mascota?.nombre) return sol.mascota.nombre;
+                        if (sol.tipo_mascota_texto) return sol.tipo_mascota_texto;
+                        return 'Sin mascota';
+                    };
+                    const mascotasPresentes = Array.from(
+                        new Map(
+                            cardsPestana.map(x => {
+                                const k = mascotaKey(x.sol);
+                                return [k, { key: k, label: mascotaLabel(x.sol) }];
+                            })
+                        ).values()
+                    );
+
+                    // Aplicar filtros al panel activo.
+                    const activas = cardsPestana.filter(x => {
+                        if (filtroProveedor && x.sol.proveedor?.id !== filtroProveedor) return false;
+                        if (filtroMascota && mascotaKey(x.sol) !== filtroMascota) return false;
+                        return true;
+                    });
 
                     const tabs = [
                         { id: 'proximas' as const, label: 'Próximas', count: proximas.length },
@@ -396,7 +453,14 @@ export default function MisSolicitudesPage() {
                                             role="tab"
                                             aria-selected={isActive}
                                             aria-controls={`mis-reservas-panel-${tab.id}`}
-                                            onClick={() => setActiveTab(tab.id)}
+                                            onClick={() => {
+                                                setActiveTab(tab.id);
+                                                // PD3: reset filtros al cambiar de pestaña — las
+                                                // opciones dependen del panel activo (distinta
+                                                // partición → distintos proveedores/mascotas).
+                                                setFiltroProveedor(null);
+                                                setFiltroMascota(null);
+                                            }}
                                             className={`flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-[1px] ${
                                                 isActive
                                                     ? 'text-accent-700 border-accent-600'
@@ -416,6 +480,45 @@ export default function MisSolicitudesPage() {
                                 })}
                             </div>
 
+                            {/* PD3 — Filtros dentro de pestañas. Visibles solo si hay >1
+                                opción. Se resetean al cambiar de pestaña. */}
+                            {(proveedoresPresentes.length > 1 || mascotasPresentes.length > 1) && (
+                                <div className="flex flex-wrap gap-3 mb-4">
+                                    {proveedoresPresentes.length > 1 && (
+                                        <div className="flex items-center gap-2">
+                                            <label htmlFor="filtro-proveedor" className="text-xs font-medium text-slate-500">Proveedor:</label>
+                                            <select
+                                                id="filtro-proveedor"
+                                                value={filtroProveedor ?? ''}
+                                                onChange={e => setFiltroProveedor(e.target.value || null)}
+                                                className="h-9 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 px-3 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 cursor-pointer"
+                                            >
+                                                <option value="">Todos</option>
+                                                {proveedoresPresentes.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                    {mascotasPresentes.length > 1 && (
+                                        <div className="flex items-center gap-2">
+                                            <label htmlFor="filtro-mascota" className="text-xs font-medium text-slate-500">Mascota:</label>
+                                            <select
+                                                id="filtro-mascota"
+                                                value={filtroMascota ?? ''}
+                                                onChange={e => setFiltroMascota(e.target.value || null)}
+                                                className="h-9 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 px-3 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 cursor-pointer"
+                                            >
+                                                <option value="">Todas</option>
+                                                {mascotasPresentes.map(m => (
+                                                    <option key={m.key} value={m.key}>{m.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Panel activo */}
                             <div
                                 id={`mis-reservas-panel-${activeTab}`}
@@ -426,9 +529,11 @@ export default function MisSolicitudesPage() {
                                 {activas.length === 0 ? (
                                     <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
                                         <p className="text-sm text-slate-500">
-                                            {activeTab === 'proximas' && 'No tienes reservas confirmadas próximamente.'}
-                                            {activeTab === 'pendientes' && 'No tienes solicitudes esperando respuesta.'}
-                                            {activeTab === 'historial' && 'Todavía no hay reservas en tu historial.'}
+                                            {cardsPestana.length > 0
+                                                ? 'Ninguna reserva coincide con los filtros aplicados.'
+                                                : activeTab === 'proximas' ? 'No tienes reservas confirmadas próximamente.'
+                                                : activeTab === 'pendientes' ? 'No tienes solicitudes esperando respuesta.'
+                                                : 'Todavía no hay reservas en tu historial.'}
                                         </p>
                                     </div>
                                 ) : (
@@ -654,6 +759,32 @@ function SolicitudCard({
                 <Calendar size={15} className="text-slate-400 shrink-0" />
                 <span>{fechaPreferida}</span>
             </div>
+
+            {/* PD3 sprint PRODUCTO-2 — chip mascota discreto: ficha real +
+                foto pequeña si viaja, o fallback a texto libre. Ausente
+                cuando la reserva no tiene mascota asociada (mayoritario
+                en filas legacy) — no rompe layout ni deja hueco.
+                Patrón coherente con el resto de líneas info (icon +
+                texto). */}
+            {(solicitud.mascota || solicitud.tipo_mascota_texto) && (
+                <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
+                    {solicitud.mascota?.foto_mascota ? (
+                        <img
+                            src={solicitud.mascota.foto_mascota}
+                            alt=""
+                            className="w-5 h-5 rounded-full object-cover shrink-0"
+                        />
+                    ) : (
+                        <PawPrint size={15} className="text-slate-400 shrink-0" />
+                    )}
+                    <span className="truncate">
+                        {solicitud.mascota?.nombre ?? solicitud.tipo_mascota_texto}
+                        {solicitud.mascota?.tipo && (
+                            <span className="text-xs text-slate-500 ml-1.5">({solicitud.mascota.tipo})</span>
+                        )}
+                    </span>
+                </div>
+            )}
 
             {/* Modalidad — Fase 2: solo si el servicio es cuidado */}
             {modalidadLabel && (
