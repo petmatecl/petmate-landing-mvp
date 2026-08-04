@@ -69,15 +69,6 @@ test.beforeAll(async () => {
         capacidadSnapshotEstadia: 1,
         estado: 'confirmada',
     });
-    const vencida = await insertarAgendamientoTest(supaTutor, {
-        servicioId: svc.id,
-        proveedorId,
-        tutorId,
-        familia: 'F1',
-        fechaPreferidaIso: new Date(Date.now() - 24 * 3_600_000).toISOString(),
-        duracionMin: 60,
-        estado: 'pendiente',
-    });
     const confirmadaFutura = await insertarAgendamientoTest(supaTutor, {
         servicioId: svc.id,
         proveedorId,
@@ -88,7 +79,12 @@ test.beforeAll(async () => {
         capacidadSnapshotEstadia: 1,
         estado: 'confirmada',
     });
-    // Pendiente futura — para contador Pendientes.
+    // Pendiente futura — para poblar contador Pendientes. NO agregamos
+    // "vencida" (pendiente pasada) del mismo servicio: la constraint
+    // agendamientos_unique_pendiente_por_tutor_servicio (UNIQUE tutor_id,
+    // servicio_id WHERE estado='pendiente') solo permite UNA pendiente
+    // por tutor+servicio, sea cual sea la familia. El spec Historial se
+    // valida con la realizada (F2 confirmada pasada), no requiere vencida.
     const pendienteFutura = await insertarAgendamientoTest(supaTutor, {
         servicioId: svc.id,
         proveedorId,
@@ -105,14 +101,14 @@ test.beforeAll(async () => {
         proveedorId,
         tutorId,
         realizadaId: realizada,
-        vencidaId: vencida,
+        vencidaId: '',   // no aplicable en s2 (ver comentario arriba)
         confirmadaFuturaId: confirmadaFutura,
         pendienteFuturaId: pendienteFutura,
     };
 
     console.log('[s2-pestanas beforeAll]', {
         titulo: svc.titulo,
-        counts: 'proximas=1 pendientes=1 historial=2',
+        counts: 'proximas=1 pendientes=1 historial=1 (solo realizada)',
     });
 });
 
@@ -186,7 +182,7 @@ test.describe('PD2 S2 — pestañas Próximas/Pendientes/Historial', () => {
         await expect(cardsPanel.first().locator('text=/Vencida/i')).toHaveCount(0);
     });
 
-    test('Panel Historial: realizadas + vencidas + terminales de este servicio', async ({ page }) => {
+    test('Panel Historial: realizadas del servicio (vencida no aplica por unique_pendiente)', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 
         await page.getByRole('tab', { name: /Historial/i }).click();
@@ -194,15 +190,15 @@ test.describe('PD2 S2 — pestañas Próximas/Pendientes/Historial', () => {
         const panel = page.locator('#mis-reservas-panel-historial');
         await expect(panel).toBeVisible();
 
-        // Realizada + Vencida = 2 cards del servicio en Historial.
+        // 1 card del servicio en Historial: la realizada. La vencida no la
+        // creamos en beforeAll por la constraint unique_pendiente_por_tutor_
+        // servicio (ver comentario en el beforeAll). El spec s1 sí cubre
+        // vencida en su propio servicio dedicado.
         const cardsPanel = panel.locator('article').filter({
             hasText: new RegExp(ctx.servicioTitulo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
         });
-        await expect(cardsPanel).toHaveCount(2);
-
-        // Deben aparecer AMBOS badges (Realizada y Vencida) en el panel.
-        await expect(panel.locator('text=/Realizada/i').first()).toBeVisible();
-        await expect(panel.locator('text=/Vencida/i').first()).toBeVisible();
+        await expect(cardsPanel).toHaveCount(1);
+        await expect(cardsPanel.first().locator('text=/Realizada/i')).toBeVisible();
     });
 
     test('Contadores en tabs reflejan las cuentas del servicio (piso ≥ fixture)', async ({ page }) => {

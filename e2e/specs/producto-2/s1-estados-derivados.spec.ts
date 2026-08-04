@@ -70,14 +70,17 @@ test.beforeAll(async () => {
         capacidadSnapshotEstadia: 1,
         estado: 'confirmada',
     });
-    // Vencida: F1 pendiente, fecha_preferida 24h pasado.
+    // Vencida: legacy V1 pendiente, fecha_preferida 24h pasado. Legacy
+    // (no F1/F2) para evitar colisión con `agendamientos_unique_pendiente_
+    // por_tutor_servicio` si otro spec crea F1 pendiente contra el mismo
+    // servicio. El helper estadoDerivado trata igual pendiente-con-fecha-
+    // pasada independiente de la familia.
     const vencida = await insertarAgendamientoTest(supaTutor, {
         servicioId: svc.id,
         proveedorId,
         tutorId,
-        familia: 'F1',
+        familia: 'legacy',
         fechaPreferidaIso: new Date(Date.now() - 24 * 3_600_000).toISOString(),
-        duracionMin: 60,
         estado: 'pendiente',
     });
     // Confirmada futura (control): F2 confirmada, futuro. Debe seguir
@@ -124,11 +127,13 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
     test('Realizada: badge REALIZADA visible, card no ofrece "Cancelar reserva"', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 
+        // PD2 sprint PRODUCTO-2 cambió el default a "Próximas" (confirmadas
+        // futuras). Las realizadas viven en "Historial" — click en el tab.
+        await page.getByRole('tab', { name: /Historial/i }).click();
+
         // El tutor_nombre "[TEST-cron-*]" NO se renderea en /mis-solicitudes
         // (es el propio nombre del tutor logueado). Ancla por título del
         // servicio (único por corrida: e2e-f2-3-{timestamp}) + estado derivado.
-        // Todas las 3 cards del beforeAll comparten título — distinguimos por
-        // badge.
         const cardsDelServicio = page.locator('article').filter({
             hasText: new RegExp(ctx.servicioTitulo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
         });
@@ -150,6 +155,9 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
 
     test('Vencida: badge VENCIDA visible, CTA "Volver a solicitar", cero botones Cancelar', async ({ page }) => {
         await page.goto('/mis-solicitudes');
+
+        // Vencidas viven en "Historial" (default PD2 = Próximas).
+        await page.getByRole('tab', { name: /Historial/i }).click();
 
         const cardsDelServicio = page.locator('article').filter({
             hasText: new RegExp(ctx.servicioTitulo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
