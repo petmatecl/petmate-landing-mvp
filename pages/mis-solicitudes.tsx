@@ -13,7 +13,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Calendar, ArrowRight, Clock, CheckCircle, XCircle, Phone, MapPin, Home } from 'lucide-react';
+import { Calendar, ArrowRight, Clock, CheckCircle, CheckCircle2, XCircle, AlertTriangle, Phone, MapPin, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
@@ -22,6 +22,7 @@ import ConfirmDialog from '../components/Shared/ConfirmDialog';
 import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntualConDuracion } from '../lib/formatFecha';
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../lib/formatDireccion';
+import { estadoDerivado } from '../lib/estadoDerivado';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
 
 type LoadState =
@@ -344,11 +345,18 @@ function SolicitudCard({
 }) {
     const proveedor = solicitud.proveedor;
     const servicio = solicitud.servicio;
-    const isPendiente = solicitud.estado === 'pendiente';
-    const isConfirmada = solicitud.estado === 'confirmada';
-    const isRechazada = solicitud.estado === 'rechazada';
-    const isCancelada = solicitud.estado === 'cancelada';
-    const isCanceladaProveedor = solicitud.estado === 'cancelada_proveedor';
+    // PD1 sprint PRODUCTO-2: estado DERIVADO en UI (cero cambios BD). El
+    // helper reusa la semántica canónica de familia + fin efectivo del cron
+    // recordatorio-reserva.ts. Cards muestran REALIZADA/VENCIDA sin que la
+    // BD guarde esos valores.
+    const estadoUI = estadoDerivado(solicitud);
+    const isPendiente = estadoUI === 'pendiente';
+    const isConfirmada = estadoUI === 'confirmada';
+    const isRealizada = estadoUI === 'realizada';
+    const isVencida = estadoUI === 'vencida';
+    const isRechazada = estadoUI === 'rechazada';
+    const isCancelada = estadoUI === 'cancelada';
+    const isCanceladaProveedor = estadoUI === 'cancelada_proveedor';
     // F1 agenda — la reserva viene del picker rigido cuando duracion_min esta
     // poblada (INSERT lo popula desde el servicio.duracion_slot_min). Sirve
     // para diferenciar reservas auto-confirmadas del picker vs confirmadas
@@ -412,18 +420,26 @@ function SolicitudCard({
     });
     const direccionInfo = solicitud.direccion_info;
 
-    // Badge de estado de solicitud con tokens semanticos:
-    //   success = confirmada             (positivo, la solicitud fue aceptada)
+    // Badge de estado — el estado UI incluye los 2 DERIVADOS (PD1):
+    //   success = confirmada             (positivo, servicio próximo)
+    //   accent  = realizada              (neutro-positivo, servicio pasado
+    //                                     completado; sin celebración explícita
+    //                                     conforme al mapa semántico de emails)
     //   danger  = rechazada              (negativo terminal)
-    //   slate   = cancelada              (tutor cancelo, sin color activo)
-    //   slate + XCircle = cancelada_proveedor (F1 agenda: proveedor cancelo
-    //                    una reserva confirmada; motivo obligatorio esta en
-    //                    nota_proveedor)
-    //   warning = pendiente              (default del switch, espera de decision)
+    //   slate   = vencida                (pendiente que caducó — no negativo,
+    //                                     solo temporal)
+    //   slate   = cancelada              (tutor canceló, sin color activo)
+    //   slate + XCircle = cancelada_proveedor (F1: proveedor canceló una
+    //                    reserva confirmada; motivo en nota_proveedor)
+    //   warning = pendiente              (espera de decisión del proveedor)
     const estadoBadge = (() => {
-        switch (solicitud.estado) {
+        switch (estadoUI) {
             case 'confirmada':
                 return <span className="inline-flex items-center gap-1 bg-success-50 text-success-700 border border-success-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
+            case 'realizada':
+                return <span className="inline-flex items-center gap-1 bg-accent-50 text-accent-700 border border-accent-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle2 size={12} /> Realizada</span>;
+            case 'vencida':
+                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><AlertTriangle size={12} /> Vencida</span>;
             case 'rechazada':
                 return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
             case 'cancelada':
@@ -589,6 +605,18 @@ function SolicitudCard({
                         className="inline-flex items-center gap-1.5 bg-accent-600 hover:bg-accent-700 text-white font-medium py-2 px-4 rounded-xl transition-colors text-sm shadow-sm"
                     >
                         Ver ficha del servicio
+                        <ArrowRight size={14} />
+                    </Link>
+                )}
+                {isVencida && servicio?.id && (
+                    // PD4 sprint PRODUCTO-2 — CTA útil en VENCIDA: navega a
+                    // la ficha del servicio con el flujo de reserva/solicitud
+                    // según tenga agenda o no. La vencida deja de ser lápida.
+                    <Link
+                        href={`/servicio/${servicio.id}`}
+                        className="inline-flex items-center gap-1.5 bg-accent-600 hover:bg-accent-700 text-white font-medium py-2 px-4 rounded-xl transition-colors text-sm shadow-sm"
+                    >
+                        Volver a solicitar
                         <ArrowRight size={14} />
                     </Link>
                 )}
