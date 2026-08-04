@@ -182,10 +182,15 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
         });
         await expect(cardsDelServicio.first()).toBeVisible({ timeout: 15_000 });
 
-        // La card confirmada futura tiene badge "Confirmada" (no "Realizada").
-        const confirmadaCard = cardsDelServicio.filter({
-            has: page.locator('text=/^Confirmada$/i'),
-        }).first();
+        // La card confirmada futura es la única de las 3 del servicio que
+        // NO tiene badge Realizada ni Vencida. No usamos anchors sobre
+        // "Confirmada" porque Playwright concatena el badge con la fecha
+        // renderada al lado ("Confirmada Del sábado..."), y "confirmada"
+        // también aparece en el copy "Reserva confirmada al instante".
+        const confirmadaCard = cardsDelServicio
+            .filter({ hasNotText: /Realizada/ })
+            .filter({ hasNotText: /Vencida/ })
+            .first();
         await expect(confirmadaCard).toBeVisible();
 
         // Botón "Cancelar reserva" debe existir (control — sigue disponible).
