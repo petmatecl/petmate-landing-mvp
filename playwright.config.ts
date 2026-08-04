@@ -42,10 +42,16 @@ function assertBaseUrlIsStaging(url: string): void {
             `Ajusta PLAYWRIGHT_BASE_URL a la URL del branch staging de Vercel.`
         );
     }
-    if (!host.includes('git-staging') && !host.includes('staging')) {
+    // Whitelist de hosts aceptados. Ampliada para incluir "prelaunch" — Sprint
+    // PRELAUNCH-1 corre suite contra su propio preview (git-prelaunch-1-*). El
+    // candado anti-prod se mantiene: pawnecta.com no contiene ninguno de estos
+    // tokens, así que sigue rechazado. Agregar futuros branches como token
+    // adicional acá si vuelve a haber ensayo de sprints en preview propio.
+    const stagingLike = ['git-staging', 'staging', 'prelaunch'];
+    if (!stagingLike.some(tok => host.includes(tok))) {
         throw new Error(
-            `[playwright.config] baseURL "${host}" no parece ser staging. ` +
-            `Los tests deben apuntar a una URL con "git-staging" o "staging" en el host. ` +
+            `[playwright.config] baseURL "${host}" no parece ser staging/preview aceptado. ` +
+            `Debe contener alguno de: ${stagingLike.join(', ')}. ` +
             `Ajusta PLAYWRIGHT_BASE_URL para confirmar el destino.`
         );
     }
