@@ -42,6 +42,10 @@ export default function MisSolicitudesPage() {
     // "próximamente"). El particionado es 100% client-side sobre la lista
     // ya cargada — cero queries nuevas.
     const [activeTab, setActiveTab] = useState<'proximas' | 'pendientes' | 'historial'>('proximas');
+    // PD4-bis sprint PRODUCTO-2 — id de la vencida cuyo CTA "Volver a
+    // solicitar" está en curso de cancel-then-navigate. Alimenta el
+    // disabled del botón mientras corre el UPDATE + navigate.
+    const [volverASolicitarLoadingId, setVolverASolicitarLoadingId] = useState<string | null>(null);
 
     // Auth gate — mismo patron que /favoritos.
     useEffect(() => {
@@ -211,6 +215,57 @@ export default function MisSolicitudesPage() {
             setCancelLoading(false);
         }
     };
+
+    // PD4-bis sprint PRODUCTO-2 — CTA "Volver a solicitar" en vencidas:
+    // cancel-then-navigate. La vencida es `estado='pendiente'` en BD (decisión
+    // derivados), y navegar directo a /servicio/{id} para crear nueva
+    // solicitud violaría `agendamientos_unique_pendiente_por_tutor_servicio`
+    // (dos pendientes del mismo par tutor+servicio) — el modal mostraría un
+    // mensaje absurdo tipo "Ya tienes una solicitud pendiente... espera al
+    // proveedor" sobre una vencida.
+    //
+    // Approach opción A (aprobado PO 2026-08-04): UPDATE client-side directo
+    // (mismo patrón que handleConfirmCancel para F1/legacy/pendiente) con
+    // refinamiento `.eq('estado','pendiente')` — si entre render y click el
+    // proveedor confirmó, matchea 0 rows: NO navegamos, refrescamos + toast
+    // neutro. Cierra la carrera. RLS permite (tutor cancela su propia fila).
+    // El endpoint /api/agendamientos/cancelar es F2-confirmadas-only y no
+    // acepta este use case (ver reporte al PO del 2026-08-04).
+    const handleVolverASolicitar = useCallback(async (
+        agendamientoId: string,
+        servicioId: string,
+    ) => {
+        setVolverASolicitarLoadingId(agendamientoId);
+        try {
+            const { data, error } = await supabase
+                .from('agendamientos')
+                .update({
+                    estado: 'cancelada' as EstadoAgendamiento,
+                    respondido_at: new Date().toISOString(),
+                })
+                .eq('id', agendamientoId)
+                .eq('estado', 'pendiente')   // refinamiento anti-carrera
+                .select('id');
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                // Carrera: entre render y click, la solicitud pasó a otro
+                // estado (proveedor confirmó, o tutor la canceló desde otra
+                // tab). NO navegamos — refrescamos y damos feedback neutro.
+                toast.info('Esta solicitud cambió de estado.');
+                await fetchSolicitudes();
+                return;
+            }
+            // Éxito: la vencida quedó como cancelada (aparece en Historial
+            // como "Cancelada por ti"), y la constraint unique_pendiente
+            // queda libre para la nueva solicitud del mismo servicio.
+            router.push(`/servicio/${servicioId}`);
+        } catch (err: any) {
+            console.error('[mis-solicitudes] volver-a-solicitar error:', err);
+            toast.error(`No pudimos preparar el reintento: ${err?.message || 'error desconocido'}`);
+        } finally {
+            setVolverASolicitarLoadingId(null);
+        }
+    }, [fetchSolicitudes, router]);
 
     // Loading / pre-auth — evitar flash de empty state mientras se resuelve.
     if (userLoading || !router.isReady || !isAuthenticated) {
@@ -382,6 +437,8 @@ export default function MisSolicitudesPage() {
                                             key={sol.id}
                                             solicitud={sol}
                                             onCancel={() => setCancelDialogId(sol.id)}
+                                            onVolverASolicitar={handleVolverASolicitar}
+                                            volverASolicitarLoading={volverASolicitarLoadingId === sol.id}
                                         />
                                     ))
                                 )}
@@ -440,9 +497,13 @@ export default function MisSolicitudesPage() {
 function SolicitudCard({
     solicitud,
     onCancel,
+    onVolverASolicitar,
+    volverASolicitarLoading,
 }: {
     solicitud: AgendamientoConRelaciones;
     onCancel: () => void;
+    onVolverASolicitar: (agendamientoId: string, servicioId: string) => void;
+    volverASolicitarLoading: boolean;
 }) {
     const proveedor = solicitud.proveedor;
     const servicio = solicitud.servicio;
@@ -713,13 +774,20 @@ function SolicitudCard({
                     // PD4 sprint PRODUCTO-2 — CTA útil en VENCIDA: navega a
                     // la ficha del servicio con el flujo de reserva/solicitud
                     // según tenga agenda o no. La vencida deja de ser lápida.
-                    <Link
-                        href={`/servicio/${servicio.id}`}
-                        className="inline-flex items-center gap-1.5 bg-accent-600 hover:bg-accent-700 text-white font-medium py-2 px-4 rounded-xl transition-colors text-sm shadow-sm"
+                    //
+                    // PD4-bis (2026-08-04): antes de navegar cancelamos la
+                    // vencida (UPDATE .eq('estado','pendiente')) — cierra el
+                    // constraint agendamientos_unique_pendiente_por_tutor_
+                    // servicio que bloqueaba el flujo primario del CTA.
+                    <button
+                        type="button"
+                        onClick={() => onVolverASolicitar(solicitud.id, servicio.id!)}
+                        disabled={volverASolicitarLoading}
+                        className="inline-flex items-center gap-1.5 bg-accent-600 hover:bg-accent-700 text-white font-medium py-2 px-4 rounded-xl transition-colors text-sm shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        Volver a solicitar
-                        <ArrowRight size={14} />
-                    </Link>
+                        {volverASolicitarLoading ? 'Preparando...' : 'Volver a solicitar'}
+                        {!volverASolicitarLoading && <ArrowRight size={14} />}
+                    </button>
                 )}
                 {isRechazada && (
                     <Link

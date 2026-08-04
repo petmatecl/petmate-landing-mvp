@@ -153,7 +153,7 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
         await expect(btnCancelarSolicitud).toHaveCount(0);
     });
 
-    test('Vencida: badge VENCIDA visible, CTA "Volver a solicitar", cero botones Cancelar', async ({ page }) => {
+    test('Vencida: badge VENCIDA visible, CTA "Volver a solicitar" (button), cero botones Cancelar', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 
         // Vencidas viven en "Historial" (default PD2 = Próximas).
@@ -169,17 +169,78 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
         }).first();
         await expect(card).toBeVisible();
 
-        // PD4: CTA "Volver a solicitar" presente y linkea a la ficha del servicio.
-        const cta = card.getByRole('link', { name: /Volver a solicitar/i });
+        // PD4-bis (2026-08-04): CTA es <button> (antes era <Link>) porque
+        // cancel-then-navigate requiere handler para el UPDATE previo.
+        const cta = card.getByRole('button', { name: /Volver a solicitar/i });
         await expect(cta).toBeVisible();
-        const href = await cta.getAttribute('href');
-        expect(href).toBe(`/servicio/${ctx.servicioId}`);
+        await expect(cta).toBeEnabled();
 
         // Contra-test: cero botones "Cancelar solicitud" / "Cancelar reserva".
         const btnSolicitud = card.getByRole('button', { name: /Cancelar solicitud/i });
         const btnReserva = card.getByRole('button', { name: /Cancelar reserva/i });
         await expect(btnSolicitud).toHaveCount(0);
         await expect(btnReserva).toHaveCount(0);
+    });
+
+    test('PD4-bis contra-test oro: click "Volver a solicitar" libera constraint unique_pendiente', async ({ page }) => {
+        // Cubre el bug descubierto por colisión de fixture 2026-08-04:
+        // la vencida es estado='pendiente' en BD; navegar directo a
+        // /servicio/{id} para crear nueva solicitud violaba
+        // agendamientos_unique_pendiente_por_tutor_servicio. El fix PD4-bis
+        // (opción A) hace cancel-then-navigate — la vencida queda cancelada
+        // ANTES de la navegación, liberando la constraint.
+
+        const supaTutor = getSupabaseAsTutor();
+
+        // PRE-contra-test: INSERT pending sobre el mismo servicio DEBE fallar
+        // (23505 = unique_violation). Prueba el bug antes del fix.
+        let preFailErr: any = null;
+        try {
+            await insertarAgendamientoTest(supaTutor, {
+                servicioId: ctx.servicioId,
+                proveedorId: ctx.proveedorId,
+                tutorId: ctx.tutorId,
+                familia: 'legacy',
+                fechaPreferidaIso: new Date(Date.now() + 200 * 3_600_000).toISOString(),
+                estado: 'pendiente',
+            });
+        } catch (err: any) {
+            preFailErr = err;
+        }
+        expect(preFailErr, 'PRE: INSERT pending debe fallar por constraint unique_pendiente antes de cancelar la vencida').not.toBeNull();
+        expect(String(preFailErr?.message || '')).toMatch(/23505|unique_pendiente|duplicate/i);
+
+        // Ahora click en "Volver a solicitar" desde la vencida.
+        await page.goto('/mis-solicitudes');
+        await page.getByRole('tab', { name: /Historial/i }).click();
+
+        const cardsDelServicio = page.locator('article').filter({
+            hasText: new RegExp(ctx.servicioTitulo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+        });
+        const cardVencida = cardsDelServicio.filter({
+            has: page.locator('text=/Vencida/i'),
+        }).first();
+        await expect(cardVencida).toBeVisible({ timeout: 15_000 });
+
+        // Wait para la navegación después del UPDATE.
+        await Promise.all([
+            page.waitForURL(new RegExp(`/servicio/${ctx.servicioId}`), { timeout: 15_000 }),
+            cardVencida.getByRole('button', { name: /Volver a solicitar/i }).click(),
+        ]);
+
+        // POST-contra-test ORO: ahora el INSERT pending debe pasar sin 23505,
+        // porque la vencida fue movida a estado='cancelada' antes de navegar.
+        const nuevoId = await insertarAgendamientoTest(supaTutor, {
+            servicioId: ctx.servicioId,
+            proveedorId: ctx.proveedorId,
+            tutorId: ctx.tutorId,
+            familia: 'legacy',
+            fechaPreferidaIso: new Date(Date.now() + 200 * 3_600_000).toISOString(),
+            estado: 'pendiente',
+        });
+        expect(nuevoId, 'POST: INSERT pending debe pasar tras cancel-then-navigate').toBeTruthy();
+
+        // Cleanup del extra queda a cargo del afterAll (borra por servicio_id).
     });
 
     test('Confirmada futura (control): badge CONFIRMADA, botón "Cancelar reserva" habilitado', async ({ page }) => {
