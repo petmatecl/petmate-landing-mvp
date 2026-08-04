@@ -377,7 +377,7 @@ cierre explícito de casilla 0.1 (Fase 5 tren Recordatorios).
 
 ## Fase 6 — Merge `staging → main` + deploy prod — **BLOQUEADA HASTA CASILLA 0.1**
 
-- [ ] **REVERIFICAR casilla 0.1 marcada** (Fase 5 Recordatorios cerrada
+- [x] **REVERIFICAR casilla 0.1 marcada** (Fase 5 Recordatorios cerrada
   con evidencia).
 
 ```bash
@@ -387,13 +387,34 @@ git merge staging   # fast-forward esperado
 git push origin main
 ```
 
-- [ ] Fast-forward. Vercel autodeploya. Verificar build **Ready** en
+- [x] Fast-forward. Vercel autodeploya. Verificar build **Ready** en
   Dashboard.
 
-- [ ] `git ls-remote origin main` = SHA de `staging` post-Fase 4. Pegar
+- [x] `git ls-remote origin main` = SHA de `staging` post-Fase 4. Pegar
   output en el acta.
 
+**Ejecución 2026-08-04 (P5)**:
+
+- Merge FF `6274d50..f72656b` en `main` (13 commits del tren N15 R1-N7
+  + fixes bypass + guards + Fases 4/5 checklists + F5 Recordatorios acta
+  + casilla 0.1 + docs infra Pro).
+- Diff agregado: **11 archivos, +2919 / −1863 líneas** = tren completo
+  aterrizado en prod.
+- Push OK a `origin/main`.
+- Deploy `main` en Vercel: **Ready**.
+- `git ls-remote origin main` = `f72656b` (mismo SHA que estaba en staging
+  post-cierre F5; convergencia FF confirmada).
+
 ## Fase 7 — Smoke prod (post-deploy inmediato)
+
+**Ejecución 2026-08-04 (P5) — LOS 4 SMOKES VERDES**:
+
+| Smoke | Resultado | Nota |
+|---|---|---|
+| S1 proxy `/supabase-proxy/*` | ✅ | Retorna los 3 slugs esperados. Primer intento falló por anon key de staging — validación indirecta extra: el proxy respondió correctamente el rechazo de Supabase prod, demostrando que el routing prod-only aterrizó. Segundo intento con anon prod (208 chars): OK. |
+| S2 `next/image` en 3 páginas | ✅ | Aprobación visual PO. |
+| S3 ISR `/cuidado/providencia` | ✅ | 200, 37.5 KB. |
+| S4 SW en prod = **WORKBOX** (invertido) | ✅ | `/sw.js` = 200, **14739 bytes**, workbox real minificado (`self.define` loader). Inversión confirmada vs staging (demolisher ~1656 bytes). Fork `@ducanh2912/next-pwa@10.2.9` vivo en prod. |
 
 **MISMOS 4 smokes de N6 pero contra `www.pawnecta.com`. Criterio S4
 INVERTIDO**: en prod real, `/sw.js` debe servir WORKBOX (no demolisher).
@@ -418,14 +439,14 @@ $directo = Invoke-RestMethod `
 $viaProxy | ConvertTo-Json -Compress
 $directo  | ConvertTo-Json -Compress
 ```
-- [ ] Ambos JSON idénticos (3 slugs mismos, mismo orden).
+- [x] Ambos JSON idénticos (3 slugs mismos, mismo orden). Ver evidencia en la tabla al inicio de Fase 7.
 
 ### 7.2 Smoke 2 — `next/image` en 3 páginas prod
 
 Abrir en browser (sin bypass, prod no lo requiere):
-- [ ] `https://www.pawnecta.com/explorar` — cards con foto OK, Network sin 400.
-- [ ] `https://www.pawnecta.com/servicio/<id-real-prod>` — galería + Network limpio. Aldo elige un servicio real de prod (los ids de staging no aplican).
-- [ ] `https://www.pawnecta.com/proveedor/<id-real-prod>` — avatar + galería.
+- [x] `https://www.pawnecta.com/explorar` — cards con foto OK, Network sin 400.
+- [x] `https://www.pawnecta.com/servicio/<id-real-prod>` — galería + Network limpio.
+- [x] `https://www.pawnecta.com/proveedor/<id-real-prod>` — avatar + galería.
 
 ### 7.3 Smoke 3 — ISR `/cuidado/providencia` prod
 
@@ -434,8 +455,7 @@ Invoke-WebRequest -Uri "$env:BASE/cuidado/providencia" -UseBasicParsing |
   Select-Object StatusCode, @{N='LenKB';E={[math]::Round($_.RawContentLength/1024,1)}},
                 @{N='HasTitle';E={$_.Content -match "<title[^>]*>"}}
 ```
-- [ ] StatusCode = 200, LenKB > 10, HasTitle = True. Vercel Logs sin error
-  de gSP.
+- [x] StatusCode = 200, LenKB > 10 (37.5 KB), HasTitle = True. Vercel Logs sin error de gSP.
 
 ### 7.4 Smoke 4 — SW en prod: **WORKBOX** (criterio INVERTIDO)
 
@@ -446,29 +466,37 @@ $sw.RawContentLength
 $sw.Content.Substring(0, [Math]::Min(200, $sw.Content.Length))
 ```
 
-- [ ] StatusCode = 200.
-- [ ] **RawContentLength ≈ 14000+ bytes** (workbox real). Si ~1656 bytes
-  (demolisher) en prod → gate `IS_PROD` está mal o env var no aterrizó.
-  PARAR.
-- [ ] Content **NO** empieza con `// AUTO-GENERADO por scripts/write-sw-demolisher.js`.
-  Debe empezar con `if(!self.define){...}define(["./workbox-<hash>"]...`.
-- [ ] En browser: `https://www.pawnecta.com/` → DevTools → Application →
-  Service Workers → `sw.js` activated, sin errores rojos en Console.
-- [ ] `https://www.pawnecta.com/workbox-<hash>.js` responde 200 (el chunk
-  del workbox debe estar presente en `public/`).
+- [x] StatusCode = 200.
+- [x] **RawContentLength ≈ 14000+ bytes** (workbox real). **14739 bytes** — inversión confirmada.
+- [x] Content NO empieza con `// AUTO-GENERADO por scripts/write-sw-demolisher.js`. Empieza con el `self.define` loader del workbox minificado.
+- [x] En browser: `sw.js` activated, sin errores rojos.
+- [x] `https://www.pawnecta.com/workbox-<hash>.js` responde 200.
 
 ## Fase 8 — Monitor 48h post-merge a `main`
 
-- [ ] **Vercel Logs**: sin spike de 500 en cualquier endpoint (`/`,
-  `/explorar`, `/servicio/*`, `/proveedor/*`, `/api/*`, `/api/cron/*`).
+**Arrancó 2026-08-04 ~15:00 CLT tras deploy Ready. Cierre esperado
+jueves 06-ago ~15:00 CLT.**
+
+- [ ] **Vercel Logs prod**: sin **500 nuevos** por encima de la línea
+  base pre-existente (60 errores acumulados en 2 semanas — no todos
+  regresión, mix de bots + noise). Alerta si el ritmo de nuevos 500
+  sube perceptiblemente vs esa baseline.
+- [ ] **Cron `/api/cron/recordatorio-reserva` de las 18:45 CLT (22:45
+  UTC)** ejecuta como antes. **Registrar la hora EXACTA de disparo del
+  primer día bajo Pro** — dato para el acta del cambio de plan
+  (transición Hobby +45min determinista → Pro precisión al minuto). Se
+  espera `22:00:00 UTC` ± segundos si el bind es al schedule declarado.
+  Si el offset se mantiene en +45min, es señal de que Vercel Pro respeta
+  el binding fijo generado en la creación del cron (no cambia con el
+  tier). Ambos resultados son datos útiles — registrar y seguir.
+- [ ] **Otros 5 crons**: `Last Run` post-24h en el Dashboard, sin
+  regresión.
 - [ ] **Resend Dashboard**: cero cambios en delivery/bounce rate vs
   baseline pre-N15.
-- [ ] **Vercel Cron Jobs**: los 6 crons siguen ejecutando en su schedule
-  (verificar `Last Run` de cada uno post-24h en el Dashboard).
 - [ ] **Console errors reportados por Aldo** en browsing manual: cero
-  errores nuevos de `next/image`, `next/link`, o hidratación.
+  errores nuevos de `next/image`, `next/link`, hidratación, o SW.
 - [ ] **Bandeja soporte**: cero tickets nuevos "no puedo entrar" / "página
-  rota" / "imagen no carga".
+  rota" / "imagen no carga" / "recibí email raro".
 
 ## Plan de rollback
 
