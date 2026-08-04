@@ -141,6 +141,15 @@ test.describe('PD2 S2 — pestañas Próximas/Pendientes/Historial', () => {
         await expect(tabProximas).toHaveAttribute('aria-selected', 'true');
         await expect(tabPendientes).toHaveAttribute('aria-selected', 'false');
         await expect(tabHistorial).toHaveAttribute('aria-selected', 'false');
+
+        // PD5-fix (2026-08-04): a11y — cada tab tiene id={`tab-${id}`} para
+        // que el aria-labelledby del panel resuelva. Antes: aria-labelledby
+        // dangling → screen reader sin nombre accesible del panel.
+        await expect(tabProximas).toHaveAttribute('id', 'tab-proximas');
+        await expect(tabPendientes).toHaveAttribute('id', 'tab-pendientes');
+        await expect(tabHistorial).toHaveAttribute('id', 'tab-historial');
+        const panel = page.locator('#mis-reservas-panel-proximas');
+        await expect(panel).toHaveAttribute('aria-labelledby', 'tab-proximas');
     });
 
     test('Panel Próximas: solo confirmadas futuras del servicio de test', async ({ page }) => {

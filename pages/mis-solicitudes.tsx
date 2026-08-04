@@ -149,6 +149,42 @@ export default function MisSolicitudesPage() {
         fetchSolicitudes();
     }, [userLoading, isAuthenticated, user?.id, fetchSolicitudes]);
 
+    // PD5-fix (2026-08-04): reset de filtros huérfanos post-refresh.
+    // Cuando el estado se actualiza tras cancelar/refetch, si el valor
+    // activo de un filtro ya no existe en las opciones del panel actual
+    // (ej. la última reserva del proveedor X era la cancelada), el
+    // dropdown desaparece por el gate >1 pero el valor persiste →
+    // filtro fantasma → cero cards visibles sin control para limpiar.
+    // Approach: verificar por-pestaña sobre la lista completa antes de
+    // partitionarla. Suficiente porque el reset al cambiar de tab ya
+    // cubre el otro caso (opciones distintas por tab).
+    useEffect(() => {
+        if (state.kind !== 'ready') return;
+        const cardsAll = state.agendamientos.map(sol => ({ sol, estadoUI: estadoDerivado(sol) }));
+        const cardsPestana = cardsAll.filter(x => {
+            if (activeTab === 'proximas') return x.estadoUI === 'confirmada';
+            if (activeTab === 'pendientes') return x.estadoUI === 'pendiente';
+            return ['realizada', 'vencida', 'cancelada', 'rechazada', 'cancelada_proveedor']
+                .includes(x.estadoUI);
+        });
+        if (filtroProveedor) {
+            const opcionExiste = cardsPestana.some(x => x.sol.proveedor?.id === filtroProveedor);
+            if (!opcionExiste) setFiltroProveedor(null);
+        }
+        if (filtroMascota) {
+            const opcionExiste = cardsPestana.some(x => {
+                if (filtroMascota.startsWith('id:')) return `id:${x.sol.mascota?.id}` === filtroMascota;
+                if (filtroMascota.startsWith('texto:')) {
+                    const t = x.sol.tipo_mascota_texto?.trim().toLowerCase();
+                    return t ? `texto:${t}` === filtroMascota : false;
+                }
+                if (filtroMascota === 'sin') return !x.sol.mascota?.id && !x.sol.tipo_mascota_texto;
+                return false;
+            });
+            if (!opcionExiste) setFiltroMascota(null);
+        }
+    }, [state, activeTab, filtroProveedor, filtroMascota]);
+
     const handleConfirmCancel = async () => {
         if (!cancelDialogId) return;
         // Mejora B: si la solicitud que se cancela era CONFIRMADA, notificar
@@ -450,6 +486,10 @@ export default function MisSolicitudesPage() {
                                     return (
                                         <button
                                             key={tab.id}
+                                            // PD5-fix (2026-08-04): id explícito para que el
+                                            // aria-labelledby={`tab-${activeTab}`} del panel
+                                            // resuelva el nombre accesible del tab.
+                                            id={`tab-${tab.id}`}
                                             role="tab"
                                             aria-selected={isActive}
                                             aria-controls={`mis-reservas-panel-${tab.id}`}
