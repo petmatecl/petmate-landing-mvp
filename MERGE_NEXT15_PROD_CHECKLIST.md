@@ -52,13 +52,25 @@ dadfae2 test(next15): N5 fix bypass Vercel — migrar header persistente → que
 
 ### 0.1 Cierre condicional Fase 5 Recordatorios — bloquea SOLO Fase 6
 
-- [ ] **Fase 5 tren Recordatorios cerrada por Aldo con evidencia de las 2
+- [x] **Fase 5 tren Recordatorios cerrada por Aldo con evidencia de las 2
   corridas del cron observadas** (ventana 18:00-19:30 Chile por retención
   Hobby ~1h). Estado del acta correspondiente marcado "cerrado".
 
   **Bloqueo específico**: esta casilla bloquea SOLO Fase 6 (merge a `main`).
   Fases 1-5 avanzan sin esperar. Repetido en el header de Fase 6 para no
   perder de vista el condicionamiento.
+
+  **Ejecución 2026-08-04 — CERRADA CON EVIDENCIA SUPERIOR A LA PLANEADA**:
+  el upgrade a Vercel Pro (misma fecha) habilitó retención de logs
+  extendida y expuso la serie completa de las 5 corridas consecutivas
+  del cron (JUL 30 → AUG 03, todas 18:45:23.06-09 CLT / 22:45 UTC, GET
+  200, host `pawnecta-landing-7iiqmsx88`). Precisión Hobby resultó
+  determinista ±30ms con offset +45min sobre schedule declarado. Cero
+  elegibles todos los días (consistente con marcas=0 en BD prod).
+  El plan original de "obs-1 Hobby + obs-2 Pro a mitad-período" quedó
+  superado por la evidencia forense retroactiva. Ver acta final en
+  `MERGE_RECORDATORIOS_PROD_CHECKLIST.md` sección "Acta final Fase 5
+  — CERRADA 2026-08-04".
 
 ### 0.2 Estado del código
 

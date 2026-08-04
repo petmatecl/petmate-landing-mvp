@@ -71,7 +71,18 @@ Orden por prioridad estimada; cada una entra por el mismo camino (`camposPorCate
 Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia sugerida por dependencias:
 1. **Reseñas automáticas post-servicio** — email + push al tutor N horas/días después del agendamiento marcado como completado. Boost del social proof + señal para el ranking.
 2. **Agenda con disponibilidad real** — construcción propia (no Calendly/Google embed). El proveedor bloquea rangos, la disponibilidad publicada refleja slots reales. Bloquea el hardcode actual de disponibilidad JSONB.
-3. **Recordatorios** — 24h + 1h antes del servicio, al tutor y al proveedor. Push + email + SMS opcional. Reduce no-shows.
+3. **Recordatorios** — 24h + 1h antes del servicio, al tutor y al proveedor. Push + email + SMS opcional. Reduce no-shows. **Status 2026-08-04**: la mitad "24h antes" está EN PROD desde 2026-07-30 (tren Recordatorios, `/api/cron/recordatorio-reserva`). La mitad "1h antes" está en item propio abajo (habilitada por upgrade a Vercel Pro).
+
+#### Recordatorio "1h antes del servicio" (habilitado por Vercel Pro)
+- **Estado**: candidato para implementar; **no ejecutar aún** — el tren "24h antes" está bajo monitor 48h en prod (Fase 5), pagar deuda tras el cierre y una vez validado el patrón operativo.
+- **Contexto**: la mejora estaba en el roadmap original (punto 3 de esta sección, "24h + 1h antes") pero se **descartó al implementar el tren Recordatorios** por la restricción Hobby de un cron por día. El upgrade a Pro (2026-08-04, ver CLAUDE.md sección "Plan Vercel") habilita cron horario + refino aritmético en JS — patrón viable ahora.
+- **Diseño esbozado**:
+  - Cron nuevo `/api/cron/recordatorio-1h-antes` schedulado `0 * * * *` (cada hora en punto) o `*/30 * * * *` (cada 30 min si necesitamos margen ante ~4-minute drift en Pro).
+  - Filter raw: `estado='confirmada' AND fecha_preferida BETWEEN now()+30min AND now()+90min` (más ancho que la ventana para tolerar drift).
+  - Refino JS por `familia`: F1 y legacy F2 puntual → dispara si `fecha_preferida` cae en la hora siguiente; F2 rango → dispara si `fecha_preferida` (check-in) cae en la hora siguiente (no el `fecha_fin`).
+  - Marcas nuevas en `agendamientos`: `recordatorio_1h_tutor_enviado_at` + `recordatorio_1h_proveedor_enviado_at` — migration pequeña aditiva, mismo patrón que R1.
+  - Template `Recordatorio1hAntesEmail.tsx` — copy más breve que el de 24h ("Tu servicio empieza en menos de 1 hora"), quizás sin bloque "Dónde" (ya lo saben).
+- **Trigger para arrancar**: (a) Fase 5 Recordatorios cerrada limpia + tag emitido, (b) al menos 1 semana de prod sin issues del cron de 24h, (c) señal explícita de PO / o un usuario reportando "olvidé el servicio de esta tarde".
 4. **Pagos** — Transbank Webpay para tarjetas locales, opcional Stripe para internacional. Habilita comisión de plataforma. Cambia la propuesta de valor (hoy "directorio" → mañana "marketplace").
 5. **Video-consulta** — habilita categorías remotas puras (asesoría veterinaria online, nutrición remota). Depende de "categorías por modalidad" para modelar el servicio como remoto.
 
@@ -162,6 +173,12 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
   7. `pages/mis-solicitudes.tsx` — `title` en `<button disabled>` no dispatch pointer events en Firefox y algunos Safari; el tooltip `tooltipVentanaCerrada` puede no aparecer. Fix: wrap el botón en `<span title={...}>` o usar `aria-disabled` + click-swallow. Score 60. (Review 5)
   8. `pages/mis-solicitudes.tsx:169` cierra el dialog en cualquier `!res.ok`; para 5xx (transient) el user tiene que re-localizar la row y re-abrir. Fix: cerrar solo en 4xx, dejar abierto en 5xx. Score 55. (Review 5)
   9. `pages/mis-solicitudes.tsx:532` — bloque `esConfirmadaAuto` dice "Elegiste un horario disponible" para F1 y F2. Para F2 (noches) es inconsistente con el copy F2 del dialog y del email. Fix: branch por `esReservaAgendaF2` → "Elegiste noches disponibles". Score 70. Alinear junto con el nitpick #4 del email arriba.
+
+- **[P3, revisar frecuencias de crons habilitadas por Vercel Pro]**. Con el upgrade a Pro (2026-08-04, ver CLAUDE.md sección "Plan Vercel"), los crons pueden correr al minuto — antes limitado a 1/día por Hobby. Los crons actuales del proyecto (verificar en `vercel.json`):
+    - `/api/cron/recordatorio-reserva` — diario 22:00 UTC. Frecuencia adecuada (recordatorio 24h antes). No requiere cambio.
+    - `/api/cron/invitacion-resenas` — schedule actual (verificar). Con Pro, evaluar si mover a horario o cada N horas mejora tasa de respuesta.
+    - Cualquier otro cron nuevo puede diseñarse desde cero para la frecuencia que el use case pide, sin restricción de plataforma.
+  **Trigger para revisar**: si un use case concreto pide frecuencia > diaria (recordatorio 1h, purge cache, sync incremental). Hasta entonces, no re-tunear crons existentes que ya funcionan.
 
 ## Radar de plugins / MCPs (con gatillo definido, no instalar antes)
 

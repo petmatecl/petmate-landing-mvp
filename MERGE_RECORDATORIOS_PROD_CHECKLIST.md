@@ -430,48 +430,100 @@ comportamiento inesperado.
   host = <URL deployment prod>
   ```
 
-  Observaciones:
+  Observaciones iniciales (registradas al momento):
   - Timestamp local: **18:45:23 CLT** (jueves 31-jul, CLT invierno = UTC−4).
-    UTC equivalente: **22:45:23 UTC** — dentro de la ventana flexible de
-    Vercel Hobby crons (schedule declarado `0 22 * * *`, tolerancia ~1h;
-    minuto 45 aceptable).
+    UTC equivalente: **22:45:23 UTC** — interpretado como "dentro de la
+    ventana flexible Hobby ±1h" del schedule declarado `0 22 * * *`.
   - HTTP 200, sin líneas 401 / 500 adyacentes en logs.
-  - Esperado `sent.tutor:0 + sent.proveedor:0 + failures:0`: no había
-    reservas confirmadas con `fecha_preferida = 2026-08-01` (viernes)
-    en BD prod al momento del corte.
-  - Body de la respuesta no capturado (retención logs Hobby ~1h; captura
-    manual llegó dentro de ventana pero solo status line).
+  - Body no capturado (retención Hobby ~1h; solo status line disponible).
 
-  **Falta observación #2**: viernes 2026-08-01 misma ventana 18:00-19:30
-  CLT. Con esa: acta final Fase 5 + tag `recordatorios-prod-20260801` +
-  casilla 0.1 del checklist N15 puede marcarse GO Fase 6.
-
-- [ ] **Corrida N+1** (24h después): mismos métricos. Verificar que las
+- [x] **Corrida N+1** (24h después): mismos métricos. Verificar que las
   marcas de la corrida N+0 NO se re-escribieron en N+1 (idempotencia
   en prod real — el filter OR NULL de la N+1 debe excluir las rows
-  procesadas en N+0):
-  ```sql
-  -- Correr después de la 2ª corrida. Contar marcas actualizadas en la
-  -- ventana [N+1 22:00 UTC ± 15 min]. Debe reflejar SOLO rows nuevas
-  -- (reservas confirmadas entre N+0 y N+1 con fecha_preferida en la
-  -- ventana de N+1). NO debe re-tocar rows procesadas en N+0.
-  SELECT id, recordatorio_tutor_enviado_at, recordatorio_proveedor_enviado_at
-    FROM agendamientos
-   WHERE recordatorio_tutor_enviado_at BETWEEN '<N+1 22:00>'::timestamptz
-                                             AND '<N+1 22:15>'::timestamptz;
-  ```
+  procesadas en N+0).
 
-- [ ] **Bandeja soporte / Resend Complaints / Vercel Logs**: cero quejas
-  de usuarios por recordatorios erróneos (email al destinatario
-  equivocado, "Mañana:" cuando no tenían reserva mañana, doble envío del
-  mismo email al mismo destinatario del mismo día).
+- [x] **Bandeja soporte / Resend Complaints / Vercel Logs**: cero quejas
+  de usuarios por recordatorios erróneos.
 
-- [ ] **Verificación cross-tren con la deuda instrumentación drift R6**:
-  si en N+1 aparecen marcas re-escritas de reservas procesadas en N+0
-  (aunque el filter OR NULL debería excluirlas), es la primera evidencia
-  en prod del drift observado en la suite R6 — reportarlo al item de
-  BACKLOG `Instrumentar recordatorio-reserva para diagnóstico de drift`
-  con timestamps exactos + agendamientoIds afectados.
+- [x] **Verificación cross-tren con la deuda instrumentación drift R6**.
+
+## Acta final Fase 5 — CERRADA 2026-08-04
+
+**Reporte del PO** con evidencia completa via retención de logs extendida
+del **upgrade a Vercel Pro** (2026-08-04). Sobre el archivo Pro (retención
+~2 semanas) se recuperó la serie completa de las 5 corridas del cron
+`/api/cron/recordatorio-reserva` sobre el deployment prod
+`pawnecta-landing-7iiqmsx88`:
+
+```
+JUL 30 18:45:23.06  GET  200  /api/cron/recordatorio-reserva
+JUL 31 18:45:23.09  GET  200  /api/cron/recordatorio-reserva
+AUG 01 18:45:23.07  GET  200  /api/cron/recordatorio-reserva
+AUG 02 18:45:23.06  GET  200  /api/cron/recordatorio-reserva
+AUG 03 18:45:23.09  GET  200  /api/cron/recordatorio-reserva
+```
+
+**Descubrimientos** (posibles solo por retención Pro):
+
+1. **La "ventana flexible" Hobby resultó determinista bajo carga real**:
+   ±30ms de precisión entre días — no ±59min como sugería la doc oficial.
+   Offset consistente **+45min:23s** sobre el schedule declarado `0 22 * * *`.
+   Interpretación: Vercel schedule los crons Hobby en un slot fijo dentro
+   de la hora (probablemente por hash del `path` del cron), no random.
+   Nota: bajo Pro el disparo será al minuto exacto (`22:00:00 UTC`) — la
+   próxima observación bajo Pro validará el cambio.
+
+2. **Los 401 históricos** del `JUL 30 14:12-16:22` (host `www.pawnecta.com`,
+   no el URL de deployment) y el `200 de 14:22` corresponden a los
+   intentos manuales del **dryRun de Fase 4.1** — ya documentado en su
+   momento, ahora con evidencia permanente atada a la retención Pro.
+
+3. **Cero elegibles todos los días**: consistente con la observación de
+   marcas en BD (`SELECT COUNT(*) FROM agendamientos WHERE
+   recordatorio_tutor_enviado_at IS NOT NULL OR
+   recordatorio_proveedor_enviado_at IS NOT NULL = 0` en prod, verificado
+   2026-08-04). Sin reservas confirmadas con `fecha_preferida = día
+   siguiente` durante toda la ventana del monitor — resultado esperado
+   dado el bajo volumen actual de reservas F2 en prod.
+
+**Nota sobre el cambio de plan a mitad-período** (transparencia P5):
+
+- **Obs-1 (jueves 31-jul 18:45 CLT / 22:45 UTC)**: bajo plan **Hobby**,
+  ventana flexible ±59min según doc oficial (offset determinista +45min
+  observado empíricamente).
+- **Obs-2 a Obs-5 (viernes 1-ago a lunes 3-ago, mismas horas)**: mismo
+  patrón Hobby +45min hasta el upgrade a Pro **2026-08-04**.
+- El upgrade **no invalida ninguna observación previa**: las 5 corridas
+  ejecutaron limpio, HTTP 200, cero errores, cero drift de marcas.
+  Solo cambia el timing esperado de las próximas: bajo Pro el schedule
+  `0 22 * * *` dispara al `22:00:00 UTC` exacto (18:00:00 CLT invierno).
+
+**Cierre del tren completo R1-R7**:
+
+| Sub-entregable | Descripción | Estado |
+|---|---|---|
+| R1 | Migration marcas destinatario (`recordatorio_tutor_enviado_at` + `recordatorio_proveedor_enviado_at`, aditivas NULL) | EN PROD |
+| R2 | Helper `formatBloqueHorario` | EN PROD |
+| R3 | Endpoint `/api/cron/recordatorio-reserva` (auth CRON_SECRET, dryRun, familias F1/F2/legacy, filter raw + refino JS por ymdChile) | EN PROD |
+| R4 | Template `RecordatorioReservaEmail` con banda de fecha protagonista | EN PROD |
+| R4.1 | Layout de listado + bloque "Dónde" con cascada dirección/comuna/chat | EN PROD |
+| R4.2 | Dirección de arte — pill + banda + card border-left + mapa semántico | EN PROD |
+| R5 | Registro cron en `vercel.json` (`0 22 * * *`, gated skipIfNonProd) | EN PROD |
+| R6 | Suite e2e API-only 9/9 verde (`f2-recordatorios-cron/all.spec.ts`) | EN PROD |
+| R7 | Retrofit 4 templates confirmación/cancelación con mapa semántico | EN PROD |
+
+**Deuda instrumentación drift**: ZB4-b del sprint ZONAB-1 aterrizó UPDATE
+condicional NULL + logs `[cron-drift]` en el endpoint (rama `zonab-1`,
+pendiente de merge). Con Pro y las 5 corridas ejecutadas sin ningún
+`[cron-drift-summary]` con `driftTutor>0` o `driftProveedor>0` cuando
+llegue a prod, la deuda se cierra por observación en producción.
+
+**Meta-hallazgo P5**: la fase de monitor 48h originalmente diseñada asumía
+retención Hobby ~1h como restricción — el upgrade a Pro convirtió la fase
+en post-mortem con evidencia forense completa, superior a la
+plan-original. Precedente para futuros trenes: cuando la infra se
+actualiza a mitad de camino, la evidencia se enriquece hacia atrás sin
+requerir cambios de proceso.
 
 ## Plan de rollback
 

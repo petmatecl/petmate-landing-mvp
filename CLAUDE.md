@@ -283,7 +283,7 @@ estuviera activo, dejo de usar el MCP y reporto.
 
 MCP hospedado en `https://mcp.vercel.com` (OAuth) agregado a `.mcp.json`
 local. Solo para lectura: consultar deployments, estados, runtime logs
-(retención Hobby ~1h).
+(retención extendida bajo Pro — ver "Plan Vercel" abajo).
 
 **NO puedo** hacer acciones mutantes: redeploy, cambios de env vars,
 cambios de dominios, cancelación de builds, cambios de deployment
@@ -355,6 +355,26 @@ Mantener fidelidad prod ↔ staging es manual. Cualquier migration aplicada a un
 **Schema sync prod → staging**: manual via Management API dumps. Documentado en `staging-setup/STAGING_PROJECT.md` (file local, no committeado). Cualquier migration aplicada a prod debe replicarse en staging para que los tests sean fieles.
 
 **Promoción a prod NO es fast-forward automático**: el merge `staging → main` puede generar conflictos si hubo hotfixes directos a main. Lo esperado: hotfixes urgentes a main + mirror a staging via `git checkout staging && git merge main`. Resto de cambios siempre staging-first.
+
+### Plan Vercel
+
+**Actualizado 2026-08-04**: proyecto en **Pro plan** (motivación: velocidad + lanzamiento). Antes estaba en Hobby.
+
+Diferencias operativas vs. Hobby (referencia [docs/cron-jobs/usage-and-pricing](https://vercel.com/docs/cron-jobs/usage-and-pricing) verificada 2026-08-04):
+
+| Aspecto | Hobby (antes) | Pro (ahora) |
+|---|---|---|
+| Precisión cron | Per-hour (±59 min) — "ventana flexible 1h" | Per-minute — dispara al minuto exacto declarado |
+| Frecuencia mínima cron | Once per day | Once per minute |
+| Cron jobs por proyecto | 100 | 100 |
+| Retención runtime logs | ~1h | Extendida (~30 días para runtime logs — verificar en dashboard) |
+
+**Consecuencias directas**:
+- **Crons ahora disparan a la hora exacta** declarada en `vercel.json`. El schedule `0 22 * * *` del cron de Recordatorios (`/api/cron/recordatorio-reserva`) ejecuta a **22:00 UTC en punto** — no en la ventana 22:00-22:59 UTC de antes. Verificar en Vercel Logs con timestamp exacto para confirmar la mejora.
+- **Retención de logs extendida** — las instrucciones históricas del tipo "capturar antes de X hora por retención 1h" quedan **relajadas**. La captura sigue siendo buena práctica (evidencia P5) pero deja de ser urgente por ventana temporal.
+- **Contingencia heredada de R5** (límite Hobby de crons diario) ya no aplica — los crons con frecuencia mayor a diario (ej. cada hora, cada 15 min) son ahora viables. Ver BACKLOG "Cron 1h antes del servicio" (habilitado por este upgrade).
+
+**Regla para actas y checklists nuevos**: no anclar deadlines de observación a la retención de logs Hobby. Cuando un checklist herede el patrón viejo ("capturar antes de HH:MM"), relajarlo al actualizarlo.
 
 ### Continuous Integration
 
