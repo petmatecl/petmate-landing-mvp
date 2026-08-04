@@ -30,6 +30,7 @@ import {
 
 type Ctx = {
     servicioId: string;
+    servicioTitulo: string;
     proveedorId: string;
     tutorId: string;
     agendamientoRealizadaId: string;
@@ -94,6 +95,7 @@ test.beforeAll(async () => {
 
     ctx = {
         servicioId: svc.id,
+        servicioTitulo: svc.titulo,
         proveedorId,
         tutorId,
         agendamientoRealizadaId: realizada,
@@ -103,6 +105,7 @@ test.beforeAll(async () => {
 
     console.log('[s1-estados-derivados beforeAll] fixtures creadas:', {
         servicioId: svc.id,
+        titulo: svc.titulo,
         realizada,
         vencida,
         confirmadaFutura,
@@ -121,17 +124,21 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
     test('Realizada: badge REALIZADA visible, card no ofrece "Cancelar reserva"', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 
-        // Ancla: el <article> de la reserva realizada contiene el id parcial
-        // (no lo mostramos), pero el tutor_nombre "[TEST-cron-F2-...]" es
-        // único por corrida. Buscamos la card que contiene ese tag.
-        const card = page.locator('article').filter({
-            hasText: /\[TEST-cron-F2-/,
-        }).first();
-        await expect(card).toBeVisible({ timeout: 15_000 });
+        // El tutor_nombre "[TEST-cron-*]" NO se renderea en /mis-solicitudes
+        // (es el propio nombre del tutor logueado). Ancla por título del
+        // servicio (único por corrida: e2e-f2-3-{timestamp}) + estado derivado.
+        // Todas las 3 cards del beforeAll comparten título — distinguimos por
+        // badge.
+        const cardsDelServicio = page.locator('article').filter({
+            hasText: new RegExp(ctx.servicioTitulo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+        });
+        await expect(cardsDelServicio.first()).toBeVisible({ timeout: 15_000 });
 
-        // Badge REALIZADA presente.
-        const badgesRealizada = card.locator('text=/Realizada/i');
-        await expect(badgesRealizada.first()).toBeVisible();
+        // Sub-filter: la card con badge REALIZADA.
+        const card = cardsDelServicio.filter({
+            has: page.locator('text=/Realizada/i'),
+        }).first();
+        await expect(card).toBeVisible();
 
         // Contra-test: NO debe haber botón "Cancelar reserva" en esta card.
         const btnCancelarReserva = card.getByRole('button', { name: /Cancelar reserva/i });
@@ -144,13 +151,15 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
     test('Vencida: badge VENCIDA visible, CTA "Volver a solicitar", cero botones Cancelar', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 
-        const card = page.locator('article').filter({
-            hasText: /\[TEST-cron-F1-/,
-        }).first();
-        await expect(card).toBeVisible({ timeout: 15_000 });
+        const cardsDelServicio = page.locator('article').filter({
+            hasText: new RegExp(ctx.servicioTitulo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+        });
+        await expect(cardsDelServicio.first()).toBeVisible({ timeout: 15_000 });
 
-        // Badge VENCIDA.
-        await expect(card.locator('text=/Vencida/i').first()).toBeVisible();
+        const card = cardsDelServicio.filter({
+            has: page.locator('text=/Vencida/i'),
+        }).first();
+        await expect(card).toBeVisible();
 
         // PD4: CTA "Volver a solicitar" presente y linkea a la ficha del servicio.
         const cta = card.getByRole('link', { name: /Volver a solicitar/i });
@@ -168,13 +177,13 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
     test('Confirmada futura (control): badge CONFIRMADA, botón "Cancelar reserva" habilitado', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 
-        // Localizar la card con badge Confirmada del TEST-cron creado en beforeAll.
-        // Ambas F2 pueden tener el mismo prefix; distinguimos por badge.
-        const cards = page.locator('article').filter({ hasText: /\[TEST-cron-F2-/ });
-        await expect(cards.first()).toBeVisible({ timeout: 15_000 });
+        const cardsDelServicio = page.locator('article').filter({
+            hasText: new RegExp(ctx.servicioTitulo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+        });
+        await expect(cardsDelServicio.first()).toBeVisible({ timeout: 15_000 });
 
         // La card confirmada futura tiene badge "Confirmada" (no "Realizada").
-        const confirmadaCard = cards.filter({
+        const confirmadaCard = cardsDelServicio.filter({
             has: page.locator('text=/^Confirmada$/i'),
         }).first();
         await expect(confirmadaCard).toBeVisible();
