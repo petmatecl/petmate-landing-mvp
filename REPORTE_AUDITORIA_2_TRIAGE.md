@@ -182,3 +182,65 @@ Alternativa si urge pre-Fase E: (a) deshabilitar Deployment Protection para stag
 - **Auditoría #2 CERRADA**. Triage único consolidado (5 blockers + 15 mediums + ~14 lows + 3 cerrados por desfile + 0 security estricta).
 - **Sweep #1 arranca cuando PO dé GO** — es el desbloqueador de Fase E (`staging → main`).
 - Sweeps #2/#3/#4 en cascada según decisión de scope pre-launch vs post-launch.
+
+---
+
+## Anexo P5 — SWEEP #1 CERRADO (viernes 2026-08-07)
+
+**Autorización PO**: GO explícito del arranque post-triage con las 5 notas direccionales (a-e).
+**Rama**: `sweep-1` forkeada de `staging b95e561`.
+**SHA final sweep-1**: `8c35692` (9 archivos, +542/-119).
+**Merge a staging**: fast-forward exitoso (staging avanzó de `b95e561 → 8c35692` sin conflicts).
+
+### Ejecución por blocker
+
+**B1 — `e2e/setup/guard.ts` deny-list ampliada + shape check**:
+- `PROD_HOSTS_BLOCKED` ampliado con team-scoped aliases: `pawnecta-landing-mvp-petmatecls-projects.vercel.app` (team-project raíz) + `pawnecta-landing-mvp-git-main-petmatecls-projects.vercel.app` (main branch = prod).
+- Nuevo `PROD_HASH_ALIAS_REGEX` bloquea hash-aliases de deployment (patrón `<project>-<hash>-<team>.vercel.app`, defensa conservadora).
+- Nuevo shape check exige infijo `-git-<branch>-` (defensa en profundidad para aliases futuros).
+- `e2e/setup/guard.test.ts` ampliado: **18/18 tests verde** con caso DENY por cada alias prod conocido.
+- **Verificación runtime**: invocación negativa `PLAYWRIGHT_BASE_URL=https://pawnecta-landing-mvp-git-main-petmatecls-projects.vercel.app npx playwright test --list` → `Error: [e2e/guard] baseURL apunta a producción (pawnecta-landing-mvp-git-main-petmatecls-projects.vercel.app)` ✅. Trap-door cerrado.
+
+**B2 — `pages/sitemap.xml.tsx` fail-LOUD**:
+- Si `proveedoresError`, `serviciosError`, o data null → `res.statusCode = 500` + `Cache-Control: no-store` + summary de error en cuerpo + `console.error` con detalle. La CDN NO cachea el error → próximo crawl regenera cuando DB responda.
+- **Verificación runtime happy path staging**: `HTTP/1.1 200 OK` + sitemap con **32 `<loc>`** (15 servicios aprobados + 17 proveedores) — paridad con smoke previo del desfile ✅.
+
+**B3 — `puedeCancelarPorVentana` restaurado + contra-test canónico**:
+- Extraído a `lib/puedeCancelarPorVentana.ts` como función pura testeable (antes IIFE inline en `mis-solicitudes.tsx:685` — imposible de testear).
+- Fix guard defensivo: `if (!input.fecha_preferida) return true` ANTES del coerce.
+- `lib/puedeCancelarPorVentana.test.ts` nuevo: **14/14 tests verde**. Contra-test canónico del caso B3 (F2 confirmada con `fecha_preferida = null/undefined/empty` retorna true) + happy path + edge cases (borde 48h, ventana custom del servicio).
+
+**B4 — `tiene_agenda_activa` paridad TODOS mapping paths**:
+- `pages/[categoria]/[comuna].tsx`: reemplazado inline object literal por `mapRpcToServiceResult` canónico.
+- `pages/[categoria]/index.tsx`: reemplazado raw pass-through por `mapRpcToServiceResult` canónico.
+- **Verificación runtime staging**: `/cuidado` badge "Reserva online" = 1 (antes del fix era 0) ✅. Bug pre-existente colateral en `[categoria]/index.tsx` (`fotos` como paths sin URL completa) también cerrado por el mismo refactor.
+
+**B5 — cron `recordatorio-reserva.ts` claim-then-send**:
+- Invertido el orden: CLAIM primero (`UPDATE conditional NULL` con RETURNING id), SEND solo si claim gana. Prevención medida real — antes se logeaba el race post-send sin prevenir la duplicación.
+- Rollback: si send falla POST-claim, marca vuelve a NULL para que próximo run reintente.
+- Rename semántico: `drift*` → `claimsPerdidos*`. Alias legacy `driftTutor`/`driftProveedor` preservado en `[cron-drift-summary]` para no romper dashboards.
+- Console tag renombrado: `[cron-drift]` → `[cron-claim-lost]` (semántica precisa: race prevenido, no drift post-hoc).
+- **Verificación runtime**: los 10 tests de `e2e/specs/f2-recordatorios-cron/all.spec.ts` (S1 dryRun por familia + S2 corrida real + idempotencia + S3 marcas independientes + S4 no-elegibles + S5 auth) **verde** en la suite full — contrato preservado con la nueva semántica claim-then-send.
+
+### Suite full contra preview sweep-1
+
+- **Corrida 1**: 60 passed + 1 failed (known-flaky `producto-1/s1-badge-reserva-online:74`, documentado como deuda light) + 2 flaky en setups (retry verde). EXIT=1.
+- **Aislado del known-flaky**: 2/2 verde en 6.1s.
+- **Corrida 2 confirmatoria**: **63 passed exit 0, CERO flaky en 36.0s**.
+
+Total 63 tests (2 setups + 61 tests reales) = baseline post-desfile intacto (los 5 fixes NO agregaron specs e2e nuevos; los 2 helpers extraídos tienen unit tests separados con `tsx`).
+
+### Cleanup MCP staging
+
+`0 [TEST-%` + `0 e2e-%` verificado post-suite ✅.
+
+### Regla P1 aplicada
+
+Build local `exit 0` antes de cada commit. `tsc --noEmit` + `next build` completos. Tests unitarios adicionales (`guard.test.ts` 18/18 + `puedeCancelarPorVentana.test.ts` 14/14) corridos con `npx tsx` como parte del criterio de cierre.
+
+### Estado tras Sweep #1
+
+- **staging HEAD**: `8c35692` (fast-forward exitoso desde `b95e561`).
+- **Fase E DESBLOQUEADA** (los 5 blockers de la Auditoría #2 cerrados con evidencia P5).
+- Sweep #2 (~2h, 10 mediums quirúrgicos) queda para post-Fase E según instrucción PO.
+- Standby a **GO FASE E** (promoción staging→main + smokes prod ampliados con los 2 nuevos de prelaunch + monitor liviano finde).
