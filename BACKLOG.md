@@ -244,6 +244,33 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 
 **Esfuerzo total estimado**: ≤ 1h (diagnóstico + config Cloudflare + updates de copy).
 
+### Sprint PERF-1 — optimizaciones performance (candidato, gatillo PO)
+
+**Origen**: baseline registrado en `REPORTE_PERFORMANCE_BASELINE.md` (2026-08-07, post-Fase E). 12 mediciones Chrome DevTools + Lighthouse contra `www.pawnecta.com` SHA `917e4eb`. 9 hallazgos H1-H9 identificados; Cold Start Prevention Pro verificado empíricamente (~1184ms LCP diferencia cold vs warm en ficha).
+
+**Referencia canónica**: `REPORTE_PERFORMANCE_BASELINE.md` (secciones 2, 3, 4). La baseline queda para comparar cualquier optimización futura — mismo test suite → si mejora, se ve numéricamente.
+
+**Gatillo de ejecución**: **PO decide** (post-launch o pre-launch si Aldo lo prioriza; los buckets están priorizados por impacto/esfuerzo abajo para elegir por rebanadas).
+
+**Buckets priorizados** (ordenados por impacto/esfuerzo):
+
+**Bucket A — impacto directo LCP ficha (~1h, quick win)**:
+- **H1** (orange) — `pages/servicio/[id].tsx`: agregar `<Head><link rel="preload" as="image" href={fotos[0]}/></Head>` con la primera foto del servicio. **Estimated saving ~1-2s** en LCP cold de la ficha (borderline hoy a 2420ms desktop).
+- Preconnect a Supabase Storage: `<link rel="preconnect" href="https://vubmjguwzpesxcgenkxo.supabase.co">` en `_document.tsx`. Ahorra ~200-300ms del handshake TCP+TLS de la primera request a Supabase por sesión.
+
+**Bucket B — Agentic Browsing mobile (~2h)**:
+- **H3** (yellow) — mobile `/explorar` + ficha bajan a AB=50 (desktop 100). Auditar `MobileActionSheet` + drawer de filtros mobile + sticky action bar de fichas: aria-labels completos + verificar que no haya duplicación de targets entre desktop y mobile (mismo botón visible en ambos con IDs distintos confunde al scraper AI). No blocker de UX humano, sí SEO/AI-friendliness.
+
+**Bucket C — image optimization (~30 min)**:
+- **H5** (yellow) — home desktop wasted image bytes 835 KB. Auditar uso de `next/image` en home + cards de `/explorar`: confirmar `sizes` prop por breakpoint + verificar que hero + cards usen el componente `<Image />` (no `<img>` directo). Vercel image opt ya provee AVIF/WebP por default.
+
+**Bucket D — monitoring en real users (post-launch, ~15 min setup)**:
+- Instalar Vercel Analytics (Speed Insights) — gratis en Pro, mide Core Web Vitals con real users vs esta baseline (Chrome DevTools MCP en máquina de dev). Comparación baseline vs real revelará si mobile users con 4G/3G están en el "verde" (<2.5s LCP) o necesitan más optimización agresiva. Alternativa: Sentry perf tracing (ya en radar SENTRY-1) cubre lo mismo si se activa post-instalación.
+
+**Hallazgos verdes/notas (H2/H4/H6/H7/H8/H9)**: NO requieren acción — están en verde o son observaciones informativas. H2 en particular (Cold Start Prevention Pro observable) es la métrica para el user story del PO en la conversación de velocidad ("con Pro, primera visita a ficha ~2× más rápido — de ~2.4s cold a ~1.2s warm").
+
+**Slot recomendado**: **post-launch** por default (baseline ya es sana; H1 borderline es el único caso de "posible frustración user"). Si PO decide pre-launch, arrancar por Bucket A (~1h, quick win, alto ROI).
+
 ### Lanzamiento — decisiones operativas
 
 #### Phase-out de servicios "Ejemplo" (decisión PO 2026-08-04)
