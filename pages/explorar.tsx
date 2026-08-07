@@ -37,6 +37,7 @@ interface Category {
 const STATIC_CATEGORIES: Category[] = [
     { id: 'adiestramiento', slug: 'adiestramiento', nombre: 'Adiestramiento', icono: '' },
     { id: 'cuidado', slug: 'cuidado', nombre: 'Cuidado y Hospedaje', icono: '' },
+    { id: 'etologia', slug: 'etologia', nombre: 'Etología y Conducta', icono: '' },
     { id: 'guarderia', slug: 'guarderia', nombre: 'Guardería Diurna', icono: '' },
     { id: 'paseos', slug: 'paseos', nombre: 'Paseo de Perros', icono: '' },
     { id: 'peluqueria', slug: 'peluqueria', nombre: 'Peluquería', icono: '' },
@@ -44,6 +45,29 @@ const STATIC_CATEGORIES: Category[] = [
     { id: 'fotografia', slug: 'fotografia', nombre: 'Fotografía de Mascotas', icono: '' },
     { id: 'veterinario', slug: 'veterinario', nombre: 'Veterinario a Domicilio', icono: '' },
 ];
+
+// PR2 sprint PRODUCTO-1 (2026-07-31) — cross-links por síntoma entre
+// categorías relacionadas. Adiestramiento y Etología son servicios que
+// suenan parecido pero tratan cosas distintas: obediencia/hábitos vs
+// diagnóstico/modificación conductual. Sin este chip, el tutor que busca
+// "mi perro es agresivo" cae en adiestramiento por defecto y no encuentra
+// el especialista correcto. El chip aparece SOLO cuando el filtro actual
+// del listado matchea la categoría origen, y linkea con `updateQueryParams`
+// para mantener la comuna/orden que el tutor ya tenía puestos.
+//
+// Diseño: chip discreto (accent-50 bg, accent-800 text, sin fondo intenso,
+// max-w para 1 línea en desktop, 2 en mobile). NO es banner. Se posiciona
+// bajo el título de la categoría filtrada.
+const CROSS_LINKS: Record<string, { destino: string; label: string }> = {
+    adiestramiento: {
+        destino: 'etologia',
+        label: '¿Agresividad, miedos o ansiedad? → Etología y conducta',
+    },
+    etologia: {
+        destino: 'adiestramiento',
+        label: '¿Obediencia y hábitos? → Adiestramiento',
+    },
+};
 
 const PAGE_SIZE = 20;
 
@@ -607,6 +631,23 @@ export default function ExplorarPage() {
                             <p className="text-sm text-slate-500">
                                 Descubre los mejores profesionales para tu mascota en Pawnecta.
                             </p>
+
+                            {/* PR2 sprint PRODUCTO-1 — cross-link por síntoma entre
+                                categorías relacionadas (Adiestramiento ↔ Etología).
+                                Chip discreto (no banner), preserva la comuna y demás
+                                filtros del tutor via updateQueryParams. Aparece solo
+                                cuando el filtro actual matchea una key de CROSS_LINKS.
+                                Copy tuteo chileno. */}
+                            {filters.categoria && CROSS_LINKS[filters.categoria] && (
+                                <button
+                                    type="button"
+                                    onClick={() => updateQueryParams({ categoria: CROSS_LINKS[filters.categoria!].destino })}
+                                    className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-accent-800 bg-slate-50 hover:bg-accent-50 border border-slate-200 hover:border-accent-200 px-3 py-1.5 rounded-full transition-colors"
+                                    data-testid="cross-link-categoria"
+                                >
+                                    {CROSS_LINKS[filters.categoria].label}
+                                </button>
+                            )}
                         </div>
 
                         {/* ── Chips de filtros activos ── */}

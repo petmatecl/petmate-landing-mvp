@@ -109,6 +109,10 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         proveedor_primera_ayuda: item.proveedor_primera_ayuda ?? false,
         proveedor_perfil_completo: item.proveedor_perfil_completo ?? false,
         proveedor_es_ejemplo: item.proveedor_es_ejemplo ?? false,
+        // PR1 sprint PRODUCTO-1 — flag "reserva online" viene calculado
+        // server-side por el RPC (columna nueva del RETURNS TABLE). Default
+        // false si el RPC no lo trae (pre-migration, callers viejos).
+        tiene_agenda_activa: item.tiene_agenda_activa ?? false,
         visitas_total: Number(item.visitas_total ?? 0),
         visitas_mes: Number(item.visitas_mes ?? 0),
         favoritos_total: Number(item.favoritos_total ?? 0),
@@ -119,9 +123,32 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
  * Maps a raw row from the servicios_publicados join query (index.tsx) to ServiceResult.
  * Join shape: item.proveedor.{nombre, apellido_p, foto_perfil, comuna}
  *             item.categoria.{nombre, icono, slug}
+ *
+ * PR1 sprint PRODUCTO-1 (fix 2026-07-31): si el caller incluye los campos
+ * F1/F2 en el select (`agendamiento_habilitado`, `duracion_slot_min`,
+ * `capacidad_estadia`), el mapper calcula `tiene_agenda_activa` con el
+ * mismo semáforo que el RPC (paridad garantizada). Si el caller no los
+ * incluye → default false y el badge no se renderiza (retrocompat).
+ *
+ * NOMBRES REALES del schema (verificado 2026-07-31 vía MCP staging):
+ *   agendamiento_habilitado boolean NOT NULL
+ *   duracion_slot_min integer NULLABLE   ← F1 config (NO `duracion_min`)
+ *   capacidad_estadia integer NULLABLE   ← F2 config
+ *   `duracion_min` es campo de `agendamientos` (reserva individual),
+ *   NO de `servicios_publicados`. Confusión del primer intento (incidente
+ *   PR1 documentado en la acta correspondiente).
  */
 export function mapJoinToServiceResult(item: any): ServiceResult {
     const slug = item.categoria?.slug ?? item.categoria_slug ?? '';
+    // Semáforo agenda activa (paridad exacta con el RPC en migrations/
+    // 20260731_buscar_servicios_agenda_activa_fix.sql).
+    const tieneAgendaActiva = Boolean(
+        item.agendamiento_habilitado === true
+        && (
+            item.duracion_slot_min != null   // F1 activa (picker de slots)
+            || item.capacidad_estadia != null // F2 activa (estadía por rango)
+        )
+    );
     return {
         servicio_id: item.id,
         titulo: item.titulo,
@@ -145,6 +172,7 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         acepta_otras: item.acepta_otras ?? false,
         proveedor_perfil_completo: item.proveedor?.perfil_completo ?? false,
         proveedor_es_ejemplo: item.proveedor?.es_ejemplo ?? false,
+        tiene_agenda_activa: tieneAgendaActiva,
         visitas_total: Number(item.visitas_total ?? 0),
         visitas_mes: Number(item.visitas_mes ?? 0),
         favoritos_total: Number(item.favoritos_total ?? 0),
