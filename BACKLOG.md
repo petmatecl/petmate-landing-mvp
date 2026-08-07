@@ -175,6 +175,37 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 
 **Deuda light**: post-lanzamiento evaluar bump a tier Team ($26/mes, 50k errors/mes) si el free se satura — Sentry alerta automáticamente al llegar a límite.
 
+### Sprint EMAIL-CONTACTO-1 — canal de soporte visible al usuario (batch pre-launch, ≤1h)
+
+**Origen**: hallazgo derivado del cierre Fase 8 monitor N15 (2026-08-07). Al ratificar el ITEM 4 "bandeja de soporte", el PO aclaró que el canal real hoy es `petmatecl@gmail.com` — la casilla `contacto@pawnecta.com` que se referencia en varias superficies **NO existe aún**. Un usuario con problema y sin canal es un usuario perdido — prioridad **alta para día 1**.
+
+**Alcance**:
+
+- **(a) Diagnóstico (~10-15 min)** cuando haya hueco post-desfile:
+  - `grep -rn "contacto@" pages/ components/ lib/` — todas las apariciones en código, footer, headers.
+  - `grep -rn "mailto:" pages/ components/` — todos los `mailto:` visibles (link footer, FAQ, legales).
+  - `grep -rn "@pawnecta.com" pages/ components/ lib/emails/` — auditoría global de emails visibles al usuario (footer, FAQ, T&C, templates transaccionales, headers de Resend).
+  - Reporte: qué dirección ve hoy el usuario en cada superficie + estado real del email (existe/no existe/quién lo lee).
+
+- **(b) Fix pre-launch (~30-45 min)**:
+  1. **Crear `contacto@pawnecta.com` como forward/alias a `petmatecl@gmail.com`**. Vías gratis:
+     - Registrar del dominio (si soporta email forwarding — depende del provider actual del dominio).
+     - **Cloudflare Email Routing** (gratis, requiere cambiar DNS a Cloudflare nameservers si no está ya). Setup ~10 min.
+     - Alternativa: Google Workspace ($6/mes por casilla real) — descartar por defecto, evaluar solo si el volumen del día 1 lo justifica.
+  2. **Actualizar superficies donde corresponda** (post-diagnóstico (a)):
+     - Footer (link "Contacto").
+     - FAQ / Ayuda / Términos / Privacidad.
+     - Templates de email transaccional (headers "responder a").
+  3. **Registrar `hola@pawnecta.com` en la ecuación**: es el remitente que hoy usan los emails transaccionales (Resend). **Los usuarios RESPONDEN a esos emails** — verificar que ese `reply-to` NO caiga al vacío. Opciones:
+     - Configurar `hola@pawnecta.com` también como forward → `petmatecl@gmail.com`.
+     - O redirigir todos los `reply-to` de transaccionales a `contacto@pawnecta.com` (patrón más limpio: un solo canal público).
+
+**Prioridad**: **alta para día 1** — un usuario con problema y sin canal es un usuario perdido.
+
+**Slot**: batch pre-launch (junto a ANALYTICS-1 + SENTRY-1 + phase-out ejemplos).
+
+**Esfuerzo total estimado**: ≤ 1h (diagnóstico + config Cloudflare + updates de copy).
+
 ### Lanzamiento — decisiones operativas
 
 #### Phase-out de servicios "Ejemplo" (decisión PO 2026-08-04)
