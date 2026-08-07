@@ -185,3 +185,49 @@ Modificados:
 ## Siguiente
 
 **Standby a Fase 8 monitor N15** (cierre esperado jueves 06-ago ~15:00 CLT). Post-monitor cerrado → cola de merges arranca según `MINI_CHECKLIST_COLA_MERGES.md`.
+
+## Anexo P5 — Fase D del desfile (merge `producto-2 → staging` ejecutada 2026-08-07)
+
+**SHA pre-merge staging**: `4deaac5` (post-Fase C con zonab-1 mergeado).
+**SHA post-merge staging**: `58e89dd` (merge commit no-FF).
+**Ejecutor**: Claude, guard P3 verificado.
+
+**FF-check pre-merge**: 8 commits en staging que producto-2 no tenía → no-FF esperado.
+
+**Merge**: cero conflictos. El auto-merge de `BACKLOG.md` fue limpio (el nuevo bloque EMAIL-CONTACTO-1 se ubicó en zona diferente que los ítems P3 crons Vercel Pro + P2 advisory lock ya en staging). Cero conflictos en `pages/mis-solicitudes.tsx`, `pages/explorar.tsx`, `components/Servicio/SolicitarAgendamientoModal.tsx`, `playwright.config.ts`, `CLAUDE.md` — los sprints editaron zonas distintas o zonab-1/producto-1 no habían tocado las líneas que producto-2 modificó.
+
+**21 archivos aportados / 3277 insertions / 31 deletions**:
+- Actas: ACTA_PD1/PD2/PD4bis/SPRINT_PRODUCTO-2, AUDITORIA_2_SCOPE, DIAGNOSTICO_MCP_VERCEL_405, MINI_CHECKLIST_COLA_MERGES, REPORTE_DIAGNOSTICO_ERRORS_PROD, REPORTE_UX_WALKTHROUGH_1.
+- Código: `lib/estadoDerivado.ts` + `lib/estadoDerivado.test.ts` + `lib/types/agendamiento.ts`.
+- Specs: `e2e/specs/producto-2/s1-estados-derivados` + `s2-pestanas` + `s3-filtros`.
+- Mods: `pages/mis-solicitudes.tsx` (+420 líneas — estados derivados + pestañas + filtros + CTA "Volver a solicitar" cancel-then-navigate), `components/Servicio/SolicitarAgendamientoModal.tsx` (+12), `components/Explore/ServiceCard.tsx` (+33), `playwright.config.ts` (+4).
+
+**Build P1 local exit 0** post-merge.
+
+**Preview Vercel staging Ready** al primer poll (attempt 1, code 200).
+
+**Suite full contra staging (SHA `58e89dd`)** — **corrida dual por protocolo flakiness ambient**:
+
+- **Corrida 1** (post-Ready inmediato):
+  ```
+  Running 62 tests using 8 workers
+  55 passed + 1 failed + 2 flaky + 4 did not run (1.6m), EXIT=1
+  ```
+  Fails/flaky en producto-2 specs (s2-pestanas:124 default Próximas, s1:127 realizada, s3:104 dropdowns condicionales). 4 tests "did not run" son cascada del s2 fail.
+
+- **Diagnóstico aislado**:
+  ```
+  $ npx playwright test e2e/specs/producto-2/
+  13 passed (11.3s), EXIT=0
+  ```
+  Los 13 tests de producto-2 pasan en 11.3s cuando el preview está caliente. **Flakiness ambient confirmado** (mismo patrón que Fase C).
+
+- **Corrida 2 confirmatoria full**:
+  ```
+  62 passed (32.3s), EXIT=0
+  ```
+  **Cero flaky en la corrida 2**. Todos verdes.
+
+**Cleanup MCP staging post-suite**: `0 [TEST-%` + `0 e2e-%` verificado.
+
+**FASE D CERRADA — 2026-08-07**. Sin bloqueos para Fase D-bis (prelaunch-1 con Cabo #1).
