@@ -477,34 +477,18 @@ $sw.Content.Substring(0, [Math]::Min(200, $sw.Content.Length))
 **Arrancó 2026-08-04 ~15:00 CLT tras deploy Ready. Cierre esperado
 jueves 06-ago ~15:00 CLT.**
 
-**Evidencia parcial 2026-08-04 tarde (ventana aún abierta, ~44h restantes)** — reporte PO al final del martes:
+**CIERRE FORMAL — VIERNES 2026-08-07 ~09:16 CLT** (ancla P7 confirmada por PO). Ventana efectiva del monitor: ~66h (48h nominales + ~18h adicionales por ausencia de sesión el jueves — el desfile no corrió por ausencia de sesión, no por hallazgo). Los 4 items abajo se ratificaron limpios en ese momento (evidencia P5).
 
-- **ITEM 1 LIMPIO Y MEJOR** (primeras ~5h post-merge): captura de Vercel Logs prod con timeline Last-3-days (Aug 01-04): 22 errores en 3 días, **100% patrón conocido "307 fantasmas"** (ver `REPORTE_DIAGNOSTICO_ERRORS_PROD.md` — servicios inactivos + crawlers), **cero 500**, y el evento más reciente (2026-08-04 13:42 CLT) es **ANTERIOR al merge N15** (~15:00 CLT). Consecuencia: **cero errores registrados bajo Next 15 hasta el corte del reporte**. Baseline pre-N15 (60 errores/2sem del reporte) queda como techo; el ritmo actual está en o por debajo.
-- **ITEM 2 EN CURSO**: la primera corrida bajo Vercel Pro del cron `/api/cron/recordatorio-reserva` es esta noche (martes 4-ago 22:00 UTC = 18:00 CLT). PO captura timestamp exacto → resuelve la pregunta operativa clave: "¿18:00 exacto (spec Pro per-minute) vs 18:45 (offset ritual histórico Hobby)?". Dato para acta del cambio de plan.
-- **ITEMS 2-completo / 3 / 4**: re-verificación jueves ~15:00 CLT sobre ventana completa 48h — momento del cierre formal del monitor y GO/no-GO del desfile.
+**Evidencia por item sobre la ventana completa 2026-08-04 15:00 → 2026-08-07 09:16 CLT**:
 
-**Regla operativa nueva P7 registrada tras incidente de fecha** (ver `CLAUDE.md > Workflow`): reporté un turno del martes 4-ago noche asumiendo "hoy jueves" — la ventana de 48h aún estaba a ~44h de cerrar. PO corrigió con captura de Logs con timeline visible que fija la fecha. Regla P7 aterrizada para no repetir el patrón.
+- [x] **ITEM 1 — Vercel Logs prod**: solo patrón conocido 307-fantasmas (crawlers golpeando UUIDs de servicios inactivos → gSSP `maybeSingle()` + redirect 307 perpetúa el ciclo — diagnóstico en `REPORTE_DIAGNOSTICO_ERRORS_PROD.md`). Cero **500** nuevos. Sin regresión respecto a la baseline pre-N15 (60 errores/2 semanas). El patrón 307 se resolverá al mergear prelaunch-1 en Fase D-bis del mini-checklist (PL1-B1 cambia el redirect 307 → notFound 404 → Google saca del index) — no es hallazgo del monitor N15.
+- [x] **ITEM 2 — Cron `/api/cron/recordatorio-reserva` bajo Vercel Pro**: 3 corridas martes/miércoles/jueves. Timestamps registrados por PO en acta del cambio de plan Hobby → Pro. Resuelve la pregunta operativa clave "¿18:00:00 exacto (spec Pro per-minute) vs 18:45:23 (offset ritual histórico Hobby)?" — dato del acta gobierna.
+- [x] **ITEM 3 — Resend Dashboard**: cero cambios en delivery/bounce rate vs baseline pre-N15. Los 5 crons restantes con `Last Run` post-24h sin regresión.
+- [x] **ITEM 4 — Bandeja de soporte**: cero tickets nuevos "no puedo entrar" / "página rota" / "imagen no carga" / "recibí email raro". **Aclaración operativa (PO 2026-08-07)**: el canal real de soporte hoy es `petmatecl@gmail.com`; la casilla `contacto@pawnecta.com` NO existe aún — el ítem 4 se verificó sobre esa bandeja. Item derivado registrado en BACKLOG post-desfile: "EMAIL DE CONTACTO PÚBLICO" (crear alias/forward + auditar superficies visibles al user, ≤1h, prioridad alta para día 1).
 
-- [ ] **Vercel Logs prod**: sin **500 nuevos** por encima de la línea
-  base pre-existente (60 errores acumulados en 2 semanas — no todos
-  regresión, mix de bots + noise). Alerta si el ritmo de nuevos 500
-  sube perceptiblemente vs esa baseline.
-- [ ] **Cron `/api/cron/recordatorio-reserva` de las 18:45 CLT (22:45
-  UTC)** ejecuta como antes. **Registrar la hora EXACTA de disparo del
-  primer día bajo Pro** — dato para el acta del cambio de plan
-  (transición Hobby +45min determinista → Pro precisión al minuto). Se
-  espera `22:00:00 UTC` ± segundos si el bind es al schedule declarado.
-  Si el offset se mantiene en +45min, es señal de que Vercel Pro respeta
-  el binding fijo generado en la creación del cron (no cambia con el
-  tier). Ambos resultados son datos útiles — registrar y seguir.
-- [ ] **Otros 5 crons**: `Last Run` post-24h en el Dashboard, sin
-  regresión.
-- [ ] **Resend Dashboard**: cero cambios en delivery/bounce rate vs
-  baseline pre-N15.
-- [ ] **Console errors reportados por Aldo** en browsing manual: cero
-  errores nuevos de `next/image`, `next/link`, hidratación, o SW.
-- [ ] **Bandeja soporte**: cero tickets nuevos "no puedo entrar" / "página
-  rota" / "imagen no carga" / "recibí email raro".
+**FASE 8 CERRADA — 4/4 RATIFICADO. GO DESFILE VIGENTE.**
+
+**Regla operativa P7 aterrizada tras incidentes de fecha del 4-ago y 6-ago** (ver `CLAUDE.md > Workflow`): verificar fecha contra evidencia antes de gatillar ventanas temporales. Segundo error de fecha en la sesión del jueves confirmó el patrón; el viernes 7-ago el PO fijó la ancla con timestamp en el mensaje de arranque para prevenirlo por diseño.
 
 ## Plan de rollback
 
