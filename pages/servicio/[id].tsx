@@ -46,13 +46,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .maybeSingle();
 
         if (serviceError || !service) {
-            console.error("Servicio no encontrado o inactivo", serviceError);
-            return {
-                redirect: {
-                    destination: '/explorar',
-                    permanent: false,
-                },
-            };
+            // PL1-A + PL1-B1 (Sprint PRELAUNCH-1): servicio inexistente/inactivo es
+            // caso ESPERADO (bots crawleando UUIDs viejos de servicios retirados) —
+            // no un error de app. Log a nivel info sin volcar `null` colgando.
+            // Retornamos notFound:true (HTTP 404) en vez de redirect 307 →
+            // rompe el ciclo de 307-fantasmas que Google reindexa perpetuamente.
+            if (serviceError) {
+                console.warn(`[servicio/${id}] fetch error:`, serviceError.message);
+            } else {
+                console.info(`[servicio/${id}] no encontrado o inactivo → 404`);
+            }
+            return { notFound: true };
         }
 
         // Hidratacion del proveedor desde la vista publica.
@@ -67,12 +71,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         if (!proveedorHidratado) {
             // Equivalente al !inner original + filtro estado='aprobado' del embed
             // anterior. Si el proveedor no esta aprobado, la ficha no se muestra.
-            return {
-                redirect: {
-                    destination: '/explorar',
-                    permanent: false,
-                },
-            };
+            // PL1-B1: mismo tratamiento que servicio inexistente — 404 en vez de
+            // redirect 307, para no perpetuar el ciclo de 307-fantasmas.
+            console.info(`[servicio/${id}] proveedor no aprobado → 404`);
+            return { notFound: true };
         }
         // Preservar el shape original: service.proveedores (key plural como
         // estaba en el embed) — el render usa props.service.proveedores.X.
