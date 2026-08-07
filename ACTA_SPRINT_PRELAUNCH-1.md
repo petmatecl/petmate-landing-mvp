@@ -254,9 +254,28 @@ Dos cabos que el PO anticipó explícitamente antes de standby. Ambos se agregan
 
 **Sorpresa desactivada**: no re-consultar; aplicar directo.
 
-### Cabo #2 — Gate PL2 condicionado a verificación de env var `NEXT_PUBLIC_APP_ENV`
+### Cabo #2 — Gate PL2 condicionado a verificación de env var `NEXT_PUBLIC_APP_ENV` — **CERRADO 2026-08-04 por caso (b)**
 
-**Situación**: el gate de PL2 asume que `NEXT_PUBLIC_APP_ENV=production` existe en el scope **Production** de Vercel. En el repaso del 30-jul quedó como 'no visible'. Si NO existe (o vale distinto de `'production'`) → `IS_PROD_CLIENT === false` en prod → `GA_TRACKING_ID === null` → **GA muere silencioso en prod al mergear** (modo de falla inverso al bug que arreglamos: en vez de contaminar staging, apaga tracking real).
+**Resolución final**: caso (b) confirmado — la env var NO existía en scope Production (confirmando sospecha del repaso del 30-jul). Aldo eligió la **opción B1 (creación con ritual P4 adaptado)**:
+
+- Key: `NEXT_PUBLIC_APP_ENV`
+- Value: `production`
+- Scope: SOLO Production
+- Sensitivity: no-sensitive (legible a futuro para verificación por dashboard)
+- Proyecto: `pawnecta-landing-mvp` (scope de proyecto, no team-shared — primer intento a nivel team-shared fue borrado y re-creado en scope de proyecto para mantener consistencia con el resto de env vars).
+- Updated: 2026-08-04.
+
+**Adaptación P4**: **SIN redeploy requerido** en este caso. Justificación: el consumidor de la env var es el bundle client generado por el próximo build de prod, y ningún deploy vigente lee `NEXT_PUBLIC_APP_ENV` en runtime. La env var queda "durmiente" hasta que el desfile mergee prelaunch-1 a main (Fase E del mini-checklist), momento en el cual el build de prod horneará el ternario del `lib/gtag.ts` con el valor correcto. El smoke prod post-Fase E (`curl https://www.pawnecta.com/explorar` con consent aceptado → grep `googletagmanager.com/gtag/js`) es el momento canónico de verificación runtime end-to-end.
+
+**Opción B2 archivada sin uso**. Queda documentada aquí abajo como referencia por si algún día la env var se pierde o se prefiere una señal client-side sin dependencia de configuración Vercel.
+
+**Merge de prelaunch-1 DESBLOQUEADO por este cabo**. El único gate restante del desfile completo vuelve a ser el original: cierre limpio del monitor N15 jueves ~15:00 CLT.
+
+---
+
+**HISTÓRICO del análisis pre-cierre (para trazabilidad del razonamiento — no aplicar)**:
+
+**Situación (documentada 2026-08-04 antes del cierre)**: el gate de PL2 asume que `NEXT_PUBLIC_APP_ENV=production` existe en el scope **Production** de Vercel. En el repaso del 30-jul quedó como 'no visible'. Si NO existe (o vale distinto de `'production'`) → `IS_PROD_CLIENT === false` en prod → `GA_TRACKING_ID === null` → **GA muere silencioso en prod al mergear** (modo de falla inverso al bug que arreglamos: en vez de contaminar staging, apaga tracking real).
 
 **Acción requerida ANTES del merge**: Aldo verifica en Vercel Dashboard → Project Settings → Environment Variables → filtro scope Production, buscar `NEXT_PUBLIC_APP_ENV`.
 
