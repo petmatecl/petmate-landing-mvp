@@ -104,7 +104,7 @@ git push origin staging
 **Bloqueo previo**: los DOS CABOS de Contingencias abajo deben estar cerrados con evidencia ANTES de arrancar esta fase.
 
 **Pre-check**:
-- [ ] **Cabo #2 CERRADO** (verificación `NEXT_PUBLIC_APP_ENV=production` en scope Production de Vercel — ver Contingencias abajo). Anotar evidencia (screenshot dashboard o "Updated" timestamp).
+- [x] **Cabo #2 CERRADO** (verificación `NEXT_PUBLIC_APP_ENV=production` en scope Production de Vercel — ver Contingencias abajo). **Ejecución 2026-08-04**: caso (b) resuelto por creación — Aldo confirmó que la env var NO existía en scope Production (confirmando sospecha del repaso del 30-jul); creada HOY en el proyecto `pawnecta-landing-mvp` (primer intento a nivel team-shared fue borrado y re-creado en el scope de proyecto correcto, consistente con el resto de las env vars del proyecto). Configuración final: Key `NEXT_PUBLIC_APP_ENV`, Value `production`, Scope SOLO Production, no-sensitive (legible a futuro), Updated timestamp de hoy. **Sin redeploy requerido** (nota P4): el consumidor es el build futuro del merge de prelaunch-1 — ningún deploy vigente lee esta env var, el desfile la horneará al buildear el merge. Fallback hostname (B2 del análisis del acta prelaunch-1) archivado sin uso.
 - [ ] `git checkout staging && git pull origin staging` (post-Fase D).
 - [ ] `git checkout prelaunch-1 && git pull origin prelaunch-1`
 - [ ] **FF-check**: `git log --oneline prelaunch-1..staging` — esperado NO vacío (staging tiene producto-1 + zonab-1 + producto-2, prelaunch-1 forkeó de staging pre-desfile). **Merge normal esperado**.
@@ -149,7 +149,7 @@ git push origin staging
 - [ ] Los 4 sprints mergeados a staging sin issues (producto-1 + zonab-1 + producto-2 + prelaunch-1, o alternativa vía sweeps para prelaunch-1).
 - [ ] Suite full verde en el SHA final de staging (baseline post-desfile: 58 tests producto-2 + 1 nuevo prelaunch-1 = 59, si prelaunch-1 se mergea).
 - [ ] Cero smokes rotos en preview staging.
-- [ ] **Cabo #2 cerrado** con evidencia (env var `NEXT_PUBLIC_APP_ENV=production` verificada en scope Production).
+- [x] **Cabo #2 cerrado** con evidencia (env var `NEXT_PUBLIC_APP_ENV=production` creada 2026-08-04 en scope Production del proyecto `pawnecta-landing-mvp`, sin redeploy requerido — el desfile la hornea al buildear el merge de prelaunch-1).
 - [ ] PO da GO explícito de promoción a prod (esto NO es automático post-merge staging — el desfile puede terminar en staging si PO quiere validar más tiempo).
 
 **Ejecución**:
@@ -205,7 +205,26 @@ git commit --no-edit
 
 **Sorpresa desactivada**: cero decisión nueva en el momento del merge.
 
-### Cabo #2 — Gate PL2 condicionado a env var `NEXT_PUBLIC_APP_ENV=production` (Fase D-bis, PRE-DECLARADO por PO 2026-08-04)
+### Cabo #2 — Gate PL2 condicionado a env var `NEXT_PUBLIC_APP_ENV=production` (Fase D-bis, PRE-DECLARADO por PO 2026-08-04) — **CERRADO 2026-08-04 por caso (b)**
+
+**Resolución final**: caso (b) confirmado (la env var NO existía en scope Production, confirmando sospecha del repaso del 30-jul). Aldo eligió **opción B1 — creación con ritual P4 adaptado**:
+
+- Key: `NEXT_PUBLIC_APP_ENV`
+- Value: `production`
+- Scope: SOLO Production (no Preview ni Development)
+- Sensitivity: no-sensitive (legible a futuro para verificación por dashboard)
+- Proyecto: `pawnecta-landing-mvp` (scope de proyecto, no team-shared — hubo primer intento team-shared que se borró y re-creó en proyecto para mantener consistencia con el resto de env vars del proyecto).
+- Updated timestamp: 2026-08-04.
+
+**Adaptación P4 aplicada**: SIN redeploy requerido en este caso. El consumidor de la env var es el bundle client generado por el build de prod, y el próximo build de prod ocurrirá al mergear prelaunch-1 hasta main (Fase E). Ningún deploy vigente lee `NEXT_PUBLIC_APP_ENV` — la env var quedó "durmiente" hasta el desfile. El build del merge la horneará al bundle client automáticamente. El smoke prod post-Fase E (`curl https://www.pawnecta.com/explorar` con consent aceptado → grep `googletagmanager.com/gtag/js`) es el momento canónico de verificación runtime end-to-end.
+
+**Fallback hostname (opción B2 del análisis)**: archivado sin uso. Queda documentado en el acta prelaunch-1 como referencia por si algún día la env var se pierde y se prefiere una señal client-side sin dependencia de configuración Vercel.
+
+**Merge de prelaunch-1 DESBLOQUEADO** por este cabo. El único gate restante del desfile completo vuelve a ser el original: cierre limpio del monitor N15 jueves ~15:00 CLT.
+
+---
+
+**HISTÓRICO (para trazabilidad del análisis pre-cierre — no aplicar)**:
 
 **Situación**: el gate de PL2 (fix del bug de contaminación de GA) asume que la env var `NEXT_PUBLIC_APP_ENV=production` existe en el scope **Production** de Vercel. En el repaso del 30-jul quedó como 'no visible'. Si NO existe (o vale distinto de `'production'`) → `IS_PROD_CLIENT === false` en prod → `GA_TRACKING_ID === null` → **GA muere silencioso en prod al mergear** (modo de falla INVERSO al bug que arreglamos: en vez de contaminar staging, apaga tracking real en prod).
 
