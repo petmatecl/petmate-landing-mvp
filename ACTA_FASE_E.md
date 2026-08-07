@@ -137,8 +137,13 @@ Abrir Google Analytics → **Tiempo Real** → esperar la primera visita post-de
 - [ ] **ITEM 2 — Crons**: los 6 crons ejecutan sáb/dom sin regresión. Especial atención a `/api/cron/recordatorio-reserva` (refactor claim-then-send del Sweep #1) — `[cron-drift-summary]` en logs debe mostrar `claimsPerdidosTutor: 0` + `claimsPerdidosProveedor: 0` (o valores bajos si algún race real ocurre, sin duplicates enviados).
 - [ ] **ITEM 3 — Resend Dashboard**: delivery + bounce sin cambios vs baseline. Especial: cero duplicate emails de recordatorio (prevención del claim-then-send).
 - [ ] **ITEM 4 — Bandeja soporte** (`petmatecl@gmail.com`, canal real hoy): cero tickets nuevos "no puedo entrar" / "página rota" / "recibí email raro". BONUS: primera visita real en GA Tiempo Real (gate PL2 lado positivo).
+- [ ] **ITEM 5 — Re-medición sábado post-Fase E2** (ampliación PO 2026-08-07 noche tras Fase E2 perf-1): re-correr Chrome DevTools MCP performance trace sobre `/servicio/{id}` desktop en prod (mismo tooling que la baseline y que la tabla ex-post de la Fase E2) para confirmar el efecto **H1 preload LCP con server warm sostenido**. Contexto: durante la Fase E2 el server estaba en cold-start progresivo post-deploy (pasada 1→2→3 TTFB: 3241→2395→1973ms) — el fix técnico del preload aterrizó (Load delay 2192→14ms = -99%) pero el LCP total quedó enmascarado por TTFB dominante. Post-tráfico organic del sábado (Vercel Fluid Compute + Cold Start Prevention Pro estabilizan ~1-2h post-deploy), el LCP frío de ficha debería estar **muy por debajo de los 2420ms históricos** de la baseline. Método: navegar `https://www.pawnecta.com/servicio/c1000001-0000-4000-8000-000000000003` en Chrome DevTools MCP + `performance_start_trace` + reportar LCP + TTFB + CLS + comparar con baseline 2420/65/0.00 y Fase E2 warm 2127/1973/0.02. **Entregable**: resumen breve al chat con los 3 números y veredicto H1 neto (confirmada/parcial). Sin código; solo medición.
 
-**Sweep #2 (~2h, 10 mediums quirúrgicos)**: se agenda **post-monitor lunes** o **sábado si el PO lo gatilla antes**. Prioridad de M1 (focus regresión zonab-1 modales) y M2 (ReviewModal X sin disabled) como quick wins del batch.
+**Sprint PERF-2 candidato micro (~15 min)**: agregar `width`/`height` al `<img>` hero ficha para cerrar el CLS 0.02 leve post-Fase E2. Ver `BACKLOG.md > Sprint PERF-2`. Gatillo PO.
+
+**Sweep #3 (~4h opcional pre-launch)**: deep refactor — M4 admin 4 modales useModalDialog + M10 cron consume resolvers + 8 perf/simplification cleanup mis-solicitudes/sitemap + F2 semántica post-GO PO (M6 ya cerrado por decisión del PO opción C). Gatillo PO.
+
+**Batch pre-launch**: ANALYTICS-1 + SENTRY-1 + EMAIL-CONTACTO-1 + phase-out ejemplos gradual + eventualmente HOME-1 si PO reactiva su dirección. Gatillo PO cuando cierre la conversación de lanzamiento.
 
 ## 8. Estado final
 

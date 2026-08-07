@@ -271,6 +271,35 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 
 **Slot recomendado**: **post-launch** por default (baseline ya es sana; H1 borderline es el único caso de "posible frustración user"). Si PO decide pre-launch, arrancar por Bucket A (~1h, quick win, alto ROI).
 
+**Estado post-Fase E2 (2026-08-07)**: **PERF-1 CERRADO — Buckets A + C en producción** (`main = 6ecd2b3`). Ver `ACTA_SPRINT_PERF-1.md` sección 10 con tabla comparativa canónica prod-vs-prod. Buckets B (mobile Agentic Browsing) + D (Vercel Speed Insights monitoring) siguen candidatos, gatillo PO.
+
+### Sprint PERF-2 — micro-candidato CLS ficha (~5 min, gatillo PO)
+
+**Origen**: en las mediciones post-Fase E2 del Sprint PERF-1 (2026-08-07), la ficha desktop mostró CLS `0.00 → 0.01-0.02` (leve, verde — umbral good ≤0.10). El resto de páginas preservó CLS 0.00 ✅.
+
+**Causa probable**: el preload + `fetchpriority="high"` del hero de ficha (Bucket A del PERF-1) acelera la descarga de la image, y las **intrinsic dimensions** de la image se aplican en un frame diferente al container. Cuando el image decode termina, hay un shift mínimo si el container reserva height por CSS pero no comunica aspect ratio al browser desde el HTML.
+
+**Fix propuesto**: agregar `width` y `height` attributes al `<img>` del hero en `components/Servicio/ServiceDetailView.tsx:682`:
+
+```tsx
+<img
+    src={service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage}
+    alt={...}
+    width={800}   // aspect ratio de la galería típica (ver dimensiones reales que uses)
+    height={600}  // (ratio ~4:3 aprox; ajustar al que renderea con object-cover)
+    className="w-full h-full object-cover ..."
+    ...
+/>
+```
+
+El browser usa `width/height` para calcular aspect ratio ANTES del decode → reserva el espacio correcto desde el HTML → cero shift. Combinado con `object-cover` del CSS, el visual no cambia (el image sigue llenando el container).
+
+**Verificación**: re-correr las 12 mediciones perf post-fix → esperado CLS ficha desktop `0.02 → 0.00`.
+
+**Esfuerzo**: ~5 min código + ~10 min verificación = **~15 min total**.
+
+**Slot recomendado**: siguiente vez que se toque la ficha por otro motivo, o cuando el PO gatille un mini-sweep de "afinado de CLS". No urgente (verde ≤ 0.10).
+
 ### Lanzamiento — decisiones operativas
 
 #### Phase-out de servicios "Ejemplo" (decisión PO 2026-08-04)
