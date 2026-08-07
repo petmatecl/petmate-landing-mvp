@@ -312,3 +312,60 @@ Sugerencia para el `MINI_CHECKLIST_COLA_MERGES.md`:
 - **Fusión en sweeps del jueves** si el mini-checklist absorbe mejor (superficies chicas + spec pequeño + cero dependencia con las otras 3 ramas).
 
 Ambas opciones son operativamente equivalentes — el equipo decide en el momento del checklist según ordering de conflicts de `BACKLOG.md`/`CLAUDE.md` que puedan aparecer.
+
+## Anexo P5 — Fase D-bis del desfile (merge `prelaunch-1 → staging` ejecutada 2026-08-07)
+
+**SHA pre-merge staging**: `f32785c` (post-Fase D con producto-2 mergeado).
+**SHA post-merge staging**: `fa7006c` (merge commit no-FF).
+**Ejecutor**: Claude, guard P3 verificado.
+
+**FF-check pre-merge**: 10 commits en staging que prelaunch-1 no tenía → no-FF esperado.
+
+**Cabo #1 disparado como pre-declarado**: conflict en `playwright.config.ts`. Resolución prescrita aplicada sin re-consulta:
+```bash
+git checkout staging -- playwright.config.ts
+```
+Verificación post-resolución:
+- `assertBaseUrlIsNotProd` (PR0 deny-list) presente: 3 ocurrencias ✅
+- `assertBaseUrlIsStaging` (whitelist viejo de prelaunch-1): 0 ✅
+- Token `prelaunch` (whitelist ampliada temporal): 0 ✅
+
+La deny-list de PR0 ganó como prescrito. El resto del sprint (PL1 fixes en `pages/servicio/[id].tsx` + `pages/sitemap.xml.tsx`, PL2 gate en `lib/gtag.ts`, `.gitignore`, spec `e2e/specs/prelaunch-1/s1-servicio-404.spec.ts`, acta) mergeó cero conflictos.
+
+**Cabo #2 aterrizado**: `NEXT_PUBLIC_APP_ENV=production` fue creada por Aldo en Vercel Dashboard el 2026-08-04. Sin redeploy requerido (nota P4 adaptada) — el gate PL2 se hornea recién en el build del merge a main (Fase E futura). El bundle preview de staging con Cabo #1 resuelto sigue evaluando `IS_PROD_CLIENT === false` en runtime (staging `VERCEL_ENV=preview`) → `GA_TRACKING_ID === null` → **gtag NO se carga en preview** (verificado abajo).
+
+**Build P1 local exit 0** post-Cabo #1.
+
+**Preview Vercel staging Ready** al primer poll (attempt 1, code 200).
+
+**Smoke runtime en staging con cookie jar** (bypass Vercel Deployment Protection):
+
+- **PL1-B1**: `GET /servicio/00000000-0000-0000-0000-000000000000` (sin `-L`, HEAD request separado se descartó por confusión con el handshake 307→200 del bypass):
+  ```
+  HTTP/1.1 404 Not Found
+  ```
+  ✅ El gSSP retorna 404 (no redirect 307 a /explorar). PL1-B1 aterrizado y funcional.
+- **PL1-C**: `GET /sitemap.xml`:
+  ```
+  Content-Type: text/xml, XML válido
+  Total <loc>: 32 (15 servicios + 17 proveedores)
+  ```
+  ✅ Filtro proveedor aprobado activo — mismo count que en preview prelaunch-1 (staging Supabase = idéntico dataset). PL1-C aterrizado.
+- **PL2 gate GA runtime**: `GET /explorar`:
+  ```
+  grep "googletagmanager.com/gtag/js"  → 0 matches
+  grep "SCNG5J67E9"                    → 0 matches
+  ```
+  ✅ Bundle client + SSR ambos sin scripts GA. Gate PL2 aterrizado.
+
+**Suite full contra staging (SHA `fa7006c`)** — **corrida dual por protocolo flakiness ambient**:
+
+- **Corrida 1**: `62 passed + 1 failed (43.5s), EXIT=1`. El único fail es `producto-1/s1-badge-reserva-online:74` (falló también en retry #1) — el **known-flaky documentado** como deuda light en `ACTA_SPRINT_PRODUCTO-1.md` (flaky en Fase B, Fase C y ahora Fase D-bis con doble hit por carga preview cold-start).
+- **Diagnóstico aislado**: `npx playwright test producto-1/s1-badge-reserva-online.spec.ts` → **2/2 verde en 6.9s exit 0**. Flakiness ambient confirmado.
+- **Corrida 2 confirmatoria**: `62 passed + 1 flaky (33.4s), EXIT=0`. El único flaky sigue siendo el known-flaky (esta vez retry verde).
+
+**Total 63 tests** (62 passed + 1 flaky = 63): baseline post-Fase D era 62 + 1 spec nuevo de prelaunch-1 (`s1-servicio-404.spec.ts`). El spec PL1 nuevo pasó ambas corridas — confirmando por Playwright lo mismo que el smoke curl (404 en `/servicio/{uuid-cero}`).
+
+**Cleanup MCP staging post-suite**: `0 [TEST-%` + `0 e2e-%` verificado.
+
+**FASE D-bis CERRADA — 2026-08-07. DESFILE COMPLETO EN STAGING.** Los 4 carros aterrizaron sin regresión. Único gate restante para promoción a main: Auditoría #2 + sweeps (bloqueo explícito del PO, `MINI_CHECKLIST_COLA_MERGES.md` Fase E condicional).
