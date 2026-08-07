@@ -10,6 +10,7 @@ import {
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from "../lib/comunas";
+import { trackEvent } from "../lib/gtag";
 
 const CATEGORIA_ICONS: Record<string, React.ElementType> = {
   veterinario: Stethoscope,
@@ -122,6 +123,14 @@ export default function RegisterWizard() {
       setRol(queryRol as Role);
       // Skip step 1 and go directly to step 2
       setStep(2);
+    }
+    // Sprint ANALYTICS-1: registro_proveedor_iniciado — captura TODOS los
+    // caminos de arribo con intent proveedor en un solo punto (CTAs del
+    // Header × 2, Footer, ServicePlaceholderCard "Publica gratis", direct
+    // URL, etc). Fire una vez cuando router está ready + rol=proveedor.
+    // Gate PL2: no-op en staging/preview/dev.
+    if (queryRol === 'proveedor') {
+      trackEvent('registro_proveedor_iniciado');
     }
   }, [router.isReady, router.query.rol]);
 
@@ -244,6 +253,14 @@ export default function RegisterWizard() {
           throw new Error('Demasiados intentos. Espera un momento antes de intentar nuevamente.');
         }
         throw new Error(signupData.error || 'Error al crear la cuenta.');
+      }
+
+      // Sprint ANALYTICS-1: registro_proveedor_completado — ⭐ KEY EVENT
+      // del funnel oferta. Fire SOLO post-success + rol=proveedor. Users
+      // tutores completan signup pero no cuentan en esta conversion (métrica
+      // aparte). Gate PL2: no-op en staging/preview/dev.
+      if (rol === 'proveedor') {
+        trackEvent('registro_proveedor_completado');
       }
 
       // 2. Move to Success Screen (welcome email is sent server-side)

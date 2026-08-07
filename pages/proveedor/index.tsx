@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import { getProxyImageUrl } from '../../lib/utils';
+import { trackEvent } from '../../lib/gtag';
 import { useProveedorStats } from '../../lib/useProveedorStats';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
@@ -966,6 +967,10 @@ export default function ProveedorDashboard() {
             if (saveErr) throw saveErr;
             setVerificacionEstado('pendiente');
             setRutInput(formatted);
+            // Sprint ANALYTICS-1: verificacion_enviada — trigger canónico del
+            // funnel oferta. Post-success del submit del wizard verificación
+            // (carnet front+dorso + RUT). Gate PL2: no-op en no-prod.
+            trackEvent('verificacion_enviada');
             toast.success('Solicitud de verificación enviada. Revisaremos en 24-48h.');
         } catch (err: any) {
             toast.error(err.message || 'Error al enviar verificación');

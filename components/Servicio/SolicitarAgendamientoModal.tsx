@@ -28,6 +28,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { Calendar, X, Loader2, MapPin, Home, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useModalDialog } from '../../lib/useModalDialog';
+import { trackEvent } from '../../lib/gtag';
 import {
     esCategoriaMultiDia,
     esModalidadValida,
@@ -784,6 +785,10 @@ export default function SolicitarAgendamientoModal({
                         });
                 }
 
+                // Sprint ANALYTICS-1: reserva_confirmada — ⭐ KEY EVENT del
+                // funnel demanda (parte de "conexiones semanales"). Familia F2
+                // (picker de rango de noches con capacidad_snapshot_estadia).
+                trackEvent('reserva_confirmada', { familia: 'F2' });
                 toast.success('Reserva confirmada. El proveedor recibirá el aviso por email.', {
                     action: {
                         label: 'Ver mis reservas',
@@ -960,6 +965,10 @@ export default function SolicitarAgendamientoModal({
                         });
                 }
 
+                // Sprint ANALYTICS-1: reserva_confirmada — ⭐ KEY EVENT del
+                // funnel demanda (parte de "conexiones semanales"). Familia F1
+                // (picker de slots con duracion_min + capacidad_snapshot).
+                trackEvent('reserva_confirmada', { familia: 'F1' });
                 toast.success('Reserva confirmada. El proveedor recibirá el aviso por email.', {
                     action: {
                         label: 'Ver mis reservas',
@@ -1198,6 +1207,10 @@ export default function SolicitarAgendamientoModal({
                     });
             }
 
+            // Sprint ANALYTICS-1: solicitud_enviada — flujo viejo (V1/V2/V4)
+            // que nace estado='pendiente' (default sin picker F1/F2). No es
+            // key event pero cuenta la señal de intent del funnel demanda.
+            trackEvent('solicitud_enviada');
             toast.success('Solicitud enviada. El proveedor te responderá pronto.', {
                 action: {
                     label: 'Ver mis reservas',

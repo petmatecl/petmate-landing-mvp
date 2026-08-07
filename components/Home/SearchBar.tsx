@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { Search, MapPin, LayoutGrid, ChevronDown } from 'lucide-react';
 
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
+import { trackEvent } from '../../lib/gtag';
 
 const CATEGORIAS = [
     { slug: 'cuidado', label: 'Cuidado y Hospedaje' },
@@ -85,6 +86,13 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
         const query: Record<string, string> = {};
         if (categoria) query.categoria = categoria;
         if (finalComuna) query.comuna = finalComuna;
+        // Sprint ANALYTICS-1: busqueda_realizada — trigger canónico del funnel
+        // demanda. Params {categoria, comuna} según taxonomía PO. Gate PL2:
+        // no-op silencioso en staging/preview/dev.
+        trackEvent('busqueda_realizada', {
+            categoria: categoria || '(sin_categoria)',
+            comuna: finalComuna || '(sin_comuna)',
+        });
         router.push({ pathname: '/explorar', query });
     };
 

@@ -1,10 +1,12 @@
 import { GetServerSideProps } from 'next';
+import { useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
 import { fetchProveedoresPublicosByIds } from '../../lib/supabase/queries/proveedoresPublicos';
 import { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServiceDetailView from '../../components/Servicio/ServiceDetailView';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
+import { trackEvent } from '../../lib/gtag';
 
 interface ServiceDetailProps {
     service: any;
@@ -19,6 +21,19 @@ interface ServiceDetailProps {
 export default function ServicioPage(props: ServiceDetailProps) {
     const isExample = props.service?.proveedores?.es_ejemplo === true;
     useTrackVisit('servicio', props.service?.id, props.service?.proveedores?.auth_user_id);
+    // Sprint ANALYTICS-1: ficha_vista — trigger canónico del funnel demanda,
+    // params {servicio_id, categoria} según taxonomía PO. Fire una vez al
+    // mount de la ficha (que el gSSP ya resolvió → service.id existe).
+    // Servicios EJEMPLO NO cuentan (data ruidosa para el dashboard prod).
+    // Gate PL2: no-op silencioso en staging/preview/dev.
+    useEffect(() => {
+        if (isExample) return;
+        if (!props.service?.id) return;
+        trackEvent('ficha_vista', {
+            servicio_id: props.service.id,
+            categoria: props.service.categorias_servicio?.slug || '(desconocida)',
+        });
+    }, [isExample, props.service?.id, props.service?.categorias_servicio?.slug]);
     return <ServiceDetailView {...props} isExample={isExample} />;
 }
 

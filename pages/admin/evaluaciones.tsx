@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import RoleGuard from '../../components/Shared/RoleGuard';
+import { trackEvent } from '../../lib/gtag';
 import {
     ArrowLeft, Search, Star, MessageSquareWarning,
     CheckCircle2, XCircle, Clock, ShieldCheck, Filter, UserIcon, AlertTriangle
@@ -131,6 +132,10 @@ function GestionEvaluaciones() {
         try {
             const { error } = await supabase.from('evaluaciones').update({ estado: 'aprobado' }).eq('id', id);
             if (error) throw error;
+            // Sprint ANALYTICS-1: resena_publicada — trigger canónico del
+            // funnel demanda cuando el admin aprueba una reseña que ahora
+            // aparece públicamente en el catálogo. Post-success del UPDATE.
+            trackEvent('resena_publicada');
             toast.success("Evaluación aprobada y publicada");
             fetchEvaluaciones();
         } catch (error) {

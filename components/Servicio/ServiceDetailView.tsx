@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getProxyImageUrl } from '../../lib/utils';
+import { trackEvent } from '../../lib/gtag';
 
 // Sprint 4 Fase 1: el mapa local DETALLE_LABELS desaparecio. La fuente unica
 // de labels/tipos por (categoria, key) vive en lib/camposPorCategoria.ts; el
@@ -238,6 +239,16 @@ export default function ServiceDetailView({
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.access_token) return;
+            // Sprint ANALYTICS-1: contacto_iniciado — ⭐ KEY EVENT del funnel
+            // demanda, parte de la métrica norte "conexiones semanales".
+            // Params {canal} según taxonomía PO: chat|whatsapp|telefono.
+            // Mapping desde el enum interno canal: mensaje→chat, whatsapp,
+            // llamada→telefono. email_copiado pasa tal cual (canal extra
+            // fuera del trío principal pero aporta señal útil).
+            const canalNormalizado = canal === 'mensaje' ? 'chat'
+                : canal === 'llamada' ? 'telefono'
+                : canal;
+            trackEvent('contacto_iniciado', { canal: canalNormalizado });
             fetch('/api/contactos/track', {
                 method: 'POST',
                 headers: {

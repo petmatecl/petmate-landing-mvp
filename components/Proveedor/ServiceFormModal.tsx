@@ -8,6 +8,7 @@ import { useUser } from '../../contexts/UserContext';
 import { categoriaAdmiteAgendaF1, esCategoriaMultiDia, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
 import { nochesEntre } from '../../lib/formatFecha';
 import { useModalDialog } from '../../lib/useModalDialog';
+import { trackEvent } from '../../lib/gtag';
 
 // Fase 1 agenda con disponibilidad real — Incremento 2A.
 // Constantes del editor semanal. Duracion en minutos: opciones canonicas
@@ -900,6 +901,22 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     return false;
                 }
                 savedServicioId = inserted?.id ?? null;
+                // Sprint ANALYTICS-1: servicio_publicado — ⭐ KEY EVENT del
+                // funnel oferta. Solo INSERT (no UPDATE — editar servicio
+                // existente no es una "publicación nueva"). Post-success del
+                // INSERT en servicios_publicados. Gate PL2: no-op en no-prod.
+                trackEvent('servicio_publicado');
+                // Sprint ANALYTICS-1: agenda_activada — trigger del funnel
+                // oferta cuando el servicio nuevo tiene F1 (duracion_slot_min
+                // NOT NULL) o F2 (capacidad_estadia NOT NULL) al momento del
+                // publish. Semáforos canónicos del payload construido arriba.
+                const tieneAgendaF1 = payload.duracion_slot_min != null;
+                const tieneAgendaF2 = payload.capacidad_estadia != null;
+                if (tieneAgendaF1 || tieneAgendaF2) {
+                    trackEvent('agenda_activada', {
+                        familia: tieneAgendaF2 ? 'F2' : 'F1',
+                    });
+                }
             }
 
             // F1 agenda: diff quirurgico de franjas semanales. Aplicamos
