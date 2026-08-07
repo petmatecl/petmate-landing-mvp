@@ -155,7 +155,14 @@ B1 guard.ts (15m) + B2 sitemap.xml.tsx (20m) + B3 puedeCancelarPorVentana (5m) +
 
 **Merge de Fase E BLOQUEADO hasta cierre limpio de este sweep** — criterio adicional al `MINI_CHECKLIST_COLA_MERGES.md`.
 
-### Sweep #2 — MEDIUMS quirúrgicos (~2h)
+### Sweep #2 — PEDIDO PO + MEDIUMS quirúrgicos (~3h)
+
+**Actualizado 2026-08-07 tras corrección de proceso del PO** — alcance ampliado con el pedido explícito del PO 2026-07-31 (íconos por campo en "Información del servicio") migrado a `BACKLOG.md > PEDIDOS DIRECTOS DEL PO` y asignado como **PRIMER ítem del sweep, ANTES de los 10 mediums**. Ver también la práctica operativa nueva en `CLAUDE.md > Workflow > Pedidos directos del PO`.
+
+**Ítem 0 — Íconos específicos por campo (`camposPorCategoria` + `renderCampoCard`)** — ~1h.
+Fix del `···` genérico en las fichas de servicio: agregar `icon?: LucideIcon` a cada entrada del `lib/camposPorCategoria.ts` según el mapa direccional de la sección `PEDIDOS DIRECTOS DEL PO` (Clock/PawPrint/MapPin/Trees/Scale/Cake/Users/Video/Navigation/Camera/Car/Award/Stethoscope/Home). Fallback `MoreHorizontal` solo para campos futuros sin mapeo. Consumir en `components/Servicio/ServiceDetailView.tsx:1094-1103` reemplazando el SVG inline. **Criterio de cierre**: cero `···` visibles en las fichas de todas las categorías actuales (hospedaje, guardería, paseos, peluquería, adiestramiento, veterinario, traslado, cuidado, etología, retratos) verificable con smoke visual por cada categoría.
+
+**Los 10 mediums quirúrgicos ordenados por costo** (~2h):
 M1 focus regresión 3 modales (45m) + M2 X sin disabled 2 modales (10m) + M3 uploadingFotos (2m) + M5 volverASolicitar session check (10m) + M7 img proxy (3m) + M8 duracion_horas falsy-0 (2m) + M9 fallback copy (2m) + M11 footer (10m) + M12 CATS etologia (2m) + tests.
 
 ### Sweep #3 — Deep refactor (~4h, opcional pre-launch)

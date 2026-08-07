@@ -1,5 +1,32 @@
 # Pawnecta — Backlog
 
+## PEDIDOS DIRECTOS DEL PO
+
+**Convención**: todo pedido explícito de Aldo (verbal en chat, en actas, en instrucciones de sprint) vive acá con su fecha de pedido, estado, y referencia técnica al ítem original en secciones más profundas del backlog. Esta sección se lee **PRIMERO** al armar cualquier menú de "¿con qué seguimos?" o alcance de sprint/sweep — ver también la práctica operativa nueva en `CLAUDE.md > Workflow`.
+
+**Estados posibles**: `abierto` · `asignado a <sprint/sweep>` · `en curso <sha>` · `cerrado <fecha> <sha>`.
+
+Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trabajo (producto-1 + zonab-1 + producto-2 + prelaunch-1 + auditoría + sweep #1), un pedido textual del PO del 31-jul quedó enterrado en la sección técnica de deuda P3 y no llegó a ejecutarse pese a 4 sprints + auditoría + sweep intermedios. La sección es el fix estructural para que eso no vuelva a pasar — pedidos del PO son prioridad por defecto sobre deuda técnica equivalente.
+
+- **[abierto — asignado a Sweep #2 como PRIMER ítem] Íconos específicos por campo en "Información del servicio"** — pedido de PO **2026-07-31** (detectado en el smoke S2 del tren N15). Los campos dinámicos del `/servicio/[id]` renderean todos con el mismo placeholder `···` (SVG inline de 3 círculos). Fix: agregar `icon?: LucideIcon` a cada entrada de `lib/camposPorCategoria.ts` + consumirlo en `renderCampoCard` de `components/Servicio/ServiceDetailView.tsx:1094-1103` + fallback `MoreHorizontal` (Lucide) solo para campos futuros sin mapeo. Mapa direccional según veredicto N6:
+  - **Duración** (`duracion_min`, `duracion_horas`) → `Clock`
+  - **Razas** (`razas_grandes`, `razas_especiales`, `razas_fuerza`) → `PawPrint` (o `Bone` si existe)
+  - **Radio / cobertura / zona** → `MapPin`
+  - **Parque / lugar** → `Trees` (o `TreePine`)
+  - **Peso** → `Scale`
+  - **Edad** → `Cake`
+  - **Capacidad** → `Users`
+  - **Cámara / vigilancia** → `Video` (o `Camera`)
+  - **GPS** → `Navigation`
+  - **Fotos / reporte visual** → `Camera` (o `ImagePlus`)
+  - **Vehículo** → `Car`
+  - **Certificación / diploma** → `Award`
+  - **Especialidad médica** → `Stethoscope`
+  - **Modalidad** → `Home` / `Monitor` / `Building` según valor
+  - **Fallback** → `MoreHorizontal` (Lucide) — coherente con el set del proyecto.
+
+  **Criterio de cierre**: cero `···` visibles en las fichas de las categorías actuales con sus campos estándar. Verificable con smoke visual en `/servicio/{id}` por cada categoría (hospedaje, guardería, paseos, peluquería, adiestramiento, veterinario, traslado, cuidado, etología, retratos). Referencia técnica: sección `## Deuda técnica / pulido` (línea original que se mantiene con puntero → esta sección).
+
 ## Producto (features nuevas)
 
 ### Retratos de Mascotas — CERRADA EN PROD
@@ -303,7 +330,7 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 
 - **[P3, UX copy] Fallback "Se coordina por chat con {tutor}" en email de cancelación**. `pages/api/agendamientos/notify-proveedor-cancel.ts:147` cae al fallback `Se coordina por chat con ${tutor?.nombre || 'el tutor'}` cuando `resolverDonde` no matchea (sin dirección estructurada y sin `comunas_cobertura` — raro pero posible). El copy "Se coordina" es futuro, pero el email es sobre una reserva CANCELADA — la coordinación ya no aplica. Copy alternativo: `"Sin dirección registrada"` o `"No aplica (reserva cancelada)"`. Detectado por canónico xhigh (ángulo removed-behavior) en smoke pre-jueves 2026-08-04. Ripple: verificar el mismo fallback en los 3 templates hermanos por si aplica el mismo ajuste semántico contextual (ej. `notify-tutor.ts` con estado=rechazada tampoco debería decir "se coordina").
 
-- **[P3 UX producto] Íconos específicos por campo en "Información del servicio" (`camposPorCategoria`)**. Detectado en el smoke S2 del tren N15 (2026-07-31): los campos dinámicos de la sección "Información del servicio" del `/servicio/[id]` renderean todos con el mismo placeholder `···` (SVG inline de 3 círculos horizontales) — pre-existente, no regresión del bump. Ver [components/Servicio/ServiceDetailView.tsx:1102-1104](components/Servicio/ServiceDetailView.tsx#L1102-L1104): el `renderCampoCard` usa un SVG genérico para todos los campos no-boolean (los boolean sí tienen checkmark). Fix natural: agregar campo `icon` a la definición de cada entrada en `lib/camposPorCategoria.ts` (probablemente un `LucideIcon`) y consumirlo en `renderCampoCard`, con fallback al `···` actual. Cada campo puede tener el ícono semánticamente correcto (peso → `Scale`, edad → `Cake`, distancia → `MapPin`, etc.). Sprint chico post-merge N15 o cuando toque revisar la ficha de servicio.
+- **[P3 UX producto] Íconos específicos por campo en "Información del servicio" (`camposPorCategoria`)** — **MIGRADO a `## PEDIDOS DIRECTOS DEL PO` al tope del backlog** (2026-08-07). Es pedido explícito del PO desde 2026-07-31 con mapa direccional aprobado; asignado a Sweep #2 como PRIMER ítem antes de los 10 mediums. Detalle técnico original: los campos dinámicos del `/servicio/[id]` renderean todos con el mismo placeholder `···` — ver [components/Servicio/ServiceDetailView.tsx:1094-1103](components/Servicio/ServiceDetailView.tsx#L1094-L1103) el `renderCampoCard` con SVG genérico para no-boolean; fix es agregar `icon?: LucideIcon` a cada entrada de `lib/camposPorCategoria.ts` + consumirlo con fallback `MoreHorizontal`.
 
 - **[P3, refactor guarda anti-prod Playwright] Migrar `assertBaseUrlIsStaging` de whitelist de hosts (`git-staging` / `staging` / `git-next15`) a deny-list de hosts prod (`pawnecta.com` / `www.pawnecta.com`)**. ✅ **CERRADO 2026-07-31 en PR0 sprint PRODUCTO-1** (rama `producto-1`, commit `4f6a6b0`). Extraída a `e2e/setup/guard.ts` con función renombrada `assertBaseUrlIsNotProd`; deny-list contra `www.pawnecta.com`, `pawnecta.com`, `pawnecta-landing-mvp.vercel.app`; whitelist de forma que acepta cualquier `*-petmatecls-projects.vercel.app`. Test unitario en `e2e/setup/guard.test.ts` (11 casos, 11/11 verde). Suite completa 41/41 verde contra preview `producto-1` sin whitelist por rama. Beneficio: cero mantenimiento por-rama para trenes futuros.
 
