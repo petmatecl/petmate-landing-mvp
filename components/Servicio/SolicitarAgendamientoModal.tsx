@@ -304,6 +304,18 @@ export default function SolicitarAgendamientoModal({
     const [pickerEstError, setPickerEstError] = useState<string | null>(null);
     const [rangoEst, setRangoEst] = useState<DateRange | undefined>(undefined);
     const [rangoEstError, setRangoEstError] = useState<string | null>(null);
+    // ZB2 Dim 6: DayPicker responsive — 2 meses en desktop (≥sm 640px),
+    // 1 en mobile. El fetch ya trae mes+siguiente (ver comentario L292),
+    // solo faltaba que el prop `numberOfMonths` acompañara.
+    const [pickerEstMonths, setPickerEstMonths] = useState(1);
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const mql = window.matchMedia('(min-width: 640px)');
+        const update = () => setPickerEstMonths(mql.matches ? 2 : 1);
+        update();
+        mql.addEventListener('change', update);
+        return () => mql.removeEventListener('change', update);
+    }, []);
 
     // Feature "fichas de mascotas → solicitud":
     // Cargamos las mascotas del tutor logueado al abrir el modal. El selector
@@ -1220,6 +1232,8 @@ export default function SolicitarAgendamientoModal({
         return (
             <button
                 key={mod}
+                role="radio"
+                aria-checked={selected}
                 type="button"
                 onClick={() => setModalidadElegida(mod)}
                 disabled={submitting}
@@ -1239,6 +1253,8 @@ export default function SolicitarAgendamientoModal({
         return (
             <button
                 key={modo}
+                role="radio"
+                aria-checked={selected}
                 type="button"
                 onClick={() => setModoTarifa(modo)}
                 disabled={submitting}
@@ -1334,14 +1350,14 @@ export default function SolicitarAgendamientoModal({
                                     <Loader2 size={20} className="text-slate-400 animate-spin" />
                                 </div>
                             ) : pickerEstError ? (
-                                <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
+                                <div role="alert" aria-live="polite" className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
                                     {pickerEstError}
                                 </div>
                             ) : (
                                 <div className="border border-slate-200 rounded-xl p-2 sm:p-3 bg-white">
                                     <DayPicker
                                         mode="range"
-                                        numberOfMonths={1}
+                                        numberOfMonths={pickerEstMonths}
                                         selected={rangoEst}
                                         onSelect={handleRangeSelectEst}
                                         disabled={isDiaDisabledEst}
@@ -1375,12 +1391,12 @@ export default function SolicitarAgendamientoModal({
 
                             {/* Error inline (rango con dias disabled / fuera de min-max). */}
                             {rangoEstError && (
-                                <p className="mt-3 text-sm text-danger-700 font-medium">
+                                <p role="alert" aria-live="polite" className="mt-3 text-sm text-danger-700 font-medium">
                                     {rangoEstError}
                                 </p>
                             )}
 
-                            <p className="text-xs text-slate-400 mt-3">
+                            <p className="text-xs text-slate-500 mt-3">
                                 La reserva queda confirmada al instante en las noches que elijas.
                             </p>
                         </div>
@@ -1448,13 +1464,15 @@ export default function SolicitarAgendamientoModal({
                                 </div>
 
                                 {/* Strip dias */}
-                                <div className="grid grid-cols-7 gap-1.5 mb-4">
+                                <div role="radiogroup" aria-label="Elige el día" className="grid grid-cols-7 gap-1.5 mb-4">
                                     {strip.map(fecha => {
                                         const count = cuentaDisponibles(fecha);
                                         const isSel = fecha === pickerDiaElegido;
                                         return (
                                             <button
                                                 key={fecha}
+                                                role="radio"
+                                                aria-checked={isSel}
                                                 type="button"
                                                 onClick={() => {
                                                     setPickerDiaElegido(fecha);
@@ -1489,7 +1507,7 @@ export default function SolicitarAgendamientoModal({
                                         ))}
                                     </div>
                                 ) : pickerError ? (
-                                    <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
+                                    <div role="alert" aria-live="polite" className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
                                         {pickerError}
                                     </div>
                                 ) : slotsDelDia.length === 0 ? (
@@ -1501,12 +1519,14 @@ export default function SolicitarAgendamientoModal({
                                         Todos los horarios de este día están ocupados o fuera del plazo de reserva.
                                     </p>
                                 ) : (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    <div role="radiogroup" aria-label="Elige un horario" className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {slotsDelDia.map(s => {
                                             const isSel = slotElegido?.fecha === s.fecha && slotElegido?.hora_inicio === s.hora_inicio;
                                             return (
                                                 <button
                                                     key={`${s.fecha}-${s.hora_inicio}`}
+                                                    role="radio"
+                                                    aria-checked={isSel}
                                                     type="button"
                                                     disabled={!s.disponible || submitting}
                                                     onClick={() => setSlotElegido(s)}
@@ -1525,7 +1545,7 @@ export default function SolicitarAgendamientoModal({
                                         })}
                                     </div>
                                 )}
-                                <p className="text-xs text-slate-400 mt-2">
+                                <p className="text-xs text-slate-500 mt-2">
                                     La reserva queda confirmada al instante en el horario que elijas.
                                 </p>
                             </div>
@@ -1535,10 +1555,10 @@ export default function SolicitarAgendamientoModal({
                     {/* Chip selector — solo cuidado con multiples modalidades */}
                     {!usaPicker && !usaPickerEstadia && requiereChipSelector && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label id="modalidad-cuidado-label" className="block text-sm font-medium text-slate-700 mb-2">
                                 ¿Cómo quieres el cuidado? <span className="text-red-500">*</span>
                             </label>
-                            <div className="flex flex-wrap gap-2">
+                            <div role="radiogroup" aria-labelledby="modalidad-cuidado-label" className="flex flex-wrap gap-2">
                                 {modalidadesValidas.map(renderChipModalidad)}
                             </div>
                         </div>
@@ -1547,10 +1567,10 @@ export default function SolicitarAgendamientoModal({
                     {/* Toggle noches/horas — solo casa_tutor */}
                     {!usaPicker && !usaPickerEstadia && isCuidado && modalidadElegida === 'casa_tutor' && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label id="modo-tarifa-label" className="block text-sm font-medium text-slate-700 mb-2">
                                 ¿Cuánto dura el servicio? <span className="text-red-500">*</span>
                             </label>
-                            <div className="flex gap-2">
+                            <div role="radiogroup" aria-labelledby="modo-tarifa-label" className="flex gap-2">
                                 {renderToggleModo('noches', 'Por noches (estadía multi-día)')}
                                 {renderToggleModo('horas', 'Por horas (un día puntual)')}
                             </div>
@@ -1727,7 +1747,7 @@ export default function SolicitarAgendamientoModal({
                                     placeholder="Ej: Depto 502 torre B, casa interior, timbre 3 veces"
                                     className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
-                                <p className="text-xs text-slate-400 mt-1 text-right">{direccionInfo.length} / {DIRECCION_INFO_MAX_CHARS}</p>
+                                <p className="text-xs text-slate-500 mt-1 text-right">{direccionInfo.length} / {DIRECCION_INFO_MAX_CHARS}</p>
                             </div>
                         </div>
                     )}
@@ -1863,11 +1883,11 @@ export default function SolicitarAgendamientoModal({
                             placeholder="Cualquier info adicional para el proveedor (condiciones, horarios, contexto)."
                             className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors resize-none"
                         />
-                        <p className="text-xs text-slate-400 mt-1 text-right">{mensaje.length} / 500</p>
+                        <p className="text-xs text-slate-500 mt-1 text-right">{mensaje.length} / 500</p>
                     </div>
 
                     {errorMsg && (
-                        <div className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
+                        <div role="alert" aria-live="polite" className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
                             {errorMsg}
                         </div>
                     )}

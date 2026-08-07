@@ -212,6 +212,8 @@ export default function ProveedorApprovalList() {
 
     const TabButton = ({ id, label, count }: { id: AdminTab; label: string; count: number }) => (
         <button
+            role="tab"
+            aria-selected={tab === id}
             onClick={() => setTab(id)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${tab === id
                 ? 'bg-slate-900 text-white font-semibold shadow-sm'
@@ -230,7 +232,7 @@ export default function ProveedorApprovalList() {
     return (
         <div className="space-y-4">
             {/* Tab Selector */}
-            <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl w-fit border border-slate-200">
+            <div role="tablist" aria-label="Cola de verificaciones" className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl w-fit border border-slate-200">
                 <TabButton id="incorporacion" label="Solicitudes de Alta" count={proveedores.length} />
                 <TabButton id="verificacion" label="Verificaciones ID" count={verificaciones.length} />
             </div>
@@ -446,8 +448,8 @@ export default function ProveedorApprovalList() {
                         <p className="text-sm text-slate-500 mb-6">Indica el motivo del rechazo. El usuario recibirá esta información por correo.</p>
                         <form onSubmit={handleRechazar}>
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo *</label>
-                                <textarea value={motivoRechazo} onChange={e => setMotivoRechazo(e.target.value)}
+                                <label htmlFor="approval-motivo-solicitud" className="block text-sm font-semibold text-slate-700 mb-2">Motivo *</label>
+                                <textarea id="approval-motivo-solicitud" value={motivoRechazo} onChange={e => setMotivoRechazo(e.target.value)}
                                     placeholder="Ej: Foto de carnet ilegible, datos incompletos..."
                                     className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-danger-500 outline-none resize-none text-sm" required />
                             </div>
@@ -473,8 +475,8 @@ export default function ProveedorApprovalList() {
                         <p className="text-sm text-slate-500 mb-6">El proveedor verá este mensaje en su dashboard y podrá reenviar su solicitud.</p>
                         <form onSubmit={handleRechazarVerif}>
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo *</label>
-                                <textarea value={notaVerif} onChange={e => setNotaVerif(e.target.value)}
+                                <label htmlFor="approval-motivo-verif" className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo *</label>
+                                <textarea id="approval-motivo-verif" value={notaVerif} onChange={e => setNotaVerif(e.target.value)}
                                     placeholder="Ej: Foto ilegible, carnet vencido, RUT no coincide con la imagen..."
                                     className="w-full h-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-danger-500 outline-none resize-none text-sm" required />
                             </div>

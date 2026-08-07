@@ -1,5 +1,6 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useId, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { useModalDialog } from '../../lib/useModalDialog';
 
 interface ReviewModalProps {
     isOpen: boolean;
@@ -16,6 +17,12 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const titleId = useId();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // ZB1 sprint ZONAB-1: migrado al patrón canónico. Antes no tenía nada
+    // de accesibilidad de dialog. blockClose durante el submit.
+    useModalDialog({ isOpen, onClose, blockClose: isSubmitting, containerRef });
 
     if (!isOpen) return null;
 
@@ -87,12 +94,18 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden relative">
+            <div
+                ref={containerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden relative"
+            >
 
                 {/* Header */}
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                     <div>
-                        <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Deja tu evaluación</h2>
+                        <h2 id={titleId} className="text-xl font-semibold text-slate-900 tracking-tight">Deja tu evaluación</h2>
                         <p className="text-sm text-slate-500 truncate max-w-[300px]">{serviceTitle}</p>
                     </div>
                     {!success && (

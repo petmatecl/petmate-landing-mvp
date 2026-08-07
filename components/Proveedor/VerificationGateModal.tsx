@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Shield, ShieldCheck, ShieldX, Clock, X } from 'lucide-react';
+import { useModalDialog } from '../../lib/useModalDialog';
 
 type VerificacionEstado = 'sin_enviar' | 'pendiente' | 'aprobado' | 'rechazado';
 
@@ -18,39 +19,11 @@ export default function VerificationGateModal({
     verificacionNota,
     onGoToVerification,
 }: VerificationGateModalProps) {
-    const previousFocusRef = useRef<HTMLElement | null>(null);
-    const primaryButtonRef = useRef<HTMLButtonElement>(null);
-    const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!isOpen) return;
-        previousFocusRef.current = document.activeElement as HTMLElement;
-        setTimeout(() => primaryButtonRef.current?.focus(), 0);
-
-        const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                onClose();
-            } else if (e.key === 'Tab') {
-                const focusables = [primaryButtonRef.current, closeButtonRef.current].filter(Boolean) as HTMLElement[];
-                if (focusables.length === 0) return;
-                const first = focusables[0];
-                const last = focusables[focusables.length - 1];
-                if (e.shiftKey && document.activeElement === first) {
-                    e.preventDefault();
-                    last.focus();
-                } else if (!e.shiftKey && document.activeElement === last) {
-                    e.preventDefault();
-                    first.focus();
-                }
-            }
-        };
-        document.addEventListener('keydown', handleKey);
-        return () => {
-            document.removeEventListener('keydown', handleKey);
-            previousFocusRef.current?.focus();
-        };
-    }, [isOpen, onClose]);
+    // ZB1 sprint ZONAB-1: migrado a useModalDialog. Comportamiento
+    // equivalente (Escape cierra, focus-trap, return-focus).
+    useModalDialog({ isOpen, onClose, containerRef });
 
     if (!isOpen) return null;
 
@@ -88,6 +61,7 @@ export default function VerificationGateModal({
         <>
             <div className="fixed inset-0 z-50 bg-black/40" aria-hidden="true" />
             <div
+                ref={containerRef}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="verification-gate-title"
@@ -108,7 +82,6 @@ export default function VerificationGateModal({
                             </div>
                         </div>
                         <button
-                            ref={closeButtonRef}
                             onClick={onClose}
                             aria-label="Cerrar"
                             className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -135,7 +108,6 @@ export default function VerificationGateModal({
                             </button>
                         )}
                         <button
-                            ref={primaryButtonRef}
                             onClick={primaryAction}
                             className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >

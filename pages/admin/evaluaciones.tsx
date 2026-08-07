@@ -266,10 +266,12 @@ function GestionEvaluaciones() {
                     </h3>
                     <div className="flex flex-col lg:flex-row gap-4">
                         {/* Tabs Estado */}
-                        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar lg:border-r lg:border-slate-200 lg:pr-4">
+                        <div role="radiogroup" aria-label="Filtro por estado" className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar lg:border-r lg:border-slate-200 lg:pr-4">
                             {(['todas', 'pendiente', 'aprobado', 'rechazado'] as EstadoReview[]).map(estado => (
                                 <button
                                     key={estado}
+                                    role="radio"
+                                    aria-checked={filtroEstado === estado}
                                     onClick={() => setFiltroEstado(estado)}
                                     className={`px-4 py-2.5 rounded-xl text-sm font-medium capitalize whitespace-nowrap transition-colors border ${filtroEstado === estado
                                         ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
@@ -395,11 +397,17 @@ function GestionEvaluaciones() {
                 </div>
             </div>
 
-            {/* Modal Rechazar Evaluación */}
+            {/* Modal Rechazar Evaluación — ZB1 sprint ZONAB-1: role/aria
+                mínimos. Escape+focus-trap queda como deuda light. */}
             {rechazoModal.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl">
-                        <h3 className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="admin-evaluaciones-rechazar-title"
+                        className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl"
+                    >
+                        <h3 id="admin-evaluaciones-rechazar-title" className="text-xl font-semibold text-slate-900 tracking-tight mb-2 flex items-center gap-2">
                             <XCircle className="text-danger-500" /> Rechazar Evaluación
                         </h3>
                         <p className="text-slate-600 text-sm mb-6">
@@ -407,8 +415,9 @@ function GestionEvaluaciones() {
                         </p>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo</label>
+                            <label htmlFor="admin-evaluaciones-motivo" className="block text-sm font-semibold text-slate-700 mb-2">Motivo del rechazo</label>
                             <textarea
+                                id="admin-evaluaciones-motivo"
                                 className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-danger-500 outline-none resize-none bg-slate-50"
                                 rows={3}
                                 value={motivoRechazo}

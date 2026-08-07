@@ -352,6 +352,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let sentProveedor = 0;
         const failures: Array<{ agendamientoId: string; destinatario: Destinatario; reason: string }> = [];
 
+        // ZB4-b sprint ZONAB-1 — Instrumentación ligera drift de marcas.
+        // Contadores para el summary log al final del handler. Alimentan
+        // observabilidad del ítem BACKLOG "Instrumentar recordatorio-reserva
+        // para diagnóstico de drift" sin bloquear el flow (los conteos son
+        // best-effort, no afectan la lógica de envío).
+        let driftTutor = 0;
+        let driftProveedor = 0;
+
         for (let i = 0; i < elegibles.length; i += SUB_BATCH) {
             const slice = elegibles.slice(i, i + SUB_BATCH);
             const tasks: Array<Promise<void>> = [];
@@ -361,10 +369,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     tasks.push((async () => {
                         try {
                             await enviarRecordatorio(e, 'tutor', supabaseAdmin, siteUrl);
-                            await supabaseAdmin
+                            // ZB4-b: UPDATE condicional NULL — evita sobrescribir
+                            // una marca ya poblada por una ejecución concurrente
+                            // (drift). Si retorna 0 rows, es señal de race o
+                            // idempotencia del filter OR NULL falló.
+                            const { data: updData, error: updErr } = await supabaseAdmin
                                 .from('agendamientos')
                                 .update({ recordatorio_tutor_enviado_at: new Date().toISOString() })
-                                .eq('id', e.agendamientoId);
+                                .eq('id', e.agendamientoId)
+                                .is('recordatorio_tutor_enviado_at', null)
+                                .select('id');
+                            if (updErr) throw updErr;
+                            if (!updData || updData.length === 0) {
+                                driftTutor++;
+                                console.warn('[cron-drift] tutor mark ya poblado antes del UPDATE', {
+                                    agendamientoId: e.agendamientoId,
+                                    servicioId: e.servicioId,
+                                });
+                            }
                             sentTutor++;
                         } catch (err) {
                             failures.push({
@@ -379,10 +401,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     tasks.push((async () => {
                         try {
                             await enviarRecordatorio(e, 'proveedor', supabaseAdmin, siteUrl);
-                            await supabaseAdmin
+                            const { data: updData, error: updErr } = await supabaseAdmin
                                 .from('agendamientos')
                                 .update({ recordatorio_proveedor_enviado_at: new Date().toISOString() })
-                                .eq('id', e.agendamientoId);
+                                .eq('id', e.agendamientoId)
+                                .is('recordatorio_proveedor_enviado_at', null)
+                                .select('id');
+                            if (updErr) throw updErr;
+                            if (!updData || updData.length === 0) {
+                                driftProveedor++;
+                                console.warn('[cron-drift] proveedor mark ya poblado antes del UPDATE', {
+                                    agendamientoId: e.agendamientoId,
+                                    servicioId: e.servicioId,
+                                });
+                            }
                             sentProveedor++;
                         } catch (err) {
                             failures.push({
@@ -399,6 +431,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // éxito o failure. Bounded parallelism = SUB_BATCH tasks.
             await Promise.allSettled(tasks);
         }
+
+        // ZB4-b: summary log al fin del handler. Grepable por
+        // `[cron-drift-summary]` en Vercel Logs para monitoreo del drift.
+        console.log('[cron-drift-summary]', {
+            candidatos: (candidatos || []).length,
+            elegibles: elegibles.length,
+            sentTutor,
+            sentProveedor,
+            driftTutor,
+            driftProveedor,
+            failures: failures.length,
+            timestamp: new Date().toISOString(),
+        });
 
         return res.status(200).json({
             success: true,
