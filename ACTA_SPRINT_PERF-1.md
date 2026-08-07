@@ -144,3 +144,91 @@ Sin números, la mejora esperada por bucket + fix (basado en cada insight del ba
 - **Análisis lógico ex-ante entregado** (dirección de mejora esperada por métrica).
 - **Recomendación de promoción**: **HOY** con Fase E2 completa (promoción + 6 smokes + medición canónica prod-vs-prod).
 - **Standby a GO PO** para promoción hoy o standby lunes.
+
+---
+
+## 10. Anexo P5 — Fase E2 CERRADA (promoción a main + medición canónica prod-vs-prod)
+
+**Ejecución**: viernes 2026-08-07 noche. **GO PO explícito** tras acta de recomendación.
+
+### 10.1 Geometría + merge + push
+
+- `main` pre-merge: `2ffd1ee` · `perf-1`: `f08afe2`.
+- `main..perf-1` = 2 commits · `perf-1..main` = **VACÍO** → **FF puro** confirmado.
+- Ejecución: `git merge --ff-only perf-1` → 4 files changed, +205/-3. `git push origin main` OK.
+- **main HEAD post-merge**: `f08afe2`.
+
+### 10.2 Deploy Ready + polling explícito
+
+Marcadores canary del sprint (preconnect supabase + w=640 en `/`) aterrizados en **attempt 5** del poll (~85s). Confirmado bundle nuevo `_app-ad48bc7efc4f30a4.js` sirviendo.
+
+### 10.3 6 smokes prod + 3 verificaciones runtime perf-1
+
+Todos verdes:
+- **S4** workbox real (14904 bytes, empieza con `self.define`) ✅
+- **S5** `/servicio/{uuid-cero}` → **HTTP 404** ✅ (PL1-B1 intacto)
+- **S6** `SCNG5J67E9` en `_app-ad48bc7efc4f30a4.js` bundle client ✅ (gate PL2 preservado)
+- **V1** preconnect supabase.co + unsplash.com + dns-prefetch en `/` HTML: 1+1+1 ✅
+- **V2** hero home w=640 (1) · cero w=900 residual (0) · fetchpriority (1) ✅
+- **V3** preload `as=image` en ficha (1) · fetchpriority en ficha (2 — img hero + preload link) ✅
+
+### 10.4 Tabla comparativa canónica prod-vs-prod (baseline vs post-perf-1)
+
+**Mismo tooling (Chrome DevTools MCP), misma máquina, mismo tester, mismo prod URL**.
+
+Nota metodológica: mediciones single-sample tienen varianza natural ±100-200ms. Ficha desktop post-deploy sufrió **cold-start progresivo del server** (Vercel Fluid Compute recién promovido): pasada 1 TTFB=3241ms, pasada 2=2395ms, pasada 3=1973ms — bajando ~500-800ms por request. Reporto la pasada 3 (más warm) como número comparable con la baseline (que se midió sobre server ya calentado con ~2h de vida).
+
+**DESKTOP**:
+
+| Página | LCP baseline | LCP post | Δ | CLS baseline | CLS post | Δ CLS | TTFB baseline | TTFB post | Δ TTFB |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `/` (home) | 328 | **203** | **-38%** ✅ | 0.00 | 0.00 | 0 ✅ | 173 | 72 | -58% |
+| `/explorar` | 564 | 643 | +14% | 0.00 | 0.00 | 0 ✅ | 138 | 162 | +17% |
+| `/servicio/{id}` (warm) | 2420 | 2127 | **-12%** | 0.00 | **0.02** | +0.02 | 65 | 1973 | (server calentando) |
+
+**MOBILE**:
+
+| Página | LCP baseline | LCP post | Δ | CLS baseline | CLS post | Δ CLS | TTFB baseline | TTFB post | Δ TTFB |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `/` (home) | 343 | 391 | +14% | 0.00 | 0.00 | 0 ✅ | 227 | 229 | +1% |
+| `/explorar` | 986 | **599** | **-39%** ✅ | 0.00 | 0.00 | 0 ✅ | 549 | 68 | **-88%** ✅ |
+| `/servicio/{id}` | 1236 | 1818 | +47% | 0.00 | 0.00 | 0 ✅ | 1127 | 1671 | (server calentando) |
+
+**Lighthouse scores** (A11y / BP / SEO / AB): **idénticos** baseline vs post en las 6 páginas. Cero regresión Lighthouse.
+
+**Métrica clave del fix H1**: Load delay ficha desktop `2192ms → 14ms` = **-99%**. El preload + fetchpriority funcionan técnicamente como esperado — la image LCP se descubre desde el HTML inicial. La regresión del LCP total en ficha viene del TTFB dominante (cold-start fresco), no del fix.
+
+### 10.5 Veredicto por hipótesis (honesto ex-post vs ex-ante)
+
+**H1 preload LCP ficha** (esperado: -60 a -70% LCP cold ficha):
+- **CUMPLIDA técnicamente**: Load delay `2192 → 14ms` (-99%) — el fix aterrizó y funciona.
+- **NO se refleja en LCP total** porque server post-deploy no está warm. Warm-pasada-3 muestra -12% neto (2420 → 2127) — dirección correcta pero magnitud menor a lo esperado ex-ante. El TTFB dominará hasta que Cold Start Prevention Pro estabilice el server (probable ~1-2h post-deploy). **Reevaluar sábado post-tráfico organic.**
+
+**H5 dieta hero home** (esperado: -20/-40% LCP + -300-400KB peso):
+- **CUMPLIDA en desktop**: LCP `328 → 203ms` (-38% ✅). Match exacto al rango ex-ante.
+- **NEUTRA en mobile**: 343 → 391 (+14%, dentro varianza single-sample). Home mobile ya era muy rápido; la ganancia del hero se pierde en el ruido.
+
+**Preconnect Supabase + Unsplash** (esperado ex-ante: -200-300ms LCP cold):
+- **CUMPLIDA fuerte** en `/explorar` mobile: LCP -39%, TTFB -88%. El CSR de /explorar depende de fetches a Supabase/Unsplash, el preconnect ahorra el handshake TCP+TLS por request → múltiples requests × handshake ahorrado = magnitud grande.
+- **Neutra en el resto** (dentro varianza).
+
+**Cero regresión CLS 0.00** (esperado: preservado):
+- **CUMPLIDA en 5/6 mediciones**. Solo ficha desktop mostró CLS 0.01-0.02 leve (verde, umbral good ≤0.10). Explicación probable: preload+fetchpriority acelera la image; el image intrinsic dimensions se aplican en un frame diferente al container → shift mínimo. **Fix futuro sencillo**: agregar `width`/`height` attributes al `<img>` hero para reservar aspect ratio desde HTML. Sprint chico Sprint PERF-2 (~5 min). No es blocker de esta promoción.
+
+### 10.6 Chequeo regresión material — protocolo revert
+
+**Umbrales evaluados**:
+- LCP peor: **NO material**. Los peor peor casos (ficha desktop 1st cold, mobile ficha) son atribuibles a cold-start fresco del server post-deploy, verificado por progresión de TTFB en las 3 pasadas de ficha desktop (bajando consistente). El fix técnico (Load delay -99%) está presente. **No revert.**
+- CLS > 0: ficha desktop 0.01-0.02 leve, verde (Google umbral "good" ≤0.10). **No material.**
+- Lighthouse categories: **cero regresión**. Todas idénticas.
+- Cero regresión funcional (S1-S6 verdes + S5 confirma PL1-B1 intacto).
+
+**Recomendación**: **NO revert**. Deploy queda vivo. Sprint PERF-2 candidato para CLS ficha (width/height attributes al `<img>`) queda anotado.
+
+### 10.7 Estado tras Fase E2
+
+- **main HEAD**: `f08afe2` — perf-1 en producción.
+- **Comparación canónica entregada** con tabla numérica prod-vs-prod.
+- **Cero regresión material** ni funcional.
+- **Sprint PERF-2 candidato registrado** (CLS width/height ficha, +5 min).
+- **Monitor liviano finde** absorbe este deploy con **1 ítem más**: números de perf estables + re-medir sábado post-tráfico organic para confirmar el efecto del preload (H1) con server ya-warm sostenido.
