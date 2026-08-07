@@ -63,3 +63,8 @@ e2e/.env.test
 !e2e/.env.test.example
 test-results/
 playwright-report/
+
+# Playwright MCP walkthrough artifacts (screenshots + snapshot YAMLs)
+.playwright-mcp/
+walkthrough-*.png
+smoke-*.png

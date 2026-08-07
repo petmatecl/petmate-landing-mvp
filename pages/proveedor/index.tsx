@@ -1570,7 +1570,7 @@ export default function ProveedorDashboard() {
                                                         {proveedor.nombre} {proveedor.apellido_p} {proveedor.apellido_m}
                                                         <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                                     </div>
-                                                    <p className="text-[11px] text-slate-400 mt-1">Datos de registro. No se muestran públicamente.</p>
+                                                    <p className="text-[11px] text-slate-500 mt-1">Datos de registro. No se muestran públicamente.</p>
                                                 </div>
                                                 <div>
                                                     <label htmlFor="nombre-publico" className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre público</label>
@@ -1585,7 +1585,7 @@ export default function ProveedorDashboard() {
                                                         maxLength={60}
                                                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                                     />
-                                                    <p className="text-[11px] text-slate-400 mt-1">Así te verán los clientes en tu perfil y servicios.</p>
+                                                    <p className="text-[11px] text-slate-500 mt-1">Así te verán los clientes en tu perfil y servicios.</p>
                                                 </div>
                                             </div>
 
@@ -1677,7 +1677,7 @@ export default function ProveedorDashboard() {
                                                             className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent-600 outline-none font-mono ${rutInputError ? 'border-danger-400 focus:border-danger-400 focus:ring-danger-300' : 'border-slate-200 focus:border-accent-600'
                                                                 }`}
                                                         />
-                                                        {rutInputError && <p className="text-xs text-danger-500 mt-1 font-medium">{rutInputError}</p>}
+                                                        {rutInputError && <p role="alert" aria-live="polite" className="text-xs text-danger-500 mt-1 font-medium">{rutInputError}</p>}
                                                     </div>
 
                                                     <div>
@@ -1700,7 +1700,7 @@ export default function ProveedorDashboard() {
                                                                 <>
                                                                     <Upload size={24} className="text-slate-400" />
                                                                     <p className="text-sm text-slate-500 font-medium">Arrastra o haz click para subir la foto</p>
-                                                                    <p className="text-xs text-slate-400">JPG, PNG o HEIC — Máx. 5 MB</p>
+                                                                    <p className="text-xs text-slate-500">JPG, PNG o HEIC — Máx. 5 MB</p>
                                                                 </>
                                                             )}
                                                             <input type="file" className="hidden" accept="image/*" onChange={handleCarnetChange} />
@@ -1727,7 +1727,7 @@ export default function ProveedorDashboard() {
                                                                 <>
                                                                     <Upload size={24} className="text-slate-400" />
                                                                     <p className="text-sm text-slate-500 font-medium">Arrastra o haz click para subir el dorso</p>
-                                                                    <p className="text-xs text-slate-400">JPG, PNG o HEIC — Máx. 5 MB</p>
+                                                                    <p className="text-xs text-slate-500">JPG, PNG o HEIC — Máx. 5 MB</p>
                                                                 </>
                                                             )}
                                                             <input type="file" className="hidden" accept="image/*" onChange={handleCarnetDorsoChange} />
@@ -1750,9 +1750,11 @@ export default function ProveedorDashboard() {
                                     </div>
 
                                     {/* Tipo de Entidad */}
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Tipo de Cuenta</h3>
-                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <h3 id="proveedor-tipo-cuenta-label" className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Tipo de Cuenta</h3>
+                                    <div role="radiogroup" aria-labelledby="proveedor-tipo-cuenta-label" className="grid grid-cols-2 gap-3 mb-6">
                                         <button type="button"
+                                            role="radio"
+                                            aria-checked={tipoEntidad === "persona_natural"}
                                             onClick={() => setTipoEntidad("persona_natural")}
                                             className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
                                                 ? "border-accent-600 bg-accent-50"
@@ -1762,6 +1764,8 @@ export default function ProveedorDashboard() {
                                             <p className="font-semibold text-slate-900 text-sm">Persona Natural</p>
                                         </button>
                                         <button type="button"
+                                            role="radio"
+                                            aria-checked={tipoEntidad === "empresa"}
                                             onClick={() => setTipoEntidad("empresa")}
                                             className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
                                                 ? "border-accent-600 bg-accent-50"
@@ -1847,7 +1851,7 @@ export default function ProveedorDashboard() {
                                             placeholder="Cuéntale a los clientes sobre tu experiencia y amor por las mascotas..."
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none resize-none"
                                         />
-                                        <div className="text-right text-xs text-slate-400 mt-1">{bio?.length || 0}/1000</div>
+                                        <div className="text-right text-xs text-slate-500 mt-1">{bio?.length || 0}/1000</div>
                                     </div>
 
                                     <div className="relative">
@@ -1904,13 +1908,14 @@ export default function ProveedorDashboard() {
                                         comunas_cobertura. */}
                                     <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mt-8 mb-4">Idiomas que hablo</h3>
                                     <p className="text-sm text-slate-500 mb-3">Marca los idiomas en los que puedes atender.</p>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div role="group" aria-label="Idiomas que hablo" className="flex flex-wrap gap-2">
                                         {IDIOMAS_DISPONIBLES.map((idioma) => {
                                             const activo = idiomas.includes(idioma);
                                             return (
                                                 <button
                                                     key={idioma}
                                                     type="button"
+                                                    aria-pressed={activo}
                                                     onClick={() => setIdiomas(prev => activo ? prev.filter(i => i !== idioma) : [...prev, idioma])}
                                                     className={
                                                         activo
@@ -2080,7 +2085,7 @@ export default function ProveedorDashboard() {
                                                 placeholder="Ej: Para servicios de hospedaje pido aviso con al menos 72h. Para paseos basta con 12h."
                                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm resize-none"
                                             />
-                                            <p className="text-xs text-slate-400 mt-1">{politicaCancelacionNota.length}/300</p>
+                                            <p className="text-xs text-slate-500 mt-1">{politicaCancelacionNota.length}/300</p>
                                         </div>
                                     )}
 
@@ -2222,7 +2227,7 @@ export default function ProveedorDashboard() {
                                     </div>
                                     <h3 className="text-slate-900 text-3xl mb-1">{stats.contactosTotal}</h3>
                                     <p className="text-slate-600 text-sm font-medium">Contactos recibidos (30 días)</p>
-                                    <p className="text-xs text-slate-400 mt-1">Mensajes + WhatsApp + Llamadas</p>
+                                    <p className="text-xs text-slate-500 mt-1">Mensajes + WhatsApp + Llamadas</p>
                                 </div>
 
                                 {/* STAT 4: Tasa de Conversión */}

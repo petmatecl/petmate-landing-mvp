@@ -8,6 +8,7 @@ import AgendamientoTutorEmail from '../../../components/Emails/AgendamientoTutor
 import { formatFechaPreferida, formatRangoNoches } from '../../../lib/formatFecha';
 import { MODALIDAD_LABELS, esModalidadValida } from '../../../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../../../lib/formatDireccion';
+import { resolverDonde, resolverFechaSub } from '../../../lib/emails/resolvers';
 
 /**
  * Sprint 3 agendamiento — notifica al tutor cuando el proveedor responde
@@ -53,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 estado, nota_proveedor, capacidad_snapshot_estadia, tutor_id, proveedor_id, servicio_id,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre, telefono, whatsapp, mostrar_telefono, mostrar_whatsapp),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora, comunas_cobertura)
             `)
             .eq('id', agendamientoId)
             .maybeSingle();
@@ -161,6 +162,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 ? 'El proveedor canceló tu reserva'
                 : 'Actualización sobre tu solicitud de agendamiento';
 
+        // ZB3 sprint ZONAB-1: props canónicas donde/fechaSub via helpers.
+        // Fallback donde: chat con el proveedor (recipient del email = tutor).
+        const fechaSub = resolverFechaSub({
+            fecha_preferida: agend.fecha_preferida,
+            fecha_fin: agend.fecha_fin,
+            duracion_horas: agend.duracion_horas,
+            capacidad_snapshot_estadia: agend.capacidad_snapshot_estadia,
+        });
+        const dondeResuelto = resolverDonde({
+            agend,
+            servicio: servicio || {},
+        });
+        const donde = dondeResuelto ?? `Se coordina por chat con ${proveedor.nombre || 'el proveedor'}`;
+
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: authUser.user.email,
@@ -182,6 +197,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 esRango,
                 checkInHora,
                 checkOutHora,
+                fechaSub,
+                donde,
             }) as React.ReactElement,
         });
 

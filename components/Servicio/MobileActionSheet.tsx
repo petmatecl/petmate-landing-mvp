@@ -14,8 +14,9 @@
 //
 // SOLO MOBILE (lg:hidden). Desktop usa la sticky right como panel de accion.
 // ----------------------------------------------------------------------------
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useModalDialog } from '../../lib/useModalDialog';
 
 interface MobileActionSheetProps {
     isOpen: boolean;
@@ -31,17 +32,15 @@ export default function MobileActionSheet({
     title,
     children,
 }: MobileActionSheetProps) {
-    // ESC cierra.
-    useEffect(() => {
-        if (!isOpen) return;
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [isOpen, onClose]);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    // Body scroll lock cuando esta abierto.
+    // ZB1 sprint ZONAB-1: migrado a useModalDialog (Escape + focus-trap +
+    // return-focus). Antes tenía solo un ESC handler propio; ahora hereda
+    // el patrón completo. El body scroll lock queda como useEffect propio —
+    // no es parte del hook (que solo se ocupa de foco y teclado).
+    useModalDialog({ isOpen, onClose, containerRef });
+
+    // Body scroll lock cuando esta abierto (independiente del hook).
     useEffect(() => {
         if (!isOpen) return;
         const original = document.body.style.overflow;
@@ -64,6 +63,7 @@ export default function MobileActionSheet({
 
             {/* Sheet — sube desde abajo con translateY. */}
             <div
+                ref={containerRef}
                 role="dialog"
                 aria-modal="true"
                 aria-hidden={!isOpen}

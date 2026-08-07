@@ -290,6 +290,97 @@ cambios de dominios, cancelación de builds, cambios de deployment
 protection. Todo eso requiere instrucción explícita en el turno vigente.
 Cada consulta se cita en reportes igual que Supabase.
 
+### Vercel plugin (oficial) — instalado 2026-08-04
+
+Plugin oficial de Vercel instalado vía `/plugin` (autenticado con la cuenta
+petmatecl de Aldo). Convive con el Vercel MCP hospedado — el plugin
+expone superficie más rica de deployments/builds/crons + operaciones que
+el MCP no tiene, sin exigir OAuth manual por sesión.
+
+**Motivación operacional**: reemplazar el cuello de botella histórico del
+"Ready confirmado" (~30 rondas en semana del 2026-08-04) por verificación
+directa desde la CLI. El plugin son los ojos de Aldo sobre Vercel, no su
+autoridad.
+
+**REGLAS DE USO** (mismo espíritu que Supabase MCP + Vercel MCP):
+
+- **VERIFICACIÓN de estado / lectura de logs / consulta de config**: libre.
+  Ejemplos ok:
+  - Consultar `deployment_status` de un SHA para verificar Ready antes de suite.
+  - Leer runtime logs prod para diagnóstico.
+  - Listar crons + `Last Run` en Fase 8 de checklists.
+  - Ver env vars sin cambiarlas.
+  Cada consulta se cita en reportes igual que Supabase/MCP.
+
+- **ACCIONES MUTANTES**: **SIEMPRE con GO explícito del coordinador** en
+  el turno vigente. Cero excepciones. La lista de mutantes incluye:
+  - Redeploy / promote de un preview a prod.
+  - Cambios de env vars (add/rm/update).
+  - Cambios de dominios (add/rm).
+  - Cancelar builds en curso.
+  - Cambios de deployment protection / rotación de bypass token.
+  - Cualquier flag `--force`, `--yes`, `--prod` de write.
+  - Borrado de deployments / logs.
+
+  "GO explícito" significa: el PO nombra la acción concreta con SHA o
+  parámetros específicos en el turno actual. Autorizaciones anteriores
+  ("cuando sea Ready, redeploy") **no cuentan** — el patrón sigue siendo
+  el mismo que rige commit+push: acción reversible sin ask, acción
+  irreversible con confirmación del turno.
+
+- **Auth**: OAuth via `/plugin` (petmatecl). Sesión persistente local —
+  no requiere re-auth por operación.
+
+### Plugins Security Guidance + Code Review — instalados 2026-08-04
+
+Ambos Anthropic-verified. **Rol operativo**: segundos revisores en la
+Auditoría Integral #2 (jueves post-desfile). Mi pasada de code review
+canónica + su barrido → las 3 fuentes van al triage único con score
+comparable al formato audit del 2026-07-23. Si alguno resulta redundante
+o ruidoso durante la evaluación previa, se descarta sin drama.
+
+**Superficie a evaluar antes del jueves** (reportar cuando corran):
+- Hooks activos (¿pre-commit? ¿pre-push? ¿on-review?).
+- Agentes que exponen (¿new subagent_types en el listado?).
+- Formato de output (¿markdown estructurado? ¿integra con `ReportFindings`?).
+- Cobertura vs mi code-review actual (`.claude/skills/code-review`
+  ya vigente).
+
+### Plugins Playwright + Chrome DevTools — instalados 2026-08-04
+
+Habilitan el **módulo "UX WALKTHROUGH NAVEGADO"** de la Auditoría #2 (jueves
+post-desfile, sobre staging consolidado).
+
+**REGLA CRÍTICA DE CREDENCIALES** (aplica a todo uso de estos plugins):
+**PROHIBIDO navegar producción (`www.pawnecta.com`) con cuentas reales**.
+Solo staging con las cuentas del setup e2e:
+- Tutora: `acanocts+tutor@gmail.com` (Camila).
+- Proveedor: `acanocts@gmail.com` (Aldo, cuenta de dev con rol admin).
+
+Prod se navega **solo con browsing anónimo** (sin login) para smokes
+públicos. Cualquier walkthrough logueado corre contra la URL de staging
+del branch relevante. Misma disciplina que la suite Playwright (guard
+deny-list en `e2e/setup/guard.ts` bloquea prod hosts).
+
+**Diseño del módulo UX Walkthrough** (para el jueves):
+- **Recorridos golden path**:
+  - **Proveedor**: registro → perfil → publicar servicio → configurar
+    agenda F1 y F2 → wizard etología con sus 12 campos.
+  - **Tutora**: búsqueda → ficha → reserva F1 → reserva F2 → cancelación
+    → reseña → página Mis reservas completa (pestañas + filtros + CTA
+    vencida — los 3 aterrizados en PRODUCTO-2).
+  - **Admin**: aprobación de proveedor + moderación.
+- **Cosecha por recorrido**: errores de consola, requests fallidos
+  (4xx/5xx en Network), estados visualmente rotos (screenshot), fricciones
+  UX (heurísticas + a11y).
+- **Entregable**: findings con score comparable al formato audit del
+  2026-07-23 → entran al MISMO triage único del jueves junto al code
+  review + los 2 plugins revisores → backlog priorizado.
+
+**Evaluación pre-jueves**: verificar que ambos plugins operan (login de
+prueba en staging + captura de un error de consola inducido como smoke).
+Reportar superficie + resultado antes del monitor N15 cerrando.
+
 ## Workflow
 
 Claude Code (VS Code) → commit + push a main → Vercel deploy automático
@@ -314,6 +405,18 @@ git branch --show-current | grep -qx <branch-esperada> || (echo "ABORT: no en <b
 Incidente que originó esta regla: 28-07-26, commit del acta de cierre F2 pedido "a staging" cayó en `main` porque local había quedado en main desde el merge fast-forward previo. El desliz se detectó en el output del `git push` (`[main 97fd425]` en vez de `[staging ...]`); se corrigió con `git push origin main:staging`. Sin regresión funcional (docs sin runtime impact), pero disparó un deploy prod innecesario. El guard hubiera fallado en 0 segundos y evitado el desvío.
 
 **Evidencia por fase de un checklist en ejecución — REGLA PERMANENTE (P5)**: cuando un checklist de merge está en curso (`MERGE_*_PROD_CHECKLIST.md`), la evidencia de cada fase completada se **commitea al archivo del checklist en el repo** en el momento de completarla — casilla `[x]` marcada + bloque `**Ejecución <fecha>**:` con los outputs esenciales pegados (SHA, wall time, conteos, verificaciones, MCP queries). El acta vive en git como fuente de verdad; el chat es solo coordinación (efímero, se pierde). Sin este anclaje, un reset del contexto o una falla de red puede dejar la ejecución sin trazabilidad reconstruible. Incidente que originó esta regla: durante N7 Fase 2 del tren N15 (2026-07-31), el output de la suite 41/41 contra preview `next15` con whitelist activa fue reportado solo en el chat; el PO tuvo que pedir re-acreditación en el turno siguiente porque no encontraba la evidencia atada al checklist. Aplica a cualquier `MERGE_*_PROD_CHECKLIST.md` en ejecución activa, no solo el tren de turno.
+
+**Verificación de nombres de columna contra `information_schema` antes de entregar SQL — REGLA PERMANENTE (P6)**: cualquier migration/SQL que referencie columnas de tablas existentes debe validar los nombres contra `information_schema.columns` vía MCP staging (o SQL Editor manual) **ANTES de entregar el archivo para ejecución**. Cero confianza en memoria, en grep de otros archivos, o en asunciones de nomenclatura patrón. Los nombres de columna difieren entre tablas semánticamente relacionadas (`agendamientos.duracion_min` snapshot de reserva vs `servicios_publicados.duracion_slot_min` config del slot); grepear el nombre en un archivo puede llevar a la tabla equivocada. Además, el tipo (nullable/NOT NULL) importa para los semáforos — un `NOT NULL` colado en un `IS NOT NULL` es siempre-true (redundancia lógica que enmascara bugs).
+
+Comando canónico vía MCP:
+```sql
+SELECT column_name, data_type, is_nullable
+  FROM information_schema.columns
+ WHERE table_schema='public' AND table_name='<tabla>'
+   AND column_name IN ('<col1>', '<col2>', ...);
+```
+
+Incidente que originó esta regla: PR1 sprint PRODUCTO-1 (2026-07-31). La migration `20260731_buscar_servicios_agenda_activa.sql` referenció `s.duracion_min` en el RPC `buscar_servicios` — nombre inexistente en `servicios_publicados` (real: `duracion_slot_min`). PL/pgSQL NO valida columnas al CREATE — el DROP+CREATE aplicó ok (V1 pasó), pero cualquier ejecución del RPC reventó con `ERROR 42703 column s.duracion_min does not exist`. Explorer de staging/previews caído en su path RPC hasta el fix (`20260731_buscar_servicios_agenda_activa_fix.sql`). Bug secundario detectado en el mismo diagnóstico: `min_noches` es NOT NULL en el schema, así que `IS NOT NULL` era siempre-true — semáforo redundante. Los dos bugs se hubieran evitado con una query de 5 segundos contra `information_schema` antes de escribir el SQL.
 
 **Verificar fecha contra evidencia antes de gatillar ventanas temporales — REGLA PERMANENTE (P7)**: cuando una decisión depende de que una ventana temporal se haya cumplido (monitor 48h, deadline programado, "esperar N horas desde X"), verificar la fecha REAL contra evidencia CONCRETA antes de declarar la ventana cumplida — no inferir del contexto operativo ni asumir el día de la semana. Evidencia válida: (a) día explícito confirmado por el PO en el turno vigente, (b) timestamps de git (`git log --format=%ci -1 <sha>`), (c) captura de dashboard con timeline visible, (d) el `system-reminder` de fecha del entorno si está presente. Cuando la fecha del sistema da solo `YYYY-MM-DD` (sin día de la semana), **calcular explícitamente** con un comando en vez de asumir. Incidentes que originaron esta regla: (i) 2026-07-25 tren F2, reporté "ventana 24h cumplida" un turno antes del cierre real; (ii) 2026-08-04 monitor N15 Fase 8, reporté "hoy jueves 6-ago" cuando era martes 4-ago noche — la ventana 48h estaba a ~44h de cerrar. Ambas prevenibles con un `date` command o consulta explícita al PO antes de gatillar el flujo dependiente. Costo del error: falso arranque de flow crítico que exige rollback mental del PO.
 

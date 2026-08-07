@@ -274,10 +274,12 @@ function GestionServicios() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 justify-between">
                         {/* Tabs */}
-                        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+                        <div role="radiogroup" aria-label="Filtro por estado" className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
                             {(['todos', 'activos', 'inactivos'] as FiltroEstadoType[]).map(estado => (
                                 <button
                                     key={estado}
+                                    role="radio"
+                                    aria-checked={filtroEstado === estado}
                                     onClick={() => setFiltroEstado(estado)}
                                     className={`px-4 py-2 rounded-xl text-sm font-medium capitalize whitespace-nowrap transition-colors ${filtroEstado === estado ? 'bg-slate-900 text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                                 >
@@ -407,10 +409,16 @@ function GestionServicios() {
                 </div>
             </div>
 
-            {/* MODAL DETALLE DE SERVICIO */}
+            {/* MODAL DETALLE DE SERVICIO — ZB1 sprint ZONAB-1: role/aria
+                mínimos. Escape+focus-trap queda como deuda light. */}
             {modalData && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl max-h-[90vh]">
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="admin-servicios-detalle-title"
+                        className="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl max-h-[90vh]"
+                    >
                         {/* Cabecera */}
                         <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50 rounded-t-3xl">
                             <div>
@@ -418,10 +426,10 @@ function GestionServicios() {
                                     <span className="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-0.5 rounded font-medium">{modalData.categoria_nombre}</span>
                                     <EstadoBadge activo={modalData.activo} />
                                 </div>
-                                <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">{modalData.titulo}</h3>
+                                <h3 id="admin-servicios-detalle-title" className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">{modalData.titulo}</h3>
                                 <p className="text-sm text-slate-500 mt-1">Proveedor: <span className="font-semibold text-slate-700">{modalData.proveedor_nombre} {modalData.proveedor_apellido}</span></p>
                             </div>
-                            <button onClick={() => setModalData(null)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 transition-colors shrink-0">
+                            <button onClick={() => setModalData(null)} aria-label="Cerrar" className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 transition-colors shrink-0">
                                 <XCircle size={24} />
                             </button>
                         </div>

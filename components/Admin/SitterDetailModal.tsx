@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useId, useRef } from "react";
 import Image from "next/image";
 import { getProxyImageUrl } from "../../lib/utils";
+import { useModalDialog } from "../../lib/useModalDialog";
 import { CheckCircle, User, Instagram, Music, Briefcase, Facebook, FileText, Video, AlertTriangle } from "lucide-react";
 
 type ProveedorData = {
@@ -37,17 +38,30 @@ type Props = {
 };
 
 export default function SitterDetailModal({ sitter, open, onClose, onApprove, onViewDocument }: Props) {
+    const titleId = useId();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // ZB1 sprint ZONAB-1: migrado al patrón canónico. Antes no tenía nada
+    // de accesibilidad de dialog.
+    useModalDialog({ isOpen: open, onClose, containerRef });
+
     if (!open || !sitter) return null;
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative flex flex-col z-50">
+            <div
+                ref={containerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative flex flex-col z-50"
+            >
                 {/* Header */}
                 <div className="p-4 border-b border-slate-300 flex justify-between items-center bg-slate-50">
-                    <h3 className="font-semibold text-lg text-slate-900">Detalle del Proveedor</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
+                    <h3 id={titleId} className="font-semibold text-lg text-slate-900">Detalle del Proveedor</h3>
+                    <button onClick={onClose} aria-label="Cerrar" className="text-slate-400 hover:text-slate-600 p-1">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>

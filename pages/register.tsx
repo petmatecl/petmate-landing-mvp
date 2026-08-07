@@ -293,7 +293,7 @@ export default function RegisterWizard() {
 
           <div className="p-6 sm:px-10 sm:py-8">
             {error && (
-              <div ref={errorRef} className="p-4 mb-6 text-sm text-danger-700 bg-danger-50 rounded-xl border border-danger-100">
+              <div ref={errorRef} role="alert" aria-live="assertive" className="p-4 mb-6 text-sm text-danger-700 bg-danger-50 rounded-xl border border-danger-100">
                 {error}
               </div>
             )}
@@ -305,9 +305,11 @@ export default function RegisterWizard() {
                   <h2 className="text-lg font-semibold text-slate-700">¿Cómo quieres usar Pawnecta?</h2>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div role="radiogroup" aria-label="Tipo de cuenta" className="grid md:grid-cols-2 gap-4">
                   <button
                     type="button"
+                    role="radio"
+                    aria-checked={rol === 'usuario'}
                     onClick={() => setRol('usuario')}
                     className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'usuario' ? 'border-accent-600 bg-accent-50 ring-2 ring-accent-600/20' : 'border-slate-200 hover:border-accent-300'}`}
                   >
@@ -320,6 +322,8 @@ export default function RegisterWizard() {
 
                   <button
                     type="button"
+                    role="radio"
+                    aria-checked={rol === 'proveedor'}
                     onClick={() => setRol('proveedor')}
                     className={`flex flex-col items-center text-center p-6 border-2 rounded-2xl transition-all ${rol === 'proveedor' ? 'border-accent-600 bg-accent-50 ring-2 ring-accent-600/20' : 'border-slate-200 hover:border-accent-300'}`}
                   >
@@ -349,11 +353,13 @@ export default function RegisterWizard() {
 
                 {rol === 'proveedor' && (
                   <div className="mb-6">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label id="register-tipo-entidad-label" className="block text-sm font-semibold text-slate-700 mb-2">
                       Tipo de cuenta de proveedor
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div role="radiogroup" aria-labelledby="register-tipo-entidad-label" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <button type="button"
+                        role="radio"
+                        aria-checked={tipoEntidad === "persona_natural"}
                         onClick={() => setTipoEntidad("persona_natural")}
                         className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "persona_natural"
                           ? "border-accent-600 bg-accent-50"
@@ -364,6 +370,8 @@ export default function RegisterWizard() {
                         <p className="text-xs text-slate-500 mt-0.5">Actúas como individuo, con tu RUT personal</p>
                       </button>
                       <button type="button"
+                        role="radio"
+                        aria-checked={tipoEntidad === "empresa"}
                         onClick={() => setTipoEntidad("empresa")}
                         className={`p-4 rounded-xl border-2 text-left transition-colors ${tipoEntidad === "empresa"
                           ? "border-accent-600 bg-accent-50"
@@ -451,7 +459,7 @@ export default function RegisterWizard() {
                       </button>
                     </div>
                     {passwordError ? (
-                      <p className="text-xs text-danger-600 mt-1 font-medium">{passwordError}</p>
+                      <p role="alert" aria-live="polite" className="text-xs text-danger-600 mt-1 font-medium">{passwordError}</p>
                     ) : (
                       <span className="text-xs text-slate-500 mt-1 block">Mínimo 8 caracteres</span>
                     )}
@@ -487,7 +495,7 @@ export default function RegisterWizard() {
                       </button>
                     </div>
                     {passwordConfirmError && (
-                      <p className="text-xs text-danger-600 mt-1 font-medium">{passwordConfirmError}</p>
+                      <p role="alert" aria-live="polite" className="text-xs text-danger-600 mt-1 font-medium">{passwordConfirmError}</p>
                     )}
                   </div>
                 </div>
@@ -495,8 +503,9 @@ export default function RegisterWizard() {
                 {/* Categoría — solo proveedores */}
                 {rol === 'proveedor' && (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Categoría principal de servicio *</label>
+                    <label htmlFor="register-categoria" className="block text-sm font-medium text-slate-700 mb-1">Categoría principal de servicio *</label>
                     <select
+                      id="register-categoria"
                       value={categoria}
                       onChange={e => setCategoria(e.target.value)}
                       required
@@ -575,8 +584,9 @@ export default function RegisterWizard() {
                     en servicios_publicados.detalles. */}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Cuéntanos sobre tu experiencia (opcional)</label>
+                  <label htmlFor="register-descripcion" className="block text-sm font-medium text-slate-700 mb-1">Cuéntanos sobre tu experiencia (opcional)</label>
                   <textarea
+                    id="register-descripcion"
                     value={descripcion}
                     onChange={e => setDescripcion(e.target.value)}
                     maxLength={500}
@@ -586,7 +596,7 @@ export default function RegisterWizard() {
                   />
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-xs text-slate-500">Mínimo 50 caracteres. Una buena descripción aumenta tus consultas.</p>
-                    <span className="text-xs text-slate-400">{descripcion.length} / 500</span>
+                    <span className="text-xs text-slate-500">{descripcion.length} / 500</span>
                   </div>
                 </div>
 
@@ -643,7 +653,7 @@ export default function RegisterWizard() {
                     Una vez confirmado tu correo, nuestro equipo revisará tus datos en las próximas 24-48 horas y te notificaremos cuando tu perfil esté aprobado.
                   </p>
                 )}
-                <p className="text-xs text-slate-400 mb-8 max-w-md mx-auto">
+                <p className="text-xs text-slate-500 mb-8 max-w-md mx-auto">
                   ¿No lo encuentras? Revisa tu carpeta de spam o correo no deseado.
                 </p>
 

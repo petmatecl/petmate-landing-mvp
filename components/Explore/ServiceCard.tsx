@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Star, Sparkles } from 'lucide-react';
+import { ShieldCheck, Star, Sparkles, CalendarCheck } from 'lucide-react';
 import VisitCounter from '../Shared/VisitCounter';
 import FavoritoButton from '../Shared/FavoritoButton';
 import { getCampoMeta } from '../../lib/camposPorCategoria';
@@ -33,6 +33,16 @@ export interface ServiceResult {
     proveedor_primera_ayuda?: boolean;
     proveedor_perfil_completo?: boolean;
     proveedor_es_ejemplo?: boolean;
+    /**
+     * PR1 sprint PRODUCTO-1 (2026-07-31): flag "reserva online" — servicio
+     * con F1 (duracion_min) o F2 (capacidad_estadia + min_noches) activa
+     * Y `agendamiento_habilitado=true`. Calculado server-side por el RPC
+     * `buscar_servicios` (columna nueva del RETURNS TABLE); para la ruta
+     * join de `pages/index.tsx`, calculado en el mapper con los mismos
+     * semáforos. Opcional para no romper callers previos que aún no lo
+     * pasan (se renderiza el badge solo cuando viene `true`).
+     */
+    tiene_agenda_activa?: boolean;
     visitas_total?: number;
     visitas_mes?: number;
     favoritos_total?: number;
@@ -161,11 +171,14 @@ export default function ServiceCard({ service }: Props) {
                     </div>
                 )}
 
-                {/* Trust badges: EJEMPLO + Verificado (rating vive en el overlay
-                    de la imagen — eliminada la duplicacion vs chip amber viejo).
-                    Fallback <div mb-3 /> preserva el spacing cuando ningun trust
-                    badge aplica. */}
-                {(service.proveedor_es_ejemplo || service.proveedor_verificado) ? (
+                {/* Trust badges: EJEMPLO + Verificado + Reserva online (PR1
+                    sprint PRODUCTO-1). "Reserva online" indica que el servicio
+                    tiene agenda F1/F2 activa — el tutor puede reservar sin
+                    esperar respuesta del proveedor. Se posiciona junto a los
+                    otros trust badges por semántica (marca calidad operativa)
+                    pero sin robar jerarquía al precio. Fallback <div mb-3 />
+                    preserva el spacing cuando ningún badge aplica. */}
+                {(service.proveedor_es_ejemplo || service.proveedor_verificado || service.tiene_agenda_activa) ? (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                         {service.proveedor_es_ejemplo && (
                             <span
@@ -178,6 +191,14 @@ export default function ServiceCard({ service }: Props) {
                         {service.proveedor_verificado && (
                             <span className="flex items-center gap-1 px-2 py-0.5 bg-accent-50 text-accent-800 rounded-full text-[11px] font-medium">
                                 <ShieldCheck size={10} /> Verificado
+                            </span>
+                        )}
+                        {service.tiene_agenda_activa && (
+                            <span
+                                title="Este servicio tiene agenda en línea — puedes reservar directamente sin esperar respuesta."
+                                className="flex items-center gap-1 px-2 py-0.5 bg-accent-50 text-accent-800 rounded-full text-[11px] font-medium"
+                            >
+                                <CalendarCheck size={10} aria-hidden="true" /> Reserva online
                             </span>
                         )}
                     </div>

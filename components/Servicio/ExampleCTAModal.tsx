@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import Link from 'next/link';
 import { Sparkles, X } from 'lucide-react';
+import { useModalDialog } from '../../lib/useModalDialog';
 
 export type ExampleAction = 'mensaje' | 'whatsapp' | 'llamar' | 'evaluar' | 'pregunta' | 'favorito' | 'agendamiento';
 
@@ -21,40 +22,12 @@ const ACTION_TEXT: Record<ExampleAction, string> = {
 };
 
 export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAModalProps) {
-    const previousFocusRef = useRef<HTMLElement | null>(null);
-    const primaryCTARef = useRef<HTMLAnchorElement>(null);
-    const secondaryCTARef = useRef<HTMLAnchorElement>(null);
-    const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!isOpen) return;
-        previousFocusRef.current = document.activeElement as HTMLElement;
-        setTimeout(() => primaryCTARef.current?.focus(), 0);
-
-        const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                onClose();
-            } else if (e.key === 'Tab') {
-                const focusables = [primaryCTARef.current, secondaryCTARef.current, closeButtonRef.current].filter(Boolean) as HTMLElement[];
-                if (focusables.length === 0) return;
-                const first = focusables[0];
-                const last = focusables[focusables.length - 1];
-                if (e.shiftKey && document.activeElement === first) {
-                    e.preventDefault();
-                    last.focus();
-                } else if (!e.shiftKey && document.activeElement === last) {
-                    e.preventDefault();
-                    first.focus();
-                }
-            }
-        };
-        document.addEventListener('keydown', handleKey);
-        return () => {
-            document.removeEventListener('keydown', handleKey);
-            previousFocusRef.current?.focus();
-        };
-    }, [isOpen, onClose]);
+    // ZB1 sprint ZONAB-1: migrado a useModalDialog. Este componente era el
+    // patrón original de sweep #2; el hook fue extraído después. Ahora
+    // consume el hook igual que los demás modales para consolidar el patrón.
+    useModalDialog({ isOpen, onClose, containerRef });
 
     if (!isOpen) return null;
 
@@ -64,6 +37,7 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
         <>
             <div className="fixed inset-0 z-50 bg-black/40" aria-hidden="true" />
             <div
+                ref={containerRef}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="example-cta-title"
@@ -82,7 +56,6 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                             </h2>
                         </div>
                         <button
-                            ref={closeButtonRef}
                             onClick={onClose}
                             aria-label="Cerrar"
                             className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
@@ -101,14 +74,12 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                     {/* CTAs apilados */}
                     <div className="px-5 py-4 border-t border-slate-100 flex flex-col gap-2">
                         <Link
-                            ref={primaryCTARef}
                             href="/register?rol=usuario"
                             className="text-center px-4 py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >
                             Registrarme como tutor
                         </Link>
                         <Link
-                            ref={secondaryCTARef}
                             href="/register?rol=proveedor"
                             className="text-center px-4 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
                         >

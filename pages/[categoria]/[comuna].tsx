@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { supabase } from '../../lib/supabaseClient';
+import { mapRpcToServiceResult } from '../../lib/serviceMapper';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
 import Breadcrumb from '../../components/Shared/Breadcrumb';
@@ -240,26 +241,13 @@ export const getStaticProps: import('next').GetStaticProps = async ({ params }) 
                 p_offset: 0,
             });
 
-            services = (data || []).map((s: any) => ({
-                servicio_id: s.servicio_id,
-                titulo: s.titulo,
-                descripcion: s.descripcion,
-                precio_desde: s.precio_desde,
-                precio_hasta: s.precio_hasta,
-                unidad_precio: s.unidad_precio,
-                fotos: s.fotos || [],
-                categoria_nombre: s.categoria_nombre,
-                categoria_slug: s.categoria_slug,
-                categoria_icono: s.categoria_icono,
-                proveedor_id: s.proveedor_id,
-                proveedor_nombre: s.proveedor_nombre,
-                proveedor_foto: s.proveedor_foto || '',
-                proveedor_comuna: s.proveedor_comuna || '',
-                destacado: s.destacado || false,
-                rating_promedio: s.rating_promedio || 0,
-                total_evaluaciones: s.total_evaluaciones || 0,
-                proveedor_updated_at: s.proveedor_updated_at ?? null,
-            }));
+            // Sweep #1 fix B4 (2026-08-07) — paridad completa del ServiceResult
+            // en TODOS los mapping paths: el inline mapper previo omitía
+            // `tiene_agenda_activa` (agregado por producto-1 PR1) → badge
+            // "Reserva online" invisible en esta SEO landing page pese a
+            // aparecer en /explorar. Cross-page inconsistency crítica —
+            // fix: consumir `mapRpcToServiceResult` canónico.
+            services = (data || []).map(mapRpcToServiceResult);
         }
 
         return {

@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                                 className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                             />
                             {loginError && (
-                                <p className="text-danger-500 text-sm text-center">{loginError}</p>
+                                <p role="alert" aria-live="polite" className="text-danger-500 text-sm text-center">{loginError}</p>
                             )}
                             <button
                                 type="submit"
@@ -252,13 +252,15 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-                    <nav className="flex-1 p-3 space-y-1">
+                    <nav role="tablist" aria-label="Secciones de administración" aria-orientation="vertical" className="flex-1 p-3 space-y-1">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
                             return (
                                 <button
                                     key={tab.id}
+                                    role="tab"
+                                    aria-selected={isActive}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
                                         ? 'bg-accent-50 text-accent-700 font-semibold'
@@ -274,13 +276,15 @@ export default function AdminDashboard() {
                 </aside>
 
                 {/* ── MOBILE: tabs horizontales ── */}
-                <div className="lg:hidden fixed left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar" style={{ top: headerH }}>
+                <div role="tablist" aria-label="Secciones de administración" className="lg:hidden fixed left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar" style={{ top: headerH }}>
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
                         return (
                             <button
                                 key={tab.id}
+                                role="tab"
+                                aria-selected={isActive}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${isActive
                                     ? 'bg-accent-600 text-white font-semibold'

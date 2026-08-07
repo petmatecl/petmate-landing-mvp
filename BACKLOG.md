@@ -102,6 +102,160 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
   - **Migración de datos**: las conversaciones existentes en prod → ¿quedan huérfanas (`agendamiento_id = null`), se migran por heurística (el agendamiento más reciente del mismo par tutor+servicio), o se archivan?
 - Es un proyecto con schema + migración de datos + refactor del flujo de creación de conversation en `ServiceDetailView`, NO un ajuste menor.
 
+### Sprint ANALYTICS-1 — taxonomía GA aprobada (launch-readiness, post-desfile)
+
+**Estado**: brief cerrado por PO 2026-08-04 en sesión de diseño. **Listo para ejecutar** cuando llegue su slot en la cola post-desfile — se prioriza junto al bundle SEO del triage de la Auditoría Integral #2 (ver `REPORTE_DIAGNOSTICO_ERRORS_PROD.md`).
+
+**Alcance**: ~medio día de implementación.
+
+**PREREQUISITO EXPLÍCITO — orden en el sprint**:
+1. **Primero**: aterrizar el **gate GA por entorno** (ítem E del ADDENDUM del reporte diagnóstico — 15 min). Sin ese gate, instrumentar eventos sobre data contaminada (previews + suites Playwright disparando al ID prod) no sirve — inflaría métricas antes de siquiera empezar.
+2. **Después**: helper único de tracking + llamadas a los eventos + guía a Aldo para marcar los 4 key events en el dashboard GA4.
+
+**Taxonomía aprobada** (snake_case español, decisión PO):
+
+**Funnel Oferta (proveedor)**:
+| Evento | Trigger |
+|---|---|
+| `registro_proveedor_iniciado` | Click en "Publica gratis" / "Soy proveedor" (CTAs del hero + cards) |
+| `registro_proveedor_completado` | ✅ **KEY EVENT** — Success del POST `/api/auth/signup` con rol=proveedor |
+| `verificacion_enviada` | Upload de foto carnet frontal+dorso + submit |
+| `servicio_publicado` | ✅ **KEY EVENT** — INSERT success sobre `servicios_publicados` |
+| `agenda_activada` | Toggle F1 (`duracion_slot_min IS NOT NULL`) o F2 (`capacidad_estadia IS NOT NULL`) guardado |
+
+**Funnel Demanda (tutor)**:
+| Evento | Params |
+|---|---|
+| `busqueda_realizada` | `{categoria, comuna}` |
+| `ficha_vista` | `{servicio_id, categoria}` |
+| `contacto_iniciado` | ✅ **KEY EVENT** — `{canal: 'chat' \| 'whatsapp' \| 'telefono'}` |
+| `reserva_confirmada` | ✅ **KEY EVENT** — `{familia: 'F1' \| 'F2' \| 'legacy'}` |
+| `solicitud_enviada` | (flujo viejo pendiente-pending) |
+| `resena_publicada` | (post-servicio, evaluaciones.estado='aprobado') |
+
+**4 Key Events (conversiones GA4 — Aldo los marca en dashboard)**:
+1. `registro_proveedor_completado`
+2. `servicio_publicado`
+3. `contacto_iniciado`
+4. `reserva_confirmada`
+
+**Métrica norte**: **"conexiones semanales" = `contacto_iniciado` + `reserva_confirmada`** — indicador combinado del valor de mercado que Pawnecta genera. Los 2 lados del funnel demanda que efectivamente concretan interacción.
+
+**Implementación esperada**:
+- **Helper único de tracking** en `lib/gtag.ts` (extender el `event()` existente): wrappers tipados por evento del funnel, gate por entorno IS_PROD ya integrado desde el fix del prerequisito, cero-op en preview/staging.
+- **Llamadas en puntos de UI/flujo correspondientes**:
+  - `registro_proveedor_iniciado`: click handlers de CTAs hero + cards del home.
+  - `registro_proveedor_completado`: post-success del POST `/api/auth/signup` (con `rol=proveedor`).
+  - `verificacion_enviada`: submit del wizard de verificación en `pages/proveedor/index.tsx`.
+  - `servicio_publicado`: post-INSERT de `ServiceFormModal` (nuevo, no edición).
+  - `agenda_activada`: toggle F1/F2 guardado en `ServiceFormModal` (semáforos canónicos).
+  - `busqueda_realizada`: submit de `SearchBar` (hero) + apply de `SidebarFiltros`.
+  - `ficha_vista`: gSSp exitoso de `/servicio/[id]` (via `useEffect` en la page).
+  - `contacto_iniciado`: hooks al POST `/api/contactos/track` (ya existe el endpoint — se agrega evento en cada canal).
+  - `reserva_confirmada`: post-INSERT de `SolicitarAgendamientoModal` cuando `estado=confirmada` (F1/F2 picker).
+  - `solicitud_enviada`: post-INSERT cuando `estado=pendiente` (flujo viejo).
+  - `resena_publicada`: post-approval en `pages/admin/evaluaciones.tsx`, o post-INSERT si simplificamos.
+- **Marcado de key events en GA4**: guía escrita a Aldo (5 pasos en el dashboard, sin código): GA4 → Admin → Events → seleccionar evento → Mark as key event.
+- **Convención de naming**: `snake_case` en español (ya arriba). Consistencia con la convención declarada por PO.
+
+**Estimación**: helper + gate + 11 llamadas + guía = ~medio día.
+
+**Trigger de ejecución**: post-desfile (`producto-1 → zonab-1 → producto-2` mergeadas + Fase 8 monitor N15 cerrada) y priorizado en el triage de la Auditoría #2 junto al bundle SEO (307/410).
+
+**Pre-condición no-negociable**: fix del gate GA (ítem E del reporte diagnóstico) va PRIMERO en el mismo sprint. Nada de instrumentar eventos antes.
+
+### Sprint SENTRY-1 — error tracking (batch pre-launch, ~1-2h)
+
+**Estado**: adelantado desde el radar post-launch por decisión PO 2026-08-04. Va en el mismo batch pre-lanzamiento que ANALYTICS-1 (juntos, post-Auditoría #2).
+
+**Alcance**:
+- **Setup**: `npx @sentry/wizard -i nextjs` sobre rama propia (`sentry-1` o similar).
+- **Gate A PRODUCCIÓN Únicamente** — patrón de la casa (misma lección del hallazgo GA 2026-08-04: staging + suites Playwright no contaminan el tracking prod):
+  - `environment: process.env.VERCEL_ENV` — tag distintivo por ambiente.
+  - `enabled: process.env.VERCEL_ENV === 'production'` — cero eventos desde preview/staging/dev.
+  - Sample rates conservadores (`tracesSampleRate: 0.1`, `replaysSessionSampleRate: 0`, `replaysOnErrorSampleRate: 1.0` — capturar solo errores, no toda la sesión).
+- **2 env vars a Vercel** (ritual P4 obligatorio — verificar timestamp Updated + redeploy explícito post-cambio):
+  - `NEXT_PUBLIC_SENTRY_DSN` (público, expone en client bundle — DSN no es secreto).
+  - `SENTRY_AUTH_TOKEN` (Sensitive scope Production, para upload de sourcemaps durante build).
+- **Verificar wrapper de `next.config.js`**: el `withSentryConfig` no debe colisionar con el `withPWA` del tren N3 (fork `@ducanh2912/next-pwa@10.2.9`). Orden de wrappers: `withSentryConfig(withPWA(nextConfig))` es el patrón esperado — verificar en el fixture generado por el wizard y ajustar si el orden fuera inverso.
+- **Aldo crea la cuenta**: `sentry.io` free tier "Developer" (5k errors/mes) → project Next.js → aporta el DSN al ritual P4.
+
+**Trigger de ejecución**: post-Auditoría #2 del jueves 06-ago, junto a `Sprint ANALYTICS-1` en el batch pre-lanzamiento. Ambos comparten patrón "gate por entorno" (spirit-of-IS_PROD) y ambos se benefician de estar aterrizados antes del primer día de marketing real.
+
+**Impacto en el catálogo de plugins**: la entry "Sentry" del radar de plugins (sección más abajo) cambia su gatillo — antes "decisión post-F2", ahora "instalar cuando SENTRY-1 esté en prod" (para que Claude pueda consultar issues de Sentry directamente desde el plugin cuando aparezcan). Ver actualización en Radar de plugins.
+
+**Deuda light**: post-lanzamiento evaluar bump a tier Team ($26/mes, 50k errors/mes) si el free se satura — Sentry alerta automáticamente al llegar a límite.
+
+### Sprint EMAIL-CONTACTO-1 — canal de soporte visible al usuario (batch pre-launch, ≤1h)
+
+**Origen**: hallazgo derivado del cierre Fase 8 monitor N15 (2026-08-07). Al ratificar el ITEM 4 "bandeja de soporte", el PO aclaró que el canal real hoy es `petmatecl@gmail.com` — la casilla `contacto@pawnecta.com` que se referencia en varias superficies **NO existe aún**. Un usuario con problema y sin canal es un usuario perdido — prioridad **alta para día 1**.
+
+**Alcance**:
+
+- **(a) Diagnóstico (~10-15 min)** cuando haya hueco post-desfile:
+  - `grep -rn "contacto@" pages/ components/ lib/` — todas las apariciones en código, footer, headers.
+  - `grep -rn "mailto:" pages/ components/` — todos los `mailto:` visibles (link footer, FAQ, legales).
+  - `grep -rn "@pawnecta.com" pages/ components/ lib/emails/` — auditoría global de emails visibles al usuario (footer, FAQ, T&C, templates transaccionales, headers de Resend).
+  - Reporte: qué dirección ve hoy el usuario en cada superficie + estado real del email (existe/no existe/quién lo lee).
+
+- **(b) Fix pre-launch (~30-45 min)**:
+  1. **Crear `contacto@pawnecta.com` como forward/alias a `petmatecl@gmail.com`**. Vías gratis:
+     - Registrar del dominio (si soporta email forwarding — depende del provider actual del dominio).
+     - **Cloudflare Email Routing** (gratis, requiere cambiar DNS a Cloudflare nameservers si no está ya). Setup ~10 min.
+     - Alternativa: Google Workspace ($6/mes por casilla real) — descartar por defecto, evaluar solo si el volumen del día 1 lo justifica.
+  2. **Actualizar superficies donde corresponda** (post-diagnóstico (a)):
+     - Footer (link "Contacto").
+     - FAQ / Ayuda / Términos / Privacidad.
+     - Templates de email transaccional (headers "responder a").
+  3. **Registrar `hola@pawnecta.com` en la ecuación**: es el remitente que hoy usan los emails transaccionales (Resend). **Los usuarios RESPONDEN a esos emails** — verificar que ese `reply-to` NO caiga al vacío. Opciones:
+     - Configurar `hola@pawnecta.com` también como forward → `petmatecl@gmail.com`.
+     - O redirigir todos los `reply-to` de transaccionales a `contacto@pawnecta.com` (patrón más limpio: un solo canal público).
+
+**Prioridad**: **alta para día 1** — un usuario con problema y sin canal es un usuario perdido.
+
+**Slot**: batch pre-launch (junto a ANALYTICS-1 + SENTRY-1 + phase-out ejemplos).
+
+**Esfuerzo total estimado**: ≤ 1h (diagnóstico + config Cloudflare + updates de copy).
+
+### Lanzamiento — decisiones operativas
+
+#### Phase-out de servicios "Ejemplo" (decisión PO 2026-08-04)
+
+**Decisión**: los servicios marcados `es_ejemplo=true` (proveedores demo — hoy Aldo/staging tienen algunos) se **quedan como vitrina en el lanzamiento**, marcados visualmente "Ejemplo" como hoy. Retiro **gradual, no en batch pre-launch**.
+
+**Criterio operable de retiro**: cuando una **categoría** alcance **≥2 proveedores reales activos** (`activo=true AND es_ejemplo=false` en `proveedores` con al menos 1 servicio `activo=true` en `servicios_publicados` de esa categoría), se **desactivan los servicios Ejemplo de ESA categoría** vía admin (`/admin/servicios` toggle `activo`). **Sin código nuevo** — el mecanismo actual del admin cubre el flow.
+
+**Query de dimensionamiento** (Aldo corre en prod cuando quiera):
+
+```sql
+-- Categorías con ≥2 proveedores reales activos (candidatas a phase-out ejemplos)
+WITH proveedores_reales_por_categoria AS (
+    SELECT
+        c.slug AS categoria_slug,
+        c.nombre AS categoria_nombre,
+        COUNT(DISTINCT s.proveedor_id) FILTER (
+            WHERE p.es_ejemplo = false AND p.estado = 'aprobado'
+        ) AS proveedores_reales
+    FROM categorias_servicio c
+    LEFT JOIN servicios_publicados s
+        ON s.categoria_id = c.id AND s.activo = true
+    LEFT JOIN proveedores p ON p.id = s.proveedor_id
+    GROUP BY c.slug, c.nombre
+)
+SELECT categoria_slug, categoria_nombre, proveedores_reales,
+       CASE WHEN proveedores_reales >= 2 THEN 'READY_PHASE_OUT'
+            ELSE 'MANTENER_EJEMPLOS'
+       END AS accion
+FROM proveedores_reales_por_categoria
+ORDER BY proveedores_reales DESC, categoria_slug;
+```
+
+**Revisión del criterio**: mensual, o cuando Aldo lo gatille explícitamente (ej. una categoría específica satura con reales rápido y quiere adelantar el retiro).
+
+**Nota operativa**: los servicios Ejemplo tienen ID estable — al desactivarlos NO se borran (retención del histórico) → si un ejemplo era el único servicio de una categoría rara, el sitemap deja de emitirlo (filtro `activo=true` ya presente) sin necesidad de tocar código.
+
+**Impacto SEO**: cero — el fix del bundle SEO de Auditoría #2 (307→404/410) cubre igual el caso de un ejemplo desactivado que un crawler encontró indexado.
+
 ## Deuda técnica / pulido
 
 - **Copy de emails de confirmación de reserva por horas — retrofit visual COMPLETO** (pedido de PO, 2026-07-28; ampliación R4.1 layout de listado 2026-07-28; ampliación R4.2 dirección de arte 2026-07-28). Los emails de confirmación (F1/F2/legacy) adoptan el mismo lenguaje visual que `RecordatorioReservaEmail` en 3 capas:
@@ -135,9 +289,23 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
   4. **Timestamp del UPDATE evaluado dos veces por algún artifact de Supabase-js retry lógica** — improbable, tests no muestran retry logs.
 
   **Deuda de instrumentación**: agregar `?verbose=1` al endpoint que retorne `elegibles[].id`, `necesitaTutor`, `necesitaProveedor` + timestamps de cada UPDATE ejecutado. Correr contra los 3 ids test en la 2ª corrida. Si el elegibles.length > 0 con nuestros ids → confirmar mecanismo #2 o #3. Si elegibles.length = 0 pero marca sigue moviéndose → confirmar mecanismo #1. Sprint chico post-launch — no bloqueante (el core de idempotencia sí se prueba vía dryRun; la drift real solo se manifiesta con `real` en el intervalo entre corridas del test — no en producción, donde las corridas están separadas por 24h).
+
+  **ZB4-b (2026-07-31, rama `zonab-1` commit pendiente)**: instrumentación **ligera** aterrizada en el endpoint sin esperar `?verbose=1`. Cambios:
+  1. UPDATE condicional NULL en ambas marcas: `.update({...}).eq('id', ...).is('recordatorio_tutor_enviado_at', null).select('id')` — si el filter matchea 0 rows, la marca ya estaba poblada por otra ejecución concurrente (drift detectado a nivel row).
+  2. Contadores `driftTutor` / `driftProveedor` incrementados por cada 0-row UPDATE detectado.
+  3. Log `[cron-drift]` por evento (con `agendamientoId` + `servicioId`) y `[cron-drift-summary]` al fin del handler con conteos + timestamp. Grepable en Vercel Logs.
+
+  Beneficio inmediato: la primera evidencia de drift en prod ahora se ve en logs sin código nuevo. El item `?verbose=1` original queda como upgrade cuando haga falta trazabilidad por-id (para diagnosticar el mecanismo si el drift real aparece).
+
+- **[P3, refactor] Unificar `pages/api/cron/recordatorio-reserva.ts:207-266` con `lib/emails/resolvers.ts`** — hoy la lógica canónica de `resolverFechaSub` + `resolverDonde` vive DUPLICADA (inline en el cron + módulo en `lib/emails/resolvers.ts` desde ZB3 sprint ZONAB-1). Output byte-idéntico (verificado por render-diff en acta ZB3), solo forma distinta. Detectado por canónico xhigh en el smoke pre-jueves 2026-08-04 (ángulo cross-file tracer). Fix: reemplazar el bloque inline del cron por `import { resolverDonde, resolverFechaSub } from '../../lib/emails/resolvers'` + adaptar la variable `donde` para el placeholder `__CHAT_CON_OTRO__` (que el cron resuelve post-hoc con el nombre del destinatario opuesto). Refactor mecánico, sin cambio de comportamiento. Sprint chico cuando toque el cron por otra razón.
+
+- **[P3, code smell menor] `lib/estadoDerivado.ts:96` — falsy-zero en `if (r.duracion_horas)`**. Si un legacy V4b tuviera `duracion_horas === 0` (no debería por wizard, pero no hay CHECK constraint en BD), el `if` evalúa false y cae al fallback puntual (fin = `fecha_preferida`). Semánticamente correcto (un servicio "0 horas" no tiene sentido → mismo fin que fecha), pero es code smell. Fix: `r.duracion_horas != null && r.duracion_horas > 0` para explicitar la intención. Sin bug real de runtime. Cierro con test unit adicional cubriendo `duracion_horas: 0 → estadoDerivado === 'realizada'` para lock-in del comportamiento. Detectado por canónico xhigh (ángulo language-pitfall) en smoke pre-jueves 2026-08-04.
+
+- **[P3, UX copy] Fallback "Se coordina por chat con {tutor}" en email de cancelación**. `pages/api/agendamientos/notify-proveedor-cancel.ts:147` cae al fallback `Se coordina por chat con ${tutor?.nombre || 'el tutor'}` cuando `resolverDonde` no matchea (sin dirección estructurada y sin `comunas_cobertura` — raro pero posible). El copy "Se coordina" es futuro, pero el email es sobre una reserva CANCELADA — la coordinación ya no aplica. Copy alternativo: `"Sin dirección registrada"` o `"No aplica (reserva cancelada)"`. Detectado por canónico xhigh (ángulo removed-behavior) en smoke pre-jueves 2026-08-04. Ripple: verificar el mismo fallback en los 3 templates hermanos por si aplica el mismo ajuste semántico contextual (ej. `notify-tutor.ts` con estado=rechazada tampoco debería decir "se coordina").
+
 - **[P3 UX producto] Íconos específicos por campo en "Información del servicio" (`camposPorCategoria`)**. Detectado en el smoke S2 del tren N15 (2026-07-31): los campos dinámicos de la sección "Información del servicio" del `/servicio/[id]` renderean todos con el mismo placeholder `···` (SVG inline de 3 círculos horizontales) — pre-existente, no regresión del bump. Ver [components/Servicio/ServiceDetailView.tsx:1102-1104](components/Servicio/ServiceDetailView.tsx#L1102-L1104): el `renderCampoCard` usa un SVG genérico para todos los campos no-boolean (los boolean sí tienen checkmark). Fix natural: agregar campo `icon` a la definición de cada entrada en `lib/camposPorCategoria.ts` (probablemente un `LucideIcon`) y consumirlo en `renderCampoCard`, con fallback al `···` actual. Cada campo puede tener el ícono semánticamente correcto (peso → `Scale`, edad → `Cake`, distancia → `MapPin`, etc.). Sprint chico post-merge N15 o cuando toque revisar la ficha de servicio.
 
-- **[P3, refactor guarda anti-prod Playwright] Migrar `assertBaseUrlIsStaging` de whitelist de hosts (`git-staging` / `staging` / `git-next15`) a deny-list de hosts prod (`pawnecta.com` / `www.pawnecta.com`)**. La whitelist actual necesita mantenimiento cada vez que corremos la suite contra un preview de una rama nueva (durante N5 del tren N15, 2026-07-30, se agregó `git-next15` con nota de remoción en el checklist N7 Fase 0). La opción B invertida — negar solo los hosts prod y aceptar cualquier otro `*.vercel.app` del proyecto — es conceptualmente más correcta: cero mantenimiento por-rama, misma protección estricta contra correr contra prod. No se mezcla con el tren N15 para no cambiar el modelo de la guarda mientras se ejecuta un tren que la usa. Sprint chico post-tren N15.
+- **[P3, refactor guarda anti-prod Playwright] Migrar `assertBaseUrlIsStaging` de whitelist de hosts (`git-staging` / `staging` / `git-next15`) a deny-list de hosts prod (`pawnecta.com` / `www.pawnecta.com`)**. ✅ **CERRADO 2026-07-31 en PR0 sprint PRODUCTO-1** (rama `producto-1`, commit `4f6a6b0`). Extraída a `e2e/setup/guard.ts` con función renombrada `assertBaseUrlIsNotProd`; deny-list contra `www.pawnecta.com`, `pawnecta.com`, `pawnecta-landing-mvp.vercel.app`; whitelist de forma que acepta cualquier `*-petmatecls-projects.vercel.app`. Test unitario en `e2e/setup/guard.test.ts` (11 casos, 11/11 verde). Suite completa 41/41 verde contra preview `producto-1` sin whitelist por rama. Beneficio: cero mantenimiento por-rama para trenes futuros.
 
 - **[P3, post-tren N15] Endurecer `images.remotePatterns` — scopear hosts Supabase a `/storage/v1/**`**. En N2 del tren N15 (2026-07-30) migramos `images.domains` → `images.remotePatterns` manteniendo paridad exacta (`pathname: '/**'`) para no romper nada. La mejora incremental es acotar `pathname` en los 2 hosts Supabase (`vubmjguwzpesxcgenkxo.supabase.co`, `pwhplhjkmmbgnphcoibh.supabase.co`) a `/storage/v1/object/public/**` (o el prefijo real que usa `getPublicUrl()`), impidiendo que el `next/image` proxy sirva rutas arbitrarias de Supabase Storage aunque un attacker las conociera. Cero impacto en runtime si el scope es correcto — verificar con smoke antes de mergear. Sprint chico post-tren N15.
 
@@ -159,7 +327,7 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
   2. Limpieza de map stale al reopen del modal. `reset()` preserva `pickerEstDiasMap` + `pickerEstConfig` intencionalmente (evita re-fetch entre reopens rápidos), pero el primer render post-reopen muestra el mapa de la sesión anterior por 200-500ms hasta que el fetch responde. Si otro tutor reservó entre cierre y reapertura, el usuario ve un día como libre que ya no lo está. F1 lo maneja igual (resetea `pickerSlots` implícitamente al setear `pickerDesde`); alinear ambos con skeleton mientras `loading && (mapa previo || vacío)`.
   3. Días fuera de la ventana de fetch tratados como disponibles al completar rango. `isDiaDisabledEst` y la iteración `excludeDisabled` manual retornan `false` cuando la fecha no está en `pickerEstDiasMap` (mes visible + siguiente). Un tutor que arranca rango en julio, navega a septiembre y cierra el rango allí tiene días intermedios (agosto) no gateados client-side — el server EXCLUDE los rechaza con `23P01` + copy amable ("acaba de ocuparse"), pero es engañoso porque no fue una race real, fue una validación fría. Opciones: tratar `undefined` como disabled al completar rango (fuerza al usuario a navegar a las fechas intermedias antes de seleccionar), o refetchar la ventana completa `[from, to]` antes de validar. Detectado en code-review de F2-3-C (score 70, bajo threshold, deuda consciente).
 - **Nitpicks picker F2 (SolicitarAgendamientoModal, F2-3-C)**: 3 issues menores del mismo tren, a pagar cuando toque el picker.
-  1. Comentario dice `numberOfMonths=2` pero el render usa `1`. El fetch mensual sí trae mes + siguiente (prefetch para navegación snappy). Actualizar el comentario para reflejar la realidad, o bumpear a `numberOfMonths=2` en desktop (mobile mantiene 1 por espacio).
+  1. ~~Comentario dice `numberOfMonths=2` pero el render usa `1`.~~ **CERRADO por ZB2 Dim 6 (sprint ZONAB-1, commit `4dcf176`)**: `numberOfMonths` es responsive vía `matchMedia('(min-width: 640px)')` — desktop 2 meses (aprovecha el fetch prefetch), mobile 1 mes.
   2. Sin hint visual de carga al cambiar de mes. F1 muestra skeleton durante `pickerLoading`; F2 mantiene los días previos visibles (continuidad visual pero sin señal de "cargando"). Alinear con F1 o mostrar un spinner discreto.
   3. `fromDate={new Date()}` usa TZ del browser. Un tutor en TZ occidental (ej. viaje) podría ver "hoy" clickeable siendo ya "ayer" en Chile. Server lo marca `pasado` via el endpoint, pero es cosmético mejorable: usar `chileMidnightUtc(localTodayIso())`.
 
@@ -179,15 +347,33 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
     - `/api/cron/invitacion-resenas` — schedule actual (verificar). Con Pro, evaluar si mover a horario o cada N horas mejora tasa de respuesta.
     - Cualquier otro cron nuevo puede diseñarse desde cero para la frecuencia que el use case pide, sin restricción de plataforma.
   **Trigger para revisar**: si un use case concreto pide frecuencia > diaria (recordatorio 1h, purge cache, sync incremental). Hasta entonces, no re-tunear crons existentes que ya funcionan.
+- **[P2 seguridad, diferido — trigger claro] Advisory lock para servicios con `capacidad_estadia > 1`**. Considerado en ZB4-a del sprint ZONAB-1 (2026-07-31); **bajado a sprint dedicado** porque el escenario no está en uso: staging tiene 0 servicios con `capacidad_estadia > 1` (1 con cap=1, 14 sin estadía; verificado via MCP). El schema F2-1 soporta multi-capacidad (guarderías, hospedaje simultáneo con N mascotas) pero ningún proveedor lo activó todavía. Cuando aparezca, race condition posible: dos tutores reservan la última plaza simultáneamente y ambos INSERTs pasan el pre-check `count < capacidad` porque leen el mismo snapshot. **Fix cuando toque**: `pg_advisory_xact_lock(hashtext(servicio_id::text))` al inicio de la transacción del INSERT del picker F2 (`pages/api/agendamientos/...` — o RPC dedicado). Serializa los INSERTs por servicio a nivel BD sin afectar otros servicios. **Trigger de activación**: monitor SQL `SELECT COUNT(*) FROM servicios_publicados WHERE capacidad_estadia > 1` — cuando pase de 0 → sprint dedicado con: (a) advisory lock, (b) test de carga con 2 clientes concurrentes, (c) contador de rebotes por lock timeout. Anotar deuda en el mismo sprint del primer proveedor que active capacidad > 1.
 
 ## Radar de plugins / MCPs (con gatillo definido, no instalar antes)
 
 Herramientas que agregan valor real cuando llegue su gatillo. Instalar antes es distracción. Todos comparten la convención: cero instalación hasta que dispare la condición.
 
+### Instalaciones aprobadas 2026-08-04 (batch de plugins de claude.com/plugins)
+
+Reglas de uso documentadas en `CLAUDE.md` sección "MCPs con acceso a servicios (staging + Vercel)". Trigger: PO+coordinador después de detectar cuello de botella "Ready confirmado" (~30 rondas semanales) + necesidad de segundos revisores para Auditoría Integral #2.
+
+1. **Plugin Vercel (oficial)** — resuelve el cuello de botella "Ready confirmado". Verificación de estado libre; acciones mutantes (redeploy, env vars, dominios, protection, bypass token) SIEMPRE con GO explícito del coordinador por-turno.
+2. **Plugin Security Guidance (Anthropic-verified)** — segundo revisor en Auditoría #2 (jueves).
+3. **Plugin Code Review (Anthropic-verified)** — segundo revisor en Auditoría #2 (jueves).
+4. **Plugin Playwright (oficial)** — habilita módulo "UX Walkthrough Navegado" de Auditoría #2. Credenciales solo staging (Camila / Aldo), PROHIBIDO navegar prod loggeado.
+5. **Plugin Chrome DevTools (oficial)** — complemento del walkthrough (cosecha errores consola + Network 4xx/5xx + screenshots de estados rotos).
+
+### No instalados 2026-08-04 (razones registradas)
+
+- **Supabase MCP oficial** — el MCP hospedado actual con disciplina read-only (documentado en CLAUDE.md) funciona. Trigger para reconsiderar: post-lanzamiento, si la superficie del oficial agrega operaciones que el actual no cubre y valen la migración. Hasta entonces, mantener el actual = menos rotación de tooling en periodo pre-lanzamiento.
+- **SearchFit SEO (comunitario)** — comunitario, requiere auditoría de procedencia (autor, permisos, historial de contribuciones) antes de considerarlo. Cero urgencia dado que el bundle SEO del triage Auditoría #2 (307→410/404 + sitemap.estado + log info) se resuelve con edits directos al código, sin dependencia externa. Reconsiderar solo si el bundle se prolonga y aparecen tareas SEO recurrentes que un plugin podría automatizar.
+- **Plugin `Sentry`** — **GATILLO ACTUALIZADO 2026-08-04**: instalar cuando `Sprint SENTRY-1` esté en prod (batch pre-lanzamiento, ver "Proyectos estructurales"). El plugin sirve para consultar issues de Sentry directamente desde Claude cuando aparezcan en prod — pre-instalación es distracción porque no hay data. Trigger de instalación = primer error real capturado post-`SENTRY-1`.
+
+### Plugins con gatillo (sin instalar aún)
+
 - **Plugin `Design`** (crítica UX + accesibilidad + UX writing) — **GATILLO**: cierre de F2-3-E. Broche de F2 ANTES del merge a prod. Auditoría objetivo: (a) accesibilidad — contraste WCAG, foco de teclado navegable en el picker de rango, labels/aria en inputs de blackouts, tab order en el modal del tutor. (b) UX crítica del flujo completo — reserva de estadía por Camila desde ficha → picker → confirmación → email → cancelación con ventana; editor de blackouts F2-2B; formularios que expusimos en F2-3-D (dialog de cancelación con copy diferenciado F1/F2). Output esperado: hallazgos priorizables, mismo formato que el code-review (score + descartes justificados).
 - **Plugin `Frontend Design`** (generación de UI) — **GATILLO**: cuando se ataque alguno de los ítems visuales del backlog (`Styleguide rewrite`, bottom nav móvil si aparece, `Hero rotativo del home`). Condición de uso: domado con los tokens visuales existentes de Pawnecta (`accent` #22C55E / `deep` #134E4A + estados `success/danger/warning/info`) — no rediseña identidad, construye dentro de ella. Instrucción explícita: pasar el snapshot de `pages/styleguide.tsx` como input inicial cada vez que se lo use.
 - **Stripe** — GATILLO: la pasarela elegida en el proyecto "Pagos" del roadmap Doctoralia-style resulta ser Stripe (no Transbank Webpay). Instalar recién con esa decisión.
-- **Sentry** — GATILLO: decisión explícita de observabilidad post-F2. Alternativa considerada: Vercel Analytics + Supabase logs siguen alcanzando por ahora.
 
 ## Sistema visual (referencia — YA COMPLETADO)
 

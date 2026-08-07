@@ -98,4 +98,21 @@ export interface AgendamientoConRelaciones extends AgendamientoRow {
         // ventana; el client la usa para el disabled+tooltip del boton.
         cancelacion_min_horas_antes?: number | null;
     } | null;
+    // PD3 sprint PRODUCTO-2 — mascota embed via FK
+    // agendamientos_mascota_id_fkey. Poblada solo cuando el fetch pide
+    // el join (mis-solicitudes.tsx SELECT lo incluye para filtro +
+    // chip). Null en reservas legacy sin ficha (`mascota_id` NULL —
+    // caso mayoritario en prod al 2026-08-04) o cuando el tutor
+    // usó `tipo_mascota_texto` como fallback (chip cae al texto libre).
+    mascota?: {
+        id: string;
+        nombre: string;
+        tipo: string;
+        foto_mascota: string | null;
+    } | null;
+    // PD3: exposición explícita en el shape (ya existe en la fila desde
+    // la migration 20260707) para que el filtro pueda distinguir
+    // ficha-real vs texto-libre.
+    mascota_id?: string | null;
+    tipo_mascota_texto?: string | null;
 }
