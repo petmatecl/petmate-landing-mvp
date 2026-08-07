@@ -160,3 +160,44 @@ Consulta a `information_schema.columns` para columnas `mensaje` / `nota_proveedo
 ## 8. Siguiente
 
 **ZB2** — batch a11y + visual. Autorización adelantada del sprint completo vigente. Arranco sin GO específico. Reporto al cerrar ZB2 con acta P5 y suite verde.
+
+## Anexo P5 — Fase C del desfile (merge `zonab-1 → staging` ejecutada 2026-08-07)
+
+**SHA pre-merge staging**: `d5e389c` (post-Fase B con producto-1 mergeado + evidencia P5).
+**SHA post-merge staging**: `d730801` (merge commit no-FF).
+**Ejecutor**: Claude, guard P3 verificado.
+
+**FF-check pre-merge**: 5 commits en staging que zonab-1 no tenía → no-FF esperado.
+
+**Conflicto resuelto**: `BACKLOG.md` línea 184-192 — 2 ítems P3 nuevos (crons Vercel Pro en HEAD staging + advisory lock zonab-1) → **aceptados ambos bloques** (siguiendo la nota del mini-checklist "Conflicto BACKLOG.md: aceptar ambos bloques"). Auto-merges limpios en `pages/explorar.tsx` + `playwright.config.ts`.
+
+**Build P1 local exit 0** post-merge.
+
+**Preview Vercel staging Ready** al primer poll (attempt 1, code 200).
+
+**Suite full contra staging (SHA `d730801`)** — **corrida dual por protocolo flakiness ambient**:
+
+- **Corrida 1** (post-Ready inmediato):
+  ```
+  Running 50 tests using 8 workers
+  46 passed + 4 failed (44.3s), EXIT=1
+  ```
+  Los 4 fails son de zonab-1 specs: `s10-a11y-modales-batch:25` (modal SitterDetailModal), `s11-a11y-batch:21` (toggle Lista/Mapa), `s11-a11y-batch:42` (filtro estado admin/servicios), `s11-a11y-batch:60` (aria-live wizard register). Todos fallan también en retry #1.
+
+- **Diagnóstico** (regla mini-checklist "re-correr aislado antes de asumir regresión"):
+  ```
+  $ npx playwright test e2e/specs/zonab-1/
+  Running 6 tests using 5 workers
+  6 passed (6.3s), EXIT=0
+  ```
+  Los 6 tests de zonab-1 pasan en 6.3s cuando el preview ya está caliente. **Flakiness ambient confirmado** — cold-start del preview con concurrencia 8 workers golpea a los tests a11y (que dependen de que scripts cargen + roles ARIA se establezcan post-hidratación).
+
+- **Corrida 2 confirmatoria full** (protocolo):
+  ```
+  49 passed (32.0s) + 1 flaky, EXIT=0
+  ```
+  El único flaky es `producto-1/s1-badge-reserva-online:74` — el known-flaky ya documentado en `ACTA_SPRINT_PRODUCTO-1.md` (deuda light anotada del sprint anterior, retry verde consistente). **Cero regresión de zonab-1 sobre la combinación**.
+
+**Cleanup MCP staging post-suite**: `0 [TEST-%` + `0 e2e-%` verificado dos veces (post-corrida 1 + post-corrida 2).
+
+**FASE C CERRADA — 2026-08-07**. Sin bloqueos para Fase D.
