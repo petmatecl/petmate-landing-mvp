@@ -2,6 +2,7 @@ import { GetStaticPaths, GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import { mapRpcToServiceResult } from '../../lib/serviceMapper';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
 import { MapPinIcon } from '@heroicons/react/24/outline';
@@ -168,10 +169,16 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         console.error("Error fetching category services:", servicesError);
     }
 
+    // Sweep #1 fix B4 (2026-08-07) — paridad completa del ServiceResult
+    // en TODOS los mapping paths: reemplazar el pass-through raw (que
+    // rompía `fotos` como paths de storage sin proxy y podía silenciar
+    // futuros fields nuevos como el `tiene_agenda_activa` del PR1) por
+    // el mapper canónico `mapRpcToServiceResult`. Badge "Reserva online"
+    // ahora consistente en /[categoria]/, /[categoria]/[comuna] y /explorar.
     return {
         props: {
             categoria: catData,
-            services: services || [],
+            services: (services || []).map(mapRpcToServiceResult),
         },
         revalidate: 3600, // Revalidar cada hora
     };

@@ -23,6 +23,7 @@ import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntua
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../lib/formatDireccion';
 import { estadoDerivado } from '../lib/estadoDerivado';
+import { puedeCancelarPorVentana } from '../lib/puedeCancelarPorVentana';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
 
 type LoadState =
@@ -681,14 +682,18 @@ function SolicitudCard({
     // cerro, el boton "Cancelar reserva" queda disabled + tooltip con
     // el copy amable — mismo enforcement autoritativo se hace en el
     // endpoint, esto es solo feedback UX.
+    // Sweep #1 fix B3 (2026-08-07): extraído a lib/puedeCancelarPorVentana.ts
+    // como función pura para poder unit-testear el contra-caso que la
+    // implementación previa nunca alcanzaba (fecha_preferida = null →
+    // guard defensivo unreachable por `?? 0` + Number.isFinite trap).
+    // Ver lib/puedeCancelarPorVentana.test.ts para el contra-test canónico.
     const cancelacionMinHoras = solicitud.servicio?.cancelacion_min_horas_antes ?? 48;
-    const puedeCancelarPorVentana = (() => {
-        if (!esReservaAgendaF2 || !isConfirmada) return true;
-        const checkInMs = new Date(solicitud.fecha_preferida ?? 0).getTime();
-        if (!Number.isFinite(checkInMs)) return true;   // defensivo
-        const horasHastaCheckIn = (checkInMs - Date.now()) / 3_600_000;
-        return horasHastaCheckIn >= cancelacionMinHoras;
-    })();
+    const puedeCancelarPorVentanaValue = puedeCancelarPorVentana({
+        esReservaAgendaF2,
+        isConfirmada,
+        fecha_preferida: solicitud.fecha_preferida,
+        cancelacion_min_horas_antes: solicitud.servicio?.cancelacion_min_horas_antes,
+    });
     const tooltipVentanaCerrada = `Faltan menos de ${cancelacionMinHoras === 1 ? '1 hora' : `${cancelacionMinHoras} horas`} para el check-in. Contacta al proveedor por chat para coordinar.`;
 
     // Branching de formato segun variante: la combinacion de modo_tarifa +
@@ -925,8 +930,8 @@ function SolicitudCard({
                     <button
                         type="button"
                         onClick={onCancel}
-                        disabled={!puedeCancelarPorVentana}
-                        title={puedeCancelarPorVentana ? undefined : tooltipVentanaCerrada}
+                        disabled={!puedeCancelarPorVentanaValue}
+                        title={puedeCancelarPorVentanaValue ? undefined : tooltipVentanaCerrada}
                         className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
                         Cancelar reserva

@@ -352,13 +352,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let sentProveedor = 0;
         const failures: Array<{ agendamientoId: string; destinatario: Destinatario; reason: string }> = [];
 
-        // ZB4-b sprint ZONAB-1 — Instrumentación ligera drift de marcas.
-        // Contadores para el summary log al final del handler. Alimentan
-        // observabilidad del ítem BACKLOG "Instrumentar recordatorio-reserva
-        // para diagnóstico de drift" sin bloquear el flow (los conteos son
-        // best-effort, no afectan la lógica de envío).
-        let driftTutor = 0;
-        let driftProveedor = 0;
+        // Sweep #1 fix B5 (2026-08-07) — CLAIM-THEN-SEND (prevención medida, no
+        // solo detección). Auditoría #2 finding B5: la instrumentación previa
+        // (ZB4-b) hacía UPDATE conditional NULL DESPUÉS de que enviarRecordatorio
+        // ya había mandado el email — logeaba el race pero NO prevenía la
+        // duplicación en concurrent runs (retry Vercel, manual + scheduled,
+        // cold-start). Fix: invertir el orden — CLAIM primero (UPDATE conditional
+        // con RETURNING id ANTES del send); solo si claim gana (1 row updated) →
+        // enviarRecordatorio. Si claim pierde (0 rows → otro run ya lo hizo) →
+        // NO enviar, contar como claim perdido. En caso de fallo del send tras
+        // claim ganado, ROLLBACK: setear la marca a NULL para que el próximo
+        // run reintente (no perder el intento por fallo transitorio).
+        //
+        // Rename semántico: `drift*` → `claimsPerdidos*` (métrica clara de
+        // duplicates prevenidos por el claim, no de discrepancia post-hoc).
+        let claimsPerdidosTutor = 0;
+        let claimsPerdidosProveedor = 0;
+
+        // Arrow-function bindings (function declarations dentro de bloques
+        // rechazadas por TS en strict mode). reclamarEnvio: intenta ganar
+        // el slot de envío para un destinatario específico. Retorna true
+        // si el claim ganó (row updated, marca poblada), false si perdió.
+        const reclamarEnvio = async (
+            agendamientoId: string,
+            markColumn: 'recordatorio_tutor_enviado_at' | 'recordatorio_proveedor_enviado_at',
+        ): Promise<boolean> => {
+            const { data, error } = await supabaseAdmin
+                .from('agendamientos')
+                .update({ [markColumn]: new Date().toISOString() })
+                .eq('id', agendamientoId)
+                .is(markColumn, null)
+                .select('id');
+            if (error) throw error;
+            return Array.isArray(data) && data.length > 0;
+        };
+
+        // Rollback del claim: setear la marca a NULL para que el próximo run
+        // reintente. Usado cuando el send falla POST-claim (Resend down,
+        // network error, etc).
+        const rollbackClaim = async (
+            agendamientoId: string,
+            markColumn: 'recordatorio_tutor_enviado_at' | 'recordatorio_proveedor_enviado_at',
+        ): Promise<void> => {
+            const { error } = await supabaseAdmin
+                .from('agendamientos')
+                .update({ [markColumn]: null })
+                .eq('id', agendamientoId);
+            if (error) {
+                console.error('[cron] rollback claim falló', {
+                    agendamientoId, markColumn, error: error.message,
+                });
+            }
+        };
 
         for (let i = 0; i < elegibles.length; i += SUB_BATCH) {
             const slice = elegibles.slice(i, i + SUB_BATCH);
@@ -367,28 +412,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             for (const e of slice) {
                 if (e.necesitaTutor && e.tutor.email) {
                     tasks.push((async () => {
+                        // CLAIM primero.
+                        let claimGanado = false;
+                        try {
+                            claimGanado = await reclamarEnvio(e.agendamientoId, 'recordatorio_tutor_enviado_at');
+                        } catch (err) {
+                            failures.push({
+                                agendamientoId: e.agendamientoId,
+                                destinatario: 'tutor',
+                                reason: `claim tutor falló: ${err instanceof Error ? err.message : String(err)}`,
+                            });
+                            return;
+                        }
+                        if (!claimGanado) {
+                            claimsPerdidosTutor++;
+                            console.warn('[cron-claim-lost] tutor claim ya reclamado por otro run', {
+                                agendamientoId: e.agendamientoId,
+                                servicioId: e.servicioId,
+                            });
+                            return; // NO enviar — otro run ya lo hizo.
+                        }
+                        // Claim ganado → SEND. Si falla, rollback la marca.
                         try {
                             await enviarRecordatorio(e, 'tutor', supabaseAdmin, siteUrl);
-                            // ZB4-b: UPDATE condicional NULL — evita sobrescribir
-                            // una marca ya poblada por una ejecución concurrente
-                            // (drift). Si retorna 0 rows, es señal de race o
-                            // idempotencia del filter OR NULL falló.
-                            const { data: updData, error: updErr } = await supabaseAdmin
-                                .from('agendamientos')
-                                .update({ recordatorio_tutor_enviado_at: new Date().toISOString() })
-                                .eq('id', e.agendamientoId)
-                                .is('recordatorio_tutor_enviado_at', null)
-                                .select('id');
-                            if (updErr) throw updErr;
-                            if (!updData || updData.length === 0) {
-                                driftTutor++;
-                                console.warn('[cron-drift] tutor mark ya poblado antes del UPDATE', {
-                                    agendamientoId: e.agendamientoId,
-                                    servicioId: e.servicioId,
-                                });
-                            }
                             sentTutor++;
                         } catch (err) {
+                            await rollbackClaim(e.agendamientoId, 'recordatorio_tutor_enviado_at');
                             failures.push({
                                 agendamientoId: e.agendamientoId,
                                 destinatario: 'tutor',
@@ -399,24 +448,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
                 if (e.necesitaProveedor && e.proveedor.email) {
                     tasks.push((async () => {
+                        let claimGanado = false;
+                        try {
+                            claimGanado = await reclamarEnvio(e.agendamientoId, 'recordatorio_proveedor_enviado_at');
+                        } catch (err) {
+                            failures.push({
+                                agendamientoId: e.agendamientoId,
+                                destinatario: 'proveedor',
+                                reason: `claim proveedor falló: ${err instanceof Error ? err.message : String(err)}`,
+                            });
+                            return;
+                        }
+                        if (!claimGanado) {
+                            claimsPerdidosProveedor++;
+                            console.warn('[cron-claim-lost] proveedor claim ya reclamado por otro run', {
+                                agendamientoId: e.agendamientoId,
+                                servicioId: e.servicioId,
+                            });
+                            return;
+                        }
                         try {
                             await enviarRecordatorio(e, 'proveedor', supabaseAdmin, siteUrl);
-                            const { data: updData, error: updErr } = await supabaseAdmin
-                                .from('agendamientos')
-                                .update({ recordatorio_proveedor_enviado_at: new Date().toISOString() })
-                                .eq('id', e.agendamientoId)
-                                .is('recordatorio_proveedor_enviado_at', null)
-                                .select('id');
-                            if (updErr) throw updErr;
-                            if (!updData || updData.length === 0) {
-                                driftProveedor++;
-                                console.warn('[cron-drift] proveedor mark ya poblado antes del UPDATE', {
-                                    agendamientoId: e.agendamientoId,
-                                    servicioId: e.servicioId,
-                                });
-                            }
                             sentProveedor++;
                         } catch (err) {
+                            await rollbackClaim(e.agendamientoId, 'recordatorio_proveedor_enviado_at');
                             failures.push({
                                 agendamientoId: e.agendamientoId,
                                 destinatario: 'proveedor',
@@ -432,15 +487,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             await Promise.allSettled(tasks);
         }
 
-        // ZB4-b: summary log al fin del handler. Grepable por
-        // `[cron-drift-summary]` en Vercel Logs para monitoreo del drift.
+        // Summary log al fin del handler. Grepable por `[cron-drift-summary]`
+        // en Vercel Logs para monitoreo. `claimsPerdidos*` mide races prevenidos
+        // (duplicates que NO ocurrieron gracias al claim). `driftTutor` /
+        // `driftProveedor` se mantienen como alias hacia atrás para no romper
+        // dashboards existentes que ya lo grepean.
         console.log('[cron-drift-summary]', {
             candidatos: (candidatos || []).length,
             elegibles: elegibles.length,
             sentTutor,
             sentProveedor,
-            driftTutor,
-            driftProveedor,
+            claimsPerdidosTutor,
+            claimsPerdidosProveedor,
+            // Alias legacy para dashboards que ya grepean `drift*`. Ahora la
+            // semántica es "duplicates prevenidos" (los sent NO ocurrieron para
+            // estos), no "discrepancia post-hoc".
+            driftTutor: claimsPerdidosTutor,
+            driftProveedor: claimsPerdidosProveedor,
             failures: failures.length,
             timestamp: new Date().toISOString(),
         });
