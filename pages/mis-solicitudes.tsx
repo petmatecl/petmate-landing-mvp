@@ -13,7 +13,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Calendar, ArrowRight, Clock, CheckCircle, XCircle, Phone, MapPin, Home } from 'lucide-react';
+import { Calendar, ArrowRight, Clock, CheckCircle, CheckCircle2, XCircle, AlertTriangle, Phone, MapPin, Home, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
@@ -22,6 +22,7 @@ import ConfirmDialog from '../components/Shared/ConfirmDialog';
 import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntualConDuracion } from '../lib/formatFecha';
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../lib/formatDireccion';
+import { estadoDerivado } from '../lib/estadoDerivado';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
 
 type LoadState =
@@ -36,6 +37,21 @@ export default function MisSolicitudesPage() {
     const [state, setState] = useState<LoadState>({ kind: 'loading' });
     const [cancelDialogId, setCancelDialogId] = useState<string | null>(null);
     const [cancelLoading, setCancelLoading] = useState(false);
+    // PD2 sprint PRODUCTO-2 — pestañas de organización. Default 'proximas'
+    // (confirmadas futuras, orden fecha asc — lo que el tutor necesita
+    // "próximamente"). El particionado es 100% client-side sobre la lista
+    // ya cargada — cero queries nuevas.
+    const [activeTab, setActiveTab] = useState<'proximas' | 'pendientes' | 'historial'>('proximas');
+    // PD4-bis sprint PRODUCTO-2 — id de la vencida cuyo CTA "Volver a
+    // solicitar" está en curso de cancel-then-navigate. Alimenta el
+    // disabled del botón mientras corre el UPDATE + navigate.
+    const [volverASolicitarLoadingId, setVolverASolicitarLoadingId] = useState<string | null>(null);
+    // PD3 sprint PRODUCTO-2 — filtros dentro de pestañas. Client-side,
+    // sin queries nuevas. Alimentados dinámicamente por la data del
+    // panel activo (dropdowns visibles solo si hay >1 opción).
+    // Valor `null` = sin filtro; string = filtrar por ese id/label.
+    const [filtroProveedor, setFiltroProveedor] = useState<string | null>(null);
+    const [filtroMascota, setFiltroMascota] = useState<string | null>(null);
 
     // Auth gate — mismo patron que /favoritos.
     useEffect(() => {
@@ -89,8 +105,10 @@ export default function MisSolicitudesPage() {
                 region, comuna, calle, numero, direccion_info,
                 mensaje, estado, nota_proveedor,
                 duracion_min, capacidad_snapshot, capacidad_snapshot_estadia, tutor_nombre,
+                mascota_id, tipo_mascota_texto,
                 respondido_at, created_at, updated_at,
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, cancelacion_min_horas_antes),
+                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo, foto_mascota)
             `)
             .eq('tutor_id', buscador.id)
             .order('created_at', { ascending: false });
@@ -110,6 +128,12 @@ export default function MisSolicitudesPage() {
         const hydrated = (data || []).map((a: any) => ({
             ...a,
             proveedor: provMap.get(a.proveedor_id) ?? null,
+            // PD3: normalizar embed mascota (PostgREST puede devolver
+            // array u object según cache/permisos; N:1 aquí = 1 fila max).
+            // RLS de mascotas restringe a user_id=auth.uid() del tutor —
+            // el join solo trae mascotas del propio tutor, alineado con
+            // el filtro tutor_id de la query.
+            mascota: Array.isArray(a.mascota) ? (a.mascota[0] ?? null) : (a.mascota ?? null),
         }));
 
         // Sort pendientes primero. PG no soporta CASE en order via supabase-js;
@@ -124,6 +148,42 @@ export default function MisSolicitudesPage() {
         if (userLoading || !isAuthenticated || !user?.id) return;
         fetchSolicitudes();
     }, [userLoading, isAuthenticated, user?.id, fetchSolicitudes]);
+
+    // PD5-fix (2026-08-04): reset de filtros huérfanos post-refresh.
+    // Cuando el estado se actualiza tras cancelar/refetch, si el valor
+    // activo de un filtro ya no existe en las opciones del panel actual
+    // (ej. la última reserva del proveedor X era la cancelada), el
+    // dropdown desaparece por el gate >1 pero el valor persiste →
+    // filtro fantasma → cero cards visibles sin control para limpiar.
+    // Approach: verificar por-pestaña sobre la lista completa antes de
+    // partitionarla. Suficiente porque el reset al cambiar de tab ya
+    // cubre el otro caso (opciones distintas por tab).
+    useEffect(() => {
+        if (state.kind !== 'ready') return;
+        const cardsAll = state.agendamientos.map(sol => ({ sol, estadoUI: estadoDerivado(sol) }));
+        const cardsPestana = cardsAll.filter(x => {
+            if (activeTab === 'proximas') return x.estadoUI === 'confirmada';
+            if (activeTab === 'pendientes') return x.estadoUI === 'pendiente';
+            return ['realizada', 'vencida', 'cancelada', 'rechazada', 'cancelada_proveedor']
+                .includes(x.estadoUI);
+        });
+        if (filtroProveedor) {
+            const opcionExiste = cardsPestana.some(x => x.sol.proveedor?.id === filtroProveedor);
+            if (!opcionExiste) setFiltroProveedor(null);
+        }
+        if (filtroMascota) {
+            const opcionExiste = cardsPestana.some(x => {
+                if (filtroMascota.startsWith('id:')) return `id:${x.sol.mascota?.id}` === filtroMascota;
+                if (filtroMascota.startsWith('texto:')) {
+                    const t = x.sol.tipo_mascota_texto?.trim().toLowerCase();
+                    return t ? `texto:${t}` === filtroMascota : false;
+                }
+                if (filtroMascota === 'sin') return !x.sol.mascota?.id && !x.sol.tipo_mascota_texto;
+                return false;
+            });
+            if (!opcionExiste) setFiltroMascota(null);
+        }
+    }, [state, activeTab, filtroProveedor, filtroMascota]);
 
     const handleConfirmCancel = async () => {
         if (!cancelDialogId) return;
@@ -206,6 +266,57 @@ export default function MisSolicitudesPage() {
         }
     };
 
+    // PD4-bis sprint PRODUCTO-2 — CTA "Volver a solicitar" en vencidas:
+    // cancel-then-navigate. La vencida es `estado='pendiente'` en BD (decisión
+    // derivados), y navegar directo a /servicio/{id} para crear nueva
+    // solicitud violaría `agendamientos_unique_pendiente_por_tutor_servicio`
+    // (dos pendientes del mismo par tutor+servicio) — el modal mostraría un
+    // mensaje absurdo tipo "Ya tienes una solicitud pendiente... espera al
+    // proveedor" sobre una vencida.
+    //
+    // Approach opción A (aprobado PO 2026-08-04): UPDATE client-side directo
+    // (mismo patrón que handleConfirmCancel para F1/legacy/pendiente) con
+    // refinamiento `.eq('estado','pendiente')` — si entre render y click el
+    // proveedor confirmó, matchea 0 rows: NO navegamos, refrescamos + toast
+    // neutro. Cierra la carrera. RLS permite (tutor cancela su propia fila).
+    // El endpoint /api/agendamientos/cancelar es F2-confirmadas-only y no
+    // acepta este use case (ver reporte al PO del 2026-08-04).
+    const handleVolverASolicitar = useCallback(async (
+        agendamientoId: string,
+        servicioId: string,
+    ) => {
+        setVolverASolicitarLoadingId(agendamientoId);
+        try {
+            const { data, error } = await supabase
+                .from('agendamientos')
+                .update({
+                    estado: 'cancelada' as EstadoAgendamiento,
+                    respondido_at: new Date().toISOString(),
+                })
+                .eq('id', agendamientoId)
+                .eq('estado', 'pendiente')   // refinamiento anti-carrera
+                .select('id');
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                // Carrera: entre render y click, la solicitud pasó a otro
+                // estado (proveedor confirmó, o tutor la canceló desde otra
+                // tab). NO navegamos — refrescamos y damos feedback neutro.
+                toast.info('Esta solicitud cambió de estado.');
+                await fetchSolicitudes();
+                return;
+            }
+            // Éxito: la vencida quedó como cancelada (aparece en Historial
+            // como "Cancelada por ti"), y la constraint unique_pendiente
+            // queda libre para la nueva solicitud del mismo servicio.
+            router.push(`/servicio/${servicioId}`);
+        } catch (err: any) {
+            console.error('[mis-solicitudes] volver-a-solicitar error:', err);
+            toast.error(`No pudimos preparar el reintento: ${err?.message || 'error desconocido'}`);
+        } finally {
+            setVolverASolicitarLoadingId(null);
+        }
+    }, [fetchSolicitudes, router]);
+
     // Loading / pre-auth — evitar flash de empty state mientras se resuelve.
     if (userLoading || !router.isReady || !isAuthenticated) {
         return (
@@ -276,17 +387,210 @@ export default function MisSolicitudesPage() {
                     </div>
                 )}
 
-                {state.kind === 'ready' && state.agendamientos.length > 0 && (
-                    <div className="space-y-4">
-                        {state.agendamientos.map(sol => (
-                            <SolicitudCard
-                                key={sol.id}
-                                solicitud={sol}
-                                onCancel={() => setCancelDialogId(sol.id)}
-                            />
-                        ))}
-                    </div>
-                )}
+                {state.kind === 'ready' && state.agendamientos.length > 0 && (() => {
+                    // PD2 — particionado por estadoDerivado.
+                    //   proximas:   confirmadas futuras            (orden fecha asc)
+                    //   pendientes: pendientes vigentes            (orden fecha asc)
+                    //   historial:  realizadas + vencidas +
+                    //               canceladas + rechazadas +
+                    //               cancelada_proveedor            (orden fecha desc)
+                    const withEstado = state.agendamientos.map(sol => ({
+                        sol,
+                        estadoUI: estadoDerivado(sol),
+                    }));
+                    const proximas = withEstado
+                        .filter(x => x.estadoUI === 'confirmada')
+                        .sort((a, b) => {
+                            const av = new Date(a.sol.fecha_preferida || 0).getTime();
+                            const bv = new Date(b.sol.fecha_preferida || 0).getTime();
+                            return av - bv;
+                        });
+                    const pendientes = withEstado
+                        .filter(x => x.estadoUI === 'pendiente')
+                        .sort((a, b) => {
+                            const av = new Date(a.sol.fecha_preferida || 0).getTime();
+                            const bv = new Date(b.sol.fecha_preferida || 0).getTime();
+                            return av - bv;
+                        });
+                    const historial = withEstado
+                        .filter(x => ['realizada', 'vencida', 'cancelada', 'rechazada', 'cancelada_proveedor']
+                            .includes(x.estadoUI))
+                        .sort((a, b) => {
+                            const av = new Date(a.sol.fecha_preferida || 0).getTime();
+                            const bv = new Date(b.sol.fecha_preferida || 0).getTime();
+                            return bv - av;
+                        });
+                    const grupos = { proximas, pendientes, historial };
+                    const cardsPestana = grupos[activeTab];
+
+                    // PD3 — opciones de filtro dinámicas por pestaña. Solo
+                    // proveedores presentes en la pestaña activa; solo
+                    // mascotas presentes (con etiqueta "Sin mascota" si hay
+                    // filas sin ficha ni texto). Dropdowns visibles solo si
+                    // hay >1 opción (regla del brief).
+                    const proveedoresPresentes = Array.from(
+                        new Map(
+                            cardsPestana
+                                .filter(x => x.sol.proveedor?.id)
+                                .map(x => [x.sol.proveedor!.id, {
+                                    id: x.sol.proveedor!.id,
+                                    label: (x.sol.proveedor!.nombre ?? 'Proveedor').trim(),
+                                }])
+                        ).values()
+                    );
+                    // Mascota "key": id de ficha si viaja, sino 'texto:'+trim, sino 'sin'.
+                    // Alimenta filtro + reconstrucción del label del dropdown.
+                    const mascotaKey = (sol: AgendamientoConRelaciones): string => {
+                        if (sol.mascota?.id) return `id:${sol.mascota.id}`;
+                        if (sol.tipo_mascota_texto) return `texto:${sol.tipo_mascota_texto.trim().toLowerCase()}`;
+                        return 'sin';
+                    };
+                    const mascotaLabel = (sol: AgendamientoConRelaciones): string => {
+                        if (sol.mascota?.nombre) return sol.mascota.nombre;
+                        if (sol.tipo_mascota_texto) return sol.tipo_mascota_texto;
+                        return 'Sin mascota';
+                    };
+                    const mascotasPresentes = Array.from(
+                        new Map(
+                            cardsPestana.map(x => {
+                                const k = mascotaKey(x.sol);
+                                return [k, { key: k, label: mascotaLabel(x.sol) }];
+                            })
+                        ).values()
+                    );
+
+                    // Aplicar filtros al panel activo.
+                    const activas = cardsPestana.filter(x => {
+                        if (filtroProveedor && x.sol.proveedor?.id !== filtroProveedor) return false;
+                        if (filtroMascota && mascotaKey(x.sol) !== filtroMascota) return false;
+                        return true;
+                    });
+
+                    const tabs = [
+                        { id: 'proximas' as const, label: 'Próximas', count: proximas.length },
+                        { id: 'pendientes' as const, label: 'Pendientes', count: pendientes.length },
+                        { id: 'historial' as const, label: 'Historial', count: historial.length },
+                    ];
+
+                    return (
+                        <>
+                            {/* Tablist — patrón coherente con admin (radiogroup no aplica:
+                                cambia el contenido, no un filtro con estado semántico) */}
+                            <div
+                                role="tablist"
+                                aria-label="Filtro de reservas por etapa"
+                                className="flex gap-2 overflow-x-auto pb-2 mb-4 hide-scrollbar border-b border-slate-100"
+                            >
+                                {tabs.map(tab => {
+                                    const isActive = activeTab === tab.id;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            // PD5-fix (2026-08-04): id explícito para que el
+                                            // aria-labelledby={`tab-${activeTab}`} del panel
+                                            // resuelva el nombre accesible del tab.
+                                            id={`tab-${tab.id}`}
+                                            role="tab"
+                                            aria-selected={isActive}
+                                            aria-controls={`mis-reservas-panel-${tab.id}`}
+                                            onClick={() => {
+                                                setActiveTab(tab.id);
+                                                // PD3: reset filtros al cambiar de pestaña — las
+                                                // opciones dependen del panel activo (distinta
+                                                // partición → distintos proveedores/mascotas).
+                                                setFiltroProveedor(null);
+                                                setFiltroMascota(null);
+                                            }}
+                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-[1px] ${
+                                                isActive
+                                                    ? 'text-accent-700 border-accent-600'
+                                                    : 'text-slate-600 border-transparent hover:text-slate-900 hover:border-slate-300'
+                                            }`}
+                                        >
+                                            {tab.label}
+                                            <span className={`inline-flex items-center justify-center min-w-[1.5rem] h-5 text-xs font-semibold rounded-full px-1.5 ${
+                                                isActive
+                                                    ? 'bg-accent-100 text-accent-700'
+                                                    : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                                {tab.count}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* PD3 — Filtros dentro de pestañas. Visibles solo si hay >1
+                                opción. Se resetean al cambiar de pestaña. */}
+                            {(proveedoresPresentes.length > 1 || mascotasPresentes.length > 1) && (
+                                <div className="flex flex-wrap gap-3 mb-4">
+                                    {proveedoresPresentes.length > 1 && (
+                                        <div className="flex items-center gap-2">
+                                            <label htmlFor="filtro-proveedor" className="text-xs font-medium text-slate-500">Proveedor:</label>
+                                            <select
+                                                id="filtro-proveedor"
+                                                value={filtroProveedor ?? ''}
+                                                onChange={e => setFiltroProveedor(e.target.value || null)}
+                                                className="h-9 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 px-3 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 cursor-pointer"
+                                            >
+                                                <option value="">Todos</option>
+                                                {proveedoresPresentes.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                    {mascotasPresentes.length > 1 && (
+                                        <div className="flex items-center gap-2">
+                                            <label htmlFor="filtro-mascota" className="text-xs font-medium text-slate-500">Mascota:</label>
+                                            <select
+                                                id="filtro-mascota"
+                                                value={filtroMascota ?? ''}
+                                                onChange={e => setFiltroMascota(e.target.value || null)}
+                                                className="h-9 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 px-3 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 cursor-pointer"
+                                            >
+                                                <option value="">Todas</option>
+                                                {mascotasPresentes.map(m => (
+                                                    <option key={m.key} value={m.key}>{m.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Panel activo */}
+                            <div
+                                id={`mis-reservas-panel-${activeTab}`}
+                                role="tabpanel"
+                                aria-labelledby={`tab-${activeTab}`}
+                                className="space-y-4"
+                            >
+                                {activas.length === 0 ? (
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+                                        <p className="text-sm text-slate-500">
+                                            {cardsPestana.length > 0
+                                                ? 'Ninguna reserva coincide con los filtros aplicados.'
+                                                : activeTab === 'proximas' ? 'No tienes reservas confirmadas próximamente.'
+                                                : activeTab === 'pendientes' ? 'No tienes solicitudes esperando respuesta.'
+                                                : 'Todavía no hay reservas en tu historial.'}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    activas.map(({ sol }) => (
+                                        <SolicitudCard
+                                            key={sol.id}
+                                            solicitud={sol}
+                                            onCancel={() => setCancelDialogId(sol.id)}
+                                            onVolverASolicitar={handleVolverASolicitar}
+                                            volverASolicitarLoading={volverASolicitarLoadingId === sol.id}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        </>
+                    );
+                })()}
             </div>
 
             {/* Sweep #3 taxonomía: colapsados los 4 títulos de cancelación
@@ -338,17 +642,28 @@ export default function MisSolicitudesPage() {
 function SolicitudCard({
     solicitud,
     onCancel,
+    onVolverASolicitar,
+    volverASolicitarLoading,
 }: {
     solicitud: AgendamientoConRelaciones;
     onCancel: () => void;
+    onVolverASolicitar: (agendamientoId: string, servicioId: string) => void;
+    volverASolicitarLoading: boolean;
 }) {
     const proveedor = solicitud.proveedor;
     const servicio = solicitud.servicio;
-    const isPendiente = solicitud.estado === 'pendiente';
-    const isConfirmada = solicitud.estado === 'confirmada';
-    const isRechazada = solicitud.estado === 'rechazada';
-    const isCancelada = solicitud.estado === 'cancelada';
-    const isCanceladaProveedor = solicitud.estado === 'cancelada_proveedor';
+    // PD1 sprint PRODUCTO-2: estado DERIVADO en UI (cero cambios BD). El
+    // helper reusa la semántica canónica de familia + fin efectivo del cron
+    // recordatorio-reserva.ts. Cards muestran REALIZADA/VENCIDA sin que la
+    // BD guarde esos valores.
+    const estadoUI = estadoDerivado(solicitud);
+    const isPendiente = estadoUI === 'pendiente';
+    const isConfirmada = estadoUI === 'confirmada';
+    const isRealizada = estadoUI === 'realizada';
+    const isVencida = estadoUI === 'vencida';
+    const isRechazada = estadoUI === 'rechazada';
+    const isCancelada = estadoUI === 'cancelada';
+    const isCanceladaProveedor = estadoUI === 'cancelada_proveedor';
     // F1 agenda — la reserva viene del picker rigido cuando duracion_min esta
     // poblada (INSERT lo popula desde el servicio.duracion_slot_min). Sirve
     // para diferenciar reservas auto-confirmadas del picker vs confirmadas
@@ -412,18 +727,26 @@ function SolicitudCard({
     });
     const direccionInfo = solicitud.direccion_info;
 
-    // Badge de estado de solicitud con tokens semanticos:
-    //   success = confirmada             (positivo, la solicitud fue aceptada)
+    // Badge de estado — el estado UI incluye los 2 DERIVADOS (PD1):
+    //   success = confirmada             (positivo, servicio próximo)
+    //   accent  = realizada              (neutro-positivo, servicio pasado
+    //                                     completado; sin celebración explícita
+    //                                     conforme al mapa semántico de emails)
     //   danger  = rechazada              (negativo terminal)
-    //   slate   = cancelada              (tutor cancelo, sin color activo)
-    //   slate + XCircle = cancelada_proveedor (F1 agenda: proveedor cancelo
-    //                    una reserva confirmada; motivo obligatorio esta en
-    //                    nota_proveedor)
-    //   warning = pendiente              (default del switch, espera de decision)
+    //   slate   = vencida                (pendiente que caducó — no negativo,
+    //                                     solo temporal)
+    //   slate   = cancelada              (tutor canceló, sin color activo)
+    //   slate + XCircle = cancelada_proveedor (F1: proveedor canceló una
+    //                    reserva confirmada; motivo en nota_proveedor)
+    //   warning = pendiente              (espera de decisión del proveedor)
     const estadoBadge = (() => {
-        switch (solicitud.estado) {
+        switch (estadoUI) {
             case 'confirmada':
                 return <span className="inline-flex items-center gap-1 bg-success-50 text-success-700 border border-success-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle size={12} /> Confirmada</span>;
+            case 'realizada':
+                return <span className="inline-flex items-center gap-1 bg-accent-50 text-accent-700 border border-accent-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><CheckCircle2 size={12} /> Realizada</span>;
+            case 'vencida':
+                return <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><AlertTriangle size={12} /> Vencida</span>;
             case 'rechazada':
                 return <span className="inline-flex items-center gap-1 bg-danger-50 text-danger-700 border border-danger-100 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest"><XCircle size={12} /> Rechazada</span>;
             case 'cancelada':
@@ -476,6 +799,32 @@ function SolicitudCard({
                 <Calendar size={15} className="text-slate-400 shrink-0" />
                 <span>{fechaPreferida}</span>
             </div>
+
+            {/* PD3 sprint PRODUCTO-2 — chip mascota discreto: ficha real +
+                foto pequeña si viaja, o fallback a texto libre. Ausente
+                cuando la reserva no tiene mascota asociada (mayoritario
+                en filas legacy) — no rompe layout ni deja hueco.
+                Patrón coherente con el resto de líneas info (icon +
+                texto). */}
+            {(solicitud.mascota || solicitud.tipo_mascota_texto) && (
+                <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
+                    {solicitud.mascota?.foto_mascota ? (
+                        <img
+                            src={solicitud.mascota.foto_mascota}
+                            alt=""
+                            className="w-5 h-5 rounded-full object-cover shrink-0"
+                        />
+                    ) : (
+                        <PawPrint size={15} className="text-slate-400 shrink-0" />
+                    )}
+                    <span className="truncate">
+                        {solicitud.mascota?.nombre ?? solicitud.tipo_mascota_texto}
+                        {solicitud.mascota?.tipo && (
+                            <span className="text-xs text-slate-500 ml-1.5">({solicitud.mascota.tipo})</span>
+                        )}
+                    </span>
+                </div>
+            )}
 
             {/* Modalidad — Fase 2: solo si el servicio es cuidado */}
             {modalidadLabel && (
@@ -591,6 +940,25 @@ function SolicitudCard({
                         Ver ficha del servicio
                         <ArrowRight size={14} />
                     </Link>
+                )}
+                {isVencida && servicio?.id && (
+                    // PD4 sprint PRODUCTO-2 — CTA útil en VENCIDA: navega a
+                    // la ficha del servicio con el flujo de reserva/solicitud
+                    // según tenga agenda o no. La vencida deja de ser lápida.
+                    //
+                    // PD4-bis (2026-08-04): antes de navegar cancelamos la
+                    // vencida (UPDATE .eq('estado','pendiente')) — cierra el
+                    // constraint agendamientos_unique_pendiente_por_tutor_
+                    // servicio que bloqueaba el flujo primario del CTA.
+                    <button
+                        type="button"
+                        onClick={() => onVolverASolicitar(solicitud.id, servicio.id!)}
+                        disabled={volverASolicitarLoading}
+                        className="inline-flex items-center gap-1.5 bg-accent-600 hover:bg-accent-700 text-white font-medium py-2 px-4 rounded-xl transition-colors text-sm shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        {volverASolicitarLoading ? 'Preparando...' : 'Volver a solicitar'}
+                        {!volverASolicitarLoading && <ArrowRight size={14} />}
+                    </button>
                 )}
                 {isRechazada && (
                     <Link

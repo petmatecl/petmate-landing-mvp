@@ -195,7 +195,7 @@ export default defineConfig({
             // Specs default corren como proveedor, EXCEPTO los de f2-3 (tutor)
             // y los de f2-recordatorios-cron (API tests, project propio abajo).
             // Nota: zonab-1 corre bajo este project (proveedor con rol admin).
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron)[\\/]/,
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2)[\\/]/,
         },
         {
             name: 'chromium-tutor',
@@ -207,7 +207,7 @@ export default defineConfig({
             // Solo specs del tutor: F2-3 (reserva + cancelacion). El auth-tutor
             // dispara si el spec matchea; sin specs matcheados, el setup-tutor
             // sigue corriendo pero es no-op eficaz.
-            testMatch: /specs[\\/]f2-3[\\/].*\.spec\.ts$/,
+            testMatch: /specs[\\/](f2-3|producto-2)[\\/].*\.spec\.ts$/,
         },
         {
             // Suite API del tren Recordatorios (R6). No usa browser — todos

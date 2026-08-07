@@ -1210,9 +1210,17 @@ export default function SolicitarAgendamientoModal({
         } catch (err: any) {
             console.error('[SolicitarAgendamientoModal] insert error:', err);
             if (err?.code === '23505') {
+                // PD4-bis sprint PRODUCTO-2 (2026-08-04) — copy más útil
+                // cuando la pendiente bloqueante tiene fecha pasada
+                // (usuario viene de una vencida). El flow principal desde
+                // /mis-solicitudes ahora cancel-then-navigates, pero este
+                // path sigue vivo para entradas desde otros orígenes
+                // (deep link, back button, etc.) donde la vencida no
+                // se cancela antes.
                 setErrorMsg(
-                    'Ya tienes una solicitud pendiente para este servicio. ' +
-                    'Espera a que el proveedor responda, o revísala desde "Mis reservas".'
+                    'Tienes una solicitud abierta para este servicio. ' +
+                    'Si ya pasó su fecha, cancélala desde "Mis reservas" para volver a solicitar; ' +
+                    'si sigue vigente, espera a que el proveedor responda.'
                 );
                 return;
             }
