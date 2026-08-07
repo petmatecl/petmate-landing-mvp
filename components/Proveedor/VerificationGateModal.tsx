@@ -20,10 +20,16 @@ export default function VerificationGateModal({
     onGoToVerification,
 }: VerificationGateModalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const primaryButtonRef = useRef<HTMLButtonElement>(null);
 
+    // Sweep #2 M1 (2026-08-07): initialFocusRef restaurado al primary CTA
+    // ("Verificar ahora" / "Ir a mi perfil" / "Entendido"). Antes de M1 el
+    // hook focuseaba el close-X (primer tabbable) — screen readers anunciaban
+    // "Cerrar" al abrir; keyboard user Enter dismiss en vez de navegar al
+    // flow de verificación (que era todo el punto del gate).
     // ZB1 sprint ZONAB-1: migrado a useModalDialog. Comportamiento
     // equivalente (Escape cierra, focus-trap, return-focus).
-    useModalDialog({ isOpen, onClose, containerRef });
+    useModalDialog({ isOpen, onClose, containerRef, initialFocusRef: primaryButtonRef });
 
     if (!isOpen) return null;
 
@@ -108,6 +114,7 @@ export default function VerificationGateModal({
                             </button>
                         )}
                         <button
+                            ref={primaryButtonRef}
                             onClick={primaryAction}
                             className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >

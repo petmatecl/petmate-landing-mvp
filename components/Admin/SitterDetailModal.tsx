@@ -40,10 +40,16 @@ type Props = {
 export default function SitterDetailModal({ sitter, open, onClose, onApprove, onViewDocument }: Props) {
     const titleId = useId();
     const containerRef = useRef<HTMLDivElement>(null);
+    // Sweep #2 M1 (2026-08-07): initialFocusRef al primary CTA
+    // "Aprobar / Revocar" (footer). Antes el hook focuseaba el close-X
+    // del header — task admin crítica (decisión aprobar/revocar) era
+    // last-in-tab-order; keyboard user Enter cerraba el modal en vez
+    // de disparar la decisión.
+    const primaryActionRef = useRef<HTMLButtonElement>(null);
 
     // ZB1 sprint ZONAB-1: migrado al patrón canónico. Antes no tenía nada
     // de accesibilidad de dialog.
-    useModalDialog({ isOpen: open, onClose, containerRef });
+    useModalDialog({ isOpen: open, onClose, containerRef, initialFocusRef: primaryActionRef });
 
     if (!open || !sitter) return null;
 
@@ -275,6 +281,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                   porque revocar es destructivo/severo, distinto de suspender
                                   que es reversible con reactivar). */}
                     <button
+                        ref={primaryActionRef}
                         onClick={() => {
                             onApprove(sitter.id, sitter.aprobado);
                             onClose();

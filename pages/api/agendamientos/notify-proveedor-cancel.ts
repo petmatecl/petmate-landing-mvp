@@ -144,7 +144,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             agend,
             servicio: servicio || {},
         });
-        const donde = dondeResuelto ?? `Se coordina por chat con ${tutor?.nombre || 'el tutor'}`;
+        // Sweep #2 M9 (2026-08-07): el email destinatario es el TUTOR
+        // (subject "Una solicitud confirmada fue cancelada", to = authUser
+        // que ya resolvió al tutor). El fallback previo decía
+        // "chat con ${tutor.nombre}" — un tutor leyendo "chat con Camila"
+        // (su propio nombre) = nonsense. Además la reserva está cancelada,
+        // "se coordina por chat" es futuro imposible. Copy nuevo neutro.
+        const donde = dondeResuelto ?? 'Sin dirección registrada';
 
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',

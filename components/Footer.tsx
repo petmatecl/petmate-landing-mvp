@@ -40,16 +40,22 @@ export function Footer() {
         </div>
 
         {/* Servicios */}
+        {/* Sweep #2 M11 (2026-08-07, UX-7 walkthrough #1): agregadas Etología
+            (producto-1 PR2) y Retratos (sprint anterior). Temática PO —
+            servicios inexplotados llegando al footer para maximizar
+            visibilidad y demanda de las categorías nuevas. */}
         <div>
           <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li><Link href="/explorar?categoria=hospedaje" className="hover:text-accent-600 transition-colors">Hospedaje</Link></li>
+            <li><Link href="/explorar?categoria=cuidado" className="hover:text-accent-600 transition-colors">Cuidado en casa del tutor</Link></li>
             <li><Link href="/explorar?categoria=guarderia" className="hover:text-accent-600 transition-colors">Guardería diurna</Link></li>
-            <li><Link href="/explorar?categoria=domicilio" className="hover:text-accent-600 transition-colors">Visita a domicilio</Link></li>
             <li><Link href="/explorar?categoria=paseos" className="hover:text-accent-600 transition-colors">Paseador de perros</Link></li>
             <li><Link href="/explorar?categoria=peluqueria" className="hover:text-accent-600 transition-colors">Peluquería</Link></li>
             <li><Link href="/explorar?categoria=adiestramiento" className="hover:text-accent-600 transition-colors">Adiestramiento</Link></li>
+            <li><Link href="/explorar?categoria=etologia" className="hover:text-accent-600 transition-colors">Etología y conducta</Link></li>
             <li><Link href="/explorar?categoria=veterinario" className="hover:text-accent-600 transition-colors">Veterinario a domicilio</Link></li>
+            <li><Link href="/explorar?categoria=retratos" className="hover:text-accent-600 transition-colors">Retratos de mascotas</Link></li>
             <li><Link href="/explorar?categoria=traslado" className="hover:text-accent-600 transition-colors">Traslado</Link></li>
           </ul>
         </div>

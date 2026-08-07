@@ -110,8 +110,13 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                     </div>
                     {!success && (
                         <button
+                            /* Sweep #2 M2 (2026-08-07): disabled durante submit
+                               para evitar close mid-insert → ghost setState en
+                               unmounted + posible duplicate-submit on reopen. */
                             onClick={onClose}
-                            className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-full hover:bg-slate-200"
+                            disabled={isSubmitting}
+                            aria-label="Cerrar"
+                            className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-full hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>

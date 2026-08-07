@@ -627,3 +627,133 @@ export function formatValorCampo(campo: CampoDinamico | undefined, value: any): 
     }
     return String(value);
 }
+
+// ----------------------------------------------------------------------------
+// Sweep #2 Ítem 0 (2026-08-07) — Íconos por campo (pedido PO 2026-07-31).
+// Mapa key → LucideIcon consumido por `renderCampoCard` en
+// components/Servicio/ServiceDetailView.tsx. Reemplaza el SVG genérico `···`
+// (3 círculos) que renderizaba para todos los no-boolean.
+//
+// Criterio operativo (cierre del pedido): CERO `···` visibles en fichas de las
+// 10 categorías actuales (hospedaje/cuidado, guardería, paseos, peluquería,
+// adiestramiento, veterinario, traslado, cuidado, etología, retratos).
+//
+// Cada key mapeado tiene un ícono Lucide semánticamente coherente. Campos
+// nuevos que se agreguen a CAMPOS_POR_CATEGORIA sin entry aquí caen al
+// fallback `MoreHorizontal` — sigue siendo Lucide monocromático, coherente
+// con el resto del set (cero SVG inline placeholder).
+//
+// Import ligero: los componentes de Lucide son tree-shakeable; solo los
+// referenciados aquí + los ya usados en ServiceDetailView terminan en el
+// bundle client de la ficha. Cero costo extra si el user no ve la ficha.
+// ----------------------------------------------------------------------------
+import type { LucideIcon } from 'lucide-react';
+import {
+    Clock, PawPrint, MapPin, Trees, Users, Video, Camera, Car, Award,
+    Stethoscope, Home, Monitor, Building, FileText, Palette, Wrench,
+    Sparkles, Shield, Maximize2, Repeat, Info, Receipt, Briefcase,
+    Package, Layers, Target, MoreHorizontal, Image as ImageIcon,
+} from 'lucide-react';
+
+export const FALLBACK_ICONO_CAMPO: LucideIcon = MoreHorizontal;
+
+export const ICONO_POR_CAMPO_KEY: Record<string, LucideIcon> = {
+    // Duración / tiempo / plazos.
+    duracion_estimada: Clock,
+    duracion_minutos: Clock,
+    duracion_sesion: Clock,
+    duracion_visita: Clock,
+    plazo_entrega: Clock,
+    horario: Clock,
+
+    // Frecuencia / repetición.
+    visitas_por_dia: Repeat,
+
+    // Ubicación / cobertura geográfica.
+    radio_cobertura_km: MapPin,
+    comunas_cobertura: MapPin,
+    comunas_adicionales: MapPin,
+    zona_paseo: MapPin,
+
+    // Espacio físico.
+    tipo_espacio: Home,
+    metros_espacio: Maximize2,
+    tiene_patio: Trees,
+    piso_departamento: Layers,
+    info_domicilio: Info,
+    tiene_mallas_seguridad: Shield,
+
+    // Capacidad / personas / mascotas.
+    capacidad: Users,
+    capacidad_mascotas: Users,
+    max_perros: Users,
+    equipo: Users,
+    ninos_en_hogar: Users,
+
+    // Mascotas / razas.
+    mascotas_propias: PawPrint,
+    tipo_mascotas_propias: PawPrint,
+    razas_especiales: PawPrint,
+    razas_fuerza: PawPrint,
+    acepta_separacion: PawPrint,
+
+    // Cámara / vigilancia.
+    camara_vigilancia: Video,
+
+    // Fotos / entregables visuales.
+    fotos_entregadas: Camera,
+    desde_foto: Camera,
+    portfolio_url: ImageIcon,
+
+    // Vehículo.
+    tipo_vehiculo: Car,
+
+    // Certificaciones / formación.
+    certificaciones: Award,
+    numero_registro: Award,
+    anio_titulacion: Award,
+    universidad: Award,
+    formacion: Award,
+    anios_experiencia: Award,
+
+    // Especialidad médica / veterinaria.
+    especialidades: Stethoscope,
+    especialidades_conductuales: Stethoscope,
+    especies_atendidas: Stethoscope,
+    trabaja_con_veterinario: Stethoscope,
+
+    // Modalidad (dónde se hace el servicio).
+    modalidad: Home,
+    modalidad_entrega: Package,
+
+    // Sesión / tipo / método (adiestramiento, etología).
+    tipo_sesion: Sparkles,
+    formato: Layers,
+    formatos: Palette,
+    tecnica: Palette,
+    enfoque_metodologico: Target,
+    metodo: Target,
+
+    // Producción / servicios profesionales.
+    mesa_hidraulica: Wrench,
+
+    // Empresa / boletas / facturación.
+    tiene_empresa: Briefcase,
+    emite_boleta: Receipt,
+
+    // Notas / texto libre.
+    notas: FileText,
+
+    // (Monitor/Building quedan disponibles para modalidades específicas si el
+    // valor lo justifica en un futuro switch por valor. Actualmente modalidad
+    // usa Home como default para no proliferar switches.)
+};
+
+/**
+ * Retorna el ícono Lucide para un `key` de campo dinámico. Sweep #2 Ítem 0.
+ * Cae al fallback `MoreHorizontal` si el key no está mapeado — coherente con
+ * el set Lucide del proyecto (cero SVG inline placeholder).
+ */
+export function getIconoParaCampoKey(key: string): LucideIcon {
+    return ICONO_POR_CAMPO_KEY[key] ?? FALLBACK_ICONO_CAMPO;
+}

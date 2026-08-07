@@ -37,8 +37,13 @@ export function resolverFechaSub(input: {
     if (esF2 && input.fecha_fin) {
         return formatRangoNochesPartes(input.fecha_preferida, input.fecha_fin).sub || null;
     }
-    if (input.duracion_horas) {
+    if (input.duracion_horas != null) {
         // V4b legacy puntual con horas — sin sub.
+        // Sweep #2 M8 (2026-08-07): `!= null` en vez de truthy check — evita
+        // el falsy-0 trap (Auditoría #2 finding M8). Si un legacy tuviera
+        // `duracion_horas === 0` con `fecha_fin` real, el `if (duracion_horas)`
+        // caía al siguiente branch V2/V4a y devolvía "N noches" — sub
+        // incorrecto para un puntual. Semáforo consistente con `esF2` arriba.
         return null;
     }
     if (input.fecha_fin) {

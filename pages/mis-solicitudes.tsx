@@ -24,6 +24,7 @@ import { MODALIDAD_LABELS, type ModalidadCuidado } from '../lib/categoriaTempora
 import { formatDireccionLinea } from '../lib/formatDireccion';
 import { estadoDerivado } from '../lib/estadoDerivado';
 import { puedeCancelarPorVentana } from '../lib/puedeCancelarPorVentana';
+import { getProxyImageUrl } from '../lib/utils';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
 
 type LoadState =
@@ -288,6 +289,18 @@ export default function MisSolicitudesPage() {
     ) => {
         setVolverASolicitarLoadingId(agendamientoId);
         try {
+            // Sweep #2 M5 (2026-08-07 — Auditoría #2 finding): session check
+            // ANTES del UPDATE. Antes: sesión expirada → RLS rechaza UPDATE →
+            // toast genérico "No pudimos preparar el reintento: JWT expired",
+            // usuario queda stuck sin recovery path. Ahora se redirige a
+            // /login con reason=expired + redirect back — mismo patrón que
+            // handleConfirmCancel F2 (líneas 214-217 de este archivo).
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                toast.error('Tu sesión expiró. Te llevamos al login.');
+                router.push(`/login?reason=expired&redirect=${encodeURIComponent(router.asPath)}`);
+                return;
+            }
             const { data, error } = await supabase
                 .from('agendamientos')
                 .update({
@@ -815,7 +828,11 @@ function SolicitudCard({
                 <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
                     {solicitud.mascota?.foto_mascota ? (
                         <img
-                            src={solicitud.mascota.foto_mascota}
+                            /* Sweep #2 M7 (2026-08-07): usar getProxyImageUrl para bypass
+                               AdBlock (regla canónica CLAUDE.md > Convenciones). Antes
+                               el src iba directo a *.supabase.co → users con
+                               uBlock/Brave veían imagen rota sin fallback PawPrint. */
+                            src={getProxyImageUrl(solicitud.mascota.foto_mascota)}
                             alt=""
                             className="w-5 h-5 rounded-full object-cover shrink-0"
                         />

@@ -34,8 +34,20 @@ export function useModalDialog<T extends HTMLElement>(opts: {
     onClose: () => void;
     blockClose?: boolean;   // true durante submit — Escape queda no-op
     containerRef: React.RefObject<T | null>;
+    /**
+     * Sweep #2 M1 (2026-08-07 — Auditoría #2 finding). Ref al elemento que
+     * debe recibir focus al abrir el dialog. Si se omite, cae al primer
+     * tabbable del container (comportamiento previo). Los 3 modales críticos
+     * de conversión / decisión (ExampleCTAModal, VerificationGateModal,
+     * SitterDetailModal) DEBEN pasarlo apuntando al primary CTA — antes de
+     * la migración a este hook, cada uno usaba refs explícitos que la
+     * migración eliminó, con la regresión de que el focus caía al close-X
+     * (primer tabbable DOM). Screen readers anunciaban "Cerrar" al abrir;
+     * keyboard user Enter DISMISS el modal en vez de convertir.
+     */
+    initialFocusRef?: React.RefObject<HTMLElement | null>;
 }) {
-    const { isOpen, onClose, blockClose = false, containerRef } = opts;
+    const { isOpen, onClose, blockClose = false, containerRef, initialFocusRef } = opts;
     // onClose y blockClose cambian entre renders. Guardamos en refs para que
     // el listener siempre lea el valor actual sin re-registrarse (evita
     // remontar el efecto en cada render y perder el trap+foco).
@@ -53,8 +65,16 @@ export function useModalDialog<T extends HTMLElement>(opts: {
 
         previousFocusRef.current = document.activeElement as HTMLElement;
 
-        // Foco inicial al primer elemento tabeable (o al container).
+        // Foco inicial. Prioridad: initialFocusRef explícito > primer tabbable
+        // del container > container mismo (tabindex=-1). Sweep #2 M1: los
+        // modales de conversión / decisión pasan initialFocusRef al primary
+        // CTA para no perder la señal de intent al usuario keyboard/AT.
         const focusInitial = () => {
+            const explicitTarget = initialFocusRef?.current;
+            if (explicitTarget && typeof explicitTarget.focus === 'function') {
+                explicitTarget.focus();
+                return;
+            }
             const focusables = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
             if (focusables.length > 0) {
                 focusables[0].focus();
@@ -107,5 +127,5 @@ export function useModalDialog<T extends HTMLElement>(opts: {
             document.removeEventListener('keydown', handleKey);
             previousFocusRef.current?.focus?.();
         };
-    }, [isOpen, containerRef]);
+    }, [isOpen, containerRef, initialFocusRef]);
 }

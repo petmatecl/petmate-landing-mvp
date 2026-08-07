@@ -65,8 +65,12 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                 className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative"
             >
                 <button
+                    /* Sweep #2 M2 (2026-08-07): disabled durante loading.
+                       useModalDialog ya bloquea Escape con blockClose:loading
+                       pero el X no estaba gateado — inconsistencia. */
                     onClick={handleClose}
-                    className="absolute top-2 right-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+                    disabled={loading}
+                    className="absolute top-2 right-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     aria-label="Cerrar"
                 >
                     <X size={20} />

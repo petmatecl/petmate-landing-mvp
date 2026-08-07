@@ -106,13 +106,20 @@ function ExplorarPrelaunch() {
         }
     };
 
+    // Sweep #2 M12 (2026-08-07): agregadas Etología (producto-1 PR2) y
+    // Retratos (sprint anterior). Tema temático PO — mismo espíritu que
+    // el fix M11 en Footer: los servicios recién lanzados también deben
+    // aparecer en el waitlist ExplorarPrelaunch para captar señal de
+    // demanda desde tutores en comunas sin proveedores todavía.
     const CATS = [
         { slug: 'cuidado', label: 'Cuidado y Hospedaje' },
         { slug: 'guarderia', label: 'Guardería diurna' },
         { slug: 'paseos', label: 'Paseo de perros' },
         { slug: 'peluqueria', label: 'Peluquería' },
         { slug: 'adiestramiento', label: 'Adiestramiento' },
+        { slug: 'etologia', label: 'Etología y conducta' },
         { slug: 'veterinario', label: 'Veterinario a domicilio' },
+        { slug: 'retratos', label: 'Retratos de mascotas' },
         { slug: 'traslado', label: 'Traslado' },
     ];
 

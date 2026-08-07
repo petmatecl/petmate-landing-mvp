@@ -23,11 +23,14 @@ const ACTION_TEXT: Record<ExampleAction, string> = {
 
 export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAModalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const primaryCTARef = useRef<HTMLAnchorElement>(null);
 
-    // ZB1 sprint ZONAB-1: migrado a useModalDialog. Este componente era el
-    // patrón original de sweep #2; el hook fue extraído después. Ahora
-    // consume el hook igual que los demás modales para consolidar el patrón.
-    useModalDialog({ isOpen, onClose, containerRef });
+    // Sweep #2 M1 (2026-08-07): initialFocusRef restaurado al primary CTA
+    // ("Registrarme como tutor"). Antes de M1, el hook focuseaba el primer
+    // tabbable (close-X) en vez del primary CTA — regresión de la migración
+    // a useModalDialog. Screen readers anunciaban "Cerrar" al abrir;
+    // keyboard user Enter dismiss en vez de convertir signup.
+    useModalDialog({ isOpen, onClose, containerRef, initialFocusRef: primaryCTARef });
 
     if (!isOpen) return null;
 
@@ -74,6 +77,7 @@ export default function ExampleCTAModal({ isOpen, onClose, action }: ExampleCTAM
                     {/* CTAs apilados */}
                     <div className="px-5 py-4 border-t border-slate-100 flex flex-col gap-2">
                         <Link
+                            ref={primaryCTARef}
                             href="/register?rol=usuario"
                             className="text-center px-4 py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
                         >

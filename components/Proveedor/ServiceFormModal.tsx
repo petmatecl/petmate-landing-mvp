@@ -1313,10 +1313,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     // no hace nada si isOpen es false.
     const titleId = useId();
     const dialogContainerRef = useRef<HTMLDivElement>(null);
+    // Sweep #2 M3 (2026-08-07): agregado `uploadingFotos` al blockClose.
+    // Antes solo protegía `loading || fetching`; Escape mid-upload cerraba
+    // el modal, el upload seguía en background (fire-and-forget) pero el
+    // user perdía el `fotos` state sin confirmación. Ahora Escape bloqueado
+    // durante los 3 estados críticos.
     useModalDialog({
         isOpen,
         onClose,
-        blockClose: loading || fetching,
+        blockClose: loading || fetching || uploadingFotos,
         containerRef: dialogContainerRef,
     });
 

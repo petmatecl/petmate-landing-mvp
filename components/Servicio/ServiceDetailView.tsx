@@ -20,7 +20,7 @@ import ReviewList from '../Service/ReviewList';
 import PreguntasSection from '../Service/PreguntasSection';
 import ServiceCard, { ServiceResult } from '../Explore/ServiceCard';
 import Breadcrumb from '../Shared/Breadcrumb';
-import { CAMPOS_POR_CATEGORIA, getCampoMeta, formatValorCampo, getTopCamposPorCategoria } from '../../lib/camposPorCategoria';
+import { CAMPOS_POR_CATEGORIA, getCampoMeta, formatValorCampo, getTopCamposPorCategoria, getIconoParaCampoKey } from '../../lib/camposPorCategoria';
 import { MODALIDAD_LABELS, esModalidadValida, type ModalidadCuidado } from '../../lib/categoriaTemporal';
 import {
     Star,
@@ -1091,16 +1091,22 @@ export default function ServiceDetailView({
 
                             // Render helper para una card de campo — mismo look que
                             // el grid anterior. Se reusa para top y para resto.
+                            // Sweep #2 Ítem 0 (2026-08-07 — pedido PO 2026-07-31):
+                            // reemplazado el SVG genérico `···` por ícono Lucide
+                            // semántico por campo (mapa en lib/camposPorCategoria.ts
+                            // > ICONO_POR_CAMPO_KEY). Boolean sigue con checkmark
+                            // accent (verdad indicada = ícono de check).
                             const renderCampoCard = (campo: typeof visibles[number]) => {
                                 const val = service.detalles?.[campo.key];
                                 const isBoolean = campo.tipo === 'boolean' || typeof val === 'boolean';
                                 const displayValue = isBoolean ? null : formatValorCampo(campo, val);
+                                const IconoCampo = getIconoParaCampoKey(campo.key);
                                 return (
                                     <div key={campo.key} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
                                         {isBoolean ? (
                                             <svg className="w-4 h-4 text-accent-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
                                         ) : (
-                                            <svg className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
+                                            <IconoCampo className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" aria-hidden="true" />
                                         )}
                                         <div className="min-w-0">
                                             <p className="text-xs text-slate-500 font-medium">{campo.label}</p>

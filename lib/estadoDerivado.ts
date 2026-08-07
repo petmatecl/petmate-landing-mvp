@@ -119,6 +119,16 @@ export function estadoDerivado(r: ReservaParaDerivar, nowMs: number = Date.now()
     // si la fecha del servicio ya llegó sin que el proveedor confirmara,
     // la solicitud caducó. Usa fecha_preferida (no fin efectivo) porque
     // el tutor solicitó "para esa fecha"; no confirmar antes = vencer.
+    //
+    // Decisión PO 2026-08-07 (Auditoría #2 finding M6, opción C — reafirmar
+    // comportamiento actual): para F2 (`fecha_preferida = chileMidnightUtc(ymd)`)
+    // esto significa que la card salta a "Vencida" al 00:00 del día del check-in,
+    // horas antes de la hora efectiva de check-in del servicio (típicamente 14:00).
+    // Rationale del PO: "vencida" es una SEÑAL AL TUTOR para tomar acción
+    // (volver a solicitar), no una restricción absoluta. Marcar temprano en el
+    // día evita que el tutor espere hasta las 2pm sin recibir señal. El endpoint
+    // sigue siendo authoritative para la lógica de cancelación/edit — esta
+    // función es solo feedback UX.
     if (r.estado === 'pendiente') {
         if (!r.fecha_preferida) return 'pendiente'; // sin fecha no puede vencer
         const inicioMs = new Date(r.fecha_preferida).getTime();
