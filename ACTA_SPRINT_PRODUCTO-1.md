@@ -202,6 +202,59 @@ proveedor test con foto de carnet, RUT verificado, etc.).
   spec.
 - Demo seed de servicio etología (proveedor + servicio ejemplo). Opcional.
 
+## Anexo P5 — Fase B del desfile (merge `producto-1 → staging` ejecutada 2026-08-07)
+
+**SHA pre-merge staging**: `c342b74` (post-N15 Fase 8 cerrada).
+**SHA post-merge staging**: `f971ee3` (merge commit no-FF).
+**Ejecutor**: Claude, guard P3 verificado (`git branch --show-current | grep -qx staging`).
+
+**FF-check pre-merge**:
+```
+$ git log --oneline producto-1..staging
+c342b74 docs(next15): acta Fases 6-7 CERRADAS + Fase 8 monitor 48h arrancada
+f72656b docs: cierre Fase 5 Recordatorios + casilla 0.1 N15 + infra Vercel Pro
+7ed0860 docs(recordatorios): Fase 5 obs-1 (P5) — corrida N+0 limpia jueves 31-jul
+```
+3 commits en staging que producto-1 no tenía → **no-FF merge confirmado**.
+
+**Merge**: cero conflictos. Aportó 15 archivos, 1263 insertions / 39 deletions:
+- `ACTA_SPRINT_PRODUCTO-1.md` (este archivo).
+- `e2e/setup/guard.ts` + `guard.test.ts` (PR0 deny-list `assertBaseUrlIsNotProd`).
+- `e2e/specs/producto-1/s1-badge-reserva-online.spec.ts` + `s2-cross-links-etologia.spec.ts`.
+- `lib/camposPorCategoria.ts` + `lib/serviceMapper.ts` (mods).
+- 3 migrations SQL (buscar_servicios agenda + fix + categoría etología).
+- `pages/explorar.tsx` (mods).
+- `playwright.config.ts` refactor whitelist → deny-list.
+
+**Build P1 local exit 0** post-merge (regla vigente para .ts/.tsx). Rutas nuevas /modificadas compiladas OK.
+
+**Verificación migrations en Supabase staging** (MCP read-only):
+```sql
+SELECT
+  (SELECT COUNT(*) FROM pg_proc WHERE proname = 'buscar_servicios') AS rpc_existe,
+  (SELECT COUNT(*) FROM categorias_servicio WHERE slug = 'etologia') AS etologia_existe;
+→ [{"rpc_existe":1,"etologia_existe":1}]
+```
+
+**Preview Vercel staging Ready**: primer poll (attempt 1, code 200).
+
+**Suite full contra staging** (SHA `f971ee3`):
+```
+Running 45 tests using 8 workers
+...
+42 passed (50.7s)
+3 flaky
+  [chromium] › producto-1/s1-badge-reserva-online.spec.ts:74 (retry verde)
+  [chromium] › producto-1/s2-cross-links-etologia.spec.ts:25 (retry verde)
+  [chromium] › producto-1/s2-cross-links-etologia.spec.ts:43 (retry verde)
+EXIT=0
+```
+Los 3 flaky son consistentes con la deuda light ya anotada + nota del mini-checklist "flakiness ambiental preview cold-start". Todos verdes en retry (single retry local por config). **Sin bloqueos** para Fase C.
+
+**Cleanup MCP staging post-suite**: `0 [TEST-%` + `0 e2e-%` verificado.
+
+**FASE B CERRADA — 2026-08-07**. Siguiente: Fase C (merge `zonab-1 → staging`).
+
 ## Anexo — commits del sprint (rama `producto-1`)
 
 ```
