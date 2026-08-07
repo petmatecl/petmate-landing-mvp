@@ -577,6 +577,24 @@ export default function ServiceDetailView({
                 <title>{service.titulo} - {proveedor.nombre_publico || proveedor.nombre} | Pawnecta</title>
                 <meta name="description" content={service.descripcion?.substring(0, 160)} />
                 <link rel="canonical" href={`https://www.pawnecta.com/servicio/${service.id}`} />
+                {/* Sprint PERF-1 Bucket A (2026-08-07) — H1 del baseline:
+                    LCP ficha cold 2420ms con Load delay 2192ms dominante.
+                    Fix: preload de la primera foto de la galería (imagen que
+                    gana LCP en el hero) — el browser la descubre desde el
+                    HTML inicial sin esperar al JS. Estimated saving ~1-2s
+                    LCP cold. fetchpriority=high refuerza la prioridad de
+                    descarga. Solo emitimos el preload cuando fotos[0] existe
+                    (si no hay fotos, el hero cae al SVG placeholder y no hay
+                    imagen que preloadear). */}
+                {service.fotos?.[0] && (
+                    <link
+                        rel="preload"
+                        as="image"
+                        href={service.fotos[0]}
+                        // @ts-expect-error React 18 acepta fetchpriority en <link> aunque el typing no lo reconoce todavía.
+                        fetchpriority="high"
+                    />
+                )}
                 <meta property="og:title" content={`${service.titulo} | Pawnecta`} />
                 <meta property="og:description" content={service.descripcion?.substring(0, 160)} />
                 <meta property="og:type" content="website" />
@@ -684,6 +702,15 @@ export default function ServiceDetailView({
                                         alt={service.fotos?.length > 1 ? `Foto ${fotoActiva + 1} de ${service.fotos.length} — ${service.titulo}` : service.titulo}
                                         className="w-full h-full object-cover transition-opacity duration-200"
                                         onError={() => setImgError(true)}
+                                        /* Sprint PERF-1 Bucket A: fetchpriority="high"
+                                           refuerza la prioridad del recurso LCP. Combinado
+                                           con el preload en <Head>, elimina el Load delay
+                                           de ~2s que el H1 del baseline detectó. Solo se
+                                           aplica cuando el user está viendo la foto 0
+                                           (fotoActiva === 0); las fotos posteriores del
+                                           carousel no son LCP y usan prioridad default
+                                           (auto). */
+                                        {...(fotoActiva === 0 ? { fetchPriority: 'high' as const } : {})}
                                     />
                                 )}
 

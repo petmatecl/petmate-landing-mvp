@@ -402,16 +402,27 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
           </div>
 
           {/* Imagen */}
+          {/* Sprint PERF-1 Bucket C (2026-08-07) — H5 baseline: home
+              wasted image bytes 835 KB. El container es max-w-lg (~512px)
+              con h-64 mobile / h-[400px] lg. Servir w=900 era ~2× el
+              tamaño necesario. Fix: w=640 (nítido incluso en retina 2×
+              del container real) + q=75 (calidad indistinguible vs q=80
+              a este tamaño). Reduce ~40-50% del peso del hero.
+              fetchpriority="high" refuerza LCP prioridad (H5 no lo tenía
+              — Bucket A del sprint lo trae por default en el ficha; en
+              el home también aplica). */}
           <div className="flex-1 w-full max-w-lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=900&auto=format&fit=crop&q=80"
+              src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=640&auto=format&fit=crop&q=75"
               alt="Mascota con su dueña"
               className="w-full h-64 lg:h-[400px] object-cover rounded-3xl shadow-xl"
+              // @ts-expect-error React 18 fetchpriority en <img>: prop existe en el DOM.
+              fetchpriority="high"
               onError={(e) => {
                 const HERO_FALLBACKS = [
-                  "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&auto=format&fit=crop&q=80",
-                  "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=900&auto=format&fit=crop&q=80",
+                  "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=640&auto=format&fit=crop&q=75",
+                  "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=640&auto=format&fit=crop&q=75",
                 ];
                 const img = e.currentTarget as HTMLImageElement;
                 const tried = Number(img.dataset.fallbackIndex ?? 0);
