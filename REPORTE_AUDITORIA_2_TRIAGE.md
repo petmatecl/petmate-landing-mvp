@@ -192,6 +192,86 @@ Alternativa si urge pre-Fase E: (a) deshabilitar Deployment Protection para stag
 
 ---
 
+## Anexo P5 — SWEEP #2 CERRADO (viernes 2026-08-07 tarde-noche)
+
+**Autorización PO**: GO explícito del arranque post-Fase E + corrección de proceso (nueva sección `## PEDIDOS DIRECTOS DEL PO` al tope del BACKLOG con íconos como PRIMER ítem del sweep).
+**Rama**: `sweep-2` forkeada de `main d4290f3`.
+**SHA final sweep-2**: `917e4eb` (16 archivos, +424/-18).
+**Merge a main**: fast-forward exitoso (`d4290f3 → 917e4eb`).
+**Deploy prod aterrizado**: attempt 4 del poll (~65s post-push), verificado por bundle `_app-dc4bdf02...` + `categoria=etologia` en footer SSG.
+
+### Alcance final ejecutado (12 items)
+
+**ÍTEM 0 (PO 2026-07-31) — Íconos específicos por campo** ✅
+- Nuevo record `ICONO_POR_CAMPO_KEY` en `lib/camposPorCategoria.ts` con mapa Lucide completo (24+ keys mapeadas): Clock/PawPrint/MapPin/Trees/Users/Video/Camera/Car/Award/Stethoscope/Home/Package/Palette/Target/Maximize2/Repeat/Shield/Wrench/Briefcase/Receipt/FileText/Layers/Info/ImageIcon.
+- Nuevo helper `getIconoParaCampoKey(key)` con fallback `MoreHorizontal`.
+- `renderCampoCard` en `ServiceDetailView.tsx:1094` consume el ícono en vez del SVG genérico `···`.
+- **Verificación runtime prod**: `curl https://www.pawnecta.com/servicio/c1000001-...-003` → **0 SVG placeholder `···` + 24 lucide icons render** (paw-print, map-pin, sparkles y demás semánticos coherentes con el mapa). Criterio de cierre cumplido.
+
+**ÍTEM 0-BIS (PO 2026-08-07) — REPORTE_EMAIL_CONTACTO.md** ✅
+- Diagnóstico grep completo entregado: 4 casillas `@pawnecta.com` referenciadas (contacto/soporte/notificaciones/hola-asumido), ninguna funcional. Canal real `petmatecl@gmail.com` no aparece en ninguna superficie.
+- Fix propuesto: Cloudflare Email Routing gratis con 4 forwards + catch-all → `petmatecl@gmail.com`. Paso a paso ejecutable por Aldo (15 min).
+- Cero código de mi parte; setup infra por Aldo cuando decida ejecutarlo.
+
+**M6 F2 pendiente semántica** ✅ (call PO)
+- PO decidió **opción (C)** — reafirmar comportamiento actual. "Vencida" al midnight del check-in day es SEÑAL AL TUTOR (volver a solicitar), no restricción absoluta.
+- Documentado en `lib/estadoDerivado.ts` como comentario canónico con el rationale del PO.
+
+**M1 focus regresión 3 modales** ✅
+- Nuevo `opts.initialFocusRef` en `lib/useModalDialog.ts` (opcional; cae al comportamiento previo si se omite).
+- Aplicado en `ExampleCTAModal` (primary CTA "Registrarme como tutor") + `VerificationGateModal` (primary "Verificar ahora"/"Ir a mi perfil"/"Entendido") + `SitterDetailModal` (primary "Aprobar/Revocar" admin).
+- Screen readers anuncian primary CTA al abrir; keyboard user Enter convierte/dispara acción en vez de dismiss.
+
+**M2 ReviewModal + ReportModal X sin disabled durante submit** ✅
+- `ReviewModal.tsx:111`: `disabled={isSubmitting}` + `aria-label="Cerrar"` + styles disabled.
+- `ReportModal.tsx:67`: `disabled={loading}` — consistencia con `blockClose:loading` que ya bloqueaba Escape.
+
+**M3 ServiceFormModal blockClose omite uploadingFotos** ✅
+- `SFM:1319`: `blockClose: loading || fetching || uploadingFotos`. Escape mid-upload ya no cierra el modal + tira fotos state.
+
+**M5 handleVolverASolicitar sin session check** ✅
+- `mis-solicitudes.tsx:290`: session check ANTES del UPDATE. Sesión expirada → redirect `/login?reason=expired&redirect=<back>`. Mismo patrón que `handleConfirmCancel` F2 (líneas 214-217).
+
+**M7 img sin getProxyImageUrl** ✅ (viola CLAUDE.md)
+- `mis-solicitudes.tsx:816`: chip mascota `src={getProxyImageUrl(...)}`. Users con uBlock/Brave ya no ven imagen rota.
+
+**M8 duracion_horas falsy-0 en resolvers.ts** ✅
+- `if (input.duracion_horas != null)` en vez de truthy check. Semáforo consistente con `esF2` arriba en el mismo file.
+
+**M9 fallback "chat con tutor" copy en notify-proveedor-cancel** ✅
+- Cambiado a `"Sin dirección registrada"`. Reserva CANCELADA → "se coordina por chat" es futuro imposible; además email va al TUTOR (leer "chat con Camila" es su propio nombre = nonsense).
+
+**M11 UX-7 Footer con etología/retratos** ✅ (temática PO — servicios inexplotados llegando al footer)
+- `components/Footer.tsx` columna Servicios: agregadas Etología, Retratos, Cuidado en casa del tutor. Preservado Hospedaje para backwards-compat.
+- **Verificación runtime prod**: `curl https://www.pawnecta.com/faq` → los 4 nuevos entries visibles en SSG (etologia:1, retratos:1, cuidado:1, hospedaje:1).
+
+**M12 CATS ExplorarPrelaunch omite etologia** ✅
+- `pages/explorar.tsx:109` CATS: agregados `etologia` + `retratos`. Waitlist captura señal de demanda para categorías nuevas.
+
+### Build P1 + Suite
+
+- **Build local `npm run build`** exit 0 con warnings de linter aceptables (patrón habitual).
+- **Suite corrida 1**: 60 passed + 1 failed (known-flaky `producto-1/s1-badge-reserva-online:74`) + 2 flaky setups (retry verde). EXIT=1.
+- **Aislado del known-flaky**: 2/2 verde en 5.2s.
+- **Suite corrida 2 confirmatoria**: **63 passed exit 0 en 35.5s, CERO flaky**.
+
+### Cleanup MCP staging
+
+`0 [TEST-%` + `0 e2e-%` verificado post-suite ✅.
+
+### Smokes prod runtime post-deploy
+
+- **Ítem 0**: `/servicio/c1000001-...-003` → 0 SVG placeholder `···` + 24 lucide icons render ✅.
+- **M11**: `/faq` footer con etologia/retratos/cuidado/hospedaje ✅.
+- **No-regresión PL1**: `/servicio/{uuid-inexistente}` → HTTP **404** ✅ (Sweep #1 intacto).
+
+### Estado tras Sweep #2
+
+- **main HEAD**: `917e4eb` — Sweep #2 en producción.
+- Todos los pedidos directos del PO detectables como pendientes: **cerrados** (íconos → aterrizado en prod; email de contacto → reporte entregado, setup Cloudflare pelota en cancha de Aldo).
+- 10 mediums del triage de Auditoría #2 quirúrgicamente cerrados.
+- **Deuda restante del triage**: los ~14 LOW/cleanup + `M4 admin 4 modales useModalDialog` (deep refactor 30m) + `M10 cron consume resolvers` (deep refactor 1h) + los 8 perf/simplification cleanup mis-solicitudes/sitemap. Todos para **Sweep #3** cuando el PO lo gatille.
+
 ## Anexo P5 — SWEEP #1 CERRADO (viernes 2026-08-07)
 
 **Autorización PO**: GO explícito del arranque post-triage con las 5 notas direccionales (a-e).
